@@ -1,0 +1,22 @@
+Graphics Color LCD driver library C/C++ for S6D0129
+
+gclcd: GRAPHIC COLOR DOT MATRIX LCD DRIVER LIBRARY Revision 6.5
+gdispcfg.h version number: 1.7
+ghwinit.c version number: 1.16
+
+Внесены изменения:
+- исправление бага, приводящего к стиранию лишней строки пикселей при автоматической перемотке viewport'а
+
+diff --git a/ghwgscrl.c b/ghwgscrl.c
+index b53cf0c..f9bbb50 100644
+--- a/ghwgscrl.c
++++ b/ghwgscrl.c
+@@ -106,7 +106,7 @@ void ghw_gscroll(GXT ltx, GYT lty, GXT rbx, GYT rby, GYT lines, SGUINT pattern)
+    for (; lty <= rby; lty++, ys++)
+       {
+       /* Loop rows */
+-      if (lty >= ylim)
++      if (lty > ylim)
+          {
+          ghw_fill(ltx, lty, rbx, rby, pattern);   /* clear remaining area */
+          return;

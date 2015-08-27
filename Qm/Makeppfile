@@ -1,0 +1,38 @@
+#******************************************************************************
+# @file    Makeppfile
+# @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
+# @date    01.09.2015
+# @brief   Make-файл сборки Qm
+#
+#******************************************************************************
+
+makepp_percent_subdirs=1
+include misc/target_build_header.mk
+
+ifeq ($(CORE_PLATFORM),bmfreertos)
+  DEFINES += QMCORE_PLATFORM_BMFREERTOS
+else
+  $(error "No CORE_PLATFORM specified")
+endif
+
+QMCORE_INCLUDEPATH += qmcore/include
+QMCORE_SOURCES += \
+	qmcore/src/qm_core_$(CORE_PLATFORM).cpp \
+	qmcore/src/qmdebug.cpp \
+	qmcore/src/qmobject.cpp \
+	qmcore/src/qmobject_$(CORE_PLATFORM).cpp \
+	qmcore/src/qmthread_$(CORE_PLATFORM).cpp \
+	qmcore/src/qmmutex_$(CORE_PLATFORM).cpp \
+	qmcore/src/qmmutexlocker.cpp \
+	qmcore/src/qmeventdispatcher_$(CORE_PLATFORM).cpp \
+	qmcore/src/qmeventloop.cpp \
+	qmcore/src/qmtimer.cpp \
+	qmcore/src/qmtimer_$(CORE_PLATFORM).cpp \
+	qmcore/src/qmapplication.cpp \
+	qmcore/src/qmapplication_$(CORE_PLATFORM).cpp
+$(sources_to_objects $(QMCORE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH)
+
+INCLUDEPATH = $(QMCORE_INCLUDEPATH)
+SOURCES_system = $(QMCORE_SOURCES)
+
+include misc/target_build_footer.mk

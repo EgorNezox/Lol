@@ -1,0 +1,19 @@
+#******************************************************************************
+# @file    Makeppfile
+# @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
+# @date    26.08.2015
+# @brief   Make-файл сборки STM32F2xx Standard Periphiral Library
+#
+#******************************************************************************
+
+makepp_percent_subdirs=1
+include misc/target_build_header.mk
+
+INCLUDEPATH_system += \
+	CMSIS/Include \
+	CMSIS/Device/ST/STM32F2xx/Include \
+	STM32F2xx_StdPeriph_Driver/inc
+SOURCES_system += \
+	$(wildcard **/*.c)
+
+include misc/target_build_footer.mk

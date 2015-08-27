@@ -1,0 +1,3 @@
+FreeRTOSV8.2.2 (SourceForge.net project files)
+	/Source/portable/GCC/ARM_CM3 -> .
+	/Source/portable/MemMang/heap_4.c -> heap_4.c

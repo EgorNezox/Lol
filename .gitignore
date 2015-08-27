@@ -1,0 +1,6 @@
+.makepp
+/build*
+/.settings
+/.cproject
+/.project
+*.pro.user

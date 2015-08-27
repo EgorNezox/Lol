@@ -1,0 +1,38 @@
+#******************************************************************************
+# @file    Makeppfile
+# @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
+# @date    03.09.2015
+# @brief   Make-файл сборки субпроекта для платформы на базе МК STM32F2xx
+#
+#******************************************************************************
+
+makepp_percent_subdirs=1
+include misc/target_build_header.mk
+
+# CMSIS and STM32F2xx peripherals drivers
+DEFINES += STM32F2XX USE_STDPERIPH_DRIVER
+
+# FreeRTOS ARM Cortex-M3 port
+SOURCES_system += \
+	$(wildcard port_freertos_gcc_arm_cm3/*.c)
+INCLUDEPATH_system += \
+	port_freertos_gcc_arm_cm3
+
+# QmCore port for bare-metal freertos
+INCLUDEPATH_system += \
+	port_qmcore_bmfreertos
+
+# newlib system integration
+SOURCES_system += \
+	$(wildcard port_newlib_freertos/*.c)
+LDFLAGS_system += --specs=nosys.specs # линковать с CRT, дефолтными библиотеками и дефолтной newlib без системы
+
+# HAL, system and hardware drivers
+SOURCES_system += \
+	$(wildcard system_hardware/**/*.c) \
+	startup_stm32f2xx_freertos.s
+INCLUDEPATH_system += \
+	cfg_root \
+	HAL
+
+include misc/target_build_footer.mk

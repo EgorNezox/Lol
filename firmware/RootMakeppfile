@@ -1,0 +1,36 @@
+#******************************************************************************
+# @file    RootMakeppfile
+# @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
+# @date    26.08.2015
+# @brief   Корневой make-файл сборки программы firmware под платформу STM32F2xx
+#
+#******************************************************************************
+
+TARGET_NAME = $(PROJECT_NAME)_firmware
+
+makepp_percent_subdirs=1
+include misc/target_build_subproject_header.mk
+
+# функциональные опции сборки
+DEFINES += BUILD_OPTION_ENABLE_DISPLAY_BUFFER=1
+
+# подключение сборки сторонних компонентов
+load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/3rdparty/$( FreeRTOS STM32F2xx_StdPeriph_Lib Ramtex_Graphic_Lib libsigc++ )
+
+# подключение сборки платформы
+load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/platform/$( stm32f2-common $(BUILD_PORT) )
+LDSCRIPTS += ../system/platform/$(BUILD_PORT)/stm32_memory.ld
+
+# подключение сборки Qm
+load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." CORE_PLATFORM=bmfreertos ../Qm
+
+# подключение сборки прошивки
+SOURCES += \
+	firmware_main.cpp
+SOURCES_system += \
+	system_stm32f2/hardware_startup.c \
+	system_stm32f2/system_stm32f2xx__$(BUILD_PORT).c
+INCLUDEPATH_system += system_stm32f2
+LDSCRIPTS += system_stm32f2/stm32_flash_and_extsram.ld
+
+include misc/target_build_subproject_footer.mk

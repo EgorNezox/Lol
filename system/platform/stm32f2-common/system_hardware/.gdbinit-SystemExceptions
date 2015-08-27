@@ -1,0 +1,25 @@
+#################################################################################
+# GDB-скрипт поддержки отладки системных исключений ARM Cortex-M
+#################################################################################
+
+set $rollback_exception_launched = 0
+
+# Команда rollback_exception
+# Выполнение этой команды сразу же после того, как программа встала
+# на программном брикпойнте в обработчике системного исключения CPUExceptionHandler(),
+# возвращает к месту генерации исключения, если это возможно.
+# (Команда привязана к реализации обработчика исключений, см. исходник файла с обработчиком)
+define rollback_exception
+ stepi
+ tbreak *(exc_stacked_regs->pc)
+ set $rollback_exception_launched = 1
+ set $PRIMASK = 1
+ continue
+end
+
+define hook-stop
+ if ($rollback_exception_launched == 1)
+  set $rollback_exception_launched = 0
+  set $PRIMASK = 0
+ end
+end
