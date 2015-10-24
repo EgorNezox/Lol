@@ -13,12 +13,9 @@
 *********************************************************************/
 
 #ifndef GHW_NOHDW
-/*#include <sgio.h>*/      /* Portable I/O functions + hardware port def */
+#include "system_hw_memory.h"	/* !!! target-specific !!! */
 #endif
 #include <gdisphw.h>
-
-
-
 
 #ifdef GHW_SINGLE_CHIP
 void sim_reset( void );
@@ -39,13 +36,7 @@ void ghw_io_init(void)
    #ifdef GHW_SINGLE_CHIP
    sim_reset();  /* Initiate LCD bus simulation ports */
    #endif
-
-   /* Insert required targer specific code here, if any */
-   // IMPLEMENTATION: 	System scope initialization is done externally.
-   //					Controller-local initialization: NONE.
-
-   /* Set LCD reset line /RST active low   (if /RST is connected to a port bit) */
-   /* Set LCD reset line /RST passive high (if /RST is connected to a port bit) */
+   stm32f2_LCD_init(); /* !!! target-specific !!! */
    #endif
    }
 
@@ -58,7 +49,7 @@ void ghw_io_init(void)
 void ghw_io_exit(void)
    {
    #ifndef GHW_NOHDW
-   /* Insert required code here, if any */
+	/* !!! target-specific !!! */
    #endif
    }
 

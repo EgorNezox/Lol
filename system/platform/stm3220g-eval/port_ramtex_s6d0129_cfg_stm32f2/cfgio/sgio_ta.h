@@ -21,30 +21,22 @@
  *
  **********************************************************************/
 
-#if defined(PORT__TARGET_DEVICE)
-/* Used only in GHW_BUS8 mode */
-	#define GHWWR  (* (SGUCHAR volatile *) ( 0x60000001 ))
-	#define GHWRD  (* (SGUCHAR volatile *) ( 0x60000001 ))
-	#define GHWSTA (* (SGUCHAR volatile *) ( 0x60000000 ))
-	#define GHWCMD (* (SGUCHAR volatile *) ( 0x60000000 ))
-#elif defined(PORT_DEVICE_MODEL)
-	#define GHWWR  (* (SGUCHAR volatile *) ( 0x68000001 ))
-	#define GHWRD  (* (SGUCHAR volatile *) ( 0x68000001 ))
-	#define GHWSTA (* (SGUCHAR volatile *) ( 0x68000000 ))
-	#define GHWCMD (* (SGUCHAR volatile *) ( 0x68000000 ))
-#endif /* PORT__* */
+#define LCD_IO_BASE_ADDRESS	0x68000000
 
+/* Used only in GHW_BUS8 mode */
+#define GHWWR  (* (SGUCHAR volatile *) ( LCD_IO_BASE_ADDRESS | 0x1 ))
+#define GHWRD  (* (SGUCHAR volatile *) ( LCD_IO_BASE_ADDRESS | 0x1 ))
+#define GHWSTA (* (SGUCHAR volatile *) ( LCD_IO_BASE_ADDRESS ))
+#define GHWCMD (* (SGUCHAR volatile *) ( LCD_IO_BASE_ADDRESS ))
 
 /* Used only in GHW_BUS16 mode */
-#define GHWWRW  (* (SGUINT volatile *) ( 0x68000002 ))
-#define GHWRDW  (* (SGUINT volatile *) ( 0x68000002 ))
-#define GHWSTAW (* (SGUINT volatile *) ( 0x68000000 ))
-#define GHWCMDW (* (SGUINT volatile *) ( 0x68000000 ))
+#define GHWWRW  (* (SGUINT volatile *) ( LCD_IO_BASE_ADDRESS | 0x2 ))
+#define GHWRDW  (* (SGUINT volatile *) ( LCD_IO_BASE_ADDRESS | 0x2 ))
+#define GHWSTAW (* (SGUINT volatile *) ( LCD_IO_BASE_ADDRESS ))
+#define GHWCMDW (* (SGUINT volatile *) ( LCD_IO_BASE_ADDRESS ))
 
 /* Used only in GHW_BUS32 mode */
-#define GHWWRDW  (* (SGULONG volatile *) ( 0x68000004 ))
-#define GHWRDDW  (* (SGULONG volatile *) ( 0x68000004 ))
-#define GHWSTADW (* (SGULONG volatile *) ( 0x68000000 ))
-#define GHWCMDDW (* (SGULONG volatile *) ( 0x68000000 ))
-
-
+#define GHWWRDW  (* (SGULONG volatile *) ( LCD_IO_BASE_ADDRESS | 0x4 ))
+#define GHWRDDW  (* (SGULONG volatile *) ( LCD_IO_BASE_ADDRESS | 0x4 ))
+#define GHWSTADW (* (SGULONG volatile *) ( LCD_IO_BASE_ADDRESS ))
+#define GHWCMDDW (* (SGULONG volatile *) ( LCD_IO_BASE_ADDRESS ))

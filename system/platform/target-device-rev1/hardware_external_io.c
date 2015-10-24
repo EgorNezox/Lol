@@ -6,8 +6,6 @@
   * @brief   Настройка внешнего ввода/вывода микроконтроллера STM32F2
   *
   * Содержит функции инициализации GPIO и контроллера внешней памяти: SRAM, LCD(дисплей).
-  * Глобальные переменные здесь нельзя использовать, т.к. инициализация памяти может быть
-  * еще не выполнена, а если данные размещаются во внешней SRAM, то доступ к ней еще не сконфигурирован.
   *
   ******************************************************************************
   */
@@ -15,6 +13,8 @@
 #include "stm32f2xx.h"
 #include "system_hw_memory.h"
 #include "../platform_hw_map.h"
+#include "hal_gpio.h"
+#include "hal_timer.h"
 
 #define _STR(arg) #arg
 #define STR(arg) _STR(arg)
@@ -32,7 +32,8 @@ char stm32f2_ext_sram_test(void) __attribute__((optimize("-O0")));
  *  External SRAM:	Bank1_SRAM2		(A[19:0], D[15:0], NBL[0], NBL[1], NOE, NWE, NE2)
  *  LCD:			Bank1_NORSRAM1	(A[0], D[7:0], NOE, NWE, NE1)
  *
- *  Код функции предполагает, что GPIO-регистры содержат значения по умолчанию (сразу после сброса МК).
+ *  Код функции предполагает, что GPIO-регистры содержат значения по умолчанию (сразу после сброса МК) !
+ *  Глобальные переменные здесь нельзя использовать, данные могут быть размещены в еще неинициализированной памяти.
  */
 void stm32f2_ext_mem_init(void) {
 	/*-- GPIOs Configuration -------------------------------------------------------*/
@@ -148,56 +149,9 @@ void stm32f2_ext_mem_init(void) {
 	  */
 }
 
-
-void stm32f2_LCD_init(void) {
-	FSMC_NORSRAMInitTypeDef  FSMC_NORSRAMInitStructure;
-	FSMC_NORSRAMTimingInitTypeDef  p;
-
-	/* Enable FSMC clock */
-	RCC_AHB3PeriphClockCmd(RCC_AHB3Periph_FSMC, ENABLE);
-
-	/*-- FSMC Configuration ------------------------------------------------------*/
-	/*----------------------- SRAM Bank 1 ----------------------------------------*/
-	/* FSMC_Bank1_NORSRAM1 configuration */
-	p.FSMC_AddressSetupTime = 1;
-	p.FSMC_AddressHoldTime = 0;
-	p.FSMC_DataSetupTime = 6;
-	p.FSMC_BusTurnAroundDuration = 1;
-	p.FSMC_CLKDivision = 0;
-	p.FSMC_DataLatency = 0;
-	p.FSMC_AccessMode = FSMC_AccessMode_A;
-	/* Color LCD configuration ------------------------------------
-	     LCD configured as follow:
-	        - Data/Address MUX = Disable
-	        - Memory Type = SRAM
-	        - Data Width = 8bit
-	        - Write Operation = Enable
-	        - Extended Mode = Disable
-	        - Asynchronous Wait = Disable */
-
-	FSMC_NORSRAMInitStructure.FSMC_Bank = FSMC_Bank1_NORSRAM1;
-	FSMC_NORSRAMInitStructure.FSMC_DataAddressMux = FSMC_DataAddressMux_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_MemoryType = FSMC_MemoryType_SRAM;
-	FSMC_NORSRAMInitStructure.FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_8b;
-	FSMC_NORSRAMInitStructure.FSMC_BurstAccessMode = FSMC_BurstAccessMode_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_AsynchronousWait = FSMC_AsynchronousWait_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
-	FSMC_NORSRAMInitStructure.FSMC_WrapMode = FSMC_WrapMode_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;
-	FSMC_NORSRAMInitStructure.FSMC_WriteOperation = FSMC_WriteOperation_Enable;
-	FSMC_NORSRAMInitStructure.FSMC_WaitSignal = FSMC_WaitSignal_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_ExtendedMode = FSMC_ExtendedMode_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_WriteBurst = FSMC_WriteBurst_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_ReadWriteTimingStruct = &p;
-	FSMC_NORSRAMInitStructure.FSMC_WriteTimingStruct = &p;
-
-	FSMC_NORSRAMInit(&FSMC_NORSRAMInitStructure);
-
-	/* Enable FSMC NOR/SRAM Bank1 */
-	FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM1, ENABLE);
-}
-
-
+/* Тестирование аппаратной исправности внешней памяти
+ * Глобальные переменные здесь нельзя использовать, данные могут быть размещены в тестируемой памяти.
+ */
 char stm32f2_ext_sram_test(void) {
 	  char result = 0;
 	  volatile uint8_t *ext_mem8 = (uint8_t *)MEMORY_B1_SRAM2_START_ADDRESS;
@@ -276,4 +230,65 @@ char stm32f2_ext_sram_test(void) {
 	  result = 1;
 test_end:
 	  return result;
+}
+
+void stm32f2_LCD_init(void) {
+	FSMC_NORSRAMInitTypeDef  FSMC_NORSRAMInitStructure;
+	FSMC_NORSRAMTimingInitTypeDef  p;
+
+	/* Enable FSMC clock */
+	RCC_AHB3PeriphClockCmd(RCC_AHB3Periph_FSMC, ENABLE);
+
+	/*-- FSMC Configuration ------------------------------------------------------*/
+	/*----------------------- SRAM Bank 1 ----------------------------------------*/
+	/* FSMC_Bank1_NORSRAM1 configuration */
+	p.FSMC_AddressSetupTime = 1;
+	p.FSMC_AddressHoldTime = 0;
+	p.FSMC_DataSetupTime = 6;
+	p.FSMC_BusTurnAroundDuration = 1;
+	p.FSMC_CLKDivision = 0;
+	p.FSMC_DataLatency = 0;
+	p.FSMC_AccessMode = FSMC_AccessMode_A;
+	/* Color LCD configuration ------------------------------------
+	     LCD configured as follow:
+	        - Data/Address MUX = Disable
+	        - Memory Type = SRAM
+	        - Data Width = 8bit
+	        - Write Operation = Enable
+	        - Extended Mode = Disable
+	        - Asynchronous Wait = Disable */
+
+	FSMC_NORSRAMInitStructure.FSMC_Bank = FSMC_Bank1_NORSRAM1;
+	FSMC_NORSRAMInitStructure.FSMC_DataAddressMux = FSMC_DataAddressMux_Disable;
+	FSMC_NORSRAMInitStructure.FSMC_MemoryType = FSMC_MemoryType_SRAM;
+	FSMC_NORSRAMInitStructure.FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_8b;
+	FSMC_NORSRAMInitStructure.FSMC_BurstAccessMode = FSMC_BurstAccessMode_Disable;
+	FSMC_NORSRAMInitStructure.FSMC_AsynchronousWait = FSMC_AsynchronousWait_Disable;
+	FSMC_NORSRAMInitStructure.FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
+	FSMC_NORSRAMInitStructure.FSMC_WrapMode = FSMC_WrapMode_Disable;
+	FSMC_NORSRAMInitStructure.FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;
+	FSMC_NORSRAMInitStructure.FSMC_WriteOperation = FSMC_WriteOperation_Enable;
+	FSMC_NORSRAMInitStructure.FSMC_WaitSignal = FSMC_WaitSignal_Disable;
+	FSMC_NORSRAMInitStructure.FSMC_ExtendedMode = FSMC_ExtendedMode_Disable;
+	FSMC_NORSRAMInitStructure.FSMC_WriteBurst = FSMC_WriteBurst_Disable;
+	FSMC_NORSRAMInitStructure.FSMC_ReadWriteTimingStruct = &p;
+	FSMC_NORSRAMInitStructure.FSMC_WriteTimingStruct = &p;
+
+	FSMC_NORSRAMInit(&FSMC_NORSRAMInitStructure);
+
+	/* Enable FSMC NOR/SRAM Bank1 */
+	FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM1, ENABLE);
+
+	/* Configure LCD controller reset line and do reset */
+	hal_gpio_pin_t lcd_reset_pin = {hgpioPB, 1};
+	hal_gpio_params_t lcd_reset_params;
+	lcd_reset_params.mode = hgpioMode_Out;
+	lcd_reset_params.speed = hgpioSpeed_2MHz;
+	lcd_reset_params.type = hgpioType_PP;
+	lcd_reset_params.af = hgpioAF_SYS;
+	hal_gpio_init(lcd_reset_pin, &lcd_reset_params);
+	hal_gpio_set_output(lcd_reset_pin, hgpioLow);
+	hal_timer_delay(100);
+	hal_gpio_set_output(lcd_reset_pin, hgpioHigh);
+	hal_timer_delay(10);
 }

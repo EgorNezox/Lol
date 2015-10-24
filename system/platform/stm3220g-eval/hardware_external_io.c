@@ -6,8 +6,6 @@
   * @brief   Настройка внешнего ввода/вывода микроконтроллера STM32F2
   *
   * Содержит функции инициализации GPIO и контроллера внешней памяти: SRAM, LCD(дисплей).
-  * Глобальные переменные здесь нельзя использовать, т.к. инициализация памяти может быть
-  * еще не выполнена, а если данные размещаются во внешней SRAM, то доступ к ней еще не сконфигурирован.
   *
   ******************************************************************************
   */
@@ -22,6 +20,7 @@
  *  LCD:			Bank1_NORSRAM3	(A[0], D[15:0], NOE, NWE, NE3)
  *
  *  Код функции предполагает, что GPIO-регистры содержат значения по умолчанию (сразу после сброса МК) !
+ *  Глобальные переменные здесь нельзя использовать, данные могут быть размещены в еще неинициализированной памяти.
  */
 void stm32f2_ext_mem_init(void) {
 	/*-- GPIOs Configuration ------------------------------------------------------*/
@@ -137,6 +136,9 @@ void stm32f2_ext_mem_init(void) {
 	  */
 }
 
+char stm32f2_ext_sram_test(void) {
+	return 1; /* not implemented */
+}
 
 void stm32f2_LCD_init(void) {
 	FSMC_NORSRAMInitTypeDef  FSMC_NORSRAMInitStructure;
@@ -184,9 +186,4 @@ void stm32f2_LCD_init(void) {
 
 	/* Enable FSMC NOR/SRAM Bank3 */
 	FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM3, ENABLE);
-}
-
-
-char stm32f2_ext_sram_test(void) {
-	return 1; /* not implemented */
 }
