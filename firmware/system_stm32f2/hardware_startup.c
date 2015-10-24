@@ -8,6 +8,8 @@
   ******************************************************************************
   */
 
+#include "stm32f2xx.h"
+#include "system_stm32f2xx.h"
 #include "system_hw_memory.h"
 
 /*! Обработчик системного сброса (точка входа в загрузчик)
@@ -16,6 +18,7 @@
  * Внимание: память на данном этапе не инициализирована, в данном контексте нельзя обращаться к глобальным переменным !
  */
 void Reset_Handler(void) {
+	SystemInit(); // перемещено из System_Startup_Entry
 	stm32f2_ext_mem_init();
 	if (!stm32f2_ext_sram_test())
 		while(1); // memory test failed, cannot safely continue !
