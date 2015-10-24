@@ -33,6 +33,7 @@ SOURCES_system += \
 	startup_stm32f2xx_freertos.s
 INCLUDEPATH_system += \
 	cfg_root \
-	HAL
+	HAL \
+	.
 
 include misc/target_build_footer.mk

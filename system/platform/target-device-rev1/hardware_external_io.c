@@ -1,22 +1,29 @@
 /**
   ******************************************************************************
-  * @file    system_hw_ext_devices.c
+  * @file    hardware_external_io.c
   * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
   * @date    18.08.2015
-  * @brief   Файл общей конфигурации внешних устройств и интерфейсов микроконтроллера STM32F2
+  * @brief   Настройка внешнего ввода/вывода микроконтроллера STM32F2
   *
-  * Содержит функцию инициализации GPIO и внешней SRAM памяти.
-  * Глобальные переменные здесь нельзя использоваться, т.к. инициализация памяти может быть
+  * Содержит функции инициализации GPIO и контроллера внешней памяти: SRAM, LCD(дисплей).
+  * Глобальные переменные здесь нельзя использовать, т.к. инициализация памяти может быть
   * еще не выполнена, а если данные размещаются во внешней SRAM, то доступ к ней еще не сконфигурирован.
   *
   ******************************************************************************
   */
 
 #include "stm32f2xx.h"
-#include "system_hw_map.h"
+#include "system_hw_memory.h"
+#include "../platform_hw_map.h"
 
 #define _STR(arg) #arg
 #define STR(arg) _STR(arg)
+
+/* Следующие определения должны соответствовать определениям в stm32_memory.ld
+ */
+#define MEMORY_B1_SRAM2_START_ADDRESS			0x64000000
+#define MEMORY_B1_SRAM2_SIZE_WORDS				(1*1024*1024) // 1M x 16
+#define MEMORY_B1_SRAM2_LENGTH					(2*MEMORY_B1_SRAM2_SIZE_WORDS) // bytes
 
 char stm32f2_ext_sram_test(void) __attribute__((optimize("-O0")));
 

@@ -8,6 +8,7 @@
   ******************************************************************************
  */
 
+#include "../system/platform/platform_hw_map.h"
 #include "qmapplication.h"
 
 void qmMain() {
