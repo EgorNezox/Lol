@@ -54,7 +54,7 @@ static uint32_t const BITBAND_PORT_OFFSET[] = {
 void hal_gpio_init(hal_gpio_pin_t pin, hal_gpio_params_t *params) {
 	GPIO_InitTypeDef init_struct;
 	GPIO_StructInit(&init_struct);
-	init_struct.GPIO_Pin = pin.number;
+	init_struct.GPIO_Pin = 1 << pin.number;
 	switch (params->mode) {
 	case hgpioMode_In: init_struct.GPIO_Mode = GPIO_Mode_IN; break;
 	case hgpioMode_Out: init_struct.GPIO_Mode = GPIO_Mode_OUT; break;
@@ -83,7 +83,7 @@ void hal_gpio_init(hal_gpio_pin_t pin, hal_gpio_params_t *params) {
 void hal_gpio_deinit(hal_gpio_pin_t pin) {
 	GPIO_InitTypeDef init_struct;
 	GPIO_StructInit(&init_struct);
-	init_struct.GPIO_Pin = pin.number;
+	init_struct.GPIO_Pin = 1 << pin.number;
 	portENTER_CRITICAL();
 	GPIO_Init(STD_PORT[pin.port], &init_struct);
 	portEXIT_CRITICAL();
