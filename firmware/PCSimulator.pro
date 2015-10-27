@@ -14,6 +14,10 @@ TEMPLATE = app
 include(../misc/qt_build_utils.pri)
 
 include(../Qm/Qm.pri)
+
 include(../system/3rdparty/libsigc++/sigc++.pri)
+include(../system/3rdparty/Ramtex_Graphic_Lib/Ramtex_Graphic_Lib.pri)
+
+include(../system/platform/pc-simulator/pc-simulator.pri)
 
 SOURCES += firmware_main.cpp

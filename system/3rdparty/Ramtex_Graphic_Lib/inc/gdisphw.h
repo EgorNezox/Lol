@@ -542,8 +542,10 @@ typedef GCONSTP GWCHAR PGENERIC * PGCWSTR;   /* Pointer to constant widechar str
 #else /* PC-mode or Target-mode */
       #ifdef _WIN32
          /* 1 byte alignment.  For backward compatibility. Can be removed with the newer full standard conforming compilers */
+         #ifdef _MSC_VER
          #pragma warning ( disable : 4761 ) /* remove : integral size mismatch in argument : conversion supplied */
          #pragma warning ( disable : 4103 ) /* used #pragma pack to change alignment */
+         #endif
          #pragma pack(1)
       #endif
 
