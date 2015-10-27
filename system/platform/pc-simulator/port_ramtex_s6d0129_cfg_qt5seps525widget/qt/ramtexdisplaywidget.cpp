@@ -67,11 +67,6 @@ RamtexDisplayWidget::RamtexDisplayWidget() :
         for (int y = 0; y < GDISPH; y++)
             ddram.setPixel(x, y, qRgb(qrand()%255, qrand()%255, qrand()%255));
     reset();
-
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    registers[REG_DISP_ON_OFF] = 0x01;
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
     resize(GDISPW, GDISPH);
 }
 
@@ -112,11 +107,15 @@ void RamtexDisplayWidget::execReadCommand()
     case REG_DDRAM_DATA_ACCESS_PORT:
         Q_ASSERT(registers[REG_MEMORY_WRITE_MODE] == 0x66);
         mpu_control.ddram_pixel = *(getDDRAMPixelPointer());
-        mpu_control.rdr = mpu_control.ddram_pixel & 0xFF;
+        mpu_control.rdr = 0; // dummy/invalid
         mpu_control.ir++;
         break;
     case REG_DDRAM_DATA_ACCESS_PORT+1:
         mpu_control.rdr = (mpu_control.ddram_pixel >> 8) & 0xFF;
+        mpu_control.ir++;
+        break;
+    case REG_DDRAM_DATA_ACCESS_PORT+2:
+        mpu_control.rdr = mpu_control.ddram_pixel & 0xFF;
         incrementDDRAMPosition();
         mpu_control.ir = REG_DDRAM_DATA_ACCESS_PORT;
         break;
