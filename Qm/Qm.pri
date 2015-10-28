@@ -6,7 +6,7 @@
 #
 #******************************************************************************
 
-DEFINES += QMCORE_PLATFORM_QT
+DEFINES += QMCORE_PLATFORM_QT QM_HARDWARE_QT
 INCLUDEPATH += $$PWD/qmcore/include
 SOURCES += \
     $$PWD/qmcore/src/qm_core_qt.cpp \
@@ -22,11 +22,19 @@ SOURCES += \
     $$PWD/qmcore/src/qmapplication_qt.cpp
 
 contains(QM_MODULES,hardwareio) {
-    DEFINES += QMHARDWAREIO_PLATFORM_QT
     INCLUDEPATH += $$PWD/qmhardwareio/include
     SOURCES += \
         $$PWD/qmhardwareio/src/qmuart.cpp \
         $$PWD/qmhardwareio/src/qmuart_qt.cpp \
         $$PWD/qmhardwareio/src/qmiopin.cpp \
         $$PWD/qmhardwareio/src/qmiopin_qt.cpp
+}
+
+contains(QM_MODULES,keysinput) {
+    INCLUDEPATH += $$PWD/qmkeysinput/include
+    SOURCES += \
+        $$PWD/qmkeysinput/src/qmpushbuttonkey.cpp \
+        $$PWD/qmkeysinput/src/qmpushbuttonkey_qt.cpp \
+        $$PWD/qmkeysinput/src/qmmatrixkeyboard.cpp \
+        $$PWD/qmkeysinput/src/qmmatrixkeyboard_qt.cpp
 }

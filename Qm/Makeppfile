@@ -15,6 +15,14 @@ else
   $(error "No CORE_PLATFORM specified")
 endif
 
+ifdef HARDWARE
+  ifeq ($(HARDWARE),stm32f2xx)
+    DEFINES += QM_HARDWARE_STM32F2XX
+  else 
+    $(error "Unsupported HARDWARE platform specified")
+  endif
+endif
+
 QMCORE_INCLUDEPATH += qmcore/include
 QMCORE_SOURCES += \
 	qmcore/src/qm_core_$(CORE_PLATFORM).cpp \
@@ -33,21 +41,32 @@ QMCORE_SOURCES += \
 $(sources_to_objects $(QMCORE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH)
 
 ifdef HARDWAREIO
-  ifeq ($(HARDWAREIO),stm32f2xx)
-    DEFINES += QMHARDWAREIO_PLATFORM_STM32F2XX
-  else 
-    $(error "Unsupported HARDWAREIO platform specified")
+  ifndef HARDWARE
+    $(error "QmHardwareIO module requires HARDWARE specification")
   endif
   QMHARDWAREIO_INLCUDEPATH += qmhardwareio/include
   QMHARDWAREIO_SOURCES += \
   	qmhardwareio/src/qmuart.cpp \
-  	qmhardwareio/src/qmuart_$(HARDWAREIO).cpp \
+  	qmhardwareio/src/qmuart_$(HARDWARE).cpp \
   	qmhardwareio/src/qmiopin.cpp \
-  	qmhardwareio/src/qmiopin_$(HARDWAREIO).cpp
+  	qmhardwareio/src/qmiopin_$(HARDWARE).cpp
   $(sources_to_objects $(QMHARDWAREIO_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH)
 endif
 
-INCLUDEPATH = $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH)
-SOURCES_system = $(QMCORE_SOURCES) $(QMHARDWAREIO_SOURCES)
+ifdef KEYSINPUT
+  ifndef HARDWARE
+    $(error "QmKeysInput module requires HARDWARE specification")
+  endif
+  QMKEYSINPUT_INLCUDEPATH += qmkeysinput/include
+  QMKEYSINPUT_SOURCES += \
+  	qmkeysinput/src/qmpushbuttonkey.cpp \
+  	qmkeysinput/src/qmpushbuttonkey_$(HARDWARE).cpp \
+  	qmkeysinput/src/qmmatrixkeyboard.cpp \
+  	qmkeysinput/src/qmmatrixkeyboard_$(HARDWARE).cpp
+  $(sources_to_objects $(QMKEYSINPUT_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMKEYSINPUT_INLCUDEPATH)
+endif
+
+INCLUDEPATH = $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH) $(QMKEYSINPUT_INLCUDEPATH)
+SOURCES_system = $(QMCORE_SOURCES) $(QMHARDWAREIO_SOURCES) $(QMKEYSINPUT_SOURCES)
 
 include misc/target_build_footer.mk
