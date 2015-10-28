@@ -11,6 +11,8 @@
   */
 
 #include "stm32f2xx.h"
+#include "FreeRTOS.h"
+
 #include "system_hw_memory.h"
 #include "../platform_hw_map.h"
 #include "hal_gpio.h"
@@ -236,9 +238,6 @@ void stm32f2_LCD_init(void) {
 	FSMC_NORSRAMInitTypeDef  FSMC_NORSRAMInitStructure;
 	FSMC_NORSRAMTimingInitTypeDef  p;
 
-	/* Enable FSMC clock */
-	RCC_AHB3PeriphClockCmd(RCC_AHB3Periph_FSMC, ENABLE);
-
 	/*-- FSMC Configuration ------------------------------------------------------*/
 	/*----------------------- SRAM Bank 1 ----------------------------------------*/
 	/* FSMC_Bank1_NORSRAM1 configuration */
@@ -274,10 +273,14 @@ void stm32f2_LCD_init(void) {
 	FSMC_NORSRAMInitStructure.FSMC_ReadWriteTimingStruct = &p;
 	FSMC_NORSRAMInitStructure.FSMC_WriteTimingStruct = &p;
 
+	portENTER_CRITICAL();
+	/* Enable FSMC clock */
+	RCC_AHB3PeriphClockCmd(RCC_AHB3Periph_FSMC, ENABLE);
+	/* Configure FSMC NOR/SRAM */
 	FSMC_NORSRAMInit(&FSMC_NORSRAMInitStructure);
-
 	/* Enable FSMC NOR/SRAM Bank1 */
 	FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM1, ENABLE);
+	portEXIT_CRITICAL();
 
 	/* Configure LCD controller reset line and do reset */
 	hal_gpio_pin_t lcd_reset_pin = {hgpioPB, 1};

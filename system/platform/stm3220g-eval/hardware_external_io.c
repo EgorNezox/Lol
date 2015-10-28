@@ -11,6 +11,8 @@
   */
 
 #include "stm32f2xx.h"
+#include "FreeRTOS.h"
+
 #include "system_hw_memory.h"
 #include "../platform_hw_map.h"
 
@@ -144,9 +146,6 @@ void stm32f2_LCD_init(void) {
 	FSMC_NORSRAMInitTypeDef  FSMC_NORSRAMInitStructure;
 	FSMC_NORSRAMTimingInitTypeDef  p;
 
-	/* Enable FSMC clock */
-	RCC_AHB3PeriphClockCmd(RCC_AHB3Periph_FSMC, ENABLE);
-
 	/*-- FSMC Configuration ------------------------------------------------------*/
 	/*----------------------- SRAM Bank 3 ----------------------------------------*/
 	/* FSMC_Bank1_NORSRAM3 configuration */
@@ -182,8 +181,12 @@ void stm32f2_LCD_init(void) {
 	FSMC_NORSRAMInitStructure.FSMC_ReadWriteTimingStruct = &p;
 	FSMC_NORSRAMInitStructure.FSMC_WriteTimingStruct = &p;
 
+	portENTER_CRITICAL();
+	/* Enable FSMC clock */
+	RCC_AHB3PeriphClockCmd(RCC_AHB3Periph_FSMC, ENABLE);
+	/* Configure FSMC NOR/SRAM */
 	FSMC_NORSRAMInit(&FSMC_NORSRAMInitStructure);
-
 	/* Enable FSMC NOR/SRAM Bank3 */
 	FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM3, ENABLE);
+	portEXIT_CRITICAL();
 }
