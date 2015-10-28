@@ -28,4 +28,59 @@ typedef enum {
 	platformhwBatterySmbusI2c			// I2C шины SMBus аккумуляторной батареи
 } platformhw_resource_t;
 
+enum {
+#if defined(PORT__TARGET_DEVICE_REV1) //TODO: assign values for target-device-rev1 keys
+	platformhwKeyEnter,
+	platformhwKeyBack,
+	platformhwKeyUp,
+	platformhwKeyDown,
+	platformhwKeyLeft,
+	platformhwKeyRight,
+	platformhwKey0,
+	platformhwKey1,
+	platformhwKey2,
+	platformhwKey3,
+	platformhwKey4,
+	platformhwKey5,
+	platformhwKey6,
+	platformhwKey7,
+	platformhwKey8,
+	platformhwKey9,
+#elif defined(PORT__STM3220G_EVAL) //TODO: assign values for stm3220g-eval keys
+	platformhwKeyEnter,
+	platformhwKeyBack,
+	platformhwKeyUp,
+	platformhwKeyDown,
+	platformhwKeyLeft,
+	platformhwKeyRight,
+	platformhwKey0,
+	platformhwKey1,
+	platformhwKey2,
+	platformhwKey3,
+	platformhwKey4,
+	platformhwKey5,
+	platformhwKey6,
+	platformhwKey7,
+	platformhwKey8,
+	platformhwKey9,
+#elif defined(PORT__PCSIMULATOR) //TODO: assign values for pc-simulator keys
+	platformhwKeyEnter,
+	platformhwKeyBack,
+	platformhwKeyUp,
+	platformhwKeyDown,
+	platformhwKeyLeft,
+	platformhwKeyRight,
+	platformhwKey0,
+	platformhwKey1,
+	platformhwKey2,
+	platformhwKey3,
+	platformhwKey4,
+	platformhwKey5,
+	platformhwKey6,
+	platformhwKey7,
+	platformhwKey8,
+	platformhwKey9,
+#endif /* PORT__* */
+};
+
 #endif /* PLATFORM_HW_MAP_H_ */
