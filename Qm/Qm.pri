@@ -26,5 +26,7 @@ contains(QM_MODULES,hardwareio) {
     INCLUDEPATH += $$PWD/qmhardwareio/include
     SOURCES += \
         $$PWD/qmhardwareio/src/qmuart.cpp \
-        $$PWD/qmhardwareio/src/qmuart_qt.cpp
+        $$PWD/qmhardwareio/src/qmuart_qt.cpp \
+        $$PWD/qmhardwareio/src/qmiopin.cpp \
+        $$PWD/qmhardwareio/src/qmiopin_qt.cpp
 }
