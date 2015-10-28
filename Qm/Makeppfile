@@ -15,6 +15,14 @@ else
   $(error "No CORE_PLATFORM specified")
 endif
 
+ifdef HARDWARE
+  ifeq ($(HARDWARE),stm32f2xx)
+    DEFINES += QM_HARDWARE_STM32F2XX
+  else 
+    $(error "Unsupported HARDWARE platform specified")
+  endif
+endif
+
 QMCORE_INCLUDEPATH += qmcore/include
 QMCORE_SOURCES += \
 	qmcore/src/qm_core_$(CORE_PLATFORM).cpp \
@@ -32,7 +40,20 @@ QMCORE_SOURCES += \
 	qmcore/src/qmapplication_$(CORE_PLATFORM).cpp
 $(sources_to_objects $(QMCORE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH)
 
-INCLUDEPATH = $(QMCORE_INCLUDEPATH)
-SOURCES_system = $(QMCORE_SOURCES)
+ifdef KEYSINPUT
+  ifndef HARDWARE
+    $(error "QmKeysInput module requires HARDWARE specification")
+  endif
+  QMKEYSINPUT_INLCUDEPATH += qmkeysinput/include
+  QMKEYSINPUT_SOURCES += \
+  	qmkeysinput/src/qmpushbuttonkey.cpp \
+  	qmkeysinput/src/qmpushbuttonkey_$(HARDWARE).cpp \
+  	qmkeysinput/src/qmmatrixkeyboard.cpp \
+  	qmkeysinput/src/qmmatrixkeyboard_$(HARDWARE).cpp
+  $(sources_to_objects $(QMKEYSINPUT_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMKEYSINPUT_INLCUDEPATH)
+endif
+
+INCLUDEPATH = $(QMCORE_INCLUDEPATH) $(QMKEYSINPUT_INLCUDEPATH)
+SOURCES_system = $(QMCORE_SOURCES) $(QMKEYSINPUT_SOURCES)
 
 include misc/target_build_footer.mk
