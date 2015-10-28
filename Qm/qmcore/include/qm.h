@@ -12,6 +12,8 @@
 #ifndef QM_H_
 #define QM_H_
 
+#include <stdint.h>
+
 #define QM_UNUSED(x) (void)x;
 
 
