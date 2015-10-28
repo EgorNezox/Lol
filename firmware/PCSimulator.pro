@@ -13,6 +13,7 @@ TEMPLATE = app
 
 include(../misc/qt_build_utils.pri)
 
+QM_MODULES += hardwareio
 include(../Qm/Qm.pri)
 
 include(../system/3rdparty/libsigc++/sigc++.pri)
