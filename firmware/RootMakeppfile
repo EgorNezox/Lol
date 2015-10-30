@@ -26,7 +26,13 @@ load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." CORE_PLATFORM=bmfreertos
 
 # подключение сборки прошивки
 SOURCES += \
-	firmware_main.cpp
+	firmware_main.cpp \
+	$(wildcard app/datastorage/**/*.cpp) \
+	$(wildcard app/headset/**/*.cpp) \
+	$(wildcard app/mrd/**/*.cpp) \
+	$(wildcard app/power/**/*.cpp) \
+	$(wildcard app/ui/**/*.cpp)
+INCLUDEPATH += app
 SOURCES_system += \
 	system_stm32f2/hardware_startup.c \
 	system_stm32f2/system_stm32f2xx__$(BUILD_PORT).c

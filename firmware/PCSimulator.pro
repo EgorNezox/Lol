@@ -21,4 +21,11 @@ include(../system/3rdparty/Ramtex_Graphic_Lib/Ramtex_Graphic_Lib.pri)
 
 include(../system/platform/pc-simulator/pc-simulator.pri)
 
-SOURCES += firmware_main.cpp
+SOURCES += \
+    firmware_main.cpp \
+    $$wildcardSources(app/datastorage, *.cpp) \
+    $$wildcardSources(app/headset, *.cpp) \
+    $$wildcardSources(app/mrd, *.cpp) \
+    $$wildcardSources(app/power, *.cpp) \
+    $$wildcardSources(app/ui, *.cpp)
+INCLUDEPATH += app
