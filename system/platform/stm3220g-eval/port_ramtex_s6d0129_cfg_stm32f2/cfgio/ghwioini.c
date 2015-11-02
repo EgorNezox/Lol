@@ -13,7 +13,7 @@
 *********************************************************************/
 
 #ifndef GHW_NOHDW
-#include "system_hw_memory.h"	/* !!! target-specific !!! */
+#include "system_hw_io.h"	/* !!! target-specific !!! */
 #endif
 #include <gdisphw.h>
 
