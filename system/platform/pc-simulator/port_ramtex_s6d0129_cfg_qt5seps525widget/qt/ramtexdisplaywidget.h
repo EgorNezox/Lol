@@ -32,13 +32,18 @@ void ramtexdisplaywidget_deinit(void);
 class RamtexDisplayWidget : public QWidget
 {
     Q_OBJECT
+
+public:
+    RamtexDisplayWidget(QWidget *parent = 0);
+    ~RamtexDisplayWidget();
+
 private:
     friend void ramtexdisplaywidget_init(void);
     friend void ramtexdisplaywidget_deinit(void);
     friend void sgfnc sgwrby( enum access_type paddr, SGUCHAR pval );
     friend SGUCHAR sgfnc sgrdby( enum access_type paddr );
-    RamtexDisplayWidget();
-    ~RamtexDisplayWidget();
+
+    static RamtexDisplayWidget *getInstance();
     void paintEvent(QPaintEvent *);
     quint8 emulateMPUDataRead();
     void emulateMPUIndexWrite(quint8 value);
@@ -51,6 +56,8 @@ private:
     void checkAndAlignDDRAMPositionY();
     void saveMPUWriteRegister();
     void reset();
+
+    static RamtexDisplayWidget *self;
     enum mpu_reg_addr {
         REG_INDEX = 0x00,
         REG_STATUS_RD = 0x01,
