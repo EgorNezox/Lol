@@ -9,11 +9,9 @@
   */
 
 #include "gdispcfg.h"
-#include <QDebug>
 #include <QPainter>
 
 #include "ramtexdisplaywidget.h"
-#include "../../mainwidget.h"
 
 #ifndef GHW_SEPS525
 #error "Ramtex display driver should be configured for SEPS525 controller"
@@ -22,10 +20,10 @@
 #error "Ramtex dsiplay configuration: only 16-bit pixel mode supported"
 #endif
 
-static RamtexDisplayWidget* instance;
+RamtexDisplayWidget* RamtexDisplayWidget::self = 0;
 
 void sgfnc sgwrby( enum access_type paddr, SGUCHAR pval ) {
-    Q_ASSERT(instance != 0);
+    RamtexDisplayWidget *instance = RamtexDisplayWidget::getInstance();
     switch (paddr) {
     case GHWWR:
         instance->emulateMPUDataWrite(pval);
@@ -39,7 +37,7 @@ void sgfnc sgwrby( enum access_type paddr, SGUCHAR pval ) {
 }
 
 SGUCHAR sgfnc sgrdby( enum access_type paddr ) {
-    Q_ASSERT(instance != 0);
+    RamtexDisplayWidget *instance = RamtexDisplayWidget::getInstance();
     switch (paddr) {
     case GHWRD:
         return instance->emulateMPUDataRead();
@@ -50,19 +48,18 @@ SGUCHAR sgfnc sgrdby( enum access_type paddr ) {
 }
 
 void ramtexdisplaywidget_init(void) {
-    Q_ASSERT(instance == 0);
-    instance = new RamtexDisplayWidget();
-    MainWidget::initDisplay(instance);
+    RamtexDisplayWidget::getInstance()->reset();
 }
 
 void ramtexdisplaywidget_deinit(void) {
-    Q_ASSERT(instance != 0);
-    delete instance;
+    RamtexDisplayWidget::getInstance();
 }
 
-RamtexDisplayWidget::RamtexDisplayWidget() :
-    QWidget(0), ddram(GDISPW, GDISPH, QImage::Format_RGB16)
+RamtexDisplayWidget::RamtexDisplayWidget(QWidget *parent) :
+    QWidget(parent), ddram(GDISPW, GDISPH, QImage::Format_RGB16)
 {
+    Q_ASSERT(self == 0);
+    self = this;
     for (int x = 0; x < GDISPW; x++)
         for (int y = 0; y < GDISPH; y++)
             ddram.setPixel(x, y, qRgb(qrand()%255, qrand()%255, qrand()%255));
@@ -72,6 +69,14 @@ RamtexDisplayWidget::RamtexDisplayWidget() :
 
 RamtexDisplayWidget::~RamtexDisplayWidget()
 {
+    Q_ASSERT(self != 0);
+    self = 0;
+}
+
+RamtexDisplayWidget *RamtexDisplayWidget::getInstance()
+{
+    Q_ASSERT(self != 0);
+    return self;
 }
 
 void RamtexDisplayWidget::paintEvent(QPaintEvent *)
