@@ -287,6 +287,7 @@ void stm32f2_LCD_init(void) {
 	lcd_reset_params.speed = hgpioSpeed_2MHz;
 	lcd_reset_params.type = hgpioType_PP;
 	lcd_reset_params.af = hgpioAF_SYS;
+	lcd_reset_params.exti_source = false;
 	hal_gpio_init(lcd_reset_pin, &lcd_reset_params);
 	hal_gpio_set_output(lcd_reset_pin, hgpioLow);
 	hal_timer_delay(100);
@@ -302,4 +303,16 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 	(void)platform_hw_resource;
 	__asm volatile("bkpt"); // no resources defined
+}
+
+hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	__asm volatile("bkpt"); // no resources defined
+	return (hal_gpio_pin_t){0, 0};
+}
+
+int stm32f2_get_exti_line(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	__asm volatile("bkpt"); // no resources defined
+	return -1;
 }

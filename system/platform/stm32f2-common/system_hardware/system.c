@@ -32,6 +32,8 @@ void  __attribute__((constructor)) hal_system_init(void) {
 	/* Инициализация поддержки отладочного вывода SWO в МК */
 	DBGMCU->CR |= DBGMCU_CR_TRACE_IOEN;
 	/* Инициализация всех субмодулей */
+	halinternal_gpio_init();
+	halinternal_exti_init();
 	halinternal_timer_init();
 	halinternal_uart_init();
 }
@@ -100,7 +102,7 @@ static __attribute__ ((used)) void CPUExceptionHandler(exc_type exception, exc_s
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
 	/* Переполнение стека в задаче pcTaskName (FreeRTOS).
-	 * (Размер стека задач определяется макросом usertaskDEFAULT_STACK_SIZE конфигурации FreeRTOS.)
+	 * (Размер стека задач потоков приложения определяется макросом usertaskSTACK_SIZE конфигурации FreeRTOS.)
 	 */
 	halinternal_system_fault_handler();
 }

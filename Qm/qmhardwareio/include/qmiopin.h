@@ -18,11 +18,6 @@ QM_FORWARD_PRIVATE(QmIopin)
  */
 class QmIopin: public QmObject {
 public:
-	enum Direction {
-		Direction_Invalid,
-		Direction_In,
-		Direction_Out
-	};
 	enum LevelTriggerMode {
 		InputTrigger_Disabled,
 		InputTrigger_Rising,
@@ -43,9 +38,7 @@ public:
 	/*! Destroys the iopin. */
 	virtual ~QmIopin();
 
-	Direction getDirection();
-
-	bool setInputTriggerMode(LevelTriggerMode mode);
+	void setInputTriggerMode(LevelTriggerMode mode);
 
 	Level readInput();
 
@@ -59,6 +52,7 @@ protected:
 private:
 	QM_DECLARE_PRIVATE(QmIopin)
 	QM_DISABLE_COPY(QmIopin)
+	friend class QmIopinPrivateAdapter;
 };
 
 #endif /* QMIOPIN_H_ */

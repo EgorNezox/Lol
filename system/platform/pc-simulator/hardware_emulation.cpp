@@ -8,12 +8,32 @@
   ******************************************************************************
   */
 
-#include "qt_hw_emu.h"
+#include <QMetaEnum>
+#include <QMetaObject>
+#include <QMap>
+
+#include "hardware_emulation.h"
 #include "mainwidget.h"
+
+#ifndef Q_MOC_RUN
+namespace QtHwEmu
+#else
+class QtHwEmu
+#endif
+{
+#if defined(Q_MOC_RUN)
+	Q_GADGET
+	Q_ENUMS(platformhw_resource_t)
+public:
+#endif
+#include "../platform_hw_map.h"
+	extern const QMetaObject staticMetaObject;
+}
 
 namespace QtHwEmu {
 
 static MainWidget *main_widget = 0;
+static QMap<int, QObject*> resources_registry;
 
 void init() {
     Q_ASSERT(main_widget == 0);
@@ -26,4 +46,33 @@ void deinit() {
     delete main_widget;
 }
 
+int convertToPlatformHwResource(const QString &value) {
+	bool cast_is_ok = false;
+	int enum_index = staticMetaObject.indexOfEnumerator("platformhw_resource_t");
+	QMetaEnum meta_enum = staticMetaObject.enumerator(enum_index);
+	int enum_value = meta_enum.keyToValue(value.toLocal8Bit().data(), &cast_is_ok);
+	Q_ASSERT(cast_is_ok);
+	return enum_value;
+}
+
+QObject* getResourceInterface(int hw_resource) {
+	QObject* interface = resources_registry.value(hw_resource, 0);
+	Q_ASSERT(interface);
+	return interface;
+}
+
+void acquireResource(int hw_resource, QObject *interface) {
+	Q_ASSERT(hw_resource != -1);
+	Q_ASSERT(resources_registry.contains(hw_resource) == 0);
+	resources_registry.insert(hw_resource, interface);
+}
+
+void releaseResource(QObject *interface) {
+	int hw_resource = resources_registry.key(interface, -1);
+	Q_ASSERT(hw_resource != -1);
+	resources_registry.remove(hw_resource);
+}
+
 } /* namespace QtHwEmu */
+
+#include "hardware_emulation.moc"
