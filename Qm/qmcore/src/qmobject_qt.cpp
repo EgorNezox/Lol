@@ -98,6 +98,11 @@ void QmObject::deleteLater() {
 	d->qobject->deleteLater();
 }
 
+QmThread* QmObject::thread() const {
+	QM_D(const QmObject);
+	return d->thread;
+}
+
 bool QmObject::event(QmEvent* event) {
 	QM_UNUSED(event);
 	return false;

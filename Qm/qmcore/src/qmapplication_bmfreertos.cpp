@@ -19,6 +19,7 @@
 #include "qmeventdispatcher.h"
 #include "qmapplication.h"
 #include "qmapplication_p.h"
+#include "qmmutexlocker.h"
 
 QmApplicationPrivate::QmApplicationPrivate(QmApplication *q) :
 	QmObjectPrivate(q)
@@ -44,7 +45,9 @@ bool QmApplication::sendEvent(QmObject* receiver, QmEvent* event) {
 
 void QmApplication::postEvent(QmObject* receiver, QmEvent* event) {
 	QmEventDispatcher *dispatcher;
-	QmThread *receiver_thread = receiver->thread();
+	QmThread *receiver_thread;
+	QmMutexLocker locker(&(receiver->d_func()->ta_mutex));
+	receiver_thread = receiver->d_func()->thread;
 	if (!((receiver_thread) && !(receiver->d_func()->drop_events))) {
 		qmDebugMessage(QmDebug::Warning, "QmApplication::postEvent(): event(0x%p) cannot be posted to receiver(0x%p) thread", event, receiver);
 		delete event;
