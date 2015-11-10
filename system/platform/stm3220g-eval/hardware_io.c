@@ -198,3 +198,14 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 	(void)platform_hw_resource;
 	__asm volatile("bkpt"); // no resources defined
 }
+
+hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	__asm volatile("bkpt"); // no resources defined
+	return (hal_gpio_pin_t){0, 0};
+}
+
+int stm32f2_get_exti_line(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	return -1;
+}

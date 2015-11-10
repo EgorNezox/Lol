@@ -11,6 +11,12 @@
 #ifndef SYSTEM_HW_IO_H_
 #define SYSTEM_HW_IO_H_
 
+#include "hal_gpio.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Low-level memory controller */
 void stm32f2_ext_mem_init(void);
 char stm32f2_ext_sram_test(void);
@@ -19,5 +25,11 @@ void stm32f2_LCD_init(void);
 /* Platform hardware resources */
 void stm32f2_ext_pins_init(int platform_hw_resource);
 void stm32f2_ext_pins_deinit(int platform_hw_resource);
+hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource);
+int stm32f2_get_exti_line(int platform_hw_resource);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SYSTEM_HW_IO_H_ */

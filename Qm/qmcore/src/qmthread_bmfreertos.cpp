@@ -68,7 +68,7 @@ void QmThreadPrivate::init(const char * const name) {
 	QM_Q(QmThread);
 	event_dispatcher = new QmEventDispatcher(q);
 	sync_semaphore = xSemaphoreCreateBinary();
-	xTaskCreate(qmthreadTaskEntry, name, usertaskDEFAULT_STACK_SIZE, (void *)this, tskIDLE_PRIORITY, &task_handle);
+	xTaskCreate(qmthreadTaskEntry, name, qmconfigAPP_STACK_SIZE, (void *)this, tskIDLE_PRIORITY, &task_handle);
 	registered_threads_mutex.lock();
 	registered_threads[task_handle] = q;
 	registered_threads_mutex.unlock();
@@ -87,13 +87,6 @@ void QmThreadPrivate::deinit() {
 	vTaskDelete(task_handle);
 	vSemaphoreDelete(sync_semaphore);
 	delete event_dispatcher;
-}
-
-void QmThreadPrivate::startSystemPriority() {
-	QM_ASSERT(!running);
-	vTaskPrioritySet(task_handle, usertaskSYSTEM_PRIORITY);
-	running = true;
-	xSemaphoreGive(sync_semaphore);
 }
 
 void QmThreadPrivate::taskFunction() {
@@ -121,9 +114,9 @@ void QmThread::start(Priority priority) {
 	QM_D(QmThread);
 	UBaseType_t freertos_priority = tskIDLE_PRIORITY;
 	switch (priority) {
-	case LowPriority: freertos_priority = usertaskAPP_LOW_PRIORITY; break;
-	case NormalPriority: freertos_priority = usertaskAPP_NORMAL_PRIORITY; break;
-	case HighPriority: freertos_priority = usertaskAPP_HIGH_PRIORITY; break;
+	case LowPriority: freertos_priority = qmconfigAPP_LOW_PRIORITY; break;
+	case NormalPriority: freertos_priority = qmconfigAPP_NORMAL_PRIORITY; break;
+	case HighPriority: freertos_priority = qmconfigAPP_HIGH_PRIORITY; break;
 	default: QM_ASSERT(0); break;
 	}
 	if (d->running) {

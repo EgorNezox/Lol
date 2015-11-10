@@ -32,7 +32,23 @@ QMCORE_SOURCES += \
 	qmcore/src/qmapplication_$(CORE_PLATFORM).cpp
 $(sources_to_objects $(QMCORE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH)
 
-INCLUDEPATH = $(QMCORE_INCLUDEPATH)
-SOURCES_system = $(QMCORE_SOURCES)
+ifdef HARDWAREIO
+  ifeq ($(HARDWAREIO),stm32f2xx)
+  and ifeq ($(CORE_PLATFORM),bmfreertos)
+    DEFINES += QMHARDWAREIO_PLATFORM_STM32F2XX
+  else 
+    $(error "Unsupported Core/HardwareIO platform combination specified")
+  endif
+  QMHARDWAREIO_INLCUDEPATH += qmhardwareio/include
+  QMHARDWAREIO_SOURCES += \
+  	qmhardwareio/src/qmuart.cpp \
+  	qmhardwareio/src/qmuart_$(HARDWAREIO).cpp \
+  	qmhardwareio/src/qmiopin.cpp \
+  	qmhardwareio/src/qmiopin_$(HARDWAREIO).cpp
+  $(sources_to_objects $(QMHARDWAREIO_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH)
+endif
+
+INCLUDEPATH = $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH)
+SOURCES_system = $(QMCORE_SOURCES) $(QMHARDWAREIO_SOURCES)
 
 include misc/target_build_footer.mk
