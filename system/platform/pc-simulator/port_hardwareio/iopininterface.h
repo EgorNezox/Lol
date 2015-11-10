@@ -11,6 +11,7 @@
 #define IOPININTERFACE_H_
 
 #include <QObject>
+#include <QMetaType>
 
 class IopinInterface : public QObject
 {
@@ -22,6 +23,8 @@ public:
 		Level_HiZ,
 		Level_High
 	};
+
+	static void init();
 
 public Q_SLOTS:
 	Level getOutputLevel();
@@ -36,9 +39,8 @@ private:
 
 	IopinInterface();
 	virtual ~IopinInterface();
-	void assignOutputLevel(Level level);
 
-	Level output_level;
+	Level input_level, output_level;
 
 #ifndef Q_MOC_RUN
 private:
@@ -46,6 +48,11 @@ private:
 Q_SIGNALS:
 #endif
 	void inputLevelAssigned(Level level);
+private Q_SLOTS:
+	Level getInputLevel();
+	void assignOutputLevel(Level level);
 };
+
+Q_DECLARE_METATYPE(IopinInterface::Level)
 
 #endif /* IOPININTERFACE_H_ */

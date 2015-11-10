@@ -10,7 +10,6 @@
 #include "system_hw_io.h"
 
 #include "qmdebug.h"
-#include "qmiopin.h"
 #include "qmiopin_p.h"
 #include "qmevent.h"
 #include "qmapplication.h"

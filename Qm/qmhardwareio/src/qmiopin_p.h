@@ -10,8 +10,8 @@
 #ifndef QMIOPIN_P_H_
 #define QMIOPIN_P_H_
 
-#include "qm.h"
 #include "../../qmcore/src/qmobject_p.h"
+#include "qmiopin.h"
 
 #ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
 #include "hal_gpio.h"
@@ -34,16 +34,20 @@ private:
 };
 #endif
 #ifdef QMHARDWAREIO_PLATFORM_QT
+class QmIopinPrivate;
 class QmIopinPrivateAdapter : public QObject
 {
+	Q_OBJECT
 public:
 	QmIopinPrivateAdapter(QmIopinPrivate *qmiopinprivate);
 	~QmIopinPrivateAdapter();
+	static QmIopin::Level convertInputLevelToQm(IopinInterface::Level value);
 	QmIopinPrivate *qmiopinprivate;
 	IopinInterface *interface;
 public Q_SLOTS:
-	void assignOutputLevel(QmIopin::Level level);
 	void processInputLevelAssigned(IopinInterface::Level level);
+Q_SIGNALS:
+	void writeOutputLevel(IopinInterface::Level level);
 };
 #endif /* QMHARDWAREIO_PLATFORM_QT */
 

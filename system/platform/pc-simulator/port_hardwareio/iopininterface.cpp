@@ -9,8 +9,12 @@
 
 #include "iopininterface.h"
 
+void IopinInterface::init() {
+	qRegisterMetaType<Level>();
+}
+
 IopinInterface::IopinInterface() :
-	output_level(Level_Low)
+	input_level(Level_Low), output_level(Level_Low)
 {
 }
 
@@ -23,7 +27,12 @@ IopinInterface::Level IopinInterface::getOutputLevel() {
 }
 
 void IopinInterface::setInputLevel(Level level) {
+	input_level = level;
 	Q_EMIT inputLevelAssigned(level);
+}
+
+IopinInterface::Level IopinInterface::getInputLevel() {
+	return input_level;
 }
 
 void IopinInterface::assignOutputLevel(Level level) {

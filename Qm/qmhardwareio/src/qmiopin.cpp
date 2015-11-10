@@ -7,7 +7,6 @@
   ******************************************************************************
   */
 
-#include "qmiopin.h"
 #include "qmiopin_p.h"
 
 QmIopin::QmIopin(int hw_resource, QmObject* parent) :

@@ -9,44 +9,41 @@
 
 #include "port_hardwareio/iopinsfactory.h"
 
-#include "qmiopin.h"
 #include "qmiopin_p.h"
 
 QmIopinPrivateAdapter::QmIopinPrivateAdapter(QmIopinPrivate *qmiopinprivate) :
 	qmiopinprivate(qmiopinprivate)
 {
 	interface = IopinsFactory::getInstance(qmiopinprivate->hw_resource);
+	qmiopinprivate->input_level = convertInputLevelToQm(interface->getInputLevel());
 	QObject::connect(interface, &IopinInterface::inputLevelAssigned, this, &QmIopinPrivateAdapter::processInputLevelAssigned);
+	QObject::connect(this, &QmIopinPrivateAdapter::writeOutputLevel, interface, &IopinInterface::assignOutputLevel);
 }
 
 QmIopinPrivateAdapter::~QmIopinPrivateAdapter()
 {
 }
 
-void QmIopinPrivateAdapter::assignOutputLevel(QmIopin::Level level) {
-	IopinInterface::Level value;
-	switch (level) {
-	case QmIopin::Level_Low: value = IopinInterface::Level_Low; break;
-	case QmIopin::Level_High: value = IopinInterface::Level_High; break;
+QmIopin::Level QmIopinPrivateAdapter::convertInputLevelToQm(IopinInterface::Level value) {
+	QmIopin::Level result;
+	switch (value) {
+	case IopinInterface::Level_Low:
+		result = QmIopin::Level_Low;
+		break;
+	case IopinInterface::Level_High:
+		result = QmIopin::Level_High;
+		break;
+	case IopinInterface::Level_HiZ:
+		result = (qrand() % 2)?(QmIopin::Level_Low):(QmIopin::Level_High);
+		break;
 	}
-	interface->assignOutputLevel(value);
+	return result;
 }
 
 void QmIopinPrivateAdapter::processInputLevelAssigned(IopinInterface::Level level) {
 	QmIopin * const q = qmiopinprivate->q_func();
+	QmIopin::Level new_level = convertInputLevelToQm(level);
 	bool do_trigger;
-	QmIopin::Level new_level;
-	switch (level) {
-	case IopinInterface::Level_Low:
-		new_level = QmIopin::Level_Low;
-		break;
-	case IopinInterface::Level_High:
-		new_level = QmIopin::Level_High;
-		break;
-	case IopinInterface::Level_HiZ:
-		new_level = (qrand() % 2)?(QmIopin::Level_Low):(QmIopin::Level_High);
-		break;
-	}
 	switch (qmiopinprivate->input_trigger_mode) {
 	case QmIopin::InputTrigger_Disabled:
 		do_trigger = false;
@@ -98,7 +95,12 @@ QmIopin::Level QmIopin::readInput() {
 
 void QmIopin::writeOutput(Level level) {
 	QM_D(QmIopin);
-	d->iopin_adapter->assignOutputLevel(level);
+	IopinInterface::Level value;
+	switch (level) {
+	case QmIopin::Level_Low: value = IopinInterface::Level_Low; break;
+	case QmIopin::Level_High: value = IopinInterface::Level_High; break;
+	}
+	Q_EMIT d->iopin_adapter->writeOutputLevel(value);
 }
 
 bool QmIopin::event(QmEvent* event) {
