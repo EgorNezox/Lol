@@ -48,7 +48,6 @@ public:
 	void processFinish();
 #endif /* QMCORE_PLATFORM_QT */
 #ifdef QMCORE_PLATFORM_BMFREERTOS
-	void startSystemPriority();
 	void taskFunction();
 #endif /* QMCORE_PLATFORM_BMFREERTOS */
 };

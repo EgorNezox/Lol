@@ -10,7 +10,7 @@
 
 #include "stm32f2xx.h"
 #include "system_stm32f2xx.h"
-#include "system_hw_memory.h"
+#include "system_hw_io.h"
 
 /*! Обработчик системного сброса (точка входа в загрузчик)
  *

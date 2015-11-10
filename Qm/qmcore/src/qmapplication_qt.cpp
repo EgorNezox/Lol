@@ -7,8 +7,8 @@
   ******************************************************************************
   */
 
+#include "hardware_emulation.h"
 #include <QApplication>
-
 #include "qmevent.h"
 #include "qm_core.h"
 #include "qmapplication.h"
@@ -17,10 +17,12 @@
 QmApplicationPrivate::QmApplicationPrivate(QmApplication *q) :
 	QmObjectPrivate(q), app(qmcore_global_environment.argc, qmcore_global_environment.argv)
 {
+	QtHwEmu::init();
 }
 
 QmApplicationPrivate::~QmApplicationPrivate()
 {
+	QtHwEmu::deinit();
 }
 
 void QmApplicationPrivate::convertPostedEventsArguments(const QmObject* receiver, const int event_type, QObject* &qt_object_receiver, int &qt_event_type) {

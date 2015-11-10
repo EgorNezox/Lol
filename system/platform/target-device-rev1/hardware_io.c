@@ -1,11 +1,9 @@
 /**
   ******************************************************************************
-  * @file    hardware_external_io.c
+  * @file    hardware_io.c
   * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
   * @date    18.08.2015
-  * @brief   Настройка внешнего ввода/вывода микроконтроллера STM32F2
-  *
-  * Содержит функции инициализации GPIO и контроллера внешней памяти: SRAM, LCD(дисплей).
+  * @brief   Реализация управления вводом/выводом микроконтроллера STM32F2 для target-device-rev1
   *
   ******************************************************************************
   */
@@ -13,7 +11,7 @@
 #include "stm32f2xx.h"
 #include "FreeRTOS.h"
 
-#include "system_hw_memory.h"
+#include "system_hw_io.h"
 #include "../platform_hw_map.h"
 #include "hal_gpio.h"
 #include "hal_timer.h"
@@ -289,9 +287,189 @@ void stm32f2_LCD_init(void) {
 	lcd_reset_params.speed = hgpioSpeed_2MHz;
 	lcd_reset_params.type = hgpioType_PP;
 	lcd_reset_params.af = hgpioAF_SYS;
+	lcd_reset_params.exti_source = false;
 	hal_gpio_init(lcd_reset_pin, &lcd_reset_params);
 	hal_gpio_set_output(lcd_reset_pin, hgpioLow);
 	hal_timer_delay(100);
 	hal_gpio_set_output(lcd_reset_pin, hgpioHigh);
 	hal_timer_delay(10);
+}
+
+void stm32f2_ext_pins_init(int platform_hw_resource) {
+	hal_gpio_params_t params;
+	params.speed = hgpioSpeed_2MHz;
+	params.type = hgpioType_PP;
+	params.af = hgpioAF_SYS;
+	params.exti_source = false;
+	switch (platform_hw_resource) {
+	case platformhwHeadsetUart:
+		params.mode = hgpioMode_AF;
+		params.af = hgpioAF_USART_1_2_3;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 10}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 11}, &params);
+		break;
+	case platformhwHeadsetPttIopin:
+		params.mode = hgpioMode_In;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPF, 8}, &params);
+		break;
+	case platformhwDataFlashSpi:
+		params.mode = hgpioMode_AF;
+		params.af = hgpioAF_SPI_3_I2S_3;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 10}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 11}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 12}, &params);
+		params.mode = hgpioMode_Out;
+		params.af = hgpioAF_SYS;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPD, 2}, &params);
+		break;
+	case platformhwMatrixKeyboard:
+		params.mode = hgpioMode_In;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 2}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 3}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 4}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 5}, &params);
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 6}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 7}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 8}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 9}, &params);
+		break;
+	case platformhwKeyboardButt1Iopin:
+		params.mode = hgpioMode_In;
+		params.exti_source = true;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 11}, &params);
+		break;
+	case platformhwKeyboardButt2Iopin:
+		params.mode = hgpioMode_In;
+		params.exti_source = true;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 12}, &params);
+		break;
+	case platformhwKeyboardsLightIopin:
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 10}, &params);
+		break;
+	case platformhwEnRxRs232Iopin:
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 13}, &params);
+		break;
+	case platformhwEnTxRs232Iopin:
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 12}, &params);
+		break;
+	case platformhwDspUart:
+		params.mode = hgpioMode_AF;
+		params.af = hgpioAF_USART_1_2_3;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 6}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 7}, &params);
+		break;
+	case platformhwDspResetIopin:
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 13}, &params);
+		break;
+	case platformhwAtuUart:
+		params.mode = hgpioMode_AF;
+		params.af = hgpioAF_USART_1_2_3;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPA, 2}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPA, 3}, &params);
+		break;
+	case platformhwBatterySmbusI2c:
+		params.mode = hgpioMode_AF;
+		params.af = hgpioAF_I2C_1_2_3;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 8}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 9}, &params);
+		break;
+	default: __asm volatile("bkpt"); // no such resource
+	}
+}
+
+void stm32f2_ext_pins_deinit(int platform_hw_resource) {
+	switch (platform_hw_resource) {
+	case platformhwHeadsetUart:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 10});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 11});
+		break;
+	case platformhwHeadsetPttIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPF, 8});
+		break;
+	case platformhwDataFlashSpi:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 10});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 11});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 12});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPD, 2});
+		break;
+	case platformhwMatrixKeyboard:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 2});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 3});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 4});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 5});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 6});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 7});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 8});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 9});
+		break;
+	case platformhwKeyboardButt1Iopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 11});
+		break;
+	case platformhwKeyboardButt2Iopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 12});
+		break;
+	case platformhwKeyboardsLightIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 10});
+		break;
+	case platformhwEnRxRs232Iopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 13});
+		break;
+	case platformhwEnTxRs232Iopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 12});
+		break;
+	case platformhwDspUart:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 6});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 7});
+		break;
+	case platformhwDspResetIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 13});
+		break;
+	case platformhwAtuUart:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPA, 2});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPA, 3});
+		break;
+	case platformhwBatterySmbusI2c:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 8});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 9});
+		break;
+	default: __asm volatile("bkpt"); // no such resource
+	}
+}
+
+hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
+	switch (platform_hw_resource) {
+	case platformhwHeadsetPttIopin:
+		return (hal_gpio_pin_t){hgpioPF, 8};
+	case platformhwKeyboardButt1Iopin:
+		return (hal_gpio_pin_t){hgpioPH, 11};
+	case platformhwKeyboardButt2Iopin:
+		return (hal_gpio_pin_t){hgpioPH, 12};
+	case platformhwKeyboardsLightIopin:
+		return (hal_gpio_pin_t){hgpioPH, 10};
+	case platformhwEnRxRs232Iopin:
+		return (hal_gpio_pin_t){hgpioPB, 13};
+	case platformhwEnTxRs232Iopin:
+		return (hal_gpio_pin_t){hgpioPB, 12};
+	case platformhwDspResetIopin:
+		return (hal_gpio_pin_t){hgpioPH, 13};
+	default: __asm volatile("bkpt"); // no such resource
+	}
+	return (hal_gpio_pin_t){0, 0};
+}
+
+int stm32f2_get_exti_line(int platform_hw_resource) {
+	switch (platform_hw_resource) {
+	case platformhwHeadsetPttIopin:
+		return 8;
+	case platformhwKeyboardButt1Iopin:
+		return 11;
+	case platformhwKeyboardButt2Iopin:
+		return 12;
+	}
+	return -1;
 }

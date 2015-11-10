@@ -11,7 +11,7 @@
 #ifndef PLATFORM_HW_MAP_H_
 #define PLATFORM_HW_MAP_H_
 
-typedef enum {
+enum platformhw_resource_t {
 	platformhwInvalidResource = 0,
 	platformhwHeadsetUart,				// UART RS-232 гарнитуры
 	platformhwHeadsetPttIopin,			// I/O-пин тангенты гарнитуры
@@ -26,9 +26,9 @@ typedef enum {
 	platformhwDspResetIopin,			// I/O-пин сигнала RESET DSP
 	platformhwAtuUart,					// UART АСУ
 	platformhwBatterySmbusI2c			// I2C шины SMBus аккумуляторной батареи
-} platformhw_resource_t;
+};
 
-enum {
+enum platformhw_matrixkb_key_t {
 #if defined(PORT__TARGET_DEVICE_REV1) //TODO: assign values for target-device-rev1 keys
 	platformhwKeyEnter,
 	platformhwKeyBack,

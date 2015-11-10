@@ -16,9 +16,11 @@
 #include "qmthread_p.h"
 #include "qmapplication.h"
 #include "qmeventdispatcher.h"
+#include "qmmutexlocker.h"
 
 QmObjectPrivate::QmObjectPrivate(QmObject *q) :
-	q_ptr(q), thread(QmThread::currentThread()), pending_delete(false), parent(0), drop_events(false)
+	q_ptr(q), thread(QmThread::currentThread()), pending_delete(false),
+	parent(0), ta_mutex(QmMutex::Recursive), drop_events(false)
 {
 }
 
@@ -33,18 +35,32 @@ bool QmObjectPrivate::deliverEvent(QmEvent *event) {
 }
 
 void QmObjectPrivate::moveToThread(QmThread* thread) {
-	QmEventDispatcher *source_event_dispatcher = this->thread->d_func()->event_dispatcher;
-	QmEventDispatcher *target_event_dispatcher = thread->d_func()->event_dispatcher;
-	assignOtherThreadRecursively(q_ptr, thread);
+	QmEventDispatcher *source_event_dispatcher, *target_event_dispatcher;
+	ta_mutex.lock();
+	source_event_dispatcher = this->thread->d_func()->event_dispatcher;
+	target_event_dispatcher = thread->d_func()->event_dispatcher;
+	target_event_dispatcher->blockProcessing();
+	lockAndAssignOtherThreadRecursively(q_ptr, thread, true);
+	unlockRecursively(q_ptr, true);
+	ta_mutex.unlock();
 	QmEventDispatcher::moveQueuedEvents(q_ptr, source_event_dispatcher, target_event_dispatcher);
-	if (thread->isRunning())
-		target_event_dispatcher->wakeUp();
+	target_event_dispatcher->unblockProcessing();
+	target_event_dispatcher->wakeUp();
 }
 
-void QmObjectPrivate::assignOtherThreadRecursively(QmObject *object, QmThread* other_thread) {
+void QmObjectPrivate::lockAndAssignOtherThreadRecursively(QmObject *object, QmThread* other_thread, bool is_root) {
+	if (!is_root)
+		object->d_ptr->ta_mutex.lock();
 	object->d_ptr->thread = other_thread;
 	for (auto& i : object->d_ptr->children)
-		assignOtherThreadRecursively(i, other_thread);
+		lockAndAssignOtherThreadRecursively(i, other_thread, false);
+}
+
+void QmObjectPrivate::unlockRecursively(QmObject *object, bool is_root) {
+	for (auto& i : object->d_ptr->children)
+		unlockRecursively(i, false);
+	if (!is_root)
+		object->d_ptr->ta_mutex.unlock();
 }
 
 void QmObjectPrivate::cleanup() {
@@ -91,6 +107,12 @@ void QmObject::deleteLater() {
 		return;
 	d->pending_delete = true;
 	QmApplication::postEvent(this, new QmEvent(QmEvent::DeferredDelete));
+}
+
+QmThread* QmObject::thread() const {
+	QM_D(const QmObject);
+	QmMutexLocker locker(&(d->ta_mutex));
+	return d->thread;
 }
 
 bool QmObject::event(QmEvent* event) {

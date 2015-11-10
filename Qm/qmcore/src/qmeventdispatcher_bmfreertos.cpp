@@ -31,7 +31,7 @@ class QmEventDispatcherPrivate : public QmObjectPrivate {
 public:
 	QmEventDispatcherPrivate(QmEventDispatcher *q) :
 		QmObjectPrivate(q),
-		wake_semaphore(0), interrupt(false), processing_i(list.end())
+		wake_semaphore(0), interrupt(false), blocked(false), processing_i(list.end())
 	{
 	}
 	static bool isEventMatch(const queued_event_t& e, const QmObject *receiver, int event_type) {
@@ -53,7 +53,7 @@ public:
 		return false;
 	}
 	SemaphoreHandle_t wake_semaphore;
-	bool interrupt;
+	bool interrupt, blocked;
 	QmMutex list_mutex;
 	std::list<queued_event_t> list;
 	std::list<queued_event_t>::iterator processing_i;
@@ -98,6 +98,10 @@ void QmEventDispatcher::processEvents(QmObject *receiver, int event_type) {
 		queued_event_t queued_event;
 
 		d->list_mutex.lock();
+		if (d->blocked) {
+			d->list_mutex.unlock();
+			break;
+		}
 		if (d->processing_i == d->list.end()) {
 			d->list_mutex.unlock();
 			break;
@@ -134,6 +138,22 @@ void QmEventDispatcher::removeQueuedEvents(QmObject* receiver, int event_type) {
 			++i;
 		}
 	}
+	d->list_mutex.unlock();
+}
+
+void QmEventDispatcher::blockProcessing() {
+	QM_D(QmEventDispatcher);
+	d->list_mutex.lock();
+	QM_ASSERT(d->blocked == false);
+	d->blocked = true;
+	d->list_mutex.unlock();
+}
+
+void QmEventDispatcher::unblockProcessing() {
+	QM_D(QmEventDispatcher);
+	d->list_mutex.lock();
+	QM_ASSERT(d->blocked == true);
+	d->blocked = false;
 	d->list_mutex.unlock();
 }
 

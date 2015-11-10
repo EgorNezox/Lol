@@ -80,6 +80,7 @@ typedef struct {
 	hal_gpio_speed_t speed;
 	hal_gpio_type_t type;
 	hal_gpio_af_t af;
+	bool exti_source;
 } hal_gpio_params_t;
 
 typedef enum {
