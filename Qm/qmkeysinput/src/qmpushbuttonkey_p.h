@@ -10,7 +10,6 @@
 #ifndef QMPUSHBUTTONKEY_P_H_
 #define QMPUSHBUTTONKEY_P_H_
 
-#include "qm.h"
 #include "../../qmcore/src/qmobject_p.h"
 
 class QmPushButtonKeyPrivate : public QmObjectPrivate {

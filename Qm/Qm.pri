@@ -6,7 +6,7 @@
 #
 #******************************************************************************
 
-DEFINES += QMCORE_PLATFORM_QT QM_HARDWARE_QT
+DEFINES += QMCORE_PLATFORM_QT
 
 INCLUDEPATH += $$PWD/qmcore/include
 
@@ -24,6 +24,7 @@ SOURCES += \
     $$PWD/qmcore/src/qmapplication_qt.cpp
 
 contains(QM_MODULES,keysinput) {
+    DEFINES += QMKEYSINPUT_PLATFORM_QT
     INCLUDEPATH += $$PWD/qmkeysinput/include
     SOURCES += \
         $$PWD/qmkeysinput/src/qmpushbuttonkey.cpp \
