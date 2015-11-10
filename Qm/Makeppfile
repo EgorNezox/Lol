@@ -34,14 +34,17 @@ $(sources_to_objects $(QMCORE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH)
 
 ifdef HARDWAREIO
   ifeq ($(HARDWAREIO),stm32f2xx)
+  and ifeq ($(CORE_PLATFORM),bmfreertos)
     DEFINES += QMHARDWAREIO_PLATFORM_STM32F2XX
   else 
-    $(error "Unsupported HARDWAREIO platform specified")
+    $(error "Unsupported Core/HardwareIO platform combination specified")
   endif
   QMHARDWAREIO_INLCUDEPATH += qmhardwareio/include
   QMHARDWAREIO_SOURCES += \
   	qmhardwareio/src/qmuart.cpp \
-  	qmhardwareio/src/qmuart_$(HARDWAREIO).cpp
+  	qmhardwareio/src/qmuart_$(HARDWAREIO).cpp \
+  	qmhardwareio/src/qmiopin.cpp \
+  	qmhardwareio/src/qmiopin_$(HARDWAREIO).cpp
   $(sources_to_objects $(QMHARDWAREIO_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH)
 endif
 

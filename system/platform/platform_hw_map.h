@@ -11,13 +11,8 @@
 #ifndef PLATFORM_HW_MAP_H_
 #define PLATFORM_HW_MAP_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+enum platformhw_resource_t {
+	platformhwInvalidResource = 0
+};
 
-
-
-#ifdef __cplusplus
-}
-#endif
 #endif /* PLATFORM_HW_MAP_H_ */

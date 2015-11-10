@@ -10,42 +10,19 @@
 
 #include "mainwidget.h"
 #include "ui_mainwidget.h"
+#include "ramtexdisplaywidget.h"
 
-MainWidget *MainWidget::self = 0;
-
-void MainWidget::initDisplay(QWidget *display_widget)
-{
-    createIfNotExists();
-    display_widget->setParent(self->ui->placeholderDisplay);
-    display_widget->show();
-}
-
-MainWidget::MainWidget() :
-    QWidget(0),
+MainWidget::MainWidget(QWidget *parent) :
+    QWidget(parent),
     ui(new Ui::MainWidget)
 {
-    self = this;
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
+    RamtexDisplayWidget *display_widget = new RamtexDisplayWidget(ui->placeholderDisplay);
+    display_widget->show();
 }
 
 MainWidget::~MainWidget()
 {
     delete ui;
-    self = 0;
-}
-
-void MainWidget::createIfNotExists()
-{
-    if (self != 0)
-        return;
-    new MainWidget();
-    self->show();
-}
-
-void MainWidget::destroyIfExists()
-{
-    if (self == 0)
-        return;
-    delete self;
 }

@@ -21,6 +21,8 @@
 #endif
 
 void halinternal_system_fault_handler(void);
+void halinternal_gpio_init(void);
+void halinternal_exti_init(void);
 void halinternal_timer_init(void);
 void halinternal_uart_init(void);
 

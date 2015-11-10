@@ -24,6 +24,6 @@ INCLUDEPATH_system += \
 
 # Hardware specifics
 SOURCES_system += \
-	hardware_external_io.c
+	hardware_io.c
 
 include misc/target_build_footer.mk

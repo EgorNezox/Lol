@@ -23,6 +23,8 @@ public:
 	void queueEvent(QmObject* receiver, QmEvent* event);
 	void processEvents(QmObject *receiver = 0, int event_type = 0);
 	void removeQueuedEvents(QmObject *receiver = 0, int event_type = 0);
+	void blockProcessing();
+	void unblockProcessing();
 	static void moveQueuedEvents(QmObject *receiver_parent, QmEventDispatcher *source, QmEventDispatcher *target);
 	void wakeUp();
 	void interrupt();
