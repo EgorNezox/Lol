@@ -83,9 +83,10 @@ void QmIopinPrivate::deinit()
 	delete iopin_adapter;
 }
 
-void QmIopin::setInputTriggerMode(LevelTriggerMode mode) {
+bool QmIopin::setInputTriggerMode(LevelTriggerMode mode) {
 	QM_D(QmIopin);
 	d->input_trigger_mode = mode;
+	return true;
 }
 
 QmIopin::Level QmIopin::readInput() {

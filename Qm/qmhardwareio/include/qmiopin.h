@@ -38,7 +38,7 @@ public:
 	/*! Destroys the iopin. */
 	virtual ~QmIopin();
 
-	void setInputTriggerMode(LevelTriggerMode mode);
+	bool setInputTriggerMode(LevelTriggerMode mode);
 
 	Level readInput();
 

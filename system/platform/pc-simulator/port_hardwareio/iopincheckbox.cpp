@@ -57,7 +57,7 @@ void IopinCheckBox::setDirection(const QString& value) {
 }
 
 void IopinCheckBox::setDirection(Direction value) {
-	setEnabled(value == Direction_Output);
+	setEnabled(value == Direction_Input);
 	synchronizeInterface();
 }
 

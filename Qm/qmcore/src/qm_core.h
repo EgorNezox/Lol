@@ -29,9 +29,9 @@ protected:
 	virtual void process() = 0;
 private:
 	friend void qmcoreProcessQueuedSystemEvents();
-	bool isPending();
 	void checkAndPostToQueue();
 	void removeFromQueue();
+	bool pending;
 	QmSystemEvent *previous, *next;
 };
 #endif /* QMCORE_PLATFORM_BMFREERTOS */

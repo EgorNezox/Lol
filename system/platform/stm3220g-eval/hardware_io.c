@@ -207,6 +207,5 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 
 int stm32f2_get_exti_line(int platform_hw_resource) {
 	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
 	return -1;
 }

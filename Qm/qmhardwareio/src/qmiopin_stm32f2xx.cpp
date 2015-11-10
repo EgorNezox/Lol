@@ -47,16 +47,19 @@ void QmIopinPrivate::init() {
 }
 
 void QmIopinPrivate::deinit() {
-	if (input_trigger_mode != QmIopin::InputTrigger_Disabled)
+	if ((exti_line != -1) && (input_trigger_mode != QmIopin::InputTrigger_Disabled))
 		hal_exti_deinit(exti_handle);
 	stm32f2_ext_pins_deinit(hw_resource);
 }
 
-void QmIopin::setInputTriggerMode(LevelTriggerMode mode) {
+bool QmIopin::setInputTriggerMode(LevelTriggerMode mode) {
 	QM_D(QmIopin);
-	if (d->input_trigger_mode != InputTrigger_Disabled) {
+	if (d->exti_line == -1)
+		return false;
+	d->input_trigger_mode = mode;
+	if (mode != InputTrigger_Disabled) {
 		hal_exti_params_t exti_params;
-		switch (d->input_trigger_mode) {
+		switch (mode) {
 		case InputTrigger_Disabled: QM_ASSERT(0); break;
 		case InputTrigger_Rising: exti_params.mode = hextiMode_Rising; break;
 		case InputTrigger_Falling: exti_params.mode = hextiMode_Falling; break;
@@ -69,6 +72,7 @@ void QmIopin::setInputTriggerMode(LevelTriggerMode mode) {
 		hal_exti_deinit(d->exti_handle);
 		QmApplication::removePostedEvents(this, QmEvent::HardwareIO);
 	}
+	return true;
 }
 
 QmIopin::Level QmIopin::readInput() {

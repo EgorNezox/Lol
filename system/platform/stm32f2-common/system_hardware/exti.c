@@ -16,7 +16,9 @@
 
 #define EXTI_LINES_COUNT 23
 
-#define DEFINE_PCB_FROM_HANDLE(var_pcb, handle) struct s_exti_pcb *var_pcb = (struct s_exti_pcb *)handle
+#define DEFINE_PCB_FROM_HANDLE(var_pcb, handle) \
+	struct s_exti_pcb *var_pcb = (struct s_exti_pcb *)handle; \
+	SYS_ASSERT(var_pcb != 0);
 
 struct s_exti_pcb;
 typedef struct {

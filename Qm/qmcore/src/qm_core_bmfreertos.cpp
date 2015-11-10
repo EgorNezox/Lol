@@ -40,7 +40,7 @@ static QmSystemEvent *qm_sys_queue_top, *qm_sys_queue_bottom;
 static SemaphoreHandle_t qm_sys_queue_semaphore;
 
 QmSystemEvent::QmSystemEvent() :
-	previous(0), next(0)
+	pending(false), previous(0), next(0)
 {
 	QM_ASSERT(uxTaskPriorityGet(NULL) < qmconfigSYSTEM_PRIORITY);
 }
@@ -48,7 +48,7 @@ QmSystemEvent::QmSystemEvent() :
 QmSystemEvent::~QmSystemEvent() {
 	QM_ASSERT(uxTaskPriorityGet(NULL) < qmconfigSYSTEM_PRIORITY);
 	portENTER_CRITICAL();
-	if (isPending())
+	if (pending)
 		removeFromQueue();
 	portEXIT_CRITICAL();
 }
@@ -65,12 +65,8 @@ void QmSystemEvent::setPendingFromISR(signed long * pxHigherPriorityTaskWoken) {
 	xSemaphoreGiveFromISR(qm_sys_queue_semaphore, pxHigherPriorityTaskWoken);
 }
 
-bool QmSystemEvent::isPending() {
-	return (previous || next);
-}
-
 void QmSystemEvent::checkAndPostToQueue() {
-	if (isPending())
+	if (pending)
 		return;
 	if (qm_sys_queue_bottom) {
 		QM_ASSERT(qm_sys_queue_top != 0);
@@ -81,9 +77,11 @@ void QmSystemEvent::checkAndPostToQueue() {
 		qm_sys_queue_bottom = this;
 		qm_sys_queue_top = qm_sys_queue_bottom;
 	}
+	pending = true;
 }
 
 void QmSystemEvent::removeFromQueue() {
+	QM_ASSERT(pending);
 	if (previous) {
 		QM_ASSERT(qm_sys_queue_top != 0);
 		previous->next = next;
@@ -100,6 +98,7 @@ void QmSystemEvent::removeFromQueue() {
 		QM_ASSERT(qm_sys_queue_bottom == this);
 		qm_sys_queue_bottom = previous;
 	}
+	pending = false;
 }
 
 static portTASK_FUNCTION(qmsystemThreadEntry, pvParameters) {
