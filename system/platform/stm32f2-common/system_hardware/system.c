@@ -102,7 +102,7 @@ static __attribute__ ((used)) void CPUExceptionHandler(exc_type exception, exc_s
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
 	/* Переполнение стека в задаче pcTaskName (FreeRTOS).
-	 * (Размер стека задач потоков приложения определяется макросом usertaskSTACK_SIZE конфигурации FreeRTOS.)
+	 * (Размер стека задач потоков приложения определяется макросом qmconfigAPP_STACK_SIZE конфигурации FreeRTOS.)
 	 */
 	halinternal_system_fault_handler();
 }

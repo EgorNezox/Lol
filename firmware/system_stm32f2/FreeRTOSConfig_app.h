@@ -12,6 +12,6 @@
 #define FREERTOSCONFIG_APP_H_
 
 #define configTOTAL_HEAP_SIZE	( ( size_t ) ( 800 * 1024 ) )
-#define usertaskSTACK_SIZE		8192
+#define qmconfigAPP_STACK_SIZE		8192
 
 #endif /* FREERTOSCONFIG_APP_H_ */

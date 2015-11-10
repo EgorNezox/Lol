@@ -68,7 +68,7 @@ void QmThreadPrivate::init(const char * const name) {
 	QM_Q(QmThread);
 	event_dispatcher = new QmEventDispatcher(q);
 	sync_semaphore = xSemaphoreCreateBinary();
-	xTaskCreate(qmthreadTaskEntry, name, usertaskSTACK_SIZE, (void *)this, tskIDLE_PRIORITY, &task_handle);
+	xTaskCreate(qmthreadTaskEntry, name, qmconfigAPP_STACK_SIZE, (void *)this, tskIDLE_PRIORITY, &task_handle);
 	registered_threads_mutex.lock();
 	registered_threads[task_handle] = q;
 	registered_threads_mutex.unlock();
