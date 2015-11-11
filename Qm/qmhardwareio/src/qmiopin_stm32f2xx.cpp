@@ -48,7 +48,7 @@ void QmIopinPrivate::init() {
 
 void QmIopinPrivate::deinit() {
 	if ((exti_line != -1) && (input_trigger_mode != QmIopin::InputTrigger_Disabled))
-		hal_exti_deinit(exti_handle);
+		hal_exti_close(exti_handle);
 	stm32f2_ext_pins_deinit(hw_resource);
 }
 
@@ -67,9 +67,9 @@ bool QmIopin::setInputTriggerMode(LevelTriggerMode mode) {
 		}
 		exti_params.isrcallbackTrigger = qmiopinExtiTriggerIsrCallback;
 		exti_params.userid = static_cast<void *>(&d->trigger_event);
-		d->exti_handle = hal_exti_init(d->exti_line, &exti_params);
+		d->exti_handle = hal_exti_open(d->exti_line, &exti_params);
 	} else {
-		hal_exti_deinit(d->exti_handle);
+		hal_exti_close(d->exti_handle);
 		QmApplication::removePostedEvents(this, QmEvent::HardwareIO);
 	}
 	return true;
