@@ -71,7 +71,13 @@ void halinternal_exti_init(void) {
 	}
 }
 
-hal_exti_handle_t hal_exti_init(int line, hal_exti_params_t *params) {
+void hal_exti_set_default_params(hal_exti_params_t *params) {
+	params->mode = hextiMode_Rising_Falling;
+	params->userid = 0;
+	params->isrcallbackTrigger = 0;
+}
+
+hal_exti_handle_t hal_exti_open(int line, hal_exti_params_t *params) {
 	struct s_exti_pcb *exti = &(exti_pcbs[line]);
 	EXTI_InitTypeDef init_struct;
 	EXTI_StructInit(&init_struct);
@@ -94,7 +100,7 @@ hal_exti_handle_t hal_exti_init(int line, hal_exti_params_t *params) {
 	return (hal_exti_handle_t)exti;
 }
 
-void hal_exti_deinit(hal_exti_handle_t handle) {
+void hal_exti_close(hal_exti_handle_t handle) {
 	DEFINE_PCB_FROM_HANDLE(exti, handle);
 	EXTI_InitTypeDef init_struct;
 	EXTI_StructInit(&init_struct);

@@ -283,11 +283,8 @@ void stm32f2_LCD_init(void) {
 	/* Configure LCD controller reset line and do reset */
 	hal_gpio_pin_t lcd_reset_pin = {hgpioPB, 1};
 	hal_gpio_params_t lcd_reset_params;
+	hal_gpio_set_default_params(&lcd_reset_params);
 	lcd_reset_params.mode = hgpioMode_Out;
-	lcd_reset_params.speed = hgpioSpeed_2MHz;
-	lcd_reset_params.type = hgpioType_PP;
-	lcd_reset_params.af = hgpioAF_SYS;
-	lcd_reset_params.exti_source = false;
 	hal_gpio_init(lcd_reset_pin, &lcd_reset_params);
 	hal_gpio_set_output(lcd_reset_pin, hgpioLow);
 	hal_timer_delay(100);
@@ -297,10 +294,7 @@ void stm32f2_LCD_init(void) {
 
 void stm32f2_ext_pins_init(int platform_hw_resource) {
 	hal_gpio_params_t params;
-	params.speed = hgpioSpeed_2MHz;
-	params.type = hgpioType_PP;
-	params.af = hgpioAF_SYS;
-	params.exti_source = false;
+	hal_gpio_set_default_params(&params);
 	switch (platform_hw_resource) {
 	case platformhwHeadsetUart:
 		params.mode = hgpioMode_AF;

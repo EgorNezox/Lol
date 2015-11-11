@@ -22,6 +22,32 @@ extern "C" {
 typedef void* hal_exti_handle_t;
 
 typedef enum {
+	hextiLine_0 = 0,
+	hextiLine_1,
+	hextiLine_2,
+	hextiLine_3,
+	hextiLine_4,
+	hextiLine_5,
+	hextiLine_6,
+	hextiLine_7,
+	hextiLine_8,
+	hextiLine_9,
+	hextiLine_10,
+	hextiLine_11,
+	hextiLine_12,
+	hextiLine_13,
+	hextiLine_14,
+	hextiLine_15,
+	hextiLine_PVD,
+	hextiLine_RTC_Alarm,
+	hextiLine_USB_OTG_FS_Wakeup,
+	hextiLine_Ethernet_Wakeup,
+	hextiLine_USB_OTG_HS_Wakeup,
+	hextiLine_RTC_Tamper_Timestamp,
+	hextiLine_RTC_Wakeup,
+} hal_exti_line_t;
+
+typedef enum {
 	hextiMode_Rising,
 	hextiMode_Falling,
 	hextiMode_Rising_Falling
@@ -33,8 +59,9 @@ typedef struct {
 	void (*isrcallbackTrigger)(hal_exti_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 } hal_exti_params_t;
 
-hal_exti_handle_t hal_exti_init(int line, hal_exti_params_t *params);
-void hal_exti_deinit(hal_exti_handle_t handle);
+void hal_exti_set_default_params(hal_exti_params_t *params);
+hal_exti_handle_t hal_exti_open(int line, hal_exti_params_t *params);
+void hal_exti_close(hal_exti_handle_t handle);
 
 #ifdef __cplusplus
 }

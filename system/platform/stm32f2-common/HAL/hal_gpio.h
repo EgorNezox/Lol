@@ -88,6 +88,7 @@ typedef enum {
 	hgpioHigh,
 } hal_gpio_level_t;
 
+void hal_gpio_set_default_params(hal_gpio_params_t *params);
 void hal_gpio_init(hal_gpio_pin_t pin, hal_gpio_params_t *params);
 void hal_gpio_deinit(hal_gpio_pin_t pin);
 hal_gpio_level_t hal_gpio_get_input(hal_gpio_pin_t pin);
