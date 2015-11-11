@@ -21,12 +21,8 @@
 #define configUSE_TICK_HOOK			0
 #define configCPU_CLOCK_HZ			( SystemCoreClock )
 #define configTICK_RATE_HZ			( ( TickType_t ) 1000 )
-#define configMINIMAL_STACK_SIZE	( ( unsigned short ) 256 )
 #define configMAX_TASK_NAME_LEN		( 64 )
 #define configIDLE_SHOULD_YIELD		0
-
-/* Software timers */
-#define configTIMER_TASK_STACK_DEPTH	(configMINIMAL_STACK_SIZE)
 
 #define configQUEUE_REGISTRY_SIZE		50
 #define configGENERATE_RUN_TIME_STATS	0

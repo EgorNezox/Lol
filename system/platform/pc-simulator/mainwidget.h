@@ -16,21 +16,23 @@
 namespace Ui {
 class MainWidget;
 }
+namespace QtHwEmu {
+void init();
+void deinit();
+}
 
 class MainWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    static void initDisplay(QWidget *display_widget);
-
 private:
-    MainWidget();
+    friend void QtHwEmu::init();
+    friend void QtHwEmu::deinit();
+
+    MainWidget(QWidget *parent = 0);
     ~MainWidget();
-    static void createIfNotExists();
-    static void destroyIfExists();
+
     Ui::MainWidget *ui;
-    static MainWidget *self;
 };
 
 #endif // MAINWIDGET_H

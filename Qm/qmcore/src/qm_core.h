@@ -10,12 +10,30 @@
 #ifndef QM_CORE_H_
 #define QM_CORE_H_
 
+#ifdef QMCORE_PLATFORM_BMFREERTOS
+#include "FreeRTOS.h"
+#endif /* QMCORE_PLATFORM_BMFREERTOS */
 #ifdef QMCORE_PLATFORM_QT
 #include <QEvent>
 #endif /* QMCORE_PLATFORM_QT */
 
 #ifdef QMCORE_PLATFORM_BMFREERTOS
-class QmThread;
+void qmcoreProcessQueuedSystemEvents();
+class QmSystemEvent {
+public:
+	QmSystemEvent();
+	virtual ~QmSystemEvent();
+	void setPending();
+	void setPendingFromISR(signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+protected:
+	virtual void process() = 0;
+private:
+	friend void qmcoreProcessQueuedSystemEvents();
+	void checkAndPostToQueue();
+	void removeFromQueue();
+	bool pending;
+	QmSystemEvent *previous, *next;
+};
 #endif /* QMCORE_PLATFORM_BMFREERTOS */
 
 #ifdef QMCORE_PLATFORM_QT
@@ -49,8 +67,5 @@ extern qmcore_global_environment_t qmcore_global_environment;
 #endif /* QMCORE_PLATFORM_QT */
 
 void qmMain();
-#ifdef QMCORE_PLATFORM_BMFREERTOS
-QmThread* qmGetSystemThread();
-#endif /* QMCORE_PLATFORM_BMFREERTOS */
 
 #endif /* QM_CORE_H_ */

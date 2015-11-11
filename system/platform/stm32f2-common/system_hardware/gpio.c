@@ -11,6 +11,7 @@
 #include "stm32f2xx.h"
 #include "FreeRTOS.h"
 
+#include "sys_internal.h"
 #include "hal_gpio.h"
 
 #define BB_MAP_REG_BIT(reg_offset, bit)	(*(__IO uint32_t *)(PERIPH_BB_BASE + (reg_offset * 32) + (bit * 4)))
@@ -51,6 +52,22 @@ static uint32_t const BITBAND_PORT_OFFSET[] = {
 		(GPIOI_BASE - PERIPH_BASE)
 };
 
+static int gpio_exti_source_assignment[16];
+
+void halinternal_gpio_init(void) {
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+	for (int i = 0; i < sizeof(gpio_exti_source_assignment)/sizeof(gpio_exti_source_assignment[0]); i++)
+		gpio_exti_source_assignment[i] = -1;
+}
+
+void hal_gpio_set_default_params(hal_gpio_params_t *params) {
+	params->mode = hgpioMode_In;
+	params->speed = hgpioSpeed_2MHz;
+	params->type = hgpioType_PP;
+	params->af = hgpioAF_SYS;
+	params->exti_source = false;
+}
+
 void hal_gpio_init(hal_gpio_pin_t pin, hal_gpio_params_t *params) {
 	GPIO_InitTypeDef init_struct;
 	GPIO_StructInit(&init_struct);
@@ -74,6 +91,11 @@ void hal_gpio_init(hal_gpio_pin_t pin, hal_gpio_params_t *params) {
 	case hgpioType_OD: init_struct.GPIO_OType = GPIO_OType_OD; break;
 	}
 	portENTER_CRITICAL();
+	if (params->exti_source) {
+		SYS_ASSERT(gpio_exti_source_assignment[pin.number] == -1);
+		SYSCFG_EXTILineConfig(pin.port, pin.number);
+		gpio_exti_source_assignment[pin.number] = pin.port;
+	}
 	RCC_AHB1PeriphClockCmd(STD_RCC_AHB1_PERIPH[pin.port], ENABLE);
 	GPIO_PinAFConfig(STD_PORT[pin.port], pin.number, params->af);
 	GPIO_Init(STD_PORT[pin.port], &init_struct);
@@ -85,6 +107,8 @@ void hal_gpio_deinit(hal_gpio_pin_t pin) {
 	GPIO_StructInit(&init_struct);
 	init_struct.GPIO_Pin = 1 << pin.number;
 	portENTER_CRITICAL();
+	if (gpio_exti_source_assignment[pin.number] == pin.port)
+		gpio_exti_source_assignment[pin.number] = -1;
 	GPIO_Init(STD_PORT[pin.port], &init_struct);
 	portEXIT_CRITICAL();
 }

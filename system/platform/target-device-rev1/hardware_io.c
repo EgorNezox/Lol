@@ -1,11 +1,9 @@
 /**
   ******************************************************************************
-  * @file    hardware_external_io.c
+  * @file    hardware_io.c
   * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
   * @date    18.08.2015
-  * @brief   Настройка внешнего ввода/вывода микроконтроллера STM32F2
-  *
-  * Содержит функции инициализации GPIO и контроллера внешней памяти: SRAM, LCD(дисплей).
+  * @brief   Реализация управления вводом/выводом микроконтроллера STM32F2 для target-device-rev1
   *
   ******************************************************************************
   */
@@ -13,7 +11,7 @@
 #include "stm32f2xx.h"
 #include "FreeRTOS.h"
 
-#include "system_hw_memory.h"
+#include "system_hw_io.h"
 #include "../platform_hw_map.h"
 #include "hal_gpio.h"
 #include "hal_timer.h"
@@ -285,13 +283,33 @@ void stm32f2_LCD_init(void) {
 	/* Configure LCD controller reset line and do reset */
 	hal_gpio_pin_t lcd_reset_pin = {hgpioPB, 1};
 	hal_gpio_params_t lcd_reset_params;
+	hal_gpio_set_default_params(&lcd_reset_params);
 	lcd_reset_params.mode = hgpioMode_Out;
-	lcd_reset_params.speed = hgpioSpeed_2MHz;
-	lcd_reset_params.type = hgpioType_PP;
-	lcd_reset_params.af = hgpioAF_SYS;
 	hal_gpio_init(lcd_reset_pin, &lcd_reset_params);
 	hal_gpio_set_output(lcd_reset_pin, hgpioLow);
 	hal_timer_delay(100);
 	hal_gpio_set_output(lcd_reset_pin, hgpioHigh);
 	hal_timer_delay(10);
+}
+
+void stm32f2_ext_pins_init(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	__asm volatile("bkpt"); // no resources defined
+}
+
+void stm32f2_ext_pins_deinit(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	__asm volatile("bkpt"); // no resources defined
+}
+
+hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	__asm volatile("bkpt"); // no resources defined
+	return (hal_gpio_pin_t){0, 0};
+}
+
+int stm32f2_get_exti_line(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	__asm volatile("bkpt"); // no resources defined
+	return -1;
 }

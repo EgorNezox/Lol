@@ -1,11 +1,9 @@
 /**
   ******************************************************************************
-  * @file    hardware_external_io.c
+  * @file    hardware_io.c
   * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
   * @date    18.08.2015
-  * @brief   Настройка внешнего ввода/вывода микроконтроллера STM32F2
-  *
-  * Содержит функции инициализации GPIO и контроллера внешней памяти: SRAM, LCD(дисплей).
+  * @brief   Реализация управления вводом/выводом микроконтроллера STM32F2 для stm3220g-eval
   *
   ******************************************************************************
   */
@@ -13,7 +11,7 @@
 #include "stm32f2xx.h"
 #include "FreeRTOS.h"
 
-#include "system_hw_memory.h"
+#include "system_hw_io.h"
 #include "../platform_hw_map.h"
 
 /*! Первичная иницициализация внешней памяти.
@@ -189,4 +187,25 @@ void stm32f2_LCD_init(void) {
 	/* Enable FSMC NOR/SRAM Bank3 */
 	FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM3, ENABLE);
 	portEXIT_CRITICAL();
+}
+
+void stm32f2_ext_pins_init(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	__asm volatile("bkpt"); // no resources defined
+}
+
+void stm32f2_ext_pins_deinit(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	__asm volatile("bkpt"); // no resources defined
+}
+
+hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	__asm volatile("bkpt"); // no resources defined
+	return (hal_gpio_pin_t){0, 0};
+}
+
+int stm32f2_get_exti_line(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	return -1;
 }
