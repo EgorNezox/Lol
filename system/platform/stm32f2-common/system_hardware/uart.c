@@ -79,7 +79,9 @@
 
 #define MAX_DMA_TRANSFER_SIZE	0xFFFF // see STM32F2 reference manual
 
-#define DEFINE_PCB_FROM_HANDLE(var_pcb, handle) struct s_uart_pcb *var_pcb = (struct s_uart_pcb *)handle
+#define DEFINE_PCB_FROM_HANDLE(var_pcb, handle) \
+	struct s_uart_pcb *var_pcb = (struct s_uart_pcb *)handle; \
+	SYS_ASSERT(var_pcb != 0);
 
 struct s_uart_pcb {
 	USART_TypeDef* usart;
@@ -305,7 +307,7 @@ static void stop_dma_rx(struct s_uart_pcb *uart) {
 }
 
 void hal_uart_enable(hal_uart_handle_t handle) {
-	DEFINE_PCB_FROM_HANDLE(uart, handle);
+	DEFINE_PCB_FROM_HANDLE(uart, handle)
 	if (!(uart->is_open && !(uart->usart->CR1 & USART_CR1_UE)))
 		return;
 	taskENTER_CRITICAL();
@@ -318,7 +320,7 @@ void hal_uart_enable(hal_uart_handle_t handle) {
 }
 
 void hal_uart_disable(hal_uart_handle_t handle) {
-	DEFINE_PCB_FROM_HANDLE(uart, handle);
+	DEFINE_PCB_FROM_HANDLE(uart, handle)
 	if (!(uart->is_open && (uart->usart->CR1 & USART_CR1_UE)))
 		return;
 	if (uart->rx_data_timer)
@@ -342,7 +344,7 @@ void hal_uart_disable(hal_uart_handle_t handle) {
 }
 
 void hal_uart_resume_rx(hal_uart_handle_t handle) {
-	DEFINE_PCB_FROM_HANDLE(uart, handle);
+	DEFINE_PCB_FROM_HANDLE(uart, handle)
 	taskENTER_CRITICAL();
 	if (uart->is_open && (DMA_GetCmdStatus(uart->dma_rx_stream) == DISABLE)) {
 		SYS_ASSERT(uart->rx_active_transfer_size == 0);
@@ -365,7 +367,7 @@ void hal_uart_resume_rx(hal_uart_handle_t handle) {
 }
 
 void hal_uart_resume_tx(hal_uart_handle_t handle) {
-	DEFINE_PCB_FROM_HANDLE(uart, handle);
+	DEFINE_PCB_FROM_HANDLE(uart, handle)
 	if (!(uart->is_open && (uart->tx_buffer) && (uart->usart->CR1 & USART_CR1_UE) && (uart->tx_transfer == txtransferNone)))
 		return;
 	taskENTER_CRITICAL();
@@ -377,7 +379,7 @@ void hal_uart_resume_tx(hal_uart_handle_t handle) {
 }
 
 bool hal_uart_receive_byte(hal_uart_handle_t handle, uint8_t *data) {
-	DEFINE_PCB_FROM_HANDLE(uart, handle);
+	DEFINE_PCB_FROM_HANDLE(uart, handle)
 	if (!uart->is_open)
 		return false;
 	bool received;
@@ -388,7 +390,7 @@ bool hal_uart_receive_byte(hal_uart_handle_t handle, uint8_t *data) {
 }
 
 bool hal_uart_transmit_blocked(hal_uart_handle_t handle, uint8_t *data, int size, portTickType block_time) {
-	DEFINE_PCB_FROM_HANDLE(uart, handle);
+	DEFINE_PCB_FROM_HANDLE(uart, handle)
 	if (!(uart->is_open && (uart->usart->CR1 & USART_CR1_UE) && (uart->tx_transfer == txtransferNone)))
 		return false;
 	taskENTER_CRITICAL();
@@ -402,7 +404,7 @@ bool hal_uart_transmit_blocked(hal_uart_handle_t handle, uint8_t *data, int size
 }
 
 bool hal_uart_start_transmit(hal_uart_handle_t handle, uint8_t *data, int size) {
-	DEFINE_PCB_FROM_HANDLE(uart, handle);
+	DEFINE_PCB_FROM_HANDLE(uart, handle)
 	if (!(uart->is_open && (uart->usart->CR1 & USART_CR1_UE) && (uart->tx_transfer == txtransferNone)))
 		return false;
 	taskENTER_CRITICAL();
@@ -433,7 +435,7 @@ static bool update_rx_data_indication_from_isr(struct s_uart_pcb *uart, size_t b
 }
 
 static void vTimerRxDataCallback(xTimerHandle pxTimer) {
-	DEFINE_PCB_FROM_HANDLE(uart, pvTimerGetTimerID(pxTimer));
+	DEFINE_PCB_FROM_HANDLE(uart, pvTimerGetTimerID(pxTimer))
 	taskENTER_CRITICAL();
 	if (uart->usart->CR1 & USART_CR1_UE) {
 		uart->usart->CR1 |= USART_CR1_RXNEIE; // enable uart rx interrupt back again
