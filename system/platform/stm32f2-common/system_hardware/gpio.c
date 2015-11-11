@@ -60,6 +60,14 @@ void halinternal_gpio_init(void) {
 		gpio_exti_source_assignment[i] = -1;
 }
 
+void hal_gpio_set_default_params(hal_gpio_params_t *params) {
+	params->mode = hgpioMode_In;
+	params->speed = hgpioSpeed_2MHz;
+	params->type = hgpioType_PP;
+	params->af = hgpioAF_SYS;
+	params->exti_source = false;
+}
+
 void hal_gpio_init(hal_gpio_pin_t pin, hal_gpio_params_t *params) {
 	GPIO_InitTypeDef init_struct;
 	GPIO_StructInit(&init_struct);
