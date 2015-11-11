@@ -33,8 +33,8 @@ typedef struct {
 	void (*isrcallbackTrigger)(hal_exti_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 } hal_exti_params_t;
 
-hal_exti_handle_t hal_exti_init(int line, hal_exti_params_t *params);
-void hal_exti_deinit(hal_exti_handle_t handle);
+hal_exti_handle_t hal_exti_open(int line, hal_exti_params_t *params);
+void hal_exti_close(hal_exti_handle_t handle);
 
 #ifdef __cplusplus
 }
