@@ -69,7 +69,7 @@
 
 /* Uncomment the line below to expanse the "assert_param" macro in the 
    Standard Peripheral Library drivers code */
-#ifdef ZEON_DEBUG_ENABLE
+#ifndef NDEBUG
 #define USE_FULL_ASSERT    1
 #endif
 

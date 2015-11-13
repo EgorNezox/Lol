@@ -5,6 +5,9 @@
   * @date    05.11.2015
   * @brief   Реализация аппаратной абстракции доступа к линиям внешних прерываний на STM32F2xx
   *
+  * Заняты следующие аппаратные ресурсы:
+  * - все EXTI
+  *
   ******************************************************************************
   */
 
@@ -28,7 +31,7 @@ typedef struct {
 	bool pending;
 } s_exti_mux_irq_descr;
 
-struct s_exti_pcb {
+static struct s_exti_pcb {
 	int line;
 	bool is_busy;
 	void *userid;
@@ -72,6 +75,7 @@ void halinternal_exti_init(void) {
 }
 
 void hal_exti_set_default_params(hal_exti_params_t *params) {
+	SYS_ASSERT(params);
 	params->mode = hextiMode_Rising_Falling;
 	params->userid = 0;
 	params->isrcallbackTrigger = 0;
@@ -79,6 +83,8 @@ void hal_exti_set_default_params(hal_exti_params_t *params) {
 
 hal_exti_handle_t hal_exti_open(int line, hal_exti_params_t *params) {
 	struct s_exti_pcb *exti = &(exti_pcbs[line]);
+	SYS_ASSERT((0 <= line) && (line < EXTI_LINES_COUNT));
+	SYS_ASSERT(params);
 	EXTI_InitTypeDef init_struct;
 	EXTI_StructInit(&init_struct);
 	init_struct.EXTI_Line = 1 << exti->line;

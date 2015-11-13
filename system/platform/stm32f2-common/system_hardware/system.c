@@ -14,9 +14,12 @@
 #include "stm32f2xx.h"
 
 #include "sys_internal.h"
+#include "sys_internal_freertos_timers.h"
 
 #define MPU_REGION_SIZE(n)	((n-1) << MPU_RASR_SIZE_Pos) // size = 2^n
 #define MPU_REGION_ATTR_NOEXEC	(0x01 << 28)
+
+unsigned int halinternal_freertos_timer_queue_length = 0;
 
 /*! Автоматическая инициализация средствами стандартной библиотеки (до входа в main) */
 void  __attribute__((constructor)) hal_system_init(void) {
