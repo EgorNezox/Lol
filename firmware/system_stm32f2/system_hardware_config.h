@@ -11,9 +11,9 @@
 #ifndef SYSTEM_HARDWARE_CONFIG_H_
 #define SYSTEM_HARDWARE_CONFIG_H_
 
-/*! Макс. задержка в обработке прерываний с приоритетом irq_channel_preemption_priority (в мс) */
-#define SYS_MAX_IRQ_LATENCY_MS	1
 /*! Приоритет прерываний NVIC для обработки запросов аппаратной периферии */
 #define SYS_IRQ_CHANNEL_PREEMPTION_PRIORITY	1
+/*! Макс. задержка в обработке прерываний с приоритетом SYS_IRQ_CHANNEL_PREEMPTION_PRIORITY (в мс) */
+#define SYS_MAX_IRQ_LATENCY_MS	1
 
 #endif /* SYSTEM_HARDWARE_CONFIG_H_ */

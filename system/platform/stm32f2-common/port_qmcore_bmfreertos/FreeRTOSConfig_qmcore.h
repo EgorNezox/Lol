@@ -13,30 +13,29 @@
 
 /* Primary kernel configuration */
 #define configUSE_PREEMPTION		1
-#define configUSE_CO_ROUTINES 		0
 #define configUSE_16_BIT_TICKS		0
-#define configUSE_TRACE_FACILITY	0
-#define configMINIMAL_STACK_SIZE	( ( unsigned short ) 256 )
 
 /* Software timers */
+#if !defined(configUSE_TIMERS) || (configUSE_TIMERS != 1)
+#ifdef configUSE_TIMERS
+#undef configUSE_TIMERS
+#endif
 #define configUSE_TIMERS				1 // used by QmTimer implementation
-#define configTIMER_QUEUE_LENGTH		1 // pure software timers, no *FromISR* calls allowed
-#define configTIMER_TASK_STACK_DEPTH	configMINIMAL_STACK_SIZE // assumed only small QmTimerPrivate::callback() stack
+#endif
+#if !defined(configTIMER_QUEUE_LENGTH)
+#ifdef configTIMER_QUEUE_LENGTH
+#undef configTIMER_QUEUE_LENGTH
+#endif
+#define configTIMER_QUEUE_LENGTH	(halinternal_freertos_timer_queue_length + 1) // timer queue used by HAL + pure software timers used by Qm
+#endif
 
-/* Miscellaneous configuration */
+/* Miscellaneous */
+#if !defined(configUSE_NEWLIB_REENTRANT) || (configUSE_NEWLIB_REENTRANT != 1)
+#ifdef configUSE_NEWLIB_REENTRANT
+#undef configUSE_NEWLIB_REENTRANT
+#endif
 #define configUSE_NEWLIB_REENTRANT		1
-#define configUSE_MUTEXES				1
-#define configUSE_COUNTING_SEMAPHORES 	1
-#define configUSE_ALTERNATIVE_API 		0
-#define configUSE_RECURSIVE_MUTEXES		1
-#define INCLUDE_vTaskPrioritySet		1
-#define INCLUDE_uxTaskPriorityGet		1
-#define INCLUDE_vTaskDelete				1
-#define INCLUDE_vTaskCleanUpResources	1
-#define INCLUDE_vTaskSuspend			1
-#define INCLUDE_vTaskDelayUntil			1
-#define INCLUDE_vTaskDelay				1
-#define INCLUDE_xTaskGetSchedulerState	1
+#endif
 
 /* Qm task priorities scheme */
 #define configMAX_PRIORITIES		( 5 )
@@ -47,6 +46,6 @@
 #define qmconfigAPP_LOW_PRIORITY	(tskIDLE_PRIORITY + 1) // application threads (low)
 
 /* Qm system/core specifics */
-#define qmconfigSYSTEM_STACK_SIZE	( ( unsigned short ) 2048 )
+#define qmconfigSYSTEM_STACK_SIZE	( 2048 )
 
 #endif /* FREERTOSCONFIG_QM_H_ */

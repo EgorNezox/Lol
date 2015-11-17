@@ -37,13 +37,14 @@ public:
 		StopBits stop_bits;
 		Parity parity;
 		FlowControl flow_control;
-		uint32_t rx_buffer_size;
-		uint32_t tx_buffer_size;
+		uint32_t rx_buffer_size;		/*!< (минимальный) размер приемного буфера (с учетом baud_rate и io_pending_interval) */
+		uint32_t tx_buffer_size;		/*!< размер передающего буфера (с учетом baud_rate и io_pending_interval) */
+		uint32_t io_pending_interval;	/*!< мин. интервал (в мс) задержки в обработке событий ввода/вывода (0 - обрабатывать немедленно) */
 	};
 
 	/*! Constructs an uart with the given \a parent.
 	 *
-	 * Parameter \a instance specifies platform-identified instance of peripheral.
+	 * Parameter \a hw_resource specifies platform-identified instance of peripheral.
 	 */
 	QmUart(int hw_resource, ConfigStruct *config, QmObject *parent = 0);
 
@@ -58,13 +59,15 @@ public:
 
 	int64_t readData(uint8_t *buffer, uint32_t max_size);
 
-	int64_t writeData(uint8_t *data, uint32_t data_size);
+	int64_t writeData(const uint8_t *data, uint32_t data_size);
 
 	uint32_t getRxDataAvailable();
 
 	uint32_t getTxSpaceAvailable();
 
 	sigc::signal<void> dataReceived;
+
+	sigc::signal<void, bool, bool> rxError;
 
 	sigc::signal<void> dataTransmitted;
 
