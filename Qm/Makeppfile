@@ -41,10 +41,10 @@ ifdef HARDWAREIO
   endif
   QMHARDWAREIO_INLCUDEPATH += qmhardwareio/include
   QMHARDWAREIO_SOURCES += \
-  	qmhardwareio/src/qmuart.cpp \
-  	qmhardwareio/src/qmuart_$(HARDWAREIO).cpp \
   	qmhardwareio/src/qmiopin.cpp \
-  	qmhardwareio/src/qmiopin_$(HARDWAREIO).cpp
+  	qmhardwareio/src/qmiopin_$(HARDWAREIO).cpp \
+  	qmhardwareio/src/qmuart.cpp \
+  	qmhardwareio/src/qmuart_$(HARDWAREIO).cpp
   $(sources_to_objects $(QMHARDWAREIO_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH)
 endif
 

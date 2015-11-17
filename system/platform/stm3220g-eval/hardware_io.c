@@ -252,3 +252,15 @@ int stm32f2_get_exti_line(int platform_hw_resource) {
 	//TODO: stm32f2_get_exti_line()
 	return -1;
 }
+
+int stm32f2_get_uart_instance(int platform_hw_resource) {
+	switch (platform_hw_resource) {
+	case platformhwHeadsetUart:
+	case platformhwDspUart:
+	case platformhwAtuUart:
+		//TODO: stm32f2_get_uart_instance()
+		break;
+	default: __asm volatile("bkpt"); // no such resource
+	}
+	return -1;
+}

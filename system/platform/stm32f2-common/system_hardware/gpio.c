@@ -14,9 +14,10 @@
 #include "sys_internal.h"
 #include "hal_gpio.h"
 
-#define BB_MAP_REG_BIT(reg_offset, bit)	(*(__IO uint32_t *)(PERIPH_BB_BASE + (reg_offset * 32) + (bit * 4)))
+#define GPIO_PORTS_COUNT		9
+#define GPIO_PORT_PINS_COUNT	16
 
-static uint32_t const STD_RCC_AHB1_PERIPH[] = {
+static uint32_t const GPIO_RCC_AHB1_PERIPH[] = {
 		RCC_AHB1Periph_GPIOA,
 		RCC_AHB1Periph_GPIOB,
 		RCC_AHB1Periph_GPIOC,
@@ -28,7 +29,7 @@ static uint32_t const STD_RCC_AHB1_PERIPH[] = {
 		RCC_AHB1Periph_GPIOI
 };
 
-static GPIO_TypeDef* const STD_PORT[] = {
+static GPIO_TypeDef* const GPIO_PORT[] = {
 		GPIOA,
 		GPIOB,
 		GPIOC,
@@ -40,7 +41,7 @@ static GPIO_TypeDef* const STD_PORT[] = {
 		GPIOI
 };
 
-static uint32_t const BITBAND_PORT_OFFSET[] = {
+static uint32_t const GPIO_BITBAND_PORT_OFFSET[] = {
 		(GPIOA_BASE - PERIPH_BASE),
 		(GPIOB_BASE - PERIPH_BASE),
 		(GPIOC_BASE - PERIPH_BASE),
@@ -52,7 +53,7 @@ static uint32_t const BITBAND_PORT_OFFSET[] = {
 		(GPIOI_BASE - PERIPH_BASE)
 };
 
-static int gpio_exti_source_assignment[16];
+static int gpio_exti_source_assignment[GPIO_PORT_PINS_COUNT];
 
 void halinternal_gpio_init(void) {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
@@ -61,6 +62,7 @@ void halinternal_gpio_init(void) {
 }
 
 void hal_gpio_set_default_params(hal_gpio_params_t *params) {
+	SYS_ASSERT(params);
 	params->mode = hgpioMode_In;
 	params->speed = hgpioSpeed_2MHz;
 	params->type = hgpioType_PP;
@@ -69,6 +71,9 @@ void hal_gpio_set_default_params(hal_gpio_params_t *params) {
 }
 
 void hal_gpio_init(hal_gpio_pin_t pin, hal_gpio_params_t *params) {
+	SYS_ASSERT((0 <= pin.port) && (pin.port < GPIO_PORTS_COUNT));
+	SYS_ASSERT((0 <= pin.number) && (pin.number < GPIO_PORT_PINS_COUNT));
+	SYS_ASSERT(params);
 	GPIO_InitTypeDef init_struct;
 	GPIO_StructInit(&init_struct);
 	init_struct.GPIO_Pin = 1 << pin.number;
@@ -96,27 +101,33 @@ void hal_gpio_init(hal_gpio_pin_t pin, hal_gpio_params_t *params) {
 		SYSCFG_EXTILineConfig(pin.port, pin.number);
 		gpio_exti_source_assignment[pin.number] = pin.port;
 	}
-	RCC_AHB1PeriphClockCmd(STD_RCC_AHB1_PERIPH[pin.port], ENABLE);
-	GPIO_PinAFConfig(STD_PORT[pin.port], pin.number, params->af);
-	GPIO_Init(STD_PORT[pin.port], &init_struct);
+	RCC_AHB1PeriphClockCmd(GPIO_RCC_AHB1_PERIPH[pin.port], ENABLE);
+	GPIO_PinAFConfig(GPIO_PORT[pin.port], pin.number, params->af);
+	GPIO_Init(GPIO_PORT[pin.port], &init_struct);
 	portEXIT_CRITICAL();
 }
 
 void hal_gpio_deinit(hal_gpio_pin_t pin) {
+	SYS_ASSERT((0 <= pin.port) && (pin.port < GPIO_PORTS_COUNT));
+	SYS_ASSERT((0 <= pin.number) && (pin.number < GPIO_PORT_PINS_COUNT));
 	GPIO_InitTypeDef init_struct;
 	GPIO_StructInit(&init_struct);
 	init_struct.GPIO_Pin = 1 << pin.number;
 	portENTER_CRITICAL();
 	if (gpio_exti_source_assignment[pin.number] == pin.port)
 		gpio_exti_source_assignment[pin.number] = -1;
-	GPIO_Init(STD_PORT[pin.port], &init_struct);
+	GPIO_Init(GPIO_PORT[pin.port], &init_struct);
 	portEXIT_CRITICAL();
 }
 
 hal_gpio_level_t hal_gpio_get_input(hal_gpio_pin_t pin) {
-	return (BB_MAP_REG_BIT((BITBAND_PORT_OFFSET[pin.port] + 0x10), pin.number) ? hgpioHigh : hgpioLow);
+	SYS_ASSERT((0 <= pin.port) && (pin.port < GPIO_PORTS_COUNT));
+	SYS_ASSERT((0 <= pin.number) && (pin.number < GPIO_PORT_PINS_COUNT));
+	return (BB_MAP_REG_BIT((GPIO_BITBAND_PORT_OFFSET[pin.port] + 0x10), pin.number) ? hgpioHigh : hgpioLow);
 }
 
 void hal_gpio_set_output(hal_gpio_pin_t pin, hal_gpio_level_t level) {
-	BB_MAP_REG_BIT((BITBAND_PORT_OFFSET[pin.port] + 0x14), pin.number) = level;
+	SYS_ASSERT((0 <= pin.port) && (pin.port < GPIO_PORTS_COUNT));
+	SYS_ASSERT((0 <= pin.number) && (pin.number < GPIO_PORT_PINS_COUNT));
+	BB_MAP_REG_BIT((GPIO_BITBAND_PORT_OFFSET[pin.port] + 0x14), pin.number) = level;
 }

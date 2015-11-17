@@ -25,12 +25,13 @@ contains(QM_MODULES,hardwareio) {
     DEFINES += QMHARDWAREIO_PLATFORM_QT
     INCLUDEPATH += $$PWD/qmhardwareio/include
     HEADERS += \
-        $$PWD/qmhardwareio/src/qmiopin_p.h
+        $$PWD/qmhardwareio/src/qmiopin_p.h \
+        $$PWD/qmhardwareio/src/qmuart_p.h
     SOURCES += \
-        $$PWD/qmhardwareio/src/qmuart.cpp \
-        $$PWD/qmhardwareio/src/qmuart_qt.cpp \
         $$PWD/qmhardwareio/src/qmiopin.cpp \
-        $$PWD/qmhardwareio/src/qmiopin_qt.cpp
+        $$PWD/qmhardwareio/src/qmiopin_qt.cpp \
+        $$PWD/qmhardwareio/src/qmuart.cpp \
+        $$PWD/qmhardwareio/src/qmuart_qt.cpp
 }
 
 contains(QM_MODULES,keysinput) {

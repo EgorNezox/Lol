@@ -8,8 +8,8 @@
   ******************************************************************************
  */
 
-#ifndef SYSTEM_INTERNAL_H_
-#define SYSTEM_INTERNAL_H_
+#ifndef SYS_INTERNAL_H_
+#define SYS_INTERNAL_H_
 
 #include <stdint.h>
 #include "system_hardware_config.h"
@@ -20,10 +20,21 @@
 #define SYS_ASSERT(e)	((void)(e))
 #endif
 
+#define MAX_DMA_TRANSFER_SIZE	0xFFFF // see STM32F2 reference manual
+
+#define BB_MAP_REG_BIT(reg_offset, bit)	(*(__IO uint32_t *)(PERIPH_BB_BASE + (reg_offset * 32) + (bit * 4)))
+
+#ifndef max
+#define max(a,b)	(((a) > (b)) ? (a) : (b))
+#endif
+#ifndef min
+#define min(a,b)	(((a) < (b)) ? (a) : (b))
+#endif
+
 void halinternal_system_fault_handler(void);
 void halinternal_gpio_init(void);
 void halinternal_exti_init(void);
 void halinternal_timer_init(void);
 void halinternal_uart_init(void);
 
-#endif /* SYSTEM_INTERNAL_H_ */
+#endif /* SYS_INTERNAL_H_ */

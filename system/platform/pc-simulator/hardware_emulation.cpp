@@ -17,6 +17,7 @@
 #include "mainwidget.h"
 #include "port_hardwareio/iopininterface.h"
 #include "port_hardwareio/iopinsfactory.h"
+#include "port_hardwareio/uartinterface.h"
 
 #ifndef Q_MOC_RUN
 namespace QtHwEmu
@@ -51,6 +52,9 @@ void init() {
 	IopinsFactory::createInstance(platformhwEnRxRs232Iopin); // TODO: emulate EnRxRs232Iopin
 	IopinsFactory::createInstance(platformhwEnTxRs232Iopin); // TODO: emulate EnTxRs232Iopin
 	IopinsFactory::createInstance(platformhwDspResetIopin); // TODO: emulate DspResetIopin
+	UartInterface::createInstance(platformhwHeadsetUart); //TODO: emulate HeadsetUart
+	UartInterface::createInstance(platformhwDspUart); //TODO: emulate DspUart
+	UartInterface::createInstance(platformhwAtuUart); //TODO: emulate AtuUart
 }
 
 void deinit() {
