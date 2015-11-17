@@ -313,3 +313,9 @@ int stm32f2_get_exti_line(int platform_hw_resource) {
 	__asm volatile("bkpt"); // no resources defined
 	return -1;
 }
+
+int stm32f2_get_uart_instance(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	__asm volatile("bkpt"); // no resources defined
+	return -1;
+}

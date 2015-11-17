@@ -16,6 +16,8 @@ HEADERS += \
     $$PWD/mainwidget.h \
     $$PWD/port_hardwareio/iopininterface.h \
     $$PWD/port_hardwareio/iopincheckbox.h \
+    $$PWD/port_hardwareio/uartinterface.h \
+    $$PWD/port_hardwareio/uartconsolewidget.h \
     $$PWD/port_ramtex_s6d0129_cfg_qt5seps525widget/qt/ramtexdisplaywidget.h
 SOURCES += \
     $$PWD/hardware_emulation.cpp \
@@ -26,4 +28,5 @@ SOURCES += \
     $$PWD/port_ramtex_s6d0129_cfg_qt5seps525widget/cfgio/ghwioini.c \
     $$PWD/port_ramtex_s6d0129_cfg_qt5seps525widget/qt/ramtexdisplaywidget.cpp
 FORMS += \
-    $$PWD/mainwidget.ui
+    $$PWD/mainwidget.ui \
+    $$PWD/port_hardwareio/uartconsolewidget.ui
