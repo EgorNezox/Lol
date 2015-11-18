@@ -8,10 +8,7 @@
  */
 
 #include "iopininterface.h"
-
-void IopinInterface::init() {
-	qRegisterMetaType<Level>();
-}
+#include "hardware_emulation.h"
 
 IopinInterface::IopinInterface() :
 	input_level(Level_Low), output_level(Level_Low)
@@ -20,6 +17,27 @@ IopinInterface::IopinInterface() :
 
 IopinInterface::~IopinInterface()
 {
+}
+
+void IopinInterface::init() {
+	qRegisterMetaType<Level>();
+}
+
+IopinInterface* IopinInterface::getInstance(int hw_resource) {
+	IopinInterface *instance = qobject_cast<IopinInterface *>(QtHwEmu::getResourceInterface(hw_resource));
+	Q_ASSERT(instance);
+	return instance;
+}
+
+IopinInterface* IopinInterface::createInstance(int hw_resource) {
+	IopinInterface *instance = new IopinInterface();
+	QtHwEmu::acquireResource(hw_resource, instance);
+	return instance;
+}
+
+void IopinInterface::destroyInstance(IopinInterface* instance) {
+	QtHwEmu::releaseResource(instance);
+	delete instance;
 }
 
 IopinInterface::Level IopinInterface::getOutputLevel() {
