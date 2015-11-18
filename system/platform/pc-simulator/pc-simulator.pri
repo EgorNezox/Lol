@@ -6,6 +6,9 @@
 #
 #******************************************************************************
 
+QT += core gui widgets
+CONFIG += no_keywords # because of conflict with libsigc++
+
 DEFINES += PORT__PCSIMULATOR
 INCLUDEPATH += \
     $$PWD \
