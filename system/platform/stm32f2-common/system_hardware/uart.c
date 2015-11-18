@@ -526,7 +526,7 @@ static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, siz
 	if ((uart->rx_data_defer_indication) && rx_active) {
 		if (uart->rx_data_timer_state == rxdatatimerExpired) {
 			uart->rx_data_timer_state = rxdatatimerIdle;
-			result = true;
+			result = !hal_ringbuffer_is_empty(uart->rx_buffer);
 		}
 		if ((bytes_transfered > 0) && (uart->rx_data_timer_state != rxdatatimerActive)) {
 			uart->usart->CR1 &= ~USART_CR1_RXNEIE; // disable rx interrupt at least for timer period and don't process active streaming
