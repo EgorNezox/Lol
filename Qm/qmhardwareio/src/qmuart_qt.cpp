@@ -7,7 +7,6 @@
   ******************************************************************************
   */
 
-#include "qmuart.h"
 #include "qmuart_p.h"
 
 QmUartPrivateAdapter::QmUartPrivateAdapter(QmUartPrivate *qmuartprivate) :

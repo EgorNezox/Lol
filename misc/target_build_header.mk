@@ -18,7 +18,8 @@
 # - DEPENDENCIES (нестандартные файлы-зависимости выходного файла, т.е. отсутствующие в правилах сборки и используемые косвенно);
 # - SOURCES (исходники прикладной части);
 # - SOURCES_system (исходники системной части);
-# - DEFINES (глобальные макросы для всех исходников);
+# - DEFINES (глобальные макросы для исходников прикладной части);
+# - DEFINES_system (глобальные макросы для исходников системной части);
 # - LDFLAGS_system (глобальные флаги линковщика выходного файла).
 #
 #*****************************************************************************
@@ -36,7 +37,7 @@ BUILD_OBJ_REL_PATH = $(BUILD_ROOT_DIR)/$(relative_to ., $(BUILD_OBJ_REL_DIR)) # 
 no_implicit_load * # в связи с нестандартным подходом к сборке (out-of-tree), все makefile'ы подгружаются явно
 
 global DEFINES INCDIR OBJECTS LDDEPS
-global INCDIR_system OBJECTS_system LDFLAGS_system
+global DEFINES_system INCDIR_system OBJECTS_system LDFLAGS_system
 
 # Файл конфигурации сборки проекта (в корне исходников проекта)
 # В нем должны быть определены следующие локальные переменные:
@@ -82,17 +83,17 @@ sub f_sources_to_objects {
 define COMPILE_C_SOURCE
 	@&echo "*** Compile C source: $(relative_to $(input), $(SUBPROJECT_PATH)) ***"
 	@&mkdir -p $(dir_noslash $(output))
-	$(CC) -c $(CFLAGS) $(foreach define,$(DEFINES),-D$(define)) $(foreach dir,$(IDIR),-I$(nicepath $(dir))) $(nicepath $(abspath $(input))) -o $(output)
+	$(CC) -c $(CFLAGS) $(foreach define,$(DDEF),-D$(define)) $(foreach dir,$(IDIR),-I$(nicepath $(dir))) $(nicepath $(abspath $(input))) -o $(output)
 endef
 define COMPILE_CPP_SOURCE
 	@&echo "*** Compile C++ source: $(relative_to $(input), $(SUBPROJECT_PATH)) ***"
 	@&mkdir -p $(dir_noslash $(output))
-	$(CXX) -c $(CXXFLAGS) $(foreach define,$(DEFINES),-D$(define)) $(foreach dir,$(IDIR),-I$(nicepath $(dir))) $(nicepath $(abspath $(input))) -o $(output)
+	$(CXX) -c $(CXXFLAGS) $(foreach define,$(DDEF),-D$(define)) $(foreach dir,$(IDIR),-I$(nicepath $(dir))) $(nicepath $(abspath $(input))) -o $(output)
 endef
 define COMPILE_ASSEMBLER_SOURCE
 	@&echo "*** Compile assembler source: $(relative_to $(input), $(SUBPROJECT_PATH)) ***"
 	@&mkdir -p $(dir_noslash $(output))
-	$(AS) -c $(ASFLAGS) $(foreach define,$(DEFINES),-D$(define)) $(nicepath $(abspath $(input))) -o $(output)
+	$(AS) -c $(ASFLAGS) $(foreach define,$(DDEF),-D$(define)) $(nicepath $(abspath $(input))) -o $(output)
 endef
 
 $(BUILD_OBJ_REL_PATH)/%.o : %.c

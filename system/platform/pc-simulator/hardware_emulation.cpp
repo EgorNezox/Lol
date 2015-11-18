@@ -16,7 +16,6 @@
 #include "hardware_emulation.h"
 #include "mainwidget.h"
 #include "port_hardwareio/iopininterface.h"
-#include "port_hardwareio/iopinsfactory.h"
 #include "port_hardwareio/uartinterface.h"
 
 #ifndef Q_MOC_RUN
@@ -45,13 +44,13 @@ void init() {
 	Q_ASSERT(main_widget == 0);
 	main_widget = new MainWidget();
 	main_widget->show();
-	IopinsFactory::createInstance(platformhwHeadsetPttIopin); // TODO: emulate HeadsetPttIopin
-	IopinsFactory::createInstance(platformhwKeyboardButt1Iopin); // TODO: emulate KeyboardButt1Iopin
-	IopinsFactory::createInstance(platformhwKeyboardButt2Iopin); // TODO: emulate KeyboardButt2Iopin
-	IopinsFactory::createInstance(platformhwKeyboardsLightIopin); // TODO: emulate KeyboardsLightIopin
-	IopinsFactory::createInstance(platformhwEnRxRs232Iopin); // TODO: emulate EnRxRs232Iopin
-	IopinsFactory::createInstance(platformhwEnTxRs232Iopin); // TODO: emulate EnTxRs232Iopin
-	IopinsFactory::createInstance(platformhwDspResetIopin); // TODO: emulate DspResetIopin
+	IopinInterface::createInstance(platformhwHeadsetPttIopin); // TODO: emulate HeadsetPttIopin
+	IopinInterface::createInstance(platformhwKeyboardButt1Iopin); // TODO: emulate KeyboardButt1Iopin
+	IopinInterface::createInstance(platformhwKeyboardButt2Iopin); // TODO: emulate KeyboardButt2Iopin
+	IopinInterface::createInstance(platformhwKeyboardsLightIopin); // TODO: emulate KeyboardsLightIopin
+	IopinInterface::createInstance(platformhwEnRxRs232Iopin); // TODO: emulate EnRxRs232Iopin
+	IopinInterface::createInstance(platformhwEnTxRs232Iopin); // TODO: emulate EnTxRs232Iopin
+	IopinInterface::createInstance(platformhwDspResetIopin); // TODO: emulate DspResetIopin
 	UartInterface::createInstance(platformhwHeadsetUart); //TODO: emulate HeadsetUart
 	UartInterface::createInstance(platformhwDspUart); //TODO: emulate DspUart
 	UartInterface::createInstance(platformhwAtuUart); //TODO: emulate AtuUart

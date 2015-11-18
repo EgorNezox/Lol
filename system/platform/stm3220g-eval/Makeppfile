@@ -10,10 +10,10 @@ makepp_percent_subdirs=1
 include misc/target_build_header.mk
 
 # Propagate platform definition to all source code
-DEFINES += PORT__STM3220G_EVAL
+DEFINES_system += PORT__STM3220G_EVAL
 
 # STM32F2xx StdPeriph Library configuration
-DEFINES += "HSE_VALUE=((uint32_t)25000000)" # 25 MHz crystal
+DEFINES_system += "HSE_VALUE=((uint32_t)25000000)" # 25 MHz crystal
 
 # Ramtex graphic library port (ILI9320 controller)
 SOURCES_system += \

@@ -7,14 +7,12 @@
   ******************************************************************************
   */
 
-#include "port_hardwareio/iopinsfactory.h"
-
 #include "qmiopin_p.h"
 
 QmIopinPrivateAdapter::QmIopinPrivateAdapter(QmIopinPrivate *qmiopinprivate) :
 	qmiopinprivate(qmiopinprivate)
 {
-	interface = IopinsFactory::getInstance(qmiopinprivate->hw_resource);
+	interface = IopinInterface::getInstance(qmiopinprivate->hw_resource);
 	qmiopinprivate->input_level = convertInputLevelToQm(interface->getInputLevel());
 	QObject::connect(interface, &IopinInterface::inputLevelAssigned, this, &QmIopinPrivateAdapter::processInputLevelAssigned);
 	QObject::connect(this, &QmIopinPrivateAdapter::writeOutputLevel, interface, &IopinInterface::assignOutputLevel);

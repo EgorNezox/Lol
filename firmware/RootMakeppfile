@@ -12,7 +12,7 @@ makepp_percent_subdirs=1
 include misc/target_build_subproject_header.mk
 
 # функциональные опции сборки
-DEFINES += BUILD_OPTION_ENABLE_DISPLAY_BUFFER=1
+DEFINES_system += BUILD_OPTION_ENABLE_DISPLAY_BUFFER=1
 
 # подключение сборки сторонних компонентов
 load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/3rdparty/$( FreeRTOS STM32F2xx_StdPeriph_Lib Ramtex_Graphic_Lib libsigc++ )
@@ -33,6 +33,7 @@ SOURCES += \
 	$(wildcard app/power/**/*.cpp) \
 	$(wildcard app/ui/**/*.cpp)
 INCLUDEPATH += app
+$(sources_to_objects firmware_main.cpp): DDEF += $(DEFINES_system)
 SOURCES_system += \
 	system_stm32f2/hardware_startup.c \
 	system_stm32f2/system_stm32f2xx__$(BUILD_PORT).c

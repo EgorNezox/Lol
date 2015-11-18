@@ -11,7 +11,6 @@
 #include <QMetaObject>
 
 #include "iopincheckbox.h"
-#include "iopinsfactory.h"
 #include "hardware_emulation.h"
 
 IopinCheckBox::IopinCheckBox(QWidget *parent, int hw_resource) :
@@ -24,7 +23,7 @@ IopinCheckBox::IopinCheckBox(QWidget *parent, int hw_resource) :
 
 IopinCheckBox::~IopinCheckBox() {
 	if (pin_interface)
-		IopinsFactory::destroyInstance(pin_interface);
+		IopinInterface::destroyInstance(pin_interface);
 }
 
 QString IopinCheckBox::getHwResource() {
@@ -37,7 +36,7 @@ void IopinCheckBox::assignHwResource(const QString &value) {
 
 void IopinCheckBox::assignHwResource(int value) {
 	Q_ASSERT(pin_interface == 0);
-	pin_interface = IopinsFactory::createInstance(value);
+	pin_interface = IopinInterface::createInstance(value);
 	QObject::connect(pin_interface, &IopinInterface::outputLevelChanged, this, &IopinCheckBox::processPinOutputLevelChanged);
 	QObject::connect(this, &QCheckBox::stateChanged, this, &IopinCheckBox::processCBStateChanged);
 	synchronizeInterface();

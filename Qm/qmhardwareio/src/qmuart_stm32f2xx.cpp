@@ -18,8 +18,9 @@
 
 static void qmuartRxDataPendingIsrCallback(hal_uart_handle_t handle, void *userid, size_t unread_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	QM_UNUSED(handle);
+	QM_UNUSED(unread_bytes_count);
 	QmUartIOEvent *system_event = static_cast<QmUartIOEvent *>(userid);
-	if ((!system_event->rx_data_pending) && (unread_bytes_count > 0)) {
+	if (!system_event->rx_data_pending) {
 		system_event->rx_data_pending = true;
 		system_event->setPendingFromISR(pxHigherPriorityTaskWoken);
 	}
