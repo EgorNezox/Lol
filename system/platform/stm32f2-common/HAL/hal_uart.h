@@ -54,16 +54,17 @@ typedef struct {
 	uint32_t rx_buffer_size;					/*!< (минимальный) размер внутреннего буфера приема в байтах */
 	uint32_t tx_buffer_size;					/*!< размер (опционального) внутреннего буфера передачи в байтах */
 	unsigned int rx_data_pending_interval;		/*!< мин. интервал (в мс) задержки индикации непрочитанных данных в буфере приема (0 - индицировать немедленно) */
+	void *userid;								/*!< (опциональный) пользовательский идентификатор для callback'ов */
 	/*! callback, вызываемый из ISR, индицирующий наличие непрочитанных данных в буфере приема */
-	void (*isrcallbackRxDataPending)(hal_uart_handle_t handle, size_t unread_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackRxDataPending)(hal_uart_handle_t handle, void *userid, size_t unread_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 	/*! callback, вызываемый из ISR, индицирующий наличие ошибок в принимаемом потоке */
-	void (*isrcallbackRxDataErrors)(hal_uart_handle_t handle, size_t error_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackRxDataErrors)(hal_uart_handle_t handle, void *userid, size_t error_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 	/*! callback, вызываемый из ISR, индицирующий приостановку приема из-за переполнения буфера */
-	void (*isrcallbackRxOverflowSuspended)(hal_uart_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackRxOverflowSuspended)(hal_uart_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 	/*! callback, вызываемый из ISR, индицирующий наличие свободного места в буфере передачи */
-	void (*isrcallbackTxSpacePending)(hal_uart_handle_t handle, size_t available_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackTxSpacePending)(hal_uart_handle_t handle, void *userid, size_t available_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 	/*! callback, вызываемый из ISR, индицирующий завершение асинхронной передачи (из внутреннего буфера, или начатой вызовом hal_uart_start_transmit() */
-	void (*isrcallbackTxCompleted)(hal_uart_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackTxCompleted)(hal_uart_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 } hal_uart_params_t;
 
 /*! Инициализирует структуру с параметрами UART значениями по умолчанию
@@ -72,55 +73,55 @@ typedef struct {
  */
 void hal_uart_set_default_params(hal_uart_params_t *params);
 
-/*! Открывает (занимает) UART
+/*! Открывает (занимает) UART и включает приемопередачу
  *
+ * Запускается прием во внутренний буфер.
+ * Становятся доступны функции управления приемом и передачей данных.
  * См. предостережение насчет внутренних буферов в описании реализации.
- * Внутренний буфер передачи не создается, если tx_buffer_size = 0.
- * \param[in] hw_instance_number	номер экземпляра аппратного UART в диапазоне [1..6]
- * \param[in] params				указатель на параметры инициализации UART
- * \param[out] rx_buffer			указатель на возвращаемый хэндл внутреннего кольцевого буфера для приема (м/б NULL)
- * \param[out] tx_buffer			указатель на возвращаемый хэндл внутреннего кольцевого буфера для передачи (м/б NULL)
+ * (Внутренний буфер передачи не создается, если tx_buffer_size = 0.)
+ * \param[in] instance		номер экземпляра аппратного UART в диапазоне [1..6]
+ * \param[in] params		указатель на параметры инициализации UART
+ * \param[out] rx_buffer	указатель на возвращаемый хэндл внутреннего кольцевого буфера для приема (м/б NULL)
+ * \param[out] tx_buffer	указатель на возвращаемый хэндл внутреннего кольцевого буфера для передачи (м/б NULL)
  * \retval handle		хэндл для использования в последующих вызовах (NULL в случае ошибки)
  */
-hal_uart_handle_t hal_uart_open(int hw_instance_number, hal_uart_params_t *params, HALRingBuffer_t **rx_buffer, HALRingBuffer_t **tx_buffer);
+hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_ringbuffer_t **rx_buffer, hal_ringbuffer_t **tx_buffer);
 
-/*! Включает приемопередачу
+/*! Закрывает (освобождает) UART и выключает приемопередачу
  *
- * После включения UART запускается прием и передача из внутреннего буфера (если он создан и не пуст),
- * становятся доступны функции управления приемом и передачей данных.
- * Внимание: внутренний буфер приема опустошается !
+ * Текущий прием и передача данных прерывается.
+ * Функции управления приемом и передачей данных становятся недоступны.
+ * Хэндлы внутренних кольцевых буферов становятся недействительными.
  */
-void hal_uart_enable(hal_uart_handle_t handle);
+void hal_uart_close(hal_uart_handle_t handle);
 
-/*! Выключает приемопередачу
+/*! Запускает прием во внутренний буфер приема
  *
- * После выключения UART функции возобновления приема и передачи данных недоступны.
- * Оставшиеся во внутреннем буфере приема данные доступны для чтения.
- * Текущая передача данных прерывается и завершается, внутренний буфер передачи очищается.
+ * Если прием был приостановлен в результате переполнения буфера,
+ * то данная функция возобновляет его.
+ * Буфер приема опустошается.
+ * Внимание! 	Внутренний буфер приема сбрасывается (это необходимо учитывать,
+ * 				если доступ к буферу осуществляется напрямую, см. hal_ringbuffer_reset()).
+ * \return true - прием запущен, false - отказ
  */
-void hal_uart_disable(hal_uart_handle_t handle);
+bool hal_uart_start_rx(hal_uart_handle_t handle);
 
-/*! Возобновляет приостановленный прием
+/*! Запускает передачу из внутреннего буфера передачи
  *
- * Если прием был приостановлен в результате переполнения внутреннего буфера,
- * то данная функция возобновляет его (при наличии места в буфере).
- */
-void hal_uart_resume_rx(hal_uart_handle_t handle);
-
-/*! Возобновляет приостановленную передачу
- *
- * Если передача была приостановлена в результате опустошения внутреннего буфера,
+ * Если передача была приостановлена в результате опустошения буфера,
  * то данная функция возобновляет его (при наличии данных в буфере).
+ * \return true - передача запущена, false - отказ
  */
-void hal_uart_resume_tx(hal_uart_handle_t handle);
+bool hal_uart_start_tx(hal_uart_handle_t handle);
 
-/*! Читает байт данных из внутреннего буфера приема
+/*! Читает данные из внутреннего буфера приема
  *
- * Не рекомендуется использовать эту функцию совместно с использованием доступа к приемному буферу (возвращенному при открытии UART).
- * \param[out] data	указатель на возвращаемые данные
- * \return true - данные успешно прочитаны (data содержит валидные данные), false - данные непрочитаны (буфер пуст)
+ * Не рекомендуется использовать эту функцию совместно с использованием прямого доступа к приемному буферу.
+ * \param[out] buffer	указатель на буфер для извлекаемых данных
+ * \param[in]  max_size	максимальный размер извлекаемых данных
+ * \return размер фактически прочитанных данных в buffer (отрицательное значение означает ошибку)
  */
-bool hal_uart_receive_byte(hal_uart_handle_t handle, uint8_t *data);
+int hal_uart_receive(hal_uart_handle_t handle, uint8_t *buffer, int max_size);
 
 /*! Передает внешний буфер данных (синхронная/блокирующая передача)
  *
@@ -130,7 +131,7 @@ bool hal_uart_receive_byte(hal_uart_handle_t handle, uint8_t *data);
  * \param[in] block_time	таймаут всей передачи (если UART настроен на аппаратное управление потоком передачи, то не рекомендуется использовать portMAX_DELAY)
  * \return true - передача успешно выполнена, false - сбой передачи или истек таймаут
  */
-bool hal_uart_transmit_blocked(hal_uart_handle_t handle, uint8_t *data, int size, portTickType block_time);
+bool hal_uart_transmit_blocked(hal_uart_handle_t handle, uint8_t *data, int size, TickType_t block_time);
 
 /*! Запускает передачу внешнего буфера данных (асинхронно с завершением)
  *

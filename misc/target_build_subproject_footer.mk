@@ -12,4 +12,6 @@
 include misc/target_build_footer.mk
 
 $(OBJECTS_system): IDIR += $(INCDIR_system)
+$(OBJECTS_system): DDEF += $(DEFINES_system)
 $(OBJECTS): IDIR += $(INCDIR)
+$(OBJECTS): DDEF += $(DEFINES)

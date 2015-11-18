@@ -25,6 +25,9 @@ public:
 	};
 
 	static void init();
+	static IopinInterface* getInstance(int hw_resource);
+	static IopinInterface* createInstance(int hw_resource);
+	static void destroyInstance(IopinInterface *instance);
 
 public Q_SLOTS:
 	Level getOutputLevel();
@@ -34,7 +37,6 @@ Q_SIGNALS:
 	void outputLevelChanged(Level level);
 
 private:
-	friend class IopinsFactory;
 	friend class QmIopinPrivateAdapter;
 
 	IopinInterface();

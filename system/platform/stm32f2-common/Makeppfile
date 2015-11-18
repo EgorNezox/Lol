@@ -10,7 +10,7 @@ makepp_percent_subdirs=1
 include misc/target_build_header.mk
 
 # CMSIS and STM32F2xx peripherals drivers
-DEFINES += STM32F2XX USE_STDPERIPH_DRIVER
+DEFINES_system += STM32F2XX USE_STDPERIPH_DRIVER
 
 # FreeRTOS ARM Cortex-M3 port
 SOURCES_system += \

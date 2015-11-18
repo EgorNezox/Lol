@@ -10,10 +10,10 @@ makepp_percent_subdirs=1
 include misc/target_build_header.mk
 
 # Propagate platform definition to all source code
-DEFINES += PORT__TARGET_DEVICE PORT__TARGET_DEVICE_REV1
+DEFINES_system += PORT__TARGET_DEVICE PORT__TARGET_DEVICE_REV1
 
 # STM32F2xx StdPeriph Library configuration
-DEFINES += "HSE_VALUE=((uint32_t)26000000)" # 26 MHz clock generator
+DEFINES_system += "HSE_VALUE=((uint32_t)26000000)" # 26 MHz clock generator
 
 # Ramtex graphic library port (SEPS525 controller)
 SOURCES_system += \

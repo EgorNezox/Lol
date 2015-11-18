@@ -25,6 +25,7 @@ include misc/target_build_header.mk
 
 ifeq ($(BUILD_MODE),release)
   DEFINES += NDEBUG
+  DEFINES_system += NDEBUG
 endif
 
 # Полная сборка суб-проекта (build all)

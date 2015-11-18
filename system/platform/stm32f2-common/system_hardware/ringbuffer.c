@@ -12,7 +12,7 @@
   *  - управляющей структуры с параметрами и индексами (указателями);
   *  - указателя на начало фактического буфера данных.
   * Параметр size определяет минимальный размер буферизации между производителем данных (producer) и потребителем данных (consumer).
-  * Параметр extra_accumulation_size позволяет реализовать сценарий буферизации, где производителем данных является "капризный" аппаратный DMA.
+  * Параметр extra_accumulation_size позволяет реализовать сценарий буферизации, где производителем данных является "некольцевой" аппаратный DMA.
   * (В буфере выделяется дополнительное пространство и поддержание двойной непрерывной области памяти для приема extra_accumulation_size байт
   *  при наличии места.)
   * Таким образом, extra_accumulation_size должен быть как можно меньше, чтобы эффективнее использовать доступную память.
@@ -41,6 +41,8 @@
   * - потребитель использует попарно вызовы hal_ringbuffer_*_get_read_ptr (для получения указателя и размера следующей доступной для чтения части)
   *   и hal_ringbuffer_*_read_next (для продвижения чтения с фактически прочитанным размером), и/или очищает буфер вызовами hal_ringbuffer_*_flush_read.
   *
+  * Объект буфера удаляется функцией hal_ringbuffer_delete. При этом работа с ним и всеми копиями управляющей структуры должна быть завершена.
+  *
   ******************************************************************************
   */
 
@@ -49,26 +51,16 @@
 #include "sys_internal.h"
 #include "hal_ringbuffer.h"
 
-#ifndef max
-#define max(a,b)	(((a) > (b)) ? (a) : (b))
-#endif
+static void ringbuffer_align_next_write(hal_ringbuffer_ctrl_t *ctrl);
+static void ringbuffer_align_next_read(hal_ringbuffer_ctrl_t *ctrl);
 
-static void align_next_write(HALRingBufferCtrl_t *ctrl);
-static void align_next_read(HALRingBufferCtrl_t *ctrl);
-
-HALRingBuffer_t* hal_ringbuffer_create(int size, int extra_accumulation_size) {
-	HALRingBuffer_t *buffer = malloc(sizeof(HALRingBuffer_t));
+hal_ringbuffer_t* hal_ringbuffer_create(int size, int extra_accumulation_size) {
+	hal_ringbuffer_t *buffer = malloc(sizeof(hal_ringbuffer_t));
 	if (buffer) {
-		buffer->ctrl.read_idx = 0;
-		buffer->ctrl.write_idx = 0;
-		buffer->ctrl.read_msb = 0;
-		buffer->ctrl.write_msb = 0;
-		buffer->ctrl.read_ptr_acquired = false;
-		buffer->ctrl.write_ptr_acquired = false;
 		buffer->ctrl.size = size;
 		buffer->ctrl.extra_accumulation_size = extra_accumulation_size;
-		buffer->ctrl.tail = max(size, extra_accumulation_size);
 		buffer->ctrl.total_size = max(size, extra_accumulation_size) + extra_accumulation_size;
+		hal_ringbuffer_reset(buffer);
 		buffer->ctrl.pData = malloc(buffer->ctrl.total_size);
 		if (buffer->ctrl.pData == NULL) {
 			SYS_ASSERT(0);
@@ -81,26 +73,50 @@ HALRingBuffer_t* hal_ringbuffer_create(int size, int extra_accumulation_size) {
 	return buffer;
 }
 
-int hal_ringbuffer_get_size(HALRingBuffer_t *buffer) {
+void hal_ringbuffer_delete(hal_ringbuffer_t *buffer) {
+	SYS_ASSERT(buffer);
+	SYS_ASSERT(buffer->ctrl.read_ptr_acquired == false);
+	SYS_ASSERT(buffer->ctrl.write_ptr_acquired == false);
+	free((void *)(buffer->ctrl.pData));
+	free(buffer);
+}
+
+void hal_ringbuffer_reset(hal_ringbuffer_t *buffer) {
+	SYS_ASSERT(buffer);
+	buffer->ctrl.read_idx = 0;
+	buffer->ctrl.write_idx = 0;
+	buffer->ctrl.read_msb = 0;
+	buffer->ctrl.write_msb = 0;
+	buffer->ctrl.read_ptr_acquired = false;
+	buffer->ctrl.write_ptr_acquired = false;
+	buffer->ctrl.tail = max(buffer->ctrl.size, buffer->ctrl.extra_accumulation_size);
+}
+
+int hal_ringbuffer_get_size(hal_ringbuffer_t *buffer) {
+	SYS_ASSERT(buffer);
 	return buffer->ctrl.size;
 }
 
-int hal_ringbuffer_get_pending_data_size(HALRingBuffer_t *buffer) {
+int hal_ringbuffer_get_pending_data_size(hal_ringbuffer_t *buffer) {
+	SYS_ASSERT(buffer);
 	return hal_ringbuffer_extctrl_get_pending_data_size(&(buffer->ctrl));
 }
 
-int hal_ringbuffer_extctrl_get_pending_data_size(HALRingBufferCtrl_t *ctrl) {
+int hal_ringbuffer_extctrl_get_pending_data_size(hal_ringbuffer_ctrl_t *ctrl) {
+	SYS_ASSERT(ctrl);
 	if (hal_ringbuffer_extctrl_is_empty(ctrl))
 		return 0;
 	return (ctrl->write_idx - ctrl->read_idx + ((int)(ctrl->write_idx <= ctrl->read_idx))*ctrl->tail);
 }
 
-int hal_ringbuffer_get_free_space_size(HALRingBuffer_t *buffer) {
+int hal_ringbuffer_get_free_space_size(hal_ringbuffer_t *buffer) {
+	SYS_ASSERT(buffer);
 	return hal_ringbuffer_extctrl_get_free_space_size(&(buffer->ctrl));
 }
 
-int hal_ringbuffer_extctrl_get_free_space_size(HALRingBufferCtrl_t *ctrl) {
+int hal_ringbuffer_extctrl_get_free_space_size(hal_ringbuffer_ctrl_t *ctrl) {
 	int size;
+	SYS_ASSERT(ctrl);
 	if (hal_ringbuffer_extctrl_is_full(ctrl))
 		return 0;
 	if (ctrl->write_idx < ctrl->read_idx) {
@@ -115,53 +131,66 @@ int hal_ringbuffer_extctrl_get_free_space_size(HALRingBufferCtrl_t *ctrl) {
 	return size;
 }
 
-bool hal_ringbuffer_is_full(HALRingBuffer_t *buffer) {
+bool hal_ringbuffer_is_full(hal_ringbuffer_t *buffer) {
+	SYS_ASSERT(buffer);
 	return hal_ringbuffer_extctrl_is_full(&(buffer->ctrl));
 }
 
-bool hal_ringbuffer_extctrl_is_full(HALRingBufferCtrl_t *ctrl) {
+bool hal_ringbuffer_extctrl_is_full(hal_ringbuffer_ctrl_t *ctrl) {
+	SYS_ASSERT(ctrl);
 	return (ctrl->write_idx == ctrl->read_idx && ctrl->write_msb != ctrl->read_msb);
 }
 
-bool hal_ringbuffer_is_empty(HALRingBuffer_t *buffer) {
+bool hal_ringbuffer_is_empty(hal_ringbuffer_t *buffer) {
+	SYS_ASSERT(buffer);
 	return hal_ringbuffer_extctrl_is_empty(&(buffer->ctrl));
 }
 
-bool hal_ringbuffer_extctrl_is_empty(HALRingBufferCtrl_t *ctrl) {
+bool hal_ringbuffer_extctrl_is_empty(hal_ringbuffer_ctrl_t *ctrl) {
+	SYS_ASSERT(ctrl);
 	return (ctrl->write_idx == ctrl->read_idx && ctrl->write_msb == ctrl->read_msb);
 }
 
-bool hal_ringbuffer_write_byte(HALRingBuffer_t *buffer, uint8_t data) {
+bool hal_ringbuffer_write_byte(hal_ringbuffer_t *buffer, uint8_t data) {
+	SYS_ASSERT(buffer);
 	return hal_ringbuffer_extctrl_write_byte(&(buffer->ctrl), data);
 }
 
-bool hal_ringbuffer_extctrl_write_byte(HALRingBufferCtrl_t *ctrl, uint8_t data) {
+bool hal_ringbuffer_extctrl_write_byte(hal_ringbuffer_ctrl_t *ctrl, uint8_t data) {
+	SYS_ASSERT(ctrl);
 	SYS_ASSERT(ctrl->write_ptr_acquired == false);
 	if (hal_ringbuffer_extctrl_is_full(ctrl))
 		return false;
 	ctrl->pData[ctrl->write_idx++] = data;
-	align_next_write(ctrl);
+	ringbuffer_align_next_write(ctrl);
 	return true;
 }
 
-bool hal_ringbuffer_read_byte(HALRingBuffer_t *buffer, uint8_t *data) {
+bool hal_ringbuffer_read_byte(hal_ringbuffer_t *buffer, uint8_t *data) {
+	SYS_ASSERT(buffer);
 	return hal_ringbuffer_extctrl_read_byte(&(buffer->ctrl), data);
 }
 
-bool hal_ringbuffer_extctrl_read_byte(HALRingBufferCtrl_t *ctrl, uint8_t *data) {
+bool hal_ringbuffer_extctrl_read_byte(hal_ringbuffer_ctrl_t *ctrl, uint8_t *data) {
+	SYS_ASSERT(ctrl);
+	SYS_ASSERT(data);
 	SYS_ASSERT(ctrl->read_ptr_acquired == false);
 	if (hal_ringbuffer_extctrl_is_empty(ctrl))
 		return false;
 	*data = ctrl->pData[ctrl->read_idx++];
-	align_next_read(ctrl);
+	ringbuffer_align_next_read(ctrl);
 	return true;
 }
 
-void hal_ringbuffer_get_read_ptr(HALRingBuffer_t *buffer, uint8_t **ptr, size_t *size) {
+void hal_ringbuffer_get_read_ptr(hal_ringbuffer_t *buffer, uint8_t **ptr, size_t *size) {
+	SYS_ASSERT(buffer);
 	hal_ringbuffer_extctrl_get_read_ptr(&(buffer->ctrl), ptr, size);
 }
 
-void hal_ringbuffer_extctrl_get_read_ptr(HALRingBufferCtrl_t *ctrl, uint8_t **ptr, size_t *size) {
+void hal_ringbuffer_extctrl_get_read_ptr(hal_ringbuffer_ctrl_t *ctrl, uint8_t **ptr, size_t *size) {
+	SYS_ASSERT(ctrl);
+	SYS_ASSERT(ptr);
+	SYS_ASSERT(size);
 	SYS_ASSERT(ctrl->read_ptr_acquired == false);
 	if (hal_ringbuffer_extctrl_is_empty(ctrl)) {
 		*ptr = NULL;
@@ -177,11 +206,13 @@ void hal_ringbuffer_extctrl_get_read_ptr(HALRingBufferCtrl_t *ctrl, uint8_t **pt
 	ctrl->read_ptr_acquired = true;
 }
 
-void hal_ringbuffer_read_next(HALRingBuffer_t *buffer, size_t consumed) {
+void hal_ringbuffer_read_next(hal_ringbuffer_t *buffer, size_t consumed) {
+	SYS_ASSERT(buffer);
 	hal_ringbuffer_extctrl_read_next(&(buffer->ctrl), consumed);
 }
 
-void hal_ringbuffer_extctrl_read_next(HALRingBufferCtrl_t *ctrl, size_t consumed) {
+void hal_ringbuffer_extctrl_read_next(hal_ringbuffer_ctrl_t *ctrl, size_t consumed) {
+	SYS_ASSERT(ctrl);
 	SYS_ASSERT(ctrl->read_ptr_acquired == true);
 	ctrl->read_ptr_acquired = false;
 	if (consumed == 0)
@@ -192,21 +223,25 @@ void hal_ringbuffer_extctrl_read_next(HALRingBufferCtrl_t *ctrl, size_t consumed
 		SYS_ASSERT((consumed <= (ctrl->tail - ctrl->read_idx)) && (ctrl->write_msb != ctrl->read_msb));
 	}
 	ctrl->read_idx += consumed;
-	align_next_read(ctrl);
+	ringbuffer_align_next_read(ctrl);
 }
 
-static void align_next_read(HALRingBufferCtrl_t *ctrl) {
+static void ringbuffer_align_next_read(hal_ringbuffer_ctrl_t *ctrl) {
 	if ((ctrl->read_idx > ctrl->write_idx) && (ctrl->read_idx == ctrl->tail)) {
 		ctrl->read_msb ^= 1;
 		ctrl->read_idx = 0;
 	}
 }
 
-void hal_ringbuffer_get_write_ptr(HALRingBuffer_t *buffer, uint8_t **ptr, size_t *size) {
+void hal_ringbuffer_get_write_ptr(hal_ringbuffer_t *buffer, uint8_t **ptr, size_t *size) {
+	SYS_ASSERT(buffer);
 	hal_ringbuffer_extctrl_get_write_ptr(&(buffer->ctrl), ptr, size);
 }
 
-void hal_ringbuffer_extctrl_get_write_ptr(HALRingBufferCtrl_t *ctrl, uint8_t **ptr, size_t *size) {
+void hal_ringbuffer_extctrl_get_write_ptr(hal_ringbuffer_ctrl_t *ctrl, uint8_t **ptr, size_t *size) {
+	SYS_ASSERT(ctrl);
+	SYS_ASSERT(ptr);
+	SYS_ASSERT(size);
 	SYS_ASSERT(ctrl->write_ptr_acquired == false);
 	if (hal_ringbuffer_extctrl_is_full(ctrl)) {
 		*ptr = NULL;
@@ -222,11 +257,13 @@ void hal_ringbuffer_extctrl_get_write_ptr(HALRingBufferCtrl_t *ctrl, uint8_t **p
 	ctrl->write_ptr_acquired = true;
 }
 
-void hal_ringbuffer_write_next(HALRingBuffer_t *buffer, size_t produced) {
+void hal_ringbuffer_write_next(hal_ringbuffer_t *buffer, size_t produced) {
+	SYS_ASSERT(buffer);
 	hal_ringbuffer_extctrl_write_next(&(buffer->ctrl), produced);
 }
 
-void hal_ringbuffer_extctrl_write_next(HALRingBufferCtrl_t *ctrl, size_t produced) {
+void hal_ringbuffer_extctrl_write_next(hal_ringbuffer_ctrl_t *ctrl, size_t produced) {
+	SYS_ASSERT(ctrl);
 	SYS_ASSERT(ctrl->write_ptr_acquired == true);
 	ctrl->write_ptr_acquired = false;
 	if (produced == 0)
@@ -237,10 +274,10 @@ void hal_ringbuffer_extctrl_write_next(HALRingBufferCtrl_t *ctrl, size_t produce
 		SYS_ASSERT((produced <= (ctrl->total_size - ctrl->write_idx)) && (ctrl->write_msb == ctrl->read_msb));
 	}
 	ctrl->write_idx += produced;
-	align_next_write(ctrl);
+	ringbuffer_align_next_write(ctrl);
 }
 
-static void align_next_write(HALRingBufferCtrl_t *ctrl) {
+static void ringbuffer_align_next_write(hal_ringbuffer_ctrl_t *ctrl) {
 	if ((ctrl->write_idx > ctrl->read_idx) && (ctrl->write_idx >= max(ctrl->size, ctrl->extra_accumulation_size))) {
 		ctrl->tail = ctrl->write_idx;
 		int next_chunk_size = ctrl->total_size - ctrl->write_idx;
@@ -251,27 +288,34 @@ static void align_next_write(HALRingBufferCtrl_t *ctrl) {
 	}
 }
 
-void hal_ringbuffer_flush_read(HALRingBuffer_t *buffer) {
+void hal_ringbuffer_flush_read(hal_ringbuffer_t *buffer) {
+	SYS_ASSERT(buffer);
 	hal_ringbuffer_extctrl_flush_read(&(buffer->ctrl));
 }
 
-void hal_ringbuffer_extctrl_flush_read(HALRingBufferCtrl_t *ctrl) {
+void hal_ringbuffer_extctrl_flush_read(hal_ringbuffer_ctrl_t *ctrl) {
+	SYS_ASSERT(ctrl);
 	SYS_ASSERT(ctrl->read_ptr_acquired == false);
 	ctrl->read_idx = ctrl->write_idx;
 	ctrl->read_msb = ctrl->write_msb;
 }
 
-HALRingBufferCtrl_t hal_ringbuffer_get_ctrl(HALRingBuffer_t *buffer) {
+hal_ringbuffer_ctrl_t hal_ringbuffer_get_ctrl(hal_ringbuffer_t *buffer) {
+	SYS_ASSERT(buffer);
 	return buffer->ctrl;
 }
 
-void hal_ringbuffer_update_read_ctrl(HALRingBuffer_t *buffer, HALRingBufferCtrl_t *ctrl) {
+void hal_ringbuffer_update_read_ctrl(hal_ringbuffer_t *buffer, hal_ringbuffer_ctrl_t *ctrl) {
+	SYS_ASSERT(buffer);
+	SYS_ASSERT(ctrl);
 	buffer->ctrl.read_ptr_acquired = ctrl->read_ptr_acquired;
 	buffer->ctrl.read_idx = ctrl->read_idx;
 	buffer->ctrl.read_msb = ctrl->read_msb;
 }
 
-void hal_ringbuffer_update_write_ctrl(HALRingBuffer_t *buffer, HALRingBufferCtrl_t *ctrl) {
+void hal_ringbuffer_update_write_ctrl(hal_ringbuffer_t *buffer, hal_ringbuffer_ctrl_t *ctrl) {
+	SYS_ASSERT(buffer);
+	SYS_ASSERT(ctrl);
 	buffer->ctrl.write_ptr_acquired = ctrl->write_ptr_acquired;
 	buffer->ctrl.write_idx = ctrl->write_idx;
 	buffer->ctrl.write_msb = ctrl->write_msb;

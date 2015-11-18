@@ -27,6 +27,7 @@ void stm32f2_ext_pins_init(int platform_hw_resource);
 void stm32f2_ext_pins_deinit(int platform_hw_resource);
 hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource);
 int stm32f2_get_exti_line(int platform_hw_resource);
+int stm32f2_get_uart_instance(int platform_hw_resource);
 
 #ifdef __cplusplus
 }
