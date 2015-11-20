@@ -17,8 +17,6 @@
 #define GPIO_PORTS_COUNT		9
 #define GPIO_PORT_PINS_COUNT	16
 
-#define PIN_NUMBER_MASK(number)	(1 << (number))
-
 static GPIO_TypeDef* const GPIO_PORT[] = {
 		GPIOA,
 		GPIOB,
@@ -137,14 +135,14 @@ void hal_gpio_init(hal_gpio_pin_t pin, hal_gpio_params_t *params) {
 	}
 	GPIO_PORT[pin.port]->AFR[pin.number >> 0x03] &= ~((uint32_t)0x0F << ((uint32_t)((uint32_t)pin.number & 0x07) * 4));
 	GPIO_PORT[pin.port]->AFR[pin.number >> 0x03] |= ((uint32_t)(params->af) << ((uint32_t)((uint32_t)pin.number & 0x07) * 4));
-	GPIO_PORT[pin.port]->MODER &= ~(GPIO_MODER_MODER0 << (PIN_NUMBER_MASK(pin.number) * 2));
-	GPIO_PORT[pin.port]->MODER |= (init_struct.MODER0 << (PIN_NUMBER_MASK(pin.number) * 2));
-	GPIO_PORT[pin.port]->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (PIN_NUMBER_MASK(pin.number) * 2));
-	GPIO_PORT[pin.port]->OSPEEDR |= (init_struct.OSPEEDR0 << (PIN_NUMBER_MASK(pin.number) * 2));
-	GPIO_PORT[pin.port]->OTYPER  &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)PIN_NUMBER_MASK(pin.number)));
-	GPIO_PORT[pin.port]->OTYPER |= (uint16_t)(init_struct.OTYPER0 << ((uint16_t)PIN_NUMBER_MASK(pin.number)));
-	GPIO_PORT[pin.port]->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << ((uint16_t)PIN_NUMBER_MASK(pin.number) * 2));
-	GPIO_PORT[pin.port]->PUPDR |= ((init_struct.PUPDR0) << (PIN_NUMBER_MASK(pin.number) * 2));
+	GPIO_PORT[pin.port]->MODER &= ~(GPIO_MODER_MODER0 << (pin.number * 2));
+	GPIO_PORT[pin.port]->MODER |= (init_struct.MODER0 << (pin.number * 2));
+	GPIO_PORT[pin.port]->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (pin.number * 2));
+	GPIO_PORT[pin.port]->OSPEEDR |= (init_struct.OSPEEDR0 << (pin.number * 2));
+	GPIO_PORT[pin.port]->OTYPER  &= ~(GPIO_OTYPER_OT_0 << ((uint16_t)pin.number));
+	GPIO_PORT[pin.port]->OTYPER |= (uint16_t)(init_struct.OTYPER0 << ((uint16_t)pin.number));
+	GPIO_PORT[pin.port]->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << ((uint16_t)pin.number * 2));
+	GPIO_PORT[pin.port]->PUPDR |= (init_struct.PUPDR0 << (pin.number * 2));
 	portEXIT_CRITICAL();
 }
 
@@ -155,20 +153,20 @@ void hal_gpio_deinit(hal_gpio_pin_t pin) {
 	if (gpio_exti_source_assignment[pin.number] == pin.port)
 		gpio_exti_source_assignment[pin.number] = -1;
 	GPIO_PORT[pin.port]->AFR[pin.number >> 0x03] &= ~((uint32_t)0x0F << ((uint32_t)((uint32_t)pin.number & 0x07) * 4));
-	GPIO_PORT[pin.port]->MODER &= ~(GPIO_MODER_MODER0 << (PIN_NUMBER_MASK(pin.number) * 2));
+	GPIO_PORT[pin.port]->MODER &= ~(GPIO_MODER_MODER0 << (pin.number * 2));
 	if (pin.port == hgpioPA)
-		GPIO_PORT[pin.port]->MODER |= 0xA8000000 & (GPIO_MODER_MODER0 << (PIN_NUMBER_MASK(pin.number) * 2));
+		GPIO_PORT[pin.port]->MODER |= 0xA8000000 & (GPIO_MODER_MODER0 << (pin.number * 2));
 	else if (pin.port == hgpioPB)
-		GPIO_PORT[pin.port]->MODER |= 0x00000280 & (GPIO_MODER_MODER0 << (PIN_NUMBER_MASK(pin.number) * 2));
-	GPIO_PORT[pin.port]->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (PIN_NUMBER_MASK(pin.number) * 2));
+		GPIO_PORT[pin.port]->MODER |= 0x00000280 & (GPIO_MODER_MODER0 << (pin.number * 2));
+	GPIO_PORT[pin.port]->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (pin.number * 2));
 	if (pin.port == hgpioPB)
-		GPIO_PORT[pin.port]->OSPEEDR |= 0x000000C0 & (GPIO_OSPEEDER_OSPEEDR0 << (PIN_NUMBER_MASK(pin.number) * 2));
-	GPIO_PORT[pin.port]->OTYPER  &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)PIN_NUMBER_MASK(pin.number)));
-	GPIO_PORT[pin.port]->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << ((uint16_t)PIN_NUMBER_MASK(pin.number) * 2));
+		GPIO_PORT[pin.port]->OSPEEDR |= 0x000000C0 & (GPIO_OSPEEDER_OSPEEDR0 << (pin.number * 2));
+	GPIO_PORT[pin.port]->OTYPER  &= ~(GPIO_OTYPER_OT_0 << ((uint16_t)pin.number));
+	GPIO_PORT[pin.port]->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << ((uint16_t)pin.number * 2));
 	if (pin.port == hgpioPA)
-		GPIO_PORT[pin.port]->PUPDR |= 0x64000000 & (GPIO_PUPDR_PUPDR0 << ((uint16_t)PIN_NUMBER_MASK(pin.number) * 2));
+		GPIO_PORT[pin.port]->PUPDR |= 0x64000000 & (GPIO_PUPDR_PUPDR0 << ((uint16_t)pin.number * 2));
 	else if (pin.port == hgpioPB)
-		GPIO_PORT[pin.port]->PUPDR |= 0x00000100 & (GPIO_PUPDR_PUPDR0 << ((uint16_t)PIN_NUMBER_MASK(pin.number) * 2));
+		GPIO_PORT[pin.port]->PUPDR |= 0x00000100 & (GPIO_PUPDR_PUPDR0 << ((uint16_t)pin.number * 2));
 	portEXIT_CRITICAL();
 }
 
