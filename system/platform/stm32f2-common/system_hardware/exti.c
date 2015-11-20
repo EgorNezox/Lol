@@ -23,6 +23,8 @@
 	struct s_exti_pcb *var_pcb = (struct s_exti_pcb *)handle; \
 	SYS_ASSERT(var_pcb != 0);
 
+#define LINE_MASK(line)	(1 << (line))
+
 struct s_exti_pcb;
 typedef struct {
 	uint32_t line_reg_mask;
@@ -42,7 +44,6 @@ static void exti_irq_handler(struct s_exti_pcb *exti);
 static void exti_process_mux_interrupts(s_exti_mux_irq_descr descriptors[], int count);
 
 void halinternal_exti_init(void) {
-	NVIC_InitTypeDef nvic_init_struct;
 	const IRQn_Type nvic_irq_numbers[] = {
 			EXTI0_IRQn,
 			EXTI1_IRQn,
@@ -65,12 +66,9 @@ void halinternal_exti_init(void) {
 		exti_pcbs[i].userid = 0;
 		exti_pcbs[i].isrcallbackTrigger = 0;
 	}
-	nvic_init_struct.NVIC_IRQChannelPreemptionPriority = SYS_IRQ_CHANNEL_PREEMPTION_PRIORITY;
-	nvic_init_struct.NVIC_IRQChannelSubPriority = 0;
-	nvic_init_struct.NVIC_IRQChannelCmd = ENABLE;
 	for (int i = 0; i < sizeof(nvic_irq_numbers)/sizeof(nvic_irq_numbers[0]); i++) {
-		nvic_init_struct.NVIC_IRQChannel = nvic_irq_numbers[i];
-		NVIC_Init(&nvic_init_struct);
+		halinternal_set_nvic_priority(nvic_irq_numbers[i]);
+		NVIC_EnableIRQ(nvic_irq_numbers[i]);
 	}
 }
 
@@ -85,40 +83,47 @@ hal_exti_handle_t hal_exti_open(int line, hal_exti_params_t *params) {
 	struct s_exti_pcb *exti = &(exti_pcbs[line]);
 	SYS_ASSERT((0 <= line) && (line < EXTI_LINES_COUNT));
 	SYS_ASSERT(params);
-	EXTI_InitTypeDef init_struct;
-	EXTI_StructInit(&init_struct);
-	init_struct.EXTI_Line = 1 << exti->line;
-	init_struct.EXTI_Mode = EXTI_Mode_Interrupt;
+	struct {
+		uint32_t RTSR;
+		uint32_t FTSR;
+	} init_struct = {0x00, 0x00};
 	switch (params->mode) {
-	case hextiMode_Rising: init_struct.EXTI_Trigger = EXTI_Trigger_Rising; break;
-	case hextiMode_Falling: init_struct.EXTI_Trigger = EXTI_Trigger_Falling; break;
-	case hextiMode_Rising_Falling: init_struct.EXTI_Trigger = EXTI_Trigger_Rising_Falling; break;
+	case hextiMode_Rising:
+		init_struct.RTSR = LINE_MASK(exti->line);
+		break;
+	case hextiMode_Falling:
+		init_struct.FTSR = LINE_MASK(exti->line);
+		break;
+	case hextiMode_Rising_Falling:
+		init_struct.RTSR = LINE_MASK(exti->line);
+		init_struct.FTSR = LINE_MASK(exti->line);
+		break;
+	default: SYS_ASSERT(0); break;
 	}
-	init_struct.EXTI_LineCmd = ENABLE;
 	portENTER_CRITICAL();
 	SYS_ASSERT(exti->is_busy == false);
 	exti->is_busy = true;
 	exti->userid = params->userid;
 	exti->isrcallbackTrigger = params->isrcallbackTrigger;
-	EXTI_ClearFlag(1 << exti->line);
-	EXTI_Init(&init_struct);
+	EXTI->RTSR |= init_struct.RTSR;
+	EXTI->FTSR |= init_struct.FTSR;
+	EXTI->PR = LINE_MASK(exti->line);
+	EXTI->IMR |= LINE_MASK(exti->line);
 	portEXIT_CRITICAL();
 	return (hal_exti_handle_t)exti;
 }
 
 void hal_exti_close(hal_exti_handle_t handle) {
 	DEFINE_PCB_FROM_HANDLE(exti, handle);
-	EXTI_InitTypeDef init_struct;
-	EXTI_StructInit(&init_struct);
-	init_struct.EXTI_Line = 1 << exti->line;
-	init_struct.EXTI_LineCmd = DISABLE;
 	portENTER_CRITICAL();
 	SYS_ASSERT(exti->is_busy == true);
 	exti->is_busy = false;
 	exti->userid = 0;
 	exti->isrcallbackTrigger = 0;
-	EXTI_Init(&init_struct);
-	EXTI_ClearFlag(1 << exti->line);
+	EXTI->IMR &= ~LINE_MASK(exti->line);
+	EXTI->RTSR &= ~LINE_MASK(exti->line);
+	EXTI->FTSR &= ~LINE_MASK(exti->line);
+	EXTI->PR = LINE_MASK(exti->line);
 	portEXIT_CRITICAL();
 }
 
@@ -126,7 +131,7 @@ static void exti_irq_handler(struct s_exti_pcb *exti) {
 	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	if (exti->isrcallbackTrigger)
 		exti->isrcallbackTrigger((hal_exti_handle_t)exti, exti->userid, &xHigherPriorityTaskWoken);
-	EXTI_ClearFlag(1 << exti->line);
+	EXTI->PR = LINE_MASK(exti->line);
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 

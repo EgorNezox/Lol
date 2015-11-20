@@ -31,7 +31,7 @@ void  __attribute__((constructor)) hal_system_init(void) {
 	/* Включение процессорных исключений Usage Fault, Bus Fault, MMU Fault */
 	SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk;
 	/* Настройка значений приоритетов исключений/прерываний как pre-emption (без sub-priority) */
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+	NVIC_SetPriorityGrouping(max(7 - __NVIC_PRIO_BITS, 0));
 	/* Инициализация поддержки отладочного вывода SWO в МК */
 	DBGMCU->CR |= DBGMCU_CR_TRACE_IOEN;
 	/* Инициализация всех субмодулей */
@@ -39,6 +39,10 @@ void  __attribute__((constructor)) hal_system_init(void) {
 	halinternal_exti_init();
 	halinternal_timer_init();
 	halinternal_uart_init();
+}
+
+void halinternal_set_nvic_priority(IRQn_Type irqn) {
+	NVIC_SetPriority(irqn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), SYS_IRQ_CHANNEL_PREEMPTION_PRIORITY, 0));
 }
 
 void halinternal_system_fault_handler(void) {

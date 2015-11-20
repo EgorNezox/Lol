@@ -20,15 +20,14 @@
   ******************************************************************************
  */
 
-#include "FreeRTOS.h"
-#include "system_stm32f2xx.h"
-#include "cm3_itm_debug.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#include "FreeRTOS.h"
+#include "cm3_itm_debug.h"
 
 #if ( configUSE_NEWLIB_REENTRANT != 1 )
 #error "FreeRTOSConfig.h must define configUSE_NEWLIB_REENTRANT enabled, check version also"
