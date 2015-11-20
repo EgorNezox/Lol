@@ -11,8 +11,7 @@ include misc/target_build_header.mk
 
 INCLUDEPATH_system += \
 	CMSIS/Include \
-	CMSIS/Device/ST/STM32F2xx/Include \
-	STM32F2xx_StdPeriph_Driver/inc
+	CMSIS/Device/ST/STM32F2xx/Include
 SOURCES_system += \
 	$(wildcard **/*.c)
 

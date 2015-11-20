@@ -88,16 +88,16 @@ static struct s_uart_pcb {
 	USART_TypeDef* usart;
 	IRQn_Type usart_irq_n;
 	uint8_t usart_apb;
-	uint32_t usart_rcc_periph;
+	uint32_t usart_rcc_apb_mask;
 	DMA_TypeDef* dma_rx;
 	uint8_t dma_rx_stream_number;
 	DMA_Stream_TypeDef* dma_rx_stream;
-	IRQn_Type dma_rx_irq_n;
-	uint32_t dma_rx_stream_rcc_periph;
-	uint32_t dma_rx_channel;
-	uint32_t dma_rx_it_teif;
-	uint32_t dma_rx_flag_tcif;
-	uint32_t dma_rx_flag_htif;
+	IRQn_Type dma_rx_stream_irq_n;
+	uint32_t dma_rx_rcc_ahb1enr;
+	uint8_t dma_rx_channel;
+	uint32_t dma_rx_teif_mask;
+	uint32_t dma_rx_tcif_mask;
+	uint32_t dma_rx_htif_mask;
 	bool is_open;
 	void *userid;
 	hal_ringbuffer_t *rx_buffer;
@@ -125,17 +125,23 @@ static struct s_uart_pcb {
 	size_t tx_transfer_pending_size; // remaining size of data from external buffer (active transmission)
 	SemaphoreHandle_t smphr_tx_complete; // used for transmission completion synchronization
 } uart_pcbs[UART_INSTANCES_COUNT] = {
-		{USART1, USART1_IRQn, 2, RCC_APB2Periph_USART1, DMA2, 2, DMA2_Stream2, DMA2_Stream2_IRQn, RCC_AHB1Periph_DMA2, DMA_Channel_4, DMA_IT_TEIF2, DMA_FLAG_TCIF2, DMA_FLAG_HTIF2, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{USART2, USART2_IRQn, 1, RCC_APB1Periph_USART2, DMA1, 5, DMA1_Stream5, DMA1_Stream5_IRQn, RCC_AHB1Periph_DMA1, DMA_Channel_4, DMA_IT_TEIF5, DMA_FLAG_TCIF5, DMA_FLAG_HTIF5, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{USART3, USART3_IRQn, 1, RCC_APB1Periph_USART3, DMA1, 1, DMA1_Stream1, DMA1_Stream1_IRQn, RCC_AHB1Periph_DMA1, DMA_Channel_4, DMA_IT_TEIF1, DMA_FLAG_TCIF1, DMA_FLAG_HTIF1, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{UART4, UART4_IRQn, 1, RCC_APB1Periph_UART4, DMA1, 2, DMA1_Stream2, DMA1_Stream2_IRQn, RCC_AHB1Periph_DMA1, DMA_Channel_4, DMA_IT_TEIF2, DMA_FLAG_TCIF2, DMA_FLAG_HTIF2, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{UART5, UART5_IRQn, 1, RCC_APB1Periph_UART5, DMA1, 0, DMA1_Stream0, DMA1_Stream0_IRQn, RCC_AHB1Periph_DMA1, DMA_Channel_4, DMA_IT_TEIF0, DMA_FLAG_TCIF0, DMA_FLAG_HTIF0, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{USART6, USART6_IRQn, 2, RCC_APB2Periph_USART6, DMA2, 1, DMA2_Stream1, DMA2_Stream1_IRQn, RCC_AHB1Periph_DMA2, DMA_Channel_5, DMA_IT_TEIF1, DMA_FLAG_TCIF1, DMA_FLAG_HTIF1, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{USART1, USART1_IRQn, 2, RCC_APB2ENR_USART1EN, DMA2, 2, DMA2_Stream2, DMA2_Stream2_IRQn, RCC_AHB1ENR_DMA2EN, 4, DMA_LISR_TEIF2, DMA_LISR_TCIF2, DMA_LISR_HTIF2, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{USART2, USART2_IRQn, 1, RCC_APB1ENR_USART2EN, DMA1, 5, DMA1_Stream5, DMA1_Stream5_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_HISR_TEIF5, DMA_HISR_TCIF5, DMA_HISR_HTIF5, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{USART3, USART3_IRQn, 1, RCC_APB1ENR_USART3EN, DMA1, 1, DMA1_Stream1, DMA1_Stream1_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF1, DMA_LISR_TCIF1, DMA_LISR_HTIF1, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{UART4, UART4_IRQn, 1, RCC_APB1ENR_UART4EN, DMA1, 2, DMA1_Stream2, DMA1_Stream2_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF2, DMA_LISR_TCIF2, DMA_LISR_HTIF2, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{UART5, UART5_IRQn, 1, RCC_APB1ENR_UART5EN, DMA1, 0, DMA1_Stream0, DMA1_Stream0_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF0, DMA_LISR_TCIF0, DMA_LISR_HTIF0, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{USART6, USART6_IRQn, 2, RCC_APB2ENR_USART6EN, DMA2, 1, DMA2_Stream1, DMA2_Stream1_IRQn, RCC_AHB1ENR_DMA2EN, 5, DMA_LISR_TEIF1, DMA_LISR_TCIF1, DMA_LISR_HTIF1, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
 };
 
 static double uart_character_rate_from_baud_rate(uint32_t rate, hal_uart_stop_bits_t stop_bits, hal_uart_parity_t parity);
 static void uart_set_rx_interrupts(struct s_uart_pcb *uart, FunctionalState state);
 static void uart_set_tx_interrupts(struct s_uart_pcb *uart, FunctionalState state);
+static bool uart_get_dma_te_flag(struct s_uart_pcb *uart);
+static bool uart_get_dma_ht_flag(struct s_uart_pcb *uart);
+static bool uart_get_dma_tc_flag(struct s_uart_pcb *uart);
+static void uart_clear_dma_te_flag(struct s_uart_pcb *uart);
+static void uart_clear_dma_ht_flag(struct s_uart_pcb *uart);
+static void uart_clear_dma_tc_flag(struct s_uart_pcb *uart);
 static void uart_start_dma_rx(struct s_uart_pcb *uart);
 static void uart_stop_dma_rx(struct s_uart_pcb *uart);
 static bool uart_is_dma_rx_running(struct s_uart_pcb *uart);
@@ -150,9 +156,23 @@ static void uart_dma_rx_irq_handler(struct s_uart_pcb *uart);
 
 void halinternal_uart_init(void) {
 	for (int i = 0; i < sizeof(uart_pcbs)/sizeof(uart_pcbs[0]); i++) {
-		uart_pcbs[i].rx_data_timer = xTimerCreate("HAL_UART_rx_data_X", 1/*doesn't matter*/, pdFALSE, (void *)&(uart_pcbs[i]), uart_timer_rx_data_callback);
+		struct s_uart_pcb *uart = &(uart_pcbs[i]);
+		/* Init freertos timer for defered rx data indication */
+		uart->rx_data_timer = xTimerCreate("HAL_UART_rx_data_X", 1/*doesn't matter*/, pdFALSE, (void *)uart, uart_timer_rx_data_callback);
 		halinternal_freertos_timer_queue_length += 3; // must match usage scenario (xTimerXXX calls, calls contexts, worst case of queuing)
-		uart_pcbs[i].smphr_tx_complete = xSemaphoreCreateCounting(1, 0);
+		/* Init semaphore used for tx transfer completion synchronization */
+		uart->smphr_tx_complete = xSemaphoreCreateCounting(1, 0);
+		/* Init DMA stream used for rx */
+		RCC->AHB1ENR |= (uart->dma_rx_rcc_ahb1enr);
+		uart->dma_rx_stream->CR = 0;
+		uart->dma_rx_stream->CR |= uart->dma_rx_channel << DMA_SxCR_CHSEL_Pos;
+		uart->dma_rx_stream->CR |= DMA_SxCR_MINC;
+		uart->dma_rx_stream->CR |= DMA_SxCR_CIRC;
+		uart->dma_rx_stream->FCR = 0;
+		uart->dma_rx_stream->PAR = (uint32_t)&(uart->usart->DR);
+		/* Init NVIC interrupts of USART and rx DMA stream */
+		halinternal_set_nvic_priority(uart->usart_irq_n);
+		halinternal_set_nvic_priority(uart->dma_rx_stream_irq_n);
 	}
 }
 
@@ -194,53 +214,59 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	total_rx_buffer_size += (total_rx_buffer_size % 2); // round up to nearest even number (required to determine DMA half-transfer condition properly)
 	SYS_ASSERT(total_rx_buffer_size <= MAX_DMA_TRANSFER_SIZE); // incompatible uart baudrate and (system characteristics and/or uart parameters)
 
-	USART_InitTypeDef usart_init_struct;
-	DMA_InitTypeDef dma_init_struct;
-	NVIC_InitTypeDef nvic_init_struct;
-	USART_StructInit(&usart_init_struct);
-	usart_init_struct.USART_BaudRate = params->baud_rate;
-	if (params->parity == huartParity_None)
-		usart_init_struct.USART_WordLength = USART_WordLength_8b;
-	else
-		usart_init_struct.USART_WordLength = USART_WordLength_9b;
+	struct {
+		uint16_t BRR;
+		uint16_t CR1;
+		uint16_t CR2;
+		uint16_t CR3;
+		uint32_t tmpreg;
+		uint32_t apbclock;
+		uint32_t integerdivider;
+		uint32_t fractionaldivider;
+	} usart_init_struct = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	halinternal_rcc_clocks_t rcc_clocks;
+	SYS_ASSERT((params->baud_rate > 0) && (params->baud_rate < 7500001));
+	if (params->hw_flow_control != huartHwFlowControl_None)
+		SYS_ASSERT((instance == 1) || (instance == 2) || (instance == 3) || (instance == 6));
 	switch (params->stop_bits) {
-	case huartStopBits_0_5: usart_init_struct.USART_StopBits = USART_StopBits_0_5; break;
-	case huartStopBits_1: usart_init_struct.USART_StopBits = USART_StopBits_1; break;
-	case huartStopBits_1_5: usart_init_struct.USART_StopBits = USART_StopBits_1_5; break;
-	case huartStopBits_2: usart_init_struct.USART_StopBits = USART_StopBits_2; break;
+	case huartStopBits_0_5: usart_init_struct.CR2 |= USART_CR2_STOP_0; break;
+	case huartStopBits_1: usart_init_struct.CR2 |= 0; break;
+	case huartStopBits_1_5: usart_init_struct.CR2 |= USART_CR2_STOP_0 | USART_CR2_STOP_1; break;
+	case huartStopBits_2: usart_init_struct.CR2 |= USART_CR2_STOP_1; break;
 	default: SYS_ASSERT(0); break;
 	}
+	if (params->parity != huartParity_None)
+		usart_init_struct.CR1 |= USART_CR1_M;
 	switch (params->parity) {
-	case huartParity_None: usart_init_struct.USART_Parity = USART_Parity_No; break;
-	case huartParity_Even: usart_init_struct.USART_Parity = USART_Parity_Even; break;
-	case huartParity_Odd: usart_init_struct.USART_Parity = USART_Parity_Odd; break;
+	case huartParity_None: usart_init_struct.CR1 |= 0; break;
+	case huartParity_Even: usart_init_struct.CR1 |= USART_CR1_PCE; break;
+	case huartParity_Odd: usart_init_struct.CR1 |= USART_CR1_PCE | USART_CR1_PS; break;
 	default: SYS_ASSERT(0); break;
 	}
+	usart_init_struct.CR1 |= USART_CR1_RE | USART_CR1_TE;
 	switch (params->hw_flow_control) {
-	case huartHwFlowControl_None: usart_init_struct.USART_HardwareFlowControl = USART_HardwareFlowControl_None; break;
-	case huartHwFlowControl_Rx: usart_init_struct.USART_HardwareFlowControl = USART_HardwareFlowControl_RTS; break;
-	case huartHwFlowControl_Tx: usart_init_struct.USART_HardwareFlowControl = USART_HardwareFlowControl_CTS; break;
-	case huartHwFlowControl_Rx_Tx: usart_init_struct.USART_HardwareFlowControl = USART_HardwareFlowControl_RTS_CTS; break;
+	case huartHwFlowControl_None: usart_init_struct.CR3 |= 0; break;
+	case huartHwFlowControl_Rx: usart_init_struct.CR3 |= USART_CR3_RTSE; break;
+	case huartHwFlowControl_Tx: usart_init_struct.CR3 |= USART_CR3_CTSE; break;
+	case huartHwFlowControl_Rx_Tx: usart_init_struct.CR3 |= USART_CR3_RTSE | USART_CR3_CTSE; break;
 	default: SYS_ASSERT(0); break;
 	}
-	usart_init_struct.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-	DMA_StructInit(&dma_init_struct);
-	dma_init_struct.DMA_Channel = uart->dma_rx_channel;
-	dma_init_struct.DMA_PeripheralBaseAddr = (uint32_t)&(uart->usart->DR);
-	dma_init_struct.DMA_DIR = DMA_DIR_PeripheralToMemory;
-	dma_init_struct.DMA_BufferSize = 1; // no matter, it's to pass driver library assertion
-	dma_init_struct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-	dma_init_struct.DMA_MemoryInc = DMA_MemoryInc_Enable;
-	dma_init_struct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-	dma_init_struct.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-	dma_init_struct.DMA_Mode = DMA_Mode_Circular;
-	dma_init_struct.DMA_Priority = DMA_Priority_VeryHigh;
-	dma_init_struct.DMA_FIFOMode = DMA_FIFOMode_Disable;
-	dma_init_struct.DMA_MemoryBurst = DMA_MemoryBurst_Single;
-	dma_init_struct.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
-	nvic_init_struct.NVIC_IRQChannelPreemptionPriority = SYS_IRQ_CHANNEL_PREEMPTION_PRIORITY;
-	nvic_init_struct.NVIC_IRQChannelSubPriority = 0;
-	nvic_init_struct.NVIC_IRQChannelCmd = ENABLE;
+	halinternal_get_rcc_clocks(&rcc_clocks);
+	if ((instance == 1) || (instance == 6))
+		usart_init_struct.apbclock = rcc_clocks.pclk2_frequency;
+	else
+		usart_init_struct.apbclock = rcc_clocks.pclk1_frequency;
+	if ((usart_init_struct.CR1 & USART_CR1_OVER8) != 0)
+		usart_init_struct.integerdivider = ((25 * usart_init_struct.apbclock) / (2 * (params->baud_rate)));
+	else
+		usart_init_struct.integerdivider = ((25 * usart_init_struct.apbclock) / (4 * (params->baud_rate)));
+	usart_init_struct.tmpreg = (usart_init_struct.integerdivider / 100) << 4;
+	usart_init_struct.fractionaldivider = usart_init_struct.integerdivider - (100 * (usart_init_struct.tmpreg >> 4));
+	if ((usart_init_struct.CR1 & USART_CR1_OVER8) != 0)
+		usart_init_struct.tmpreg |= ((((usart_init_struct.fractionaldivider * 8) + 50) / 100)) & ((uint8_t)0x07);
+	else
+		usart_init_struct.tmpreg |= ((((usart_init_struct.fractionaldivider * 16) + 50) / 100)) & ((uint8_t)0x0F);
+	usart_init_struct.BRR = (uint16_t)usart_init_struct.tmpreg;
 
 	new_rx_buffer = hal_ringbuffer_create(total_rx_buffer_size, 0);
 	if (rx_buffer)
@@ -254,22 +280,20 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	/* Mark peripheral instance as busy */
 	SYS_ASSERT(uart->is_open == false);
 	uart->is_open = true;
-	/* Enable USART and DMA peripherals clock */
+	/* Enable USART peripheral clock */
 	if (uart->usart_apb == 1)
-		RCC_APB1PeriphClockCmd(uart->usart_rcc_periph, ENABLE);
+		RCC->APB1ENR |= (uart->usart_rcc_apb_mask);
 	else if (uart->usart_apb == 2)
-		RCC_APB2PeriphClockCmd(uart->usart_rcc_periph, ENABLE);
-	RCC_AHB1PeriphClockCmd(uart->dma_rx_stream_rcc_periph, ENABLE);
+		RCC->APB2ENR |= (uart->usart_rcc_apb_mask);
 	/* Init USART peripheral */
-	USART_Init(uart->usart, &usart_init_struct);
-	/* Init DMA rx stream peripheral */
-	DMA_Init(uart->dma_rx_stream, &dma_init_struct);
+	uart->usart->CR2 = usart_init_struct.CR2;
+	uart->usart->CR1 = usart_init_struct.CR1;
+	uart->usart->CR3 = usart_init_struct.CR3;
+	uart->usart->BRR = usart_init_struct.BRR;
 	/* Init USART and DMA interrupts */
-	nvic_init_struct.NVIC_IRQChannel = uart->usart_irq_n;
-	NVIC_Init(&nvic_init_struct);
-	nvic_init_struct.NVIC_IRQChannel = uart->dma_rx_irq_n;
-	NVIC_Init(&nvic_init_struct);
-	DMA_ITConfig(uart->dma_rx_stream, DMA_IT_TE, ENABLE);
+	NVIC_EnableIRQ(uart->usart_irq_n);
+	NVIC_EnableIRQ(uart->dma_rx_stream_irq_n);
+	uart->dma_rx_stream->CR |= DMA_SxCR_TEIE;
 	portEXIT_CRITICAL();
 
 	uart->userid = params->userid;
@@ -288,7 +312,7 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	uart->isrcallbackTxCompleted = params->isrcallbackTxCompleted;
 	hal_uart_start_rx((hal_uart_handle_t)uart);
 	xSemaphoreTake(uart->smphr_tx_complete, 0);
-	USART_Cmd(uart->usart, ENABLE);
+	uart->usart->CR1 |= USART_CR1_UE; // enable USART peripheral
 
 	return (hal_uart_handle_t)uart;
 }
@@ -301,7 +325,7 @@ void hal_uart_close(hal_uart_handle_t handle) {
 	if (uart->rx_data_defer_indication)
 		xTimerStop(uart->rx_data_timer, portMAX_DELAY);
 	portENTER_CRITICAL();
-	USART_Cmd(uart->usart, DISABLE);
+	uart->usart->CR1 &= ~USART_CR1_UE; // disable USART peripheral
 	uart_stop_dma_rx(uart);
 	uart_set_rx_interrupts(uart, DISABLE);
 	if (uart->tx_transfer != txtransferNone)
@@ -328,31 +352,27 @@ void hal_uart_close(hal_uart_handle_t handle) {
 	uart->isrcallbackTxSpacePending = NULL;
 	uart->isrcallbackTxCompleted = NULL;
 
-	NVIC_InitTypeDef nvic_init_struct;
-	nvic_init_struct.NVIC_IRQChannelPreemptionPriority = SYS_IRQ_CHANNEL_PREEMPTION_PRIORITY;
-	nvic_init_struct.NVIC_IRQChannelSubPriority = 0;
-	nvic_init_struct.NVIC_IRQChannelCmd = DISABLE;
-
 	portENTER_CRITICAL();
 	/* Mark peripheral instance as not busy */
 	SYS_ASSERT(uart->is_open == true);
 	uart->is_open = false;
 	/* Deinit DMA and USART interrupts */
-	DMA_ITConfig(uart->dma_rx_stream, DMA_IT_TE, DISABLE);
-	nvic_init_struct.NVIC_IRQChannel = uart->dma_rx_irq_n;
-	NVIC_Init(&nvic_init_struct);
-	nvic_init_struct.NVIC_IRQChannel = uart->usart_irq_n;
-	NVIC_Init(&nvic_init_struct);
-	/* Reset DMA rx stream peripheral */
-	DMA_DeInit(uart->dma_rx_stream);
+	uart->dma_rx_stream->CR &= ~DMA_SxCR_TEIE;
+	NVIC_DisableIRQ(uart->dma_rx_stream_irq_n);
+	NVIC_DisableIRQ(uart->usart_irq_n);
 	/* Reset USART peripheral */
-	USART_DeInit(uart->usart);
-	/* Disable DMA and USART peripherals clock */
-	RCC_AHB1PeriphClockCmd(uart->dma_rx_stream_rcc_periph, DISABLE);
+	if (uart->usart_apb == 1) {
+		RCC->APB1RSTR |= (uart->usart_rcc_apb_mask);
+		RCC->APB1RSTR &= ~(uart->usart_rcc_apb_mask);
+	} else if (uart->usart_apb == 2) {
+		RCC->APB2RSTR |= (uart->usart_rcc_apb_mask);
+		RCC->APB2RSTR &= ~(uart->usart_rcc_apb_mask);
+	}
+	/* Disable USART peripheral clock */
 	if (uart->usart_apb == 1)
-		RCC_APB1PeriphClockCmd(uart->usart_rcc_periph, DISABLE);
+		RCC->APB1ENR &= ~(uart->usart_rcc_apb_mask);
 	else if (uart->usart_apb == 2)
-		RCC_APB2PeriphClockCmd(uart->usart_rcc_periph, DISABLE);
+		RCC->APB2ENR &= ~(uart->usart_rcc_apb_mask);
 	portEXIT_CRITICAL();
 }
 
@@ -371,31 +391,90 @@ static double uart_character_rate_from_baud_rate(uint32_t rate, hal_uart_stop_bi
 }
 
 static void uart_set_rx_interrupts(struct s_uart_pcb *uart, FunctionalState state) {
-	USART_ITConfig(uart->usart, USART_IT_RXNE, state);
-	USART_ITConfig(uart->usart, USART_IT_ERR, state);
-	USART_ITConfig(uart->usart, USART_IT_PE, state);
+	if (state == ENABLE) {
+		uart->usart->CR1 |= USART_CR1_RXNEIE;
+		uart->usart->CR1 |= USART_CR1_PEIE;
+		uart->usart->CR3 |= USART_CR3_EIE;
+	} else {
+		uart->usart->CR1 &= ~USART_CR1_RXNEIE;
+		uart->usart->CR1 &= ~USART_CR1_PEIE;
+		uart->usart->CR3 &= ~USART_CR3_EIE;
+	}
 }
 
 static void uart_set_tx_interrupts(struct s_uart_pcb *uart, FunctionalState state) {
-	USART_ITConfig(uart->usart, USART_IT_TXE, state);
-	USART_ITConfig(uart->usart, USART_IT_TC, state);
+	if (state == ENABLE) {
+		uart->usart->CR1 |= USART_CR1_TXEIE;
+		uart->usart->CR1 |= USART_CR1_TCIE;
+	} else {
+		uart->usart->CR1 &= ~USART_CR1_TXEIE;
+		uart->usart->CR1 &= ~USART_CR1_TCIE;
+	}
+}
+
+static bool uart_get_dma_te_flag(struct s_uart_pcb *uart) {
+	bool status;
+	if (uart->dma_rx_stream_number > 3)
+		status = (uart->dma_rx->HISR & uart->dma_rx_teif_mask);
+	else
+		status = (uart->dma_rx->LISR & uart->dma_rx_teif_mask);
+	return status;
+}
+
+static bool uart_get_dma_ht_flag(struct s_uart_pcb *uart) {
+	bool status;
+	if (uart->dma_rx_stream_number > 3)
+		status = (uart->dma_rx->HISR & uart->dma_rx_htif_mask);
+	else
+		status = (uart->dma_rx->LISR & uart->dma_rx_htif_mask);
+	return status;
+}
+
+static bool uart_get_dma_tc_flag(struct s_uart_pcb *uart) {
+	bool status;
+	if (uart->dma_rx_stream_number > 3)
+		status = (uart->dma_rx->HISR & uart->dma_rx_tcif_mask);
+	else
+		status = (uart->dma_rx->LISR & uart->dma_rx_tcif_mask);
+	return status;
+}
+
+static void uart_clear_dma_te_flag(struct s_uart_pcb *uart) {
+	if (uart->dma_rx_stream_number > 3)
+		uart->dma_rx->HIFCR = uart->dma_rx_teif_mask;
+	else
+		uart->dma_rx->LIFCR = uart->dma_rx_teif_mask;
+}
+
+static void uart_clear_dma_ht_flag(struct s_uart_pcb *uart) {
+	if (uart->dma_rx_stream_number > 3)
+		uart->dma_rx->HIFCR = uart->dma_rx_htif_mask;
+	else
+		uart->dma_rx->LIFCR = uart->dma_rx_htif_mask;
+}
+
+static void uart_clear_dma_tc_flag(struct s_uart_pcb *uart) {
+	if (uart->dma_rx_stream_number > 3)
+		uart->dma_rx->HIFCR = uart->dma_rx_tcif_mask;
+	else
+		uart->dma_rx->LIFCR = uart->dma_rx_tcif_mask;
 }
 
 static void uart_start_dma_rx(struct s_uart_pcb *uart) {
-	DMA_ClearFlag(uart->dma_rx_stream, uart->dma_rx_flag_htif);
-	DMA_ClearFlag(uart->dma_rx_stream, uart->dma_rx_flag_tcif);
-	DMA_Cmd(uart->dma_rx_stream, ENABLE);
-	USART_DMACmd(uart->usart, USART_DMAReq_Rx, ENABLE);
+	uart_clear_dma_ht_flag(uart);
+	uart_clear_dma_tc_flag(uart);
+	uart->dma_rx_stream->CR |= DMA_SxCR_EN;
+	uart->usart->CR3 |= USART_CR3_DMAR;
 }
 
 static void uart_stop_dma_rx(struct s_uart_pcb *uart) {
-	USART_DMACmd(uart->usart, USART_DMAReq_Rx, DISABLE);
-	DMA_Cmd(uart->dma_rx_stream, DISABLE);
-	while (DMA_GetCmdStatus(uart->dma_rx_stream) != DISABLE);
+	uart->usart->CR3 &= ~USART_CR3_DMAR;
+	uart->dma_rx_stream->CR &= ~DMA_SxCR_EN;
+	while ((uart->dma_rx_stream->CR & DMA_SxCR_EN) != 0);
 }
 
 static bool uart_is_dma_rx_running(struct s_uart_pcb *uart) {
-	return (DMA_GetCmdStatus(uart->dma_rx_stream) == ENABLE);
+	return ((uart->dma_rx_stream->CR & DMA_SxCR_EN) != 0);
 }
 
 bool hal_uart_start_rx(hal_uart_handle_t handle) {
@@ -409,8 +488,8 @@ bool hal_uart_start_rx(hal_uart_handle_t handle) {
 		size_t buffer_size;
 		hal_ringbuffer_get_write_ptr(uart->rx_buffer, &buffer_ptr, &buffer_size); // expected to be whole ringbuffer
 		hal_ringbuffer_write_next(uart->rx_buffer, 0);
-		DMA_MemoryTargetConfig(uart->dma_rx_stream, (uint32_t)buffer_ptr, DMA_Memory_0);
-		DMA_SetCurrDataCounter(uart->dma_rx_stream, (uint16_t)buffer_size);
+		uart->dma_rx_stream->M0AR = (uint32_t)buffer_ptr;
+		uart->dma_rx_stream->NDTR = (uint16_t)buffer_size;
 		/* Reset USART rx state */
 		(void)uart->usart->SR;
 		(void)uart->usart->DR;
@@ -558,7 +637,7 @@ static void uart_timer_rx_data_callback(TimerHandle_t xTimer) {
  */
 static void uart_usart_irq_handler(struct s_uart_pcb *uart) {
 	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-	/* USART status register must be read once (instead of calling USART_GetITStatus() for each flag) in order to:
+	/* USART status register must be read once in order to:
 	 * - prevent loss of pending flags (such as known issue with PE);
 	 * - prevent loss of events occured while irq handler is active;
 	 * - provide guaranteed TC bit clearing sequence (in sync with write access to DR register).
@@ -580,18 +659,18 @@ static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t USART_SR
 	uint16_t current_dma_ndt;
 
 	/* Capture DMA buffer state */
-	flag_dma_ht = DMA_GetFlagStatus(uart->dma_rx_stream, uart->dma_rx_flag_htif);
-	flag_dma_tc = DMA_GetFlagStatus(uart->dma_rx_stream, uart->dma_rx_flag_tcif);
-	current_dma_ndt = DMA_GetCurrDataCounter(uart->dma_rx_stream); // must be captured after HT,TC flags
+	flag_dma_ht = uart_get_dma_ht_flag(uart);
+	flag_dma_tc = uart_get_dma_tc_flag(uart);
+	current_dma_ndt = (uint16_t)uart->dma_rx_stream->NDTR; // must be captured after HT,TC flags
 
 	/* Process streaming if it's active */
 	// warning: dependency on RXNEIE requires special handling in uart_update_rx_data_indication_from_isr() and uart_timer_rx_data_callback() !
 	if ((uart->usart->CR1 & USART_CR1_RXNEIE) && (uart_is_dma_rx_running(uart))) {
 		if (!(flag_dma_ht && flag_dma_tc)) {
 			if (flag_dma_ht && (current_dma_ndt >= (buffer_size>>1))) // did NDT crossed half-buffer mark since previous capture ?
-				DMA_ClearFlag(uart->dma_rx_stream, uart->dma_rx_flag_htif); // condition above ensures that we will not lose flag which may appear at once
+				uart_clear_dma_ht_flag(uart); // condition above ensures that we will not lose flag which may appear at once
 			if (flag_dma_tc && (current_dma_ndt < (buffer_size>>1))) // did NDT wrapped from end to start of buffer since previous capture ?
-				DMA_ClearFlag(uart->dma_rx_stream, uart->dma_rx_flag_tcif); // condition above ensures that we will not lose flag which may appear at once
+				uart_clear_dma_tc_flag(uart); // condition above ensures that we will not lose flag which may appear at once
 			bytes_transfered += uart_update_rx_buffer_from_isr(uart, flag_dma_tc, current_dma_ndt);
 			if (hal_ringbuffer_get_free_space_size(uart->rx_buffer) <= uart->rx_buffer_extra_space) // normal buffer overflow
 				overflow_detected = true;
@@ -693,9 +772,9 @@ static void uart_usart_irq_handler_tx(struct s_uart_pcb *uart, uint16_t USART_SR
 static void uart_dma_rx_irq_handler(struct s_uart_pcb *uart) {
 	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	/* DMA transfer error (bus error ?) */
-	if (DMA_GetITStatus(uart->dma_rx_stream, uart->dma_rx_it_teif) == SET) {
+	if (uart_get_dma_te_flag(uart)) {
 		uart_suspend_rx_from_isr(uart, &xHigherPriorityTaskWoken);
-		DMA_ClearITPendingBit(uart->dma_rx_stream, uart->dma_rx_it_teif);
+		uart_clear_dma_te_flag(uart);
 		halinternal_system_fault_handler();
 	}
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);

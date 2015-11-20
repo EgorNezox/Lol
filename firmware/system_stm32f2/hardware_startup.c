@@ -8,7 +8,7 @@
   ******************************************************************************
   */
 
-#include "stm32f2xx.h"
+#include <stdint.h>
 #include "system_stm32f2xx.h"
 #include "system_hw_io.h"
 

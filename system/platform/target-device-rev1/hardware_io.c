@@ -19,6 +19,15 @@
 #define _STR(arg) #arg
 #define STR(arg) _STR(arg)
 
+#define FSMC_BANK_REG_OFFSET(number)	(((number)-1)*2)
+#define FSMC_BTR1_ADDSET_Pos	0
+#define FSMC_BTR1_ADDHLD_Pos	4
+#define FSMC_BTR1_DATAST_Pos	8
+#define FSMC_BTR1_BUSTURN_Pos	16
+#define FSMC_BTR1_CLKDIV_Pos	20
+#define FSMC_BTR1_DATLAT_Pos	24
+#define FSMC_BTR1_ACCMOD_Pos	28
+
 /* Следующие определения должны соответствовать определениям в stm32_memory.ld
  */
 #define MEMORY_B1_SRAM2_START_ADDRESS			0x64000000
@@ -111,42 +120,37 @@ void stm32f2_ext_mem_init(void) {
 	  /* No pull-up, pull-down for PGx pins */
 	  GPIOG->PUPDR   |= 0x00000000;
 
-/*-- FSMC Configuration for external SRAM ------------------------------------------------------*/
-	  /* Enable the FSMC interface clock */
+	  /*
+	   * FSMC Configuration for external SRAM
+	   *
+	   * Bank1_SRAM2 is configured as follow:
+	   *
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_AddressSetupTime = 0;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_AddressHoldTime = 0;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_DataSetupTime = 8;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_BusTurnAroundDuration = 1;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_CLKDivision = 0;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_DataLatency = 0;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_AccessMode = FSMC_AccessMode_A;
+	   *
+	   * FSMC_NORSRAMInitTypeDef::FSMC_Bank = FSMC_Bank1_NORSRAM2;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_DataAddressMux = FSMC_DataAddressMux_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_MemoryType = FSMC_MemoryType_PSRAM;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_16b;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_BurstAccessMode = FSMC_BurstAccessMode_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_AsynchronousWait = FSMC_AsynchronousWait_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WrapMode = FSMC_WrapMode_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WriteOperation = FSMC_WriteOperation_Enable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WaitSignal = FSMC_WaitSignal_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_ExtendedMode = FSMC_ExtendedMode_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WriteBurst = FSMC_WriteBurst_Disable;
+	  */
 	  RCC->AHB3ENR        |= 0x00000001;
-
-	  /* Configure and enable Bank1_SRAM2 */
 	  FSMC_Bank1->BTCR[2]  = 0x00001015;
 	  FSMC_Bank1->BTCR[3]  = 0x00010800;
 	  FSMC_Bank1E->BWTR[2] = 0x0fffffff;
-
-	  /*
-	  Bank1_SRAM2 is configured as follow:
-
-	  p.FSMC_AddressSetupTime = 0;
-	  p.FSMC_AddressHoldTime = 0;
-	  p.FSMC_DataSetupTime = 8;
-	  p.FSMC_BusTurnAroundDuration = 1;
-	  p.FSMC_CLKDivision = 0;
-	  p.FSMC_DataLatency = 0;
-	  p.FSMC_AccessMode = FSMC_AccessMode_A;
-
-	  FSMC_NORSRAMInitStructure.FSMC_Bank = FSMC_Bank1_NORSRAM2;
-	  FSMC_NORSRAMInitStructure.FSMC_DataAddressMux = FSMC_DataAddressMux_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_MemoryType = FSMC_MemoryType_PSRAM;
-	  FSMC_NORSRAMInitStructure.FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_16b;
-	  FSMC_NORSRAMInitStructure.FSMC_BurstAccessMode = FSMC_BurstAccessMode_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_AsynchronousWait = FSMC_AsynchronousWait_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
-	  FSMC_NORSRAMInitStructure.FSMC_WrapMode = FSMC_WrapMode_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;
-	  FSMC_NORSRAMInitStructure.FSMC_WriteOperation = FSMC_WriteOperation_Enable;
-	  FSMC_NORSRAMInitStructure.FSMC_WaitSignal = FSMC_WaitSignal_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_ExtendedMode = FSMC_ExtendedMode_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_WriteBurst = FSMC_WriteBurst_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_ReadWriteTimingStruct = &p;
-	  FSMC_NORSRAMInitStructure.FSMC_WriteTimingStruct = &p;
-	  */
 }
 
 /* Тестирование аппаратной исправности внешней памяти
@@ -233,51 +237,35 @@ test_end:
 }
 
 void stm32f2_LCD_init(void) {
-	FSMC_NORSRAMInitTypeDef  FSMC_NORSRAMInitStructure;
-	FSMC_NORSRAMTimingInitTypeDef  p;
-
-	/*-- FSMC Configuration ------------------------------------------------------*/
-	/*----------------------- SRAM Bank 1 ----------------------------------------*/
-	/* FSMC_Bank1_NORSRAM1 configuration */
-	p.FSMC_AddressSetupTime = 1;
-	p.FSMC_AddressHoldTime = 0;
-	p.FSMC_DataSetupTime = 6;
-	p.FSMC_BusTurnAroundDuration = 1;
-	p.FSMC_CLKDivision = 0;
-	p.FSMC_DataLatency = 0;
-	p.FSMC_AccessMode = FSMC_AccessMode_A;
-	/* Color LCD configuration ------------------------------------
-	     LCD configured as follow:
-	        - Data/Address MUX = Disable
-	        - Memory Type = SRAM
-	        - Data Width = 8bit
-	        - Write Operation = Enable
-	        - Extended Mode = Disable
-	        - Asynchronous Wait = Disable */
-
-	FSMC_NORSRAMInitStructure.FSMC_Bank = FSMC_Bank1_NORSRAM1;
-	FSMC_NORSRAMInitStructure.FSMC_DataAddressMux = FSMC_DataAddressMux_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_MemoryType = FSMC_MemoryType_SRAM;
-	FSMC_NORSRAMInitStructure.FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_8b;
-	FSMC_NORSRAMInitStructure.FSMC_BurstAccessMode = FSMC_BurstAccessMode_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_AsynchronousWait = FSMC_AsynchronousWait_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
-	FSMC_NORSRAMInitStructure.FSMC_WrapMode = FSMC_WrapMode_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;
-	FSMC_NORSRAMInitStructure.FSMC_WriteOperation = FSMC_WriteOperation_Enable;
-	FSMC_NORSRAMInitStructure.FSMC_WaitSignal = FSMC_WaitSignal_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_ExtendedMode = FSMC_ExtendedMode_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_WriteBurst = FSMC_WriteBurst_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_ReadWriteTimingStruct = &p;
-	FSMC_NORSRAMInitStructure.FSMC_WriteTimingStruct = &p;
-
+	/* FSMC Configuration for 80‐Series 8-bit bus MPU system interface
+	 *
+	 * Bank1_NORSRAM1 is configured as follow:
+	 *
+	 * - Access mode = A
+	 * - Extended Mode = Disable
+	 * - Memory Type = SRAM
+	 * - Data/Address MUX = Disable
+	 * - Data Width = 8-bit
+	 * - Write Operation = Enable
+	 * - Asynchronous Wait = Disable
+	 * - read/write timings: address setup = 1 HCLKs, address hold = 0, data setup = 6 HCLKs, bus turnaround = 1 HCLKs
+	 */
 	portENTER_CRITICAL();
 	/* Enable FSMC clock */
-	RCC_AHB3PeriphClockCmd(RCC_AHB3Periph_FSMC, ENABLE);
-	/* Configure FSMC NOR/SRAM */
-	FSMC_NORSRAMInit(&FSMC_NORSRAMInitStructure);
+	RCC->AHB3ENR |= RCC_AHB3ENR_FSMCEN;
+	/* Configure FSMC NOR/SRAM Bank1 */
+	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(1)+0] = FSMC_BCR1_WREN;
+	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(1)+1] = 0
+			| (1 << FSMC_BTR1_ADDSET_Pos)
+			| (0 << FSMC_BTR1_ADDHLD_Pos)
+			| (6 << FSMC_BTR1_DATAST_Pos)
+			| (1 << FSMC_BTR1_BUSTURN_Pos)
+			| (0 << FSMC_BTR1_CLKDIV_Pos)
+			| (0 << FSMC_BTR1_DATLAT_Pos)
+			| (0 << FSMC_BTR1_ACCMOD_Pos);
+	FSMC_Bank1E->BWTR[FSMC_BANK_REG_OFFSET(1)+0] = 0x0FFFFFFF;
 	/* Enable FSMC NOR/SRAM Bank1 */
-	FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM1, ENABLE);
+	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(1)+0] |= FSMC_BCR1_MBKEN;
 	portEXIT_CRITICAL();
 
 	/* Configure LCD controller reset line and do reset */
