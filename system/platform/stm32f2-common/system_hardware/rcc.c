@@ -30,18 +30,18 @@ void halinternal_get_rcc_clocks(halinternal_rcc_clocks_t* clocks) {
 		/* PLL_VCO = (HSE_VALUE or HSI_VALUE / PLLM) * PLLN
          SYSCLK = PLL_VCO / PLLP
 		 */
-		pllsource = (RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC) >> 22;
+		pllsource = (RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC) >> POSITION_VAL(RCC_PLLCFGR_PLLSRC);
 		pllm = RCC->PLLCFGR & RCC_PLLCFGR_PLLM;
 
 		if (pllsource != 0) {
 			/* HSE used as PLL clock source */
-			pllvco = (HSE_VALUE / pllm) * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> 6);
+			pllvco = (HSE_VALUE / pllm) * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> POSITION_VAL(RCC_PLLCFGR_PLLN));
 		} else {
 			/* HSI used as PLL clock source */
-			pllvco = (HSI_VALUE / pllm) * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> 6);
+			pllvco = (HSI_VALUE / pllm) * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> POSITION_VAL(RCC_PLLCFGR_PLLN));
 		}
 
-		pllp = (((RCC->PLLCFGR & RCC_PLLCFGR_PLLP) >>16) + 1 ) *2;
+		pllp = (((RCC->PLLCFGR & RCC_PLLCFGR_PLLP) >> POSITION_VAL(RCC_PLLCFGR_PLLP)) + 1 ) *2;
 		clocks->sysclk_frequency = pllvco/pllp;
 		break;
 	default:
@@ -52,22 +52,19 @@ void halinternal_get_rcc_clocks(halinternal_rcc_clocks_t* clocks) {
 	/* Compute HCLK, PCLK1 and PCLK2 clocks frequencies ------------------------*/
 
 	/* Get HCLK prescaler */
-	tmp = RCC->CFGR & RCC_CFGR_HPRE;
-	tmp = tmp >> 4;
+	tmp = (RCC->CFGR & RCC_CFGR_HPRE) >> POSITION_VAL(RCC_CFGR_HPRE);
 	presc = rcc_apb_ahb_presc_table[tmp];
 	/* HCLK clock frequency */
 	clocks->hclk_frequency = clocks->sysclk_frequency >> presc;
 
 	/* Get PCLK1 prescaler */
-	tmp = RCC->CFGR & RCC_CFGR_PPRE1;
-	tmp = tmp >> 10;
+	tmp = (RCC->CFGR & RCC_CFGR_PPRE1) >> POSITION_VAL(RCC_CFGR_PPRE1);
 	presc = rcc_apb_ahb_presc_table[tmp];
 	/* PCLK1 clock frequency */
 	clocks->pclk1_frequency = clocks->hclk_frequency >> presc;
 
 	/* Get PCLK2 prescaler */
-	tmp = RCC->CFGR & RCC_CFGR_PPRE2;
-	tmp = tmp >> 13;
+	tmp = (RCC->CFGR & RCC_CFGR_PPRE2) >> POSITION_VAL(RCC_CFGR_PPRE2);
 	presc = rcc_apb_ahb_presc_table[tmp];
 	/* PCLK2 clock frequency */
 	clocks->pclk2_frequency = clocks->hclk_frequency >> presc;

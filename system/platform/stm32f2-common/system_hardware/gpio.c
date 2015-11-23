@@ -45,8 +45,8 @@ static int gpio_exti_source_assignment[GPIO_PORT_PINS_COUNT];
 
 void halinternal_gpio_init(void) {
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-	RCC->AHB1ENR |=
-			RCC_AHB1ENR_GPIOAEN
+	RCC->AHB1ENR |= 0
+			| RCC_AHB1ENR_GPIOAEN
 			| RCC_AHB1ENR_GPIOBEN
 			| RCC_AHB1ENR_GPIOCEN
 			| RCC_AHB1ENR_GPIODEN

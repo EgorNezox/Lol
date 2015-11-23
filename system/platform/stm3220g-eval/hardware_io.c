@@ -15,13 +15,6 @@
 #include "../platform_hw_map.h"
 
 #define FSMC_BANK_REG_OFFSET(number)	(((number)-1)*2)
-#define FSMC_BTR1_ADDSET_Pos	0
-#define FSMC_BTR1_ADDHLD_Pos	4
-#define FSMC_BTR1_DATAST_Pos	8
-#define FSMC_BTR1_BUSTURN_Pos	16
-#define FSMC_BTR1_CLKDIV_Pos	20
-#define FSMC_BTR1_DATLAT_Pos	24
-#define FSMC_BTR1_ACCMOD_Pos	28
 
 /*! Первичная иницициализация внешней памяти.
  *
@@ -164,13 +157,13 @@ void stm32f2_LCD_init(void) {
 	/* Configure FSMC NOR/SRAM Bank3 */
 	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(3)+0] = FSMC_BCR1_MWID_0 | FSMC_BCR3_WREN;
 	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(3)+1] = 0
-			| (2 << FSMC_BTR1_ADDSET_Pos)
-			| (0 << FSMC_BTR1_ADDHLD_Pos)
-			| (9 << FSMC_BTR1_DATAST_Pos)
-			| (0 << FSMC_BTR1_BUSTURN_Pos)
-			| (0 << FSMC_BTR1_CLKDIV_Pos)
-			| (0 << FSMC_BTR1_DATLAT_Pos)
-			| (0 << FSMC_BTR1_ACCMOD_Pos);
+			| (2 << POSITION_VAL(FSMC_BTR1_ADDSET))
+			| (0 << POSITION_VAL(FSMC_BTR1_ADDHLD))
+			| (9 << POSITION_VAL(FSMC_BTR1_DATAST))
+			| (0 << POSITION_VAL(FSMC_BTR1_BUSTURN))
+			| (0 << POSITION_VAL(FSMC_BTR1_CLKDIV))
+			| (0 << POSITION_VAL(FSMC_BTR1_DATLAT))
+			| (0 << POSITION_VAL(FSMC_BTR1_ACCMOD));
 	FSMC_Bank1E->BWTR[FSMC_BANK_REG_OFFSET(3)+0] = 0x0FFFFFFF;
 	/* Enable FSMC NOR/SRAM Bank3 */
 	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(3)+0] |= FSMC_BCR3_MBKEN;
@@ -179,17 +172,17 @@ void stm32f2_LCD_init(void) {
 
 void stm32f2_ext_pins_init(int platform_hw_resource) {
 	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	configASSERT(0); // no resources defined
 }
 
 void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	configASSERT(0); // no resources defined
 }
 
 hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	configASSERT(0); // no resources defined
 	return (hal_gpio_pin_t){0, 0};
 }
 
@@ -200,6 +193,6 @@ int stm32f2_get_exti_line(int platform_hw_resource) {
 
 int stm32f2_get_uart_instance(int platform_hw_resource) {
 	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	configASSERT(0); // no resources defined
 	return -1;
 }

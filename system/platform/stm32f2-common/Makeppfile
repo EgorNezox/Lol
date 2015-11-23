@@ -9,6 +9,9 @@
 makepp_percent_subdirs=1
 include misc/target_build_header.mk
 
+# STM32CubeF2 (CMSIS) Configuration
+DEFINES_system += "HSE_STARTUP_TIMEOUT=(0xFFFF)" # required for generated system_stm32f2xx__$(BUILD_PORT).c sources
+
 # FreeRTOS ARM Cortex-M3 port
 SOURCES_system += \
 	$(wildcard port_freertos_gcc_arm_cm3/*.c)

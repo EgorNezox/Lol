@@ -25,7 +25,7 @@
 
 /* Debugging */
 #ifndef NDEBUG
-#define configASSERT(x)	if (!(x)) __asm volatile("bkpt");
+#define configASSERT(x)	if (!(x)) __BKPT(0);
 #endif
 #define configUSE_TRACE_FACILITY		1
 #define configUSE_MALLOC_FAILED_HOOK	1

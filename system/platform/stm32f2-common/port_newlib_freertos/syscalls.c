@@ -49,7 +49,7 @@ void *_realloc_r(struct _reent *r, void* ptr, size_t size) {
 	(void)r;
 	(void)ptr;
 	(void)size;
-	__asm volatile("bkpt");
+	configASSERT(0);
 	errno = ENOMEM;
 	return NULL;
 }
@@ -99,7 +99,7 @@ caddr_t _sbrk_r (struct _reent *r, int incr)
 {
 	(void)r;
 	(void)incr;
-	__asm volatile("bkpt");
+	configASSERT(0);
 	errno = ENOMEM;
 	return (caddr_t) -1;
 }

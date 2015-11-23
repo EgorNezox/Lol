@@ -16,12 +16,11 @@
 #include "system_hardware_config.h"
 
 #ifndef NDEBUG
-#define SYS_ASSERT(e)	do { if (!(e)) __asm volatile("bkpt"); } while (0)
+#define SYS_ASSERT(e)	do { if (!(e)) __BKPT(0); } while (0)
 #else
 #define SYS_ASSERT(e)	((void)(e))
 #endif
 
-#define DMA_SxCR_CHSEL_Pos		25
 #define MAX_DMA_TRANSFER_SIZE	0xFFFF // see STM32F2 reference manual
 
 #define BB_MAP_REG_BIT(reg_offset, bit)	(*(__IO uint32_t *)(PERIPH_BB_BASE + (reg_offset * 32) + (bit * 4)))

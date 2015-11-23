@@ -165,7 +165,7 @@ void halinternal_uart_init(void) {
 		/* Init DMA stream used for rx */
 		RCC->AHB1ENR |= (uart->dma_rx_rcc_ahb1enr);
 		uart->dma_rx_stream->CR = 0;
-		uart->dma_rx_stream->CR |= uart->dma_rx_channel << DMA_SxCR_CHSEL_Pos;
+		uart->dma_rx_stream->CR |= uart->dma_rx_channel << POSITION_VAL(DMA_SxCR_CHSEL);
 		uart->dma_rx_stream->CR |= DMA_SxCR_MINC;
 		uart->dma_rx_stream->CR |= DMA_SxCR_CIRC;
 		uart->dma_rx_stream->FCR = 0;
@@ -227,7 +227,7 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	halinternal_rcc_clocks_t rcc_clocks;
 	SYS_ASSERT((params->baud_rate > 0) && (params->baud_rate < 7500001));
 	if (params->hw_flow_control != huartHwFlowControl_None)
-		SYS_ASSERT((instance == 1) || (instance == 2) || (instance == 3) || (instance == 6));
+		SYS_ASSERT(IS_UART_HWFLOW_INSTANCE(uart->usart));
 	switch (params->stop_bits) {
 	case huartStopBits_0_5: usart_init_struct.CR2 |= USART_CR2_STOP_0; break;
 	case huartStopBits_1: usart_init_struct.CR2 |= 0; break;
