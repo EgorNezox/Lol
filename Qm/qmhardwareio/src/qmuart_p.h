@@ -73,7 +73,7 @@ private:
 	hal_uart_handle_t uart_handle;
 	hal_ringbuffer_t *uart_rx_buffer, *uart_tx_buffer;
 	bool rx_active;
-	QmUartIOEvent trigger_event;
+	QmUartIOEvent io_event;
 #endif
 #ifdef QMHARDWAREIO_PLATFORM_QT
 	friend class QmUartPrivateAdapter;

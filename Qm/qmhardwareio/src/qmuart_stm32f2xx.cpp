@@ -11,7 +11,6 @@
 #include "system_hw_io.h"
 
 #include "qmdebug.h"
-#include "qmuart.h"
 #include "qmuart_p.h"
 #include "qmevent.h"
 #include "qmapplication.h"
@@ -61,7 +60,7 @@ void QmUartIOEvent::process() {
 QmUartPrivate::QmUartPrivate(QmUart *q) :
 	QmObjectPrivate(q),
 	hw_resource(-1),
-	uart_instance(-1), uart_handle(0), uart_rx_buffer(0), uart_tx_buffer(0), rx_active(false), trigger_event(q)
+	uart_instance(-1), uart_handle(0), uart_rx_buffer(0), uart_tx_buffer(0), rx_active(false), io_event(q)
 {
 }
 
@@ -86,12 +85,12 @@ void QmUartPrivate::processEventHardwareIO() {
 	if (q->isOpen()) {
 		bool rx_data_errors = false;
 		bool rx_overflow = false;
-		if (trigger_event.rx_data_errors) {
-			trigger_event.rx_data_errors = false;
+		if (io_event.rx_data_errors) {
+			io_event.rx_data_errors = false;
 			rx_data_errors = true;
 		}
-		if (trigger_event.rx_overflow_suspended) {
-			trigger_event.rx_overflow_suspended = false;
+		if (io_event.rx_overflow_suspended) {
+			io_event.rx_overflow_suspended = false;
 			if (q->getRxDataAvailable() > 0) {
 				rx_active = false;
 			} else {
@@ -102,9 +101,9 @@ void QmUartPrivate::processEventHardwareIO() {
 		if (rx_data_errors || rx_overflow)
 			q->rxError(rx_data_errors, rx_overflow);
 	}
-	if (q->isOpen() && (trigger_event.rx_data_pending))
+	if (q->isOpen() && (io_event.rx_data_pending))
 		q->dataReceived();
-	if (q->isOpen() && (trigger_event.tx_completed))
+	if (q->isOpen() && (io_event.tx_completed))
 		q->dataTransmitted();
 }
 
@@ -137,7 +136,7 @@ bool QmUart::open() {
 	params.rx_buffer_size = d->config.rx_buffer_size;
 	params.tx_buffer_size = d->config.tx_buffer_size;
 	params.rx_data_pending_interval = d->config.io_pending_interval;
-	params.userid = static_cast<void *>(&d->trigger_event);
+	params.userid = static_cast<void *>(&d->io_event);
 	params.isrcallbackRxDataPending = qmuartRxDataPendingIsrCallback;
 	params.isrcallbackRxDataErrors = qmuartRxDataErrorsIsrCallback;
 	params.isrcallbackRxOverflowSuspended = qmuartRxOverflowSuspendedIsrCallback;
@@ -156,10 +155,10 @@ bool QmUart::close() {
 	d->uart_rx_buffer = 0;
 	d->uart_tx_buffer = 0;
 	d->rx_active = false;
-	d->trigger_event.rx_data_pending = false;
-	d->trigger_event.rx_data_errors = false;
-	d->trigger_event.rx_overflow_suspended = false;
-	d->trigger_event.tx_completed = false;
+	d->io_event.rx_data_pending = false;
+	d->io_event.rx_data_errors = false;
+	d->io_event.rx_overflow_suspended = false;
+	d->io_event.tx_completed = false;
 	QmApplication::removePostedEvents(this, QmEvent::HardwareIO);
 	return true;
 }
@@ -175,7 +174,7 @@ int64_t QmUart::readData(uint8_t* buffer, uint32_t max_size) {
 	uint8_t *buffer_ptr;
 	size_t buffer_data_size;
 	portENTER_CRITICAL();
-	d->trigger_event.rx_data_pending = false;
+	d->io_event.rx_data_pending = false;
 	buffer_ctrl = hal_ringbuffer_get_ctrl(d->uart_rx_buffer);
 	portEXIT_CRITICAL();
 	hal_ringbuffer_extctrl_get_read_ptr(&buffer_ctrl, &buffer_ptr, &buffer_data_size);
@@ -216,7 +215,7 @@ int64_t QmUart::writeData(const uint8_t* data, uint32_t data_size) {
 	portENTER_CRITICAL();
 	hal_ringbuffer_update_write_ctrl(d->uart_tx_buffer, &buffer_ctrl);
 	if (written > 0)
-		d->trigger_event.tx_completed = false;
+		d->io_event.tx_completed = false;
 	portEXIT_CRITICAL();
 	hal_uart_start_tx(d->uart_handle);
 	return written;
