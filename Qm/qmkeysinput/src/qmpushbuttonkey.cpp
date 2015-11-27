@@ -16,12 +16,17 @@
 QmPushButtonKey::QmPushButtonKey(int hw_resource, QmObject* parent) :
 	QmObject(*new QmPushButtonKeyPrivate(this), parent)
 {
-    QM_UNUSED(hw_resource);
+	QM_D(QmPushButtonKey);
+	d->hw_resource = hw_resource;
+	d->init();
 }
 
 QmPushButtonKey::~QmPushButtonKey() {
+	QM_D(QmPushButtonKey);
+	d->deinit();
 }
 
 bool QmPushButtonKey::isPressed() {
-	return false;
+	QM_D(QmPushButtonKey);
+	return d->updated_state;
 }
