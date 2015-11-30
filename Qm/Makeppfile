@@ -51,7 +51,7 @@ endif
 ifdef KEYSINPUT
   ifeq ($(KEYSINPUT),stm32f2xx)
   and ifeq ($(CORE_PLATFORM),bmfreertos)
-    DEFINES += QMKEYSINPUT_PLATFORM_STM32F2XX
+    DEFINES_system += QMKEYSINPUT_PLATFORM_STM32F2XX
   else 
     $(error "Unsupported Core/KeysInput platform combination specified")
   endif
