@@ -115,7 +115,7 @@ hal_exti_handle_t hal_exti_open(int line, hal_exti_params_t *params) {
 
 void hal_exti_close(hal_exti_handle_t handle) {
 	DEFINE_PCB_FROM_HANDLE(exti, handle);
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	SYS_ASSERT(exti->is_busy == true);
 	exti->is_busy = false;
 	exti->userid = 0;
@@ -124,7 +124,7 @@ void hal_exti_close(hal_exti_handle_t handle) {
 	EXTI->RTSR &= ~LINE_MASK(exti->line);
 	EXTI->FTSR &= ~LINE_MASK(exti->line);
 	EXTI->PR = LINE_MASK(exti->line);
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 }
 
 static void exti_irq_handler(struct s_exti_pcb *exti) {
