@@ -318,11 +318,13 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		break;
 	case platformhwKeyboardButt1Iopin:
 		params.mode = hgpioMode_In;
+		params.type = hgpioType_PPUp;
 		params.exti_source = true;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 11}, &params);
 		break;
 	case platformhwKeyboardButt2Iopin:
 		params.mode = hgpioMode_In;
+		params.type = hgpioType_PPUp;
 		params.exti_source = true;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 12}, &params);
 		break;
