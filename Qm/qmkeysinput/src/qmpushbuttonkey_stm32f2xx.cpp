@@ -93,10 +93,10 @@ bool QmPushButtonKeyPrivate::isGpioPressed() {
 bool QmPushButtonKey::event(QmEvent* event) {
 	QM_D(QmPushButtonKey);
 	if (event->type() == QmEvent::KeysInput) {
+		d->event_posting_available = true;
 		bool current_state = d->isGpioPressed();
 		if (d->updated_state != current_state) {
 			d->updated_state = current_state;
-			d->event_posting_available = true;
 			stateChanged();
 		}
 		return true;
