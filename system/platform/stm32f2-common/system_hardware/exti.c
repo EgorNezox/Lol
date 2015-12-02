@@ -37,7 +37,7 @@ static struct s_exti_pcb {
 	int line;
 	bool is_busy;
 	void *userid;
-	void (*isrcallbackTrigger)(hal_exti_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackTrigger)(hal_exti_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 } exti_pcbs[EXTI_LINES_COUNT];
 
 static void exti_irq_handler(struct s_exti_pcb *exti);
@@ -100,7 +100,7 @@ hal_exti_handle_t hal_exti_open(int line, hal_exti_params_t *params) {
 		break;
 	default: SYS_ASSERT(0); break;
 	}
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	SYS_ASSERT(exti->is_busy == false);
 	exti->is_busy = true;
 	exti->userid = params->userid;
@@ -109,13 +109,13 @@ hal_exti_handle_t hal_exti_open(int line, hal_exti_params_t *params) {
 	EXTI->FTSR |= init_struct.FTSR;
 	EXTI->PR = LINE_MASK(exti->line);
 	EXTI->IMR |= LINE_MASK(exti->line);
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 	return (hal_exti_handle_t)exti;
 }
 
 void hal_exti_close(hal_exti_handle_t handle) {
-	DEFINE_PCB_FROM_HANDLE(exti, handle);
-	portENTER_CRITICAL();
+	DEFINE_PCB_FROM_HANDLE(exti, handle)
+	portDISABLE_INTERRUPTS();
 	SYS_ASSERT(exti->is_busy == true);
 	exti->is_busy = false;
 	exti->userid = 0;
@@ -124,13 +124,18 @@ void hal_exti_close(hal_exti_handle_t handle) {
 	EXTI->RTSR &= ~LINE_MASK(exti->line);
 	EXTI->FTSR &= ~LINE_MASK(exti->line);
 	EXTI->PR = LINE_MASK(exti->line);
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
+}
+
+void* hal_exti_get_userid(hal_exti_handle_t handle) {
+	DEFINE_PCB_FROM_HANDLE(exti, handle)
+	return exti->userid;
 }
 
 static void exti_irq_handler(struct s_exti_pcb *exti) {
 	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	if (exti->isrcallbackTrigger)
-		exti->isrcallbackTrigger((hal_exti_handle_t)exti, exti->userid, &xHigherPriorityTaskWoken);
+		exti->isrcallbackTrigger((hal_exti_handle_t)exti, &xHigherPriorityTaskWoken);
 	EXTI->PR = LINE_MASK(exti->line);
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }

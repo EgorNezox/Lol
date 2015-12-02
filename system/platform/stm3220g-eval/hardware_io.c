@@ -151,7 +151,7 @@ void stm32f2_LCD_init(void) {
 	 * - Asynchronous Wait = Disable
 	 * - read/write timings: address setup = 2 HCLKs, address hold = 0, data setup = 9 HCLKs, bus turnaround = 0
 	 */
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	/* Enable FSMC clock */
 	RCC->AHB3ENR |= RCC_AHB3ENR_FSMCEN;
 	/* Configure FSMC NOR/SRAM Bank3 */
@@ -167,7 +167,7 @@ void stm32f2_LCD_init(void) {
 	FSMC_Bank1E->BWTR[FSMC_BANK_REG_OFFSET(3)+0] = 0x0FFFFFFF;
 	/* Enable FSMC NOR/SRAM Bank3 */
 	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(3)+0] |= FSMC_BCR3_MBKEN;
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 }
 
 void stm32f2_ext_pins_init(int platform_hw_resource) {

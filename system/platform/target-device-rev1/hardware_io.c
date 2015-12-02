@@ -243,7 +243,7 @@ void stm32f2_LCD_init(void) {
 	 * - Asynchronous Wait = Disable
 	 * - read/write timings: address setup = 1 HCLKs, address hold = 0, data setup = 6 HCLKs, bus turnaround = 1 HCLKs
 	 */
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	/* Enable FSMC clock */
 	RCC->AHB3ENR |= RCC_AHB3ENR_FSMCEN;
 	/* Configure FSMC NOR/SRAM Bank1 */
@@ -259,7 +259,7 @@ void stm32f2_LCD_init(void) {
 	FSMC_Bank1E->BWTR[FSMC_BANK_REG_OFFSET(1)+0] = 0x0FFFFFFF;
 	/* Enable FSMC NOR/SRAM Bank1 */
 	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(1)+0] |= FSMC_BCR1_MBKEN;
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 
 	/* Configure LCD controller reset line and do reset */
 	hal_gpio_pin_t lcd_reset_pin = {hgpioPB, 1};

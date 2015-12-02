@@ -15,31 +15,27 @@
 #include "qmevent.h"
 #include "qmapplication.h"
 
-static void qmuartRxDataPendingIsrCallback(hal_uart_handle_t handle, void *userid, size_t unread_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
-	QM_UNUSED(handle);
+static void qmuartRxDataPendingIsrCallback(hal_uart_handle_t handle, size_t unread_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	QM_UNUSED(unread_bytes_count);
-	QmUartIOEvent *system_event = static_cast<QmUartIOEvent *>(userid);
+	QmUartIOEvent *system_event = static_cast<QmUartIOEvent *>(hal_uart_get_userid(handle));
 	if (!system_event->rx_data_pending) {
 		system_event->rx_data_pending = true;
 		system_event->setPendingFromISR(pxHigherPriorityTaskWoken);
 	}
 }
-static void qmuartRxDataErrorsIsrCallback(hal_uart_handle_t handle, void *userid, size_t error_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
-	QM_UNUSED(handle);
+static void qmuartRxDataErrorsIsrCallback(hal_uart_handle_t handle, size_t error_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	QM_UNUSED(error_bytes_count);
-	QmUartIOEvent *system_event = static_cast<QmUartIOEvent *>(userid);
+	QmUartIOEvent *system_event = static_cast<QmUartIOEvent *>(hal_uart_get_userid(handle));
 	system_event->rx_data_errors = true;
 	system_event->setPendingFromISR(pxHigherPriorityTaskWoken);
 }
-static void qmuartRxOverflowSuspendedIsrCallback(hal_uart_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
-	QM_UNUSED(handle);
-	QmUartIOEvent *system_event = static_cast<QmUartIOEvent *>(userid);
+static void qmuartRxOverflowSuspendedIsrCallback(hal_uart_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
+	QmUartIOEvent *system_event = static_cast<QmUartIOEvent *>(hal_uart_get_userid(handle));
 	system_event->rx_overflow_suspended = true;
 	system_event->setPendingFromISR(pxHigherPriorityTaskWoken);
 }
-static void qmuartTxCompletedIsrCallback(hal_uart_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
-	QM_UNUSED(handle);
-	QmUartIOEvent *system_event = static_cast<QmUartIOEvent *>(userid);
+static void qmuartTxCompletedIsrCallback(hal_uart_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
+	QmUartIOEvent *system_event = static_cast<QmUartIOEvent *>(hal_uart_get_userid(handle));
 	if (!system_event->tx_completed) {
 		system_event->tx_completed = true;
 		system_event->setPendingFromISR(pxHigherPriorityTaskWoken);
