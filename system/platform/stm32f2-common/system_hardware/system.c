@@ -38,6 +38,7 @@ void  __attribute__((constructor)) hal_system_init(void) {
 	halinternal_exti_init();
 	halinternal_timer_init();
 	halinternal_uart_init();
+	halinternal_i2c_init();
 }
 
 void halinternal_set_nvic_priority(IRQn_Type irqn) {
