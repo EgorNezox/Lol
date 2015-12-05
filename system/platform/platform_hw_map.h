@@ -12,7 +12,9 @@
 #define PLATFORM_HW_MAP_H_
 
 enum platformhw_resource_t {
-	platformhwInvalidResource = 0
+	platformhwInvalidResource = 0,
+	platformhwKeyboardButt1Iopin,		// I/O-пин кнопки BUTT_1 двухкнопочной клавиатуры
+	platformhwKeyboardButt2Iopin		// I/O-пин кнопки BUTT_2 двухкнопочной клавиатуры
 };
 
 #endif /* PLATFORM_HW_MAP_H_ */
