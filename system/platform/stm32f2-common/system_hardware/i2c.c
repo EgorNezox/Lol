@@ -86,6 +86,7 @@ static struct hal_i2c_master_transfer_t* i2c_pop_from_master_transfer_queue(stru
 static bool i2c_master_transfer_queue_is_empty(struct s_i2cbus_pcb *i2cbus);
 static void i2c_remove_from_master_transfer_queue(struct s_i2cbus_pcb *i2cbus, struct hal_i2c_master_transfer_t *t);
 static inline void i2c_set_irq_pending(struct s_i2cbus_pcb *i2cbus);
+static uint32_t i2c_get_smbhost_bits(struct s_i2cbus_pcb *i2cbus);
 static inline void i2c_request_start_condition(struct s_i2cbus_pcb *i2cbus);
 static inline void i2c_request_stop_condition(struct s_i2cbus_pcb *i2cbus);
 static void i2c_reset_master_mode(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR2);
@@ -309,6 +310,12 @@ static inline void i2c_set_irq_pending(struct s_i2cbus_pcb *i2cbus) {
 	NVIC_SetPendingIRQ(i2cbus->ev_irq_n);
 }
 
+static uint32_t i2c_get_smbhost_bits(struct s_i2cbus_pcb *i2cbus) {
+	if (((i2cbus->mode != hi2cModeOff)) && i2cbus->smbus_host_enabled)
+		return (I2C_CR1_ACK | I2C_CR1_SMBTYPE | I2C_CR1_ENARP);
+	return 0;
+}
+
 static inline void i2c_request_start_condition(struct s_i2cbus_pcb *i2cbus) {
 	i2cbus->i2c->CR2 &= ~I2C_CR2_ITBUFEN; // otherwise RXNE,TXE flags (if set) will hold interrupt pending
 	// set START + prevent setting STOP and/or PEC requests
@@ -316,12 +323,9 @@ static inline void i2c_request_start_condition(struct s_i2cbus_pcb *i2cbus) {
 }
 
 static inline void i2c_request_stop_condition(struct s_i2cbus_pcb *i2cbus) {
-	uint32_t smbhost_bits = 0;
-	/* Here is the only safe place to change ACK bit for slave mode (see design note in source header) */
-	if (((i2cbus->mode != hi2cModeOff)) && i2cbus->smbus_host_enabled)
-		smbhost_bits = I2C_CR1_ACK | I2C_CR1_SMBTYPE | I2C_CR1_ENARP;
-	// set STOP + optionally change smbhost bits + prevent setting START and/or PEC requests + clear POS and ENPEC bits
-	i2cbus->i2c->CR1 = (i2cbus->i2c->CR1 & ~(I2C_CR1_START | I2C_CR1_PEC | I2C_CR1_POS | I2C_CR1_ENPEC)) | I2C_CR1_STOP | smbhost_bits;
+	/* It's a safe place to change ACK bit for slave mode (see design note in source header) */
+	// set STOP + change smbhost bits + prevent setting START and/or PEC requests + clear POS and ENPEC bits
+	i2cbus->i2c->CR1 = (i2cbus->i2c->CR1 & ~(I2C_CR1_START | I2C_CR1_PEC | I2C_CR1_POS | I2C_CR1_ENPEC)) | I2C_CR1_STOP | i2c_get_smbhost_bits(i2cbus);
 }
 
 static void i2c_reset_master_mode(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR2) {
@@ -340,8 +344,10 @@ static void i2c_reset_master_mode(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR2)
 }
 
 static void i2c_stop_master_transfer(struct s_i2cbus_pcb *i2cbus) {
-	i2c_request_stop_condition(i2cbus);
-	i2c_request_start_condition(i2cbus);
+	i2cbus->i2c->CR2 &= ~I2C_CR2_ITBUFEN; // otherwise RXNE,TXE flags (if set) will hold interrupt pending
+	/* It's a safe place to change ACK bit for slave mode (see design note in source header) */
+	// set STOP,START + change smbhost bits + prevent setting PEC request + clear POS and ENPEC bits
+	i2cbus->i2c->CR1 = (i2cbus->i2c->CR1 & ~(I2C_CR1_PEC | I2C_CR1_POS | I2C_CR1_ENPEC)) | I2C_CR1_STOP | I2C_CR1_START | i2c_get_smbhost_bits(i2cbus);
 	i2cbus->state = stateMasterFinishing;
 }
 
