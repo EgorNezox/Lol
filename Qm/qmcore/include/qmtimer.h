@@ -64,7 +64,7 @@ public:
 	virtual ~QmTimer();
 
 	/*! Returns true if the timer is running; otherwise false. */
-	inline bool isActive() const {return is_active;}
+	bool isActive() const;
 
 	/*! Sets the timeout interval in milliseconds.
 	 *
@@ -78,7 +78,7 @@ public:
 	 *
 	 * \sa setInterval()
 	 */
-	inline unsigned int interval() const {return interval_value;}
+	unsigned int interval() const;
 
 	/*!
 	 * Starts or restarts the timer with a timeout interval of \a msec
@@ -124,8 +124,7 @@ protected:
 private:
 	QM_DECLARE_PRIVATE(QmTimer)
 	QM_DISABLE_COPY(QmTimer)
-	bool is_active;
-	unsigned int interval_value;
+	friend class QmTimerPrivateAdapter;
 };
 
 #endif /* QMTIMER_H_ */

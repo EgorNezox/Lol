@@ -181,10 +181,10 @@ protected:
 private:
 	QM_DECLARE_PRIVATE(QmThread)
 	QM_DISABLE_COPY(QmThread)
+	friend class QmThreadPrivateAdapter;
 	friend class QmObjectPrivate;
 	friend class QmEventLoop;
 	friend class QmApplication;
-	friend class QmSystemThread;
 };
 
 #endif /* QMTHREAD_H_ */

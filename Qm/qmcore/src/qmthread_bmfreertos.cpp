@@ -45,48 +45,36 @@ QmThreadPrivate::~QmThreadPrivate()
 }
 
 QmThread::QmThread(const char * const name, QmObject *parent) :
-	QmObject(*new QmThreadPrivate(this), parent)
+	QmThread(*new QmThreadPrivate(this), name, parent)
 {
-	QM_D(QmThread);
-	d->init(name);
 }
 
 QmThread::QmThread(QmThreadPrivate& dd, const char * const name, QmObject* parent) :
 	QmObject(dd, parent)
 {
 	QM_D(QmThread);
-	d->init(name);
+	d->event_dispatcher = new QmEventDispatcher(this);
+	d->sync_semaphore = xSemaphoreCreateBinary();
+	xTaskCreate(qmthreadTaskEntry, name, qmconfigAPP_STACK_SIZE, (void *)d, tskIDLE_PRIORITY, &(d->task_handle));
+	registered_threads_mutex.lock();
+	registered_threads[d->task_handle] = this;
+	registered_threads_mutex.unlock();
 }
 
 QmThread::~QmThread() {
 	QM_D(QmThread);
 	QM_ASSERT(!d->running);
-	d->deinit();
-}
-
-void QmThreadPrivate::init(const char * const name) {
-	QM_Q(QmThread);
-	event_dispatcher = new QmEventDispatcher(q);
-	sync_semaphore = xSemaphoreCreateBinary();
-	xTaskCreate(qmthreadTaskEntry, name, qmconfigAPP_STACK_SIZE, (void *)this, tskIDLE_PRIORITY, &task_handle);
-	registered_threads_mutex.lock();
-	registered_threads[task_handle] = q;
-	registered_threads_mutex.unlock();
-}
-
-void QmThreadPrivate::deinit() {
-	QM_Q(QmThread);
 	registered_threads_mutex.lock();
 	for (auto i = registered_threads.begin(); i != registered_threads.end(); i++) {
-		if (q == (*i).second) {
+		if (this == (*i).second) {
 			registered_threads.erase(i);
 			break;
 		}
 	}
 	registered_threads_mutex.unlock();
-	vTaskDelete(task_handle);
-	vSemaphoreDelete(sync_semaphore);
-	delete event_dispatcher;
+	vTaskDelete(d->task_handle);
+	vSemaphoreDelete(d->sync_semaphore);
+	delete d->event_dispatcher;
 }
 
 void QmThreadPrivate::taskFunction() {

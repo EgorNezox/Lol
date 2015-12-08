@@ -19,7 +19,7 @@
 #include "qmobject_p.h"
 
 #ifdef QMCORE_PLATFORM_QT
-class CoreTimer;
+class QmTimerPrivateAdapter;
 #endif /* QMCORE_PLATFORM_QT */
 
 class QmTimerPrivate : public QmObjectPrivate {
@@ -29,6 +29,8 @@ public:
 	virtual ~QmTimerPrivate();
 	void init(bool single_shot);
 	void deinit();
+	bool is_active;
+	unsigned int interval_value;
 #ifdef QMCORE_PLATFORM_BMFREERTOS
 	void postTimeoutEvent();
 	void callback();
@@ -37,8 +39,8 @@ public:
 	bool awaiting_callback;
 #endif /* QMCORE_PLATFORM_BMFREERTOS */
 #ifdef QMCORE_PLATFORM_QT
-	void processTimeout();
-	CoreTimer *qtimer;
+	friend class QmTimerPrivateAdapter;
+	QmTimerPrivateAdapter *qt_adapter;
 #endif /* QMCORE_PLATFORM_QT */
 };
 
