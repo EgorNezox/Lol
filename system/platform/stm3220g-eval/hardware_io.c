@@ -170,6 +170,10 @@ void stm32f2_LCD_init(void) {
 	portENABLE_INTERRUPTS();
 }
 
+void stm32f2_hardware_io_init(void)
+{
+}
+
 void stm32f2_ext_pins_init(int platform_hw_resource) {
 	(void)platform_hw_resource;
 	configASSERT(0); // no resources defined
@@ -195,4 +199,16 @@ int stm32f2_get_uart_instance(int platform_hw_resource) {
 	(void)platform_hw_resource;
 	configASSERT(0); // no resources defined
 	return -1;
+}
+
+int stm32f2_get_i2c_bus_instance(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	configASSERT(0); // no resources defined
+	return -1;
+}
+
+hal_i2c_device_t stm32f2_get_i2c_device_descriptor(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	configASSERT(0); // no resources defined
+	return (hal_i2c_device_t){-1, 0};
 }

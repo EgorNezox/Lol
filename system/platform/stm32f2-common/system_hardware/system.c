@@ -13,6 +13,7 @@
 #include "task.h"
 #include "stm32f2xx.h"
 
+#include "system_hw_io.h"
 #include "sys_internal.h"
 #include "sys_internal_freertos_timers.h"
 
@@ -39,6 +40,8 @@ void  __attribute__((constructor)) hal_system_init(void) {
 	halinternal_timer_init();
 	halinternal_uart_init();
 	halinternal_i2c_init();
+	/* Общая инициализация ввода/вывода аппаратной платформы системы */
+	stm32f2_hardware_io_init();
 }
 
 void halinternal_set_nvic_priority(IRQn_Type irqn) {
