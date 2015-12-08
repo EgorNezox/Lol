@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "FreeRTOS.h"
 
 #ifdef __cplusplus
 extern "C" {

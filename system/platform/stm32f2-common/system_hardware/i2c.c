@@ -11,9 +11,6 @@
   *   because there are no way to get "STOP finished"/"bus not busy" event required to disable bus properly.
   * - After stopping master transfer, a dummy START-STOP transaction executed to workaround
   *   "shitty" STM32F2 I2C peripheral limitation (there are no "STOP finished"/"bus not busy" event)
-  * - It's possible that in case of single byte reception, two bytes will be received,
-  *   in case when software is running not fast enough comparable to bus communication speed,
-  *   because of I2C hardware implementation (say thanks to STMicroelectronics !)
   * - Enabling/disabling smbus host may execute dummy START-STOP transaction, because it's the only way
   *   to set/clear ACK bit while peripheral enabled avoiding racing with possible addressing from
   *   other master on the bus (when ADDR is set but we don't know whether peripheral acknowledged it).
@@ -30,6 +27,7 @@
 #define I2C_MASTER_SPEED_CLOCK	88000 // using 88kHz clock to workaround p2.3.3 of Errata sheet Rev 5
 #define I2C_INSTANCES_COUNT 3
 #define I2C_SR1_BUS_ERROR_FLAGS	(I2C_SR1_BERR | I2C_SR1_ARLO | I2C_SR1_TIMEOUT)
+#define I2C_CR1_SMBHOST_BITS	(I2C_CR1_ACK | I2C_CR1_SMBTYPE | I2C_CR1_ENARP)
 
 #define DEFINE_PCB_FROM_HANDLE(var_pcb, handle) \
 	struct s_i2cbus_pcb *var_pcb = (struct s_i2cbus_pcb *)handle; \
@@ -123,8 +121,8 @@ void halinternal_i2c_init(void) {
 }
 
 void hal_i2c_set_bus_mode(int instance, hal_i2c_mode_t mode) {
-	struct s_i2cbus_pcb *i2cbus = &(i2cbus_pcbs[instance-1]);
 	SYS_ASSERT((1 <= instance) && (instance <= I2C_INSTANCES_COUNT));
+	struct s_i2cbus_pcb *i2cbus = &(i2cbus_pcbs[instance-1]);
 	switch (mode) {
 	case hi2cModeStandard:
 	case hi2cModeSMBus: {
@@ -157,7 +155,6 @@ void hal_i2c_set_bus_mode(int instance, hal_i2c_mode_t mode) {
 		SYS_ASSERT(i2cbus->mode != hi2cModeOff);
 		i2cbus->mode = mode;
 		if (i2cbus->active_mt == 0) { // no master transfer in progress ?
-			i2c_reset_master_mode(i2cbus, i2cbus->i2c->SR2);
 			i2cbus->state = stateIdle;
 		} else {
 			i2c_abort_master_transfer(i2cbus);
@@ -181,7 +178,7 @@ void hal_i2c_set_bus_mode(int instance, hal_i2c_mode_t mode) {
 }
 
 bool hal_i2c_start_master_transfer(struct hal_i2c_master_transfer_t *t) {
-	struct s_i2cbus_pcb *i2cbus = &(i2cbus_pcbs[t->device.bus_instance-1]);
+	SYS_ASSERT(t);
 	SYS_ASSERT((1 <= t->device.bus_instance) && (t->device.bus_instance <= I2C_INSTANCES_COUNT));
 	SYS_ASSERT((t->device.address & 0x7F) == 0);
 	SYS_ASSERT(t->size >= 0);
@@ -192,6 +189,7 @@ bool hal_i2c_start_master_transfer(struct hal_i2c_master_transfer_t *t) {
 		SYS_ASSERT(t->use_pec == false);
 	}
 	SYS_ASSERT(t->isrcallbackTransferCompleted);
+	struct s_i2cbus_pcb *i2cbus = &(i2cbus_pcbs[t->device.bus_instance-1]);
 	bool success = false;
 	portDISABLE_INTERRUPTS();
 	if (i2cbus->mode != hi2cModeOff) {
@@ -205,8 +203,9 @@ bool hal_i2c_start_master_transfer(struct hal_i2c_master_transfer_t *t) {
 }
 
 bool hal_i2c_abort_master_transfer(struct hal_i2c_master_transfer_t *t) {
-	struct s_i2cbus_pcb *i2cbus = &(i2cbus_pcbs[t->device.bus_instance-1]);
+	SYS_ASSERT(t);
 	SYS_ASSERT((1 <= t->device.bus_instance) && (t->device.bus_instance <= I2C_INSTANCES_COUNT));
+	struct s_i2cbus_pcb *i2cbus = &(i2cbus_pcbs[t->device.bus_instance-1]);
 	bool success = false;
 	portDISABLE_INTERRUPTS();
 	if (i2cbus->mode != hi2cModeOff) {
@@ -228,9 +227,10 @@ bool hal_i2c_abort_master_transfer(struct hal_i2c_master_transfer_t *t) {
 }
 
 hal_i2c_smbus_handle_t hal_i2c_open_smbus_host(int bus_instance, hal_i2c_smbus_host_params_t *params) {
-	struct s_i2cbus_pcb *i2cbus = &(i2cbus_pcbs[bus_instance-1]);
+	SYS_ASSERT(params);
 	SYS_ASSERT((1 <= bus_instance) && (bus_instance <= I2C_INSTANCES_COUNT));
 	SYS_ASSERT(params->isrcallbackMessageReceived);
+	struct s_i2cbus_pcb *i2cbus = &(i2cbus_pcbs[bus_instance-1]);
 	bool success = false;
 	portDISABLE_INTERRUPTS();
 	if ((i2cbus->mode == hi2cModeSMBus) && (i2cbus->smbus_host_enabled == false)) {
@@ -312,7 +312,7 @@ static inline void i2c_set_irq_pending(struct s_i2cbus_pcb *i2cbus) {
 
 static uint32_t i2c_get_smbhost_bits(struct s_i2cbus_pcb *i2cbus) {
 	if (((i2cbus->mode != hi2cModeOff)) && i2cbus->smbus_host_enabled)
-		return (I2C_CR1_ACK | I2C_CR1_SMBTYPE | I2C_CR1_ENARP);
+		return I2C_CR1_SMBHOST_BITS;
 	return 0;
 }
 
@@ -324,30 +324,33 @@ static inline void i2c_request_start_condition(struct s_i2cbus_pcb *i2cbus) {
 
 static inline void i2c_request_stop_condition(struct s_i2cbus_pcb *i2cbus) {
 	/* It's a safe place to change ACK bit for slave mode (see design note in source header) */
-	// set STOP + change smbhost bits + prevent setting START and/or PEC requests + clear POS and ENPEC bits
-	i2cbus->i2c->CR1 = (i2cbus->i2c->CR1 & ~(I2C_CR1_START | I2C_CR1_PEC | I2C_CR1_POS | I2C_CR1_ENPEC)) | I2C_CR1_STOP | i2c_get_smbhost_bits(i2cbus);
+	// set STOP + prevent setting START,PEC requests + clear ACK,POS,ENPEC bits + change smbhost bits
+	i2cbus->i2c->CR1 = \
+			(i2cbus->i2c->CR1 & ~(I2C_CR1_START | I2C_CR1_PEC | I2C_CR1_ACK | I2C_CR1_POS | I2C_CR1_ENPEC | I2C_CR1_SMBHOST_BITS))
+			| I2C_CR1_STOP
+			| i2c_get_smbhost_bits(i2cbus);
 }
 
 static void i2c_reset_master_mode(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR2) {
 	if ((i2c_SR2 & I2C_SR2_MSL) == 0)
 		return;
 	i2cbus->i2c->CR2 &= ~I2C_CR2_ITBUFEN;
-	/* Following operations must be executed exactly in specified sequence in order to:
-	 * - avoid resetting/breaking/missing slave communication which may happen after STOP in multi-master bus;
-	 * - minimize undesirable operations (such as addressing).
+	/* Following operations must be executed exactly in specified sequence in order to
+	 * avoid resetting/breaking/missing slave communication which may happen after STOP in multi-master bus.
 	 */
-	i2cbus->i2c->CR1 &= ~((I2C_CR1_ACK | I2C_CR1_POS) | I2C_CR1_START | I2C_CR1_STOP | I2C_CR1_PEC); // clear ACK and POS
-	(void)i2cbus->i2c->SR1; // dummy read to reset SB(1st) and ADDR(1st)
-	(void)i2cbus->i2c->SR2; // dummy read to reset ADDR(2nd), this may launch receiving, but it's impossible to avoid (just believe me)
+	(void)i2cbus->i2c->SR1; // dummy read to reset SB(1st)
 	i2c_request_stop_condition(i2cbus);
-	i2cbus->i2c->DR = 0; // dummy write to reset SB(2nd) and BTF, also it's safe to do after entering slave mode, because DR access ignored until ADDR cleared
+	i2cbus->i2c->DR = 0; // dummy write to reset SB(2nd) and BTF, it's safe to do after entering slave mode, because DR access ignored until ADDR cleared
 }
 
 static void i2c_stop_master_transfer(struct s_i2cbus_pcb *i2cbus) {
 	i2cbus->i2c->CR2 &= ~I2C_CR2_ITBUFEN; // otherwise RXNE,TXE flags (if set) will hold interrupt pending
 	/* It's a safe place to change ACK bit for slave mode (see design note in source header) */
-	// set STOP,START + change smbhost bits + prevent setting PEC request + clear POS and ENPEC bits
-	i2cbus->i2c->CR1 = (i2cbus->i2c->CR1 & ~(I2C_CR1_PEC | I2C_CR1_POS | I2C_CR1_ENPEC)) | I2C_CR1_STOP | I2C_CR1_START | i2c_get_smbhost_bits(i2cbus);
+	// set STOP,START + prevent setting PEC request + clear ACK,POS,ENPEC bits + change smbhost bits
+	i2cbus->i2c->CR1 = \
+			(i2cbus->i2c->CR1 & ~(I2C_CR1_PEC | I2C_CR1_ACK | I2C_CR1_POS | I2C_CR1_ENPEC | I2C_CR1_SMBHOST_BITS))
+			| (I2C_CR1_STOP | I2C_CR1_START)
+			| i2c_get_smbhost_bits(i2cbus);
 	i2cbus->state = stateMasterFinishing;
 }
 
@@ -355,15 +358,20 @@ static void i2c_abort_master_transfer(struct s_i2cbus_pcb *i2cbus) {
 	SYS_ASSERT((i2cbus->active_mt != 0) && (i2cbus->aborted_mt == 0));
 	i2cbus->aborted_mt = i2cbus->active_mt;
 	if ((i2cbus->state == stateMasterFinishing)
-			|| ((i2cbus->state == stateMasterRxSingleByte) && ((i2cbus->active_mt_pos + 1) == i2cbus->active_mt->size))) {
+			|| ((i2cbus->state == stateMasterRxSingleByte) && ((i2cbus->active_mt_pos + 1) == i2cbus->active_mt->size))) { // STOP requested ?
 		i2cbus->i2c->CR2 &= ~I2C_CR2_ITBUFEN;
 		/* For stateMasterFinishing case:
 		 * START requested and interface will enter master mode. No worry - it will be handled in idle state.
 		 */
-	} else {
+		i2cbus->state = stateIdle;
+	} else if (i2cbus->state != stateMasterAddressing) {
+		/* All other states except addressing.
+		 * In addressing state we are in race condition, which may cause ADDR flag left pending.
+		 * This case has proper handling in corresponding state.
+		 */
 		i2c_reset_master_mode(i2cbus, i2cbus->i2c->SR2);
+		i2cbus->state = stateIdle;
 	}
-	i2cbus->state = stateIdle;
 	i2cbus->active_mt = 0;
 	i2c_set_irq_pending(i2cbus);
 }
@@ -491,15 +499,16 @@ static void i2c_irq_handler(struct s_i2cbus_pcb *i2cbus) {
 		 */
 		uint16_t i2c_SR2 = i2cbus->i2c->SR2;
 		uint16_t i2c_SR1 = i2cbus->i2c->SR1;
-		/* Process unsupported/unexpected error conditions */
-		if ((i2c_SR1 & (I2C_SR1_SMBALERT | I2C_SR1_PECERR | I2C_SR1_OVR)) != 0) {
+		/* Process unsupported/unexpected interrupt events */
+		if ((i2c_SR1 & (I2C_SR1_ADD10 | I2C_SR1_SMBALERT | I2C_SR1_PECERR | I2C_SR1_OVR)) != 0) {
 			/* Something wrong, because:
+			 * - 10-bit addressing not used (not supported)
 			 * - SMBus alert feature isn't enabled;
 			 * - PEC isn't used (PECEN=0) in any transfer;
 			 * - clock stretching isn't disabled (NOSTRETCH=0).
 			 */
 			SYS_ASSERT(0);
-			i2cbus->i2c->SR1 = ~(I2C_SR1_SMBALERT | I2C_SR1_PECERR | I2C_SR1_OVR);
+			i2cbus->i2c->SR1 = ~(I2C_SR1_ADD10 | I2C_SR1_SMBALERT | I2C_SR1_PECERR | I2C_SR1_OVR);
 		}
 		/* Slave and master handlers must be run exactly in specified sequence in order to
 		 * prevent stuck with non-handled pending flags kept from some communication scenarios.
@@ -526,21 +535,20 @@ static void i2c_irq_handler_master(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1
 				break;
 		} else {
 			i2cbus->i2c->SR1 = ~I2C_SR1_TIMEOUT;
-			i2cbus->active_mt_result = hi2cErrorBus;
+			if (i2cbus->active_mt != 0)
+				i2cbus->active_mt_result = hi2cErrorBus;
 		}
 		i2cbus->state = stateIdle;
-		i2c_close_active_master_transfer(i2cbus, pxHigherPriorityTaskWoken);
+		if (i2cbus->active_mt != 0)
+			i2c_close_active_master_transfer(i2cbus, pxHigherPriorityTaskWoken);
 		i2c_SR1 = i2cbus->i2c->SR1; // update for correct fall-through (synchronized with read sequence in i2c_irq_handler())
 	}
 	/* no break */
 	case stateIdle: { // this state is universal entry for processing pending (queued) transfers: either start next one or drop all of them
-		if ((i2c_SR2 & I2C_SR2_MSL) != 0) { // required after stateMasterFinishing and some special cases when START request leaved pending (such as aborted transfers)
-			(void)i2cbus->i2c->SR1; // dummy read to reset SB(1st)
-			i2c_request_stop_condition(i2cbus);
-			i2cbus->i2c->DR = 0; // dummy write to reset SB(2nd), also it's safe to do after entering slave mode, because DR access ignored until ADDR cleared
-		}
+		if ((i2c_SR2 & I2C_SR2_MSL) != 0) // required after stateMasterFinishing and some special cases when START request leaved pending (such as aborted transfers)
+			i2c_reset_master_mode(i2cbus, i2c_SR2);
 		if ((i2c_SR1 & (I2C_SR1_AF | I2C_SR1_BUS_ERROR_FLAGS)) != 0) {
-			/* These flags may be kept from previous aborted transfer. Just reset and forget them. */
+			/* These flags might be left from previous aborted transfer. Just reset and forget them. */
 			i2cbus->i2c->SR1 = ~(I2C_SR1_AF | I2C_SR1_BUS_ERROR_FLAGS);
 		}
 		if (i2cbus->mode == hi2cModeOff) {
@@ -552,7 +560,7 @@ static void i2c_irq_handler_master(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1
 		}
 		if (i2c_master_transfer_queue_is_empty(i2cbus))
 			break;
-		// we cannot fetch transfer item right now (before SB bit has been set) because of possible multi-master races, which could activate slave mode communication
+		// we cannot fetch transfer item before we entered master mode because of possible multi-master races, which could activate slave mode communication
 		i2c_request_start_condition(i2cbus);
 		i2cbus->state = stateStartingMaster;
 		break;
@@ -564,7 +572,7 @@ static void i2c_irq_handler_master(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1
 		if (i2cbus->active_mt == 0) { // no master transfer in progress ?
 			i2cbus->active_mt = i2c_pop_from_master_transfer_queue(i2cbus); // try(!) to fetch next master transfer
 			if (i2cbus->active_mt == 0) {
-				i2c_reset_master_mode(i2cbus, i2c_SR2);
+				i2c_request_stop_condition(i2cbus);
 				i2cbus->state = stateIdle;
 				break;
 			}
@@ -602,7 +610,7 @@ static void i2c_irq_handler_master(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1
 		}
 		if ((i2c_SR1 & I2C_SR1_ADDR) == 0)
 			break;
-		if (i2cbus->active_mt->size > 0) {
+		if ((i2cbus->active_mt != 0) && (i2cbus->active_mt->size > 0)) {
 			int max_bytes_to_receive = 0;
 			if ((i2c_SR2 & I2C_SR2_TRA) == 0) { // receiver mode ?
 				max_bytes_to_receive = i2c_get_master_max_bytes_to_receive(i2cbus, i2c_SR2);
@@ -612,23 +620,21 @@ static void i2c_irq_handler_master(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1
 					i2cbus->i2c->CR1 |= I2C_CR1_POS;
 			}
 			i2cbus->i2c->CR2 |= I2C_CR2_ITBUFEN;
-			__disable_irq(); // trying to workaround "single byte reception" (reducing time between clearing ADDR bit and setting START/STOP bit)
 			(void)i2cbus->i2c->SR2; // dummy read to clear ADDR (properly synchronized with read sequence in i2c_irq_handler())
 			if ((i2c_SR2 & I2C_SR2_TRA) == 0) { // receiver mode ?
 				if (max_bytes_to_receive == 1) {
+					i2cbus->state = stateMasterRxSingleByte;
 					if ((i2cbus->active_mt_pos + 1) < i2cbus->active_mt->size) { // not last byte in transfer ?
 						i2cbus->i2c->CR1 |= I2C_CR1_START; // Repeated START (we cannot use i2c_request_start_condition() because it disables ITBUFEN)
 					} else { // last byte in transfer ?
 						i2c_request_stop_condition(i2cbus); // STOP
 					}
-					i2cbus->state = stateMasterRxSingleByte;
 				} else {
 					i2cbus->state = stateMasterRxFirstN2Bytes;
 				}
 			} else { // transmitter mode ?
 				i2cbus->state = stateMasterTxData;
 			}
-			__enable_irq();
 		} else {
 			// dummy read to clear ADDR (properly synchronized with read sequence in i2c_irq_handler()), transmitter mode ensures no transfer will be started
 			(void)i2cbus->i2c->SR2;
@@ -642,11 +648,11 @@ static void i2c_irq_handler_master(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1
 		if ((i2c_SR1 & I2C_SR1_RXNE) == 0)
 			break;
 		if ((i2cbus->active_mt_pos + 1) < i2cbus->active_mt->size) { // not last byte in transfer ?
-			// already requested START in stateMasterAddressing
+			// already requested START in addressing state
 			i2cbus->i2c->CR2 &= ~I2C_CR2_ITBUFEN;
 			i2cbus->state = stateStartingMaster;
 		} else { // last byte in transfer ?
-			// already requested STOP in stateMasterAddressing
+			// already requested STOP in addressing state
 			i2c_request_start_condition(i2cbus);
 			i2cbus->state = stateMasterFinishing;
 		}
