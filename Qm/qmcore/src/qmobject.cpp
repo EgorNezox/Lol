@@ -14,9 +14,8 @@
 #include "qmobject_p.h"
 
 QmObject::QmObject(QmObject *parent) :
-	d_ptr(new QmObjectPrivate(this))
+	QmObject(*new QmObjectPrivate(this), parent)
 {
-	setParent(parent);
 }
 
 QmObject::QmObject(QmObjectPrivate& dd, QmObject *parent) :

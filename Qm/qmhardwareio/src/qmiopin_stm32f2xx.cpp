@@ -14,9 +14,9 @@
 #include "qmevent.h"
 #include "qmapplication.h"
 
-static void qmiopinExtiTriggerIsrCallback(hal_exti_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
+static void qmiopinExtiTriggerIsrCallback(hal_exti_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	QM_UNUSED(handle);
-	QmIoPinTriggerEvent *system_event = static_cast<QmIoPinTriggerEvent *>(userid);
+	QmIoPinTriggerEvent *system_event = static_cast<QmIoPinTriggerEvent *>(hal_exti_get_userid(handle));
 	system_event->setPendingFromISR(pxHigherPriorityTaskWoken);
 }
 

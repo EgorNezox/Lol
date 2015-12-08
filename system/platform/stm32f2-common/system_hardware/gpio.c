@@ -45,8 +45,8 @@ static int gpio_exti_source_assignment[GPIO_PORT_PINS_COUNT];
 
 void halinternal_gpio_init(void) {
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-	RCC->AHB1ENR |=
-			RCC_AHB1ENR_GPIOAEN
+	RCC->AHB1ENR |= 0
+			| RCC_AHB1ENR_GPIOAEN
 			| RCC_AHB1ENR_GPIOBEN
 			| RCC_AHB1ENR_GPIOCEN
 			| RCC_AHB1ENR_GPIODEN
@@ -125,7 +125,9 @@ void hal_gpio_init(hal_gpio_pin_t pin, hal_gpio_params_t *params) {
 	default: SYS_ASSERT(0); break;
 	}
 	SYS_ASSERT((params->af & ~0x0F) == 0);
-	portENTER_CRITICAL();
+	if (((pin.port == hgpioPH) || (pin.port == hgpioPI)) && (pin.number == 10))
+		SYS_ASSERT(params->exti_source == false); // see p2.1.7 of Errata sheet Rev 5
+	portDISABLE_INTERRUPTS();
 	if (params->exti_source) {
 		SYS_ASSERT(gpio_exti_source_assignment[pin.number] == -1);
 		gpio_exti_source_assignment[pin.number] = pin.port;
@@ -143,13 +145,13 @@ void hal_gpio_init(hal_gpio_pin_t pin, hal_gpio_params_t *params) {
 	GPIO_PORT[pin.port]->OTYPER |= (uint16_t)(init_struct.OTYPER0 << ((uint16_t)pin.number));
 	GPIO_PORT[pin.port]->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << ((uint16_t)pin.number * 2));
 	GPIO_PORT[pin.port]->PUPDR |= (init_struct.PUPDR0 << (pin.number * 2));
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 }
 
 void hal_gpio_deinit(hal_gpio_pin_t pin) {
 	SYS_ASSERT((0 <= pin.port) && (pin.port < GPIO_PORTS_COUNT));
 	SYS_ASSERT((0 <= pin.number) && (pin.number < GPIO_PORT_PINS_COUNT));
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	if (gpio_exti_source_assignment[pin.number] == pin.port)
 		gpio_exti_source_assignment[pin.number] = -1;
 	GPIO_PORT[pin.port]->AFR[pin.number >> 0x03] &= ~((uint32_t)0x0F << ((uint32_t)((uint32_t)pin.number & 0x07) * 4));
@@ -167,7 +169,7 @@ void hal_gpio_deinit(hal_gpio_pin_t pin) {
 		GPIO_PORT[pin.port]->PUPDR |= 0x64000000 & (GPIO_PUPDR_PUPDR0 << ((uint16_t)pin.number * 2));
 	else if (pin.port == hgpioPB)
 		GPIO_PORT[pin.port]->PUPDR |= 0x00000100 & (GPIO_PUPDR_PUPDR0 << ((uint16_t)pin.number * 2));
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 }
 
 hal_gpio_level_t hal_gpio_get_input(hal_gpio_pin_t pin) {

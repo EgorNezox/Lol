@@ -1,8 +1,8 @@
 #******************************************************************************
 # @file    Makeppfile
 # @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
-# @date    26.08.2015
-# @brief   Make-файл сборки STM32F2xx Standard Periphiral Library
+# @date    23.11.2015
+# @brief   Make-файл сборки STM32CubeF2
 #
 #******************************************************************************
 

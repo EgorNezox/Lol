@@ -203,11 +203,6 @@ System_Startup_Entry:
 	ldr	r1, =__isr_vector
 	str	r1, [r0]
 
-/* NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4) */
-	ldr	r0, =0xE000ED0C
-	ldr	r1, =0x5FA0300
-	str	r1, [r0]
-
 /*  Copy data from read only memory to RAM.
  *
  *  The ranges of copy from/to are specified by following symbols

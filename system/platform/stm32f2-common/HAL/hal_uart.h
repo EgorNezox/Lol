@@ -54,17 +54,17 @@ typedef struct {
 	uint32_t rx_buffer_size;					/*!< (минимальный) размер внутреннего буфера приема в байтах */
 	uint32_t tx_buffer_size;					/*!< размер (опционального) внутреннего буфера передачи в байтах */
 	unsigned int rx_data_pending_interval;		/*!< мин. интервал (в мс) задержки индикации непрочитанных данных в буфере приема (0 - индицировать немедленно) */
-	void *userid;								/*!< (опциональный) пользовательский идентификатор для callback'ов */
+	void *userid;								/*!< (опциональный) пользовательский идентификатор */
 	/*! callback, вызываемый из ISR, индицирующий наличие непрочитанных данных в буфере приема */
-	void (*isrcallbackRxDataPending)(hal_uart_handle_t handle, void *userid, size_t unread_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackRxDataPending)(hal_uart_handle_t handle, size_t unread_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 	/*! callback, вызываемый из ISR, индицирующий наличие ошибок в принимаемом потоке */
-	void (*isrcallbackRxDataErrors)(hal_uart_handle_t handle, void *userid, size_t error_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackRxDataErrors)(hal_uart_handle_t handle, size_t error_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 	/*! callback, вызываемый из ISR, индицирующий приостановку приема из-за переполнения буфера */
-	void (*isrcallbackRxOverflowSuspended)(hal_uart_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackRxOverflowSuspended)(hal_uart_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 	/*! callback, вызываемый из ISR, индицирующий наличие свободного места в буфере передачи */
-	void (*isrcallbackTxSpacePending)(hal_uart_handle_t handle, void *userid, size_t available_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackTxSpacePending)(hal_uart_handle_t handle, size_t available_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 	/*! callback, вызываемый из ISR, индицирующий завершение асинхронной передачи (из внутреннего буфера, или начатой вызовом hal_uart_start_transmit() */
-	void (*isrcallbackTxCompleted)(hal_uart_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackTxCompleted)(hal_uart_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 } hal_uart_params_t;
 
 /*! Инициализирует структуру с параметрами UART значениями по умолчанию
@@ -94,6 +94,12 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
  * Хэндлы внутренних кольцевых буферов становятся недействительными.
  */
 void hal_uart_close(hal_uart_handle_t handle);
+
+/*! Возвращает значение пользовательского идентификатора UART
+ *
+ * \return значение поля userid параметров инициализации
+ */
+void* hal_uart_get_userid(hal_uart_handle_t handle);
 
 /*! Запускает прием во внутренний буфер приема
  *

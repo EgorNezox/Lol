@@ -12,8 +12,7 @@
 #include "qmtimer_p.h"
 
 QmTimer::QmTimer(bool single_shot, QmObject *parent) :
-	QmObject(*new QmTimerPrivate(this), parent),
-	is_active(0), interval_value(0)
+	QmObject(*new QmTimerPrivate(this), parent)
 {
 	QM_D(QmTimer);
 	d->init(single_shot);
@@ -26,8 +25,19 @@ QmTimer::~QmTimer() {
 	d->deinit();
 }
 
+bool QmTimer::isActive() const {
+	QM_D(const QmTimer);
+	return d->is_active;
+}
+
 void QmTimer::setInterval(unsigned int msec) {
-	interval_value = msec;
+	QM_D(QmTimer);
+	d->interval_value = msec;
+}
+
+unsigned int QmTimer::interval() const {
+	QM_D(const QmTimer);
+	return d->interval_value;
 }
 
 void QmTimer::start(unsigned int msec) {

@@ -12,7 +12,9 @@ include misc/target_build_header.mk
 # Propagate platform definition to all source code
 DEFINES_system += PORT__STM3220G_EVAL
 
-# STM32F2xx StdPeriph Library configuration
+# STM32CubeF2 (CMSIS) Configuration
+DEFINES_system += STM32F207xx
+DEFINES_system += "HSI_VALUE=((uint32_t)16000000)" # internal oscillator
 DEFINES_system += "HSE_VALUE=((uint32_t)25000000)" # 25 MHz crystal
 
 # Ramtex graphic library port (ILI9320 controller)

@@ -109,11 +109,11 @@ static struct s_uart_pcb {
 		rxdatatimerActive,
 		rxdatatimerExpired
 	} rx_data_timer_state; // (optional) rx_data_timer state used for deferred indication of rx unread data
-	void (*isrcallbackRxDataPending)(hal_uart_handle_t handle, void *userid, size_t unread_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
-	void (*isrcallbackRxDataErrors)(hal_uart_handle_t handle, void *userid, size_t error_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
-	void (*isrcallbackRxOverflowSuspended)(hal_uart_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
-	void (*isrcallbackTxSpacePending)(hal_uart_handle_t handle, void *userid, size_t available_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
-	void (*isrcallbackTxCompleted)(hal_uart_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackRxDataPending)(hal_uart_handle_t handle, size_t unread_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackRxDataErrors)(hal_uart_handle_t handle, size_t error_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackRxOverflowSuspended)(hal_uart_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackTxSpacePending)(hal_uart_handle_t handle, size_t available_bytes_count, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackTxCompleted)(hal_uart_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 	hal_ringbuffer_t *tx_buffer;
 	enum {
 		txtransferNone, // no transmission active
@@ -150,8 +150,8 @@ static void uart_suspend_rx_from_isr(struct s_uart_pcb *uart, signed portBASE_TY
 static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, size_t bytes_transfered, bool rx_active, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 static void uart_timer_rx_data_callback(TimerHandle_t xTimer);
 static void uart_usart_irq_handler(struct s_uart_pcb *uart);
-static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t USART_SR_value, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
-static void uart_usart_irq_handler_tx(struct s_uart_pcb *uart, uint16_t USART_SR_value, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t usart_SR, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+static void uart_usart_irq_handler_tx(struct s_uart_pcb *uart, uint16_t usart_SR, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 static void uart_dma_rx_irq_handler(struct s_uart_pcb *uart);
 
 void halinternal_uart_init(void) {
@@ -165,7 +165,7 @@ void halinternal_uart_init(void) {
 		/* Init DMA stream used for rx */
 		RCC->AHB1ENR |= (uart->dma_rx_rcc_ahb1enr);
 		uart->dma_rx_stream->CR = 0;
-		uart->dma_rx_stream->CR |= uart->dma_rx_channel << DMA_SxCR_CHSEL_Pos;
+		uart->dma_rx_stream->CR |= uart->dma_rx_channel << POSITION_VAL(DMA_SxCR_CHSEL);
 		uart->dma_rx_stream->CR |= DMA_SxCR_MINC;
 		uart->dma_rx_stream->CR |= DMA_SxCR_CIRC;
 		uart->dma_rx_stream->FCR = 0;
@@ -227,7 +227,7 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	halinternal_rcc_clocks_t rcc_clocks;
 	SYS_ASSERT((params->baud_rate > 0) && (params->baud_rate < 7500001));
 	if (params->hw_flow_control != huartHwFlowControl_None)
-		SYS_ASSERT((instance == 1) || (instance == 2) || (instance == 3) || (instance == 6));
+		SYS_ASSERT(IS_UART_HWFLOW_INSTANCE(uart->usart));
 	switch (params->stop_bits) {
 	case huartStopBits_0_5: usart_init_struct.CR2 |= USART_CR2_STOP_0; break;
 	case huartStopBits_1: usart_init_struct.CR2 |= 0; break;
@@ -276,7 +276,7 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	if (tx_buffer)
 		*tx_buffer = new_tx_buffer;
 
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	/* Mark peripheral instance as busy */
 	SYS_ASSERT(uart->is_open == false);
 	uart->is_open = true;
@@ -294,7 +294,7 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	NVIC_EnableIRQ(uart->usart_irq_n);
 	NVIC_EnableIRQ(uart->dma_rx_stream_irq_n);
 	uart->dma_rx_stream->CR |= DMA_SxCR_TEIE;
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 
 	uart->userid = params->userid;
 	uart->rx_buffer = new_rx_buffer;
@@ -324,7 +324,7 @@ void hal_uart_close(hal_uart_handle_t handle) {
 	uart->rx_data_timer_state = rxdatatimerIdle;
 	if (uart->rx_data_defer_indication)
 		xTimerStop(uart->rx_data_timer, portMAX_DELAY);
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	uart->usart->CR1 &= ~USART_CR1_UE; // disable USART peripheral
 	uart_stop_dma_rx(uart);
 	uart_set_rx_interrupts(uart, DISABLE);
@@ -335,7 +335,7 @@ void hal_uart_close(hal_uart_handle_t handle) {
 	if (uart->tx_buffer)
 		hal_ringbuffer_flush_read(uart->tx_buffer);
 	uart_set_tx_interrupts(uart, DISABLE);
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 	// usart tx interrupt (requested transmission interruption) activates right here (just after exit from critical section)
 
 	if (uart->tx_buffer)
@@ -352,7 +352,7 @@ void hal_uart_close(hal_uart_handle_t handle) {
 	uart->isrcallbackTxSpacePending = NULL;
 	uart->isrcallbackTxCompleted = NULL;
 
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	/* Mark peripheral instance as not busy */
 	SYS_ASSERT(uart->is_open == true);
 	uart->is_open = false;
@@ -373,7 +373,12 @@ void hal_uart_close(hal_uart_handle_t handle) {
 		RCC->APB1ENR &= ~(uart->usart_rcc_apb_mask);
 	else if (uart->usart_apb == 2)
 		RCC->APB2ENR &= ~(uart->usart_rcc_apb_mask);
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
+}
+
+void* hal_uart_get_userid(hal_uart_handle_t handle) {
+	DEFINE_PCB_FROM_HANDLE(uart, handle)
+	return uart->userid;
 }
 
 static double uart_character_rate_from_baud_rate(uint32_t rate, hal_uart_stop_bits_t stop_bits, hal_uart_parity_t parity) {
@@ -480,7 +485,7 @@ static bool uart_is_dma_rx_running(struct s_uart_pcb *uart) {
 bool hal_uart_start_rx(hal_uart_handle_t handle) {
 	DEFINE_PCB_FROM_HANDLE(uart, handle)
 	bool success = false;
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	if (!uart_is_dma_rx_running(uart)) {
 		hal_ringbuffer_reset(uart->rx_buffer);
 		/* Prepare memory address and size for DMA transfer */
@@ -500,7 +505,7 @@ bool hal_uart_start_rx(hal_uart_handle_t handle) {
 		/* Mark success */
 		success = true;
 	}
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 	return success;
 }
 
@@ -509,13 +514,13 @@ bool hal_uart_start_tx(hal_uart_handle_t handle) {
 	if (!((uart->tx_buffer) && (uart->tx_transfer == txtransferNone)))
 		return false;
 	bool success = false;
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	if (!hal_ringbuffer_is_empty(uart->tx_buffer)) {
 		uart->tx_transfer = txtransferActiveInternal;
 		uart_set_tx_interrupts(uart, ENABLE);
 		success = true;
 	}
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 	return success;
 }
 
@@ -527,9 +532,9 @@ int hal_uart_receive(hal_uart_handle_t handle, uint8_t *buffer, int max_size) {
 	hal_ringbuffer_ctrl_t buffer_ctrl;
 	uint8_t *chunk_ptr;
 	size_t chunk_size;
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	buffer_ctrl = hal_ringbuffer_get_ctrl(uart->rx_buffer);
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 	while (max_size > 0) {
 		hal_ringbuffer_extctrl_get_read_ptr(&buffer_ctrl, &chunk_ptr, &chunk_size);
 		if (chunk_size == 0)
@@ -541,9 +546,9 @@ int hal_uart_receive(hal_uart_handle_t handle, uint8_t *buffer, int max_size) {
 		hal_ringbuffer_extctrl_read_next(&buffer_ctrl, chunk_size);
 		result += chunk_size;
 	}
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	hal_ringbuffer_update_read_ctrl(uart->rx_buffer, &buffer_ctrl);
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 	return result;
 }
 
@@ -553,12 +558,12 @@ bool hal_uart_transmit_blocked(hal_uart_handle_t handle, uint8_t *data, int size
 	SYS_ASSERT(size > 0);
 	if (!(uart->tx_transfer == txtransferNone))
 		return false;
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	uart->tx_transfer = txtransferActiveExternalSync;
 	uart->tx_transfer_data_ptr = data;
 	uart->tx_transfer_pending_size = size;
 	uart_set_tx_interrupts(uart, ENABLE);
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 	xSemaphoreTake(uart->smphr_tx_complete, block_time);
 	return (uart->tx_transfer == txtransferNone);
 }
@@ -569,12 +574,12 @@ bool hal_uart_start_transmit(hal_uart_handle_t handle, uint8_t *data, int size) 
 	SYS_ASSERT(size > 0);
 	if (!(uart->tx_transfer == txtransferNone))
 		return false;
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	uart->tx_transfer = txtransferActiveExternalAsync;
 	uart->tx_transfer_data_ptr = data;
 	uart->tx_transfer_pending_size = size;
 	uart_set_tx_interrupts(uart, ENABLE);
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 	return true;
 }
 
@@ -620,7 +625,7 @@ static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, siz
 
 static void uart_timer_rx_data_callback(TimerHandle_t xTimer) {
 	DEFINE_PCB_FROM_HANDLE(uart, pvTimerGetTimerID(xTimer))
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	if ((uart->rx_data_timer_state == rxdatatimerActive) && (uart->usart->CR1 & USART_CR1_UE)) {
 		uart->usart->CR1 |= USART_CR1_RXNEIE; // enable uart rx interrupt back again
 		uart->rx_data_timer_state = rxdatatimerExpired;
@@ -629,7 +634,7 @@ static void uart_timer_rx_data_callback(TimerHandle_t xTimer) {
 		 */
 		NVIC_SetPendingIRQ(uart->usart_irq_n);
 	}
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 }
 
 /* Note, that this handler may be triggered not only by USART hardware interrupt request, but also in software.
@@ -639,17 +644,17 @@ static void uart_usart_irq_handler(struct s_uart_pcb *uart) {
 	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	/* USART status register must be read once in order to:
 	 * - prevent loss of pending flags (such as known issue with PE);
-	 * - prevent loss of events occured while irq handler is active;
+	 * - prevent loss of events occurred while irq handler is active;
 	 * - provide guaranteed TC bit clearing sequence (in sync with write access to DR register).
 	 */
-	uint16_t USART_SR = uart->usart->SR;
+	uint16_t usart_SR = uart->usart->SR;
 	if (uart->usart->CR1 & USART_CR1_UE) // uart enabled ?
-		uart_usart_irq_handler_rx(uart, USART_SR, &xHigherPriorityTaskWoken);
-	uart_usart_irq_handler_tx(uart, USART_SR, &xHigherPriorityTaskWoken);
+		uart_usart_irq_handler_rx(uart, usart_SR, &xHigherPriorityTaskWoken);
+	uart_usart_irq_handler_tx(uart, usart_SR, &xHigherPriorityTaskWoken);
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
-static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t USART_SR_value, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
+static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t usart_SR, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	bool errors_detected = false;
 	bool overflow_detected = false;
 	size_t bytes_transfered = 0;
@@ -682,8 +687,8 @@ static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t USART_SR
 
 	/* Process possible failures in streaming if it's active */
 	if (uart->usart->CR3 & USART_CR3_EIE) {
-		errors_detected = USART_SR_value & (USART_SR_PE | USART_SR_FE | USART_SR_NE);
-		overflow_detected |= (USART_SR_value & USART_SR_ORE) || (!uart_is_dma_rx_running(uart)); // both checks required (otherwise RXNE will cause interrupt remain pending)
+		errors_detected = usart_SR & (USART_SR_PE | USART_SR_FE | USART_SR_NE);
+		overflow_detected |= (usart_SR & USART_SR_ORE) || (!uart_is_dma_rx_running(uart)); // both checks required (otherwise RXNE will cause interrupt remain pending)
 		if (errors_detected)
 			(void)uart->usart->DR; // dummy read required to reset flags (yes, there are races with DMA, but we are agree to loss one byte in such conditions)
 		/* Process possible overflow condition in stream */
@@ -701,15 +706,15 @@ static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t USART_SR
 
 	/* Indicate user pending data errors in stream (must be after last transfer completed in order to account all possible error bytes) */
 	if (errors_detected && uart->isrcallbackRxDataErrors)
-		uart->isrcallbackRxDataErrors((hal_uart_handle_t)uart, uart->userid, hal_ringbuffer_get_pending_data_size(uart->rx_buffer), pxHigherPriorityTaskWoken);
+		uart->isrcallbackRxDataErrors((hal_uart_handle_t)uart, hal_ringbuffer_get_pending_data_size(uart->rx_buffer), pxHigherPriorityTaskWoken);
 	/* Indicate user transferred data (written in buffer) and possible stream suspension (overflow status) */
 	if (data_indication_required && uart->isrcallbackRxDataPending)
-		uart->isrcallbackRxDataPending((hal_uart_handle_t)uart, uart->userid, hal_ringbuffer_get_pending_data_size(uart->rx_buffer), pxHigherPriorityTaskWoken);
+		uart->isrcallbackRxDataPending((hal_uart_handle_t)uart, hal_ringbuffer_get_pending_data_size(uart->rx_buffer), pxHigherPriorityTaskWoken);
 	if (overflow_detected && uart->isrcallbackRxOverflowSuspended)
-		uart->isrcallbackRxOverflowSuspended((hal_uart_handle_t)uart, uart->userid, pxHigherPriorityTaskWoken);
+		uart->isrcallbackRxOverflowSuspended((hal_uart_handle_t)uart, pxHigherPriorityTaskWoken);
 }
 
-static void uart_usart_irq_handler_tx(struct s_uart_pcb *uart, uint16_t USART_SR_value, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
+static void uart_usart_irq_handler_tx(struct s_uart_pcb *uart, uint16_t usart_SR, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	/* Process active transmission (from any buffer) and transfer completion (optimized, see warnings) */
 	bool more_data_pending;
 	switch (uart->tx_transfer) {
@@ -724,7 +729,7 @@ static void uart_usart_irq_handler_tx(struct s_uart_pcb *uart, uint16_t USART_SR
 		more_data_pending = false;
 		break;
 	}
-	if (more_data_pending && (USART_SR_value & USART_SR_TXE)) { // warning: pending data in buffer must be flushed when uart disabled
+	if (more_data_pending && (usart_SR & USART_SR_TXE)) { // warning: pending data in buffer must be flushed when uart disabled
 		// warning: here is the only place to write DR register (see uart_usart_irq_handler)
 		bool disable_txe_interrupt; // last byte transferred ?
 		switch (uart->tx_transfer) {
@@ -733,7 +738,7 @@ static void uart_usart_irq_handler_tx(struct s_uart_pcb *uart, uint16_t USART_SR
 			hal_ringbuffer_read_byte(uart->tx_buffer, (uint8_t *)&(uart->usart->DR));
 			pending_size = hal_ringbuffer_get_pending_data_size(uart->tx_buffer);
 			if (uart->isrcallbackTxSpacePending)
-				uart->isrcallbackTxSpacePending((hal_uart_handle_t)uart, uart->userid, hal_ringbuffer_get_free_space_size(uart->tx_buffer), pxHigherPriorityTaskWoken);
+				uart->isrcallbackTxSpacePending((hal_uart_handle_t)uart, hal_ringbuffer_get_free_space_size(uart->tx_buffer), pxHigherPriorityTaskWoken);
 			disable_txe_interrupt = (pending_size == 0);
 			break;
 		}
@@ -750,7 +755,7 @@ static void uart_usart_irq_handler_tx(struct s_uart_pcb *uart, uint16_t USART_SR
 		}
 		if (disable_txe_interrupt)
 			uart->usart->CR1 &= ~USART_CR1_TXEIE; // disable TXE interrupt (since it cannot be cleared and will remain pending)
-	} else if ((uart->tx_transfer != txtransferNone) && ((USART_SR_value & USART_SR_TC) || !(uart->usart->CR1 & USART_CR1_UE))) {
+	} else if ((uart->tx_transfer != txtransferNone) && ((usart_SR & USART_SR_TC) || !(uart->usart->CR1 & USART_CR1_UE))) {
 		// warning:	such conditions and checks above are sensible to TC bit clearing sequence and transmission interruption
 		// 			(see uart_usart_irq_handler and hal_uart_close)
 		uart->usart->CR1 &= ~(USART_CR1_TCIE | USART_CR1_TXEIE);
@@ -758,7 +763,7 @@ static void uart_usart_irq_handler_tx(struct s_uart_pcb *uart, uint16_t USART_SR
 		case txtransferActiveInternal:
 		case txtransferActiveExternalAsync:
 			if (uart->isrcallbackTxCompleted)
-				uart->isrcallbackTxCompleted((hal_uart_handle_t)uart, uart->userid, pxHigherPriorityTaskWoken);
+				uart->isrcallbackTxCompleted((hal_uart_handle_t)uart, pxHigherPriorityTaskWoken);
 			break;
 		case txtransferActiveExternalSync:
 			xSemaphoreGiveFromISR(uart->smphr_tx_complete, pxHigherPriorityTaskWoken);
