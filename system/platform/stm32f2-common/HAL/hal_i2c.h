@@ -26,15 +26,15 @@ typedef enum {
 	hi2cSuccess = 0,		/*!< успешная передача */
 	hi2cErrorAborted,		/*!< отменено/прервано (hal_i2c_abort_master_transfer(...) или hal_i2c_set_bus_mode(hi2cModeOff)) */
 	hi2cErrorPEC,			/*!< несовпадение контрольной суммы PEC при приеме */
-	hi2cErrorBus,			/*!< ошибка во время коммуникации на шине (misplaced START/STOP, arbitration loss, SMBus timeout) */
+	hi2cErrorBus,			/*!< ошибка во время коммуникации на шине (misplaced START/STOP, arbitration lost) */
 	hi2cErrorAddressNACK,	/*!< устройство не ответило на адресацию */
-	hi2cErrorDataNACK		/*!< устройство не подтвердило байт данных (при передаче) */
+	hi2cErrorDataNACK		/*!< устройство не подтвердило байт данных (при Tx) */
 } hal_i2c_transfer_result_t;
 
 /*! Тип режима работы шины I2C */
 typedef enum {
 	hi2cModeOff,		/*!< выключена */
-	hi2cModeStandard,	/*!< оригинальный I2C */
+	hi2cModeStandard,	/*!< I2C в скоростном режиме Standard */
 	hi2cModeSMBus		/*!< SMBus 2.0 */
 } hal_i2c_mode_t;
 
@@ -73,7 +73,8 @@ typedef struct {
 /*! Устанавливает режим работы шины I2C
  *
  * Внимание! При установке hi2cModeOff:
- * - если на шине активна передача, то она прерывается и вызов блокируется до завершения операции (STOP condition);
+ * - если на шине активна master-передача, то она прерывается и вызов блокируется до завершения операции (STOP condition);
+ * - если на шине активна slave-передача, то она прерывается;
  * - ожидающие в очереди передачи отменяются.
  * \param[in] instance	номер экземпляра аппаратного I2C в диапазоне [1..3]
  * \param[in] mode		режим работы
@@ -84,7 +85,7 @@ void hal_i2c_set_bus_mode(int instance, hal_i2c_mode_t mode);
  *
  * Вызов запускает передачу t и возвращает результат запуска.
  * После успешного запуска структура *t и все данные, описываемые ей,
- * должны оставаться валидными до окончания передачи или ее отмены.
+ * должны оставаться валидными до завершения передачи.
  * Запущенная передача становится в очередь обработки.
  * При завершении передачи выполняется isrcallbackTransferCompleted с результатом.
  * Если результат передачи успешный, то:
@@ -98,7 +99,7 @@ bool hal_i2c_start_master_transfer(struct hal_i2c_master_transfer_t *t);
 /*! Отменяет master-передачу I2C
  *
  * Если передача t была запущена ранее вызовом hal_i2c_start_master_transfer() и в данный момент активна, то она прерывается.
- * При завершении отмены выполняется isrcallbackTransferCompleted с результатом hi2cErrorAborted.
+ * При завершении отмены выполняется isrcallbackTransferCompleted с соответствующим результатом.
  * \param[in,out] t		указатель на описание передачи
  * \return true - передача успешно отменена, false - передача не отменена
  */
