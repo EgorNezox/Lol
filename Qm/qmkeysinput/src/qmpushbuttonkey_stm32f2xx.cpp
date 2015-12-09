@@ -34,8 +34,8 @@ static void qmpushbuttonkeyDebounceTimerFinished(xTimerHandle xTimer) {
 
 QmPushButtonKeyPrivate::QmPushButtonKeyPrivate(QmPushButtonKey *q) :
 	QmObjectPrivate(q),
-	hw_resource(-1), updated_state(false), event_posting_available(true),
-	exti_line(-1), exti_handle(0)
+	hw_resource(-1), updated_state(false),
+	exti_line(-1), exti_handle(0), event_posting_available(true)
 {
 	hal_exti_set_default_params(&exti_params);
 	debounce_timer = xTimerCreate(static_cast<const char*>("QmPushButtonKeyDebounceTimer"),

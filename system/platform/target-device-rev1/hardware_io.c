@@ -319,3 +319,14 @@ int stm32f2_get_uart_instance(int platform_hw_resource) {
 	__asm volatile("bkpt"); // no resources defined
 	return -1;
 }
+
+void stm32f2_get_matrixkeyboard_pins(int platform_hw_resource,
+		hal_gpio_pin_t** column_pins, int* column_count, hal_gpio_pin_t** row_pins, int* row_count)
+{
+	(void)platform_hw_resource;
+	(void)column_pins;
+	(void)column_count;
+	(void)row_pins;
+	(void)row_count;
+	__asm volatile("bkpt"); // no resources defined
+}

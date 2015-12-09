@@ -11,6 +11,10 @@
 #include "qmtimer.h"
 #include "qmtimer_p.h"
 
+QmTimer::QmTimer(QmObject *parent) : QmTimer(false, parent)
+{
+}
+
 QmTimer::QmTimer(bool single_shot, QmObject *parent) :
 	QmObject(*new QmTimerPrivate(this), parent),
 	is_active(0), interval_value(0)

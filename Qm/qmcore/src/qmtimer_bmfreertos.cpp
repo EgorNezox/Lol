@@ -72,6 +72,15 @@ void QmTimer::stop() {
 	QmApplication::removePostedEvents(this, QmEvent::Timer);
 }
 
+void QmTimer::setSingleShot(bool enable) {
+	QM_D(QmTimer);
+	if (d->is_single_shot == enable)
+		return;
+	stop();
+	d->deinit();
+	d->init(enable);
+}
+
 bool QmTimer::event(QmEvent* event) {
 	QM_D(QmTimer);
 	if (event->type() == QmEvent::Timer) {
