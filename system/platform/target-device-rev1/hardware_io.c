@@ -306,6 +306,7 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		break;
 	case platformhwMatrixKeyboard:
 		params.mode = hgpioMode_In;
+		params.type = hgpioType_PPUp;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 2}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 3}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 4}, &params);
