@@ -22,27 +22,42 @@
 #include "qmmatrixkeyboard_p.h"
 #include "qmevent.h"
 
+static void qmmatrixkeyboardPollTimerFinished(xTimerHandle xTimer) {
+	QmMatrixKeyboardPrivate* qmmatrixkeyboardPrivate = static_cast<QmMatrixKeyboardPrivate*>(pvTimerGetTimerID(xTimer));
+	qmmatrixkeyboardPrivate->scan();
+	qmmatrixkeyboardPrivate->pollTimerStart();
+}
+
+static void qmmatrixkeyboardPressTimer0Finished(xTimerHandle xTimer) {
+	QmMatrixKeyboardPrivate* qmmatrixkeyboardPrivate = static_cast<QmMatrixKeyboardPrivate*>(pvTimerGetTimerID(xTimer));
+	qmmatrixkeyboardPrivate->pressTimerFinished(0);
+}
+
+static void qmmatrixkeyboardPressTimer1Finished(xTimerHandle xTimer) {
+	QmMatrixKeyboardPrivate* qmmatrixkeyboardPrivate = static_cast<QmMatrixKeyboardPrivate*>(pvTimerGetTimerID(xTimer));
+	qmmatrixkeyboardPrivate->pressTimerFinished(1);
+}
+
 QmMatrixKeyboardPrivate::QmMatrixKeyboardPrivate(QmMatrixKeyboard *q) :
 	QmObjectPrivate(q),
 	hw_resource(-1), column_pins(NULL), row_pins(NULL)
 {
-	poll_timer = new QmTimer();
-	poll_timer->setInterval(KEYBOARD_POLLING_DELAY);
-	poll_timer->timeout.connect(sigc::mem_fun(this, &QmMatrixKeyboardPrivate::scan));
-	press_timer = new QmTimer[KEYBOARD_MAX_PRESSES];
-	for (int i = 0; i < KEYBOARD_MAX_PRESSES; ++i) {
-		press_timer[i].setSingleShot(true);
-		press_timer[i].setInterval(KEYPRESS_LONG_TIME);
-	}
-	press_timer[0].timeout.connect(sigc::mem_fun(this, &QmMatrixKeyboardPrivate::timer0Finished));
-	press_timer[1].timeout.connect(sigc::mem_fun(this, &QmMatrixKeyboardPrivate::timer1Finished));
+	poll_timer = new xTimerHandle;
+	*poll_timer = xTimerCreate(static_cast<const char*>("QmMatrixKeyboardPollTimer"),
+			KEYBOARD_POLLING_DELAY / portTICK_RATE_MS, pdFALSE, static_cast<void*>(this), qmmatrixkeyboardPollTimerFinished);
+
+	press_timer = new xTimerHandle[KEYBOARD_MAX_PRESSES];
+	press_timer[0] = xTimerCreate(static_cast<const char*>("QmMatrixKeyboardPressTimer0"),
+				KEYBOARD_POLLING_DELAY / portTICK_RATE_MS, pdFALSE, static_cast<void*>(this), qmmatrixkeyboardPressTimer0Finished);
+	press_timer[1] = xTimerCreate(static_cast<const char*>("QmMatrixKeyboardPressTimer1"),
+				KEYBOARD_POLLING_DELAY / portTICK_RATE_MS, pdFALSE, static_cast<void*>(this), qmmatrixkeyboardPressTimer1Finished);
 
 	keyPressedLong = new bool[KEYBOARD_MAX_PRESSES];
 	longPressAction = new bool[KEYBOARD_MAX_PRESSES];
 	curKeysPressedSequence = new uint8_t[KEYBOARD_MAX_PRESSES];
 	keyboard_state = no_presses;
-	curKeysPressed = new int8_t[KEYBOARD_MAX_PRESSES];
-	prevKeysPressed = new int8_t[KEYBOARD_MAX_PRESSES];
+	curKeysPressed = new uint8_t[KEYBOARD_MAX_PRESSES];
+	prevKeysPressed = new uint8_t[KEYBOARD_MAX_PRESSES];
 	pressesCounter = 0;
 }
 
@@ -59,8 +74,9 @@ QmMatrixKeyboardPrivate::~QmMatrixKeyboardPrivate()
 
 void QmMatrixKeyboardPrivate::init() {
 	stm32f2_get_matrixkeyboard_pins(hw_resource, &column_pins, &column_count, &row_pins, &row_count);
+	QM_ASSERT(column_count > 0 && column_pins != NULL);
+	QM_ASSERT(row_count > 0 && row_pins != NULL);
 	stm32f2_ext_pins_init(hw_resource);
-
 	for (int i = 0; i < KEYBOARD_MAX_PRESSES; ++i) {
 		keyPressedLong[i] = false;
 		longPressAction[i] = false;
@@ -68,12 +84,13 @@ void QmMatrixKeyboardPrivate::init() {
 		curKeysPressed[i] = 0;
 		prevKeysPressed[i] = 0;
 	}
-
-	poll_timer->start();
+	xTimerStart(*poll_timer, 0);
 }
 
 void QmMatrixKeyboardPrivate::deinit() {
-	poll_timer->stop();
+	xTimerStop(*poll_timer, 0);
+	xTimerStop(press_timer[0], 0);
+	xTimerStop(press_timer[0], 0);
 	stm32f2_ext_pins_deinit(hw_resource);
 	delete[] column_pins;
 	delete[] row_pins;
@@ -147,7 +164,7 @@ void QmMatrixKeyboardPrivate::scanKBColumn(int columnNumber, hal_gpio_level_t ro
 		hal_gpio_set_output(column_pins[i], hgpioHigh);
 	}
 	hal_gpio_set_output(column_pins[columnNumber], hgpioLow);
-	hal_timer_delay(5);
+	hal_timer_delay(1); //ожидание установки уровней на пинах
 	for (int i = 0; i < row_count; ++i) {
 		row[i] = hal_gpio_get_input(row_pins[i]);
 	}
@@ -159,12 +176,12 @@ void QmMatrixKeyboardPrivate::noPressesHandler(keyboard_state_t prev_keyboard_st
 	case no_presses:
 		return;
 	case single_press:
-		press_timer[0].stop();
+		pressTimerStop(0);
 		keyReleased(0, curKeysPressed[0]);
 		break;
 	case double_press:
-		press_timer[0].stop();
-		press_timer[1].stop();
+		pressTimerStop(0);
+		pressTimerStop(1);
 		keyReleased(0, curKeysPressed[0]);
 		keyReleased(1, curKeysPressed[1]);
 		break;
@@ -177,7 +194,7 @@ void QmMatrixKeyboardPrivate::singlePressHandler(keyboard_state_t prev_keyboard_
 {
 	switch (prev_keyboard_state) {
 	case no_presses:
-		press_timer[0].start();
+		pressTimerStart(0);
 		curKeysPressedSequence[0] = curKeysPressed[0];
 		keyPressed(curKeysPressed[0]);
 		break;
@@ -194,7 +211,7 @@ void QmMatrixKeyboardPrivate::singlePressHandler(keyboard_state_t prev_keyboard_
 		if (releasedKeyCode != curKeysPressedSequence[0]) {
 			releasedKeyNumber = 1;
 		}
-		press_timer[1].stop();
+		pressTimerStop(0);
 		keyReleased(releasedKeyNumber, releasedKeyCode);
 		break;
 	}
@@ -206,15 +223,15 @@ void QmMatrixKeyboardPrivate::doublePressHandler(keyboard_state_t prev_keyboard_
 {
 	switch (prev_keyboard_state) {
 	case no_presses:
-		press_timer[0].start();
-		press_timer[1].start();
+		pressTimerStart(0);
+		pressTimerStart(1);
 		curKeysPressedSequence[0] = curKeysPressed[0];
 		curKeysPressedSequence[1] = curKeysPressed[1];
 		keyPressed(curKeysPressed[0]);
 		keyPressed(curKeysPressed[1]);
 		break;
 	case single_press: {
-		press_timer[1].start();
+		pressTimerStart(1);
 		int8_t pressedKeyCode = 0;
 		if (prevKeysPressed[0] == curKeysPressed[0]) {
 			pressedKeyCode = curKeysPressed[1];
@@ -234,14 +251,15 @@ void QmMatrixKeyboardPrivate::doublePressHandler(keyboard_state_t prev_keyboard_
 	prevKeysPressed[1] = curKeysPressed[1];
 }
 
-void QmMatrixKeyboardPrivate::keyPressed(int8_t key_code)
+void QmMatrixKeyboardPrivate::keyPressed(uint8_t key_code)
 {
 	//TODO: emit keyStateChanged
 	qmDebugMessage(QmDebug::Dump, "keyStateChanged %d %d", key_code, 1);
 }
 
-void QmMatrixKeyboardPrivate::keyReleased(int key_number, int8_t key_code)
+void QmMatrixKeyboardPrivate::keyReleased(int key_number, uint8_t key_code)
 {
+	QM_ASSERT(key_number < KEYBOARD_MAX_PRESSES);
 	//TODO: emit keyStateChanged
 	qmDebugMessage(QmDebug::Dump, "keyStateChanged %d %d", key_code, 0);
 	if (keyPressedLong[key_number]) {
@@ -252,16 +270,28 @@ void QmMatrixKeyboardPrivate::keyReleased(int key_number, int8_t key_code)
 	}
 }
 
-void QmMatrixKeyboardPrivate::timer0Finished()
+void QmMatrixKeyboardPrivate::pollTimerStart()
 {
-	keyPressedLong[0] = 1;
-	longPressAction[0] = 1;
+	xTimerStart(*poll_timer, 0);
 }
 
-void QmMatrixKeyboardPrivate::timer1Finished()
+void QmMatrixKeyboardPrivate::pressTimerStart(int number)
 {
-	keyPressedLong[1] = 1;
-	longPressAction[1] = 1;
+	QM_ASSERT(number < KEYBOARD_MAX_PRESSES);
+	xTimerStart(press_timer[number], 0);
+}
+
+void QmMatrixKeyboardPrivate::pressTimerStop(int number)
+{
+	QM_ASSERT(number < KEYBOARD_MAX_PRESSES);
+	xTimerStop(press_timer[number], 0);
+}
+
+void QmMatrixKeyboardPrivate::pressTimerFinished(int number)
+{
+	QM_ASSERT(number < KEYBOARD_MAX_PRESSES);
+	keyPressedLong[number] = 1;
+	longPressAction[number] = 1;
 }
 
 bool QmMatrixKeyboard::event(QmEvent* event) {
