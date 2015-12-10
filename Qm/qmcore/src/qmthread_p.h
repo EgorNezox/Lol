@@ -32,7 +32,7 @@ public:
 	virtual ~QmThreadPrivate();
 #ifdef QMCORE_PLATFORM_QT
 	bool is_main;
-	QThread *qthread;
+	QThread *qt_adapter;
 #endif /* QMCORE_PLATFORM_QT */
 #ifdef QMCORE_PLATFORM_BMFREERTOS
 	QmEventDispatcher *event_dispatcher;
@@ -41,11 +41,8 @@ public:
 	SemaphoreHandle_t sync_semaphore;
 #endif /* QMCORE_PLATFORM_BMFREERTOS */
 	bool running;
-	void init(const char * const name);
-	void deinit();
 #ifdef QMCORE_PLATFORM_QT
-	void run();
-	void processFinish();
+	friend class QmThreadPrivateAdapter;
 #endif /* QMCORE_PLATFORM_QT */
 #ifdef QMCORE_PLATFORM_BMFREERTOS
 	void taskFunction();

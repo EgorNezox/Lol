@@ -20,13 +20,6 @@
 #define STR(arg) _STR(arg)
 
 #define FSMC_BANK_REG_OFFSET(number)	(((number)-1)*2)
-#define FSMC_BTR1_ADDSET_Pos	0
-#define FSMC_BTR1_ADDHLD_Pos	4
-#define FSMC_BTR1_DATAST_Pos	8
-#define FSMC_BTR1_BUSTURN_Pos	16
-#define FSMC_BTR1_CLKDIV_Pos	20
-#define FSMC_BTR1_DATLAT_Pos	24
-#define FSMC_BTR1_ACCMOD_Pos	28
 
 /* Следующие определения должны соответствовать определениям в stm32_memory.ld
  */
@@ -250,23 +243,23 @@ void stm32f2_LCD_init(void) {
 	 * - Asynchronous Wait = Disable
 	 * - read/write timings: address setup = 1 HCLKs, address hold = 0, data setup = 6 HCLKs, bus turnaround = 1 HCLKs
 	 */
-	portENTER_CRITICAL();
+	portDISABLE_INTERRUPTS();
 	/* Enable FSMC clock */
 	RCC->AHB3ENR |= RCC_AHB3ENR_FSMCEN;
 	/* Configure FSMC NOR/SRAM Bank1 */
 	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(1)+0] = FSMC_BCR1_WREN;
 	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(1)+1] = 0
-			| (1 << FSMC_BTR1_ADDSET_Pos)
-			| (0 << FSMC_BTR1_ADDHLD_Pos)
-			| (6 << FSMC_BTR1_DATAST_Pos)
-			| (1 << FSMC_BTR1_BUSTURN_Pos)
-			| (0 << FSMC_BTR1_CLKDIV_Pos)
-			| (0 << FSMC_BTR1_DATLAT_Pos)
-			| (0 << FSMC_BTR1_ACCMOD_Pos);
+			| (1 << POSITION_VAL(FSMC_BTR1_ADDSET))
+			| (0 << POSITION_VAL(FSMC_BTR1_ADDHLD))
+			| (6 << POSITION_VAL(FSMC_BTR1_DATAST))
+			| (1 << POSITION_VAL(FSMC_BTR1_BUSTURN))
+			| (0 << POSITION_VAL(FSMC_BTR1_CLKDIV))
+			| (0 << POSITION_VAL(FSMC_BTR1_DATLAT))
+			| (0 << POSITION_VAL(FSMC_BTR1_ACCMOD));
 	FSMC_Bank1E->BWTR[FSMC_BANK_REG_OFFSET(1)+0] = 0x0FFFFFFF;
 	/* Enable FSMC NOR/SRAM Bank1 */
 	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(1)+0] |= FSMC_BCR1_MBKEN;
-	portEXIT_CRITICAL();
+	portENABLE_INTERRUPTS();
 
 	/* Configure LCD controller reset line and do reset */
 	hal_gpio_pin_t lcd_reset_pin = {hgpioPB, 1};
@@ -363,7 +356,7 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 8}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 9}, &params);
 		break;
-	default: __asm volatile("bkpt"); // no such resource
+	default: configASSERT(0); // no such resource
 	}
 }
 
@@ -422,7 +415,7 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 8});
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 9});
 		break;
-	default: __asm volatile("bkpt"); // no such resource
+	default: configASSERT(0); // no such resource
 	}
 }
 
@@ -442,7 +435,7 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 		return (hal_gpio_pin_t){hgpioPB, 12};
 	case platformhwDspResetIopin:
 		return (hal_gpio_pin_t){hgpioPH, 13};
-	default: __asm volatile("bkpt"); // no such resource
+	default: configASSERT(0); // no such resource
 	}
 	return (hal_gpio_pin_t){0, 0};
 }
@@ -467,7 +460,7 @@ int stm32f2_get_uart_instance(int platform_hw_resource) {
 		return 1;
 	case platformhwAtuUart:
 		return 2;
-	default: __asm volatile("bkpt"); // no such resource
+	default: configASSERT(0); // no such resource
 	}
 	return -1;
 }

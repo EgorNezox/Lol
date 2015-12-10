@@ -21,7 +21,9 @@ static void qmTimerCallbackEntry(TimerHandle_t xTimer) {
 }
 
 QmTimerPrivate::QmTimerPrivate(QmTimer *q) :
-	QmObjectPrivate(q), timerhandle(0), is_single_shot(false), awaiting_callback(false)
+	QmObjectPrivate(q),
+	is_active(false), interval_value(0),
+	timerhandle(0), is_single_shot(false), awaiting_callback(false)
 {
 }
 
@@ -54,10 +56,10 @@ void QmTimer::start() {
 	QM_D(QmTimer);
 	if (isActive())
 		stop();
-	is_active = true;
-	if (interval_value > 0) {
+	d->is_active = true;
+	if (d->interval_value > 0) {
 		d->awaiting_callback = true;
-		xTimerChangePeriod(d->timerhandle, interval_value/portTICK_PERIOD_MS, portMAX_DELAY);
+		xTimerChangePeriod(d->timerhandle, d->interval_value/portTICK_PERIOD_MS, portMAX_DELAY);
 		xTimerStart(d->timerhandle, portMAX_DELAY);
 	} else {
 		d->postTimeoutEvent();
@@ -68,15 +70,15 @@ void QmTimer::stop() {
 	QM_D(QmTimer);
 	if (xTimerIsTimerActive(d->timerhandle))
 		xTimerStop(d->timerhandle, portMAX_DELAY);
-	is_active = false;
+	d->is_active = false;
 	QmApplication::removePostedEvents(this, QmEvent::Timer);
 }
 
 bool QmTimer::event(QmEvent* event) {
 	QM_D(QmTimer);
 	if (event->type() == QmEvent::Timer) {
-		if (is_active) {
-			if (interval_value > 0) {
+		if (d->is_active) {
+			if (d->interval_value > 0) {
 				d->awaiting_callback = true;
 			} else {
 				if (!d->is_single_shot)

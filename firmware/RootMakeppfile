@@ -15,7 +15,7 @@ include misc/target_build_subproject_header.mk
 DEFINES_system += BUILD_OPTION_ENABLE_DISPLAY_BUFFER=1
 
 # подключение сборки сторонних компонентов
-load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/3rdparty/$( FreeRTOS STM32F2xx_StdPeriph_Lib Ramtex_Graphic_Lib libsigc++ )
+load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/3rdparty/$( FreeRTOS STM32Cube_FW_F2 Ramtex_Graphic_Lib libsigc++ )
 
 # подключение сборки платформы
 load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/platform/$( stm32f2-common $(BUILD_PORT) )
