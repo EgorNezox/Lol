@@ -13,7 +13,6 @@
 
 #include "../../system/platform/platform_hw_map.h"
 
-#include <vector>
 #include "qmtimer.h"
 #include "../../qmcore/src/qmobject_p.h"
 #include "qmmatrixkeyboard.h"
@@ -21,7 +20,7 @@
 #ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
 #include "hal_gpio.h"
 #include "../../qmcore/src/qm_core.h"
-#endif
+#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
 
 class QmMatrixKeyboardPrivate : public QmObjectPrivate {
 	QM_DECLARE_PUBLIC(QmMatrixKeyboard)
@@ -40,13 +39,15 @@ private:
 	} keyboard_state_t;
 
 	void scan();
-	bool scanKBMatrix(uint8_t* pressesCounter, int8_t keysPressed[], uint8_t maxPresses);
+	bool scanKBMatrix(uint8_t maxPresses);
 	void scanKBColumn(int columnNumber, hal_gpio_level_t row[]);
-	void noPressesHandler(keyboard_state_t prev_keyboard_state, int8_t curKeysPressed[], int8_t prevKeysPressed[]);
-	void singlePressHandler(keyboard_state_t prev_keyboard_state, int8_t curKeysPressed[], int8_t prevKeysPressed[]);
-	void doublePressHandler(keyboard_state_t prev_keyboard_state, int8_t curKeysPressed[], int8_t prevKeysPressed[]);
+	void noPressesHandler(keyboard_state_t prev_keyboard_state);
+	void singlePressHandler(keyboard_state_t prev_keyboard_state);
+	void doublePressHandler(keyboard_state_t prev_keyboard_state);
 	void keyPressed(int8_t key_code);
 	void keyReleased(int key_number, int8_t key_code);
+	void timer0Finished();
+	void timer1Finished();
 
 	hal_gpio_pin_t* column_pins;
 	hal_gpio_pin_t* row_pins;
@@ -55,10 +56,14 @@ private:
 	QmTimer* poll_timer;
 	QmTimer* press_timer;
 
-	bool* keyPressedLong;
-	bool* longPressAction;
-	uint8_t* curKeysPressedSequence;
-#endif
+	bool* keyPressedLong; /*! Флаг длительного нажатия клавиши (устанавливается по истечении времени длительного нажатия) */
+	bool* longPressAction; /*! Флаги долгого нажатия для каждой из одновременно нажатых клавиш */
+	uint8_t* curKeysPressedSequence; /*! Последовательность нажатий клавиш */
+	keyboard_state_t keyboard_state;
+	int8_t* curKeysPressed;
+	int8_t* prevKeysPressed;
+	uint8_t pressesCounter;
+#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
 };
 
 #endif /* QMMATRIXKEYBOARD_P_H_ */
