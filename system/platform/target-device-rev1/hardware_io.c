@@ -8,6 +8,7 @@
   ******************************************************************************
   */
 
+#include <stdlib.h>
 #include "stm32f2xx.h"
 #include "FreeRTOS.h"
 
@@ -463,4 +464,26 @@ int stm32f2_get_uart_instance(int platform_hw_resource) {
 	default: configASSERT(0); // no such resource
 	}
 	return -1;
+}
+
+void stm32f2_get_matrixkeyboard_pins(int platform_hw_resource,
+		hal_gpio_pin_t** column_pins, int* column_count, hal_gpio_pin_t** row_pins, int* row_count)
+{
+	switch (platform_hw_resource) {
+	case platformhwMatrixKeyboard:
+		*column_pins = (hal_gpio_pin_t*)malloc(sizeof(hal_gpio_pin_t) * 4);
+		(*column_pins)[0] = (hal_gpio_pin_t){hgpioPH, 6};
+		(*column_pins)[1] = (hal_gpio_pin_t){hgpioPH, 7};
+		(*column_pins)[2] = (hal_gpio_pin_t){hgpioPH, 8};
+		(*column_pins)[3] = (hal_gpio_pin_t){hgpioPH, 9};
+		*column_count = 4;
+		*row_pins = (hal_gpio_pin_t*)malloc(sizeof(hal_gpio_pin_t) * 4);
+		(*row_pins)[0] = (hal_gpio_pin_t){hgpioPH, 2};
+		(*row_pins)[1] = (hal_gpio_pin_t){hgpioPH, 3};
+		(*row_pins)[2] = (hal_gpio_pin_t){hgpioPH, 4};
+		(*row_pins)[3] = (hal_gpio_pin_t){hgpioPH, 5};
+		*row_count = 4;
+		break;
+	default: __asm volatile("bkpt"); // no such resource
+	}
 }
