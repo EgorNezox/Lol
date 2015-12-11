@@ -19,9 +19,31 @@
 
 #ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
 #include "hal_gpio.h"
-#include "../../qmcore/src/qm_core.h"
+#include "qmevent.h"
 #include "FreeRTOS.h"
 #include "timers.h"
+
+class QmMatrixKeyboardKeyStateChangedEvent : public QmEvent
+{
+public:
+	QmMatrixKeyboardKeyStateChangedEvent(QmEvent::Type type, int key_id, bool state);
+	int getKeyId();
+	bool getState();
+private:
+	int key_id;
+	bool state;
+};
+
+class QmMatrixKeyboardKeyActionEvent : public QmEvent
+{
+public:
+	QmMatrixKeyboardKeyActionEvent(QmEvent::Type type, int key_id, QmMatrixKeyboard::PressType pressType);
+	int getKeyId();
+	QmMatrixKeyboard::PressType getPressType();
+private:
+	int key_id;
+	QmMatrixKeyboard::PressType pressType;
+};
 #endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
 
 class QmMatrixKeyboardPrivate : public QmObjectPrivate {
@@ -63,7 +85,6 @@ private:
 	xTimerHandle* press_timer;
 
 	bool* keyPressedLong; /*! Флаг длительного нажатия клавиши (устанавливается по истечении времени длительного нажатия) */
-	bool* longPressAction; /*! Флаги долгого нажатия для каждой из одновременно нажатых клавиш */
 	uint8_t* curKeysPressedSequence; /*! Последовательность нажатий клавиш */
 	keyboard_state_t keyboard_state;
 	uint8_t* curKeysPressed;
