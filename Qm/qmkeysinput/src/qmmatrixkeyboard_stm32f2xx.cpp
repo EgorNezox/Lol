@@ -294,9 +294,11 @@ void QmMatrixKeyboardPrivate::pressTimerStop(int number) {
 }
 
 void QmMatrixKeyboardPrivate::pressTimerFinished(int number) {
+	QM_Q(QmMatrixKeyboard);
 	QM_ASSERT(number < KEYBOARD_MAX_PRESSES);
 	keyPressedLong[number] = 1;
-	QmApplication::postEvent(q, new QmMatrixKeyboardKeyActionEvent(QmEvent::KeyStateChanged, key_code, QmMatrixKeyboard::PressLong));
+	QmApplication::postEvent(q, new QmMatrixKeyboardKeyActionEvent(QmEvent::KeyStateChanged,
+			curKeysPressedSequence[number], QmMatrixKeyboard::PressLong));
 	qmDebugMessage(QmDebug::Dump, "keyAction %d %d", curKeysPressedSequence[number], QmMatrixKeyboard::PressLong);
 }
 
