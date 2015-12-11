@@ -484,6 +484,6 @@ void stm32f2_get_matrixkeyboard_pins(int platform_hw_resource,
 		(*row_pins)[3] = (hal_gpio_pin_t){hgpioPH, 5};
 		*row_count = 4;
 		break;
-	default: __asm volatile("bkpt"); // no such resource
+	default: configASSERT(0); // no such resource
 	}
 }

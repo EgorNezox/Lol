@@ -53,7 +53,6 @@ public:
 	virtual ~QmMatrixKeyboardPrivate();
 #ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
 	void scan();
-	void pollTimerStart();
 	void pressTimerFinished(int number);
 #endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
 private:

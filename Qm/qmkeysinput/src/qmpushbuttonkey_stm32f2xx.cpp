@@ -18,10 +18,10 @@
 
 #define QMPBKEY_DEBOUNCE_DELAY 20
 
-static void qmpushbuttonkeyStateChangedIsrCallback(hal_exti_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
+static void qmpushbuttonkeyStateChangedIsrCallback(hal_exti_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	hal_exti_close(handle);
 	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-	QmPushButtonKeyPrivate* qmpbkeyPrivate_ptr = static_cast<QmPushButtonKeyPrivate*>(userid);
+	QmPushButtonKeyPrivate* qmpbkeyPrivate_ptr = static_cast<QmPushButtonKeyPrivate*>(hal_exti_get_userid(handle));
 	xTimerResetFromISR(*(qmpbkeyPrivate_ptr->getDebounceTimer()), &xHigherPriorityTaskWoken);
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
