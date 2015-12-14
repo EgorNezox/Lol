@@ -33,8 +33,8 @@ extern "C" {
 extern GCODE GFONT FCODE Lucida_Console_8x12;
 extern GCODE GFONT FCODE Tahoma_15x13;
 extern GCODE GFONT FCODE Tahoma_bold_18x14;
-extern GCODE GFONT FCODE Consolas_35x55;
-extern GCODE GFONT FCODE Tahoma16x21;
+extern GCODE GFONT FCODE Consolas25x58;
+extern GCODE GFONT FCODE Tahoma26;
 
 
 #if (defined(GMULTIBYTE) || defined(GMULTIBYTE_UTF8) || defined(GWIDECHAR))

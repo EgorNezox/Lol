@@ -8,5 +8,9 @@
 
 INCLUDEPATH += \
 	$$PWD/inc \
-	$$PWD/fonts
-SOURCES += $$wildcardSources(common, *.c)
+        $$PWD/fonts \
+        &&PWD/icons
+SOURCES += \
+        $$wildcardSources(common, *.c) \
+        $$wildcardSources(fonts, *.c) \
+        $$wildcardSources(icons, *.c)
