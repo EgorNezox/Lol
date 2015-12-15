@@ -53,6 +53,9 @@ void GUI_Dialog_MainScr::Draw(){
 
 	window->Draw();
 	ch_num_label->Draw();
+	if(cur_ch_invalid){
+		groundrect(2,30,52,31,0,GFRAME);
+	}
 	mode_text->Draw();
 
 }
