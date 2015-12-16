@@ -9,7 +9,17 @@
 TEMPLATE = lib
 CONFIG += staticlib
 
+include(../misc/qt_build_utils.pri)
+
 include(../Qm/Qm.pri)
 include(../system/3rdparty/libsigc++/sigc++.pri)
 
-SOURCES += firmware_main.cpp
+SOURCES += \
+    firmware_main.cpp \
+    $$wildcardSources(app/datastorage, *.cpp) \
+    $$wildcardSources(app/headset, *.cpp) \
+    $$wildcardSources(app/mrd, *.cpp) \
+    $$wildcardSources(app/power, *.cpp) \
+    $$wildcardSources(app/ui, *.cpp)
+INCLUDEPATH += app
+DEFINES += PORT__PCSIMULATOR

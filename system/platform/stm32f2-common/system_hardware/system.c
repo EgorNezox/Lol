@@ -17,7 +17,6 @@
 #include "sys_internal_freertos_timers.h"
 
 #define MPU_REGION_SIZE(n)	((n-1) << MPU_RASR_SIZE_Pos) // size = 2^n
-#define MPU_REGION_ATTR_NOEXEC	(0x01 << 28)
 
 unsigned int halinternal_freertos_timer_queue_length = 0;
 
@@ -26,12 +25,12 @@ void  __attribute__((constructor)) hal_system_init(void) {
 	/* Настройка MPU для детектирования обращений по адресу NULL (+ 32KB) */
 	MPU->CTRL = 0;
 	MPU->RBAR = 0x00000000 | MPU_RBAR_VALID_Msk | 0;
-	MPU->RASR = MPU_REGION_SIZE(15) | MPU_RASR_ENABLE_Msk | MPU_REGION_ATTR_NOEXEC;
+	MPU->RASR = MPU_REGION_SIZE(15) | MPU_RASR_ENABLE_Msk | MPU_RASR_XN_Msk;
 	MPU->CTRL |= MPU_CTRL_ENABLE_Msk | MPU_CTRL_HFNMIENA_Msk | MPU_CTRL_PRIVDEFENA_Msk;
 	/* Включение процессорных исключений Usage Fault, Bus Fault, MMU Fault */
 	SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk;
 	/* Настройка значений приоритетов исключений/прерываний как pre-emption (без sub-priority) */
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+	NVIC_SetPriorityGrouping(max(7 - __NVIC_PRIO_BITS, 0));
 	/* Инициализация поддержки отладочного вывода SWO в МК */
 	DBGMCU->CR |= DBGMCU_CR_TRACE_IOEN;
 	/* Инициализация всех субмодулей */
@@ -41,9 +40,13 @@ void  __attribute__((constructor)) hal_system_init(void) {
 	halinternal_uart_init();
 }
 
+void halinternal_set_nvic_priority(IRQn_Type irqn) {
+	NVIC_SetPriority(irqn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), SYS_IRQ_CHANNEL_PREEMPTION_PRIORITY, 0));
+}
+
 void halinternal_system_fault_handler(void) {
 #ifndef NDEBUG
-	__asm volatile("bkpt"); // отладка: выйти из этой функции (step return) и см. причину выше по стеку вызовов
+	__BKPT(0); // отладка: выйти из этой функции (step return) и см. причину выше по стеку вызовов
 #else
 	// TODO: обработать сбой регистрируемой функцией приложения
 	NVIC_SystemReset();

@@ -8,6 +8,7 @@
   ******************************************************************************
   */
 
+#include <stdlib.h>
 #include "stm32f2xx.h"
 #include "FreeRTOS.h"
 
@@ -18,6 +19,8 @@
 
 #define _STR(arg) #arg
 #define STR(arg) _STR(arg)
+
+#define FSMC_BANK_REG_OFFSET(number)	(((number)-1)*2)
 
 /* Следующие определения должны соответствовать определениям в stm32_memory.ld
  */
@@ -111,42 +114,37 @@ void stm32f2_ext_mem_init(void) {
 	  /* No pull-up, pull-down for PGx pins */
 	  GPIOG->PUPDR   |= 0x00000000;
 
-/*-- FSMC Configuration for external SRAM ------------------------------------------------------*/
-	  /* Enable the FSMC interface clock */
+	  /*
+	   * FSMC Configuration for external SRAM
+	   *
+	   * Bank1_SRAM2 is configured as follow:
+	   *
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_AddressSetupTime = 0;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_AddressHoldTime = 0;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_DataSetupTime = 8;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_BusTurnAroundDuration = 1;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_CLKDivision = 0;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_DataLatency = 0;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_AccessMode = FSMC_AccessMode_A;
+	   *
+	   * FSMC_NORSRAMInitTypeDef::FSMC_Bank = FSMC_Bank1_NORSRAM2;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_DataAddressMux = FSMC_DataAddressMux_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_MemoryType = FSMC_MemoryType_PSRAM;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_16b;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_BurstAccessMode = FSMC_BurstAccessMode_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_AsynchronousWait = FSMC_AsynchronousWait_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WrapMode = FSMC_WrapMode_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WriteOperation = FSMC_WriteOperation_Enable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WaitSignal = FSMC_WaitSignal_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_ExtendedMode = FSMC_ExtendedMode_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WriteBurst = FSMC_WriteBurst_Disable;
+	  */
 	  RCC->AHB3ENR        |= 0x00000001;
-
-	  /* Configure and enable Bank1_SRAM2 */
 	  FSMC_Bank1->BTCR[2]  = 0x00001015;
 	  FSMC_Bank1->BTCR[3]  = 0x00010800;
 	  FSMC_Bank1E->BWTR[2] = 0x0fffffff;
-
-	  /*
-	  Bank1_SRAM2 is configured as follow:
-
-	  p.FSMC_AddressSetupTime = 0;
-	  p.FSMC_AddressHoldTime = 0;
-	  p.FSMC_DataSetupTime = 8;
-	  p.FSMC_BusTurnAroundDuration = 1;
-	  p.FSMC_CLKDivision = 0;
-	  p.FSMC_DataLatency = 0;
-	  p.FSMC_AccessMode = FSMC_AccessMode_A;
-
-	  FSMC_NORSRAMInitStructure.FSMC_Bank = FSMC_Bank1_NORSRAM2;
-	  FSMC_NORSRAMInitStructure.FSMC_DataAddressMux = FSMC_DataAddressMux_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_MemoryType = FSMC_MemoryType_PSRAM;
-	  FSMC_NORSRAMInitStructure.FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_16b;
-	  FSMC_NORSRAMInitStructure.FSMC_BurstAccessMode = FSMC_BurstAccessMode_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_AsynchronousWait = FSMC_AsynchronousWait_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
-	  FSMC_NORSRAMInitStructure.FSMC_WrapMode = FSMC_WrapMode_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;
-	  FSMC_NORSRAMInitStructure.FSMC_WriteOperation = FSMC_WriteOperation_Enable;
-	  FSMC_NORSRAMInitStructure.FSMC_WaitSignal = FSMC_WaitSignal_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_ExtendedMode = FSMC_ExtendedMode_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_WriteBurst = FSMC_WriteBurst_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_ReadWriteTimingStruct = &p;
-	  FSMC_NORSRAMInitStructure.FSMC_WriteTimingStruct = &p;
-	  */
 }
 
 /* Тестирование аппаратной исправности внешней памяти
@@ -233,52 +231,36 @@ test_end:
 }
 
 void stm32f2_LCD_init(void) {
-	FSMC_NORSRAMInitTypeDef  FSMC_NORSRAMInitStructure;
-	FSMC_NORSRAMTimingInitTypeDef  p;
-
-	/*-- FSMC Configuration ------------------------------------------------------*/
-	/*----------------------- SRAM Bank 1 ----------------------------------------*/
-	/* FSMC_Bank1_NORSRAM1 configuration */
-	p.FSMC_AddressSetupTime = 1;
-	p.FSMC_AddressHoldTime = 0;
-	p.FSMC_DataSetupTime = 6;
-	p.FSMC_BusTurnAroundDuration = 1;
-	p.FSMC_CLKDivision = 0;
-	p.FSMC_DataLatency = 0;
-	p.FSMC_AccessMode = FSMC_AccessMode_A;
-	/* Color LCD configuration ------------------------------------
-	     LCD configured as follow:
-	        - Data/Address MUX = Disable
-	        - Memory Type = SRAM
-	        - Data Width = 8bit
-	        - Write Operation = Enable
-	        - Extended Mode = Disable
-	        - Asynchronous Wait = Disable */
-
-	FSMC_NORSRAMInitStructure.FSMC_Bank = FSMC_Bank1_NORSRAM1;
-	FSMC_NORSRAMInitStructure.FSMC_DataAddressMux = FSMC_DataAddressMux_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_MemoryType = FSMC_MemoryType_SRAM;
-	FSMC_NORSRAMInitStructure.FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_8b;
-	FSMC_NORSRAMInitStructure.FSMC_BurstAccessMode = FSMC_BurstAccessMode_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_AsynchronousWait = FSMC_AsynchronousWait_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
-	FSMC_NORSRAMInitStructure.FSMC_WrapMode = FSMC_WrapMode_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;
-	FSMC_NORSRAMInitStructure.FSMC_WriteOperation = FSMC_WriteOperation_Enable;
-	FSMC_NORSRAMInitStructure.FSMC_WaitSignal = FSMC_WaitSignal_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_ExtendedMode = FSMC_ExtendedMode_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_WriteBurst = FSMC_WriteBurst_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_ReadWriteTimingStruct = &p;
-	FSMC_NORSRAMInitStructure.FSMC_WriteTimingStruct = &p;
-
-	portENTER_CRITICAL();
+	/* FSMC Configuration for 80‐Series 8-bit bus MPU system interface
+	 *
+	 * Bank1_NORSRAM1 is configured as follow:
+	 *
+	 * - Access mode = A
+	 * - Extended Mode = Disable
+	 * - Memory Type = SRAM
+	 * - Data/Address MUX = Disable
+	 * - Data Width = 8-bit
+	 * - Write Operation = Enable
+	 * - Asynchronous Wait = Disable
+	 * - read/write timings: address setup = 1 HCLKs, address hold = 0, data setup = 6 HCLKs, bus turnaround = 1 HCLKs
+	 */
+	portDISABLE_INTERRUPTS();
 	/* Enable FSMC clock */
-	RCC_AHB3PeriphClockCmd(RCC_AHB3Periph_FSMC, ENABLE);
-	/* Configure FSMC NOR/SRAM */
-	FSMC_NORSRAMInit(&FSMC_NORSRAMInitStructure);
+	RCC->AHB3ENR |= RCC_AHB3ENR_FSMCEN;
+	/* Configure FSMC NOR/SRAM Bank1 */
+	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(1)+0] = FSMC_BCR1_WREN;
+	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(1)+1] = 0
+			| (1 << POSITION_VAL(FSMC_BTR1_ADDSET))
+			| (0 << POSITION_VAL(FSMC_BTR1_ADDHLD))
+			| (6 << POSITION_VAL(FSMC_BTR1_DATAST))
+			| (1 << POSITION_VAL(FSMC_BTR1_BUSTURN))
+			| (0 << POSITION_VAL(FSMC_BTR1_CLKDIV))
+			| (0 << POSITION_VAL(FSMC_BTR1_DATLAT))
+			| (0 << POSITION_VAL(FSMC_BTR1_ACCMOD));
+	FSMC_Bank1E->BWTR[FSMC_BANK_REG_OFFSET(1)+0] = 0x0FFFFFFF;
 	/* Enable FSMC NOR/SRAM Bank1 */
-	FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM1, ENABLE);
-	portEXIT_CRITICAL();
+	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(1)+0] |= FSMC_BCR1_MBKEN;
+	portENABLE_INTERRUPTS();
 
 	/* Configure LCD controller reset line and do reset */
 	hal_gpio_pin_t lcd_reset_pin = {hgpioPB, 1};
@@ -293,40 +275,215 @@ void stm32f2_LCD_init(void) {
 }
 
 void stm32f2_ext_pins_init(int platform_hw_resource) {
-	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	hal_gpio_params_t params;
+	hal_gpio_set_default_params(&params);
+	switch (platform_hw_resource) {
+	case platformhwHeadsetUart:
+		params.mode = hgpioMode_AF;
+		params.af = hgpioAF_USART_1_2_3;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 10}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 11}, &params);
+		break;
+	case platformhwHeadsetPttIopin:
+		params.mode = hgpioMode_In;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPF, 8}, &params);
+		break;
+	case platformhwDataFlashSpi:
+		params.mode = hgpioMode_AF;
+		params.af = hgpioAF_SPI_3_I2S_3;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 10}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 11}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 12}, &params);
+		params.mode = hgpioMode_Out;
+		params.af = hgpioAF_SYS;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPD, 2}, &params);
+		break;
+	case platformhwMatrixKeyboard:
+		params.mode = hgpioMode_In;
+		params.type = hgpioType_PPUp;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 2}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 3}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 4}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 5}, &params);
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 6}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 7}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 8}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 9}, &params);
+		break;
+	case platformhwKeyboardButt1Iopin:
+		params.mode = hgpioMode_In;
+		params.type = hgpioType_PPUp;
+		params.exti_source = true;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 11}, &params);
+		break;
+	case platformhwKeyboardButt2Iopin:
+		params.mode = hgpioMode_In;
+		params.type = hgpioType_PPUp;
+		params.exti_source = true;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 12}, &params);
+		break;
+	case platformhwKeyboardsLightIopin:
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 10}, &params);
+		break;
+	case platformhwEnRxRs232Iopin:
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 13}, &params);
+		break;
+	case platformhwEnTxRs232Iopin:
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 12}, &params);
+		break;
+	case platformhwDspUart:
+		params.mode = hgpioMode_AF;
+		params.af = hgpioAF_USART_1_2_3;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 6}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 7}, &params);
+		break;
+	case platformhwDspResetIopin:
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 13}, &params);
+		break;
+	case platformhwAtuUart:
+		params.mode = hgpioMode_AF;
+		params.af = hgpioAF_USART_1_2_3;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPA, 2}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPA, 3}, &params);
+		break;
+	case platformhwBatterySmbusI2c:
+		params.mode = hgpioMode_AF;
+		params.af = hgpioAF_I2C_1_2_3;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 8}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 9}, &params);
+		break;
+	default: configASSERT(0); // no such resource
+	}
 }
 
 void stm32f2_ext_pins_deinit(int platform_hw_resource) {
-	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	switch (platform_hw_resource) {
+	case platformhwHeadsetUart:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 10});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 11});
+		break;
+	case platformhwHeadsetPttIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPF, 8});
+		break;
+	case platformhwDataFlashSpi:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 10});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 11});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 12});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPD, 2});
+		break;
+	case platformhwMatrixKeyboard:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 2});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 3});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 4});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 5});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 6});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 7});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 8});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 9});
+		break;
+	case platformhwKeyboardButt1Iopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 11});
+		break;
+	case platformhwKeyboardButt2Iopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 12});
+		break;
+	case platformhwKeyboardsLightIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 10});
+		break;
+	case platformhwEnRxRs232Iopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 13});
+		break;
+	case platformhwEnTxRs232Iopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 12});
+		break;
+	case platformhwDspUart:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 6});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 7});
+		break;
+	case platformhwDspResetIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 13});
+		break;
+	case platformhwAtuUart:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPA, 2});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPA, 3});
+		break;
+	case platformhwBatterySmbusI2c:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 8});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 9});
+		break;
+	default: configASSERT(0); // no such resource
+	}
 }
 
 hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
-	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	switch (platform_hw_resource) {
+	case platformhwHeadsetPttIopin:
+		return (hal_gpio_pin_t){hgpioPF, 8};
+	case platformhwKeyboardButt1Iopin:
+		return (hal_gpio_pin_t){hgpioPH, 11};
+	case platformhwKeyboardButt2Iopin:
+		return (hal_gpio_pin_t){hgpioPH, 12};
+	case platformhwKeyboardsLightIopin:
+		return (hal_gpio_pin_t){hgpioPH, 10};
+	case platformhwEnRxRs232Iopin:
+		return (hal_gpio_pin_t){hgpioPB, 13};
+	case platformhwEnTxRs232Iopin:
+		return (hal_gpio_pin_t){hgpioPB, 12};
+	case platformhwDspResetIopin:
+		return (hal_gpio_pin_t){hgpioPH, 13};
+	default: configASSERT(0); // no such resource
+	}
 	return (hal_gpio_pin_t){0, 0};
 }
 
 int stm32f2_get_exti_line(int platform_hw_resource) {
-	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	switch (platform_hw_resource) {
+	case platformhwHeadsetPttIopin:
+		return 8;
+	case platformhwKeyboardButt1Iopin:
+		return 11;
+	case platformhwKeyboardButt2Iopin:
+		return 12;
+	}
 	return -1;
 }
 
 int stm32f2_get_uart_instance(int platform_hw_resource) {
-	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	switch (platform_hw_resource) {
+	case platformhwHeadsetUart:
+		return 3;
+	case platformhwDspUart:
+		return 1;
+	case platformhwAtuUart:
+		return 2;
+	default: configASSERT(0); // no such resource
+	}
 	return -1;
 }
 
 void stm32f2_get_matrixkeyboard_pins(int platform_hw_resource,
 		hal_gpio_pin_t** column_pins, int* column_count, hal_gpio_pin_t** row_pins, int* row_count)
 {
-	(void)platform_hw_resource;
-	(void)column_pins;
-	(void)column_count;
-	(void)row_pins;
-	(void)row_count;
-	__asm volatile("bkpt"); // no resources defined
+	switch (platform_hw_resource) {
+	case platformhwMatrixKeyboard:
+		*column_pins = (hal_gpio_pin_t*)malloc(sizeof(hal_gpio_pin_t) * 4);
+		(*column_pins)[0] = (hal_gpio_pin_t){hgpioPH, 6};
+		(*column_pins)[1] = (hal_gpio_pin_t){hgpioPH, 7};
+		(*column_pins)[2] = (hal_gpio_pin_t){hgpioPH, 8};
+		(*column_pins)[3] = (hal_gpio_pin_t){hgpioPH, 9};
+		*column_count = 4;
+		*row_pins = (hal_gpio_pin_t*)malloc(sizeof(hal_gpio_pin_t) * 4);
+		(*row_pins)[0] = (hal_gpio_pin_t){hgpioPH, 2};
+		(*row_pins)[1] = (hal_gpio_pin_t){hgpioPH, 3};
+		(*row_pins)[2] = (hal_gpio_pin_t){hgpioPH, 4};
+		(*row_pins)[3] = (hal_gpio_pin_t){hgpioPH, 5};
+		*row_count = 4;
+		break;
+	default: __asm volatile("bkpt"); // no such resource
+	}
 }

@@ -14,6 +14,8 @@
 #include "system_hw_io.h"
 #include "../platform_hw_map.h"
 
+#define FSMC_BANK_REG_OFFSET(number)	(((number)-1)*2)
+
 /*! Первичная иницициализация внешней памяти.
  *
  *  External SRAM:	Bank1_SRAM2		(A[19:0], D[15:0], NBL[0], NBL[1], NOE, NWE, NE2)
@@ -98,42 +100,37 @@ void stm32f2_ext_mem_init(void) {
 	  /* No pull-up, pull-down for PGx pins */
 	  GPIOG->PUPDR   |= 0x00000000;
 
-/*-- FSMC Configuration for external SRAM ------------------------------------------------------*/
-	  /* Enable the FSMC interface clock */
+	  /*
+	   * FSMC Configuration for external SRAM
+	   *
+	   * Bank1_SRAM2 is configured as follow:
+	   *
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_AddressSetupTime = 0;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_AddressHoldTime = 0;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_DataSetupTime = 4;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_BusTurnAroundDuration = 1;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_CLKDivision = 0;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_DataLatency = 0;
+	   * FSMC_NORSRAMTimingInitTypeDef::FSMC_AccessMode = FSMC_AccessMode_A;
+	   *
+	   * FSMC_NORSRAMInitTypeDef::FSMC_Bank = FSMC_Bank1_NORSRAM2;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_DataAddressMux = FSMC_DataAddressMux_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_MemoryType = FSMC_MemoryType_PSRAM;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_16b;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_BurstAccessMode = FSMC_BurstAccessMode_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_AsynchronousWait = FSMC_AsynchronousWait_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WrapMode = FSMC_WrapMode_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WriteOperation = FSMC_WriteOperation_Enable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WaitSignal = FSMC_WaitSignal_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_ExtendedMode = FSMC_ExtendedMode_Disable;
+	   * FSMC_NORSRAMInitTypeDef::FSMC_WriteBurst = FSMC_WriteBurst_Disable;
+	   */
 	  RCC->AHB3ENR        |= 0x00000001;
-
-	  /* Configure and enable Bank1_SRAM2 */
 	  FSMC_Bank1->BTCR[2]  = 0x00001015;
 	  FSMC_Bank1->BTCR[3]  = 0x00010400;
 	  FSMC_Bank1E->BWTR[2] = 0x0fffffff;
-
-	  /*
-	  Bank1_SRAM2 is configured as follow:
-
-	  p.FSMC_AddressSetupTime = 0;
-	  p.FSMC_AddressHoldTime = 0;
-	  p.FSMC_DataSetupTime = 4;
-	  p.FSMC_BusTurnAroundDuration = 1;
-	  p.FSMC_CLKDivision = 0;
-	  p.FSMC_DataLatency = 0;
-	  p.FSMC_AccessMode = FSMC_AccessMode_A;
-
-	  FSMC_NORSRAMInitStructure.FSMC_Bank = FSMC_Bank1_NORSRAM2;
-	  FSMC_NORSRAMInitStructure.FSMC_DataAddressMux = FSMC_DataAddressMux_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_MemoryType = FSMC_MemoryType_PSRAM;
-	  FSMC_NORSRAMInitStructure.FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_16b;
-	  FSMC_NORSRAMInitStructure.FSMC_BurstAccessMode = FSMC_BurstAccessMode_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_AsynchronousWait = FSMC_AsynchronousWait_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
-	  FSMC_NORSRAMInitStructure.FSMC_WrapMode = FSMC_WrapMode_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;
-	  FSMC_NORSRAMInitStructure.FSMC_WriteOperation = FSMC_WriteOperation_Enable;
-	  FSMC_NORSRAMInitStructure.FSMC_WaitSignal = FSMC_WaitSignal_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_ExtendedMode = FSMC_ExtendedMode_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_WriteBurst = FSMC_WriteBurst_Disable;
-	  FSMC_NORSRAMInitStructure.FSMC_ReadWriteTimingStruct = &p;
-	  FSMC_NORSRAMInitStructure.FSMC_WriteTimingStruct = &p;
-	  */
 }
 
 char stm32f2_ext_sram_test(void) {
@@ -141,78 +138,111 @@ char stm32f2_ext_sram_test(void) {
 }
 
 void stm32f2_LCD_init(void) {
-	FSMC_NORSRAMInitTypeDef  FSMC_NORSRAMInitStructure;
-	FSMC_NORSRAMTimingInitTypeDef  p;
-
-	/*-- FSMC Configuration ------------------------------------------------------*/
-	/*----------------------- SRAM Bank 3 ----------------------------------------*/
-	/* FSMC_Bank1_NORSRAM3 configuration */
-	p.FSMC_AddressSetupTime = 2;
-	p.FSMC_AddressHoldTime = 0;
-	p.FSMC_DataSetupTime = 9;
-	p.FSMC_BusTurnAroundDuration = 0;
-	p.FSMC_CLKDivision = 0;
-	p.FSMC_DataLatency = 0;
-	p.FSMC_AccessMode = FSMC_AccessMode_A;
-	/* Color LCD configuration ------------------------------------
-	     LCD configured as follow:
-	        - Data/Address MUX = Disable
-	        - Memory Type = SRAM
-	        - Data Width = 16bit
-	        - Write Operation = Enable
-	        - Extended Mode = Enable
-	        - Asynchronous Wait = Disable */
-
-	FSMC_NORSRAMInitStructure.FSMC_Bank = FSMC_Bank1_NORSRAM3;
-	FSMC_NORSRAMInitStructure.FSMC_DataAddressMux = FSMC_DataAddressMux_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_MemoryType = FSMC_MemoryType_SRAM;
-	FSMC_NORSRAMInitStructure.FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_16b;
-	FSMC_NORSRAMInitStructure.FSMC_BurstAccessMode = FSMC_BurstAccessMode_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_AsynchronousWait = FSMC_AsynchronousWait_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
-	FSMC_NORSRAMInitStructure.FSMC_WrapMode = FSMC_WrapMode_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;
-	FSMC_NORSRAMInitStructure.FSMC_WriteOperation = FSMC_WriteOperation_Enable;
-	FSMC_NORSRAMInitStructure.FSMC_WaitSignal = FSMC_WaitSignal_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_ExtendedMode = FSMC_ExtendedMode_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_WriteBurst = FSMC_WriteBurst_Disable;
-	FSMC_NORSRAMInitStructure.FSMC_ReadWriteTimingStruct = &p;
-	FSMC_NORSRAMInitStructure.FSMC_WriteTimingStruct = &p;
-
-	portENTER_CRITICAL();
+	/* FSMC Configuration for i80-system 16-bit interface
+	 *
+	 * Bank1_NORSRAM3 is configured as follow:
+	 *
+	 * - Access mode = A
+	 * - Extended Mode = Disable
+	 * - Memory Type = SRAM
+	 * - Data/Address MUX = Disable
+	 * - Data Width = 16-bit
+	 * - Write Operation = Enable
+	 * - Asynchronous Wait = Disable
+	 * - read/write timings: address setup = 2 HCLKs, address hold = 0, data setup = 9 HCLKs, bus turnaround = 0
+	 */
+	portDISABLE_INTERRUPTS();
 	/* Enable FSMC clock */
-	RCC_AHB3PeriphClockCmd(RCC_AHB3Periph_FSMC, ENABLE);
-	/* Configure FSMC NOR/SRAM */
-	FSMC_NORSRAMInit(&FSMC_NORSRAMInitStructure);
+	RCC->AHB3ENR |= RCC_AHB3ENR_FSMCEN;
+	/* Configure FSMC NOR/SRAM Bank3 */
+	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(3)+0] = FSMC_BCR1_MWID_0 | FSMC_BCR3_WREN;
+	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(3)+1] = 0
+			| (2 << POSITION_VAL(FSMC_BTR1_ADDSET))
+			| (0 << POSITION_VAL(FSMC_BTR1_ADDHLD))
+			| (9 << POSITION_VAL(FSMC_BTR1_DATAST))
+			| (0 << POSITION_VAL(FSMC_BTR1_BUSTURN))
+			| (0 << POSITION_VAL(FSMC_BTR1_CLKDIV))
+			| (0 << POSITION_VAL(FSMC_BTR1_DATLAT))
+			| (0 << POSITION_VAL(FSMC_BTR1_ACCMOD));
+	FSMC_Bank1E->BWTR[FSMC_BANK_REG_OFFSET(3)+0] = 0x0FFFFFFF;
 	/* Enable FSMC NOR/SRAM Bank3 */
-	FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM3, ENABLE);
-	portEXIT_CRITICAL();
+	FSMC_Bank1->BTCR[FSMC_BANK_REG_OFFSET(3)+0] |= FSMC_BCR3_MBKEN;
+	portENABLE_INTERRUPTS();
 }
 
 void stm32f2_ext_pins_init(int platform_hw_resource) {
-	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	switch (platform_hw_resource) {
+	case platformhwHeadsetUart:
+	case platformhwHeadsetPttIopin:
+	case platformhwDataFlashSpi:
+	case platformhwMatrixKeyboard:
+	case platformhwKeyboardButt1Iopin:
+	case platformhwKeyboardButt2Iopin:
+	case platformhwKeyboardsLightIopin:
+	case platformhwEnRxRs232Iopin:
+	case platformhwEnTxRs232Iopin:
+	case platformhwDspUart:
+	case platformhwDspResetIopin:
+	case platformhwAtuUart:
+	case platformhwBatterySmbusI2c:
+		//TODO: stm32f2_ext_pins_init()
+		break;
+	default: configASSERT(0); // no such resource
+	}
 }
 
 void stm32f2_ext_pins_deinit(int platform_hw_resource) {
-	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	switch (platform_hw_resource) {
+	case platformhwHeadsetUart:
+	case platformhwHeadsetPttIopin:
+	case platformhwDataFlashSpi:
+	case platformhwMatrixKeyboard:
+	case platformhwKeyboardButt1Iopin:
+	case platformhwKeyboardButt2Iopin:
+	case platformhwKeyboardsLightIopin:
+	case platformhwEnRxRs232Iopin:
+	case platformhwEnTxRs232Iopin:
+	case platformhwDspUart:
+	case platformhwDspResetIopin:
+	case platformhwAtuUart:
+	case platformhwBatterySmbusI2c:
+		//TODO: stm32f2_ext_pins_deinit()
+		break;
+	default: configASSERT(0); // no such resource
+	}
 }
 
 hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
-	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	switch (platform_hw_resource) {
+	case platformhwHeadsetPttIopin:
+	case platformhwKeyboardButt1Iopin:
+	case platformhwKeyboardButt2Iopin:
+	case platformhwKeyboardsLightIopin:
+	case platformhwEnRxRs232Iopin:
+	case platformhwEnTxRs232Iopin:
+	case platformhwDspResetIopin:
+		//TODO: stm32f2_get_gpio_pin()
+		break;
+	default: configASSERT(0); // no such resource
+	}
 	return (hal_gpio_pin_t){0, 0};
 }
 
 int stm32f2_get_exti_line(int platform_hw_resource) {
 	(void)platform_hw_resource;
+	//TODO: stm32f2_get_exti_line()
 	return -1;
 }
 
 int stm32f2_get_uart_instance(int platform_hw_resource) {
-	(void)platform_hw_resource;
-	__asm volatile("bkpt"); // no resources defined
+	switch (platform_hw_resource) {
+	case platformhwHeadsetUart:
+	case platformhwDspUart:
+	case platformhwAtuUart:
+		//TODO: stm32f2_get_uart_instance()
+		break;
+	default: configASSERT(0); // no such resource
+	}
 	return -1;
 }
 

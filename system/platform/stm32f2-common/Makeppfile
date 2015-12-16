@@ -9,8 +9,8 @@
 makepp_percent_subdirs=1
 include misc/target_build_header.mk
 
-# CMSIS and STM32F2xx peripherals drivers
-DEFINES_system += STM32F2XX USE_STDPERIPH_DRIVER
+# STM32CubeF2 (CMSIS) Configuration
+DEFINES_system += "HSE_STARTUP_TIMEOUT=(0xFFFF)" # required for generated system_stm32f2xx__$(BUILD_PORT).c sources
 
 # FreeRTOS ARM Cortex-M3 port
 SOURCES_system += \

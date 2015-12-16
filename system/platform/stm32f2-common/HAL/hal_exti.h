@@ -56,12 +56,13 @@ typedef enum {
 typedef struct {
 	hal_exti_mode_t mode;
 	void *userid;
-	void (*isrcallbackTrigger)(hal_exti_handle_t handle, void *userid, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+	void (*isrcallbackTrigger)(hal_exti_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 } hal_exti_params_t;
 
 void hal_exti_set_default_params(hal_exti_params_t *params);
 hal_exti_handle_t hal_exti_open(int line, hal_exti_params_t *params);
 void hal_exti_close(hal_exti_handle_t handle);
+void* hal_exti_get_userid(hal_exti_handle_t handle);
 
 #ifdef __cplusplus
 }

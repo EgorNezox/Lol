@@ -57,7 +57,7 @@ bool QmObjectPrivate::deliverEvent(QmEvent *event) {
 
 void QmObjectPrivate::moveToThread(QmThread* thread) {
 	assignOtherThreadRecursively(q_ptr, thread);
-	qobject->moveToThread(thread->d_func()->qthread);
+	qobject->moveToThread(thread->d_func()->qt_adapter);
 }
 
 void QmObjectPrivate::assignOtherThreadRecursively(QmObject *object, QmThread* other_thread) {

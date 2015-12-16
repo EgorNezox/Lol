@@ -20,15 +20,14 @@
   ******************************************************************************
  */
 
-#include "FreeRTOS.h"
-#include "system_stm32f2xx.h"
-#include "cm3_itm_debug.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#include "FreeRTOS.h"
+#include "cm3_itm_debug.h"
 
 #if ( configUSE_NEWLIB_REENTRANT != 1 )
 #error "FreeRTOSConfig.h must define configUSE_NEWLIB_REENTRANT enabled, check version also"
@@ -50,7 +49,7 @@ void *_realloc_r(struct _reent *r, void* ptr, size_t size) {
 	(void)r;
 	(void)ptr;
 	(void)size;
-	__asm volatile("bkpt");
+	configASSERT(0);
 	errno = ENOMEM;
 	return NULL;
 }
@@ -100,7 +99,7 @@ caddr_t _sbrk_r (struct _reent *r, int incr)
 {
 	(void)r;
 	(void)incr;
-	__asm volatile("bkpt");
+	configASSERT(0);
 	errno = ENOMEM;
 	return (caddr_t) -1;
 }

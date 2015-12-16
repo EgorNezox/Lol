@@ -13,59 +13,55 @@
 #include "qmtimer.h"
 #include "qmtimer_p.h"
 
-class CoreTimer : public QTimer
+class QmTimerPrivateAdapter : public QTimer
 {
 public:
-	CoreTimer(QmTimerPrivate *qmprivatetimer) :
-		qmprivatetimer(qmprivatetimer)
+	QmTimerPrivateAdapter(QmTimerPrivate *qmtimerprivate) :
+		qmtimerprivate(qmtimerprivate)
 	{
-		QObject::connect(this, &CoreTimer::timeout, this, &CoreTimer::processTimeout);
+		QObject::connect(this, &QmTimerPrivateAdapter::timeout, this, &QmTimerPrivateAdapter::processTimeout);
 	}
-	~CoreTimer() {}
-	QmTimerPrivate *qmprivatetimer;
+	~QmTimerPrivateAdapter() {}
+	QmTimerPrivate *qmtimerprivate;
 public Q_SLOTS:
 	void processTimeout() {
-		qmprivatetimer->processTimeout();
+		QmTimer * const q = qmtimerprivate->q_func();
+		qmtimerprivate->is_active = !isSingleShot();
+		q->timeout.emit();
 	}
 };
 
 QmTimerPrivate::QmTimerPrivate(QmTimer *q) :
 	QmObjectPrivate(q),
-	qtimer(new CoreTimer(this))
+	is_active(false), interval_value(0), qt_adapter(new QmTimerPrivateAdapter(this))
 {
 }
 
 QmTimerPrivate::~QmTimerPrivate()
 {
-	delete qtimer;
+	delete qt_adapter;
 }
 
 void QmTimerPrivate::init(bool single_shot) {
-	qtimer->setSingleShot(single_shot);
+	qt_adapter->setSingleShot(single_shot);
 }
 
 void QmTimerPrivate::deinit()
 {
 }
 
-void QmTimerPrivate::processTimeout() {
-	QM_Q(QmTimer);
-	q->is_active = !qtimer->isSingleShot();
-	q->timeout.emit();
-}
-
 void QmTimer::start() {
 	QM_D(QmTimer);
 	if (isActive())
 		stop();
-	is_active = true;
-	d->qtimer->start(interval_value);
+	d->is_active = true;
+	d->qt_adapter->start(d->interval_value);
 }
 
 void QmTimer::stop() {
 	QM_D(QmTimer);
-	d->qtimer->stop();
-	is_active = false;
+	d->qt_adapter->stop();
+	d->is_active = false;
 }
 
 void QmTimer::setSingleShot(bool enable) {
