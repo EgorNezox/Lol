@@ -12,9 +12,13 @@
 #include "dialogs.h"
 #include "service.h"
 
-namespace Ui {
 
 MoonsGeometry ui_common_dialog_area={ 0,24,GDISPW-1,GDISPH-1 };
+MoonsGeometry ui_indicator_area={ 0,0,GDISPW-1,23 };
+
+namespace Ui {
+
+
 
 bool Service::single_instance = false; // зависимость от единственного дисплея в системе
 
@@ -22,24 +26,32 @@ Service::Service(matrix_keyboard_t matrixkb_desc, aux_keyboard_t auxkb_desc,
 		Headset::Controller *headset_controller,
 		Multiradio::MainServiceInterface *mr_main_service, Multiradio::VoiceServiceInterface *mr_voice_service,
 		Power::Battery *power_battery) {
-	QM_UNUSED(headset_controller);
-	QM_UNUSED(mr_main_service);
-	QM_UNUSED(power_battery);
+
 	QM_ASSERT(single_instance == false);
 	single_instance = true;
 	//...
+
+	this->matrix_kb=matrixkb_desc;
+	this->aux_kb=auxkb_desc;
+	this->multiradio_service=mr_main_service;
 	this->voice_service=mr_voice_service;
+	this->power_battery=power_battery;
+	this->headset_controller=headset_controller;
+
 	ginit();
-	matrix_kb=matrixkb_desc;
 	keyboard= new QmMatrixKeyboard(matrix_kb.resource);
 	keyboard->keyAction.connect(sigc::mem_fun(this, &Service::keyHandler));
-	aux_kb=auxkb_desc;
 	chnext_bt = new QmPushButtonKey(aux_kb.key_iopin_resource[auxkbkeyChNext]);
 	chprev_bt = new QmPushButtonKey(aux_kb.key_iopin_resource[auxkbkeyChPrev]);
 	chnext_bt->stateChanged.connect(sigc::mem_fun(this, &Service::chNextHandler));
 	chprev_bt->stateChanged.connect(sigc::mem_fun(this, &Service::chPrevHandler));
 	main_scr=new GUI_Dialog_MainScr(&ui_common_dialog_area, this);
 	main_scr->Draw();
+	indicator=new GUI_Indicator(&ui_indicator_area,this);
+	indicator->Draw();
+	//this->headset_controller->statusChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateHeadset));
+	//this->multiradio_service->statusChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateMultiradio));
+	//this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateBattery));
 }
 
 Service::~Service() {
@@ -109,8 +121,20 @@ void Service::keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type){
 	}
 }
 
+Headset::Controller * Service::pGetHeadsetController(){
+	return headset_controller;
+}
+
 Multiradio::VoiceServiceInterface* Service::pGetVoiceService(){
 	return voice_service;
+}
+
+Multiradio::MainServiceInterface* Service::pGetMultitradioService(){
+	return multiradio_service;
+}
+
+Power::Battery * Service::pGetPowerBattery(){
+	return power_battery;
 }
 
 void Service::chNextHandler(){

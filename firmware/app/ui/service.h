@@ -16,9 +16,13 @@
 #include "keyboard.h"
 #include "ui_keys.h"
 #include "../mrd/voiceserviceinterface.h"
+#include "../mrd/mainserviceinterface.h"
+#include "../headset/controller.h"
+#include "../power/battery.h"
 
 /*FORWARD DECLARATIONS*/
 class GUI_Dialog_MainScr;
+class GUI_Indicator;
 
 namespace Headset {
     class Controller;
@@ -48,16 +52,23 @@ public:
 	void setNotification(NotificationType type);
 
 	void keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type);
+	Headset::Controller *pGetHeadsetController();
+	Multiradio::MainServiceInterface* pGetMultitradioService();
 	Multiradio::VoiceServiceInterface* pGetVoiceService();
+	Power::Battery * pGetPowerBattery();
 private:
-	Multiradio::VoiceServiceInterface *voice_service;
 	matrix_keyboard_t matrix_kb;
-	QmMatrixKeyboard *keyboard;
 	aux_keyboard_t aux_kb;
+	Headset::Controller *headset_controller;
+	Multiradio::MainServiceInterface *multiradio_service;
+	Multiradio::VoiceServiceInterface *voice_service;
+	Power::Battery *power_battery;
+	QmMatrixKeyboard *keyboard;
 	QmPushButtonKey *chnext_bt;
 	QmPushButtonKey *chprev_bt;
 	static bool single_instance;
 	GUI_Dialog_MainScr *main_scr;
+	GUI_Indicator *indicator;
 	void chNextHandler();
 	void chPrevHandler();
 	void keyPressed(UI_Key key);

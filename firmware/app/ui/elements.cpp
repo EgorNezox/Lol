@@ -319,7 +319,7 @@ void GUI_EL_Icon::Draw(){
 #define BATTERY_W	14
 #define BATTERY_H	22
 
-GUI_EL_Battery::GUI_EL_Battery(ElementParams *params, uint8_t charge, MoonsGeometry *geom, GUI_Obj *parent_obj):GUI_Element(geom, &params->align, &params->margins, parent_obj){
+GUI_EL_Battery::GUI_EL_Battery(ElementParams *params, int charge, MoonsGeometry *geom, GUI_Obj *parent_obj):GUI_Element(geom, &params->align, &params->margins, parent_obj){
 	this->charge=charge;
 	PrepareContent();
 }

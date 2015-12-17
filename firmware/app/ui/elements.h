@@ -116,9 +116,9 @@ class GUI_EL_Icon: public GUI_Element{
 /*!Класс элемента индикатор баттареи*/
 class GUI_EL_Battery: public GUI_Element{
 	public:
-		uint8_t charge;	//заряд в процентах
+		int charge;	//заряд в процентах
 		void Draw();
-		GUI_EL_Battery(ElementParams *params, uint8_t charge, MoonsGeometry *geom, GUI_Obj *parent_obj);
+		GUI_EL_Battery(ElementParams *params, int charge, MoonsGeometry *geom, GUI_Obj *parent_obj);
 	protected:
 		void CalcContentGeom();
 };

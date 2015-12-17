@@ -19,6 +19,9 @@
 
 #define LANG_COUNT 2
 
+extern MoonsGeometry ui_common_dialog_area;
+extern MoonsGeometry ui_indicator_area;
+
 //--------------------------
 
 /*! ласс диалога главного рабочего экрана*/
@@ -39,6 +42,24 @@ class GUI_Dialog_MainScr: public GUI_Obj{
 };
 
 //--------------------------
+
+
+/*!Класса панели индикаторов: отображает статусную информацию в верхней части экрана.
+ * Объект этого класса создается глобально в единственном экземпляре. Работа с ним осуществляется напрямую*/
+class GUI_Indicator: public GUI_Obj{
+	public:
+		GUI_Indicator(MoonsGeometry *area, Ui::Service *service);
+		void UpdateMultiradio(Multiradio::MainServiceInterface::Status status);
+		void UpdateHeadset(Headset::Controller::Status status);
+		void UpdateBattery(int new_val);
+		virtual void Draw();
+	private:
+		Ui::Service *service;
+		GUI_EL_Icon *ind_multiradio;
+		GUI_EL_Icon *ind_headset;
+		GUI_EL_Battery *ind_battery;
+
+};
 
 
 #endif /* DIALOGS_H_ */
