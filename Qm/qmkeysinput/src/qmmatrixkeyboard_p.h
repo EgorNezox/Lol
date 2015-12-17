@@ -71,8 +71,9 @@ private:
 	void noPressesHandler(keyboard_state_t prev_keyboard_state);
 	void singlePressHandler(keyboard_state_t prev_keyboard_state);
 	void doublePressHandler(keyboard_state_t prev_keyboard_state);
-	void keyPressed(uint8_t key_code);
-	void keyReleased(int key_number, uint8_t key_code);
+	void doublePress();
+	void keyPressed(int number, uint8_t code);
+	void keyReleased(int number, uint8_t code);
 	void pressTimerStart(int number);
 	void pressTimerStop(int number);
 
