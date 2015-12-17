@@ -194,8 +194,6 @@ void QmMatrixKeyboardPrivate::noPressesHandler(keyboard_state_t prev_keyboard_st
 		keyReleased(1, prevKeysPressed[1]);
 		break;
 	}
-	prevKeysPressed[0] = -1;
-	prevKeysPressed[1] = -1;
 }
 
 void QmMatrixKeyboardPrivate::singlePressHandler(keyboard_state_t prev_keyboard_state) {
@@ -207,7 +205,6 @@ void QmMatrixKeyboardPrivate::singlePressHandler(keyboard_state_t prev_keyboard_
 		keyReleased(0, prevKeysPressed[0]);
 //		break;
 	case no_presses:
-		//1P
 		curKeysPressedSequence[0] = curKeysPressed[0];
 		keyPressed(0, curKeysPressed[0]);
 		break;
@@ -218,7 +215,6 @@ void QmMatrixKeyboardPrivate::singlePressHandler(keyboard_state_t prev_keyboard_
 		} else if (prevKeysPressed[1] == curKeysPressed[0]) {
 			releasedKeyCode = prevKeysPressed[0];
 		} else {
-			//1XP
 			keyReleased(0, prevKeysPressed[0]);
 			keyReleased(1, prevKeysPressed[1]);
 			curKeysPressedSequence[0] = curKeysPressed[0];
@@ -231,7 +227,6 @@ void QmMatrixKeyboardPrivate::singlePressHandler(keyboard_state_t prev_keyboard_
 		} else {
 			releasedKeyNumber = 1;
 		}
-		//1P
 		keyReleased(releasedKeyNumber, releasedKeyCode);
 		if (releasedKeyNumber == 0 && keyPressedLong[1]) {
 			keyPressedLong[0] = true;
@@ -246,7 +241,6 @@ void QmMatrixKeyboardPrivate::singlePressHandler(keyboard_state_t prev_keyboard_
 void QmMatrixKeyboardPrivate::doublePressHandler(keyboard_state_t prev_keyboard_state) {
 	switch (prev_keyboard_state) {
 	case no_presses:
-		//1P 2P
 		doublePress();
 		break;
 	case single_press:
@@ -255,9 +249,8 @@ void QmMatrixKeyboardPrivate::doublePressHandler(keyboard_state_t prev_keyboard_
 			keyPressed(1, curKeysPressed[1]);
 		} else if (prevKeysPressed[0] == curKeysPressed[1]) {
 			curKeysPressedSequence[1] = curKeysPressed[0];
-			keyPressed(0, curKeysPressed[0]);
+			keyPressed(1, curKeysPressed[0]);
 		} else {
-			//1XP 2P
 			keyReleased(0, prevKeysPressed[0]);
 			doublePress();
 			break;
@@ -267,18 +260,15 @@ void QmMatrixKeyboardPrivate::doublePressHandler(keyboard_state_t prev_keyboard_
 		if (prevKeysPressed[0] == curKeysPressed[0] && prevKeysPressed[1] == curKeysPressed[1]) {
 			break;
 		} else if (prevKeysPressed[0] != curKeysPressed[0] && prevKeysPressed[1] != curKeysPressed[1]) {
-			//1XP 2XP
 			keyReleased(0, prevKeysPressed[0]);
 			keyReleased(1, prevKeysPressed[1]);
 			doublePress();
 		} else if (prevKeysPressed[0] != curKeysPressed[0] && prevKeysPressed[1] == curKeysPressed[1]) {
-			//1XP 2P
 			keyReleased(0, prevKeysPressed[0]);
 			curKeysPressedSequence[0] = curKeysPressedSequence[1];
 			curKeysPressedSequence[1] = curKeysPressed[0];
 			keyPressed(0, curKeysPressed[0]);
 		} else if (prevKeysPressed[0] == curKeysPressed[0] && prevKeysPressed[1] != curKeysPressed[1]) {
-			//1P 2XP
 			keyReleased(1, prevKeysPressed[1]);
 			curKeysPressedSequence[1] = curKeysPressed[1];
 			keyPressed(1, curKeysPressed[1]);
