@@ -11,9 +11,10 @@
 #include "qmdebug.h"
 #include "dialogs.h"
 #include "service.h"
-
+#include "texts.h"
 
 MoonsGeometry ui_common_dialog_area={ 0,24,GDISPW-1,GDISPH-1 };
+MoonsGeometry ui_msg_box_area={ 20,29,GDISPW-21,GDISPH-21 };
 MoonsGeometry ui_indicator_area={ 0,0,GDISPW-1,23 };
 
 namespace Ui {
@@ -30,6 +31,8 @@ Service::Service(matrix_keyboard_t matrixkb_desc, aux_keyboard_t auxkb_desc,
 	QM_ASSERT(single_instance == false);
 	single_instance = true;
 	//...
+	notify_dialog=false;
+	msg_box=NULL;
 
 	this->matrix_kb=matrixkb_desc;
 	this->aux_kb=auxkb_desc;
@@ -49,9 +52,9 @@ Service::Service(matrix_keyboard_t matrixkb_desc, aux_keyboard_t auxkb_desc,
 	main_scr->Draw();
 	indicator=new GUI_Indicator(&ui_indicator_area,this);
 	indicator->Draw();
-	//this->headset_controller->statusChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateHeadset));	//todo uncomment
-	//this->multiradio_service->statusChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateMultiradio));
-	//this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateBattery));
+	this->headset_controller->statusChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateHeadset));
+	this->multiradio_service->statusChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateMultiradio));
+	this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateBattery));
 }
 
 Service::~Service() {
@@ -61,8 +64,19 @@ Service::~Service() {
 }
 
 void Service::setNotification(NotificationType type) {
-	QM_UNUSED(type);
-	//...
+	Alignment align={alignHCenter,alignTop};
+	switch(type){
+		case NotificationMissingVoiceChannelsTable:
+			if(msg_box==NULL){
+				notify_dialog=true;
+				msg_box=new GUI_Dialog_MsgBox(&ui_msg_box_area,missing_ch_txt[getLanguage()],align,this);
+				msg_box->Draw();
+			}
+			break;
+		default:
+			QM_ASSERT(0);
+			break;
+	}
 }
 
 
@@ -151,7 +165,22 @@ void Service::chPrevHandler(){
 
 
 void Service::keyPressed(UI_Key key){
-	main_scr->keyHandler(key);
+	if(notify_dialog){
+
+	}
+	else{
+		main_scr->keyHandler(key);
+	}
+}
+
+int Service::getLanguage(){
+	return 0;
+}
+
+void Service::clearNotification(){
+	msg_box=NULL;
+	notify_dialog=false;
+	main_scr->Draw();
 }
 
 } /* namespace Ui */

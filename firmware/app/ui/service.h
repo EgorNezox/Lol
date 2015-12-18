@@ -23,6 +23,7 @@
 /*FORWARD DECLARATIONS*/
 class GUI_Dialog_MainScr;
 class GUI_Indicator;
+class GUI_Dialog_MsgBox;
 
 namespace Headset {
     class Controller;
@@ -56,6 +57,8 @@ public:
 	Multiradio::MainServiceInterface* pGetMultitradioService();
 	Multiradio::VoiceServiceInterface* pGetVoiceService();
 	Power::Battery * pGetPowerBattery();
+	int getLanguage();
+	void clearNotification();
 private:
 	matrix_keyboard_t matrix_kb;
 	aux_keyboard_t aux_kb;
@@ -69,9 +72,11 @@ private:
 	static bool single_instance;
 	GUI_Dialog_MainScr *main_scr;
 	GUI_Indicator *indicator;
+	GUI_Dialog_MsgBox *msg_box;
 	void chNextHandler();
 	void chPrevHandler();
 	void keyPressed(UI_Key key);
+	bool notify_dialog;
 };
 
 } /* namespace Ui */

@@ -17,8 +17,6 @@
 #include "elements.h"
 #include "keyboard.h"
 
-#define LANG_COUNT 2
-
 extern MoonsGeometry ui_common_dialog_area;
 extern MoonsGeometry ui_indicator_area;
 
@@ -58,7 +56,24 @@ class GUI_Indicator: public GUI_Obj{
 		GUI_EL_Icon *ind_multiradio;
 		GUI_EL_Icon *ind_headset;
 		GUI_EL_Battery *ind_battery;
+};
 
+
+/*!Класс диалога вывода сообщения*/
+class GUI_Dialog_MsgBox: public GUI_Obj{
+	public:
+		GUI_Dialog_MsgBox(MoonsGeometry* area, char *text, Alignment align, Ui::Service *service);
+		~GUI_Dialog_MsgBox();
+		virtual void Draw();
+		void keyHandler(UI_Key key);
+	protected:
+		MoonsGeometry window_geom;
+		TextAreaParams text_area_params;
+		char *text;
+	private:
+		Ui::Service *service;
+		MoonsGeometry text_area_geom;
+		MoonsGeometry button_geom;
 };
 
 
