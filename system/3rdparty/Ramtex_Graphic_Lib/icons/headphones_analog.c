@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file     headphones.c
   * @author  Egor, PMR dept. software team, ONIIP, PJSC
-  * @date    10 окт. 2013 г.
+  * @date    10 пїЅпїЅпїЅ. 2013 пїЅ.
   * @brief   
   *
   ******************************************************************************
@@ -17,12 +17,12 @@ static struct
 {
 	GCSYMHEAD sh;
 	SGUCHAR b[2*24*24];
-} GCODE headphones[1] =
+} GCODE headphones_analog[1] =
 {
-	#include "headphones.sym"
+	#include "headphones_analog.sym"
 };
 
-PGSYMBOL sym_headphones = (PGSYMBOL)headphones;
+PGSYMBOL sym_headphones_analog = (PGSYMBOL)headphones_analog;
 
 //-----------------------------
 

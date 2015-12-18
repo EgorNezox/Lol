@@ -75,11 +75,13 @@ void GUI_Indicator::UpdateBattery(int new_val){
 void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
 	switch(status){
 		case Headset::Controller::StatusNone:
-			ind_headset->icon=sym_blank;
+			ind_headset->icon=sym_headphones_none;
 			break;
 		case Headset::Controller::StatusAnalog:
+			ind_headset->icon=sym_headphones_analog;
+			break;
 		case Headset::Controller::StatusSmartOk:
-			ind_headset->icon=sym_headphones;
+			ind_headset->icon=sym_headphones_smart;
 			break;
 		case Headset::Controller::StatusSmartMalfunction:
 			ind_headset->icon=sym_headphones_broken;
