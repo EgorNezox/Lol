@@ -11,8 +11,6 @@
 #ifndef QMMATRIXKEYBOARD_P_H_
 #define QMMATRIXKEYBOARD_P_H_
 
-#include "../../system/platform/platform_hw_map.h"
-
 #include "qmtimer.h"
 #include "../../qmcore/src/qmobject_p.h"
 #include "qmmatrixkeyboard.h"

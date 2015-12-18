@@ -19,6 +19,14 @@ QmMatrixKeyboardPrivate::~QmMatrixKeyboardPrivate()
 {
 }
 
+void QmMatrixKeyboardPrivate::init()
+{
+}
+
+void QmMatrixKeyboardPrivate::deinit()
+{
+}
+
 bool QmMatrixKeyboard::event(QmEvent* event) {
 	return QmObject::event(event);
 }
