@@ -43,7 +43,7 @@ contains(QM_BUILD_MODULES,hardwareio) {
 }
 
 contains(QM_BUILD_MODULES,keysinput) {
-    DEFINES += QMKEYSINPUT_PLATFORM_QT    
+    DEFINES += QMKEYSINPUT_PLATFORM_QT
     SOURCES += \
         $$PWD/qmkeysinput/src/qmpushbuttonkey.cpp \
         $$PWD/qmkeysinput/src/qmpushbuttonkey_qt.cpp \

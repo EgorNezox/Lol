@@ -21,13 +21,16 @@ SOURCES += \
     $$wildcardSources(app/mrd, *.cpp) \
     $$wildcardSources(app/power, *.cpp) \
     $$wildcardSources(app/ui, *.cpp)
+
+#!!! Временный хак для реализации прямого доступа к Ramtex из модуля UI
+#!!! Убрать, когда модуль будет переработан на использование средств Qm
 INCLUDEPATH += \
-            app \
-            ../system/3rdparty/Ramtex_Graphic_Lib/inc \
-            ../system/3rdparty/Ramtex_Graphic_Lib/fonts \            
-            ../system/3rdparty/Ramtex_Graphic_Lib/icons \
-            ../system/platform/pc-simulator/port_ramtex_s6d0129_cfg_qt5seps525widget/ccfg0129 \
-            ../system/platform/pc-simulator/port_ramtex_s6d0129_cfg_qt5seps525widget/cfgio \
-            ../system/platform/pc-simulator/port_ramtex_s6d0129_cfg_qt5seps525widget/qt
+    app \
+    ../system/3rdparty/Ramtex_Graphic_Lib/inc \
+    ../system/3rdparty/Ramtex_Graphic_Lib/fonts \
+    ../system/3rdparty/Ramtex_Graphic_Lib/icons \
+    ../system/platform/pc-simulator/port_ramtex_s6d0129_cfg_qt5seps525widget/ccfg0129 \
+    ../system/platform/pc-simulator/port_ramtex_s6d0129_cfg_qt5seps525widget/cfgio \
+    ../system/platform/pc-simulator/port_ramtex_s6d0129_cfg_qt5seps525widget/qt
 
 DEFINES += PORT__PCSIMULATOR
