@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file     all_sym_indicators.h
   * @author  Egor, PMR dept. software team, ONIIP, PJSC
-  * @date    11 окт. 2013 г.
+  * @date    11 пїЅпїЅпїЅ. 2013 пїЅ.
   * @brief   
   *
   ******************************************************************************
@@ -25,6 +25,7 @@
 #include "sym_dsc_listn.h"
 #include "sym_gps_lock.h"
 #include "sym_headphones.h"
+#include "sym_headphines_broken.h"
 #include "sym_headset_12.h"
 #include "sym_new_msg.h"
 #include "sym_paired_mark_12.h"

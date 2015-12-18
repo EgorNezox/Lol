@@ -49,7 +49,7 @@ Service::Service(matrix_keyboard_t matrixkb_desc, aux_keyboard_t auxkb_desc,
 	main_scr->Draw();
 	indicator=new GUI_Indicator(&ui_indicator_area,this);
 	indicator->Draw();
-	//this->headset_controller->statusChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateHeadset));
+	//this->headset_controller->statusChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateHeadset));	//todo uncomment
 	//this->multiradio_service->statusChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateMultiradio));
 	//this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(indicator,&GUI_Indicator::UpdateBattery));
 }

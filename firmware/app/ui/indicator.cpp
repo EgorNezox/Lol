@@ -82,7 +82,7 @@ void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
 			ind_headset->icon=sym_headphones;
 			break;
 		case Headset::Controller::StatusSmartMalfunction:
-			//ind_headset->icon=sym_headphones_broken;
+			ind_headset->icon=sym_headphones_broken;
 			break;
 		default:
 			QM_ASSERT(0);
