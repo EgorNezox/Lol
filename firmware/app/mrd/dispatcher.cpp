@@ -10,6 +10,8 @@
 #include "qm.h"
 
 #include "dispatcher.h"
+#include "mainserviceinterface.h"
+#include "voiceserviceinterface.h"
 
 namespace Multiradio {
 
@@ -33,13 +35,13 @@ void Dispatcher::startServicing(
 }
 
 MainServiceInterface* Dispatcher::getMainServiceInterface() {
-	//...
-	return 0;
+	MainServiceInterface *p=new MainServiceInterface();
+	return p;
 }
 
 VoiceServiceInterface* Dispatcher::getVoiceServiceInterface() {
-	//...
-	return 0;
+	VoiceServiceInterface *p=new VoiceServiceInterface();
+	return p;
 }
 
 } /* namespace Multiradio */

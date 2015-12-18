@@ -10,7 +10,20 @@
 #ifndef FIRMWARE_APP_UI_SERVICE_H_
 #define FIRMWARE_APP_UI_SERVICE_H_
 
+
+#include "qmmatrixkeyboard.h"
+#include "qmpushbuttonkey.h"
 #include "keyboard.h"
+#include "ui_keys.h"
+#include "../mrd/voiceserviceinterface.h"
+#include "../mrd/mainserviceinterface.h"
+#include "../headset/controller.h"
+#include "../power/battery.h"
+
+/*FORWARD DECLARATIONS*/
+class GUI_Dialog_MainScr;
+class GUI_Indicator;
+class GUI_Dialog_MsgBox;
 
 namespace Headset {
     class Controller;
@@ -29,7 +42,8 @@ enum NotificationType {
 	NotificationMissingVoiceChannelsTable
 };
 
-class Service {
+
+class Service : public sigc::trackable {
 public:
 	Service(matrix_keyboard_t matrixkb_desc, aux_keyboard_t auxkb_desc,
 			Headset::Controller *headset_controller,
@@ -38,8 +52,31 @@ public:
 	~Service();
 	void setNotification(NotificationType type);
 
+	void keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type);
+	Headset::Controller *pGetHeadsetController();
+	Multiradio::MainServiceInterface* pGetMultitradioService();
+	Multiradio::VoiceServiceInterface* pGetVoiceService();
+	Power::Battery * pGetPowerBattery();
+	int getLanguage();
+	void clearNotification();
 private:
+	matrix_keyboard_t matrix_kb;
+	aux_keyboard_t aux_kb;
+	Headset::Controller *headset_controller;
+	Multiradio::MainServiceInterface *multiradio_service;
+	Multiradio::VoiceServiceInterface *voice_service;
+	Power::Battery *power_battery;
+	QmMatrixKeyboard *keyboard;
+	QmPushButtonKey *chnext_bt;
+	QmPushButtonKey *chprev_bt;
 	static bool single_instance;
+	GUI_Dialog_MainScr *main_scr;
+	GUI_Indicator *indicator;
+	GUI_Dialog_MsgBox *msg_box;
+	void chNextHandler();
+	void chPrevHandler();
+	void keyPressed(UI_Key key);
+	bool notify_dialog;
 };
 
 } /* namespace Ui */

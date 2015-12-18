@@ -29,7 +29,7 @@ Battery::Status Battery::getStatus() {
 
 int Battery::getChargeLevel() {
 	//...
-	return -1;
+	return 0;
 }
 
 } /* namespace Power */
