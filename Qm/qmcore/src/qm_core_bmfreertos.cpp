@@ -71,11 +71,12 @@ void QmSystemEvent::checkAndPostToQueue() {
 	if (qm_sys_queue_bottom) {
 		QM_ASSERT(qm_sys_queue_top != 0);
 		previous = qm_sys_queue_bottom;
+		qm_sys_queue_bottom->next = this;
 		qm_sys_queue_bottom = this;
 	} else {
 		QM_ASSERT(qm_sys_queue_top == 0);
 		qm_sys_queue_bottom = this;
-		qm_sys_queue_top = qm_sys_queue_bottom;
+		qm_sys_queue_top = this;
 	}
 	pending = true;
 }
@@ -85,7 +86,6 @@ void QmSystemEvent::removeFromQueue() {
 	if (previous) {
 		QM_ASSERT(qm_sys_queue_top != 0);
 		previous->next = next;
-		previous = 0;
 	} else {
 		QM_ASSERT(qm_sys_queue_top == this);
 		qm_sys_queue_top = next;
@@ -93,11 +93,12 @@ void QmSystemEvent::removeFromQueue() {
 	if (next) {
 		QM_ASSERT(qm_sys_queue_bottom != 0);
 		next->previous = previous;
-		next = 0;
 	} else {
 		QM_ASSERT(qm_sys_queue_bottom == this);
 		qm_sys_queue_bottom = previous;
 	}
+	previous = 0;
+	next = 0;
 	pending = false;
 }
 
