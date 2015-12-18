@@ -14,7 +14,7 @@
 #include "texts.h"
 
 MoonsGeometry ui_common_dialog_area={ 0,24,GDISPW-1,GDISPH-1 };
-MoonsGeometry ui_msg_box_area={ 20,29,GDISPW-21,GDISPH-21 };
+MoonsGeometry ui_msg_box_area={ 20,29,GDISPW-21,GDISPH-11 };
 MoonsGeometry ui_indicator_area={ 0,0,GDISPW-1,23 };
 
 namespace Ui {
@@ -64,14 +64,15 @@ Service::~Service() {
 }
 
 void Service::setNotification(NotificationType type) {
-	Alignment align={alignHCenter,alignTop};
 	switch(type){
 		case NotificationMissingVoiceChannelsTable:
-			if(msg_box==NULL){
-				notify_dialog=true;
-				msg_box=new GUI_Dialog_MsgBox(&ui_msg_box_area,missing_ch_txt[getLanguage()],align,this);
-				msg_box->Draw();
-			}
+			msgBox(missing_ch_table_txt[getLanguage()]);
+			break;
+		case NotificationMissingOpenVoiceChannels:
+			msgBox(missing_open_ch_txt[getLanguage()]);
+			break;
+		case NotificationMismatchVoiceChannelsTable:
+			msgBox(ch_table_mismatch_txt[getLanguage()]);
 			break;
 		default:
 			QM_ASSERT(0);
@@ -175,6 +176,15 @@ void Service::keyPressed(UI_Key key){
 
 int Service::getLanguage(){
 	return 0;
+}
+
+void Service::msgBox(char *text){
+	Alignment align={alignHCenter,alignTop};
+	if(msg_box==NULL){
+		notify_dialog=true;
+		msg_box=new GUI_Dialog_MsgBox(&ui_msg_box_area,text,align,this);
+		msg_box->Draw();
+	}
 }
 
 void Service::clearNotification(){

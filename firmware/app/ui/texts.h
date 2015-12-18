@@ -19,6 +19,8 @@ extern char ch_closed_letter;
 extern char ch_invalid_letter;
 
 extern char * ok_texts[LANG_COUNT];
-extern char * missing_ch_txt[LANG_COUNT];
+extern char * missing_ch_table_txt[LANG_COUNT];
+extern char * missing_open_ch_txt[LANG_COUNT];
+extern char * ch_table_mismatch_txt[LANG_COUNT];
 
 #endif /* TEXTS_H_ */

@@ -17,4 +17,6 @@ char ch_invalid_letter='!';
 
 
 char * ok_texts[LANG_COUNT]={(char *)"ќк"};
-char * missing_ch_txt[LANG_COUNT]={(char *)"ќтсутствует таблица речевых каналов"};
+char * missing_ch_table_txt[LANG_COUNT]={(char *)"ќтсутствует таблица речевых каналов"};
+char * missing_open_ch_txt[LANG_COUNT]={(char *)"ќтсутствуют открытые речевые каналы"};
+char * ch_table_mismatch_txt[LANG_COUNT]={(char *)"Ќесоответствие таблицы речевых каналов списку каналов гарнитуры"};

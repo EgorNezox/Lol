@@ -11,6 +11,7 @@
 #include "dialogs.h"
 #include "all_sym_indicators.h"
 #include "qmdebug.h"
+#include "../headset/controller.h"
 
 //----------DEFINES------------
 
@@ -73,15 +74,27 @@ void GUI_Indicator::UpdateBattery(int new_val){
 //-----------------------------
 
 void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
+	bool open_ch_missing;
+	Headset::Controller::SmartStatusDescription smart_status;
 	switch(status){
 		case Headset::Controller::StatusNone:
 			ind_headset->icon=sym_headphones_none;
 			break;
 		case Headset::Controller::StatusAnalog:
 			ind_headset->icon=sym_headphones_analog;
+			if(service->pGetHeadsetController()->getAnalogStatus(open_ch_missing)){
+				if(open_ch_missing){
+					service->setNotification(Ui::NotificationMissingOpenVoiceChannels);
+				}
+			}
 			break;
 		case Headset::Controller::StatusSmartOk:
 			ind_headset->icon=sym_headphones_smart;
+			if(service->pGetHeadsetController()->getSmartStatus(smart_status)){
+				if(smart_status.channels_mismatch){
+					service->setNotification(Ui::NotificationMismatchVoiceChannelsTable);
+				}
+			}
 			break;
 		case Headset::Controller::StatusSmartMalfunction:
 			ind_headset->icon=sym_headphones_broken;

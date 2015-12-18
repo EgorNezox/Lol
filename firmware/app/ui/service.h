@@ -39,7 +39,9 @@ namespace Power {
 namespace Ui {
 
 enum NotificationType {
-	NotificationMissingVoiceChannelsTable
+	NotificationMissingVoiceChannelsTable,
+	NotificationMissingOpenVoiceChannels,
+	NotificationMismatchVoiceChannelsTable
 };
 
 
@@ -51,7 +53,7 @@ public:
 			Power::Battery *power_battery);
 	~Service();
 	void setNotification(NotificationType type);
-
+	void headsetStatusChanged();
 	void keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type);
 	Headset::Controller *pGetHeadsetController();
 	Multiradio::MainServiceInterface* pGetMultitradioService();
@@ -60,6 +62,7 @@ public:
 	int getLanguage();
 	void clearNotification();
 private:
+	void msgBox(char *text);
 	matrix_keyboard_t matrix_kb;
 	aux_keyboard_t aux_kb;
 	Headset::Controller *headset_controller;
