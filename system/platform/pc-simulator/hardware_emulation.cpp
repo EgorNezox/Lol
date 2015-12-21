@@ -45,6 +45,7 @@ void init() {
 	main_widget = new MainWidget();
 	main_widget->show();
 	IopinInterface::createInstance(platformhwHeadsetPttIopin); // TODO: emulate HeadsetPttIopin
+    IopinInterface::createInstance(platformhwMatrixKeyboard);
 	IopinInterface::createInstance(platformhwKeyboardButt1Iopin); // TODO: emulate KeyboardButt1Iopin
 	IopinInterface::createInstance(platformhwKeyboardButt2Iopin); // TODO: emulate KeyboardButt2Iopin
 	IopinInterface::createInstance(platformhwKeyboardsLightIopin); // TODO: emulate KeyboardsLightIopin

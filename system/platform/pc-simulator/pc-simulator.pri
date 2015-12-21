@@ -23,7 +23,9 @@ HEADERS += \
     $$PWD/port_hardwareio/uartconsolewidget.h \
     $$PWD/port_keysinput/pushbuttonkey.h \
     $$PWD/port_keysinput/pushbuttonkeyinterface.h \
-    $$PWD/port_ramtex_s6d0129_cfg_qt5seps525widget/qt/ramtexdisplaywidget.h
+    $$PWD/port_ramtex_s6d0129_cfg_qt5seps525widget/qt/ramtexdisplaywidget.h \
+    $$PWD/port_keysinput/matrixkeyboardwidget.h \
+    $$PWD/port_keysinput/matrixkeyboardinterface.h
 SOURCES += \
     $$PWD/hardware_emulation.cpp \
     $$PWD/mainwidget.cpp \
@@ -35,4 +37,5 @@ SOURCES += \
     $$PWD/port_ramtex_s6d0129_cfg_qt5seps525widget/qt/ramtexdisplaywidget.cpp
 FORMS += \
     $$PWD/mainwidget.ui \
-    $$PWD/port_hardwareio/uartconsolewidget.ui
+    $$PWD/port_hardwareio/uartconsolewidget.ui \
+    $$PWD/port_keysinput/matrixkeyboardwidget.ui
