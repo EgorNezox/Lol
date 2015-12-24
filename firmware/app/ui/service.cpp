@@ -42,6 +42,7 @@ Service::Service(matrix_keyboard_t matrixkb_desc, aux_keyboard_t auxkb_desc,
 	this->headset_controller=headset_controller;
 
 	ginit();
+	voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
 	keyboard= new QmMatrixKeyboard(matrix_kb.resource);
 	keyboard->keyAction.connect(sigc::mem_fun(this, &Service::keyHandler));
 	chnext_bt = new QmPushButtonKey(aux_kb.key_iopin_resource[auxkbkeyChNext]);
@@ -164,10 +165,15 @@ void Service::chPrevHandler(){
 	}
 }
 
+void Service::voiceChannelChanged(){
+	if(!notify_dialog){
+		main_scr->Draw();
+	}
+}
 
 void Service::keyPressed(UI_Key key){
 	if(notify_dialog){
-
+		msg_box->keyHandler(key);
 	}
 	else{
 		main_scr->keyHandler(key);

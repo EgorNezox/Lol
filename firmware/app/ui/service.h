@@ -53,14 +53,6 @@ public:
 			Power::Battery *power_battery);
 	~Service();
 	void setNotification(NotificationType type);
-	void headsetStatusChanged();
-	void keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type);
-	Headset::Controller *pGetHeadsetController();
-	Multiradio::MainServiceInterface* pGetMultitradioService();
-	Multiradio::VoiceServiceInterface* pGetVoiceService();
-	Power::Battery * pGetPowerBattery();
-	int getLanguage();
-	void clearNotification();
 private:
 	void msgBox(char *text);
 	matrix_keyboard_t matrix_kb;
@@ -76,10 +68,21 @@ private:
 	GUI_Dialog_MainScr *main_scr;
 	GUI_Indicator *indicator;
 	GUI_Dialog_MsgBox *msg_box;
+	void voiceChannelChanged();
 	void chNextHandler();
 	void chPrevHandler();
 	void keyPressed(UI_Key key);
+	void keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type);
+	Headset::Controller *pGetHeadsetController();
+	Multiradio::MainServiceInterface* pGetMultitradioService();
+	Multiradio::VoiceServiceInterface* pGetVoiceService();
+	Power::Battery * pGetPowerBattery();
+	int getLanguage();
+	void clearNotification();
 	bool notify_dialog;
+	friend GUI_Indicator;
+	friend GUI_Dialog_MainScr;
+	friend GUI_Dialog_MsgBox;
 };
 
 } /* namespace Ui */

@@ -26,7 +26,7 @@ extern MoonsGeometry ui_indicator_area;
 class GUI_Dialog_MainScr: public GUI_Obj{
 	public:
 		GUI_Dialog_MainScr(MoonsGeometry *area, Ui::Service *service);
-		~GUI_Dialog_MainScr();
+		virtual ~GUI_Dialog_MainScr();
 		virtual void Draw();
 		void keyHandler(UI_Key key);
 	private:
@@ -47,6 +47,7 @@ class GUI_Dialog_MainScr: public GUI_Obj{
 class GUI_Indicator: public GUI_Obj{
 	public:
 		GUI_Indicator(MoonsGeometry *area, Ui::Service *service);
+		virtual ~GUI_Indicator();
 		void UpdateMultiradio(Multiradio::MainServiceInterface::Status status);
 		void UpdateHeadset(Headset::Controller::Status status);
 		void UpdateBattery(int new_val);
@@ -63,7 +64,7 @@ class GUI_Indicator: public GUI_Obj{
 class GUI_Dialog_MsgBox: public GUI_Obj{
 	public:
 		GUI_Dialog_MsgBox(MoonsGeometry* area, char *text, Alignment align, Ui::Service *service);
-		~GUI_Dialog_MsgBox();
+		virtual ~GUI_Dialog_MsgBox();
 		virtual void Draw();
 		void keyHandler(UI_Key key);
 	protected:
