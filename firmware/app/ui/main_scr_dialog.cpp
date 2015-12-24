@@ -117,11 +117,9 @@ void GUI_Dialog_MainScr::keyHandler(UI_Key key){
 	switch(key){
 		case keyChNext:
 			service->pGetVoiceService()->tuneNextChannel();
-			this->Draw();
 			break;
 		case keyChPrev:
 			service->pGetVoiceService()->tunePreviousChannel();
-			this->Draw();
 			break;
 		default:
 			QM_ASSERT(0);

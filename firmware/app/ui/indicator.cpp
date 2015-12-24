@@ -41,6 +41,11 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area, Ui::Service *service):GUI_Obj(
 	ind_battery=new GUI_EL_Battery(&GUI_EL_TEMP_BatteryIndicator, service->pGetPowerBattery()->getChargeLevel(), &icon_geom, (GUI_Obj *)this);
 }
 
+//-----------------------------
+
+GUI_Indicator::~GUI_Indicator(){
+
+}
 
 //-----------------------------
 

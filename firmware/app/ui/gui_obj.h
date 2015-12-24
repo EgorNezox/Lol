@@ -15,6 +15,7 @@ class GUI_Obj{
 			this->area=*area;
 		}
 		MoonsGeometry area;
+		virtual ~GUI_Obj(){}
 	private:
 
 };
