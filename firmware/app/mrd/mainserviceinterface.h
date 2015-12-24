@@ -10,13 +10,14 @@
 #ifndef FIRMWARE_APP_MRD_MAINSERVICEINTERFACE_H_
 #define FIRMWARE_APP_MRD_MAINSERVICEINTERFACE_H_
 
-#include "sigc++/signal.h"
+#include "qmobject.h"
 
 namespace Multiradio {
 
 class Dispatcher;
 
-class MainServiceInterface {
+class MainServiceInterface : QmObject
+{
 public:
 	enum Status {
 		StatusNotReady,
@@ -32,8 +33,11 @@ public:
 private:
 	friend class Dispatcher;
 
-	MainServiceInterface();
+	MainServiceInterface(Dispatcher *dispatcher);
 	~MainServiceInterface();
+	void setStatus(Status value);
+
+	Status current_status;
 };
 
 } /* namespace Multiradio */

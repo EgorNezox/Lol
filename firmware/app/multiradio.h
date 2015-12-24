@@ -10,7 +10,7 @@
 #ifndef FIRMWARE_APP_MULTIRADIO_H_
 #define FIRMWARE_APP_MULTIRADIO_H_
 
-#include <list>
+#include <vector>
 
 namespace Multiradio {
 
@@ -34,7 +34,7 @@ struct voice_channel_entry_t {
 	voice_channel_speed_t speed;
 };
 
-typedef std::list<voice_channel_entry_t> voice_channels_table_t;
+typedef std::vector<voice_channel_entry_t> voice_channels_table_t;
 
 } /* namespace Multiradio */
 

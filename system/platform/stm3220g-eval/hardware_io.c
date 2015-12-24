@@ -175,6 +175,12 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 	hal_gpio_params_t params;
 	hal_gpio_set_default_params(&params);
 	switch (platform_hw_resource) {
+	case platformhwDspUart: // CN16 (USART) connector
+		params.mode = hgpioMode_AF;
+		params.af = hgpioAF_USART_1_2_3;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 10}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 11}, &params);
+		break;
 	case platformhwHeadsetUart:
 	case platformhwHeadsetPttIopin:
 	case platformhwDataFlashSpi:
@@ -207,7 +213,6 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 	case platformhwKeyboardsLightIopin:
 	case platformhwEnRxRs232Iopin:
 	case platformhwEnTxRs232Iopin:
-	case platformhwDspUart:
 	case platformhwDspResetIopin:
 	case platformhwAtuUart:
 	case platformhwBatterySmbusI2c:
@@ -219,6 +224,10 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 
 void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 	switch (platform_hw_resource) {
+	case platformhwDspUart: // CN16 (USART) connector
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 10});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 11});
+		break;
 	case platformhwHeadsetUart:
 	case platformhwHeadsetPttIopin:
 	case platformhwDataFlashSpi:
@@ -241,7 +250,6 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 	case platformhwKeyboardsLightIopin:
 	case platformhwEnRxRs232Iopin:
 	case platformhwEnTxRs232Iopin:
-	case platformhwDspUart:
 	case platformhwDspResetIopin:
 	case platformhwAtuUart:
 	case platformhwBatterySmbusI2c:
@@ -281,8 +289,9 @@ int stm32f2_get_exti_line(int platform_hw_resource) {
 
 int stm32f2_get_uart_instance(int platform_hw_resource) {
 	switch (platform_hw_resource) {
-	case platformhwHeadsetUart:
 	case platformhwDspUart:
+		return 3;
+	case platformhwHeadsetUart:
 	case platformhwAtuUart:
 		//TODO: stm32f2_get_uart_instance()
 		break;
