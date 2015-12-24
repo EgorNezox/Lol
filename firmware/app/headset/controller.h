@@ -36,9 +36,9 @@ public:
 	bool getPTTState(bool &state);
 	bool getSmartCurrentChannel(int &number);
 
-	sigc::signal<void, Status> statusChanged;
-	sigc::signal<bool, bool> pttStateChanged;
-	sigc::signal<void, int> smartCurrentChannelChanged;
+	sigc::signal<void, Status/*new_status*/> statusChanged;
+	sigc::signal<bool/*accepted*/, bool/*new_state*/> pttStateChanged; // single connection (returns value)
+	sigc::signal<void, int/*new_channel_number*/> smartCurrentChannelChanged;
 };
 
 } /* namespace Headset */

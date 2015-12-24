@@ -98,6 +98,10 @@ QmThread* QmThread::currentThread() {
 	return t;
 }
 
+void QmThread::msleep(unsigned int msecs) {
+	vTaskDelay(msecs/portTICK_PERIOD_MS);
+}
+
 void QmThread::start(Priority priority) {
 	QM_D(QmThread);
 	UBaseType_t freertos_priority = tskIDLE_PRIORITY;

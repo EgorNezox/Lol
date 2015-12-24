@@ -176,7 +176,8 @@ int64_t QmUart::readData(uint8_t* buffer, uint32_t max_size) {
 	hal_ringbuffer_extctrl_get_read_ptr(&buffer_ctrl, &buffer_ptr, &buffer_data_size);
 	read = qmMin((size_t)max_size, buffer_data_size);
 	if (read > 0) {
-		memcpy(buffer, buffer_ptr, read);
+		if (buffer)
+			memcpy(buffer, buffer_ptr, read);
 		hal_ringbuffer_extctrl_read_next(&buffer_ctrl, read);
 	}
 	portENTER_CRITICAL();

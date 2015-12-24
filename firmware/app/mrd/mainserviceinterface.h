@@ -27,7 +27,7 @@ public:
 
 	Status getStatus();
 
-	sigc::signal<void, Status> statusChanged;
+	sigc::signal<void, Status/*new_status*/> statusChanged;
 
 private:
 	friend class Dispatcher;

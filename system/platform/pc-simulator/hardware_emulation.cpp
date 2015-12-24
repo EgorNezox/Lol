@@ -40,7 +40,6 @@ static QMap<int, QObject*> resources_registry;
 static QMutex resources_registry_mutex;
 
 void init() {
-	IopinInterface::init();
 	Q_ASSERT(main_widget == 0);
 	main_widget = new MainWidget();
 	main_widget->show();

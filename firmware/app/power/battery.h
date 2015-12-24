@@ -28,8 +28,8 @@ public:
 	Status getStatus();
 	int getChargeLevel();
 
-	sigc::signal<void, Status> statusChanged;
-	sigc::signal<void, int> chargeLevelChanged;
+	sigc::signal<void, Status/*new_status*/> statusChanged;
+	sigc::signal<void, int/*new_level*/> chargeLevelChanged;
 };
 
 } /* namespace Power */
