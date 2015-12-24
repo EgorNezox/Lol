@@ -297,17 +297,21 @@ void stm32f2_get_matrixkeyboard_pins(int platform_hw_resource,
 	switch (platform_hw_resource) {
 	case platformhwMatrixKeyboard:
 		*column_count = 4;
-		*column_pins = (hal_gpio_pin_t*)malloc(sizeof(hal_gpio_pin_t) * (*column_count));
-		(*column_pins)[0] = (hal_gpio_pin_t){hgpioPI, 5};
-		(*column_pins)[1] = (hal_gpio_pin_t){hgpioPI, 6};
-		(*column_pins)[2] = (hal_gpio_pin_t){hgpioPI, 7};
-		(*column_pins)[3] = (hal_gpio_pin_t){hgpioPC, 9};
+		if (column_pins != NULL) {
+			*column_pins = (hal_gpio_pin_t*)malloc(sizeof(hal_gpio_pin_t) * (*column_count));
+			(*column_pins)[0] = (hal_gpio_pin_t){hgpioPI, 5};
+			(*column_pins)[1] = (hal_gpio_pin_t){hgpioPI, 6};
+			(*column_pins)[2] = (hal_gpio_pin_t){hgpioPI, 7};
+			(*column_pins)[3] = (hal_gpio_pin_t){hgpioPC, 9};
+		}
 		*row_count = 4;
-		*row_pins = (hal_gpio_pin_t*)malloc(sizeof(hal_gpio_pin_t) * (*row_count));
-		(*row_pins)[0] = (hal_gpio_pin_t){hgpioPH, 13};
-		(*row_pins)[1] = (hal_gpio_pin_t){hgpioPH, 14};
-		(*row_pins)[2] = (hal_gpio_pin_t){hgpioPH, 15};
-		(*row_pins)[3] = (hal_gpio_pin_t){hgpioPC, 8};
+		if (row_pins != NULL) {
+			*row_pins = (hal_gpio_pin_t*)malloc(sizeof(hal_gpio_pin_t) * (*row_count));
+			(*row_pins)[0] = (hal_gpio_pin_t){hgpioPH, 13};
+			(*row_pins)[1] = (hal_gpio_pin_t){hgpioPH, 14};
+			(*row_pins)[2] = (hal_gpio_pin_t){hgpioPH, 15};
+			(*row_pins)[3] = (hal_gpio_pin_t){hgpioPC, 8};
+		}
 		break;
 	default: configASSERT(0); // no such resource
 	}

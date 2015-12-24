@@ -5,11 +5,11 @@
   * @date    28.10.2015
   *
   * Dummy
-  * TODO: implement QmMatrixKeyboard class
   *
   ******************************************************************************
   */
 
+#include "system_hw_io.h"
 #include "qmmatrixkeyboard.h"
 #include "qmmatrixkeyboard_p.h"
 
@@ -26,9 +26,11 @@ QmMatrixKeyboard::~QmMatrixKeyboard() {
 	d->deinit();
 }
 
-int QmMatrixKeyboard::keysNumber() {
-	QM_D(QmMatrixKeyboard);
-	return d->keysNumber();
+int QmMatrixKeyboard::keysNumber(int hw_resource) {
+	int column_count = 0;
+	int row_count = 0;
+	stm32f2_get_matrixkeyboard_pins(hw_resource, NULL, &column_count, NULL, &row_count);
+	return column_count * row_count;
 }
 
 bool QmMatrixKeyboard::isKeyPressed(int id) {
