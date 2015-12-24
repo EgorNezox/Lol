@@ -47,6 +47,12 @@ void QmMatrixKeyboardPrivate::deinit()
     delete matrixkb_adapter;
 }
 
+bool QmMatrixKeyboardPrivate::isKeyPressed(int id)
+{
+    Q_UNUSED(id);
+    return false;
+}
+
 void QmMatrixKeyboardPrivate::processKeyStateChanged(int id, bool state)
 {
     qDebug() << "QmMatrixKeyboardPrivate::processKeyStateChanged(" << id << ", " << state << ")";
