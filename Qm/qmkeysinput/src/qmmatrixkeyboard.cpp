@@ -16,13 +16,17 @@
 QmMatrixKeyboard::QmMatrixKeyboard(int hw_resource, QmObject* parent) :
 	QmObject(*new QmMatrixKeyboardPrivate(this), parent)
 {
-    QM_UNUSED(hw_resource);
+	QM_D(QmMatrixKeyboard);
+	d->hw_resource = hw_resource;
+	d->init();
 }
 
 QmMatrixKeyboard::~QmMatrixKeyboard() {
+	QM_D(QmMatrixKeyboard);
+	d->deinit();
 }
 
 bool QmMatrixKeyboard::isKeyPressed(int id) {
-	QM_UNUSED(id);
-	return false;
+	QM_D(QmMatrixKeyboard);
+	return d->isKeyPressed(id);
 }

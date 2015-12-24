@@ -8,6 +8,7 @@
   ******************************************************************************
   */
 
+#include <stdlib.h>
 #include "stm32f2xx.h"
 #include "FreeRTOS.h"
 
@@ -171,11 +172,26 @@ void stm32f2_LCD_init(void) {
 }
 
 void stm32f2_ext_pins_init(int platform_hw_resource) {
+	hal_gpio_params_t params;
+	hal_gpio_set_default_params(&params);
 	switch (platform_hw_resource) {
 	case platformhwHeadsetUart:
 	case platformhwHeadsetPttIopin:
 	case platformhwDataFlashSpi:
+		break;
 	case platformhwMatrixKeyboard:
+		params.mode = hgpioMode_In;
+		params.type = hgpioType_PPUp;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 13}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 14}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 15}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 8}, &params);
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPI, 5}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPI, 6}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPI, 7}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 9}, &params);
+		break;
 	case platformhwKeyboardButt1Iopin:
 	case platformhwKeyboardButt2Iopin:
 	case platformhwKeyboardsLightIopin:
@@ -196,7 +212,17 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 	case platformhwHeadsetUart:
 	case platformhwHeadsetPttIopin:
 	case platformhwDataFlashSpi:
+		break;
 	case platformhwMatrixKeyboard:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 13});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 14});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 15});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 8});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPI, 5});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPI, 6});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPI, 7});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 9});
+		break;
 	case platformhwKeyboardButt1Iopin:
 	case platformhwKeyboardButt2Iopin:
 	case platformhwKeyboardsLightIopin:
@@ -244,4 +270,26 @@ int stm32f2_get_uart_instance(int platform_hw_resource) {
 	default: configASSERT(0); // no such resource
 	}
 	return -1;
+}
+
+void stm32f2_get_matrixkeyboard_pins(int platform_hw_resource,
+		hal_gpio_pin_t** column_pins, int* column_count, hal_gpio_pin_t** row_pins, int* row_count)
+{
+	switch (platform_hw_resource) {
+	case platformhwMatrixKeyboard:
+		*column_count = 4;
+		*column_pins = (hal_gpio_pin_t*)malloc(sizeof(hal_gpio_pin_t) * (*column_count));
+		(*column_pins)[0] = (hal_gpio_pin_t){hgpioPI, 5};
+		(*column_pins)[1] = (hal_gpio_pin_t){hgpioPI, 6};
+		(*column_pins)[2] = (hal_gpio_pin_t){hgpioPI, 7};
+		(*column_pins)[3] = (hal_gpio_pin_t){hgpioPC, 9};
+		*row_count = 4;
+		*row_pins = (hal_gpio_pin_t*)malloc(sizeof(hal_gpio_pin_t) * (*row_count));
+		(*row_pins)[0] = (hal_gpio_pin_t){hgpioPH, 13};
+		(*row_pins)[1] = (hal_gpio_pin_t){hgpioPH, 14};
+		(*row_pins)[2] = (hal_gpio_pin_t){hgpioPH, 15};
+		(*row_pins)[3] = (hal_gpio_pin_t){hgpioPC, 8};
+		break;
+	default: configASSERT(0); // no such resource
+	}
 }

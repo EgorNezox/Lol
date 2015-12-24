@@ -26,7 +26,7 @@
 #ifdef configTIMER_QUEUE_LENGTH
 #undef configTIMER_QUEUE_LENGTH
 #endif
-#define configTIMER_QUEUE_LENGTH	(halinternal_freertos_timer_queue_length + 1) // timer queue used by HAL + pure software timers used by Qm
+#define configTIMER_QUEUE_LENGTH	(18 + 1) // timer queue used by HAL + pure software timers used by Qm
 #endif
 
 /* Miscellaneous */

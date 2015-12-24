@@ -51,6 +51,9 @@ QM_FORWARD_PRIVATE(QmTimer)
  */
 class QmTimer: public QmObject {
 public:
+	/*! Constructs a timer with the given \a parent. */
+	QmTimer(QmObject *parent = 0);
+
 	/*! Constructs a timer with the given \a parent.
 	 *
 	 * Parameter \a single_shot specifies whether this timer
@@ -58,13 +61,19 @@ public:
 	 * A single-shot timer fires only once, non-single-shot timers
 	 * fire every interval milliseconds.
 	 */
-	QmTimer(bool single_shot = false, QmObject *parent = 0);
+	QmTimer(bool single_shot, QmObject *parent = 0);
 
 	/*! Destroys the timer. */
 	virtual ~QmTimer();
 
 	/*! Returns true if the timer is running; otherwise false. */
 	bool isActive() const;
+
+	/*! Enables or disables single-shot option.
+	 *
+	 * Timer will be stopped if \a enable differs from acting option.
+	 */
+	void setSingleShot(bool enable);
 
 	/*! Sets the timeout interval in milliseconds.
 	 *

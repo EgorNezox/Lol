@@ -38,6 +38,9 @@ public:
 		ThreadFinishSync,		/*!< internal synchronization mechanism between QmThread object and thread implementation (platform-specific) */
 		Timer,					/*!< internal event used by QmTimer (platform-specific) */
 		HardwareIO,				/*!< internal event used by classes in HardwareIO module (platform-specific) */
+		KeysInput,				/*!< internal event used by classes in KeysInput module (platform-specific) */
+		KeyStateChanged,		/*!< internal event used by classes in KeysInput module (platform-specific) */
+		KeyAction,				/*!< internal event used by classes in KeysInput module (platform-specific) */
 		User = 1000,			/*!< user-defined event */
 		MaxUser = 65535 - User	/*!< last user event ID */
 	};
