@@ -56,6 +56,7 @@ public:
 private:
 	void init();
 	void deinit();
+	int keysNumber();
 	bool isKeyPressed(int id);
 	int hw_resource;
 #ifdef QMHARDWAREIO_PLATFORM_STM32F2XX

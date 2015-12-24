@@ -65,7 +65,7 @@ QmMatrixKeyboard::PressType QmMatrixKeyboardKeyActionEvent::getPressType() {
 
 QmMatrixKeyboardPrivate::QmMatrixKeyboardPrivate(QmMatrixKeyboard *q) :
 	QmObjectPrivate(q),
-	hw_resource(-1), column_pins(NULL), row_pins(NULL)
+	hw_resource(-1), column_pins(NULL), row_pins(NULL), column_count(0), row_count(0)
 {
 	poll_timer = new xTimerHandle;
 	*poll_timer = xTimerCreate(static_cast<const char*>("QmMatrixKeyboardPollTimer"),
@@ -118,6 +118,10 @@ void QmMatrixKeyboardPrivate::deinit() {
 	delete[] row_pins;
 	column_count = 0;
 	row_count = 0;
+}
+
+int QmMatrixKeyboardPrivate::keysNumber() {
+	return column_count * row_count;
 }
 
 bool QmMatrixKeyboardPrivate::isKeyPressed(int id)

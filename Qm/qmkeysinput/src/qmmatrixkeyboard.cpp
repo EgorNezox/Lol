@@ -26,6 +26,11 @@ QmMatrixKeyboard::~QmMatrixKeyboard() {
 	d->deinit();
 }
 
+int QmMatrixKeyboard::keysNumber() {
+	QM_D(QmMatrixKeyboard);
+	return d->keysNumber();
+}
+
 bool QmMatrixKeyboard::isKeyPressed(int id) {
 	QM_D(QmMatrixKeyboard);
 	return d->isKeyPressed(id);

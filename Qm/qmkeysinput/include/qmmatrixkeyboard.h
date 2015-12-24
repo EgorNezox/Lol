@@ -35,6 +35,9 @@ public:
 	/*! Destroys the matrix keyboard. */
 	virtual ~QmMatrixKeyboard();
 
+	/*! Returns keys quantity of the matrix keyboard. */
+	int keysNumber();
+
 	/*! Returns true if key with identifier \a id is pressed; otherwise false. */
 	bool isKeyPressed(int id);
 
