@@ -10,6 +10,7 @@
 
 #include "../system/platform/platform_hw_map.h"
 
+#include "qmdebug.h"
 #include "qmapplication.h"
 #include "qmiopin.h"
 
@@ -34,6 +35,7 @@ void qmMain() {
 	Ui::matrix_keyboard_t ui_matrixkb_desc;
 	Ui::aux_keyboard_t ui_auxkb_desc;
 	QmIopin kb_light_iopin(platformhwKeyboardsLightIopin);
+	QM_ASSERT(Ui::matrixkbKeysCount == QmMatrixKeyboard::keysNumber(platformhwMatrixKeyboard));
 	ui_matrixkb_desc.resource = platformhwMatrixKeyboard;
 	ui_matrixkb_desc.key_id[platformhwKeyEnter] = Ui::matrixkbkeyEnter;
 	ui_matrixkb_desc.key_id[platformhwKeyBack] = Ui::matrixkbkeyBack;
