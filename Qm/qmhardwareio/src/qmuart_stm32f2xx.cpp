@@ -165,20 +165,26 @@ int64_t QmUart::readData(uint8_t* buffer, uint32_t max_size) {
 		return -1;
 	if (max_size == 0)
 		return 0;
-	int64_t read;
+	int64_t read = 0;
 	hal_ringbuffer_ctrl_t buffer_ctrl;
-	uint8_t *buffer_ptr;
-	size_t buffer_data_size;
 	portENTER_CRITICAL();
 	d->io_event.rx_data_pending = false;
 	buffer_ctrl = hal_ringbuffer_get_ctrl(d->uart_rx_buffer);
 	portEXIT_CRITICAL();
-	hal_ringbuffer_extctrl_get_read_ptr(&buffer_ctrl, &buffer_ptr, &buffer_data_size);
-	read = qmMin((size_t)max_size, buffer_data_size);
-	if (read > 0) {
-		if (buffer)
-			memcpy(buffer, buffer_ptr, read);
-		hal_ringbuffer_extctrl_read_next(&buffer_ctrl, read);
+	while (max_size > 0) {
+		uint8_t *chunk_ptr;
+		size_t chunk_size;
+		hal_ringbuffer_extctrl_get_read_ptr(&buffer_ctrl, &chunk_ptr, &chunk_size);
+		if (chunk_size == 0)
+			break;
+		chunk_size = qmMin((size_t)max_size, chunk_size);
+		if (buffer) {
+			memcpy(buffer, chunk_ptr, chunk_size);
+			buffer += chunk_size;
+		}
+		max_size -= chunk_size;
+		hal_ringbuffer_extctrl_read_next(&buffer_ctrl, chunk_size);
+		read += chunk_size;
 	}
 	portENTER_CRITICAL();
 	hal_ringbuffer_update_read_ctrl(d->uart_rx_buffer, &buffer_ctrl);
@@ -196,18 +202,23 @@ int64_t QmUart::writeData(const uint8_t* data, uint32_t data_size) {
 		return -1;
 	if (data_size == 0)
 		return 0;
-	int64_t written;
+	int64_t written = 0;
 	hal_ringbuffer_ctrl_t buffer_ctrl;
-	uint8_t *buffer_ptr;
-	size_t buffer_space_size;
 	portENTER_CRITICAL();
 	buffer_ctrl = hal_ringbuffer_get_ctrl(d->uart_tx_buffer);
 	portEXIT_CRITICAL();
-	hal_ringbuffer_extctrl_get_write_ptr(&buffer_ctrl, &buffer_ptr, &buffer_space_size);
-	written = qmMin((size_t)data_size, buffer_space_size);
-	if (written > 0) {
-		memcpy(buffer_ptr, data, written);
-		hal_ringbuffer_extctrl_write_next(&buffer_ctrl, written);
+	while (data_size > 0) {
+		uint8_t *chunk_ptr;
+		size_t chunk_size;
+		hal_ringbuffer_extctrl_get_write_ptr(&buffer_ctrl, &chunk_ptr, &chunk_size);
+		if (chunk_size == 0)
+			break;
+		chunk_size = qmMin((size_t)data_size, chunk_size);
+		memcpy(chunk_ptr, data, chunk_size);
+		data += chunk_size;
+		data_size -= chunk_size;
+		hal_ringbuffer_extctrl_write_next(&buffer_ctrl, chunk_size);
+		written += chunk_size;
 	}
 	portENTER_CRITICAL();
 	hal_ringbuffer_update_write_ctrl(d->uart_tx_buffer, &buffer_ctrl);
