@@ -75,6 +75,7 @@ public:
 private:
 	void init();
 	void deinit();
+	bool isKeyPressed(int id);
 	int hw_resource;
 #ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
 	typedef enum keyboard_state {

@@ -5,7 +5,6 @@
   * @date    28.10.2015
   *
   * Dummy
-  * TODO: implement QmMatrixKeyboard class
   *
   ******************************************************************************
   */
@@ -27,6 +26,6 @@ QmMatrixKeyboard::~QmMatrixKeyboard() {
 }
 
 bool QmMatrixKeyboard::isKeyPressed(int id) {
-	QM_UNUSED(id);
-	return false;
+	QM_D(QmMatrixKeyboard);
+	return d->isKeyPressed(id);
 }

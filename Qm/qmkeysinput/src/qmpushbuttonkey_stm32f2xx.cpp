@@ -8,6 +8,8 @@
   ******************************************************************************
   */
 
+#define QMDEBUGDOMAIN QmPushButtonKey
+
 #include "system_hw_io.h"
 
 #include "qmdebug.h"
@@ -19,9 +21,9 @@
 #define QMPBKEY_DEBOUNCE_DELAY 20
 
 static void qmpushbuttonkeyStateChangedIsrCallback(hal_exti_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
-	hal_exti_close(handle);
 	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	QmPushButtonKeyPrivate* qmpbkeyPrivate_ptr = static_cast<QmPushButtonKeyPrivate*>(hal_exti_get_userid(handle));
+	hal_exti_close(handle);
 	xTimerResetFromISR(*(qmpbkeyPrivate_ptr->getDebounceTimer()), &xHigherPriorityTaskWoken);
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
@@ -65,6 +67,7 @@ xTimerHandle* QmPushButtonKeyPrivate::getDebounceTimer() {
 void QmPushButtonKeyPrivate::init() {
 	gpio_pin = stm32f2_get_gpio_pin(hw_resource);
 	exti_line = stm32f2_get_exti_line(hw_resource);
+	QM_ASSERT(exti_line != -1);
 	stm32f2_ext_pins_init(hw_resource);
 	exti_params.mode = hextiMode_Rising_Falling;
 	exti_params.isrcallbackTrigger = qmpushbuttonkeyStateChangedIsrCallback;
@@ -97,9 +100,14 @@ bool QmPushButtonKey::event(QmEvent* event) {
 		bool current_state = d->isGpioPressed();
 		if (d->updated_state != current_state) {
 			d->updated_state = current_state;
+			qmDebugMessage(QmDebug::Dump, "stateChanged");
 			stateChanged();
 		}
 		return true;
 	}
 	return QmObject::event(event);
 }
+
+#include "qmdebug_domains_start.h"
+QMDEBUG_DEFINE_DOMAIN(QmPushButtonKey, LevelDefault)
+#include "qmdebug_domains_end.h"

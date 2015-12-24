@@ -55,3 +55,8 @@ void QmMatrixKeyboardPrivate::processKeyStateChanged(int id, bool state)
 bool QmMatrixKeyboard::event(QmEvent* event) {
 	return QmObject::event(event);
 }
+
+int QmMatrixKeyboard::keysNumber(int hw_resource) {
+	QM_UNUSED(hw_resource);
+	return 0;
+}

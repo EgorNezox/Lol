@@ -65,7 +65,7 @@ QmMatrixKeyboard::PressType QmMatrixKeyboardKeyActionEvent::getPressType() {
 
 QmMatrixKeyboardPrivate::QmMatrixKeyboardPrivate(QmMatrixKeyboard *q) :
 	QmObjectPrivate(q),
-	hw_resource(-1), column_pins(NULL), row_pins(NULL)
+	hw_resource(-1), column_pins(NULL), row_pins(NULL), column_count(0), row_count(0)
 {
 	poll_timer = new xTimerHandle;
 	*poll_timer = xTimerCreate(static_cast<const char*>("QmMatrixKeyboardPollTimer"),
@@ -118,6 +118,19 @@ void QmMatrixKeyboardPrivate::deinit() {
 	delete[] row_pins;
 	column_count = 0;
 	row_count = 0;
+}
+
+bool QmMatrixKeyboardPrivate::isKeyPressed(int id)
+{
+	if (!scanKBMatrix(KEYBOARD_MAX_PRESSES))
+		return false;
+	if (pressesCounter == 0)
+		return false;
+	for (int i = 0; i < pressesCounter; ++i) {
+		if (curKeysPressed[i] == id)
+			return true;
+	}
+	return false;
 }
 
 void QmMatrixKeyboardPrivate::scan() {
@@ -345,6 +358,13 @@ bool QmMatrixKeyboard::event(QmEvent* event) {
 	}
 }
 
+int QmMatrixKeyboard::keysNumber(int hw_resource) {
+	int column_count = 0;
+	int row_count = 0;
+	stm32f2_get_matrixkeyboard_pins(hw_resource, NULL, &column_count, NULL, &row_count);
+	return column_count * row_count;
+}
+
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(QmMatrixKeyboard, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(QmMatrixKeyboard, LevelDefault)
 #include "qmdebug_domains_end.h"
