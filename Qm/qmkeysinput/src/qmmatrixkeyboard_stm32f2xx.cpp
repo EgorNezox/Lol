@@ -359,5 +359,5 @@ bool QmMatrixKeyboard::event(QmEvent* event) {
 }
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(QmMatrixKeyboard, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(QmMatrixKeyboard, LevelDefault)
 #include "qmdebug_domains_end.h"
