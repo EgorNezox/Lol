@@ -80,6 +80,8 @@ template <> inline int32_t qmFromLittleEndian<int32_t>(const uint8_t *src)
 { return static_cast<int32_t>(qmFromLittleEndian<uint32_t>(src)); }
 template <> inline int16_t qmFromLittleEndian<int16_t>(const uint8_t *src)
 { return static_cast<int16_t>(qmFromLittleEndian<uint16_t>(src)); }
+
+// no-conversion specializations
 template <> inline uint8_t qmFromLittleEndian<uint8_t>(const uint8_t *src)
 { return static_cast<uint8_t>(src[0]); }
 template <> inline int8_t qmFromLittleEndian<int8_t>(const uint8_t *src)
@@ -90,8 +92,7 @@ template <> inline int8_t qmFromLittleEndian<int8_t>(const uint8_t *src)
  * There is no requirement that \a src must be aligned.
 */
 template <class T> inline T qmFromBigEndian(const uint8_t *src);
-template<>
-inline uint64_t qmFromBigEndian<uint64_t>(const uint8_t *src)
+template <> inline uint64_t qmFromBigEndian<uint64_t>(const uint8_t *src)
 {
     return 0
         | src[7]
@@ -103,8 +104,7 @@ inline uint64_t qmFromBigEndian<uint64_t>(const uint8_t *src)
         | src[1] * 0x0001000000000000ULL
         | src[0] * 0x0100000000000000ULL;
 }
-template<>
-inline uint32_t qmFromBigEndian<uint32_t>(const uint8_t *src)
+template <> inline uint32_t qmFromBigEndian<uint32_t>(const uint8_t *src)
 {
     return 0
         | src[3]
@@ -112,14 +112,12 @@ inline uint32_t qmFromBigEndian<uint32_t>(const uint8_t *src)
         | src[1] * uint32_t(0x00010000)
         | src[0] * uint32_t(0x01000000);
 }
-template<>
-inline uint16_t qmFromBigEndian<uint16_t>(const uint8_t *src)
+template <> inline uint16_t qmFromBigEndian<uint16_t>(const uint8_t *src)
 {
     return uint16_t( 0
                     | src[1]
                     | src[0] * uint16_t(0x0100));
 }
-
 
 // signed specializations
 template <> inline int64_t qmFromBigEndian<int64_t>(const uint8_t *src)
@@ -128,6 +126,8 @@ template <> inline int32_t qmFromBigEndian<int32_t>(const uint8_t *src)
 { return static_cast<int32_t>(qmFromBigEndian<uint32_t>(src)); }
 template <> inline int16_t qmFromBigEndian<int16_t>(const uint8_t *src)
 { return static_cast<int16_t>(qmFromBigEndian<uint16_t>(src)); }
+
+// no-conversion specializations
 template <> inline uint8_t qmFromBigEndian<uint8_t>(const uint8_t *src)
 { return static_cast<uint8_t>(src[0]); }
 template <> inline int8_t qmFromBigEndian<int8_t>(const uint8_t *src)
@@ -140,7 +140,6 @@ template <> inline int8_t qmFromBigEndian<int8_t>(const uint8_t *src)
  * and it is therefore a bit more convenient and in most cases more efficient.
 */
 template <typename T> T qmbswap(T source);
-
 template <> inline uint64_t qmbswap<uint64_t>(uint64_t source)
 {
     return 0
@@ -170,17 +169,17 @@ template <> inline uint16_t qmbswap<uint16_t>(uint16_t source)
 
 // signed specializations
 template <> inline int64_t qmbswap<int64_t>(int64_t source)
-{
-    return qmbswap<uint64_t>(uint64_t(source));
-}
+{ return qmbswap<uint64_t>(uint64_t(source)); }
 template <> inline int32_t qmbswap<int32_t>(int32_t source)
-{
-    return qmbswap<uint32_t>(uint32_t(source));
-}
+{ return qmbswap<uint32_t>(uint32_t(source)); }
 template <> inline int16_t qmbswap<int16_t>(int16_t source)
-{
-    return qmbswap<uint16_t>(uint16_t(source));
-}
+{ return qmbswap<uint16_t>(uint16_t(source)); }
+
+// no-conversion specializations
+template <> inline uint8_t qmbswap<uint8_t>(uint8_t source)
+{ return source; }
+template <> inline int8_t qmbswap<int8_t>(int8_t source)
+{ return source; }
 
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 
@@ -215,14 +214,5 @@ template <typename T> inline void qmToLittleEndian(T src, uint8_t *dest)
 #else
 #error "Cannot detect supported processor endianess"
 #endif // __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-
-template <> inline uint8_t qmbswap<uint8_t>(uint8_t source)
-{
-    return source;
-}
-template <> inline int8_t qmbswap<int8_t>(int8_t source)
-{
-    return source;
-}
 
 #endif /* QMENDIAN_H_ */
