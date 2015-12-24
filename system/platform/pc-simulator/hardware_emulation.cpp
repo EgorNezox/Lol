@@ -15,6 +15,7 @@
 
 #include "hardware_emulation.h"
 #include "mainwidget.h"
+#include "dsp/dspdevice.h"
 #include "port_hardwareio/iopininterface.h"
 #include "port_hardwareio/uartinterface.h"
 
@@ -36,28 +37,31 @@ public:
 namespace QtHwEmu {
 
 static MainWidget *main_widget = 0;
+static DspDevice *dsp_device = 0;
 static QMap<int, QObject*> resources_registry;
 static QMutex resources_registry_mutex;
 
 void init() {
-	Q_ASSERT(main_widget == 0);
 	main_widget = new MainWidget();
 	main_widget->show();
+	dsp_device = new DspDevice(platformhwDspUart, platformhwDspResetIopin);
+	dsp_device->move(main_widget->frameGeometry().topRight() + QPoint(10,0));
+	dsp_device->show();
+	main_widget->activateWindow();
+	main_widget->raise();
 	IopinInterface::createInstance(platformhwHeadsetPttIopin); // TODO: emulate HeadsetPttIopin
 	IopinInterface::createInstance(platformhwKeyboardButt1Iopin); // TODO: emulate KeyboardButt1Iopin
 	IopinInterface::createInstance(platformhwKeyboardButt2Iopin); // TODO: emulate KeyboardButt2Iopin
 	IopinInterface::createInstance(platformhwKeyboardsLightIopin); // TODO: emulate KeyboardsLightIopin
 	IopinInterface::createInstance(platformhwEnRxRs232Iopin); // TODO: emulate EnRxRs232Iopin
 	IopinInterface::createInstance(platformhwEnTxRs232Iopin); // TODO: emulate EnTxRs232Iopin
-	IopinInterface::createInstance(platformhwDspResetIopin); // TODO: emulate DspResetIopin
 	UartInterface::createInstance(platformhwHeadsetUart); //TODO: emulate HeadsetUart
-	UartInterface::createInstance(platformhwDspUart); //TODO: emulate DspUart
 	UartInterface::createInstance(platformhwAtuUart); //TODO: emulate AtuUart
 }
 
 void deinit() {
-	Q_ASSERT(main_widget != 0);
 	delete main_widget;
+	delete dsp_device;
 }
 
 int convertToPlatformHwResource(const QString &value) {

@@ -8,20 +8,29 @@
  */
 
 #include "mainserviceinterface.h"
+#include "dispatcher.h"
 
 namespace Multiradio {
 
-MainServiceInterface::MainServiceInterface() {
-	//...
+MainServiceInterface::MainServiceInterface(Dispatcher *dispatcher) :
+	QmObject(dispatcher),
+	current_status(StatusNotReady)
+{
 }
 
-MainServiceInterface::~MainServiceInterface() {
-	//...
+MainServiceInterface::~MainServiceInterface()
+{
 }
 
 MainServiceInterface::Status MainServiceInterface::getStatus() {
-	//...
-	return StatusNotReady;
+	return current_status;
+}
+
+void MainServiceInterface::setStatus(Status value) {
+	if (current_status != value) {
+		current_status = value;
+		statusChanged(value);
+	}
 }
 
 } /* namespace Multiradio */

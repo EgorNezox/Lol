@@ -10,14 +10,15 @@
 #ifndef FIRMWARE_APP_MRD_VOICESERVICEINTERFACE_H_
 #define FIRMWARE_APP_MRD_VOICESERVICEINTERFACE_H_
 
-#include "sigc++/signal.h"
+#include "qmobject.h"
 #include "multiradio.h"
 
 namespace Multiradio {
 
 class Dispatcher;
 
-class VoiceServiceInterface {
+class VoiceServiceInterface : QmObject
+{
 public:
 	enum ChannelStatus {
 		ChannelDisabled,
@@ -36,8 +37,12 @@ public:
 private:
 	friend class Dispatcher;
 
-	VoiceServiceInterface();
+	VoiceServiceInterface(Dispatcher *dispatcher);
 	~VoiceServiceInterface();
+	void setCurrentChannel(ChannelStatus status);
+
+	Dispatcher *dispatcher;
+	ChannelStatus current_channel_status;
 };
 
 } /* namespace Multiradio */

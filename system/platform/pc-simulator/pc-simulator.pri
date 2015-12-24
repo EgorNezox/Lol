@@ -17,6 +17,8 @@ INCLUDEPATH += \
     $$PWD/port_ramtex_s6d0129_cfg_qt5seps525widget/qt
 HEADERS += \
     $$PWD/mainwidget.h \
+    $$PWD/dsp/dspdevice.h \
+    $$PWD/dsp/dsptransport.h \
     $$PWD/port_hardwareio/iopininterface.h \
     $$PWD/port_hardwareio/iopincheckbox.h \
     $$PWD/port_hardwareio/uartinterface.h \
@@ -25,6 +27,7 @@ HEADERS += \
 SOURCES += \
     $$PWD/hardware_emulation.cpp \
     $$PWD/mainwidget.cpp \
+    $$wildcardSources(dsp, *.cpp) \
     $$wildcardSources(port_hardwareio, *.cpp) \
     $$wildcardSources(port_ramtex_s6d0129_cfg_qt5seps525widget, *.c) \
     $$PWD/port_ramtex_s6d0129_cfg_qt5seps525widget/ccfg0129/ghwinit.c \
@@ -32,4 +35,5 @@ SOURCES += \
     $$PWD/port_ramtex_s6d0129_cfg_qt5seps525widget/qt/ramtexdisplaywidget.cpp
 FORMS += \
     $$PWD/mainwidget.ui \
+    $$PWD/dsp/dspdevice.ui \
     $$PWD/port_hardwareio/uartconsolewidget.ui
