@@ -106,7 +106,8 @@ int64_t QmUart::readData(uint8_t* buffer, uint32_t max_size) {
 		return -1;
 	quint32 read = qMin(max_size, d->uart_adapter->getInterfaceRxDataAvailable());
 	const QByteArray data = d->uart_adapter->popInterfaceRxData(read);
-	memcpy(buffer, data.data(), data.size());
+	if (buffer)
+		memcpy(buffer, data.data(), data.size());
 	return (int64_t)data.size();
 }
 

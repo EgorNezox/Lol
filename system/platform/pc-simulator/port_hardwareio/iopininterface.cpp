@@ -10,6 +10,10 @@
 #include "iopininterface.h"
 #include "hardware_emulation.h"
 
+void IopinInterface::init() {
+	qRegisterMetaType<Level>();
+}
+
 IopinInterface::IopinInterface() :
 	input_level(Level_Low), output_level(Level_Low)
 {
@@ -17,10 +21,6 @@ IopinInterface::IopinInterface() :
 
 IopinInterface::~IopinInterface()
 {
-}
-
-void IopinInterface::init() {
-	qRegisterMetaType<Level>();
 }
 
 IopinInterface* IopinInterface::getInstance(int hw_resource) {
