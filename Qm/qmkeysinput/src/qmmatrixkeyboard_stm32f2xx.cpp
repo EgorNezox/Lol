@@ -120,10 +120,6 @@ void QmMatrixKeyboardPrivate::deinit() {
 	row_count = 0;
 }
 
-int QmMatrixKeyboardPrivate::keysNumber() {
-	return column_count * row_count;
-}
-
 bool QmMatrixKeyboardPrivate::isKeyPressed(int id)
 {
 	if (!scanKBMatrix(KEYBOARD_MAX_PRESSES))

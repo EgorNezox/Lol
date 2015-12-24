@@ -35,8 +35,11 @@ public:
 	/*! Destroys the matrix keyboard. */
 	virtual ~QmMatrixKeyboard();
 
-	/*! Returns keys quantity of the matrix keyboard. */
-	int keysNumber();
+	/*! Returns keys quantity of the matrix keyboard.
+	 *
+	 * Parameter \a hw_resource specifies platform-identified instance of keyboard.
+	 **/
+	static int keysNumber(int hw_resource);
 
 	/*! Returns true if key with identifier \a id is pressed; otherwise false. */
 	bool isKeyPressed(int id);
