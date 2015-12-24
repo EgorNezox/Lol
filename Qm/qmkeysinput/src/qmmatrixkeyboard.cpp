@@ -27,6 +27,6 @@ QmMatrixKeyboard::~QmMatrixKeyboard() {
 }
 
 bool QmMatrixKeyboard::isKeyPressed(int id) {
-	QM_UNUSED(id);
-	return false;
+	QM_D(QmMatrixKeyboard);
+	return d->isKeyPressed(id);
 }

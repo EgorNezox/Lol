@@ -11,8 +11,6 @@
 #ifndef QMMATRIXKEYBOARD_P_H_
 #define QMMATRIXKEYBOARD_P_H_
 
-#include "../../system/platform/platform_hw_map.h"
-
 #include "qmtimer.h"
 #include "../../qmcore/src/qmobject_p.h"
 #include "qmmatrixkeyboard.h"
@@ -58,6 +56,7 @@ public:
 private:
 	void init();
 	void deinit();
+	bool isKeyPressed(int id);
 	int hw_resource;
 #ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
 	typedef enum keyboard_state {
