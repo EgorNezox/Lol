@@ -109,7 +109,8 @@ void DspTransport::transmitFrame(uint8_t address, uint8_t* data, int data_len) {
 	qmToBigEndian((uint8_t)address, frame_header+2);
 	crc.update(frame_header+1, (sizeof(frame_header) - 1));
 	crc.update(data, data_len);
-	qmToBigEndian(crc.result(), frame_footer+0);
+//	qmToBigEndian(crc.result(), frame_footer+0);
+	qmToBigEndian((uint16_t)0, frame_footer+0);
 	qmToBigEndian((uint8_t)FRAME_END_DELIMITER, frame_footer+2);
 	int64_t written = 0;
 	written += uart->writeData(frame_header, sizeof(frame_header));
@@ -154,10 +155,10 @@ void DspTransport::processUartReceivedData() {
 					uint8_t rx_address = qmFromBigEndian<uint8_t>(rx_frame_buf+1);
 					uint8_t *rx_data = rx_frame_buf + 2;
 					int rx_data_len = rx_frame_size - 4;
-					uint16_t crc_value = qmFromBigEndian<uint16_t>(rx_frame_buf+(rx_frame_size - 2));
+					uint16_t __attribute__((unused)) crc_value = qmFromBigEndian<uint16_t>(rx_frame_buf+(rx_frame_size - 2));
 					CRC16arc crc;
 					crc.update(rx_frame_buf, (rx_frame_size - 2));
-					if (!((rx_data_len > 0) && (crc.result() == crc_value)))
+					if (!((rx_data_len > 0)/* && (crc.result() == crc_value)*/))
 						break;
 					receivedFrame(rx_address, rx_data, rx_data_len);
 				} else {

@@ -121,10 +121,10 @@ void DspTransport::processTxData(const QByteArray& data) {
 					uint8_t rx_address = qFromBigEndian<quint8>(tx_frame_buf+1);
 					uint8_t *rx_data = tx_frame_buf + 2;
 					int rx_data_len = tx_frame_size - 4;
-					uint16_t crc_value = qFromBigEndian<quint16>(tx_frame_buf+(tx_frame_size - 2));
+					uint16_t __attribute__((unused)) crc_value = qFromBigEndian<quint16>(tx_frame_buf+(tx_frame_size - 2));
 					CRC16arc crc;
 					crc.update(tx_frame_buf, (tx_frame_size - 2));
-					if (!((rx_data_len > 0) && (crc.result() == crc_value)))
+					if (!((rx_data_len > 0)/* && (crc.result() == crc_value)*/))
 						break;
 					transferedTxFrame(rx_address, rx_data, rx_data_len);
 				} else {
@@ -147,7 +147,8 @@ void DspTransport::transferRxFrame(uint8_t address, uint8_t* data, int data_len)
 	qToBigEndian((quint8)address, frame_header+2);
 	crc.update(frame_header+1, (sizeof(frame_header) - 1));
 	crc.update(data, data_len);
-	qToBigEndian(crc.result(), frame_footer+0);
+//	qToBigEndian(crc.result(), frame_footer+0);
+	qToBigEndian((uint16_t)0, frame_footer+0);
 	qToBigEndian((quint8)FRAME_END_DELIMITER, frame_footer+2);
 	QByteArray frame_with_markers;
 	frame_with_markers.append((char *)frame_header, sizeof(frame_header));
