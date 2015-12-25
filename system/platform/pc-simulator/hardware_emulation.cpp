@@ -18,6 +18,8 @@
 #include "dsp/dspdevice.h"
 #include "port_hardwareio/iopininterface.h"
 #include "port_hardwareio/uartinterface.h"
+#include "port_keysinput/pushbuttonkeyinterface.h"
+#include "port_keysinput/matrixkeyboardinterface.h"
 
 #ifndef Q_MOC_RUN
 namespace QtHwEmu
@@ -49,10 +51,10 @@ void init() {
 	dsp_device->show();
 	main_widget->activateWindow();
 	main_widget->raise();
-	IopinInterface::createInstance(platformhwHeadsetPttIopin); // TODO: emulate HeadsetPttIopin
-    IopinInterface::createInstance(platformhwMatrixKeyboard);
-	IopinInterface::createInstance(platformhwKeyboardButt1Iopin); // TODO: emulate KeyboardButt1Iopin
-	IopinInterface::createInstance(platformhwKeyboardButt2Iopin); // TODO: emulate KeyboardButt2Iopin
+    PushbuttonkeyInterface::createInstance(platformhwHeadsetPttIopin);
+    MatrixKeyboardInterface::createInstance(platformhwMatrixKeyboard);
+    PushbuttonkeyInterface::createInstance(platformhwKeyboardButt1Iopin);
+    PushbuttonkeyInterface::createInstance(platformhwKeyboardButt2Iopin);
 	IopinInterface::createInstance(platformhwKeyboardsLightIopin); // TODO: emulate KeyboardsLightIopin
 	IopinInterface::createInstance(platformhwEnRxRs232Iopin); // TODO: emulate EnRxRs232Iopin
 	IopinInterface::createInstance(platformhwEnTxRs232Iopin); // TODO: emulate EnTxRs232Iopin
