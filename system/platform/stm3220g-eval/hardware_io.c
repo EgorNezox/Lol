@@ -183,6 +183,10 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		break;
 	case platformhwHeadsetUart:
 	case platformhwHeadsetPttIopin:
+		params.mode = hgpioMode_In;
+		params.exti_source = true;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPG, 15}, &params);
+		break;
 	case platformhwDataFlashSpi:
 		break;
 	case platformhwMatrixKeyboard:
@@ -200,15 +204,13 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		break;
 	case platformhwKeyboardButt1Iopin:
 		params.mode = hgpioMode_In;
-		params.type = hgpioType_PP;
 		params.exti_source = true;
-		hal_gpio_init((hal_gpio_pin_t){hgpioPA, 0}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 13}, &params);
 		break;
 	case platformhwKeyboardButt2Iopin:
 		params.mode = hgpioMode_In;
-		params.type = hgpioType_PP;
 		params.exti_source = true;
-		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 13}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPA, 0}, &params);
 		break;
 	case platformhwKeyboardsLightIopin:
 	case platformhwEnRxRs232Iopin:
@@ -230,6 +232,8 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 		break;
 	case platformhwHeadsetUart:
 	case platformhwHeadsetPttIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPG, 15});
+		break;
 	case platformhwDataFlashSpi:
 		break;
 	case platformhwMatrixKeyboard:
@@ -243,10 +247,10 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 9});
 		break;
 	case platformhwKeyboardButt1Iopin:
-		hal_gpio_deinit((hal_gpio_pin_t){hgpioPA, 0});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 13});
 		break;
 	case platformhwKeyboardButt2Iopin:
-		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 13});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPA, 0});
 	case platformhwKeyboardsLightIopin:
 	case platformhwEnRxRs232Iopin:
 	case platformhwEnTxRs232Iopin:
@@ -262,10 +266,11 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 	switch (platform_hw_resource) {
 	case platformhwHeadsetPttIopin:
+		return (hal_gpio_pin_t){hgpioPG, 15};
 	case platformhwKeyboardButt1Iopin:
-		return (hal_gpio_pin_t){hgpioPA, 0};
-	case platformhwKeyboardButt2Iopin:
 		return (hal_gpio_pin_t){hgpioPC, 13};
+	case platformhwKeyboardButt2Iopin:
+		return (hal_gpio_pin_t){hgpioPA, 0};
 	case platformhwKeyboardsLightIopin:
 	case platformhwEnRxRs232Iopin:
 	case platformhwEnTxRs232Iopin:
@@ -279,10 +284,12 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 
 int stm32f2_get_exti_line(int platform_hw_resource) {
 	switch (platform_hw_resource) {
+	case platformhwHeadsetPttIopin:
+		return 15;
 	case platformhwKeyboardButt1Iopin:
-		return 0;
-	case platformhwKeyboardButt2Iopin:
 		return 13;
+	case platformhwKeyboardButt2Iopin:
+		return 0;
 	}
 	return -1;
 }

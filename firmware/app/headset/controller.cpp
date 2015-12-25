@@ -13,10 +13,13 @@
 
 namespace Headset {
 
-Controller::Controller(int rs232_uart_resource, int ptt_iopin_resource) {
+Controller::Controller(int rs232_uart_resource, int ptt_iopin_resource) :
+	ptt_state(false)
+{
 	QM_UNUSED(rs232_uart_resource);
-	QM_UNUSED(ptt_iopin_resource);
-	//...
+	ptt_key = new QmPushButtonKey(ptt_iopin_resource);
+	ptt_state = ptt_key->isPressed();
+	ptt_key->stateChanged.connect(sigc::mem_fun(this, &Controller::pttStateChangedSlot));
 }
 
 Controller::~Controller() {
@@ -30,8 +33,7 @@ void Controller::startServicing(
 }
 
 Controller::Status Controller::getStatus() {
-	//...
-	return StatusNone;
+	return StatusAnalog;
 }
 
 bool Controller::getSmartStatus(SmartStatusDescription& description) {
@@ -41,21 +43,25 @@ bool Controller::getSmartStatus(SmartStatusDescription& description) {
 }
 
 bool Controller::getAnalogStatus(bool& open_channels_missing) {
-	QM_UNUSED(open_channels_missing);
-	//...
-	return false;
+	open_channels_missing = false;
+	return true;
 }
 
 bool Controller::getPTTState(bool& state) {
-	QM_UNUSED(state);
-	//...
-	return false;
+	state = ptt_state;
+	return true;
 }
 
 bool Controller::getSmartCurrentChannel(int& number) {
 	QM_UNUSED(number);
 	//...
 	return false;
+}
+
+void Controller::pttStateChangedSlot()
+{
+	ptt_state = !ptt_state;
+	pttStateChanged(ptt_state);
 }
 
 } /* namespace Headset */
