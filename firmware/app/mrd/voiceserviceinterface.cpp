@@ -32,7 +32,7 @@ VoiceServiceInterface::ChannelStatus VoiceServiceInterface::getCurrentChannelSta
 int VoiceServiceInterface::getCurrentChannelNumber() {
 	if (!dispatcher->isVoiceMode())
 		return -1;
-	return (dispatcher->voice_channel - dispatcher->voice_channels_table.begin());
+	return (dispatcher->voice_channel - dispatcher->voice_channels_table.begin() + 1);
 }
 
 voice_channel_t VoiceServiceInterface::getCurrentChannelType() {
