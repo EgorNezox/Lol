@@ -20,6 +20,10 @@
 
 unsigned int halinternal_freertos_timer_queue_length = 0;
 
+#ifdef PORT__TARGET_DEVICE_REV1
+void init_sky72310(void);
+#endif
+
 /*! Автоматическая инициализация средствами стандартной библиотеки (до входа в main) */
 void  __attribute__((constructor)) hal_system_init(void) {
 	/* Настройка MPU для детектирования обращений по адресу NULL (+ 32KB) */
@@ -38,6 +42,9 @@ void  __attribute__((constructor)) hal_system_init(void) {
 	halinternal_exti_init();
 	halinternal_timer_init();
 	halinternal_uart_init();
+#ifdef PORT__TARGET_DEVICE_REV1
+	init_sky72310();
+#endif
 }
 
 void halinternal_set_nvic_priority(IRQn_Type irqn) {

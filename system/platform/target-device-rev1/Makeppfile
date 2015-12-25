@@ -26,6 +26,7 @@ INCLUDEPATH_system += \
 
 # Hardware specifics
 SOURCES_system += \
-	hardware_io.c
+	hardware_io.c \
+	init_sky72310.c
 
 include misc/target_build_footer.mk
