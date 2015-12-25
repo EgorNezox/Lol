@@ -66,10 +66,10 @@ void QmTimer::stop() {
 
 void QmTimer::setSingleShot(bool enable) {
 	QM_D(QmTimer);
-	if (d->qtimer->isSingleShot() == enable)
+    if (d->qt_adapter->isSingleShot() == enable)
 		return;
 	stop();
-	d->qtimer->setSingleShot(enable);
+    d->qt_adapter->setSingleShot(enable);
 }
 
 bool QmTimer::event(QmEvent* event) {

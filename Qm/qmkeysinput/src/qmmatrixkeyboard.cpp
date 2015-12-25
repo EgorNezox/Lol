@@ -9,7 +9,6 @@
   ******************************************************************************
   */
 
-#include "system_hw_io.h"
 #include "qmmatrixkeyboard.h"
 #include "qmmatrixkeyboard_p.h"
 
@@ -24,13 +23,6 @@ QmMatrixKeyboard::QmMatrixKeyboard(int hw_resource, QmObject* parent) :
 QmMatrixKeyboard::~QmMatrixKeyboard() {
 	QM_D(QmMatrixKeyboard);
 	d->deinit();
-}
-
-int QmMatrixKeyboard::keysNumber(int hw_resource) {
-	int column_count = 0;
-	int row_count = 0;
-	stm32f2_get_matrixkeyboard_pins(hw_resource, NULL, &column_count, NULL, &row_count);
-	return column_count * row_count;
 }
 
 bool QmMatrixKeyboard::isKeyPressed(int id) {

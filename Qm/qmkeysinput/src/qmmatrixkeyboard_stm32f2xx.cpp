@@ -358,6 +358,13 @@ bool QmMatrixKeyboard::event(QmEvent* event) {
 	}
 }
 
+int QmMatrixKeyboard::keysNumber(int hw_resource) {
+	int column_count = 0;
+	int row_count = 0;
+	stm32f2_get_matrixkeyboard_pins(hw_resource, NULL, &column_count, NULL, &row_count);
+	return column_count * row_count;
+}
+
 #include "qmdebug_domains_start.h"
 QMDEBUG_DEFINE_DOMAIN(QmMatrixKeyboard, LevelDefault)
 #include "qmdebug_domains_end.h"
