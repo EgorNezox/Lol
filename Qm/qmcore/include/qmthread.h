@@ -84,6 +84,9 @@ public:
 	 */
 	static QmThread* currentThread();
 
+	/*! Forces the current thread to sleep for msecs milliseconds */
+	static void msleep(unsigned int msecs);
+
 	/*!
 	 * Begins execution of the thread by calling run(). The
 	 * operating system will schedule the thread according to the \a

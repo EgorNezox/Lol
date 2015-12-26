@@ -24,7 +24,6 @@ public:
 		Level_High
 	};
 
-	static void init();
 	static IopinInterface* getInstance(int hw_resource);
 	static IopinInterface* createInstance(int hw_resource);
 	static void destroyInstance(IopinInterface *instance);
@@ -39,6 +38,7 @@ Q_SIGNALS:
 private:
 	friend class QmIopinPrivateAdapter;
 
+	static void __attribute__((constructor)) init();
 	IopinInterface();
 	virtual ~IopinInterface();
 

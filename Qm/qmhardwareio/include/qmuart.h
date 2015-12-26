@@ -67,7 +67,7 @@ public:
 
 	sigc::signal<void> dataReceived;
 
-	sigc::signal<void, bool, bool> rxError;
+	sigc::signal<void, bool/*data_errors*/, bool/*overflow*/> rxError;
 
 	sigc::signal<void> dataTransmitted;
 
