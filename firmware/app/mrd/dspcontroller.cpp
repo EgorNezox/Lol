@@ -330,7 +330,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 }
 
 void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len) {
-	if (data_len < 3)
+	if (data_len < DEFAULT_PACKET_HEADER_LEN)
 		return;
 	uint8_t indicator = qmFromBigEndian<uint8_t>(data+1);
 	uint8_t code = qmFromBigEndian<uint8_t>(data+2);
