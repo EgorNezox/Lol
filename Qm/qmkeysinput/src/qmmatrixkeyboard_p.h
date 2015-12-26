@@ -11,7 +11,6 @@
 #ifndef QMMATRIXKEYBOARD_P_H_
 #define QMMATRIXKEYBOARD_P_H_
 
-#include "qmtimer.h"
 #include "../../qmcore/src/qmobject_p.h"
 #include "qmmatrixkeyboard.h"
 
@@ -20,7 +19,13 @@
 #include "qmevent.h"
 #include "FreeRTOS.h"
 #include "timers.h"
+#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
+#ifdef QMKEYSINPUT_PLATFORM_QT
+#include <QObject>
+#include "port_keysinput/matrixkeyboardinterface.h"
+#endif /* QMKEYSINPUT_PLATFORM_QT */
 
+#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
 class QmMatrixKeyboardKeyStateChangedEvent : public QmEvent
 {
 public:
@@ -43,6 +48,20 @@ private:
 	QmMatrixKeyboard::PressType pressType;
 };
 #endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
+
+#ifdef QMKEYSINPUT_PLATFORM_QT
+class QmMatrixKeyboardPrivateAdapter : public QObject
+{
+    Q_OBJECT
+public:
+    QmMatrixKeyboardPrivateAdapter(QmMatrixKeyboardPrivate *qmmatrixkeyboardprivate);
+    ~QmMatrixKeyboardPrivateAdapter();
+    QmMatrixKeyboardPrivate *qmmatrixkeyboardprivate;
+    MatrixKeyboardInterface *interface;
+public Q_SLOTS:
+    void processKeyStateChanged(int id, bool state);
+};
+#endif /* QMKEYSINPUT_PLATFORM_QT */
 
 class QmMatrixKeyboardPrivate : public QmObjectPrivate {
 	QM_DECLARE_PUBLIC(QmMatrixKeyboard)
@@ -90,6 +109,14 @@ private:
 	uint8_t* prevKeysPressed;
 	uint8_t pressesCounter;
 #endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
+#ifdef QMKEYSINPUT_PLATFORM_QT
+    void processKeyStateChanged(int id, bool state);
+
+    friend class QmMatrixKeyboardPrivateAdapter;
+    QmMatrixKeyboardPrivateAdapter *matrixkb_adapter;
+
+    const int keys_count;
+#endif /* QMKEYSINPUT_PLATFORM_QT */
 };
 
 #endif /* QMMATRIXKEYBOARD_P_H_ */
