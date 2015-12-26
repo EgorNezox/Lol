@@ -19,7 +19,7 @@
 #include "dspcontroller.h"
 #include "dsptransport.h"
 
-#define DEFAULT_PACKET_HEADER_LEN	3 // адрес + индикатор кадра + код параметра
+#define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
 
 namespace Multiradio {
 
@@ -295,9 +295,8 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 	uint8_t tx_address;
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_LEN];
 	int tx_data_len = DEFAULT_PACKET_HEADER_LEN;
-	qmToBigEndian((uint8_t)0, tx_data+0); // адрес: 0
-	qmToBigEndian((uint8_t)2, tx_data+1); // индикатор: "команда (установка)"
-	qmToBigEndian((uint8_t)code, tx_data+2); // код параметра
+	qmToBigEndian((uint8_t)2, tx_data+0); // индикатор: "команда (установка)"
+	qmToBigEndian((uint8_t)code, tx_data+1); // код параметра
 	switch (module) {
 	case RxRadiopath:
 	case TxRadiopath: {
@@ -332,10 +331,10 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len) {
 	if (data_len < DEFAULT_PACKET_HEADER_LEN)
 		return;
-	uint8_t indicator = qmFromBigEndian<uint8_t>(data+1);
-	uint8_t code = qmFromBigEndian<uint8_t>(data+2);
-	uint8_t *value_ptr = data + 3;
-	int value_len = data_len - 3;
+	uint8_t indicator = qmFromBigEndian<uint8_t>(data+0);
+	uint8_t code = qmFromBigEndian<uint8_t>(data+1);
+	uint8_t *value_ptr = data + 2;
+	int value_len = data_len - 2;
 	switch (address) {
 	case 0x10: {
 		if ((indicator == 5) && (code == 2) && (value_len == 6)) // инициативное сообщение с цифровой информацией о прошивке ?

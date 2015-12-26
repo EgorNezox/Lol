@@ -14,7 +14,7 @@
 #include "ui_dspdevice.h"
 #include "dsptransport.h"
 
-#define DEFAULT_PACKET_HEADER_LEN	3 // адрес + индикатор кадра + код параметра
+#define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
 
 namespace QtHwEmu {
 
@@ -80,9 +80,8 @@ void DspDevice::startup() {
 
 void DspDevice::sendDspInfo(uint16_t id, uint16_t major_version, uint16_t minor_version) {
 	uint8_t data[DspTransport::MAX_FRAME_DATA_LEN];
-	qToBigEndian((quint8)0, data+0); // адрес: 0
-	qToBigEndian((quint8)5, data+1); // индикатор: "инициативное сообщение"
-	qToBigEndian((quint8)2, data+2); // код параметра: "Цифровая информация о DSP прошивке"
+	qToBigEndian((quint8)5, data+0); // индикатор: "инициативное сообщение"
+	qToBigEndian((quint8)2, data+1); // код параметра: "Цифровая информация о DSP прошивке"
 	qToBigEndian(id, data+DEFAULT_PACKET_HEADER_LEN+0);
 	qToBigEndian(major_version, data+DEFAULT_PACKET_HEADER_LEN+2);
 	qToBigEndian(minor_version, data+DEFAULT_PACKET_HEADER_LEN+4);
@@ -98,12 +97,11 @@ void DspDevice::sendCommandResponse(bool success, Module module, int code, Param
 	case TxRadiopath: address = 0x81; break;
 	default: Q_ASSERT(0);
 	}
-	qToBigEndian((quint8)0, data+0); // адрес: 0
 	if (success)
-		qToBigEndian((quint8)3, data+1); // индикатор: "команда выполнена"
+		qToBigEndian((quint8)3, data+0); // индикатор: "команда выполнена"
 	else
-		qToBigEndian((quint8)4, data+1); // индикатор: "команда не выполнена"
-	qToBigEndian((quint8)code, data+2); // код параметра
+		qToBigEndian((quint8)4, data+0); // индикатор: "команда не выполнена"
+	qToBigEndian((quint8)code, data+1); // код параметра
 	switch (code) {
 	case 1:
 		qToBigEndian(value.frequency, data+DEFAULT_PACKET_HEADER_LEN+value_len);
@@ -156,10 +154,10 @@ void DspDevice::processTxFrame(uint8_t address, uint8_t* data, int data_len) {
 		return;
 	if (data_len < DEFAULT_PACKET_HEADER_LEN)
 		return;
-	uint8_t indicator = qFromBigEndian<quint8>(data+1);;
-	uint8_t code = qFromBigEndian<quint8>(data+2);;
-	uint8_t *value_ptr = data + 3;
-	int value_len = data_len - 3;
+	uint8_t indicator = qFromBigEndian<quint8>(data+0);;
+	uint8_t code = qFromBigEndian<quint8>(data+1);;
+	uint8_t *value_ptr = data + 2;
+	int value_len = data_len - 2;
 	switch (address) {
 	case 0x50:
 	case 0x80: {
