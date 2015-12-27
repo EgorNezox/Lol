@@ -13,8 +13,8 @@
   <property name="windowTitle">
    <string>Сажень-Н (HOST)</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
     <widget class="QWidget" name="placeholderDisplay" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">

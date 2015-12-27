@@ -7,11 +7,12 @@
   ******************************************************************************
   */
 
+#include <QDebug>
 #include "matrixkeyboardwidget.h"
 #include "ui_matrixkeyboardwidget.h"
 
 MatrixKeyboardWidget::MatrixKeyboardWidget(QWidget *parent, int hw_resource) :
-    QWidget(parent),
+    QFrame(parent),
     ui(new Ui::MatrixKeyboardWidget)
 {
     ui->setupUi(this);
@@ -34,11 +35,13 @@ MatrixKeyboardWidget::MatrixKeyboardWidget(QWidget *parent, int hw_resource) :
     buttonsGroup->addButton(ui->pushButton_16, 15);
     buttonsGroup->setExclusive(false);
 
-    matrixkb_interface = MatrixKeyboardInterface::createInstance(hw_resource);
+    matrixkb_interface = MatrixKeyboardInterface::createInstance(hw_resource, 16);
     QObject::connect(buttonsGroup, static_cast<void (QButtonGroup::*)(int)>(&QButtonGroup::buttonPressed),
                      this, &MatrixKeyboardWidget::keyPressed);
     QObject::connect(buttonsGroup, static_cast<void (QButtonGroup::*)(int)>(&QButtonGroup::buttonReleased),
                      this, &MatrixKeyboardWidget::keyReleased);
+    QObject::connect(buttonsGroup, static_cast<void (QButtonGroup::*)(int, bool)>(&QButtonGroup::buttonToggled),
+                     this, &MatrixKeyboardWidget::keyToggled);
 }
 
 MatrixKeyboardWidget::~MatrixKeyboardWidget()
@@ -48,22 +51,40 @@ MatrixKeyboardWidget::~MatrixKeyboardWidget()
 
 void MatrixKeyboardWidget::keyPressed(int id)
 {
+    Q_ASSERT(id > -1 && id < buttons_count);
+    if (buttonsGroup->buttons().at(id)->isCheckable())
+        return;
     matrixkb_interface->setKeyStateChanged(id, true);
 }
 
 void MatrixKeyboardWidget::keyReleased(int id)
 {
+    Q_ASSERT(id > -1 && id < buttons_count);
+    if (buttonsGroup->buttons().at(id)->isCheckable())
+        return;
     matrixkb_interface->setKeyStateChanged(id, false);
+}
+
+void MatrixKeyboardWidget::keyToggled(int id, bool checked)
+{
+    if (checked) {
+        matrixkb_interface->setKeyStateChanged(id, true);
+    } else {
+        matrixkb_interface->setKeyStateChanged(id, false);
+    }
 }
 
 void MatrixKeyboardWidget::on_chb_Checkable_stateChanged(int arg1)
 {
     if (arg1 == Qt::Checked) {
         for (int i = 0; i < buttonsGroup->buttons().size(); ++i)
-            buttonsGroup->buttons()[i]->setCheckable(true);
+            buttonsGroup->buttons().at(i)->setCheckable(true);
     } else if (arg1 == Qt::Unchecked) {
-        for (int i = 0; i < buttonsGroup->buttons().size(); ++i)
-            buttonsGroup->buttons()[i]->setCheckable(false);
+        for (int i = 0; i < buttonsGroup->buttons().size(); ++i) {
+            if (buttonsGroup->buttons().at(i)->isChecked())
+                buttonsGroup->buttons().at(i)->setChecked(false);
+            buttonsGroup->buttons().at(i)->setCheckable(false);
+        }
     } else {
         Q_ASSERT(0);
     }

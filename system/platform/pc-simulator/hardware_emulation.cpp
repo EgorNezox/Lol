@@ -50,9 +50,8 @@ void init() {
 	dsp_device->move(main_widget->frameGeometry().topRight() + QPoint(10,0));
 	dsp_device->show();
 	main_widget->activateWindow();
-	main_widget->raise();
+    main_widget->raise();
     PushbuttonkeyInterface::createInstance(platformhwHeadsetPttIopin);
-    MatrixKeyboardInterface::createInstance(platformhwMatrixKeyboard);
     PushbuttonkeyInterface::createInstance(platformhwKeyboardButt1Iopin);
     PushbuttonkeyInterface::createInstance(platformhwKeyboardButt2Iopin);
 	IopinInterface::createInstance(platformhwKeyboardsLightIopin); // TODO: emulate KeyboardsLightIopin

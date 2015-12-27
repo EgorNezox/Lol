@@ -18,8 +18,10 @@ class MatrixKeyboardInterface : public QObject
 
 public:
     static MatrixKeyboardInterface* getInstance(int hw_resource);
-    static MatrixKeyboardInterface* createInstance(int hw_resource);
+    static MatrixKeyboardInterface* createInstance(int hw_resource, int keysNumber);
     static void destroyInstance(MatrixKeyboardInterface *instance);
+
+    int keysNumber();
 
 public Q_SLOTS:
     void setKeyStateChanged(int id, bool state);
@@ -34,8 +36,10 @@ Q_SIGNALS:
 private:
     friend class QmMatrixKeyboardPrivateAdapter;
 
-    MatrixKeyboardInterface();
+    MatrixKeyboardInterface(int keysNumber);
     virtual ~MatrixKeyboardInterface();
+
+    int keys_number;
 };
 
 #endif // MATRIXKEYBOARDINTERFACE_H

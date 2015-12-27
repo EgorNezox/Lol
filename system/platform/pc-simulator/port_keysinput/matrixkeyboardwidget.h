@@ -10,7 +10,7 @@
 #ifndef MATRIXKEYBOARDWIDGET_H
 #define MATRIXKEYBOARDWIDGET_H
 
-#include <QWidget>
+#include <QFrame>
 #include <QButtonGroup>
 #include "matrixkeyboardinterface.h"
 
@@ -18,7 +18,7 @@ namespace Ui {
 class MatrixKeyboardWidget;
 }
 
-class MatrixKeyboardWidget : public QWidget
+class MatrixKeyboardWidget : public QFrame
 {
     Q_OBJECT
 
@@ -29,6 +29,7 @@ public:
 private Q_SLOTS:
     void keyPressed(int id);
     void keyReleased(int id);
+    void keyToggled(int id, bool checked);
     void on_chb_Checkable_stateChanged(int arg1);
 
 private:
