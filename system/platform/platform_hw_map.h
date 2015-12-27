@@ -46,7 +46,7 @@ enum platformhw_matrixkb_key_t {
 	platformhwKey7,
 	platformhwKey8,
 	platformhwKey9,
-#elif defined(PORT__STM3220G_EVAL) //TODO: assign values for stm3220g-eval keys
+#elif defined(PORT__STM3220G_EVAL)
 	platformhwKeyEnter	= 3,
 	platformhwKeyBack 	= 12,
 	platformhwKeyUp 	= 13,
@@ -63,23 +63,23 @@ enum platformhw_matrixkb_key_t {
 	platformhwKey7 		= 10,
 	platformhwKey8 		= 6,
 	platformhwKey9 		= 2
-#elif defined(PORT__PCSIMULATOR) //TODO: assign values for pc-simulator keys
-	platformhwKeyEnter,
-	platformhwKeyBack,
-	platformhwKeyUp,
-	platformhwKeyDown,
-	platformhwKeyLeft,
-	platformhwKeyRight,
-	platformhwKey0,
-	platformhwKey1,
-	platformhwKey2,
-	platformhwKey3,
-	platformhwKey4,
-	platformhwKey5,
-	platformhwKey6,
-	platformhwKey7,
-	platformhwKey8,
-	platformhwKey9,
+#elif defined(PORT__PCSIMULATOR)
+        platformhwKeyEnter      = 15,
+        platformhwKeyBack       = 0,
+        platformhwKeyUp         = 4,
+        platformhwKeyDown       = 8,
+        platformhwKeyLeft       = 12,
+        platformhwKeyRight      = 13,
+        platformhwKey0          = 14,
+        platformhwKey1          = 1,
+        platformhwKey2          = 2,
+        platformhwKey3          = 3,
+        platformhwKey4          = 5,
+        platformhwKey5          = 6,
+        platformhwKey6          = 7,
+        platformhwKey7          = 9,
+        platformhwKey8          = 10,
+        platformhwKey9          = 11
 #endif /* PORT__* */
 };
 
