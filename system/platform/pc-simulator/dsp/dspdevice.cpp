@@ -154,7 +154,7 @@ void DspDevice::processCommandSetParameter(Module module, int code, ParameterVal
 void DspDevice::processTxFrame(uint8_t address, uint8_t* data, int data_len) {
 	if (state != stateOperating)
 		return;
-	if (data_len < 3)
+	if (data_len < DEFAULT_PACKET_HEADER_LEN)
 		return;
 	uint8_t indicator = qFromBigEndian<quint8>(data+1);;
 	uint8_t code = qFromBigEndian<quint8>(data+2);;
