@@ -19,7 +19,7 @@
 #endif
 #ifdef QMHARDWAREIO_PLATFORM_QT
 #include <QObject>
-#include "port_hardwareio/smbushostinterface.h"
+#include "port_hardwareio/i2cbus.h"
 #endif /* QMHARDWAREIO_PLATFORM_QT */
 
 #ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
@@ -30,6 +30,10 @@ public:
 private:
 	QmSMBusHost *o;
 	void process();
+public:
+	bool message_received;
+	uint8_t message_address;
+	uint16_t message_status;
 };
 #endif
 #ifdef QMHARDWAREIO_PLATFORM_QT
@@ -38,14 +42,12 @@ class QmSMBusHostPrivateAdapter : public QObject
 {
 	Q_OBJECT
 public:
-	QmSMBusHostPrivateAdapter(QmSMBusHostPrivate *qmsmbhostprivate);
+	QmSMBusHostPrivateAdapter(QmSMBusHostPrivate *qmsmbushostprivate);
 	~QmSMBusHostPrivateAdapter();
 	QmSMBusHostPrivate *qmsmbushostprivate;
-	SMBusHostInterface *interface;
+	I2CBus *bus;
 public Q_SLOTS:
-
-Q_SIGNALS:
-
+	void processMessageHostNotify(uint8_t address, uint16_t status);
 };
 #endif /* QMHARDWAREIO_PLATFORM_QT */
 

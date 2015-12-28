@@ -33,10 +33,16 @@ contains(QM_BUILD_MODULES,hardwareio) {
     DEFINES += QMHARDWAREIO_PLATFORM_QT
     HEADERS += \
         $$PWD/qmhardwareio/src/qmiopin_p.h \
-        $$PWD/qmhardwareio/src/qmuart_p.h
+        $$PWD/qmhardwareio/src/qmuart_p.h \
+        $$PWD/qmhardwareio/src/qmi2cdevice_p.h \
+        $$PWD/qmhardwareio/src/qmsmbushost_p.h
     SOURCES += \
         $$PWD/qmhardwareio/src/qmiopin.cpp \
         $$PWD/qmhardwareio/src/qmiopin_qt.cpp \
         $$PWD/qmhardwareio/src/qmuart.cpp \
-        $$PWD/qmhardwareio/src/qmuart_qt.cpp
+        $$PWD/qmhardwareio/src/qmuart_qt.cpp \
+        $$PWD/qmhardwareio/src/qmi2cdevice.cpp \
+        $$PWD/qmhardwareio/src/qmi2cdevice_qt.cpp \
+        $$PWD/qmhardwareio/src/qmsmbushost.cpp \
+        $$PWD/qmhardwareio/src/qmsmbushost_qt.cpp
 }

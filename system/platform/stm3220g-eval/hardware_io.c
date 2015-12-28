@@ -206,9 +206,3 @@ int stm32f2_get_i2c_bus_instance(int platform_hw_resource) {
 	configASSERT(0); // no resources defined
 	return -1;
 }
-
-hal_i2c_device_t stm32f2_get_i2c_device_descriptor(int platform_hw_resource) {
-	(void)platform_hw_resource;
-	configASSERT(0); // no resources defined
-	return (hal_i2c_device_t){-1, 0};
-}

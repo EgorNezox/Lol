@@ -25,7 +25,7 @@ typedef void* hal_i2c_smbus_handle_t;
 typedef enum {
 	hi2cSuccess = 0,		/*!< успешная передача */
 	hi2cErrorAborted,		/*!< отменено/прервано (hal_i2c_abort_master_transfer(...) или hal_i2c_set_bus_mode(hi2cModeOff)) */
-	hi2cErrorPEC,			/*!< несовпадение контрольной суммы PEC при приеме */
+	hi2cErrorPEC,			/*!< несовпадение контрольной суммы PEC при Rx */
 	hi2cErrorBus,			/*!< ошибка во время коммуникации на шине (misplaced START/STOP, arbitration lost) */
 	hi2cErrorAddressNACK,	/*!< устройство не ответило на адресацию */
 	hi2cErrorDataNACK		/*!< устройство не подтвердило байт данных (при Tx) */
@@ -85,7 +85,7 @@ void hal_i2c_set_bus_mode(int instance, hal_i2c_mode_t mode);
  *
  * Вызов запускает передачу t и возвращает результат запуска.
  * После успешного запуска структура *t и все данные, описываемые ей,
- * должны оставаться валидными до завершения передачи.
+ * должны оставаться валидными до завершения передачи (исключение: можно сбрасывать userid).
  * Запущенная передача становится в очередь обработки.
  * При завершении передачи выполняется isrcallbackTransferCompleted с результатом.
  * Если результат передачи успешный, то:

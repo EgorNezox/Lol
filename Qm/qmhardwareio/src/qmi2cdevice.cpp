@@ -9,15 +9,20 @@
 
 #include "qmi2cdevice_p.h"
 
-QmI2CDevice::QmI2CDevice(int hw_resource, QmObject* parent) :
+QmI2CDevice::QmI2CDevice(int bus_hw_resource, uint8_t address, QmObject* parent) :
 	QmObject(*new QmI2CDevicePrivate(this), parent)
 {
 	QM_D(QmI2CDevice);
-	d->hw_resource = hw_resource;
-	d->init();
+	d->bus_hw_resource = bus_hw_resource;
+	d->init(address);
 }
 
 QmI2CDevice::~QmI2CDevice() {
 	QM_D(QmI2CDevice);
 	d->deinit();
+}
+
+void QmI2CDevice::setTransferTimeout(int msec) {
+	QM_D(QmI2CDevice);
+	d->transfer_timeout = msec;
 }

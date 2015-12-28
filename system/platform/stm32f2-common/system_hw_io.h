@@ -12,7 +12,6 @@
 #define SYSTEM_HW_IO_H_
 
 #include "hal_gpio.h"
-#include "hal_i2c.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,7 +32,6 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource);
 int stm32f2_get_exti_line(int platform_hw_resource);
 int stm32f2_get_uart_instance(int platform_hw_resource);
 int stm32f2_get_i2c_bus_instance(int platform_hw_resource);
-hal_i2c_device_t stm32f2_get_i2c_device_descriptor(int platform_hw_resource);
 
 #ifdef __cplusplus
 }

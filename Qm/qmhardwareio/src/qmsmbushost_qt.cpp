@@ -12,11 +12,17 @@
 QmSMBusHostPrivateAdapter::QmSMBusHostPrivateAdapter(QmSMBusHostPrivate *qmsmbushostprivate) :
 	qmsmbushostprivate(qmsmbushostprivate)
 {
-	interface = SMBusHostInterface::getInstance(qmsmbushostprivate->hw_resource);
+	bus = I2CBus::getInstance(qmsmbushostprivate->hw_resource);
+	QObject::connect(bus, &I2CBus::messageHostNotify, this, &QmSMBusHostPrivateAdapter::processMessageHostNotify);
 }
 
 QmSMBusHostPrivateAdapter::~QmSMBusHostPrivateAdapter()
 {
+}
+
+void QmSMBusHostPrivateAdapter::processMessageHostNotify(uint8_t address, uint16_t status) {
+	QmSMBusHost * const q = qmsmbushostprivate->q_func();
+	q->messageReceived(address, status);
 }
 
 QmSMBusHostPrivate::QmSMBusHostPrivate(QmSMBusHost *q) :

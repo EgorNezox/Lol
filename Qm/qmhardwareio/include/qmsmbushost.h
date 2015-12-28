@@ -14,7 +14,7 @@
 
 QM_FORWARD_PRIVATE(QmSMBusHost)
 
-/*! The QmSMBusHost class provides functions to control SMBus host operation.
+/*! The QmSMBusHost class provides functions to monitor SMBus host operation.
  */
 class QmSMBusHost: public QmObject {
 public:
@@ -26,6 +26,8 @@ public:
 
 	/*! Destroys the SMBus host. */
 	virtual ~QmSMBusHost();
+
+	sigc::signal<void, uint8_t/*address*/, uint16_t/*status*/> messageReceived;
 
 protected:
 	virtual bool event(QmEvent *event);
