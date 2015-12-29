@@ -71,6 +71,7 @@ void GUI_Dialog_MainScr::updateChannel(){
 	switch(voice_service->getCurrentChannelStatus()){
 		case Multiradio::VoiceServiceInterface::ChannelInvalid:
 			cur_ch_invalid=true;
+			/* no break */
 		case Multiradio::VoiceServiceInterface::ChannelActive:
 			ch_num=voice_service->getCurrentChannelNumber();
 			channel_type=voice_service->getCurrentChannelType();
@@ -122,7 +123,6 @@ void GUI_Dialog_MainScr::keyHandler(UI_Key key){
 			service->pGetVoiceService()->tunePreviousChannel();
 			break;
 		default:
-			QM_ASSERT(0);
 			break;
 	}
 }

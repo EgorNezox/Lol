@@ -18,6 +18,7 @@
 #include "dsp/dspdevice.h"
 #include "port_hardwareio/iopininterface.h"
 #include "port_hardwareio/uartinterface.h"
+#include "port_hardwareio/i2cbus.h"
 #include "port_keysinput/pushbuttonkeyinterface.h"
 #include "port_keysinput/matrixkeyboardinterface.h"
 
@@ -40,21 +41,20 @@ namespace QtHwEmu {
 
 static MainWidget *main_widget = 0;
 static DspDevice *dsp_device = 0;
+static I2CBus *battery_smbus = 0;
 static QMap<int, QObject*> resources_registry;
 static QMutex resources_registry_mutex;
 
 void init() {
-	main_widget = new MainWidget();
+	main_widget = new MainWidget(platformhwMatrixKeyboard);
 	main_widget->show();
 	dsp_device = new DspDevice(platformhwDspUart, platformhwDspResetIopin);
 	dsp_device->move(main_widget->frameGeometry().topRight() + QPoint(10,0));
 	dsp_device->show();
 	main_widget->activateWindow();
 	main_widget->raise();
-    PushbuttonkeyInterface::createInstance(platformhwHeadsetPttIopin);
-    MatrixKeyboardInterface::createInstance(platformhwMatrixKeyboard);
-    PushbuttonkeyInterface::createInstance(platformhwKeyboardButt1Iopin);
-    PushbuttonkeyInterface::createInstance(platformhwKeyboardButt2Iopin);
+	battery_smbus = I2CBus::openInstance(platformhwBatterySmbusI2c);
+	PushbuttonkeyInterface::createInstance(platformhwHeadsetPttIopin); // TODO: emulate HeadsetPttIopin
 	IopinInterface::createInstance(platformhwKeyboardsLightIopin); // TODO: emulate KeyboardsLightIopin
 	IopinInterface::createInstance(platformhwEnRxRs232Iopin); // TODO: emulate EnRxRs232Iopin
 	IopinInterface::createInstance(platformhwEnTxRs232Iopin); // TODO: emulate EnTxRs232Iopin
@@ -65,6 +65,7 @@ void init() {
 void deinit() {
 	delete main_widget;
 	delete dsp_device;
+	I2CBus::closeInstance(battery_smbus);
 }
 
 int convertToPlatformHwResource(const QString &value) {

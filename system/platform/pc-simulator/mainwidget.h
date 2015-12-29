@@ -29,7 +29,7 @@ private:
     friend void QtHwEmu::init();
     friend void QtHwEmu::deinit();
 
-    MainWidget(QWidget *parent = 0);
+    MainWidget(int matrixkeyboard_hw_resource, QWidget *parent = 0);
     ~MainWidget();
 
     Ui::MainWidget *ui;

@@ -13,16 +13,13 @@
 #include "task.h"
 #include "stm32f2xx.h"
 
+#include "system_hw_io.h"
 #include "sys_internal.h"
 #include "sys_internal_freertos_timers.h"
 
 #define MPU_REGION_SIZE(n)	((n-1) << MPU_RASR_SIZE_Pos) // size = 2^n
 
 unsigned int halinternal_freertos_timer_queue_length = 0;
-
-#ifdef PORT__TARGET_DEVICE_REV1
-void init_sky72310(void);
-#endif
 
 /*! Автоматическая инициализация средствами стандартной библиотеки (до входа в main) */
 void  __attribute__((constructor)) hal_system_init(void) {
@@ -42,9 +39,9 @@ void  __attribute__((constructor)) hal_system_init(void) {
 	halinternal_exti_init();
 	halinternal_timer_init();
 	halinternal_uart_init();
-#ifdef PORT__TARGET_DEVICE_REV1
-	init_sky72310();
-#endif
+	halinternal_i2c_init();
+	/* Общая инициализация ввода/вывода аппаратной платформы системы */
+	stm32f2_hardware_io_init();
 }
 
 void halinternal_set_nvic_priority(IRQn_Type irqn) {

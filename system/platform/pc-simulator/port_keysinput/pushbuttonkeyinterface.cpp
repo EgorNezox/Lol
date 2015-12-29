@@ -39,6 +39,5 @@ void PushbuttonkeyInterface::destroyInstance(PushbuttonkeyInterface *instance)
 
 void PushbuttonkeyInterface::setStateChanged()
 {
-    qDebug() << "PushbuttonkeyInterface::setStateChanged()";
     Q_EMIT stateChanged();
 }

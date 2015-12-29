@@ -14,6 +14,7 @@
 
 #include "system_hw_io.h"
 #include "../platform_hw_map.h"
+#include "hal_i2c.h"
 
 #define FSMC_BANK_REG_OFFSET(number)	(((number)-1)*2)
 
@@ -171,6 +172,12 @@ void stm32f2_LCD_init(void) {
 	portENABLE_INTERRUPTS();
 }
 
+void stm32f2_hardware_io_init(void)
+{
+	stm32f2_ext_pins_init(platformhwBatterySmbusI2c);
+	hal_i2c_set_bus_mode(stm32f2_get_i2c_bus_instance(platformhwBatterySmbusI2c), hi2cModeSMBus);
+}
+
 void stm32f2_ext_pins_init(int platform_hw_resource) {
 	hal_gpio_params_t params;
 	hal_gpio_set_default_params(&params);
@@ -212,12 +219,18 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		params.exti_source = true;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPA, 0}, &params);
 		break;
+	case platformhwBatterySmbusI2c: // CN2 connector, pins 33,34 (JP31 open)
+		params.mode = hgpioMode_AF;
+		params.type = hgpioType_OD;
+		params.af = hgpioAF_I2C_1_2_3;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 10}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 11}, &params);
+		break;
 	case platformhwKeyboardsLightIopin:
 	case platformhwEnRxRs232Iopin:
 	case platformhwEnTxRs232Iopin:
 	case platformhwDspResetIopin:
 	case platformhwAtuUart:
-	case platformhwBatterySmbusI2c:
 		//TODO: stm32f2_ext_pins_init()
 		break;
 	default: configASSERT(0); // no such resource
@@ -251,12 +264,16 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 		break;
 	case platformhwKeyboardButt2Iopin:
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPA, 0});
+		break;
+	case platformhwBatterySmbusI2c: // CN2 connector, pins 33,34 (JP31 open)
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 10});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 11});
+		break;
 	case platformhwKeyboardsLightIopin:
 	case platformhwEnRxRs232Iopin:
 	case platformhwEnTxRs232Iopin:
 	case platformhwDspResetIopin:
 	case platformhwAtuUart:
-	case platformhwBatterySmbusI2c:
 		//TODO: stm32f2_ext_pins_deinit()
 		break;
 	default: configASSERT(0); // no such resource
@@ -302,6 +319,15 @@ int stm32f2_get_uart_instance(int platform_hw_resource) {
 	case platformhwAtuUart:
 		//TODO: stm32f2_get_uart_instance()
 		break;
+	default: configASSERT(0); // no such resource
+	}
+	return -1;
+}
+
+int stm32f2_get_i2c_bus_instance(int platform_hw_resource) {
+	switch (platform_hw_resource) {
+	case platformhwBatterySmbusI2c:
+		return 2;
 	default: configASSERT(0); // no such resource
 	}
 	return -1;

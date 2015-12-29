@@ -40,6 +40,5 @@ void PushButtonKey::assignHwResource(int value) {
 
 void PushButtonKey::processPBStateChanged()
 {
-    qDebug() << "PushButtonKey::processPBStateChanged()";
     pbkey_interface->setStateChanged();
 }

@@ -11,8 +11,9 @@
 #include "mainwidget.h"
 #include "ui_mainwidget.h"
 #include "ramtexdisplaywidget.h"
+#include "port_keysinput/matrixkeyboardwidget.h"
 
-MainWidget::MainWidget(QWidget *parent) :
+MainWidget::MainWidget(int matrixkeyboard_hw_resource, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainWidget)
 {
@@ -20,6 +21,9 @@ MainWidget::MainWidget(QWidget *parent) :
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
     RamtexDisplayWidget *display_widget = new RamtexDisplayWidget(ui->placeholderDisplay);
     display_widget->show();
+    MatrixKeyboardWidget *keyboard = new MatrixKeyboardWidget(this, matrixkeyboard_hw_resource);
+    ui->horizontalLayout->addWidget(keyboard);
+    keyboard->show();
 }
 
 MainWidget::~MainWidget()
