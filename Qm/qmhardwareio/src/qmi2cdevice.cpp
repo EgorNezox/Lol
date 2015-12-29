@@ -26,3 +26,8 @@ void QmI2CDevice::setTransferTimeout(int msec) {
 	QM_D(QmI2CDevice);
 	d->transfer_timeout = msec;
 }
+
+bool QmI2CDevice::isTransferInProgress() {
+	QM_D(QmI2CDevice);
+	return d->transfer_in_progress;
+}

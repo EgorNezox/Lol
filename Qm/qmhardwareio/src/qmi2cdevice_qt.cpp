@@ -60,21 +60,18 @@ bool QmI2CDevicePrivate::startTransfer() {
 void QmI2CDevicePrivate::finishTransfer(bool ack, bool pec_present, const QByteArray& rx_data) {
 	QM_Q(QmI2CDevice);
 	Q_ASSERT(transfer_in_progress);
+	QmI2CDevice::TransferResult result = QmI2CDevice::transferSuccess;
 	transfer_in_progress = false;
 	if (ack) {
+		if (!rx_data.isEmpty() && transfer_uses_pec && (!pec_present || (rx_data.size() != transfer_rx_data.size())))
+			result = QmI2CDevice::transferErrorPEC;
 		transfer_rx_data = rx_data.leftJustified(transfer_rx_data.size(), 0xFF, true);
-		if (!rx_data.isEmpty() && transfer_uses_pec) {
-			if (pec_present)
-				q->transferCompleted.emit(QmI2CDevice::transferSuccess);
-			else
-				q->transferCompleted.emit(QmI2CDevice::transferErrorPEC);
-		} else {
-			q->transferCompleted.emit(QmI2CDevice::transferSuccess);
-		}
 	} else {
-		transfer_rx_data.clear();
-		q->transferCompleted.emit(QmI2CDevice::transferErrorAddressNACK);
+		result = QmI2CDevice::transferErrorAddressNACK;
 	}
+	if (result != QmI2CDevice::transferSuccess)
+		transfer_rx_data.clear();
+	q->transferCompleted.emit(result);
 }
 
 bool QmI2CDevice::startEmptyTransfer() {

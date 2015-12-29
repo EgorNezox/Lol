@@ -196,7 +196,7 @@ bool QmI2CDevice::startTxRxTransfer(bool use_pec, uint8_t* tx_data, uint32_t tx_
 
 int64_t QmI2CDevice::readRxData(uint8_t* buffer, uint32_t size, int offset) {
 	QM_D(QmI2CDevice);
-	if (!(!d->transfer_in_progress && (d->transfer_rx_size != 0)))
+	if (!(!d->transfer_in_progress && (d->io_event.transfer_result == hi2cSuccess) && (d->transfer_rx_size != 0)))
 		return -1;
 	int64_t read = qmMax(0, qmMin((d->transfer_rx_size - offset), (int)size));
 	memcpy(buffer, (d->i2c_transfer.data + (d->i2c_transfer.size - d->transfer_rx_size) + offset), read);

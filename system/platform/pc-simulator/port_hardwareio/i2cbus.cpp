@@ -52,7 +52,7 @@ void I2CBus::unregisterSlave(I2CDeviceInterface* instance) {
 void I2CBus::responseTransferDelayed(uint8_t address, bool ack, bool pec_present, const QByteArray& rx_data) {
 	// emits delayed signal
 	QMetaMethod::fromSignal(&I2CBus::transferResponse).invoke(this, Qt::QueuedConnection,
-			Q_ARG(uint8_t, address),
+			Q_ARG(quint8, address),
 			Q_ARG(bool, ack),
 			Q_ARG(bool, pec_present),
 			Q_ARG(QByteArray, rx_data)

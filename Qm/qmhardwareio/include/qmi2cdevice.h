@@ -39,6 +39,8 @@ public:
 
 	void setTransferTimeout(int msec);
 
+	bool isTransferInProgress();
+
 	bool startEmptyTransfer();
 
 	bool startRxTransfer(bool use_pec, uint32_t size);
