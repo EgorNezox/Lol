@@ -13,6 +13,7 @@
 #include <list>
 #include "qm.h"
 #include "qmmutex.h"
+#include "sigc++/trackable.h"
 
 #ifdef QMCORE_PLATFORM_QT
 class QObject;
@@ -21,7 +22,7 @@ class QmObject;
 class QmEvent;
 class QmThread;
 
-struct QmObjectPrivate
+struct QmObjectPrivate : public sigc::trackable
 {
 	QmObjectPrivate(QmObject *q);
 	virtual ~QmObjectPrivate();
