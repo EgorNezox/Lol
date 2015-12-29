@@ -22,12 +22,16 @@ void stm32f2_ext_mem_init(void);
 char stm32f2_ext_sram_test(void);
 void stm32f2_LCD_init(void);
 
+/* Generic/common initialization (being called before entering main() !) */
+void stm32f2_hardware_io_init(void);
+
 /* Platform hardware resources */
 void stm32f2_ext_pins_init(int platform_hw_resource);
 void stm32f2_ext_pins_deinit(int platform_hw_resource);
 hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource);
 int stm32f2_get_exti_line(int platform_hw_resource);
 int stm32f2_get_uart_instance(int platform_hw_resource);
+int stm32f2_get_i2c_bus_instance(int platform_hw_resource);
 void stm32f2_get_matrixkeyboard_pins(int platform_hw_resource,
 		hal_gpio_pin_t** column_pins, int* column_count, hal_gpio_pin_t** row_pins, int* row_count);
 

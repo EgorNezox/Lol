@@ -16,6 +16,7 @@
 #include "../platform_hw_map.h"
 #include "hal_gpio.h"
 #include "hal_timer.h"
+#include "hal_i2c.h"
 
 #define _STR(arg) #arg
 #define STR(arg) _STR(arg)
@@ -274,6 +275,12 @@ void stm32f2_LCD_init(void) {
 	hal_timer_delay(10);
 }
 
+void stm32f2_hardware_io_init(void)
+{
+	stm32f2_ext_pins_init(platformhwBatterySmbusI2c);
+	hal_i2c_set_bus_mode(stm32f2_get_i2c_bus_instance(platformhwBatterySmbusI2c), hi2cModeSMBus);
+}
+
 void stm32f2_ext_pins_init(int platform_hw_resource) {
 	hal_gpio_params_t params;
 	hal_gpio_set_default_params(&params);
@@ -353,6 +360,7 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		break;
 	case platformhwBatterySmbusI2c:
 		params.mode = hgpioMode_AF;
+		params.type = hgpioType_OD;
 		params.af = hgpioAF_I2C_1_2_3;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 8}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 9}, &params);
@@ -461,6 +469,15 @@ int stm32f2_get_uart_instance(int platform_hw_resource) {
 		return 1;
 	case platformhwAtuUart:
 		return 2;
+	default: configASSERT(0); // no such resource
+	}
+	return -1;
+}
+
+int stm32f2_get_i2c_bus_instance(int platform_hw_resource) {
+	switch (platform_hw_resource) {
+	case platformhwBatterySmbusI2c:
+		return 1;
 	default: configASSERT(0); // no such resource
 	}
 	return -1;
