@@ -11,8 +11,10 @@
 #include "matrixkeyboardinterface.h"
 #include "hardware_emulation.h"
 
-MatrixKeyboardInterface::MatrixKeyboardInterface()
+MatrixKeyboardInterface::MatrixKeyboardInterface(int keysNumber) :
+    keys_number(keysNumber)
 {
+    Q_ASSERT(keysNumber > 0);
 }
 
 MatrixKeyboardInterface::~MatrixKeyboardInterface()
@@ -25,8 +27,8 @@ MatrixKeyboardInterface *MatrixKeyboardInterface::getInstance(int hw_resource) {
     return instance;
 }
 
-MatrixKeyboardInterface *MatrixKeyboardInterface::createInstance(int hw_resource) {
-    MatrixKeyboardInterface *instance = new MatrixKeyboardInterface();
+MatrixKeyboardInterface *MatrixKeyboardInterface::createInstance(int hw_resource, int keysNumber) {
+    MatrixKeyboardInterface *instance = new MatrixKeyboardInterface(keysNumber);
     QtHwEmu::acquireResource(hw_resource, instance);
     return instance;
 }
@@ -36,8 +38,11 @@ void MatrixKeyboardInterface::destroyInstance(MatrixKeyboardInterface *instance)
     delete instance;
 }
 
+int MatrixKeyboardInterface::keysNumber() {
+    return keys_number;
+}
+
 void MatrixKeyboardInterface::setKeyStateChanged(int id, bool state) {
-    qDebug() << "MatrixKeyboardInterface::setKeyStateChanged(" << id << ", " << state << ")";
     Q_EMIT keyStateChanged(id, state);
 }
 
