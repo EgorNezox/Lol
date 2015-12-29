@@ -46,7 +46,7 @@ static QMap<int, QObject*> resources_registry;
 static QMutex resources_registry_mutex;
 
 void init() {
-	main_widget = new MainWidget();
+	main_widget = new MainWidget(platformhwMatrixKeyboard);
 	main_widget->show();
 	dsp_device = new DspDevice(platformhwDspUart, platformhwDspResetIopin);
 	dsp_device->move(main_widget->frameGeometry().topRight() + QPoint(10,0));
@@ -54,9 +54,7 @@ void init() {
 	main_widget->activateWindow();
 	main_widget->raise();
 	battery_smbus = I2CBus::openInstance(platformhwBatterySmbusI2c);
-    PushbuttonkeyInterface::createInstance(platformhwHeadsetPttIopin);
-//    PushbuttonkeyInterface::createInstance(platformhwKeyboardButt1Iopin);
-//    PushbuttonkeyInterface::createInstance(platformhwKeyboardButt2Iopin);
+	PushbuttonkeyInterface::createInstance(platformhwHeadsetPttIopin); // TODO: emulate HeadsetPttIopin
 	IopinInterface::createInstance(platformhwKeyboardsLightIopin); // TODO: emulate KeyboardsLightIopin
 	IopinInterface::createInstance(platformhwEnRxRs232Iopin); // TODO: emulate EnRxRs232Iopin
 	IopinInterface::createInstance(platformhwEnTxRs232Iopin); // TODO: emulate EnTxRs232Iopin

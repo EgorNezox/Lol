@@ -83,6 +83,7 @@ void Service::setNotification(NotificationType type) {
 
 
 void Service::keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type){
+	QM_UNUSED(pr_type);
 	switch(matrix_kb.key_id[key_id]){
 		case matrixkbkeyEnter:
 			keyPressed(keyEnter);
