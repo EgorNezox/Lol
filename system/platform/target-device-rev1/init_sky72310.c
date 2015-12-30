@@ -67,7 +67,7 @@ void init_sky72310(void) {
 	write_reg(0x02, 0x0000);
 
 	HAL_SPI_DeInit(&SpiHandle);
-	HAL_DeInit();
+	HAL_SuspendTick(); // не вызывать HAL_DeInit(), т.к. она делает полный сброс всей периферии (тварь такая)
 
 	sky72310_stm32f2cube_active = 0;
 }
