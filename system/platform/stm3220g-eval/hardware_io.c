@@ -188,13 +188,10 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 10}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 11}, &params);
 		break;
-	case platformhwHeadsetUart:
 	case platformhwHeadsetPttIopin:
 		params.mode = hgpioMode_In;
 		params.exti_source = true;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPG, 15}, &params);
-		break;
-	case platformhwDataFlashSpi:
 		break;
 	case platformhwMatrixKeyboard:
 		params.mode = hgpioMode_In;
@@ -226,6 +223,8 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 10}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 11}, &params);
 		break;
+	case platformhwHeadsetUart:
+	case platformhwDataFlashSpi:
 	case platformhwKeyboardsLightIopin:
 	case platformhwEnRxRs232Iopin:
 	case platformhwEnTxRs232Iopin:
@@ -243,11 +242,8 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 10});
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 11});
 		break;
-	case platformhwHeadsetUart:
 	case platformhwHeadsetPttIopin:
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPG, 15});
-		break;
-	case platformhwDataFlashSpi:
 		break;
 	case platformhwMatrixKeyboard:
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 13});
@@ -269,6 +265,8 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 10});
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 11});
 		break;
+	case platformhwHeadsetUart:
+	case platformhwDataFlashSpi:
 	case platformhwKeyboardsLightIopin:
 	case platformhwEnRxRs232Iopin:
 	case platformhwEnTxRs232Iopin:
