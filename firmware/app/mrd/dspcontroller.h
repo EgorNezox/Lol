@@ -72,7 +72,7 @@ private:
 	void processCommandResponse(bool success, Module module, int code, ParameterValue value);
 	void syncPendingCommand();
 	void processRadioState();
-	void syncRadioState();
+	void syncNextRadioState();
 	void sendCommand(Module module, int code, ParameterValue value);
 	void processReceivedFrame(uint8_t address, uint8_t *data, int data_size);
 
@@ -82,10 +82,12 @@ private:
 	QmTimer *startup_timer, *command_timer;
 	enum {
 		radiostateSync,
-		radiostateCmdModeOff,
+		radiostateCmdModeOffRx,
+		radiostateCmdModeOffTx,
 		radiostateCmdRxFreq,
 		radiostateCmdTxFreq,
-		radiostateCmdLastModeOff,
+		radiostateCmdRxOff,
+		radiostateCmdTxOff,
 		radiostateCmdRxMode,
 		radiostateCmdTxMode
 	} radio_state;

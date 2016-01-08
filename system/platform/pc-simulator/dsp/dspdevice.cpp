@@ -85,7 +85,7 @@ void DspDevice::sendDspInfo(uint16_t id, uint16_t major_version, uint16_t minor_
 	qToBigEndian(id, data+DEFAULT_PACKET_HEADER_LEN+0);
 	qToBigEndian(major_version, data+DEFAULT_PACKET_HEADER_LEN+2);
 	qToBigEndian(minor_version, data+DEFAULT_PACKET_HEADER_LEN+4);
-	transport->transferRxFrame(0x10, data, (DEFAULT_PACKET_HEADER_LEN + 6));
+	transport->transferRxFrame(0x11, data, (DEFAULT_PACKET_HEADER_LEN + 6));
 }
 
 void DspDevice::sendCommandResponse(bool success, Module module, int code, ParameterValue value) {
