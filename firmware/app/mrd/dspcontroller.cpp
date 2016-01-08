@@ -25,6 +25,7 @@ namespace Multiradio {
 
 struct DspCommand {
 	bool in_progress;
+	bool sync_next;
 	DspController::Module module;
 	int code;
 	DspController::ParameterValue value;
@@ -66,18 +67,33 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 	bool processing_required = true;
 	QM_ASSERT(is_ready);
 	switch (radio_state) {
-	case radiostateSync:
-	case radiostateCmdRxMode:
-	case radiostateCmdTxMode:
-		if (current_radio_direction != RadioDirectionInvalid)
-			radio_state = radiostateCmdModeOff;
-		else
+	case radiostateSync: {
+		switch (current_radio_direction) {
+		case RadioDirectionInvalid:
 			radio_state = radiostateCmdRxFreq;
+			break;
+		case RadioDirectionRx:
+			radio_state = radiostateCmdModeOffRx;
+			break;
+		case RadioDirectionTx:
+			radio_state = radiostateCmdModeOffTx;
+			break;
+		}
 		break;
+	}
 	case radiostateCmdRxFreq:
-	case radiostateCmdTxFreq:
-		radio_state = radiostateCmdModeOff;
+	case radiostateCmdTxFreq: {
+		radio_state = radiostateCmdRxFreq;
 		break;
+	}
+	case radiostateCmdRxMode: {
+		radio_state = radiostateCmdModeOffRx;
+		break;
+	}
+	case radiostateCmdTxMode: {
+		radio_state = radiostateCmdModeOffTx;
+		break;
+	}
 	default:
 		processing_required = false;
 		break;
@@ -96,10 +112,11 @@ void DspController::setRadioRx() {
 	QM_ASSERT(is_ready);
 	switch (radio_state) {
 	case radiostateSync:
-		radio_state = radiostateCmdRxMode;
-		break;
 	case radiostateCmdTxMode:
-		radio_state = radiostateCmdLastModeOff;
+		if (current_radio_direction == RadioDirectionInvalid)
+			radio_state = radiostateCmdRxMode;
+		else
+			radio_state = radiostateCmdTxOff;
 		break;
 	default:
 		processing_required = false;
@@ -118,10 +135,11 @@ void DspController::setRadioTx() {
 	QM_ASSERT(is_ready);
 	switch (radio_state) {
 	case radiostateSync:
-		radio_state = radiostateCmdTxMode;
-		break;
 	case radiostateCmdRxMode:
-		radio_state = radiostateCmdLastModeOff;
+		if (current_radio_direction == RadioDirectionInvalid)
+			radio_state = radiostateCmdTxMode;
+		else
+			radio_state = radiostateCmdRxOff;
 		break;
 	default:
 		processing_required = false;
@@ -185,35 +203,22 @@ void DspController::syncPendingCommand() {
 	switch (pending_command->module) {
 	case RxRadiopath:
 	case TxRadiopath:
-		syncRadioState();
+		if (pending_command->sync_next)
+			syncNextRadioState();
+		processRadioState();
 		break;
 	}
 }
 
 void DspController::processRadioState() {
-	if (pending_command->in_progress)
+	if (pending_command->in_progress) {
+		pending_command->sync_next = false;
 		return;
+	}
 	ParameterValue command_value;
 	switch (radio_state) {
 	case radiostateSync:
 		break;
-	case radiostateCmdModeOff: {
-		Module module_off;
-		switch (current_radio_direction) {
-		case RadioDirectionRx:
-			module_off = RxRadiopath;
-			break;
-		case RadioDirectionTx:
-			module_off = TxRadiopath;
-			break;
-		case RadioDirectionInvalid:
-			QM_ASSERT(0);
-			break;
-		}
-		command_value.radio_mode = RadioModeOff;
-		sendCommand(module_off, RxRadioMode, command_value);
-		break;
-	}
 	case radiostateCmdRxFreq: {
 		command_value.frequency = current_radio_frequency;
 		sendCommand(RxRadiopath, RxFrequency, command_value);
@@ -224,21 +229,16 @@ void DspController::processRadioState() {
 		sendCommand(TxRadiopath, TxFrequency, command_value);
 		break;
 	}
-	case radiostateCmdLastModeOff: {
-		Module module_off;
-		switch (current_radio_direction) {
-		case RadioDirectionRx:
-			module_off = TxRadiopath;
-			break;
-		case RadioDirectionTx:
-			module_off = RxRadiopath;
-			break;
-		case RadioDirectionInvalid:
-			QM_ASSERT(0);
-			break;
-		}
+	case radiostateCmdModeOffRx:
+	case radiostateCmdRxOff: {
 		command_value.radio_mode = RadioModeOff;
-		sendCommand(module_off, RxRadioMode, command_value);
+		sendCommand(RxRadiopath, RxRadioMode, command_value);
+		break;
+	}
+	case radiostateCmdModeOffTx:
+	case radiostateCmdTxOff: {
+		command_value.radio_mode = RadioModeOff;
+		sendCommand(TxRadiopath, TxRadioMode, command_value);
 		break;
 	}
 	case radiostateCmdRxMode: {
@@ -254,12 +254,13 @@ void DspController::processRadioState() {
 	}
 }
 
-void DspController::syncRadioState() {
+void DspController::syncNextRadioState() {
 	switch (radio_state) {
 	case radiostateSync:
 		QM_ASSERT(0);
 		break;
-	case radiostateCmdModeOff: {
+	case radiostateCmdModeOffRx:
+	case radiostateCmdModeOffTx: {
 		radio_state = radiostateCmdRxFreq;
 		break;
 	}
@@ -268,7 +269,8 @@ void DspController::syncRadioState() {
 		break;
 	}
 	case radiostateCmdTxFreq:
-	case radiostateCmdLastModeOff: {
+	case radiostateCmdRxOff:
+	case radiostateCmdTxOff: {
 		switch (current_radio_direction) {
 		case RadioDirectionInvalid:
 			radio_state = radiostateSync;
@@ -288,7 +290,6 @@ void DspController::syncRadioState() {
 		break;
 	}
 	}
-	processRadioState();
 }
 
 void DspController::sendCommand(Module module, int code, ParameterValue value) {
@@ -322,6 +323,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 	}
 	QM_ASSERT(pending_command->in_progress == false);
 	pending_command->in_progress = true;
+	pending_command->sync_next = true;
 	pending_command->module = module;
 	pending_command->code = code;
 	pending_command->value = value;
@@ -337,7 +339,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	uint8_t *value_ptr = data + 3;
 	int value_len = data_len - 3;
 	switch (address) {
-	case 0x10: {
+	case 0x11: {
 		if ((indicator == 5) && (code == 2) && (value_len == 6)) // инициативное сообщение с цифровой информацией о прошивке ?
 			processStartup(qmFromBigEndian<uint16_t>(value_ptr+0), qmFromBigEndian<uint16_t>(value_ptr+2), qmFromBigEndian<uint16_t>(value_ptr+4));
 		break;
