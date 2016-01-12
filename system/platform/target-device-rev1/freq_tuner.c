@@ -14,9 +14,9 @@
 #define DACx_CHANNEL_GPIO_CLK_ENABLE()  __HAL_RCC_GPIOA_CLK_ENABLE()
 #define DACx_FORCE_RESET()              __HAL_RCC_DAC_FORCE_RESET()
 #define DACx_RELEASE_RESET()            __HAL_RCC_DAC_RELEASE_RESET()
-#define DACx_CHANNEL_PIN                GPIO_PIN_5
+#define DACx_CHANNEL_PIN                GPIO_PIN_4
 #define DACx_CHANNEL_GPIO_PORT          GPIOA
-#define DACx_CHANNEL                    DAC_CHANNEL_2
+#define DACx_CHANNEL                    DAC_CHANNEL_1
 
 #define MIN_DAC_OUTPUT_VALUE	620		// 0,5В при Vref=3,3В
 #define MAX_DAC_OUTPUT_VALUE	3100	// 2,5В при Vref=3,3В
