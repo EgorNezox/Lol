@@ -29,6 +29,9 @@
 #define MEMORY_B1_SRAM2_SIZE_WORDS				(1*1024*1024) // 1M x 16
 #define MEMORY_B1_SRAM2_LENGTH					(2*MEMORY_B1_SRAM2_SIZE_WORDS) // bytes
 
+extern void init_stm32f2cube_hal();
+extern void deinit_stm32f2cube_hal();
+extern void tune_frequency_generator(void);
 extern void init_sky72310(void);
 
 char stm32f2_ext_sram_test(void) __attribute__((optimize("-O0")));
@@ -281,7 +284,11 @@ void stm32f2_hardware_io_init(void)
 {
 	stm32f2_ext_pins_init(platformhwBatterySmbusI2c);
 	hal_i2c_set_bus_mode(stm32f2_get_i2c_bus_instance(platformhwBatterySmbusI2c), hi2cModeSMBus);
+
+	init_stm32f2cube_hal();
+	tune_frequency_generator();
 	init_sky72310();
+	deinit_stm32f2cube_hal();
 }
 
 void stm32f2_ext_pins_init(int platform_hw_resource) {

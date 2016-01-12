@@ -475,14 +475,14 @@ void xPortPendSVHandler( void )
 /*-----------------------------------------------------------*/
 
 #ifdef PORT__TARGET_DEVICE_REV1
-char sky72310_stm32f2cube_active = 0;
+char stm32f2cube_hal_active = 0;
 void HAL_IncTick(void);
 #endif
 
 void xPortSysTickHandler( void )
 {
 #ifdef PORT__TARGET_DEVICE_REV1
-	if (sky72310_stm32f2cube_active) {
+	if (stm32f2cube_hal_active) {
 		HAL_IncTick();
 		return;
 	}

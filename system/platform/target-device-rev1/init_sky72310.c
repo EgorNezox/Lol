@@ -28,7 +28,6 @@
 #define CS_PLL_PIN                     GPIO_PIN_15
 #define CS_PLL_GPIO_PORT               GPIOH
 
-extern char sky72310_stm32f2cube_active;
 static SPI_HandleTypeDef SpiHandle;
 
 static void write_reg(uint8_t address, uint16_t value) {
@@ -41,9 +40,6 @@ static void write_reg(uint8_t address, uint16_t value) {
 }
 
 void init_sky72310(void) {
-	sky72310_stm32f2cube_active = 1;
-
-	HAL_Init();
 	SpiHandle.Instance               = SPIx;
 	SpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
 	SpiHandle.Init.Direction         = SPI_DIRECTION_2LINES;
@@ -67,9 +63,6 @@ void init_sky72310(void) {
 	write_reg(0x02, 0x0000);
 
 	HAL_SPI_DeInit(&SpiHandle);
-	HAL_SuspendTick(); // не вызывать HAL_DeInit(), т.к. она делает полный сброс всей периферии (тварь такая)
-
-	sky72310_stm32f2cube_active = 0;
 }
 
 void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
