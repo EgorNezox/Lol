@@ -9,7 +9,7 @@
  */
 
 #include "qm.h"
-#define QMDEBUGDOMAIN	mrd
+#define QMDEBUGDOMAIN	dspcontroller
 #include "qmdebug.h"
 #include "qmendian.h"
 #include "qmtimer.h"
@@ -53,12 +53,12 @@ DspController::~DspController()
 	delete pending_command;
 }
 
-void DspController::reset() {
-	is_ready = false;
+void DspController::startServicing() {
+	qmDebugMessage(QmDebug::Info, "start servicing...");
 	initResetState();
 	reset_iopin->writeOutput(QmIopin::Level_Low);
-	transport->flush();
 	QmThread::msleep(10);
+	transport->enable();
 	reset_iopin->writeOutput(QmIopin::Level_High);
 	startup_timer->start(5000);
 }
@@ -294,7 +294,7 @@ void DspController::syncNextRadioState() {
 
 void DspController::sendCommand(Module module, int code, ParameterValue value) {
 	uint8_t tx_address;
-	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_LEN];
+	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 	int tx_data_len = DEFAULT_PACKET_HEADER_LEN;
 	qmToBigEndian((uint8_t)0, tx_data+0); // адрес: 0
 	qmToBigEndian((uint8_t)2, tx_data+1); // индикатор: "команда (установка)"
@@ -369,3 +369,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 }
 
 } /* namespace Multiradio */
+
+#include "qmdebug_domains_start.h"
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
+#include "qmdebug_domains_end.h"

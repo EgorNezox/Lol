@@ -33,7 +33,7 @@ public:
 
 	DspController(int uart_resource, int reset_iopin_resource, QmObject *parent);
 	~DspController();
-	void reset();
+	void startServicing();
 	void setRadioParameters(RadioMode mode, uint32_t frequency);
 	void setRadioRx();
 	void setRadioTx();
@@ -74,7 +74,7 @@ private:
 	void processRadioState();
 	void syncNextRadioState();
 	void sendCommand(Module module, int code, ParameterValue value);
-	void processReceivedFrame(uint8_t address, uint8_t *data, int data_size);
+	void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
 
 	bool is_ready;
 	QmIopin *reset_iopin;
