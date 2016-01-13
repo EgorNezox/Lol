@@ -303,6 +303,7 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		break;
 	case platformhwHeadsetPttIopin:
 		params.mode = hgpioMode_In;
+		params.type = hgpioType_PPUp;
 		params.exti_source = true;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPF, 8}, &params);
 		break;
