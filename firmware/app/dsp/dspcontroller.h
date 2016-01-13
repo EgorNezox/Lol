@@ -7,8 +7,8 @@
  ******************************************************************************
  */
 
-#ifndef FIRMWARE_APP_MRD_DSPCONTROLLER_H_
-#define FIRMWARE_APP_MRD_DSPCONTROLLER_H_
+#ifndef FIRMWARE_APP_DSP_DSPCONTROLLER_H_
+#define FIRMWARE_APP_DSP_DSPCONTROLLER_H_
 
 #include "qmobject.h"
 
@@ -99,4 +99,4 @@ private:
 
 } /* namespace Multiradio */
 
-#endif /* FIRMWARE_APP_MRD_DSPCONTROLLER_H_ */
+#endif /* FIRMWARE_APP_DSP_DSPCONTROLLER_H_ */

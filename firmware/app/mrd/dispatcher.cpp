@@ -14,8 +14,8 @@
 #define QMDEBUGDOMAIN	mrd
 #include "qmdebug.h"
 
+#include "../dsp/dspcontroller.h"
 #include "dispatcher.h"
-#include "dspcontroller.h"
 #include "mainserviceinterface.h"
 #include "voiceserviceinterface.h"
 
