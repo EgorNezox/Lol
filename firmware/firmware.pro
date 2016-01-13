@@ -19,6 +19,7 @@ SOURCES += \
     $$wildcardSources(app/datastorage, *.cpp) \
     $$wildcardSources(app/headset, *.cpp) \
     $$wildcardSources(app/mrd, *.cpp) \
+    $$wildcardSources(app/navigator, *.cpp) \
     $$wildcardSources(app/power, *.cpp) \
     $$wildcardSources(app/ui, *.cpp)
 

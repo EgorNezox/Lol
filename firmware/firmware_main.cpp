@@ -18,6 +18,7 @@
 #include "datastorage/fs.h"
 #include "headset/controller.h"
 #include "mrd/dispatcher.h"
+#include "navigation/navigator.h"
 #include "power/battery.h"
 #include "ui/service.h"
 
@@ -71,6 +72,8 @@ void qmMain() {
 	entxrs232_iopin.writeOutput(QmIopin::Level_High);
 	headset_controller.startServicing(mr_channels_table);
 	mr_dispatcher.startServicing(mr_channels_table);
+
+	Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin);
 
 	app.exec();
 }
