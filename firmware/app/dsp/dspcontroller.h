@@ -7,8 +7,8 @@
  ******************************************************************************
  */
 
-#ifndef FIRMWARE_APP_MRD_DSPCONTROLLER_H_
-#define FIRMWARE_APP_MRD_DSPCONTROLLER_H_
+#ifndef FIRMWARE_APP_DSP_DSPCONTROLLER_H_
+#define FIRMWARE_APP_DSP_DSPCONTROLLER_H_
 
 #include "qmobject.h"
 
@@ -30,13 +30,18 @@ public:
 		RadioModeFM = 9,
 		RadioModeSazhenData = 11
 	};
+	enum RadioOperation {
+		RadioOperationOff,
+		RadioOperationRxMode,
+		RadioOperationTxMode,
+		RadioOperationCarrierTx
+	};
 
 	DspController(int uart_resource, int reset_iopin_resource, QmObject *parent);
 	~DspController();
-	void reset();
+	void startServicing();
 	void setRadioParameters(RadioMode mode, uint32_t frequency);
-	void setRadioRx();
-	void setRadioTx();
+	void setRadioOperation(RadioOperation operation);
 
 	sigc::signal<void> started;
 
@@ -59,22 +64,22 @@ private:
 		uint32_t frequency;
 		RadioMode radio_mode;
 	};
-	enum RadioDirection {
-		RadioDirectionInvalid,
-		RadioDirectionRx,
-		RadioDirectionTx
-	};
 
 	void initResetState();
 	void processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version);
 	void processStartupTimeout();
+	bool startRadioOff();
+	bool startRadioRxMode();
+	bool startRadioTxMode();
+	bool startRadioCarrierTx();
+	void processRadioState();
+	void syncNextRadioState();
 	void processCommandTimeout();
 	void processCommandResponse(bool success, Module module, int code, ParameterValue value);
 	void syncPendingCommand();
-	void processRadioState();
-	void syncNextRadioState();
+	bool resyncPendingCommand();
 	void sendCommand(Module module, int code, ParameterValue value);
-	void processReceivedFrame(uint8_t address, uint8_t *data, int data_size);
+	void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
 
 	bool is_ready;
 	QmIopin *reset_iopin;
@@ -89,14 +94,15 @@ private:
 		radiostateCmdRxOff,
 		radiostateCmdTxOff,
 		radiostateCmdRxMode,
-		radiostateCmdTxMode
+		radiostateCmdTxMode,
+		radiostateCmdCarrierTx
 	} radio_state;
 	RadioMode current_radio_mode;
-	RadioDirection current_radio_direction;
+	RadioOperation current_radio_operation;
 	uint32_t current_radio_frequency;
 	DspCommand *pending_command;
 };
 
 } /* namespace Multiradio */
 
-#endif /* FIRMWARE_APP_MRD_DSPCONTROLLER_H_ */
+#endif /* FIRMWARE_APP_DSP_DSPCONTROLLER_H_ */

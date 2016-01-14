@@ -7,8 +7,8 @@
  ******************************************************************************
  */
 
-#ifndef FIRMWARE_APP_MRD_DSPTRANSPORT_H_
-#define FIRMWARE_APP_MRD_DSPTRANSPORT_H_
+#ifndef FIRMWARE_APP_DSP_DSPTRANSPORT_H_
+#define FIRMWARE_APP_DSP_DSPTRANSPORT_H_
 
 #include "qmobject.h"
 
@@ -21,16 +21,18 @@ class DspTransport : public QmObject
 public:
 	DspTransport(int uart_resource, int max_tx_queue_size, QmObject *parent);
 	~DspTransport();
-	void flush();
-	void transmitFrame(uint8_t address, uint8_t *data, int data_size);
+	void enable();
+	void disable();
+	void transmitFrame(uint8_t address, uint8_t *data, int data_len);
 
-	sigc::signal<void, uint8_t/*address*/, uint8_t*/*data*/, int/*data_size*/> receivedFrame;
+	sigc::signal<void, uint8_t/*address*/, uint8_t*/*data*/, int/*data_len*/> receivedFrame;
 
-	static const int MAX_FRAME_DATA_LEN;
+	static const int MAX_FRAME_DATA_SIZE;
 
 private:
 	void processUartReceivedData();
 	void processUartReceivedErrors(bool data_errors, bool overflow);
+	void dropRxSync();
 
 	QmUart *uart;
 	enum {
@@ -44,4 +46,4 @@ private:
 
 } /* namespace Multiradio */
 
-#endif /* FIRMWARE_APP_MRD_DSPTRANSPORT_H_ */
+#endif /* FIRMWARE_APP_DSP_DSPTRANSPORT_H_ */

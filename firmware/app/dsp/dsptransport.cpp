@@ -22,7 +22,7 @@
 
 namespace Multiradio {
 
-const int DspTransport::MAX_FRAME_DATA_LEN = (MAX_FRAME_SIZE - 2/*маркеры*/ - 1/*размер кадра*/ - 1/*адрес назначения*/ - 2/*контрольная сумма*/);
+const int DspTransport::MAX_FRAME_DATA_SIZE = (MAX_FRAME_SIZE - 2/*маркеры*/ - 1/*размер кадра*/ - 1/*адрес назначения*/ - 2/*контрольная сумма*/);
 
 class CRC16arc
 {
@@ -86,7 +86,6 @@ DspTransport::DspTransport(int uart_resource, int max_tx_queue_size, QmObject *p
 	uart = new QmUart(uart_resource, &uart_config, this);
 	uart->dataReceived.connect(sigc::mem_fun(this, &DspTransport::processUartReceivedData));
 	uart->rxError.connect(sigc::mem_fun(this, &DspTransport::processUartReceivedErrors));
-	uart->open();
 }
 
 DspTransport::~DspTransport()
@@ -95,15 +94,19 @@ DspTransport::~DspTransport()
 	delete[] rx_frame_buf;
 }
 
-void DspTransport::flush() {
-	qmDebugMessage(QmDebug::Dump, "uart flush (dropping rx sync)");
-	uart->close();
+void DspTransport::enable() {
+	qmDebugMessage(QmDebug::Info, "uart open");
 	uart->open();
-	rx_state = rxstateNoSync;
+}
+
+void DspTransport::disable() {
+	qmDebugMessage(QmDebug::Info, "uart close");
+	uart->close();
+	dropRxSync();
 }
 
 void DspTransport::transmitFrame(uint8_t address, uint8_t* data, int data_len) {
-	QM_ASSERT(data_len <= MAX_FRAME_DATA_LEN);
+	QM_ASSERT(data_len <= MAX_FRAME_DATA_SIZE);
 	uint8_t frame_header[3];
 	CRC16arc crc;
 	uint8_t frame_footer[3];
@@ -209,17 +212,17 @@ void DspTransport::processUartReceivedErrors(bool data_errors, bool overflow) {
 		qmDebugMessage(QmDebug::Info, "uart rx data errors");
 	if (overflow)
 		qmDebugMessage(QmDebug::Info, "uart rx overflow");
+	uart->readData(0, uart->getRxDataAvailable()); // flush received chunks
+	dropRxSync();
+}
+
+void DspTransport::dropRxSync() {
 	if (rx_state == rxstateFrame) {
 		qmDebugMessage(QmDebug::Dump, "uart rx: dropping frame and synchronization");
 	} else if (rx_state == rxstateSync) {
 		qmDebugMessage(QmDebug::Dump, "uart rx: dropping synchronization");
 	}
 	rx_state = rxstateNoSync;
-	uart->readData(0, uart->getRxDataAvailable()); // flush received chunks
 }
 
 } /* namespace Multiradio */
-
-#include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
-#include "qmdebug_domains_end.h"

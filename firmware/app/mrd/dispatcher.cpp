@@ -14,8 +14,8 @@
 #define QMDEBUGDOMAIN	mrd
 #include "qmdebug.h"
 
+#include "../dsp/dspcontroller.h"
 #include "dispatcher.h"
-#include "dspcontroller.h"
 #include "mainserviceinterface.h"
 #include "voiceserviceinterface.h"
 
@@ -39,10 +39,9 @@ Dispatcher::~Dispatcher()
 {
 }
 
-void Dispatcher::startServicing(
-		const Multiradio::voice_channels_table_t& voice_channels_table) {
+void Dispatcher::startServicing(const Multiradio::voice_channels_table_t& voice_channels_table) {
 	this->voice_channels_table = voice_channels_table;
-	dsp_controller->reset();
+	dsp_controller->startServicing();
 }
 
 MainServiceInterface* Dispatcher::getMainServiceInterface() {
@@ -88,10 +87,10 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 void Dispatcher::setVoiceDirection(bool ptt_state) {
 	MainServiceInterface::Status new_status;
 	if (ptt_state) {
-		dsp_controller->setRadioTx();
+		dsp_controller->setRadioOperation(DspController::RadioOperationTxMode);
 		new_status = MainServiceInterface::StatusVoiceTx;
 	} else {
-		dsp_controller->setRadioRx();
+		dsp_controller->setRadioOperation(DspController::RadioOperationRxMode);
 		new_status = MainServiceInterface::StatusVoiceRx;
 	}
 	main_service->setStatus(new_status);
