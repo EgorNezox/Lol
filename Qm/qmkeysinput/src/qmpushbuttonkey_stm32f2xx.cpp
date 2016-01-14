@@ -109,5 +109,5 @@ bool QmPushButtonKey::event(QmEvent* event) {
 }
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(QmPushButtonKey, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(QmPushButtonKey, LevelDefault)
 #include "qmdebug_domains_end.h"
