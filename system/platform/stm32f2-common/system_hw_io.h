@@ -30,6 +30,7 @@ int stm32f2_get_exti_line(int platform_hw_resource);
 int stm32f2_get_uart_instance(int platform_hw_resource);
 void stm32f2_get_matrixkeyboard_pins(int platform_hw_resource,
 		hal_gpio_pin_t** column_pins, int* column_count, hal_gpio_pin_t** row_pins, int* row_count);
+hal_gpio_level_t stm32f2_get_pushbutton_active_level(int platform_hw_resource);
 
 #ifdef __cplusplus
 }
