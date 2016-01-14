@@ -27,7 +27,8 @@ enum platformhw_resource_t {
 	platformhwAtuUart,					// UART АСУ
 	platformhwBatterySmbusI2c,			// I2C шины SMBus аккумуляторной батареи
 	platformhwNavigatorUart,			// UART ГНСС приемника
-	platformhwNavigatorResetIopin		// I/O-пин сигнала RESET ГНСС приемника
+	platformhwNavigatorResetIopin,		// I/O-пин сигнала RESET ГНСС приемника
+	platformhwNavigatorAntFlagIopin		// I/O-пин сигнала ANT_FLAG ГНСС приемника
 };
 
 enum platformhw_matrixkb_key_t {

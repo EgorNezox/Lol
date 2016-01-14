@@ -376,6 +376,10 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		params.mode = hgpioMode_Out;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPG, 8}, &params);
 		break;
+	case platformhwNavigatorAntFlagIopin:
+		params.mode = hgpioMode_In;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPG, 6}, &params);
+		break;
 	default: configASSERT(0); // no such resource
 	}
 }
@@ -442,6 +446,9 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 	case platformhwNavigatorResetIopin:
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPG, 8});
 		break;
+	case platformhwNavigatorAntFlagIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPG, 6});
+		break;
 	default: configASSERT(0); // no such resource
 	}
 }
@@ -464,6 +471,8 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 		return (hal_gpio_pin_t){hgpioPH, 13};
 	case platformhwNavigatorResetIopin:
 		return (hal_gpio_pin_t){hgpioPG, 8};
+	case platformhwNavigatorAntFlagIopin:
+		return (hal_gpio_pin_t){hgpioPG, 6};
 	default: configASSERT(0); // no such resource
 	}
 	return (hal_gpio_pin_t){0, 0};

@@ -17,7 +17,7 @@ namespace Navigation {
 
 class Navigator : public QmObject {
 public:
-	Navigator(int uart_resource, int reset_iopin_resource);
+	Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_iopin_resource);
 	~Navigator();
 
 private:
@@ -26,6 +26,7 @@ private:
 	void processUartReceivedErrors(bool data_errors, bool overflow);
 
 	QmIopin *reset_iopin;
+	QmIopin *ant_flag_iopin;
 	QmUart *uart;
 //#endif /* PORT__TARGET_DEVICE_REV1 */
 };

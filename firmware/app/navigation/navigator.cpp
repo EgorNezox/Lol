@@ -14,7 +14,7 @@
 
 namespace Navigation {
 
-Navigator::Navigator(int uart_resource, int reset_iopin_resource) {
+Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_iopin_resource) {
 //#if defined(PORT__TARGET_DEVICE_REV1)
 	reset_iopin = new QmIopin(reset_iopin_resource, this);
 	reset_iopin->writeOutput(QmIopin::Level_Low);
@@ -31,6 +31,8 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource) {
 	uart->rxError.connect(sigc::mem_fun(this, &Navigator::processUartReceivedErrors));
 	uart->open();
 	reset_iopin->writeOutput(QmIopin::Level_High);
+	ant_flag_iopin = new QmIopin(ant_flag_iopin_resource, this);
+	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 //#else
 //	QM_UNUSED(uart_resource);
 //	QM_UNUSED(reset_iopin_resource);
@@ -51,6 +53,7 @@ void Navigator::processUartReceivedData() {
 		data[data_read] = '\0';
 		qmDebugMessage(QmDebug::Dump, (char*)data);
 	}
+	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 }
 
 void Navigator::processUartReceivedErrors(bool data_errors, bool overflow) {
