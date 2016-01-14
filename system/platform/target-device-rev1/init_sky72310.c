@@ -121,12 +121,6 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi)
     HAL_GPIO_DeInit(SPIx_SCK_GPIO_PORT, SPIx_SCK_PIN);
     /* Configure SPI MOSI as alternate function  */
     HAL_GPIO_DeInit(SPIx_MOSI_GPIO_PORT, SPIx_MOSI_PIN);
-    /* Configure CS_PLL as input with pull-up */
-    GPIO_InitTypeDef  GPIO_InitStruct;
-    GPIO_InitStruct.Pin       = CS_PLL_PIN;
-    GPIO_InitStruct.Mode      = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull      = GPIO_PULLUP;
-    GPIO_InitStruct.Speed     = GPIO_SPEED_FAST;
-    HAL_GPIO_Init(CS_PLL_GPIO_PORT, &GPIO_InitStruct);
+    // leave CS_PLL
   }
 }
