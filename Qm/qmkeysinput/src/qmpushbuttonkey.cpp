@@ -26,5 +26,5 @@ QmPushButtonKey::~QmPushButtonKey() {
 
 bool QmPushButtonKey::isPressed() {
     QM_D(QmPushButtonKey);
-    return d->updated_state;
+    return d->isGpioPressed();
 }
