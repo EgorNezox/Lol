@@ -34,6 +34,7 @@ SOURCES_system += \
 INCLUDEPATH_system += \
 	cfg_root \
 	HAL \
+	extra \
 	.
 
 include misc/target_build_footer.mk

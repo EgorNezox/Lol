@@ -5,46 +5,36 @@
   * @date    03.09.2015
   * @brief   Интерфейс аппаратной абстракции доступа к таймеру
   *
-  * Системный таймер для отсчета небольших периодов (сотни миллисекунд) и формирования задержек
-  *
   ******************************************************************************
   */
 
 #ifndef HAL_TIMER_H_
 #define HAL_TIMER_H_
 
+#include <stdbool.h>
+#include "FreeRTOS.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "FreeRTOS.h"
-#include "task.h"
+typedef void* hal_timer_handle_t;
 
 typedef struct {
-	enum {htimerSysTick, htimerFreeRTOS} type;
-	TickType_t timestamp_start, timestamp_end;
-	signed char timestamp_ovf;
-} hal_timer_t;
+	void *userid;		/*!< (опциональный) пользовательский идентификатор для callback'ов */
+	/*! callback, вызываемый из таймерной задачи, индицирующий истечение таймаута */
+	void (*callbackTimeout)(hal_timer_handle_t handle);
+} hal_timer_params_t;
 
 /*! Выдерживает задержку в мс */
 void hal_timer_delay(unsigned int ms);
 
-/*! Создает таймер с отсчетом и запускает его
- *
- * Используется обязательно в паре с hal_timer_check_expired()
- * \param[in]	ms	значение отсчета в мс (0 - максимальное значение)
- * \return таймер
- */
-hal_timer_t hal_timer_start(unsigned int ms);
-
-/*! Возвращает состояние запущенного таймера и прошедшее время
- *
- * Используется обязательно в паре с hal_timer_start()
- * \param[in]	timer		таймер, возвращенный вызовом hal_timer_start()
- * \param[out]	elapsed_ms	прошедшее с момента запуска время (валидно при неистеченном таймере, м/б NULL)
- * \return		0 - таймер не истек (значение elapsed_ms корректное), 1 - таймер истек
- */
-char hal_timer_check_expired(hal_timer_t timer, unsigned int *elapsed_ms);
+hal_timer_handle_t hal_timer_create(hal_timer_params_t *params);
+void hal_timer_delete(hal_timer_handle_t handle);
+void hal_timer_start(hal_timer_handle_t handle, unsigned int ms, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+void hal_timer_stop(hal_timer_handle_t handle);
+bool hal_timer_check_timeout(hal_timer_handle_t handle);
+void* hal_timer_get_userid(hal_timer_handle_t handle);
 
 #ifdef __cplusplus
 }

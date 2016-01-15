@@ -12,7 +12,6 @@
 #define FREERTOS_CONFIG_H
 
 #include "stm32f2xx.h"
-#include "../system_hardware/sys_internal_freertos_timers.h"
 
 /* Primary kernel configuration */
 #define configUSE_IDLE_HOOK			0
@@ -31,10 +30,6 @@
 #define configUSE_MALLOC_FAILED_HOOK	1
 #define configCHECK_FOR_STACK_OVERFLOW  2
 #define xPortPendSVHandler	xPortPendSVHandler_native // activates gdb debug helpers hook (see port files and scripts)
-
-/* Software timers */
-#define configUSE_TIMERS				1 // used by HAL
-#define configTIMER_TASK_STACK_DEPTH	configMINIMAL_STACK_SIZE
 
 /* Processor/port specific */
 /* The lowest priority. */

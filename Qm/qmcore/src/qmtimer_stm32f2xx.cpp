@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    qmtimer_bmfreertos.cpp
+  * @file    qmtimer_stm32f2xx.cpp
   * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
   * @date    11.09.2015
   *
@@ -14,16 +14,17 @@
 #include "qmtimer_p.h"
 
 extern "C" {
-static void qmTimerCallbackEntry(TimerHandle_t xTimer) {
-	QmTimerPrivate *t = static_cast<QmTimerPrivate *>(pvTimerGetTimerID(xTimer));
-	t->callback();
+static void qmTimerCallbackTimeout(hal_timer_handle_t handle) {
+	// assuming sysconfigTIMER_TASK_PRIORITY > qmconfigSYSTEM_PRIORITY
+	QmTimerPrivate *t = static_cast<QmTimerPrivate *>(hal_timer_get_userid(handle));
+	t->postTimeoutEvent();
 }
 }
 
 QmTimerPrivate::QmTimerPrivate(QmTimer *q) :
 	QmObjectPrivate(q),
 	is_active(false), interval_value(0),
-	timerhandle(0), is_single_shot(false), awaiting_callback(false)
+	timerhandle(0), is_single_shot(false)
 {
 }
 
@@ -33,11 +34,14 @@ QmTimerPrivate::~QmTimerPrivate()
 
 void QmTimerPrivate::init(bool single_shot) {
 	is_single_shot = single_shot;
-	timerhandle = xTimerCreate("qm_", portMAX_DELAY, (single_shot ? pdFALSE : pdTRUE), (void *)this, qmTimerCallbackEntry);
+	hal_timer_params_t params;
+	params.userid = (void *)this;
+	params.callbackTimeout = qmTimerCallbackTimeout;
+	timerhandle = hal_timer_create(&params);
 }
 
 void QmTimerPrivate::deinit() {
-	xTimerDelete(timerhandle, portMAX_DELAY);
+	hal_timer_delete(timerhandle);
 }
 
 void QmTimerPrivate::postTimeoutEvent() {
@@ -45,31 +49,17 @@ void QmTimerPrivate::postTimeoutEvent() {
 	QmApplication::postEvent(q, new QmEvent(QmEvent::Timer));
 }
 
-void QmTimerPrivate::callback() {
-	if (!awaiting_callback)
-		return;
-	awaiting_callback = false;
-	postTimeoutEvent();
-}
-
 void QmTimer::start() {
 	QM_D(QmTimer);
 	if (isActive())
 		stop();
 	d->is_active = true;
-	if (d->interval_value > 0) {
-		d->awaiting_callback = true;
-		xTimerChangePeriod(d->timerhandle, d->interval_value/portTICK_PERIOD_MS, portMAX_DELAY);
-		xTimerStart(d->timerhandle, portMAX_DELAY);
-	} else {
-		d->postTimeoutEvent();
-	}
+	hal_timer_start(d->timerhandle, d->interval_value, 0);
 }
 
 void QmTimer::stop() {
 	QM_D(QmTimer);
-	if (xTimerIsTimerActive(d->timerhandle))
-		xTimerStop(d->timerhandle, portMAX_DELAY);
+	hal_timer_stop(d->timerhandle);
 	d->is_active = false;
 	QmApplication::removePostedEvents(this, QmEvent::Timer);
 }
@@ -78,12 +68,8 @@ bool QmTimer::event(QmEvent* event) {
 	QM_D(QmTimer);
 	if (event->type() == QmEvent::Timer) {
 		if (d->is_active) {
-			if (d->interval_value > 0) {
-				d->awaiting_callback = true;
-			} else {
-				if (!d->is_single_shot)
-					d->postTimeoutEvent();
-			}
+			if (!d->is_single_shot)
+				hal_timer_start(d->timerhandle, d->interval_value, 0);
 			timeout.emit();
 		}
 		return true;
