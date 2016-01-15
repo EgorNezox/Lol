@@ -45,6 +45,10 @@ void QmPushButtonKeyPrivate::deinit() {
     delete pbkey_adapter;
 }
 
+bool QmPushButtonKeyPrivate::isGpioPressed() {
+    return updated_state;
+}
+
 bool QmPushButtonKey::event(QmEvent* event) {
 	return QmObject::event(event);
 }
