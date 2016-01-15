@@ -23,8 +23,8 @@
   * При запуске приема включается DMA-передача, при обнаружении переполнения буфера DMA-передача выключается.
   * При запуске кольцевой буфер сбрасывается на начало, т.к. DMA не поддерживает запись с произвольного места в кольцевом буфере.
   * Флаги DMA "Half-transfer reached" и "Transfer complete" используются для отслеживания продвижения указателя записи по отношению к текущему указателю чтения
-  * (поочередно снимаются, а если оба обнаружены выставленными, то считается что произошло критическое переполнение буфера, но такое переполнение исключено в нормальных условиях
-  *  благодаря дополнительному расширению буфера).
+  * (поочередно снимаются, а если хоть один обнаружен выставленным после снятия другого, то считается что произошло критическое переполнение буфера,
+  * но такое переполнение исключено в нормальных условиях благодаря дополнительному расширению буфера в размере двойного интервала задержки обработки прерываний).
   * По прерываниям RXNE от UART (а также по таймауту задержки индикации непрочитанных данных, если таковой интервал используется) обновляется указатель записи (см. выше)
   * и отслеживается обычное переполнение буфера. Буфер считается переполненным, если свободное место меньше дополнительного(расширенного) пространства.
   * Приложение может считывать данные из буфера путем вызова функции hal_uart_receive()
@@ -145,9 +145,9 @@ static void uart_clear_dma_tc_flag(struct s_uart_pcb *uart);
 static void uart_start_dma_rx(struct s_uart_pcb *uart);
 static void uart_stop_dma_rx(struct s_uart_pcb *uart);
 static bool uart_is_dma_rx_running(struct s_uart_pcb *uart);
-static size_t uart_update_rx_buffer_from_isr(struct s_uart_pcb *uart, bool dma_tc, uint16_t dma_ndt);
+static int uart_update_rx_buffer_from_isr(struct s_uart_pcb *uart, uint16_t dma_ndt);
 static void uart_suspend_rx_from_isr(struct s_uart_pcb *uart, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
-static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, size_t bytes_transfered, bool rx_active, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, int bytes_transfered, bool rx_active, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 static void uart_timer_rx_data_callback(TimerHandle_t xTimer);
 static void uart_usart_irq_handler(struct s_uart_pcb *uart);
 static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t usart_SR, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
@@ -209,10 +209,14 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	if (!((params->hw_flow_control == huartHwFlowControl_Rx) || (params->hw_flow_control == huartHwFlowControl_Rx_Tx)))
 		max_irq_service_delay = SYS_MAX_IRQ_LATENCY_MS;
 	double character_rate = uart_character_rate_from_baud_rate(params->baud_rate, params->stop_bits, params->parity);
+	// irq processing delay converted to bytes (space required to distinguish consecutive DMA HT and DMA TC flags, see irq handler)
 	size_t extra_rx_buffer_space = ceil(character_rate*((double)(max(max_irq_service_delay, (params->rx_data_pending_interval + 1)))/1000));
-	total_rx_buffer_size = params->rx_buffer_size + extra_rx_buffer_space; // extra space required to mitigate system-level processing delays
-	total_rx_buffer_size += (total_rx_buffer_size % 2); // round up to nearest even number (required to determine DMA half-transfer condition properly)
-	SYS_ASSERT(total_rx_buffer_size <= MAX_DMA_TRANSFER_SIZE); // incompatible uart baudrate and (system characteristics and/or uart parameters)
+	// extend half-buffer with extra space (required to mitigate system-level processing delays)
+	total_rx_buffer_size = max(params->rx_buffer_size, extra_rx_buffer_space) + extra_rx_buffer_space;
+	// round up to nearest even number (required to determine DMA half-transfer condition properly)
+	total_rx_buffer_size += (total_rx_buffer_size % 2);
+
+	SYS_ASSERT(total_rx_buffer_size <= MAX_DMA_TRANSFER_SIZE); // incompatible system characteristics and uart character rate
 
 	struct {
 		uint16_t BRR;
@@ -583,15 +587,34 @@ bool hal_uart_start_transmit(hal_uart_handle_t handle, uint8_t *data, int size) 
 	return true;
 }
 
-static size_t uart_update_rx_buffer_from_isr(struct s_uart_pcb *uart, bool dma_tc, uint16_t dma_ndt) {
-	size_t bytes_transfered;
+static int uart_update_rx_buffer_from_isr(struct s_uart_pcb *uart, uint16_t dma_ndt) {
+	int bytes_transfered;
 	uint8_t *buffer_write_ptr;
-	size_t dummy;
+	size_t buffer_chunk_size;
 	int buffer_size = hal_ringbuffer_get_size(uart->rx_buffer);
+	int buffer_space_bytes = hal_ringbuffer_get_free_space_size(uart->rx_buffer);
 	uint8_t *buffer_start_addr = (uint8_t *)uart->dma_rx_stream->M0AR;
-	hal_ringbuffer_get_write_ptr(uart->rx_buffer, &buffer_write_ptr, &dummy);
-	bytes_transfered = (int)((buffer_size - dma_ndt) - (buffer_write_ptr - buffer_start_addr) + dma_tc*buffer_size);
-	hal_ringbuffer_write_next(uart->rx_buffer, bytes_transfered);
+
+	/* Calculating bytes offset between advanced DMA position and current buffer write position.
+	 * Handling of buffer wrapping is simplified because there are no sense to avoid "over-reading" due to possible critical buffer overflow.
+	 * (So we assume that offset is always less than buffer size and it's not required to check borderline cases.)
+	 */
+	hal_ringbuffer_get_write_ptr(uart->rx_buffer, &buffer_write_ptr, &buffer_chunk_size);
+	if (buffer_chunk_size > 0)
+		hal_ringbuffer_write_next(uart->rx_buffer, 0);
+	bytes_transfered = (int)((buffer_size - dma_ndt) - (buffer_write_ptr - buffer_start_addr));
+	if (bytes_transfered < 0) // buffer end wrapped ?
+		bytes_transfered += buffer_size;
+
+	/* Update buffer write position according to transferred amount, but no more than space available (normal buffer overflow is possible here) */
+	buffer_space_bytes = min(buffer_space_bytes, bytes_transfered);
+	while (buffer_space_bytes > 0) {
+		hal_ringbuffer_get_write_ptr(uart->rx_buffer, &buffer_write_ptr, &buffer_chunk_size);
+		buffer_chunk_size = min(buffer_chunk_size, buffer_space_bytes);
+		hal_ringbuffer_write_next(uart->rx_buffer, buffer_chunk_size);
+		buffer_space_bytes -= buffer_chunk_size;
+	}
+
 	return bytes_transfered;
 }
 
@@ -605,7 +628,7 @@ static void uart_suspend_rx_from_isr(struct s_uart_pcb *uart, signed portBASE_TY
 }
 
 /* For non-zero interval it controls timer scheduling, timeout processing and managing USART RXNE interrupt */
-static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, size_t bytes_transfered, bool rx_active, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
+static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, int bytes_transfered, bool rx_active, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	bool result = false;
 	if ((uart->rx_data_defer_indication) && rx_active) {
 		if (uart->rx_data_timer_state == rxdatatimerExpired) {
@@ -655,31 +678,29 @@ static void uart_usart_irq_handler(struct s_uart_pcb *uart) {
 }
 
 static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t usart_SR, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
+	int bytes_transfered = 0;
+	bool data_indication_required = false;
 	bool errors_detected = false;
 	bool overflow_detected = false;
-	size_t bytes_transfered = 0;
-	bool data_indication_required = false;
-	uint16_t buffer_size = hal_ringbuffer_get_size(uart->rx_buffer);
-	bool flag_dma_ht, flag_dma_tc;
-	uint16_t current_dma_ndt;
-
-	/* Capture DMA buffer state */
-	flag_dma_ht = uart_get_dma_ht_flag(uart);
-	flag_dma_tc = uart_get_dma_tc_flag(uart);
-	current_dma_ndt = (uint16_t)uart->dma_rx_stream->NDTR; // must be captured after HT,TC flags
 
 	/* Process streaming if it's active */
 	// warning: dependency on RXNEIE requires special handling in uart_update_rx_data_indication_from_isr() and uart_timer_rx_data_callback() !
 	if ((uart->usart->CR1 & USART_CR1_RXNEIE) && (uart_is_dma_rx_running(uart))) {
-		if (!(flag_dma_ht && flag_dma_tc)) {
-			if (flag_dma_ht && (current_dma_ndt >= (buffer_size>>1))) // did NDT crossed half-buffer mark since previous capture ?
-				uart_clear_dma_ht_flag(uart); // condition above ensures that we will not lose flag which may appear at once
-			if (flag_dma_tc && (current_dma_ndt < (buffer_size>>1))) // did NDT wrapped from end to start of buffer since previous capture ?
-				uart_clear_dma_tc_flag(uart); // condition above ensures that we will not lose flag which may appear at once
-			bytes_transfered += uart_update_rx_buffer_from_isr(uart, flag_dma_tc, current_dma_ndt);
-			if (hal_ringbuffer_get_free_space_size(uart->rx_buffer) <= uart->rx_buffer_extra_space) // normal buffer overflow
-				overflow_detected = true;
-		} else { // critical buffer overflow
+		/* Capture DMA buffer state */
+		bool flag_dma_ht = uart_get_dma_ht_flag(uart);
+		bool flag_dma_tc = uart_get_dma_tc_flag(uart);
+		uint16_t current_dma_ndt = (uint16_t)uart->dma_rx_stream->NDTR; // must be read after HT,TC flags
+		if (flag_dma_ht)
+			uart_clear_dma_ht_flag(uart);
+		if (flag_dma_tc)
+			uart_clear_dma_tc_flag(uart);
+		/* Update(move) buffer write pointer (it's ok to do before check for any overflow) */
+		bytes_transfered += uart_update_rx_buffer_from_isr(uart, current_dma_ndt);
+		/* Check for buffer overflow (must be done after we already updated buffer write pointer due to racing with HT,TC flags) */
+		if (hal_ringbuffer_get_free_space_size(uart->rx_buffer) <= uart->rx_buffer_extra_space) // at least normal buffer overflow
+			overflow_detected = true;
+		if ((flag_dma_ht && flag_dma_tc) || uart_get_dma_ht_flag(uart) || uart_get_dma_tc_flag(uart)) { // critical buffer overflow
+			SYS_ASSERT(0); // critical overflow caused by system-level malfunction or configuration mismatch, buffer is corrupted (overwritten)
 			overflow_detected = true;
 			uart_stop_dma_rx(uart);
 		}
@@ -693,9 +714,9 @@ static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t usart_SR
 			(void)uart->usart->DR; // dummy read required to reset flags (yes, there are races with DMA, but we are agree to loss one byte in such conditions)
 		/* Process possible overflow condition in stream */
 		if (overflow_detected) {
-			if (uart_is_dma_rx_running(uart)) { // was it forced to stop ?
-				/* write transferred chunk to buffer (if any) */
-				bytes_transfered += uart_update_rx_buffer_from_isr(uart, flag_dma_tc, current_dma_ndt);
+			if (uart_is_dma_rx_running(uart)) { // wasn't it forced to stop already ?
+				/* update buffer with transferred chunk (if any) */
+				bytes_transfered += uart_update_rx_buffer_from_isr(uart, (uint16_t)uart->dma_rx_stream->NDTR);
 			}
 			uart_suspend_rx_from_isr(uart, pxHigherPriorityTaskWoken);
 		}
