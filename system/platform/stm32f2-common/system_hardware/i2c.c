@@ -1024,7 +1024,7 @@ void I2C2_EV_IRQHandler(void) {
 	i2c_irq_handler(&i2cbus_pcbs[1]);
 }
 void I2C3_EV_IRQHandler(void) {
-	i2c_irq_handler(&i2cbus_pcbs[3]);
+	i2c_irq_handler(&i2cbus_pcbs[2]);
 }
 void I2C1_ER_IRQHandler(void) {
 	i2c_irq_handler(&i2cbus_pcbs[0]);
