@@ -60,6 +60,7 @@ void GUI_Indicator::UpdateMultiradio(Multiradio::MainServiceInterface::Status st
 			ind_multiradio->icon=sym_rx;
 			break;
 		case Multiradio::MainServiceInterface::StatusVoiceTx:
+		case Multiradio::MainServiceInterface::StatusTuningTx: //TODO: реализовать иконку для статуса StatusTuningTx
 			ind_multiradio->icon=sym_tx;
 			break;
 		default:
