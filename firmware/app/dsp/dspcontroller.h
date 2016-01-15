@@ -44,6 +44,7 @@ public:
 	void setRadioOperation(RadioOperation operation);
 
 	sigc::signal<void> started;
+	sigc::signal<void> setRadioCompleted;
 
 private:
 	friend struct DspCommand;

@@ -4,7 +4,6 @@
  * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
  * @date    22.12.2015
  *
- * TODO: добавить сигналы о завершении операций
  ******************************************************************************
  */
 
@@ -334,6 +333,8 @@ void DspController::syncNextRadioState() {
 		break;
 	}
 	}
+	if (radio_state == radiostateSync)
+		setRadioCompleted();
 }
 
 void DspController::processCommandTimeout() {
