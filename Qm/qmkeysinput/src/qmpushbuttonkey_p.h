@@ -53,10 +53,8 @@ public:
 #endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
 private:
 	void init();
-	void deinit();
-#ifdef QMKEYSINPUT_PLATFORM_STM32F2XX
-	bool isGpioPressed();
-#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
+    void deinit();
+    bool isGpioPressed();
 	int hw_resource;
 	bool updated_state;	
 #ifdef QMKEYSINPUT_PLATFORM_STM32F2XX
