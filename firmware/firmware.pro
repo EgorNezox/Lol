@@ -17,6 +17,7 @@ include(../system/3rdparty/libsigc++/sigc++.pri)
 SOURCES += \
     firmware_main.cpp \
     $$wildcardSources(app/datastorage, *.cpp) \
+    $$wildcardSources(app/dsp, *.cpp) \
     $$wildcardSources(app/headset, *.cpp) \
     $$wildcardSources(app/mrd, *.cpp) \
     $$wildcardSources(app/navigator, *.cpp) \

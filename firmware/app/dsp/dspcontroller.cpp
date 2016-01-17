@@ -4,12 +4,11 @@
  * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
  * @date    22.12.2015
  *
- * TODO: добавить сигналы о завершении операций
  ******************************************************************************
  */
 
 #include "qm.h"
-#define QMDEBUGDOMAIN	mrd
+#define QMDEBUGDOMAIN	dspcontroller
 #include "qmdebug.h"
 #include "qmendian.h"
 #include "qmtimer.h"
@@ -53,12 +52,12 @@ DspController::~DspController()
 	delete pending_command;
 }
 
-void DspController::reset() {
-	is_ready = false;
+void DspController::startServicing() {
+	qmDebugMessage(QmDebug::Info, "start servicing...");
 	initResetState();
 	reset_iopin->writeOutput(QmIopin::Level_Low);
-	transport->flush();
 	QmThread::msleep(10);
+	transport->enable();
 	reset_iopin->writeOutput(QmIopin::Level_High);
 	startup_timer->start(5000);
 }
@@ -68,19 +67,22 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 	QM_ASSERT(is_ready);
 	switch (radio_state) {
 	case radiostateSync: {
-		switch (current_radio_direction) {
-		case RadioDirectionInvalid:
+		switch (current_radio_operation) {
+		case RadioOperationOff:
 			radio_state = radiostateCmdRxFreq;
 			break;
-		case RadioDirectionRx:
+		case RadioOperationRxMode:
 			radio_state = radiostateCmdModeOffRx;
 			break;
-		case RadioDirectionTx:
+		case RadioOperationTxMode:
+		case RadioOperationCarrierTx:
 			radio_state = radiostateCmdModeOffTx;
 			break;
 		}
 		break;
 	}
+	case radiostateCmdRxOff:
+	case radiostateCmdTxOff:
 	case radiostateCmdRxFreq:
 	case radiostateCmdTxFreq: {
 		radio_state = radiostateCmdRxFreq;
@@ -90,7 +92,8 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 		radio_state = radiostateCmdModeOffRx;
 		break;
 	}
-	case radiostateCmdTxMode: {
+	case radiostateCmdTxMode:
+	case radiostateCmdCarrierTx: {
 		radio_state = radiostateCmdModeOffTx;
 		break;
 	}
@@ -104,55 +107,33 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 		processRadioState();
 }
 
-void DspController::setRadioRx() {
+void DspController::setRadioOperation(RadioOperation operation) {
 	QM_ASSERT(is_ready);
-	if (current_radio_direction == RadioDirectionRx)
+	if (operation == current_radio_operation)
 		return;
-	bool processing_required = true;
-	QM_ASSERT(is_ready);
-	switch (radio_state) {
-	case radiostateSync:
-	case radiostateCmdTxMode:
-		if (current_radio_direction == RadioDirectionInvalid)
-			radio_state = radiostateCmdRxMode;
-		else
-			radio_state = radiostateCmdTxOff;
+	bool processing_required = false;
+	switch (operation) {
+	case RadioOperationOff:
+		processing_required = startRadioOff();
 		break;
-	default:
-		processing_required = false;
+	case RadioOperationRxMode:
+		processing_required = startRadioRxMode();
+		break;
+	case RadioOperationTxMode:
+		processing_required = startRadioTxMode();
+		break;
+	case RadioOperationCarrierTx:
+		processing_required = startRadioCarrierTx();
 		break;
 	}
-	current_radio_direction = RadioDirectionRx;
-	if (processing_required)
-		processRadioState();
-}
-
-void DspController::setRadioTx() {
-	QM_ASSERT(is_ready);
-	if (current_radio_direction == RadioDirectionTx)
-		return;
-	bool processing_required = true;
-	QM_ASSERT(is_ready);
-	switch (radio_state) {
-	case radiostateSync:
-	case radiostateCmdRxMode:
-		if (current_radio_direction == RadioDirectionInvalid)
-			radio_state = radiostateCmdTxMode;
-		else
-			radio_state = radiostateCmdRxOff;
-		break;
-	default:
-		processing_required = false;
-		break;
-	}
-	current_radio_direction = RadioDirectionTx;
+	current_radio_operation = operation;
 	if (processing_required)
 		processRadioState();
 }
 
 void DspController::initResetState() {
 	radio_state = radiostateSync;
-	current_radio_direction = RadioDirectionInvalid;
+	current_radio_operation = RadioOperationOff;
 	current_radio_mode = RadioModeOff;
 	current_radio_frequency = 0;
 	pending_command->in_progress = false;
@@ -176,45 +157,98 @@ void DspController::processStartupTimeout() {
 	started();
 }
 
-void DspController::processCommandTimeout() {
-	QM_ASSERT(pending_command->in_progress);
-	qmDebugMessage(QmDebug::Warning, "dsp response timed out");
-	syncPendingCommand();
-}
-
-void DspController::processCommandResponse(bool success, Module module, int code, ParameterValue value) {
-	QM_UNUSED(value);
-	if(!pending_command->in_progress) {
-		qmDebugMessage(QmDebug::Warning, "dsp response, but no command was sent");
-		return;
-	}
-	if ((module == pending_command->module) && (code == pending_command->code)) {
-		command_timer->stop();
-		if (!success)
-			qmDebugMessage(QmDebug::Info, "dsp command failed (module=0x%02X, code=0x%02X)", module, code);
-		syncPendingCommand();
-	} else {
-		qmDebugMessage(QmDebug::Warning, "dsp command response was unexpected (module=0x%02X, code=0x%02X)", module, code);
-	}
-}
-
-void DspController::syncPendingCommand() {
-	pending_command->in_progress = false;
-	switch (pending_command->module) {
-	case RxRadiopath:
-	case TxRadiopath:
-		if (pending_command->sync_next)
-			syncNextRadioState();
-		processRadioState();
+bool DspController::startRadioOff() {
+	switch (radio_state) {
+	case radiostateSync: {
+		switch (current_radio_operation) {
+		case RadioOperationRxMode:
+			radio_state = radiostateCmdRxOff;
+			break;
+		case RadioOperationTxMode:
+		case RadioOperationCarrierTx:
+			radio_state = radiostateCmdTxOff;
+			break;
+		default:
+			return false;
+		}
 		break;
 	}
+	case radiostateCmdRxMode:
+		radio_state = radiostateCmdRxOff;
+		break;
+	case radiostateCmdTxMode:
+	case radiostateCmdCarrierTx:
+		radio_state = radiostateCmdTxOff;
+		break;
+	default:
+		return false;
+	}
+	return true;
+}
+
+bool DspController::startRadioRxMode() {
+	switch (radio_state) {
+	case radiostateSync:
+	case radiostateCmdTxMode:
+	case radiostateCmdCarrierTx:
+		if (current_radio_operation == RadioOperationOff)
+			radio_state = radiostateCmdRxMode;
+		else
+			radio_state = radiostateCmdTxOff;
+		break;
+	case radiostateCmdRxOff:
+	case radiostateCmdTxOff:
+		radio_state = radiostateCmdRxMode;
+		break;
+	default:
+		return false;
+	}
+	return true;
+}
+
+bool DspController::startRadioTxMode() {
+	switch (radio_state) {
+	case radiostateSync:
+	case radiostateCmdRxMode:
+		if (current_radio_operation == RadioOperationOff)
+			radio_state = radiostateCmdTxMode;
+		else
+			radio_state = radiostateCmdRxOff;
+		break;
+	case radiostateCmdRxOff:
+	case radiostateCmdTxOff:
+	case radiostateCmdCarrierTx:
+		radio_state = radiostateCmdTxMode;
+		break;
+	default:
+		return false;
+	}
+	return true;
+}
+
+bool DspController::startRadioCarrierTx() {
+	switch (radio_state) {
+	case radiostateSync:
+	case radiostateCmdRxMode:
+		if (current_radio_operation == RadioOperationOff)
+			radio_state = radiostateCmdCarrierTx;
+		else
+			radio_state = radiostateCmdRxOff;
+		break;
+	case radiostateCmdRxOff:
+	case radiostateCmdTxOff:
+	case radiostateCmdTxMode:
+		radio_state = radiostateCmdCarrierTx;
+		break;
+	default:
+		return false;
+	}
+	return true;
 }
 
 void DspController::processRadioState() {
-	if (pending_command->in_progress) {
-		pending_command->sync_next = false;
+	if (!resyncPendingCommand())
 		return;
-	}
 	ParameterValue command_value;
 	switch (radio_state) {
 	case radiostateSync:
@@ -251,6 +285,11 @@ void DspController::processRadioState() {
 		sendCommand(TxRadiopath, TxRadioMode, command_value);
 		break;
 	}
+	case radiostateCmdCarrierTx: {
+		command_value.radio_mode = RadioModeCarrierTx;
+		sendCommand(TxRadiopath, TxRadioMode, command_value);
+		break;
+	}
 	}
 }
 
@@ -271,30 +310,78 @@ void DspController::syncNextRadioState() {
 	case radiostateCmdTxFreq:
 	case radiostateCmdRxOff:
 	case radiostateCmdTxOff: {
-		switch (current_radio_direction) {
-		case RadioDirectionInvalid:
+		switch (current_radio_operation) {
+		case RadioOperationOff:
 			radio_state = radiostateSync;
 			break;
-		case RadioDirectionRx:
+		case RadioOperationRxMode:
 			radio_state = radiostateCmdRxMode;
 			break;
-		case RadioDirectionTx:
+		case RadioOperationTxMode:
 			radio_state = radiostateCmdTxMode;
+			break;
+		case RadioOperationCarrierTx:
+			radio_state = radiostateCmdCarrierTx;
 			break;
 		}
 		break;
 	}
 	case radiostateCmdRxMode:
-	case radiostateCmdTxMode: {
+	case radiostateCmdTxMode:
+	case radiostateCmdCarrierTx: {
 		radio_state = radiostateSync;
 		break;
 	}
 	}
+	if (radio_state == radiostateSync)
+		setRadioCompleted();
+}
+
+void DspController::processCommandTimeout() {
+	QM_ASSERT(pending_command->in_progress);
+	qmDebugMessage(QmDebug::Warning, "dsp response timed out");
+	syncPendingCommand();
+}
+
+void DspController::processCommandResponse(bool success, Module module, int code, ParameterValue value) {
+	QM_UNUSED(value);
+	if(!pending_command->in_progress) {
+		qmDebugMessage(QmDebug::Warning, "dsp response, but no command was sent");
+		return;
+	}
+	if ((module == pending_command->module) && (code == pending_command->code)) {
+		command_timer->stop();
+		if (!success)
+			qmDebugMessage(QmDebug::Info, "dsp command failed (module=0x%02X, code=0x%02X)", module, code);
+		syncPendingCommand();
+	} else {
+		qmDebugMessage(QmDebug::Warning, "dsp command response was unexpected (module=0x%02X, code=0x%02X)", module, code);
+	}
+}
+
+void DspController::syncPendingCommand() {
+	pending_command->in_progress = false;
+	switch (pending_command->module) {
+	case RxRadiopath:
+	case TxRadiopath:
+		if (pending_command->sync_next)
+			syncNextRadioState();
+		processRadioState();
+		break;
+	}
+}
+
+bool DspController::resyncPendingCommand() {
+	if (pending_command->in_progress) {
+		pending_command->sync_next = false;
+		return false;
+	}
+	return true;
 }
 
 void DspController::sendCommand(Module module, int code, ParameterValue value) {
 	uint8_t tx_address;
-	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_LEN];
+	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 	int tx_data_len = DEFAULT_PACKET_HEADER_LEN;
 	qmToBigEndian((uint8_t)0, tx_data+0); // адрес: 0
 	qmToBigEndian((uint8_t)2, tx_data+1); // индикатор: "команда (установка)"
@@ -369,3 +456,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 }
 
 } /* namespace Multiradio */
+
+#include "qmdebug_domains_start.h"
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
+#include "qmdebug_domains_end.h"

@@ -87,7 +87,7 @@ void QmPushButtonKeyPrivate::deinit() {
 }
 
 bool QmPushButtonKeyPrivate::isGpioPressed() {
-	if (hgpioLow == hal_gpio_get_input(gpio_pin))
+	if (hal_gpio_get_input(gpio_pin) == stm32f2_get_pushbutton_active_level(hw_resource))
 		return true;
 	else
 		return false;

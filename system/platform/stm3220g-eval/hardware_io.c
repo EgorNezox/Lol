@@ -314,8 +314,9 @@ int stm32f2_get_uart_instance(int platform_hw_resource) {
 	case platformhwDspUart:
 		return 3;
 	case platformhwHeadsetUart:
+		return 1; //TODO: fake Headset uart (dummy implementation)
 	case platformhwAtuUart:
-		//TODO: stm32f2_get_uart_instance()
+		return 2; //TODO: fake ATU uart (dummy implementation)
 		break;
 	default: configASSERT(0); // no such resource
 	}
@@ -355,4 +356,18 @@ void stm32f2_get_matrixkeyboard_pins(int platform_hw_resource,
 		break;
 	default: configASSERT(0); // no such resource
 	}
+}
+
+hal_gpio_level_t stm32f2_get_pushbutton_active_level(int platform_hw_resource)
+{
+	switch (platform_hw_resource) {
+	case platformhwHeadsetPttIopin:
+		return hgpioLow;
+	case platformhwKeyboardButt1Iopin:
+		return hgpioLow;
+	case platformhwKeyboardButt2Iopin:
+		return hgpioHigh;
+	default: configASSERT(0); // no such resource
+	}
+	return hgpioLow;
 }
