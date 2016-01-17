@@ -32,6 +32,16 @@ QMCORE_SOURCES += \
 	qmcore/src/qmapplication_$(CORE_PLATFORM).cpp
 $(sources_to_objects $(QMCORE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH)
 
+QMGUI_INCLUDEPATH += qmgui/include
+QMGUI_SOURCES += \	
+	qmgui/src/qmguiobject.cpp \
+	qmgui/src/qmguivisualobject.cpp \
+	qmgui/src/qmguidialog.cpp \
+	qmgui/src/qmguiscenario.cpp \
+	qmgui/src/qmguiscreen.cpp  
+$(sources_to_objects $(QMGUI_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMGUI_INCLUDEPATH)
+
+
 ifdef HARDWAREIO
   ifeq ($(HARDWAREIO),stm32f2xx)
   and ifeq ($(CORE_PLATFORM),bmfreertos)
@@ -48,7 +58,7 @@ ifdef HARDWAREIO
   $(sources_to_objects $(QMHARDWAREIO_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH)
 endif
 
-INCLUDEPATH = $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH)
-SOURCES_system = $(QMCORE_SOURCES) $(QMHARDWAREIO_SOURCES)
+INCLUDEPATH = $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH)  $(QMGUI_INCLUDEPATH)
+SOURCES_system = $(QMCORE_SOURCES) $(QMHARDWAREIO_SOURCES) $(QMGUI_SOURCES)
 
 include misc/target_build_footer.mk
