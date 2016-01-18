@@ -13,10 +13,11 @@
 #include "qmobject.h"
 #include "multiradio.h"
 #include "../headset/controller.h"
+#include "../dsp/dspcontroller.h"
+#include "../atu/atucontroller.h"
 
 namespace Multiradio {
 
-class DspController;
 class MainServiceInterface;
 class VoiceServiceInterface;
 
@@ -41,8 +42,14 @@ private:
 	void updateVoiceChannel();
 	void setVoiceDirection(bool ptt_state);
 	bool isVoiceMode();
+	void processDspSetRadioCompletion();
+	void startVoiceTx();
+	void prepareTuningTx();
+	void processAtuModeChange(AtuController::Mode new_mode);
+	void processAtuRequestTx(bool enable);
 
 	DspController *dsp_controller;
+	AtuController *atu_controller;
 	Headset::Controller *headset_controller;
 	MainServiceInterface *main_service;
 	VoiceServiceInterface *voice_service;

@@ -314,8 +314,9 @@ int stm32f2_get_uart_instance(int platform_hw_resource) {
 	case platformhwDspUart:
 		return 3;
 	case platformhwHeadsetUart:
+		return 1; //TODO: fake Headset uart (dummy implementation)
 	case platformhwAtuUart:
-		//TODO: stm32f2_get_uart_instance()
+		return 2; //TODO: fake ATU uart (dummy implementation)
 		break;
 	default: configASSERT(0); // no such resource
 	}
