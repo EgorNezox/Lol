@@ -16,6 +16,7 @@
 #include "hardware_emulation.h"
 #include "mainwidget.h"
 #include "dsp/dspdevice.h"
+#include "atu/atudevice.h"
 #include "port_hardwareio/iopininterface.h"
 #include "port_hardwareio/uartinterface.h"
 #include "port_hardwareio/i2cbus.h"
@@ -41,6 +42,7 @@ namespace QtHwEmu {
 
 static MainWidget *main_widget = 0;
 static DspDevice *dsp_device = 0;
+static AtuDevice *atu_device = 0;
 static I2CBus *battery_smbus = 0;
 static QMap<int, QObject*> resources_registry;
 static QMutex resources_registry_mutex;
@@ -51,6 +53,9 @@ void init() {
 	dsp_device = new DspDevice(platformhwDspUart, platformhwDspResetIopin);
 	dsp_device->move(main_widget->frameGeometry().topRight() + QPoint(10,0));
 	dsp_device->show();
+	atu_device = new AtuDevice(platformhwAtuUart);
+	atu_device->move(dsp_device->frameGeometry().topRight() + QPoint(10,0));
+	atu_device->show();
 	main_widget->activateWindow();
 	main_widget->raise();
 	battery_smbus = I2CBus::openInstance(platformhwBatterySmbusI2c);
@@ -59,12 +64,12 @@ void init() {
 	IopinInterface::createInstance(platformhwEnRxRs232Iopin); // TODO: emulate EnRxRs232Iopin
 	IopinInterface::createInstance(platformhwEnTxRs232Iopin); // TODO: emulate EnTxRs232Iopin
 	UartInterface::createInstance(platformhwHeadsetUart); //TODO: emulate HeadsetUart
-	UartInterface::createInstance(platformhwAtuUart); //TODO: emulate AtuUart
 }
 
 void deinit() {
 	delete main_widget;
 	delete dsp_device;
+	delete atu_device;
 	I2CBus::closeInstance(battery_smbus);
 }
 

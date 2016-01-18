@@ -41,12 +41,12 @@ AtuController::AtuController(int uart_resource, QmObject *parent) :
 	uart_config.io_pending_interval = 0;
 	uart = new QmUart(uart_resource, &uart_config, this);
 	uart->dataReceived.connect(sigc::mem_fun(this, &AtuController::processUartReceivedData));
-	scan_timer = new QmTimer(true, this);
+	scan_timer = new QmTimer(false, this);
 	scan_timer->setInterval(1000);
 	scan_timer->timeout.connect(sigc::mem_fun(this, &AtuController::scan));
-	command_timeout_timer = new QmTimer(false, this);
+	command_timeout_timer = new QmTimer(true, this);
 	command_timeout_timer->timeout.connect(sigc::mem_fun(this, &AtuController::tryRepeatCommand));
-	tx_tune_timer = new QmTimer(false, this);
+	tx_tune_timer = new QmTimer(true, this);
 	tx_tune_timer->setInterval(100);
 	tx_tune_timer->timeout.connect(sigc::mem_fun(this, &AtuController::processTxTuneTimeout));
 }
@@ -122,10 +122,11 @@ void AtuController::setMode(Mode mode) {
 		break;
 	case modeStartingBypass:
 		qmDebugMessage(QmDebug::Info, "starting bypass mode...");
-		scan_timer->start();
+		scan_timer->stop();
 		break;
 	case modeBypass:
 		qmDebugMessage(QmDebug::Info, "bypass mode");
+		scan_timer->start();
 		break;
 	case modeStartTuning:
 		qmDebugMessage(QmDebug::Info, "start tuning tx...");
@@ -136,6 +137,7 @@ void AtuController::setMode(Mode mode) {
 		break;
 	case modeActiveTx:
 		qmDebugMessage(QmDebug::Info, "active tx mode");
+		scan_timer->start();
 		break;
 	}
 }
@@ -153,7 +155,8 @@ void AtuController::startCommand(CommandId id, const uint8_t* data, int data_len
 	command.data_len = data_len;
 	command.repeat_count = repeat_count;
 	sendFrame(id, data, data_len);
-	command_timeout_timer->start(timeout);
+	if (timeout > 0)
+		command_timeout_timer->start(timeout);
 }
 
 void AtuController::finishCommand() {
