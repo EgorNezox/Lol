@@ -115,9 +115,10 @@ void AtuDevice::processTransferedTxFrame(uint8_t id, uint8_t* data, int data_len
 				break;
 			}
 			uint32_t frequency = 0;
-			frequency |= (data[0] << 16) & 0xFF;
-			frequency |= (data[1] << 8) & 0xFF;
+			frequency |= (data[0] << 16) & 0xFF0000;
+			frequency |= (data[1] << 8) & 0xFF00;
 			frequency |= data[2] & 0xFF;
+			frequency *= 10;
 			if (ui->sbErrorCode->value() == 0) {
 				setState(stateTuning);
 				ui->lblTunedFrequency->setText(QString("Frequency: %1").arg(frequency));

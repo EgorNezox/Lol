@@ -88,8 +88,8 @@ bool AtuController::tuneTxMode(uint32_t frequency) {
 		return false;
 	uint32_t encoded_freq = frequency/10;
 	uint8_t command_data[4];
-	command_data[0] = (encoded_freq << 16) & 0xFF;
-	command_data[1] = (encoded_freq << 8) & 0xFF;
+	command_data[0] = (encoded_freq >> 16) & 0xFF;
+	command_data[1] = (encoded_freq >> 8) & 0xFF;
 	command_data[2] = (encoded_freq) & 0xFF;
 	command_data[3] = 0;
 	startCommand(commandEnterTuningMode, command_data, sizeof(command_data), 2);
@@ -102,6 +102,7 @@ void AtuController::acknowledgeTxRequest() {
 		return;
 	uint8_t frameid = tx_tuning_state?frameid_U:frameid_D;
 	sendFrame(frameid, 0, 0);
+	tx_tuning_state = !tx_tuning_state;
 	tx_tune_timer->start();
 }
 
@@ -222,13 +223,13 @@ void AtuController::processReceivedTuningFrame(uint8_t id) {
 			setMode(modeActiveTx);
 			break;
 		case frameid_U:
-			if (tx_tuning_state == true)
+			if (!tx_tuning_state)
 				break;
 			tx_tune_timer->stop();
 			requestTx(true);
 			break;
 		case frameid_D:
-			if (tx_tuning_state == false)
+			if (tx_tuning_state)
 				break;
 			tx_tune_timer->stop();
 			requestTx(false);

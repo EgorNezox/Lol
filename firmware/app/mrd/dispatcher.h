@@ -43,6 +43,7 @@ private:
 	void setVoiceDirection(bool ptt_state);
 	bool isVoiceMode();
 	void processDspSetRadioCompletion();
+	void startVoiceTx();
 	void prepareTuningTx();
 	void processAtuModeChange(AtuController::Mode new_mode);
 	void processAtuRequestTx(bool enable);
