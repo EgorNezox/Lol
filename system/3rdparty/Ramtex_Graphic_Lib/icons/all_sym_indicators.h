@@ -34,6 +34,7 @@
 #include "sym_icon_ptt_warning.h"
 #include "sym_rx.h"
 #include "sym_tx.h"
+#include "sym_tx_tune.h"
 #include "sym_sand_clock.h"
 #include "sym_signal_l.h"
 #include "sym_signal_h.h"

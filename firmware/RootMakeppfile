@@ -27,6 +27,7 @@ load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." CORE_PLATFORM=bmfreertos
 # подключение сборки прошивки
 SOURCES += \
 	firmware_main.cpp \
+	$(wildcard app/atu/**/*.cpp) \
 	$(wildcard app/datastorage/**/*.cpp) \
 	$(wildcard app/dsp/**/*.cpp) \
 	$(wildcard app/headset/**/*.cpp) \

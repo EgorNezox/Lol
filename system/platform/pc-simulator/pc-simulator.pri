@@ -19,6 +19,7 @@ HEADERS += \
     $$PWD/mainwidget.h \
     $$PWD/dsp/dspdevice.h \
     $$PWD/dsp/dsptransport.h \
+    $$PWD/atu/atudevice.h \
     $$PWD/port_hardwareio/iopininterface.h \
     $$PWD/port_hardwareio/iopincheckbox.h \
     $$PWD/port_hardwareio/uartinterface.h \
@@ -34,6 +35,7 @@ SOURCES += \
     $$PWD/hardware_emulation.cpp \
     $$PWD/mainwidget.cpp \
     $$wildcardSources(dsp, *.cpp) \
+    $$wildcardSources(atu, *.cpp) \
     $$wildcardSources(port_hardwareio, *.cpp) \
     $$wildcardSources(port_keysinput, *.cpp) \
     $$wildcardSources(port_ramtex_s6d0129_cfg_qt5seps525widget, *.c) \
@@ -43,5 +45,6 @@ SOURCES += \
 FORMS += \
     $$PWD/mainwidget.ui \
     $$PWD/dsp/dspdevice.ui \
+    $$PWD/atu/atudevice.ui \
     $$PWD/port_hardwareio/uartconsolewidget.ui \
     $$PWD/port_keysinput/matrixkeyboardwidget.ui

@@ -23,7 +23,8 @@ public:
 		StatusNotReady,
 		StatusIdle,
 		StatusVoiceRx,
-		StatusVoiceTx
+		StatusVoiceTx,
+		StatusTuningTx
 	};
 
 	Status getStatus();
