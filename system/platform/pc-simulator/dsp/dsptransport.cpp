@@ -8,6 +8,7 @@
  */
 
 #include <QtEndian>
+#include "qmcrc.h"
 #include "port_hardwareio/uartinterface.h"
 #include "dsptransport.h"
 
@@ -16,53 +17,9 @@
 #define FRAME_START_DELIMITER	0x02
 #define FRAME_END_DELIMITER		0x03
 
+typedef QmCrc<uint16_t, 16, 0x8005, 0x0000, true, 0x0000> CRC16arc;
+
 namespace QtHwEmu {
-
-class CRC16arc
-{
-public:
-	CRC16arc() : value((uint16_t)precalc_init_reflected)
-	{
-	}
-	void update(const unsigned char *data, unsigned long size) {
-		while (size--)
-			value = precalc_table[(value ^ *data++) & 0xFFL] ^ (value >> 8);
-	}
-	uint16_t result() {
-		return value;
-	}
-private:
-	static void __attribute__((constructor)) initPrecalc() {
-		precalc_init_reflected = reflect(0x0000, 16);
-		for (uint32_t i = 0; i < 256; i++) {
-			uint32_t value = reflect(i, 8) << 8;
-			for (int j = 0; j < 8; j++)
-				if (value & 0x8000)
-					value = (value << 1) ^ 0x8005;
-				else
-					value <<= 1;
-			value = reflect(value, 16);
-			precalc_table[i] = value & 0xFFFF;
-		}
-	}
-	static uint32_t reflect(uint32_t value, int bitscount) {
-		uint32_t t = value;
-		for (int i = 0; i < bitscount; i++) {
-			if (t & 1L)
-				value |= (1L << ((bitscount-1)-i));
-			else
-				value &= ~(1L << ((bitscount-1)-i));
-			t >>= 1;
-		}
-		return value;
-	}
-
-	uint16_t value;
-	static uint32_t precalc_init_reflected;
-	static uint32_t precalc_table[];
-};
-uint32_t CRC16arc::precalc_init_reflected;
-uint32_t CRC16arc::precalc_table[256];
 
 const int DspTransport::MAX_FRAME_DATA_LEN = (MAX_FRAME_SIZE - 2/*маркеры*/ - 1/*размер кадра*/ - 1/*адрес назначения*/ - 2/*контрольная сумма*/);
 
