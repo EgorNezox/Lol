@@ -10,9 +10,9 @@
 
 
 #include "qmguiobject.h"
-#include "gdisp.h"
+#include "gdisp.h"	//todo убрать
 
-struct QmGuiGeometry{
+struct QmGuiGeometry{	//todo подумать как избавить от GXT, GYT
 	GXT xs;
 	GYT ys;
 	GXT xe;
