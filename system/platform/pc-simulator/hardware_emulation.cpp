@@ -15,7 +15,6 @@
 
 #include "hardware_emulation.h"
 #include "mainwidget.h"
-#include "port_hardwareio/iopininterface.h"
 
 #ifndef Q_MOC_RUN
 namespace QtHwEmu
@@ -39,7 +38,6 @@ static QMap<int, QObject*> resources_registry;
 static QMutex resources_registry_mutex;
 
 void init() {
-	IopinInterface::init();
 	Q_ASSERT(main_widget == 0);
 	main_widget = new MainWidget();
 	main_widget->show();

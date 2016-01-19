@@ -101,6 +101,10 @@ QmThread* QmThread::currentThread() {
 	return t;
 }
 
+void QmThread::msleep(unsigned int msecs) {
+	QThread::msleep(msecs);
+}
+
 void QmThread::start(Priority priority) {
 	QM_D(QmThread);
 	QThread::Priority qt_priority = QThread::IdlePriority;

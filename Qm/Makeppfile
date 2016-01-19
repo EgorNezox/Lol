@@ -54,7 +54,11 @@ ifdef HARDWAREIO
   	qmhardwareio/src/qmiopin.cpp \
   	qmhardwareio/src/qmiopin_$(HARDWAREIO).cpp \
   	qmhardwareio/src/qmuart.cpp \
-  	qmhardwareio/src/qmuart_$(HARDWAREIO).cpp
+  	qmhardwareio/src/qmuart_$(HARDWAREIO).cpp \
+  	qmhardwareio/src/qmi2cdevice.cpp \
+  	qmhardwareio/src/qmi2cdevice_$(HARDWAREIO).cpp \
+  	qmhardwareio/src/qmsmbushost.cpp \
+  	qmhardwareio/src/qmsmbushost_$(HARDWAREIO).cpp
   $(sources_to_objects $(QMHARDWAREIO_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH)
 endif
 
