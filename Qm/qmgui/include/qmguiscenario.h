@@ -9,6 +9,8 @@
 #define QMGUISCENARIO_H_
 
 #include "qmguiscreen.h"
+#include "qmguiobject.h"
+
 
 /*! Класс реализует механизм абстрактных сценариев(наборов диалогов связанных логикой)
  *  Для реализации логики предлагается используется автомат состояний state_machine, см. state_machine.h*/

@@ -8,11 +8,20 @@
 #ifndef QMGUI_H_
 #define QMGUI_H_
 
-
-#include "qmguiobject.h"
-#include "qmguivisualobject.h"
-#include "qmguidialog.h"
-#include "qmguiscenario.h"
 #include "qmguiscreen.h"
+
+class QmGui{
+	public:
+		QmGui();
+		~QmGui();
+		void markCurScreenToRender();
+		void switchToScren(QmGuiScreen *screen, bool reset_screen);
+		QmGuiScreen * getCurScreen();
+		void renderCurScreen();
+	private:
+		QmGuiScreen *cur_screen;
+		bool cur_scr_need_render;
+		static QmGui* self;
+};
 
 #endif /* QMGUI_H_ */

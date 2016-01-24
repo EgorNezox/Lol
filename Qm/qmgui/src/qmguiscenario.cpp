@@ -31,7 +31,7 @@ QmGuiScenario::~QmGuiScenario(){
 //-----------------------------
 
 void QmGuiScenario::RenderSubScreen(){
-	sub_screen->RenderScreen();
+	sub_screen->renderScreen();
 }
 
 //-----------------------------
