@@ -11,6 +11,7 @@
 #include <list>
 #include "qmobject.h"
 
+class QmGuiKey;
 class QmGuiObject;
 
 /*!Класс описывающий экран(стек диалогов) и реализующий управление им*/
@@ -23,7 +24,7 @@ class QmGuiScreen: public QmObject{
 		 */
 		void renderScreen();
 		void appendObject(QmGuiObject *gui_obj, bool draw_if_non_active);
-		void keyProcessor(int key_id);
+		void keyProcessor(QmGuiKey key);
 		void resetToInitState();
 	protected:
 		virtual bool event(QmEvent *event);

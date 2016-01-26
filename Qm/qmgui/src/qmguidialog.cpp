@@ -5,8 +5,8 @@
  *      Author: Egor Dudyak
  */
 
-
 #include "qmguidialog.h"
+#include "qmguikey.h"
 
 //----------DEFINES------------
 
@@ -17,6 +17,9 @@
 //----------PROTOTYPES---------
 
 //----------CODE---------------
+
+
+
 
 QmGuiDialog::QmGuiDialog(QmGuiGeometry *area, QmObject *parent): QmGuiVisualObject(area, parent, qmguiDialog){
 
@@ -36,3 +39,13 @@ bool QmGuiDialog::event(QmEvent *event){
 }
 
 //-----------------------------
+
+void QmGuiDialog::keyHandler(QmGuiKey key){
+	actionHandler(keymap[key]);	//todo assert если не найден
+}
+
+//-----------------------------
+
+void QmGuiDialog::assignKeyMapping(std::map<QmGuiKey,int> &map){
+	keymap=map;
+}

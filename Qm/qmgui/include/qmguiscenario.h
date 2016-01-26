@@ -19,8 +19,8 @@ class QmGuiScenario: public QmGuiObject{
 		QmGuiScenario(QmGuiScreen *sub_screen, QmObject *parent=0);
 		virtual ~QmGuiScenario();
 		void RenderSubScreen();
-	protected:
 		QmGuiScreen *sub_screen;
+	protected:
 		virtual bool event(QmEvent *event);
 };
 
