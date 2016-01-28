@@ -33,6 +33,7 @@ private:
 	void processUartReceivedData();
 	void processUartReceivedErrors(bool data_errors, bool overflow);
 	void dropRxSync();
+	int bytestuff(uint8_t* input_data, uint8_t* output_data, int data_len);
 
 	enum {
 		rxstateNone,

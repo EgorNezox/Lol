@@ -37,6 +37,7 @@ void Controller::startServicing(
 	QM_UNUSED(local_channels_table);
 	qmDebugMessage(QmDebug::Info, "start servicing...");
 	transport->enable();
+	transport->transmitFrame(0xB0, NULL, 0);
 }
 
 Controller::Status Controller::getStatus() {
