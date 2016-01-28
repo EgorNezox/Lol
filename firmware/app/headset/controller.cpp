@@ -7,9 +7,14 @@
  ******************************************************************************
  */
 
+#define QMDEBUGDOMAIN	headset
+
 #include "qm.h"
+#include "qmdebug.h"
+#include "qmpushbuttonkey.h"
 
 #include "controller.h"
+#include "smarttransport.h"
 
 namespace Headset {
 
@@ -20,6 +25,7 @@ Controller::Controller(int rs232_uart_resource, int ptt_iopin_resource) :
 	ptt_key = new QmPushButtonKey(ptt_iopin_resource);
 	ptt_state = ptt_key->isPressed();
 	ptt_key->stateChanged.connect(sigc::mem_fun(this, &Controller::pttStateChangedSlot));
+	transport = new SmartTransport(rs232_uart_resource, 1, this);
 }
 
 Controller::~Controller() {
@@ -29,7 +35,8 @@ Controller::~Controller() {
 void Controller::startServicing(
 		const Multiradio::voice_channels_table_t& local_channels_table) {
 	QM_UNUSED(local_channels_table);
-	//...
+	qmDebugMessage(QmDebug::Info, "start servicing...");
+	transport->enable();
 }
 
 Controller::Status Controller::getStatus() {
@@ -65,3 +72,7 @@ void Controller::pttStateChangedSlot()
 }
 
 } /* namespace Headset */
+
+#include "qmdebug_domains_start.h"
+QMDEBUG_DEFINE_DOMAIN(headset, LevelDefault)
+#include "qmdebug_domains_end.h"

@@ -10,13 +10,16 @@
 #ifndef FIRMWARE_APP_HEADSET_CONTROLLER_H_
 #define FIRMWARE_APP_HEADSET_CONTROLLER_H_
 
-#include "sigc++/signal.h"
+#include "qmobject.h"
 #include "multiradio.h"
-#include "qmpushbuttonkey.h"
+
+class QmPushButtonKey;
 
 namespace Headset {
 
-class Controller {
+class SmartTransport;
+
+class Controller :public QmObject {
 public:
 	enum Status {
 		StatusNone,
@@ -45,6 +48,7 @@ private:
 
 	QmPushButtonKey* ptt_key;
 	bool ptt_state;
+	SmartTransport* transport;
 };
 
 } /* namespace Headset */
