@@ -20,16 +20,16 @@ QmGui::QmGui(){
 
 
 
-QmGui::switchToScren(QmGuiScreen *screen, bool reset_screen){
+void QmGui::switchToScren(QmGuiScreen *screen, bool reset_screen){
 	cur_screen=screen;
 	if(reset_screen){
-		cur_screen->ResetToInitState();
+		cur_screen->resetToInitState();
 	}
 	markCurScreenToRender();
 }
 
 
-QmGui::markCurScreenToRender(){
+void QmGui::markCurScreenToRender(){
 	cur_scr_need_render=true;
 }
 
@@ -39,9 +39,9 @@ QmGuiScreen * QmGui::getCurScreen(){
 }
 
 
-QmGui::renderCurScreen(){
+void QmGui::renderCurScreen(){
 	if(cur_scr_need_render){
-		cur_screen->RenderScreen();
+		cur_screen->renderScreen();
 		cur_scr_need_render=false;
 	}
 }

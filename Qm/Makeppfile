@@ -34,11 +34,13 @@ $(sources_to_objects $(QMCORE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH)
 
 QMGUI_INCLUDEPATH += qmgui/include
 QMGUI_SOURCES += \	
+	qmgui/src/qmgui.cpp \	
 	qmgui/src/qmguiobject.cpp \
 	qmgui/src/qmguivisualobject.cpp \
 	qmgui/src/qmguidialog.cpp \
 	qmgui/src/qmguiscenario.cpp \
-	qmgui/src/qmguiscreen.cpp  
+	qmgui/src/qmguiscreen.cpp \
+	qmgui/src/qmguielement.cpp 
 $(sources_to_objects $(QMGUI_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMGUI_INCLUDEPATH)
 
 

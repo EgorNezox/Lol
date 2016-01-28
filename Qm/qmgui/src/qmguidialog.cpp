@@ -41,11 +41,19 @@ bool QmGuiDialog::event(QmEvent *event){
 //-----------------------------
 
 void QmGuiDialog::keyHandler(QmGuiKey key){
-	actionHandler(keymap[key]);	//todo assert если не найден
+	std::map<QmGuiKey,int>::iterator it=keymap.find(key);
+	if(it!=keymap.end()){
+		actionHandler(it->second);
+	}
 }
 
 //-----------------------------
 
 void QmGuiDialog::assignKeyMapping(std::map<QmGuiKey,int> &map){
 	keymap=map;
+}
+
+void QmGuiDialog::draw(){
+	updateInternalData();
+
 }

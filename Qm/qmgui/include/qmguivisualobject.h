@@ -10,14 +10,9 @@
 
 
 #include "qmguiobject.h"
-#include "gdisp.h"	//todo убрать
+#include "qmguigeometry.h"
 
-struct QmGuiGeometry{	//todo подумать как избавить от GXT, GYT
-	GXT xs;
-	GYT ys;
-	GXT xe;
-	GYT ye;
-};
+struct RamtexGeometry;
 
 /*!Базовый класс видимого графического объекта.
  * 	area - Область занимаемая визуальным объекстом GUI. Абсолютные координаты пикселей дисплея.*/
@@ -26,10 +21,11 @@ class QmGuiVisualObject: public QmGuiObject{
 		QmGuiVisualObject(QmGuiGeometry *area, QmObject *parent = 0, QmGuiObjectType type=qmguiVisual);
 		virtual ~QmGuiVisualObject();
 		virtual void Draw()=0;
+		RamtexGeometry * getObjectArea();
 	protected:
 		virtual bool event(QmEvent *event);
 	private:
-		QmGuiGeometry area;
+		RamtexGeometry *area;
 		//todo Qm Макросы
 };
 
