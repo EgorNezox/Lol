@@ -18,6 +18,7 @@
 
 
 QmGuiElement::QmGuiElement(QmGuiGeometry *geom,QmGuiAlignment *align, QmGuiMargins *margins, QmGuiVisualObject *parent_obj):QmObject((QmObject*)parent_obj){
+	QM_ASSERT(parent_obj);
 	QM_ASSERT(geom->xs>GDISPW-1);
 	QM_ASSERT(geom->xe>GDISPW-1);
 	QM_ASSERT(geom->ys>GDISPH-1);

@@ -7,6 +7,7 @@
 
 #include "qmguidialog.h"
 #include "qmguikey.h"
+#include "qmguielement.h"
 
 //----------DEFINES------------
 
@@ -55,5 +56,10 @@ void QmGuiDialog::assignKeyMapping(std::map<QmGuiKey,int> &map){
 
 void QmGuiDialog::draw(){
 	updateInternalData();
-
+	std::list<QmGuiElement*>::iterator  it, end;
+	if(element_list.size()>0){
+		for(it=element_list.begin(), end=element_list.end();it!=end;it++){
+			(*it)->Draw();
+		}
+	}
 }
