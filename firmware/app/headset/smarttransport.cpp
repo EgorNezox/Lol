@@ -10,7 +10,6 @@
 #define QMDEBUGDOMAIN	headset
 #include "qmdebug.h"
 #include "qmendian.h"
-#include "qmcrc.h"
 #include "qmuart.h"
 
 #include "smarttransport.h"
@@ -23,8 +22,6 @@
 #define FRAME_START_DELIMITER	0xC0
 #define FRAME_END_DELIMITER		0xC1
 #define FRAME_SPEC_SYMBOL		0x7D
-
-typedef QmCrc<uint16_t, 16, 0x1189, 0xFFFF, false, 0x0000> CRC16arc;
 
 namespace Headset {
 
@@ -167,13 +164,26 @@ void SmartTransport::processUartReceivedData() {
 		case rxstateFrame: {
 			if (rx_frame_size < MAX_FRAME_TOTAL_SIZE) {
 				qmDebugMessage(QmDebug::Dump, "uart rx: - frame data 0x%02X", byte);
-				rx_frame_buf[rx_frame_size++] = byte;
 				if (byte == FRAME_END_DELIMITER) {
 					qmDebugMessage(QmDebug::Info, "uart rx: - frame end");
 					rx_state = rxstateNone;
+					uint16_t crc_value = qmFromBigEndian<uint16_t>(rx_frame_buf+(rx_frame_size - 2));
+					GranitCRC crc;
+					crc.update(rx_frame_buf, (rx_frame_size - 2));
+					if (!crc.result() == crc_value) {
+						qmDebugMessage(QmDebug::Warning, "uart rx: - bad frame, dropping");
+						break;
+					}
+					uint8_t cmd = rx_frame_buf[0];
+					uint8_t* rx_data = (uint8_t*)(rx_frame_buf + 1);
+					int rx_data_len = rx_frame_size - 1;
+					qmDebugMessage(QmDebug::Info, "received frame (cmd=0x%02X, data_len=%u)", cmd, rx_data_len);
+					receivedFrame(cmd, rx_data, rx_data_len);
+				} else {
+					rx_frame_buf[rx_frame_size++] = byte;
 				}
 			} else {
-				qmDebugMessage(QmDebug::Warning, "uart rx: - sync lost (unexpected frame end 0x%02X)", byte);
+				qmDebugMessage(QmDebug::Warning, "uart rx: - sync lost (frame buffer overflow)");
 				rx_state = rxstateNone;
 			}
 		}
