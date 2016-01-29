@@ -67,7 +67,7 @@ void qmMain() {
 	data_storage_fs.getVoiceChannelsTable(mr_channels_table);
 	if (mr_channels_table.empty())
 		ui_service.setNotification(Ui::NotificationMissingVoiceChannelsTable);
-	enrxrs232_iopin.writeOutput(QmIopin::Level_High);
+	enrxrs232_iopin.writeOutput(QmIopin::Level_Low);
 	entxrs232_iopin.writeOutput(QmIopin::Level_High);
 	headset_controller.startServicing(mr_channels_table);
 	mr_dispatcher.startServicing(mr_channels_table);
