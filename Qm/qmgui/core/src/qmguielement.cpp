@@ -17,16 +17,16 @@
 
 
 
-QmGuiElement::QmGuiElement(QmGuiGeometry *geom,QmGuiAlignment *align, QmGuiMargins *margins, QmGuiVisualObject *parent_obj):QmObject((QmObject*)parent_obj){
+QmGuiElement::QmGuiElement(QmGuiElementParams *el_params, QmGuiVisualObject *parent_obj):QmObject((QmObject*)parent_obj){
 	QM_ASSERT(parent_obj);
-	QM_ASSERT(geom->xs>GDISPW-1);
-	QM_ASSERT(geom->xe>GDISPW-1);
-	QM_ASSERT(geom->ys>GDISPH-1);
-	QM_ASSERT(geom->ye>GDISPH-1);
-	QM_ASSERT(margins->left>GDISPW-1);
-	QM_ASSERT(margins->right>GDISPW-1);
-	QM_ASSERT(margins->top>GDISPH-1);
-	QM_ASSERT(margins->bottom>GDISPH-1);
+	QM_ASSERT(el_params->geom.xs>GDISPW-1);
+	QM_ASSERT(el_params->geom.xe>GDISPW-1);
+	QM_ASSERT(el_params->geom.ys>GDISPH-1);
+	QM_ASSERT(el_params->geom.ye>GDISPH-1);
+	QM_ASSERT(el_params->margins.left>GDISPW-1);
+	QM_ASSERT(el_params->margins.right>GDISPW-1);
+	QM_ASSERT(el_params->margins.top>GDISPH-1);
+	QM_ASSERT(el_params->margins.bottom>GDISPH-1);
 
 	RamtexGeometry *parent_geom=parent_obj->getObjectArea();
 
@@ -35,22 +35,22 @@ QmGuiElement::QmGuiElement(QmGuiGeometry *geom,QmGuiAlignment *align, QmGuiMargi
 	this->margins=new RamtexMargins;
 	this->content=new QmGuiContentSize;
 
-	this->geom->xs=(GXT)(geom->xs);
-	this->geom->ys=(GYT)(geom->ys);
-	this->geom->xe=(GXT)(geom->xe);
-	this->geom->ye=(GYT)(geom->ye);
+	this->geom->xs=(GXT)(el_params->geom.xs);
+	this->geom->ys=(GYT)(el_params->geom.ys);
+	this->geom->xe=(GXT)(el_params->geom.xe);
+	this->geom->ye=(GYT)(el_params->geom.ye);
 
 	this->el_geom->xs=this->geom->xs+parent_geom->xs;
 	this->el_geom->ys=this->geom->ys+parent_geom->ys;
 	this->el_geom->xe=this->geom->xe+parent_geom->xs;
 	this->el_geom->ye=this->geom->ye+parent_geom->ys;
 
-	this->margins->left=(GXT)(margins->left);
-	this->margins->right=(GXT)(margins->right);
-	this->margins->top=(GYT)(margins->top);
-	this->margins->bottom=(GYT)(margins->bottom);
+	this->margins->left=(GXT)(el_params->margins.left);
+	this->margins->right=(GXT)(el_params->margins.right);
+	this->margins->top=(GYT)(el_params->margins.top);
+	this->margins->bottom=(GYT)(el_params->margins.bottom);
 
-	this->align=*align;
+	this->align=el_params->align;
 
 	content->x=0;
 	content->y=0;
@@ -68,19 +68,16 @@ QmGuiElement::~QmGuiElement(){
 }
 
 
-
 void QmGuiElement::PrepareContent(){
 	CalcContentGeom();
 	AlignContent();
 }
 
 
-
 void QmGuiElement::PrepareViewport(){
 	gselvp(VP_COMMON);
 	gsetvp(el_geom->xs,el_geom->ys,el_geom->xe, el_geom->ye);
 }
-
 
 
 QmGuiGeometry QmGuiElement::GetContentGeomOnElem(){

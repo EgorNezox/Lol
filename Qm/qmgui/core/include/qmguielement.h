@@ -16,9 +16,15 @@ struct RamtexMargins;
 struct RamtexAlignment;
 class QmGuiVisualObject;
 
+struct QmGuiElementParams{
+	QmGuiMargins margins;
+	QmGuiAlignment align;
+	QmGuiGeometry geom;
+};
+
 class QmGuiElement: public QmObject{
 	public:
-		QmGuiElement(QmGuiGeometry *geom, QmGuiAlignment *align, QmGuiMargins *margins, QmGuiVisualObject *parent_obj=0);
+		QmGuiElement(QmGuiElementParams *el_params, QmGuiVisualObject *parent_obj=0);
 		virtual ~QmGuiElement();
 		virtual void Draw() =0;
 		void PrepareContent(); //Должна вызываться в конце конструктора конкретного элемента!

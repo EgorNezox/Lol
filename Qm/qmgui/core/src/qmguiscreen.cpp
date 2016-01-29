@@ -12,28 +12,17 @@
 #include "qmguiscenario.h"
 #include "qmguikey.h"
 
-//----------DEFINES------------
-
-//----------TYPES--------------
-
-//----------GLOBAL_VARS--------
-
-//----------PROTOTYPES---------
-
-//----------CODE---------------
 
 
 QmGuiScreen::QmGuiScreen(QmObject *parent):QmObject(parent){
 	initScreen();
 }
 
-//-----------------------------
 
 QmGuiScreen::~QmGuiScreen(){
 
 }
 
-//-----------------------------
 
 void QmGuiScreen::renderScreen(){
 	std::list<ScreenStackInst>::iterator  it, end;
@@ -49,7 +38,6 @@ void QmGuiScreen::renderScreen(){
 	}
 }
 
-//-----------------------------
 
 void QmGuiScreen::deleteGuiObkectFromStack(QmGuiObject *gui_obj){
 	std::list<ScreenStackInst>::iterator  it, end;
@@ -61,7 +49,6 @@ void QmGuiScreen::deleteGuiObkectFromStack(QmGuiObject *gui_obj){
 	}
 }
 
-//-----------------------------
 
 void QmGuiScreen::drawProcessor(QmGuiObject *gui_obj){
 	switch(gui_obj->getType()){
@@ -80,7 +67,7 @@ void QmGuiScreen::drawProcessor(QmGuiObject *gui_obj){
 	}
 }
 
-//-----------------------------
+
 
 void QmGuiScreen::resetToInitState(){	//Объекты удаляются напрямую, это возможно при переключении в другой режим.
 	std::list<ScreenStackInst>::iterator  it, end;
@@ -91,7 +78,7 @@ void QmGuiScreen::resetToInitState(){	//Объекты удаляются нап
 	initScreen();
 }
 
-//-----------------------------
+
 
 void QmGuiScreen::appendObject(QmGuiObject *gui_obj, bool draw_if_non_active){
 	QM_ASSERT(gui_obj!=NULL);
@@ -99,7 +86,6 @@ void QmGuiScreen::appendObject(QmGuiObject *gui_obj, bool draw_if_non_active){
 	gui_obj->setParentScreen(this);
 }
 
-//-----------------------------
 
 void QmGuiScreen::keyProcessor(QmGuiKey key){
 	std::list<ScreenStackInst>::iterator  it, begin;
@@ -128,7 +114,6 @@ void QmGuiScreen::keyProcessor(QmGuiKey key){
 	}
 }
 
-//-----------------------------
 
 bool QmGuiScreen::event(QmEvent *event){
 	QM_UNUSED(event);

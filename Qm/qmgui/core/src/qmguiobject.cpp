@@ -8,15 +8,7 @@
 #include "qmguiobject.h"
 #include "qmguiscreen.h"
 
-//----------DEFINES------------
 
-//----------TYPES--------------
-
-//----------GLOBAL_VARS--------
-
-//----------PROTOTYPES---------
-
-//----------CODE---------------
 
 
 QmGuiObject::QmGuiObject(QmGuiObjectType type, QmObject *parent):QmObject(parent){
@@ -24,17 +16,17 @@ QmGuiObject::QmGuiObject(QmGuiObjectType type, QmObject *parent):QmObject(parent
 	parent_screen=NULL;
 };
 
-//-----------------------------
+
 
 QmGuiObject::~QmGuiObject(){};
 
-//-----------------------------
+
 
 QmGuiObjectType QmGuiObject::getType(){
 	return type;
 }
 
-//-----------------------------
+
 
 void QmGuiObject::deleteGuiObject(){
 	if(parent_screen!=NULL){

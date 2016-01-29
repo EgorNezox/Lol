@@ -10,15 +10,7 @@
 #include "ramtexgeometry.h"
 #include "gdisp.h"
 
-//----------DEFINES------------
 
-//----------TYPES--------------
-
-//----------GLOBAL_VARS--------
-
-//----------PROTOTYPES---------
-
-//----------CODE---------------
 
 QmGuiVisualObject::QmGuiVisualObject(QmGuiGeometry *area, QmObject *parent, QmGuiObjectType type):QmGuiObject(type, parent){
 	QM_ASSERT(area->xs>GDISPW-1);
@@ -33,17 +25,16 @@ QmGuiVisualObject::QmGuiVisualObject(QmGuiGeometry *area, QmObject *parent, QmGu
 	this->area->ye=(GYT)(area->ye);
 }
 
-//-----------------------------
 
 QmGuiVisualObject::~QmGuiVisualObject(){
 	delete area;
 }
 
-//-----------------------------
 
 RamtexGeometry * QmGuiVisualObject::getObjectArea(){
 	return area;
 }
+
 
 bool QmGuiVisualObject::event(QmEvent *event){
 	QM_UNUSED(event);

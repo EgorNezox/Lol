@@ -9,37 +9,25 @@
 #include "qmguikey.h"
 #include "qmguielement.h"
 
-//----------DEFINES------------
-
-//----------TYPES--------------
-
-//----------GLOBAL_VARS--------
-
-//----------PROTOTYPES---------
-
-//----------CODE---------------
-
-
-
 
 QmGuiDialog::QmGuiDialog(QmGuiGeometry *area, QmObject *parent): QmGuiVisualObject(area, parent, qmguiDialog){
 
 };
 
-//-----------------------------
+
 
 QmGuiDialog::~QmGuiDialog(){
 
 }
 
-//-----------------------------
+
 
 bool QmGuiDialog::event(QmEvent *event){
 	QM_UNUSED(event);
 	return false;
 }
 
-//-----------------------------
+
 
 void QmGuiDialog::keyHandler(QmGuiKey key){
 	std::map<QmGuiKey,int>::iterator it=keymap.find(key);
@@ -48,11 +36,12 @@ void QmGuiDialog::keyHandler(QmGuiKey key){
 	}
 }
 
-//-----------------------------
+
 
 void QmGuiDialog::assignKeyMapping(std::map<QmGuiKey,int> &map){
 	keymap=map;
 }
+
 
 void QmGuiDialog::draw(){
 	updateInternalData();
