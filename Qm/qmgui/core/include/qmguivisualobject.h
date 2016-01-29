@@ -12,7 +12,7 @@
 #include "qmguiobject.h"
 #include "qmguigeometry.h"
 
-struct RamtexGeometry;
+struct QmGuiRamtexGeometry;
 
 /*!Базовый класс видимого графического объекта.
  * 	area - Область занимаемая визуальным объекстом GUI. Абсолютные координаты пикселей дисплея.*/
@@ -21,11 +21,11 @@ class QmGuiVisualObject: public QmGuiObject{
 		QmGuiVisualObject(QmGuiGeometry *area, QmObject *parent = 0, QmGuiObjectType type=qmguiVisual);
 		virtual ~QmGuiVisualObject();
 		virtual void Draw()=0;
-		RamtexGeometry * getObjectArea();
+		QmGuiRamtexGeometry * getObjectArea();
 	protected:
 		virtual bool event(QmEvent *event);
 	private:
-		RamtexGeometry *area;
+		QmGuiRamtexGeometry *area;
 		//todo Qm Макросы
 };
 

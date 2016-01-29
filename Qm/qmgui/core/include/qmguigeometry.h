@@ -8,8 +8,8 @@
 #ifndef QMGUIGEOMETRY_H_
 #define QMGUIGEOMETRY_H_
 
-#define CONTENT_XE(content) (content.x+content.W-1)
-#define CONTENT_YE(content) (content.y+content.H-1)
+#define CONTENT_XE(content) (content->x+content->W-1)
+#define CONTENT_YE(content) (content->y+content->H-1)
 #define GEOM_W(area)	((area->xe-area->xs+1))
 #define GEOM_H(area)	((area->ye-area->ys+1))
 

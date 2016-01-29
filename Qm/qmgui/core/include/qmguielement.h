@@ -11,8 +11,8 @@
 #include "qmobject.h"
 #include "qmguigeometry.h"
 
-struct RamtexGeometry;
-struct RamtexMargins;
+struct QmGuiRamtexGeometry;
+struct QmGuiRamtexMargins;
 struct RamtexAlignment;
 class QmGuiVisualObject;
 
@@ -34,9 +34,9 @@ class QmGuiElement: public QmObject{
 		 */
 		QmGuiGeometry GetContentGeomOnElem();
 		QmGuiContentSize *content;	//Размер и относительные координаты содержимого относительно области элемента. Вычисляются.
-		RamtexGeometry *el_geom;	//Область элемента. Абсолютные координаты
-		RamtexGeometry *geom;	//Координаты элемента относительно диалога
-		RamtexMargins *margins;
+		QmGuiRamtexGeometry *el_geom;	//Область элемента. Абсолютные координаты
+		QmGuiRamtexGeometry *geom;	//Координаты элемента относительно диалога
+		QmGuiRamtexMargins *margins;
 		QmGuiAlignment align;
 	private:
 		void AlignContent();

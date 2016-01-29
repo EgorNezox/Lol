@@ -7,7 +7,7 @@
 
 #include "qmdebug.h"
 #include "qmguivisualobject.h"
-#include "ramtexgeometry.h"
+#include "qmguiramtexgeometry.h"
 #include "gdisp.h"
 
 
@@ -18,7 +18,7 @@ QmGuiVisualObject::QmGuiVisualObject(QmGuiGeometry *area, QmObject *parent, QmGu
 	QM_ASSERT(area->ys>GDISPH-1);
 	QM_ASSERT(area->ye>GDISPH-1);
 
-	this->area=new RamtexGeometry;
+	this->area=new QmGuiRamtexGeometry;
 	this->area->xs=(GXT)(area->xs);
 	this->area->ys=(GYT)(area->ys);
 	this->area->xe=(GXT)(area->xe);
@@ -31,7 +31,7 @@ QmGuiVisualObject::~QmGuiVisualObject(){
 }
 
 
-RamtexGeometry * QmGuiVisualObject::getObjectArea(){
+QmGuiRamtexGeometry * QmGuiVisualObject::getObjectArea(){
 	return area;
 }
 

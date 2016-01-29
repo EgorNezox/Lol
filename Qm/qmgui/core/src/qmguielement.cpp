@@ -8,7 +8,7 @@
 #include "qmdebug.h"
 #include "qmguielement.h"
 #include "qmguivisualobject.h"
-#include "ramtexgeometry.h"
+#include "qmguiramtexgeometry.h"
 #include "gdisp.h"
 
 
@@ -28,11 +28,11 @@ QmGuiElement::QmGuiElement(QmGuiElementParams *el_params, QmGuiVisualObject *par
 	QM_ASSERT(el_params->margins.top>GDISPH-1);
 	QM_ASSERT(el_params->margins.bottom>GDISPH-1);
 
-	RamtexGeometry *parent_geom=parent_obj->getObjectArea();
+	QmGuiRamtexGeometry *parent_geom=parent_obj->getObjectArea();
 
-	this->geom=new RamtexGeometry;
-	this->el_geom=new RamtexGeometry;
-	this->margins=new RamtexMargins;
+	this->geom=new QmGuiRamtexGeometry;
+	this->el_geom=new QmGuiRamtexGeometry;
+	this->margins=new QmGuiRamtexMargins;
 	this->content=new QmGuiContentSize;
 
 	this->geom->xs=(GXT)(el_params->geom.xs);

@@ -32,7 +32,9 @@ QMCORE_SOURCES += \
 	qmcore/src/qmapplication_$(CORE_PLATFORM).cpp
 $(sources_to_objects $(QMCORE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH)
 
-QMGUI_INCLUDEPATH += qmgui/core/include
+QMGUI_INCLUDEPATH += \
+	qmgui/core/include \
+	qmgui/elements/include
 QMGUI_SOURCES += \	
 	qmgui/core/src/qmgui.cpp \	
 	qmgui/core/src/qmguiobject.cpp \
@@ -41,6 +43,10 @@ QMGUI_SOURCES += \
 	qmgui/core/src/qmguiscenario.cpp \
 	qmgui/core/src/qmguiscreen.cpp \
 	qmgui/core/src/qmguielement.cpp 
+
+QMGUI_SOURCES += \
+	qmgui/elements/src/qmguiellabel.cpp
+	
 $(sources_to_objects $(QMGUI_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMGUI_INCLUDEPATH)
 
 
