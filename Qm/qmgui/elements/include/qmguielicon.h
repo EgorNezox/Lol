@@ -9,7 +9,7 @@
 #define QMGUIELICON_H_
 
 #include "gdisp.h"
-
+#include "qmguielement.h"
 
 class QmGuiVisualObject;
 

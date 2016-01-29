@@ -5,7 +5,6 @@
  *      Author: Egor Dudyak
  */
 
-#include "qmguielement.h"
 #include "qmguielicon.h"
 
 
