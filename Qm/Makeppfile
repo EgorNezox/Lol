@@ -47,18 +47,12 @@ ifdef HARDWAREIO
 endif
 
 ifdef KEYSINPUT
-  ifeq ($(KEYSINPUT),stm32f2xx)
-  and ifeq ($(CORE_PLATFORM),bmfreertos)
-    DEFINES_system += QMKEYSINPUT_PLATFORM_STM32F2XX
-  else 
-    $(error "Unsupported Core/KeysInput platform combination specified")
-  endif
   QMKEYSINPUT_INLCUDEPATH += qmkeysinput/include
   QMKEYSINPUT_SOURCES += \
   	qmkeysinput/src/qmpushbuttonkey.cpp \
-  	qmkeysinput/src/qmpushbuttonkey_$(KEYSINPUT).cpp \
+  	qmkeysinput/src/qmpushbuttonkey_$(PLATFORM).cpp \
   	qmkeysinput/src/qmmatrixkeyboard.cpp \
-  	qmkeysinput/src/qmmatrixkeyboard_$(KEYSINPUT).cpp
+  	qmkeysinput/src/qmmatrixkeyboard_$(PLATFORM).cpp
   $(sources_to_objects $(QMKEYSINPUT_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMKEYSINPUT_INLCUDEPATH)
 endif
 

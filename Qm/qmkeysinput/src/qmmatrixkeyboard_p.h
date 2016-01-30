@@ -14,12 +14,12 @@
 #include "../../qmcore/src/qmobject_p.h"
 #include "qmmatrixkeyboard.h"
 
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 #include "hal_gpio.h"
 #include "qmevent.h"
 #include "FreeRTOS.h"
 #include "timers.h"
-#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
+#endif /* QM_PLATFORM_STM32F2XX */
 #ifdef QMKEYSINPUT_PLATFORM_QT
 #include <QObject>
 #include <QList>
@@ -27,7 +27,7 @@
 #include "port_keysinput/matrixkeyboardinterface.h"
 #endif /* QMKEYSINPUT_PLATFORM_QT */
 
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 class QmMatrixKeyboardKeyStateChangedEvent : public QmEvent
 {
 public:
@@ -49,7 +49,7 @@ private:
 	int key_id;
 	QmMatrixKeyboard::PressType pressType;
 };
-#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
+#endif /* QM_PLATFORM_STM32F2XX */
 
 #ifdef QMKEYSINPUT_PLATFORM_QT
 class QmMatrixKeyboardPrivateAdapter : public QObject
@@ -87,16 +87,16 @@ class QmMatrixKeyboardPrivate : public QmObjectPrivate {
 public:
 	QmMatrixKeyboardPrivate(QmMatrixKeyboard *q);
 	virtual ~QmMatrixKeyboardPrivate();
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 	void scan();
 	void pressTimerFinished(int number);
-#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
+#endif /* QM_PLATFORM_STM32F2XX */
 private:
 	void init();
 	void deinit();
 	bool isKeyPressed(int id);
 	int hw_resource;
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 	typedef enum keyboard_state {
 		no_presses,
 		single_press,
@@ -127,7 +127,7 @@ private:
 	uint8_t* curKeysPressed;
 	uint8_t* prevKeysPressed;
 	uint8_t pressesCounter;
-#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
+#endif /* QM_PLATFORM_STM32F2XX */
 #ifdef QMKEYSINPUT_PLATFORM_QT
     void processKeyStateChanged(int id, bool state);
     void keyActionLong(int id);
