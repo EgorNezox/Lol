@@ -29,11 +29,12 @@ LDFLAGS_system += --specs=nosys.specs # линковать с CRT, дефолт�
 
 # HAL, system and hardware drivers
 SOURCES_system += \
-	$(wildcard system_hardware/**/*.c) \
+	$(wildcard HAL/src/*.c) \
 	startup_stm32f2xx_freertos.s
 INCLUDEPATH_system += \
 	cfg_root \
-	HAL \
+	HAL/include \
+	extra \
 	.
 
 include misc/target_build_footer.mk

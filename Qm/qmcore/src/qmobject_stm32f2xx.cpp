@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    qmobject_bmfreertos.cpp
+  * @file    qmobject_stm32f2xx.cpp
   * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
   * @date    11.09.2015
   *

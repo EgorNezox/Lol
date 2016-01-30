@@ -23,8 +23,8 @@
   * При запуске приема включается DMA-передача, при обнаружении переполнения буфера DMA-передача выключается.
   * При запуске кольцевой буфер сбрасывается на начало, т.к. DMA не поддерживает запись с произвольного места в кольцевом буфере.
   * Флаги DMA "Half-transfer reached" и "Transfer complete" используются для отслеживания продвижения указателя записи по отношению к текущему указателю чтения
-  * (поочередно снимаются, а если оба обнаружены выставленными, то считается что произошло критическое переполнение буфера, но такое переполнение исключено в нормальных условиях
-  *  благодаря дополнительному расширению буфера).
+  * (поочередно снимаются, а если хоть один обнаружен выставленным после снятия другого, то считается что произошло критическое переполнение буфера,
+  * но такое переполнение исключено в нормальных условиях благодаря дополнительному расширению буфера в размере двойного интервала задержки обработки прерываний).
   * По прерываниям RXNE от UART (а также по таймауту задержки индикации непрочитанных данных, если таковой интервал используется) обновляется указатель записи (см. выше)
   * и отслеживается обычное переполнение буфера. Буфер считается переполненным, если свободное место меньше дополнительного(расширенного) пространства.
   * Приложение может считывать данные из буфера путем вызова функции hal_uart_receive()
@@ -67,16 +67,12 @@
 #include <math.h>
 #include "stm32f2xx.h"
 #include "FreeRTOS.h"
+#include "task.h"
 #include "semphr.h"
-#include "timers.h"
 
 #include "sys_internal.h"
-#include "sys_internal_freertos_timers.h"
+#include "hal_timer.h"
 #include "hal_uart.h"
-
-#if configUSE_TIMERS == 0
-#error "FreeRTOS must be configured to use software timers"
-#endif
 
 #define UART_INSTANCES_COUNT 6
 
@@ -102,8 +98,8 @@ static struct s_uart_pcb {
 	void *userid;
 	hal_ringbuffer_t *rx_buffer;
 	size_t rx_buffer_extra_space;
-	bool rx_data_defer_indication; // use deferred rx unread data indication
-	TimerHandle_t rx_data_timer; // (optional) timer used to defer rx unread data indication (data "flush")
+	unsigned int rx_data_pending_interval;
+	hal_timer_handle_t rx_data_timer; // (optional) timer used to defer rx unread data indication (data "flush")
 	enum {
 		rxdatatimerIdle,
 		rxdatatimerActive,
@@ -125,12 +121,12 @@ static struct s_uart_pcb {
 	size_t tx_transfer_pending_size; // remaining size of data from external buffer (active transmission)
 	SemaphoreHandle_t smphr_tx_complete; // used for transmission completion synchronization
 } uart_pcbs[UART_INSTANCES_COUNT] = {
-		{USART1, USART1_IRQn, 2, RCC_APB2ENR_USART1EN, DMA2, 2, DMA2_Stream2, DMA2_Stream2_IRQn, RCC_AHB1ENR_DMA2EN, 4, DMA_LISR_TEIF2, DMA_LISR_TCIF2, DMA_LISR_HTIF2, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{USART2, USART2_IRQn, 1, RCC_APB1ENR_USART2EN, DMA1, 5, DMA1_Stream5, DMA1_Stream5_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_HISR_TEIF5, DMA_HISR_TCIF5, DMA_HISR_HTIF5, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{USART3, USART3_IRQn, 1, RCC_APB1ENR_USART3EN, DMA1, 1, DMA1_Stream1, DMA1_Stream1_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF1, DMA_LISR_TCIF1, DMA_LISR_HTIF1, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{UART4, UART4_IRQn, 1, RCC_APB1ENR_UART4EN, DMA1, 2, DMA1_Stream2, DMA1_Stream2_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF2, DMA_LISR_TCIF2, DMA_LISR_HTIF2, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{UART5, UART5_IRQn, 1, RCC_APB1ENR_UART5EN, DMA1, 0, DMA1_Stream0, DMA1_Stream0_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF0, DMA_LISR_TCIF0, DMA_LISR_HTIF0, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{USART6, USART6_IRQn, 2, RCC_APB2ENR_USART6EN, DMA2, 1, DMA2_Stream1, DMA2_Stream1_IRQn, RCC_AHB1ENR_DMA2EN, 5, DMA_LISR_TEIF1, DMA_LISR_TCIF1, DMA_LISR_HTIF1, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{USART1, USART1_IRQn, 2, RCC_APB2ENR_USART1EN, DMA2, 2, DMA2_Stream2, DMA2_Stream2_IRQn, RCC_AHB1ENR_DMA2EN, 4, DMA_LISR_TEIF2, DMA_LISR_TCIF2, DMA_LISR_HTIF2, false, 0, 0, 0, 0, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{USART2, USART2_IRQn, 1, RCC_APB1ENR_USART2EN, DMA1, 5, DMA1_Stream5, DMA1_Stream5_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_HISR_TEIF5, DMA_HISR_TCIF5, DMA_HISR_HTIF5, false, 0, 0, 0, 0, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{USART3, USART3_IRQn, 1, RCC_APB1ENR_USART3EN, DMA1, 1, DMA1_Stream1, DMA1_Stream1_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF1, DMA_LISR_TCIF1, DMA_LISR_HTIF1, false, 0, 0, 0, 0, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{UART4, UART4_IRQn, 1, RCC_APB1ENR_UART4EN, DMA1, 2, DMA1_Stream2, DMA1_Stream2_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF2, DMA_LISR_TCIF2, DMA_LISR_HTIF2, false, 0, 0, 0, 0, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{UART5, UART5_IRQn, 1, RCC_APB1ENR_UART5EN, DMA1, 0, DMA1_Stream0, DMA1_Stream0_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF0, DMA_LISR_TCIF0, DMA_LISR_HTIF0, false, 0, 0, 0, 0, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{USART6, USART6_IRQn, 2, RCC_APB2ENR_USART6EN, DMA2, 1, DMA2_Stream1, DMA2_Stream1_IRQn, RCC_AHB1ENR_DMA2EN, 5, DMA_LISR_TEIF1, DMA_LISR_TCIF1, DMA_LISR_HTIF1, false, 0, 0, 0, 0, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
 };
 
 static double uart_character_rate_from_baud_rate(uint32_t rate, hal_uart_stop_bits_t stop_bits, hal_uart_parity_t parity);
@@ -145,10 +141,10 @@ static void uart_clear_dma_tc_flag(struct s_uart_pcb *uart);
 static void uart_start_dma_rx(struct s_uart_pcb *uart);
 static void uart_stop_dma_rx(struct s_uart_pcb *uart);
 static bool uart_is_dma_rx_running(struct s_uart_pcb *uart);
-static size_t uart_update_rx_buffer_from_isr(struct s_uart_pcb *uart, bool dma_tc, uint16_t dma_ndt);
+static int uart_update_rx_buffer_from_isr(struct s_uart_pcb *uart, uint16_t dma_ndt);
 static void uart_suspend_rx_from_isr(struct s_uart_pcb *uart, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
-static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, size_t bytes_transfered, bool rx_active, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
-static void uart_timer_rx_data_callback(TimerHandle_t xTimer);
+static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, int bytes_transfered, bool rx_active, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
+static void uart_timer_rx_data_callback(hal_timer_handle_t handle);
 static void uart_usart_irq_handler(struct s_uart_pcb *uart);
 static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t usart_SR, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 static void uart_usart_irq_handler_tx(struct s_uart_pcb *uart, uint16_t usart_SR, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
@@ -157,9 +153,11 @@ static void uart_dma_rx_irq_handler(struct s_uart_pcb *uart);
 void halinternal_uart_init(void) {
 	for (int i = 0; i < sizeof(uart_pcbs)/sizeof(uart_pcbs[0]); i++) {
 		struct s_uart_pcb *uart = &(uart_pcbs[i]);
-		/* Init freertos timer for defered rx data indication */
-		uart->rx_data_timer = xTimerCreate("HAL_UART_rx_data_X", 1/*doesn't matter*/, pdFALSE, (void *)uart, uart_timer_rx_data_callback);
-		halinternal_freertos_timer_queue_length += 3; // must match usage scenario (xTimerXXX calls, calls contexts, worst case of queuing)
+		/* Init hal timer for defered rx data indication */
+		hal_timer_params_t rx_data_timer_params;
+		rx_data_timer_params.userid = (void *)uart;
+		rx_data_timer_params.callbackTimeout = uart_timer_rx_data_callback;
+		uart->rx_data_timer = hal_timer_create(&rx_data_timer_params);
 		/* Init semaphore used for tx transfer completion synchronization */
 		uart->smphr_tx_complete = xSemaphoreCreateCounting(1, 0);
 		/* Init DMA stream used for rx */
@@ -203,16 +201,20 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	SYS_ASSERT(params);
 	SYS_ASSERT(params->isrcallbackRxOverflowSuspended); // required in order to support hal_uart_start_rx()
 	SYS_ASSERT(params->rx_buffer_size > 0); // rx buffer required because reception is always enabled
-	SYS_ASSERT(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING); // due to freertos semaphores and timers usage
+	SYS_ASSERT(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING); // due to freertos semaphores usage
 
 	int max_irq_service_delay = 0;
 	if (!((params->hw_flow_control == huartHwFlowControl_Rx) || (params->hw_flow_control == huartHwFlowControl_Rx_Tx)))
 		max_irq_service_delay = SYS_MAX_IRQ_LATENCY_MS;
 	double character_rate = uart_character_rate_from_baud_rate(params->baud_rate, params->stop_bits, params->parity);
+	// irq processing delay converted to bytes (space required to distinguish consecutive DMA HT and DMA TC flags, see irq handler)
 	size_t extra_rx_buffer_space = ceil(character_rate*((double)(max(max_irq_service_delay, (params->rx_data_pending_interval + 1)))/1000));
-	total_rx_buffer_size = params->rx_buffer_size + extra_rx_buffer_space; // extra space required to mitigate system-level processing delays
-	total_rx_buffer_size += (total_rx_buffer_size % 2); // round up to nearest even number (required to determine DMA half-transfer condition properly)
-	SYS_ASSERT(total_rx_buffer_size <= MAX_DMA_TRANSFER_SIZE); // incompatible uart baudrate and (system characteristics and/or uart parameters)
+	// extend half-buffer with extra space (required to mitigate system-level processing delays)
+	total_rx_buffer_size = max(params->rx_buffer_size, extra_rx_buffer_space) + extra_rx_buffer_space;
+	// round up to nearest even number (required to determine DMA half-transfer condition properly)
+	total_rx_buffer_size += (total_rx_buffer_size % 2);
+
+	SYS_ASSERT(total_rx_buffer_size <= MAX_DMA_TRANSFER_SIZE); // incompatible system characteristics and uart character rate
 
 	struct {
 		uint16_t BRR;
@@ -300,11 +302,7 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	uart->rx_buffer = new_rx_buffer;
 	uart->tx_buffer = new_tx_buffer;
 	uart->rx_buffer_extra_space = extra_rx_buffer_space;
-	if (params->rx_data_pending_interval > 0) {
-		uart->rx_data_defer_indication = true;
-		xTimerChangePeriod(uart->rx_data_timer, (params->rx_data_pending_interval/portTICK_PERIOD_MS), portMAX_DELAY);
-		xTimerStop(uart->rx_data_timer, portMAX_DELAY); // because previous xTimerChangePeriod() stupidly starts timer
-	}
+	uart->rx_data_pending_interval = params->rx_data_pending_interval;
 	uart->isrcallbackRxDataPending = params->isrcallbackRxDataPending;
 	uart->isrcallbackRxDataErrors = params->isrcallbackRxDataErrors;
 	uart->isrcallbackRxOverflowSuspended = params->isrcallbackRxOverflowSuspended;
@@ -319,11 +317,11 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 
 void hal_uart_close(hal_uart_handle_t handle) {
 	DEFINE_PCB_FROM_HANDLE(uart, handle)
-	SYS_ASSERT(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING); // due to freertos semaphores and timers usage
+	SYS_ASSERT(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING); // due to freertos semaphores usage
 
 	uart->rx_data_timer_state = rxdatatimerIdle;
-	if (uart->rx_data_defer_indication)
-		xTimerStop(uart->rx_data_timer, portMAX_DELAY);
+	if (uart->rx_data_pending_interval > 0)
+		hal_timer_stop(uart->rx_data_timer);
 	portDISABLE_INTERRUPTS();
 	uart->usart->CR1 &= ~USART_CR1_UE; // disable USART peripheral
 	uart_stop_dma_rx(uart);
@@ -345,7 +343,7 @@ void hal_uart_close(hal_uart_handle_t handle) {
 	uart->rx_buffer = 0;
 	uart->tx_buffer = 0;
 	uart->rx_buffer_extra_space = 0;
-	uart->rx_data_defer_indication = false;
+	uart->rx_data_pending_interval = 0;
 	uart->isrcallbackRxDataPending = NULL;
 	uart->isrcallbackRxDataErrors = NULL;
 	uart->isrcallbackRxOverflowSuspended = NULL;
@@ -583,31 +581,50 @@ bool hal_uart_start_transmit(hal_uart_handle_t handle, uint8_t *data, int size) 
 	return true;
 }
 
-static size_t uart_update_rx_buffer_from_isr(struct s_uart_pcb *uart, bool dma_tc, uint16_t dma_ndt) {
-	size_t bytes_transfered;
+static int uart_update_rx_buffer_from_isr(struct s_uart_pcb *uart, uint16_t dma_ndt) {
+	int bytes_transfered;
 	uint8_t *buffer_write_ptr;
-	size_t dummy;
+	size_t buffer_chunk_size;
 	int buffer_size = hal_ringbuffer_get_size(uart->rx_buffer);
+	int buffer_space_bytes = hal_ringbuffer_get_free_space_size(uart->rx_buffer);
 	uint8_t *buffer_start_addr = (uint8_t *)uart->dma_rx_stream->M0AR;
-	hal_ringbuffer_get_write_ptr(uart->rx_buffer, &buffer_write_ptr, &dummy);
-	bytes_transfered = (int)((buffer_size - dma_ndt) - (buffer_write_ptr - buffer_start_addr) + dma_tc*buffer_size);
-	hal_ringbuffer_write_next(uart->rx_buffer, bytes_transfered);
+
+	/* Calculating bytes offset between advanced DMA position and current buffer write position.
+	 * Handling of buffer wrapping is simplified because there are no sense to avoid "over-reading" due to possible critical buffer overflow.
+	 * (So we assume that offset is always less than buffer size and it's not required to check borderline cases.)
+	 */
+	hal_ringbuffer_get_write_ptr(uart->rx_buffer, &buffer_write_ptr, &buffer_chunk_size);
+	if (buffer_chunk_size > 0)
+		hal_ringbuffer_write_next(uart->rx_buffer, 0);
+	bytes_transfered = (int)((buffer_size - dma_ndt) - (buffer_write_ptr - buffer_start_addr));
+	if (bytes_transfered < 0) // buffer end wrapped ?
+		bytes_transfered += buffer_size;
+
+	/* Update buffer write position according to transferred amount, but no more than space available (normal buffer overflow is possible here) */
+	buffer_space_bytes = min(buffer_space_bytes, bytes_transfered);
+	while (buffer_space_bytes > 0) {
+		hal_ringbuffer_get_write_ptr(uart->rx_buffer, &buffer_write_ptr, &buffer_chunk_size);
+		buffer_chunk_size = min(buffer_chunk_size, buffer_space_bytes);
+		hal_ringbuffer_write_next(uart->rx_buffer, buffer_chunk_size);
+		buffer_space_bytes -= buffer_chunk_size;
+	}
+
 	return bytes_transfered;
 }
 
 static void uart_suspend_rx_from_isr(struct s_uart_pcb *uart, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	uart_set_rx_interrupts(uart, DISABLE);
 	uart->rx_data_timer_state = rxdatatimerIdle;
-	if (uart->rx_data_defer_indication)
-		xTimerStopFromISR(uart->rx_data_timer, pxHigherPriorityTaskWoken);
+	if (uart->rx_data_pending_interval > 0)
+		hal_timer_stop(uart->rx_data_timer);
 	if (uart_is_dma_rx_running(uart))
 		uart_stop_dma_rx(uart);
 }
 
 /* For non-zero interval it controls timer scheduling, timeout processing and managing USART RXNE interrupt */
-static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, size_t bytes_transfered, bool rx_active, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
+static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, int bytes_transfered, bool rx_active, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	bool result = false;
-	if ((uart->rx_data_defer_indication) && rx_active) {
+	if ((uart->rx_data_pending_interval > 0) && rx_active) {
 		if (uart->rx_data_timer_state == rxdatatimerExpired) {
 			uart->rx_data_timer_state = rxdatatimerIdle;
 			result = !hal_ringbuffer_is_empty(uart->rx_buffer);
@@ -615,7 +632,7 @@ static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, siz
 		if ((bytes_transfered > 0) && (uart->rx_data_timer_state != rxdatatimerActive)) {
 			uart->usart->CR1 &= ~USART_CR1_RXNEIE; // disable rx interrupt at least for timer period and don't process active streaming
 			uart->rx_data_timer_state = rxdatatimerActive;
-			xTimerStartFromISR(uart->rx_data_timer, pxHigherPriorityTaskWoken); // when timer expires it will trigger this processing again
+			hal_timer_start(uart->rx_data_timer, uart->rx_data_pending_interval, pxHigherPriorityTaskWoken); // when timer expires it will trigger this processing again
 		}
 	} else {
 		result = (bytes_transfered > 0);
@@ -623,8 +640,8 @@ static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, siz
 	return result;
 }
 
-static void uart_timer_rx_data_callback(TimerHandle_t xTimer) {
-	DEFINE_PCB_FROM_HANDLE(uart, pvTimerGetTimerID(xTimer))
+static void uart_timer_rx_data_callback(hal_timer_handle_t handle) {
+	DEFINE_PCB_FROM_HANDLE(uart, hal_timer_get_userid(handle))
 	portDISABLE_INTERRUPTS();
 	if ((uart->rx_data_timer_state == rxdatatimerActive) && (uart->usart->CR1 & USART_CR1_UE)) {
 		uart->usart->CR1 |= USART_CR1_RXNEIE; // enable uart rx interrupt back again
@@ -655,31 +672,29 @@ static void uart_usart_irq_handler(struct s_uart_pcb *uart) {
 }
 
 static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t usart_SR, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
+	int bytes_transfered = 0;
+	bool data_indication_required = false;
 	bool errors_detected = false;
 	bool overflow_detected = false;
-	size_t bytes_transfered = 0;
-	bool data_indication_required = false;
-	uint16_t buffer_size = hal_ringbuffer_get_size(uart->rx_buffer);
-	bool flag_dma_ht, flag_dma_tc;
-	uint16_t current_dma_ndt;
-
-	/* Capture DMA buffer state */
-	flag_dma_ht = uart_get_dma_ht_flag(uart);
-	flag_dma_tc = uart_get_dma_tc_flag(uart);
-	current_dma_ndt = (uint16_t)uart->dma_rx_stream->NDTR; // must be captured after HT,TC flags
 
 	/* Process streaming if it's active */
 	// warning: dependency on RXNEIE requires special handling in uart_update_rx_data_indication_from_isr() and uart_timer_rx_data_callback() !
 	if ((uart->usart->CR1 & USART_CR1_RXNEIE) && (uart_is_dma_rx_running(uart))) {
-		if (!(flag_dma_ht && flag_dma_tc)) {
-			if (flag_dma_ht && (current_dma_ndt >= (buffer_size>>1))) // did NDT crossed half-buffer mark since previous capture ?
-				uart_clear_dma_ht_flag(uart); // condition above ensures that we will not lose flag which may appear at once
-			if (flag_dma_tc && (current_dma_ndt < (buffer_size>>1))) // did NDT wrapped from end to start of buffer since previous capture ?
-				uart_clear_dma_tc_flag(uart); // condition above ensures that we will not lose flag which may appear at once
-			bytes_transfered += uart_update_rx_buffer_from_isr(uart, flag_dma_tc, current_dma_ndt);
-			if (hal_ringbuffer_get_free_space_size(uart->rx_buffer) <= uart->rx_buffer_extra_space) // normal buffer overflow
-				overflow_detected = true;
-		} else { // critical buffer overflow
+		/* Capture DMA buffer state */
+		bool flag_dma_ht = uart_get_dma_ht_flag(uart);
+		bool flag_dma_tc = uart_get_dma_tc_flag(uart);
+		uint16_t current_dma_ndt = (uint16_t)uart->dma_rx_stream->NDTR; // must be read after HT,TC flags
+		if (flag_dma_ht)
+			uart_clear_dma_ht_flag(uart);
+		if (flag_dma_tc)
+			uart_clear_dma_tc_flag(uart);
+		/* Update(move) buffer write pointer (it's ok to do before check for any overflow) */
+		bytes_transfered += uart_update_rx_buffer_from_isr(uart, current_dma_ndt);
+		/* Check for buffer overflow (must be done after we already updated buffer write pointer due to racing with HT,TC flags) */
+		if (hal_ringbuffer_get_free_space_size(uart->rx_buffer) <= uart->rx_buffer_extra_space) // at least normal buffer overflow
+			overflow_detected = true;
+		if ((flag_dma_ht && flag_dma_tc) || uart_get_dma_ht_flag(uart) || uart_get_dma_tc_flag(uart)) { // critical buffer overflow
+			SYS_ASSERT(0); // critical overflow caused by system-level malfunction or configuration mismatch, buffer is corrupted (overwritten)
 			overflow_detected = true;
 			uart_stop_dma_rx(uart);
 		}
@@ -693,9 +708,9 @@ static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t usart_SR
 			(void)uart->usart->DR; // dummy read required to reset flags (yes, there are races with DMA, but we are agree to loss one byte in such conditions)
 		/* Process possible overflow condition in stream */
 		if (overflow_detected) {
-			if (uart_is_dma_rx_running(uart)) { // was it forced to stop ?
-				/* write transferred chunk to buffer (if any) */
-				bytes_transfered += uart_update_rx_buffer_from_isr(uart, flag_dma_tc, current_dma_ndt);
+			if (uart_is_dma_rx_running(uart)) { // wasn't it forced to stop already ?
+				/* update buffer with transferred chunk (if any) */
+				bytes_transfered += uart_update_rx_buffer_from_isr(uart, (uint16_t)uart->dma_rx_stream->NDTR);
 			}
 			uart_suspend_rx_from_isr(uart, pxHigherPriorityTaskWoken);
 		}
