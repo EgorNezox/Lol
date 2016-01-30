@@ -17,9 +17,8 @@
 #ifdef QM_PLATFORM_STM32F2XX
 #include "hal_gpio.h"
 #include "hal_exti.h"
+#include "hal_timer.h"
 #include "../../qmcore/src/qm_core.h"
-#include "FreeRTOS.h"
-#include "timers.h"
 #endif /* QM_PLATFORM_STM32F2XX */
 #ifdef QMKEYSINPUT_PLATFORM_QT
 #include <QObject>
@@ -49,7 +48,7 @@ public:
 #ifdef QM_PLATFORM_STM32F2XX
     void postPbStateChangedEvent();
 	void extiEnable();
-	xTimerHandle* getDebounceTimer();
+	hal_timer_handle_t getDebounceTimer();
 #endif /* QM_PLATFORM_STM32F2XX */
 private:
 	void init();
@@ -62,7 +61,7 @@ private:
 	int exti_line;
 	hal_exti_params_t exti_params;
 	hal_exti_handle_t exti_handle;
-	xTimerHandle debounce_timer;
+	hal_timer_handle_t debounce_timer;
     bool event_posting_available;
 #endif /* QM_PLATFORM_STM32F2XX */
 #ifdef QMKEYSINPUT_PLATFORM_QT

@@ -16,9 +16,8 @@
 
 #ifdef QM_PLATFORM_STM32F2XX
 #include "hal_gpio.h"
+#include "hal_timer.h"
 #include "qmevent.h"
-#include "FreeRTOS.h"
-#include "timers.h"
 #endif /* QM_PLATFORM_STM32F2XX */
 #ifdef QMKEYSINPUT_PLATFORM_QT
 #include <QObject>
@@ -118,8 +117,8 @@ private:
 	hal_gpio_pin_t* row_pins;
 	int column_count;
 	int row_count;
-	xTimerHandle* poll_timer;
-	xTimerHandle* press_timer;
+	hal_timer_handle_t poll_timer;
+	hal_timer_handle_t* press_timer;
 
 	bool* keyPressedLong; /*! Флаг длительного нажатия клавиши (устанавливается по истечении времени длительного нажатия) */
 	uint8_t* curKeysPressedSequence; /*! Последовательность нажатий клавиш */
