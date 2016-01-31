@@ -20,12 +20,12 @@
 #include "hal_timer.h"
 #include "../../qmcore/src/qm_core.h"
 #endif /* QM_PLATFORM_STM32F2XX */
-#ifdef QMKEYSINPUT_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 #include <QObject>
 #include "port_keysinput/pushbuttonkeyinterface.h"
-#endif /* QMKEYSINPUT_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
-#ifdef QMKEYSINPUT_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 class QmPushButtonKeyPrivate;
 class QmPushButtonKeyPrivateAdapter : public QObject
 {
@@ -38,7 +38,7 @@ public:
 public Q_SLOTS:
     void processStateChanged();
 };
-#endif /* QMKEYSINPUT_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
 class QmPushButtonKeyPrivate : public QmObjectPrivate {
 	QM_DECLARE_PUBLIC(QmPushButtonKey)
@@ -64,10 +64,10 @@ private:
 	hal_timer_handle_t debounce_timer;
     bool event_posting_available;
 #endif /* QM_PLATFORM_STM32F2XX */
-#ifdef QMKEYSINPUT_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
     friend class QmPushButtonKeyPrivateAdapter;
     QmPushButtonKeyPrivateAdapter *pbkey_adapter;
-#endif /* QMKEYSINPUT_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 };
 
 #endif /* QMPUSHBUTTONKEY_P_H_ */

@@ -48,7 +48,6 @@ contains(QM_BUILD_MODULES,hardwareio) {
 }
 
 contains(QM_BUILD_MODULES,keysinput) {
-    DEFINES += QMKEYSINPUT_PLATFORM_QT
     HEADERS += \
         $$PWD/qmkeysinput/src/qmpushbuttonkey_p.h \
         $$PWD/qmkeysinput/src/qmmatrixkeyboard_p.h

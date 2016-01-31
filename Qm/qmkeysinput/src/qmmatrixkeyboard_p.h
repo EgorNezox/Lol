@@ -19,12 +19,12 @@
 #include "hal_timer.h"
 #include "qmevent.h"
 #endif /* QM_PLATFORM_STM32F2XX */
-#ifdef QMKEYSINPUT_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 #include <QObject>
 #include <QList>
 #include <QTimer>
 #include "port_keysinput/matrixkeyboardinterface.h"
-#endif /* QMKEYSINPUT_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
 #ifdef QM_PLATFORM_STM32F2XX
 class QmMatrixKeyboardKeyStateChangedEvent : public QmEvent
@@ -50,7 +50,7 @@ private:
 };
 #endif /* QM_PLATFORM_STM32F2XX */
 
-#ifdef QMKEYSINPUT_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 class QmMatrixKeyboardPrivateAdapter : public QObject
 {
     Q_OBJECT
@@ -79,7 +79,7 @@ private:
     int id;
     QTimer* timer;
 };
-#endif /* QMKEYSINPUT_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
 class QmMatrixKeyboardPrivate : public QmObjectPrivate {
 	QM_DECLARE_PUBLIC(QmMatrixKeyboard)
@@ -127,7 +127,7 @@ private:
 	uint8_t* prevKeysPressed;
 	uint8_t pressesCounter;
 #endif /* QM_PLATFORM_STM32F2XX */
-#ifdef QMKEYSINPUT_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
     void processKeyStateChanged(int id, bool state);
     void keyActionLong(int id);
 
@@ -137,7 +137,7 @@ private:
     int keys_count;
     friend class KeyActionTimer;
     QList<KeyActionTimer*> *timers;
-#endif /* QMKEYSINPUT_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 };
 
 #endif /* QMMATRIXKEYBOARD_P_H_ */
