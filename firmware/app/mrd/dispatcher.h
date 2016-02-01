@@ -37,12 +37,16 @@ private:
 
 	void processDspStartup();
 	bool processHeadsetPttStateChange(bool new_state);
+	void processHeadsetSmartCurrentChannelChange(int new_channel_number, voice_channel_t new_channel_type);
 	void setupVoiceMode(Headset::Controller::Status headset_status);
 	void setVoiceChannel();
+	bool changeVoiceChannel(int number, voice_channel_t type);
 	void updateVoiceChannel();
 	void setVoiceDirection(bool ptt_state);
 	bool isVoiceMode();
+	bool isVoiceChannelTunable();
 	void processDspSetRadioCompletion();
+	void startIdle();
 	void startVoiceTx();
 	void prepareTuningTx();
 	void processAtuModeChange(AtuController::Mode new_mode);
