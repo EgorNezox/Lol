@@ -22,7 +22,7 @@ load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/platform/$( st
 LDSCRIPTS += ../system/platform/$(BUILD_PORT)/stm32_memory.ld
 
 # подключение сборки Qm
-load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." PLATFORM=stm32f2xx HARDWAREIO= ../Qm
+load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." PLATFORM=stm32f2xx HARDWAREIO=1 ../Qm
 
 # подключение сборки прошивки
 SOURCES += \
