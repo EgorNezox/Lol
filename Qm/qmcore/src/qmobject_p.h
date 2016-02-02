@@ -15,9 +15,9 @@
 #include "qmmutex.h"
 #include "sigc++/trackable.h"
 
-#ifdef QMCORE_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 class QObject;
-#endif /* QMCORE_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 class QmObject;
 class QmEvent;
 class QmThread;
@@ -32,18 +32,18 @@ struct QmObjectPrivate : public sigc::trackable
 	bool deliverEvent(QmEvent *event);
 	void moveToThread(QmThread* thread);
 	void cleanup();
-#ifdef QMCORE_PLATFORM_BMFREERTOS
+#ifdef QM_PLATFORM_STM32F2XX
 	static void lockAndAssignOtherThreadRecursively(QmObject *object, QmThread* other_thread, bool is_root);
 	static void unlockRecursively(QmObject *object, bool is_root);
 	QmObject *parent;
 	std::list<QmObject*> children;
 	mutable QmMutex ta_mutex;
 	bool drop_events;
-#endif /* QMCORE_PLATFORM_BMFREERTOS */
-#ifdef QMCORE_PLATFORM_QT
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
 	static void assignOtherThreadRecursively(QmObject *object, QmThread* other_thread);
 	QObject *qobject;
-#endif /* QMCORE_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 };
 
 #endif /* QMOBJECT_P_H_ */

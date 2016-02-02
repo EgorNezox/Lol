@@ -67,16 +67,12 @@
 #include <math.h>
 #include "stm32f2xx.h"
 #include "FreeRTOS.h"
+#include "task.h"
 #include "semphr.h"
-#include "timers.h"
 
 #include "sys_internal.h"
-#include "sys_internal_freertos_timers.h"
+#include "hal_timer.h"
 #include "hal_uart.h"
-
-#if configUSE_TIMERS == 0
-#error "FreeRTOS must be configured to use software timers"
-#endif
 
 #define UART_INSTANCES_COUNT 6
 
@@ -102,8 +98,8 @@ static struct s_uart_pcb {
 	void *userid;
 	hal_ringbuffer_t *rx_buffer;
 	size_t rx_buffer_extra_space;
-	bool rx_data_defer_indication; // use deferred rx unread data indication
-	TimerHandle_t rx_data_timer; // (optional) timer used to defer rx unread data indication (data "flush")
+	unsigned int rx_data_pending_interval;
+	hal_timer_handle_t rx_data_timer; // (optional) timer used to defer rx unread data indication (data "flush")
 	enum {
 		rxdatatimerIdle,
 		rxdatatimerActive,
@@ -125,12 +121,12 @@ static struct s_uart_pcb {
 	size_t tx_transfer_pending_size; // remaining size of data from external buffer (active transmission)
 	SemaphoreHandle_t smphr_tx_complete; // used for transmission completion synchronization
 } uart_pcbs[UART_INSTANCES_COUNT] = {
-		{USART1, USART1_IRQn, 2, RCC_APB2ENR_USART1EN, DMA2, 2, DMA2_Stream2, DMA2_Stream2_IRQn, RCC_AHB1ENR_DMA2EN, 4, DMA_LISR_TEIF2, DMA_LISR_TCIF2, DMA_LISR_HTIF2, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{USART2, USART2_IRQn, 1, RCC_APB1ENR_USART2EN, DMA1, 5, DMA1_Stream5, DMA1_Stream5_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_HISR_TEIF5, DMA_HISR_TCIF5, DMA_HISR_HTIF5, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{USART3, USART3_IRQn, 1, RCC_APB1ENR_USART3EN, DMA1, 1, DMA1_Stream1, DMA1_Stream1_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF1, DMA_LISR_TCIF1, DMA_LISR_HTIF1, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{UART4, UART4_IRQn, 1, RCC_APB1ENR_UART4EN, DMA1, 2, DMA1_Stream2, DMA1_Stream2_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF2, DMA_LISR_TCIF2, DMA_LISR_HTIF2, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{UART5, UART5_IRQn, 1, RCC_APB1ENR_UART5EN, DMA1, 0, DMA1_Stream0, DMA1_Stream0_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF0, DMA_LISR_TCIF0, DMA_LISR_HTIF0, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
-		{USART6, USART6_IRQn, 2, RCC_APB2ENR_USART6EN, DMA2, 1, DMA2_Stream1, DMA2_Stream1_IRQn, RCC_AHB1ENR_DMA2EN, 5, DMA_LISR_TEIF1, DMA_LISR_TCIF1, DMA_LISR_HTIF1, false, 0, 0, 0, false, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{USART1, USART1_IRQn, 2, RCC_APB2ENR_USART1EN, DMA2, 2, DMA2_Stream2, DMA2_Stream2_IRQn, RCC_AHB1ENR_DMA2EN, 4, DMA_LISR_TEIF2, DMA_LISR_TCIF2, DMA_LISR_HTIF2, false, 0, 0, 0, 0, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{USART2, USART2_IRQn, 1, RCC_APB1ENR_USART2EN, DMA1, 5, DMA1_Stream5, DMA1_Stream5_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_HISR_TEIF5, DMA_HISR_TCIF5, DMA_HISR_HTIF5, false, 0, 0, 0, 0, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{USART3, USART3_IRQn, 1, RCC_APB1ENR_USART3EN, DMA1, 1, DMA1_Stream1, DMA1_Stream1_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF1, DMA_LISR_TCIF1, DMA_LISR_HTIF1, false, 0, 0, 0, 0, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{UART4, UART4_IRQn, 1, RCC_APB1ENR_UART4EN, DMA1, 2, DMA1_Stream2, DMA1_Stream2_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF2, DMA_LISR_TCIF2, DMA_LISR_HTIF2, false, 0, 0, 0, 0, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{UART5, UART5_IRQn, 1, RCC_APB1ENR_UART5EN, DMA1, 0, DMA1_Stream0, DMA1_Stream0_IRQn, RCC_AHB1ENR_DMA1EN, 4, DMA_LISR_TEIF0, DMA_LISR_TCIF0, DMA_LISR_HTIF0, false, 0, 0, 0, 0, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
+		{USART6, USART6_IRQn, 2, RCC_APB2ENR_USART6EN, DMA2, 1, DMA2_Stream1, DMA2_Stream1_IRQn, RCC_AHB1ENR_DMA2EN, 5, DMA_LISR_TEIF1, DMA_LISR_TCIF1, DMA_LISR_HTIF1, false, 0, 0, 0, 0, 0, rxdatatimerIdle, NULL, NULL, NULL, NULL, NULL, 0, txtransferNone, 0, 0, 0},
 };
 
 static double uart_character_rate_from_baud_rate(uint32_t rate, hal_uart_stop_bits_t stop_bits, hal_uart_parity_t parity);
@@ -148,7 +144,7 @@ static bool uart_is_dma_rx_running(struct s_uart_pcb *uart);
 static int uart_update_rx_buffer_from_isr(struct s_uart_pcb *uart, uint16_t dma_ndt);
 static void uart_suspend_rx_from_isr(struct s_uart_pcb *uart, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, int bytes_transfered, bool rx_active, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
-static void uart_timer_rx_data_callback(TimerHandle_t xTimer);
+static void uart_timer_rx_data_callback(hal_timer_handle_t handle);
 static void uart_usart_irq_handler(struct s_uart_pcb *uart);
 static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t usart_SR, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 static void uart_usart_irq_handler_tx(struct s_uart_pcb *uart, uint16_t usart_SR, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
@@ -157,9 +153,11 @@ static void uart_dma_rx_irq_handler(struct s_uart_pcb *uart);
 void halinternal_uart_init(void) {
 	for (int i = 0; i < sizeof(uart_pcbs)/sizeof(uart_pcbs[0]); i++) {
 		struct s_uart_pcb *uart = &(uart_pcbs[i]);
-		/* Init freertos timer for defered rx data indication */
-		uart->rx_data_timer = xTimerCreate("HAL_UART_rx_data_X", 1/*doesn't matter*/, pdFALSE, (void *)uart, uart_timer_rx_data_callback);
-		halinternal_freertos_timer_queue_length += 3; // must match usage scenario (xTimerXXX calls, calls contexts, worst case of queuing)
+		/* Init hal timer for defered rx data indication */
+		hal_timer_params_t rx_data_timer_params;
+		rx_data_timer_params.userid = (void *)uart;
+		rx_data_timer_params.callbackTimeout = uart_timer_rx_data_callback;
+		uart->rx_data_timer = hal_timer_create(&rx_data_timer_params);
 		/* Init semaphore used for tx transfer completion synchronization */
 		uart->smphr_tx_complete = xSemaphoreCreateCounting(1, 0);
 		/* Init DMA stream used for rx */
@@ -203,7 +201,7 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	SYS_ASSERT(params);
 	SYS_ASSERT(params->isrcallbackRxOverflowSuspended); // required in order to support hal_uart_start_rx()
 	SYS_ASSERT(params->rx_buffer_size > 0); // rx buffer required because reception is always enabled
-	SYS_ASSERT(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING); // due to freertos semaphores and timers usage
+	SYS_ASSERT(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING); // due to freertos semaphores usage
 
 	int max_irq_service_delay = 0;
 	if (!((params->hw_flow_control == huartHwFlowControl_Rx) || (params->hw_flow_control == huartHwFlowControl_Rx_Tx)))
@@ -304,11 +302,7 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	uart->rx_buffer = new_rx_buffer;
 	uart->tx_buffer = new_tx_buffer;
 	uart->rx_buffer_extra_space = extra_rx_buffer_space;
-	if (params->rx_data_pending_interval > 0) {
-		uart->rx_data_defer_indication = true;
-		xTimerChangePeriod(uart->rx_data_timer, (params->rx_data_pending_interval/portTICK_PERIOD_MS), portMAX_DELAY);
-		xTimerStop(uart->rx_data_timer, portMAX_DELAY); // because previous xTimerChangePeriod() stupidly starts timer
-	}
+	uart->rx_data_pending_interval = params->rx_data_pending_interval;
 	uart->isrcallbackRxDataPending = params->isrcallbackRxDataPending;
 	uart->isrcallbackRxDataErrors = params->isrcallbackRxDataErrors;
 	uart->isrcallbackRxOverflowSuspended = params->isrcallbackRxOverflowSuspended;
@@ -323,11 +317,11 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 
 void hal_uart_close(hal_uart_handle_t handle) {
 	DEFINE_PCB_FROM_HANDLE(uart, handle)
-	SYS_ASSERT(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING); // due to freertos semaphores and timers usage
+	SYS_ASSERT(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING); // due to freertos semaphores usage
 
 	uart->rx_data_timer_state = rxdatatimerIdle;
-	if (uart->rx_data_defer_indication)
-		xTimerStop(uart->rx_data_timer, portMAX_DELAY);
+	if (uart->rx_data_pending_interval > 0)
+		hal_timer_stop(uart->rx_data_timer);
 	portDISABLE_INTERRUPTS();
 	uart->usart->CR1 &= ~USART_CR1_UE; // disable USART peripheral
 	uart_stop_dma_rx(uart);
@@ -349,7 +343,7 @@ void hal_uart_close(hal_uart_handle_t handle) {
 	uart->rx_buffer = 0;
 	uart->tx_buffer = 0;
 	uart->rx_buffer_extra_space = 0;
-	uart->rx_data_defer_indication = false;
+	uart->rx_data_pending_interval = 0;
 	uart->isrcallbackRxDataPending = NULL;
 	uart->isrcallbackRxDataErrors = NULL;
 	uart->isrcallbackRxOverflowSuspended = NULL;
@@ -621,8 +615,8 @@ static int uart_update_rx_buffer_from_isr(struct s_uart_pcb *uart, uint16_t dma_
 static void uart_suspend_rx_from_isr(struct s_uart_pcb *uart, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	uart_set_rx_interrupts(uart, DISABLE);
 	uart->rx_data_timer_state = rxdatatimerIdle;
-	if (uart->rx_data_defer_indication)
-		xTimerStopFromISR(uart->rx_data_timer, pxHigherPriorityTaskWoken);
+	if (uart->rx_data_pending_interval > 0)
+		hal_timer_stop(uart->rx_data_timer);
 	if (uart_is_dma_rx_running(uart))
 		uart_stop_dma_rx(uart);
 }
@@ -630,7 +624,7 @@ static void uart_suspend_rx_from_isr(struct s_uart_pcb *uart, signed portBASE_TY
 /* For non-zero interval it controls timer scheduling, timeout processing and managing USART RXNE interrupt */
 static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, int bytes_transfered, bool rx_active, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	bool result = false;
-	if ((uart->rx_data_defer_indication) && rx_active) {
+	if ((uart->rx_data_pending_interval > 0) && rx_active) {
 		if (uart->rx_data_timer_state == rxdatatimerExpired) {
 			uart->rx_data_timer_state = rxdatatimerIdle;
 			result = !hal_ringbuffer_is_empty(uart->rx_buffer);
@@ -638,7 +632,7 @@ static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, int
 		if ((bytes_transfered > 0) && (uart->rx_data_timer_state != rxdatatimerActive)) {
 			uart->usart->CR1 &= ~USART_CR1_RXNEIE; // disable rx interrupt at least for timer period and don't process active streaming
 			uart->rx_data_timer_state = rxdatatimerActive;
-			xTimerStartFromISR(uart->rx_data_timer, pxHigherPriorityTaskWoken); // when timer expires it will trigger this processing again
+			hal_timer_start(uart->rx_data_timer, uart->rx_data_pending_interval, pxHigherPriorityTaskWoken); // when timer expires it will trigger this processing again
 		}
 	} else {
 		result = (bytes_transfered > 0);
@@ -646,8 +640,8 @@ static bool uart_update_rx_data_indication_from_isr(struct s_uart_pcb *uart, int
 	return result;
 }
 
-static void uart_timer_rx_data_callback(TimerHandle_t xTimer) {
-	DEFINE_PCB_FROM_HANDLE(uart, pvTimerGetTimerID(xTimer))
+static void uart_timer_rx_data_callback(hal_timer_handle_t handle) {
+	DEFINE_PCB_FROM_HANDLE(uart, hal_timer_get_userid(handle))
 	portDISABLE_INTERRUPTS();
 	if ((uart->rx_data_timer_state == rxdatatimerActive) && (uart->usart->CR1 & USART_CR1_UE)) {
 		uart->usart->CR1 |= USART_CR1_RXNEIE; // enable uart rx interrupt back again

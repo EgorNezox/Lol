@@ -62,6 +62,7 @@ QmI2CDevicePrivate::~QmI2CDevicePrivate()
 }
 
 void QmI2CDevicePrivate::init(uint8_t address) {
+	hal_i2c_init_master_transfer_struct(&i2c_transfer);
 	i2c_transfer.device.bus_instance = stm32f2_get_i2c_bus_instance(bus_hw_resource);
 	i2c_transfer.device.address = address;
 	i2c_transfer.use_pec = false;
