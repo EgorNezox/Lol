@@ -32,6 +32,7 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource);
 int stm32f2_get_exti_line(int platform_hw_resource);
 int stm32f2_get_uart_instance(int platform_hw_resource);
 int stm32f2_get_i2c_bus_instance(int platform_hw_resource);
+int stm32f2_get_spi_bus_instance(int platform_hw_resource);
 
 #ifdef __cplusplus
 }
