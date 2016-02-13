@@ -121,7 +121,7 @@ void SmartTransport::disable() {
 	dropRxSync();
 }
 
-void SmartTransport::transmitFrame(uint8_t cmd, uint8_t *data, int data_len) {
+void SmartTransport::transmitCmd(uint8_t cmd, uint8_t *data, int data_len) {
 	QM_ASSERT(data_len <= MAX_FRAME_DATA_SIZE);
 	GranitCRC crc;
 	qmDebugMessage(QmDebug::Info, "transmitting frame (cmd=0x%02X, data_len=%d)", cmd, data_len);
@@ -163,7 +163,6 @@ void SmartTransport::processUartReceivedData() {
 		}
 		case rxstateFrame: {
 			if (rx_frame_size < MAX_FRAME_TOTAL_SIZE) {
-				qmDebugMessage(QmDebug::Dump, "uart rx: - frame data 0x%02X", byte);
 				if (byte == FRAME_END_DELIMITER) {
 					qmDebugMessage(QmDebug::Info, "uart rx: - frame end");
 					rx_state = rxstateNone;
@@ -176,10 +175,11 @@ void SmartTransport::processUartReceivedData() {
 					}
 					uint8_t cmd = rx_frame_buf[0];
 					uint8_t* rx_data = (uint8_t*)(rx_frame_buf + 1);
-					int rx_data_len = rx_frame_size - 1;
+					int rx_data_len = rx_frame_size - 1/*cmd*/ - 2/*crc*/;
 					qmDebugMessage(QmDebug::Info, "received frame (cmd=0x%02X, data_len=%u)", cmd, rx_data_len);
-					receivedFrame(cmd, rx_data, rx_data_len);
+					receivedCmd(cmd, rx_data, rx_data_len);
 				} else {
+					qmDebugMessage(QmDebug::Dump, "uart rx: - frame data 0x%02X", byte);
 					rx_frame_buf[rx_frame_size++] = byte;
 				}
 			} else {

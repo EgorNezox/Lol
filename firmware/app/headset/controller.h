@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file    Controller.h
  * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
+ * @author  Petr Dmitriev
  * @date    29.10.2015
  *
  ******************************************************************************
@@ -14,6 +15,7 @@
 #include "multiradio.h"
 
 class QmPushButtonKey;
+class QmTimer;
 
 namespace Headset {
 
@@ -45,10 +47,16 @@ public:
 	sigc::signal<void, int/*new_channel_number*/, Multiradio::voice_channel_t/*new_channel_type*/> smartCurrentChannelChanged;
 private:
 	void pttStateChangedSlot();
+	void smartReceivedCmd(uint8_t cmd, uint8_t* data, int data_len);
+	void processHSUartPolling();
+	void processResponceTimeout();
 
+	Status status;
 	QmPushButtonKey* ptt_key;
 	bool ptt_state;
 	SmartTransport* transport;
+	QmTimer* poll_timer;
+	QmTimer* responce_timer;
 };
 
 } /* namespace Headset */

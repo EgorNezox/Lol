@@ -23,9 +23,9 @@ public:
 	~SmartTransport();
 	void enable();
 	void disable();
-	void transmitFrame(uint8_t cmd, uint8_t *data, int data_len);
+	void transmitCmd(uint8_t cmd, uint8_t *data, int data_len);
 
-	sigc::signal<void, uint8_t/*cmd*/, uint8_t*/*data*/, int/*data_len*/> receivedFrame;
+	sigc::signal<void, uint8_t/*cmd*/, uint8_t*/*data*/, int/*data_len*/> receivedCmd;
 
 	static const int MAX_FRAME_DATA_SIZE;
 
