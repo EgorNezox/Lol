@@ -15,11 +15,8 @@
 
 #include "system_hw_io.h"
 #include "sys_internal.h"
-#include "sys_internal_freertos_timers.h"
 
 #define MPU_REGION_SIZE(n)	((n-1) << MPU_RASR_SIZE_Pos) // size = 2^n
-
-unsigned int halinternal_freertos_timer_queue_length = 0;
 
 /*! Автоматическая инициализация средствами стандартной библиотеки (до входа в main) */
 void  __attribute__((constructor)) hal_system_init(void) {
@@ -46,6 +43,10 @@ void  __attribute__((constructor)) hal_system_init(void) {
 
 void halinternal_set_nvic_priority(IRQn_Type irqn) {
 	NVIC_SetPriority(irqn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), SYS_IRQ_CHANNEL_PREEMPTION_PRIORITY, 0));
+}
+
+bool halinternal_is_isr_active(void) {
+	return (__get_IPSR() != 0);
 }
 
 void halinternal_system_fault_handler(void) {

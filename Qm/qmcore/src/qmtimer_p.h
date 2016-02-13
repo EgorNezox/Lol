@@ -10,17 +10,16 @@
 #ifndef QMTIMER_P_H_
 #define QMTIMER_P_H_
 
-#ifdef QMCORE_PLATFORM_BMFREERTOS
-#include "FreeRTOS.h"
-#include "timers.h"
-#endif /* QMCORE_PLATFORM_BMFREERTOS */
+#ifdef QM_PLATFORM_STM32F2XX
+#include "hal_timer.h"
+#endif /* QM_PLATFORM_STM32F2XX */
 
 #include "qm.h"
 #include "qmobject_p.h"
 
-#ifdef QMCORE_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 class QmTimerPrivateAdapter;
-#endif /* QMCORE_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
 class QmTimerPrivate : public QmObjectPrivate {
 	QM_DECLARE_PUBLIC(QmTimer)
@@ -31,17 +30,15 @@ public:
 	void deinit();
 	bool is_active;
 	unsigned int interval_value;
-#ifdef QMCORE_PLATFORM_BMFREERTOS
+#ifdef QM_PLATFORM_STM32F2XX
 	void postTimeoutEvent();
-	void callback();
-	TimerHandle_t timerhandle;
+	hal_timer_handle_t timerhandle;
 	bool is_single_shot;
-	bool awaiting_callback;
-#endif /* QMCORE_PLATFORM_BMFREERTOS */
-#ifdef QMCORE_PLATFORM_QT
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
 	friend class QmTimerPrivateAdapter;
 	QmTimerPrivateAdapter *qt_adapter;
-#endif /* QMCORE_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 };
 
 #endif /* QMTIMER_P_H_ */

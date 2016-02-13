@@ -60,8 +60,9 @@ bool Controller::getPTTState(bool& state) {
 	return true;
 }
 
-bool Controller::getSmartCurrentChannel(int& number) {
+bool Controller::getSmartCurrentChannel(int& number, Multiradio::voice_channel_t &type) {
 	QM_UNUSED(number);
+	QM_UNUSED(type);
 	//...
 	return false;
 }

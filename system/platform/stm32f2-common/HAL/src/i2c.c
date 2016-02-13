@@ -45,9 +45,9 @@
 
 #include "stm32f2xx.h"
 #include "FreeRTOS.h"
-#include "timers.h"
 
 #include "sys_internal.h"
+#include "hal_timer.h"
 #include "hal_i2c.h"
 
 #define I2C_MASTER_SPEED_CLOCK	88000 // using 88kHz clock to workaround p2.3.3 of Errata sheet Rev 5
@@ -85,14 +85,13 @@ static struct s_i2cbus_pcb {
 	IRQn_Type ev_irq_n;
 	IRQn_Type er_irq_n;
 	uint32_t rcc_apb_mask;
-	TimerHandle_t slave_addr_delay_timer;
+	hal_timer_handle_t slave_addr_delay_timer;
 	hal_i2c_mode_t mode;
 	i2c_state_t state;
 	bool smbus_host_enabled;
 	bool smbus_host_change_request;
 	hal_i2c_smbus_host_params_t smbus_host_params;
-	struct hal_i2c_master_transfer_t *master_transfer_queue_top;
-	struct hal_i2c_master_transfer_t *master_transfer_queue_bottom;
+	DLLIST_LIST_TYPE(hal_i2c_mt_queue) mt_queue;
 	struct hal_i2c_master_transfer_t *active_mt;
 	hal_i2c_transfer_result_t active_mt_result;
 	int active_mt_pos;
@@ -103,9 +102,9 @@ static struct s_i2cbus_pcb {
 	uint8_t smbushost_address;
 	uint16_t smbushost_status;
 } i2cbus_pcbs[I2C_INSTANCES_COUNT] = {
-	{I2C1, I2C1_EV_IRQn, I2C1_ER_IRQn, RCC_APB1ENR_I2C1EN, 0, hi2cModeOff, stateIdle, false, false, {0, 0}, 0, 0, 0, hi2cSuccess, 0, 0, 0, stateIdle, false, 0, 0},
-	{I2C2, I2C2_EV_IRQn, I2C2_ER_IRQn, RCC_APB1ENR_I2C2EN, 0, hi2cModeOff, stateIdle, false, false, {0, 0}, 0, 0, 0, hi2cSuccess, 0, 0, 0, stateIdle, false, 0, 0},
-	{I2C3, I2C3_EV_IRQn, I2C3_ER_IRQn, RCC_APB1ENR_I2C3EN, 0, hi2cModeOff, stateIdle, false, false, {0, 0}, 0, 0, 0, hi2cSuccess, 0, 0, 0, stateIdle, false, 0, 0}
+	{I2C1, I2C1_EV_IRQn, I2C1_ER_IRQn, RCC_APB1ENR_I2C1EN, 0, hi2cModeOff, stateIdle, false, false, {0, 0}, DLLIST_LIST_POD_INITIALIZER, 0, hi2cSuccess, 0, 0, 0, stateIdle, false, 0, 0},
+	{I2C2, I2C2_EV_IRQn, I2C2_ER_IRQn, RCC_APB1ENR_I2C2EN, 0, hi2cModeOff, stateIdle, false, false, {0, 0}, DLLIST_LIST_POD_INITIALIZER, 0, hi2cSuccess, 0, 0, 0, stateIdle, false, 0, 0},
+	{I2C3, I2C3_EV_IRQn, I2C3_ER_IRQn, RCC_APB1ENR_I2C3EN, 0, hi2cModeOff, stateIdle, false, false, {0, 0}, DLLIST_LIST_POD_INITIALIZER, 0, hi2cSuccess, 0, 0, 0, stateIdle, false, 0, 0}
 };
 
 static uint8_t i2c_pec_precalc_table[256];
@@ -132,7 +131,7 @@ static void i2c_request_change_slave_mode(struct s_i2cbus_pcb *i2cbus);
 static bool i2c_process_slave_rx_conditions(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1);
 static int i2c_get_master_max_bytes_to_receive(struct s_i2cbus_pcb *i2cbus);
 static inline uint8_t i2c_calc_pec(uint8_t pec, uint8_t data);
-static void i2c_timer_slave_addr_delay_callback(TimerHandle_t xTimer);
+static void i2c_timer_slave_addr_delay_callback(hal_timer_handle_t handle);
 static void i2c_irq_handler(struct s_i2cbus_pcb *i2cbus);
 static void i2c_irq_handler_smbus_host(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 static void i2c_irq_handler_master(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
@@ -140,8 +139,10 @@ static void i2c_irq_handler_master(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1
 void halinternal_i2c_init(void) {
 	for (int i = 0; i < sizeof(i2cbus_pcbs)/sizeof(i2cbus_pcbs[0]); i++) {
 		struct s_i2cbus_pcb *i2cbus = &(i2cbus_pcbs[i]);
-		i2cbus->slave_addr_delay_timer = xTimerCreate("HAL_I2C_slave_addr_delay_X", 1/portTICK_PERIOD_MS, pdFALSE, (void *)i2cbus, i2c_timer_slave_addr_delay_callback);
-		halinternal_freertos_timer_queue_length += 1; // must match usage scenario (xTimerXXX calls, calls contexts, worst case of queuing)
+		hal_timer_params_t slave_addr_delay_timer_params;
+		slave_addr_delay_timer_params.userid = (void *)i2cbus;
+		slave_addr_delay_timer_params.callbackTimeout = i2c_timer_slave_addr_delay_callback;
+		i2cbus->slave_addr_delay_timer = hal_timer_create(&slave_addr_delay_timer_params);
 		halinternal_set_nvic_priority(i2cbus->ev_irq_n);
 		NVIC_EnableIRQ(i2cbus->ev_irq_n);
 		halinternal_set_nvic_priority(i2cbus->er_irq_n);
@@ -207,6 +208,7 @@ void hal_i2c_set_bus_mode(int instance, hal_i2c_mode_t mode) {
 		}
 		/* Since now we are in idle state (or on way to it). Idle state has appropriate cleanup for switching off. */
 		portENABLE_INTERRUPTS();
+		hal_timer_stop(i2cbus->slave_addr_delay_timer);
 		do {
 			portDISABLE_INTERRUPTS();
 			// short-circuit evaluation is important here: don't read SR2 until we reach idle state (to prevent loss of flags)
@@ -222,6 +224,18 @@ void hal_i2c_set_bus_mode(int instance, hal_i2c_mode_t mode) {
 	}
 	default: SYS_ASSERT(0);
 	}
+}
+
+void hal_i2c_init_master_transfer_struct(struct hal_i2c_master_transfer_t *t) {
+	DLLIST_INIT_ELEMENT(hal_i2c_mt_queue, t);
+	t->device.bus_instance = 0;
+	t->device.address = 0;
+	t->use_pec = false;
+	t->dirs = 0;
+	t->data = 0;
+	t->size = 0;
+	t->userid = 0;
+	t->isrcallbackTransferCompleted = 0;
 }
 
 bool hal_i2c_start_master_transfer(struct hal_i2c_master_transfer_t *t) {
@@ -310,48 +324,24 @@ void* hal_i2c_get_smbus_userid(hal_i2c_smbus_handle_t handle) {
 }
 
 static void i2c_push_to_master_transfer_queue(struct s_i2cbus_pcb *i2cbus, struct hal_i2c_master_transfer_t *t) {
-	t->previous = 0;
-	t->next = 0;
-	if (i2cbus->master_transfer_queue_bottom) {
-		SYS_ASSERT(i2cbus->master_transfer_queue_top != 0);
-		t->previous = i2cbus->master_transfer_queue_bottom;
-		i2cbus->master_transfer_queue_bottom->next = t;
-		i2cbus->master_transfer_queue_bottom = t;
-	} else {
-		SYS_ASSERT(i2cbus->master_transfer_queue_top == 0);
-		i2cbus->master_transfer_queue_bottom = t;
-		i2cbus->master_transfer_queue_top = t;
-	}
+	SYS_ASSERT(DLLIST_IS_IN_LIST(hal_i2c_mt_queue, 0, t));
+	DLLIST_ADD_TO_LIST_BACK(hal_i2c_mt_queue, &i2cbus->mt_queue, t);
 }
 
 static struct hal_i2c_master_transfer_t* i2c_pop_from_master_transfer_queue(struct s_i2cbus_pcb *i2cbus) {
-	struct hal_i2c_master_transfer_t *next = i2cbus->master_transfer_queue_top;
+	struct hal_i2c_master_transfer_t *next = DLLIST_GET_LIST_FRONT(&i2cbus->mt_queue);
 	if (next)
 		i2c_remove_from_master_transfer_queue(i2cbus, next);
 	return next;
 }
 
 static bool i2c_master_transfer_queue_is_empty(struct s_i2cbus_pcb *i2cbus) {
-	return (i2cbus->master_transfer_queue_top == 0);
+	return DLLIST_IS_LIST_EMPTY(&i2cbus->mt_queue);
 }
 
 static void i2c_remove_from_master_transfer_queue(struct s_i2cbus_pcb *i2cbus, struct hal_i2c_master_transfer_t *t) {
-	if (t->previous) {
-		SYS_ASSERT(i2cbus->master_transfer_queue_top != 0);
-		t->previous->next = t->next;
-	} else {
-		SYS_ASSERT(i2cbus->master_transfer_queue_top == t);
-		i2cbus->master_transfer_queue_top = t->next;
-	}
-	if (t->next) {
-		SYS_ASSERT(i2cbus->master_transfer_queue_bottom != 0);
-		t->next->previous = t->previous;
-	} else {
-		SYS_ASSERT(i2cbus->master_transfer_queue_bottom == t);
-		i2cbus->master_transfer_queue_bottom = t->previous;
-	}
-	t->previous = 0;
-	t->next = 0;
+	SYS_ASSERT(DLLIST_IS_IN_LIST(hal_i2c_mt_queue, &i2cbus->mt_queue, t));
+	DLLIST_REMOVE_FROM_LIST(hal_i2c_mt_queue, &i2cbus->mt_queue, t);
 }
 
 static inline void i2c_set_irq_pending(struct s_i2cbus_pcb *i2cbus) {
@@ -548,8 +538,8 @@ static inline uint8_t i2c_calc_pec(uint8_t pec, uint8_t data) {
 	return i2c_pec_precalc_table[(pec ^ data) & 0xFF];
 }
 
-static void i2c_timer_slave_addr_delay_callback(TimerHandle_t xTimer) {
-	DEFINE_PCB_FROM_HANDLE(i2cbus, pvTimerGetTimerID(xTimer))
+static void i2c_timer_slave_addr_delay_callback(hal_timer_handle_t handle) {
+	DEFINE_PCB_FROM_HANDLE(i2cbus, hal_timer_get_userid(handle))
 	/* It's a part of workaround for hardware bug (see design notes in source header). */
 	portDISABLE_INTERRUPTS();
 	if ((i2cbus->mode != hi2cModeOff) && (i2cbus->state == stateSlaveAddressed)) {
@@ -640,7 +630,7 @@ static void i2c_irq_handler_smbus_host(struct s_i2cbus_pcb *i2cbus, uint16_t i2c
 		(void)i2cbus->i2c->DR; // dummy read to clear RxNE flag, it's safe to do here because DR access ignored until ADDR cleared
 		/* Instead of immediately starting transfer (by clearing ADDR) we have to implement workaround for hardware bug (see design notes in source header) */
 		i2cbus->state = stateSlaveAddressed;
-		xTimerStartFromISR(i2cbus->slave_addr_delay_timer, pxHigherPriorityTaskWoken);
+		hal_timer_start(i2cbus->slave_addr_delay_timer, 1, pxHigherPriorityTaskWoken);
 		i2cbus->i2c->CR2 &= ~I2C_CR2_ITEVTEN; // otherwise ADDR flag will hold interrupt pending
 		break;
 	}

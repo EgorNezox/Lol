@@ -10,16 +10,21 @@
 #ifndef QM_CORE_H_
 #define QM_CORE_H_
 
-#ifdef QMCORE_PLATFORM_BMFREERTOS
+#ifdef QM_PLATFORM_STM32F2XX
 #include "FreeRTOS.h"
-#endif /* QMCORE_PLATFORM_BMFREERTOS */
-#ifdef QMCORE_PLATFORM_QT
+#include "dl_list.h"
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
 #include <QEvent>
-#endif /* QMCORE_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
-#ifdef QMCORE_PLATFORM_BMFREERTOS
+#ifdef QM_PLATFORM_STM32F2XX
+class QmSystemEvent;
+DLLIST_TYPEDEF_LIST(class QmSystemEvent, qm_core_system_queue)
 void qmcoreProcessQueuedSystemEvents();
 class QmSystemEvent {
+private:
+	DLLIST_ELEMENT_FIELDS(class QmSystemEvent, qm_core_system_queue)
 public:
 	QmSystemEvent();
 	virtual ~QmSystemEvent();
@@ -32,11 +37,10 @@ private:
 	void checkAndPostToQueue();
 	void removeFromQueue();
 	bool pending;
-	QmSystemEvent *previous, *next;
 };
-#endif /* QMCORE_PLATFORM_BMFREERTOS */
+#endif /* QM_PLATFORM_STM32F2XX */
 
-#ifdef QMCORE_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 class QmEvent;
 class QmCoreEvent : public QEvent
 {
@@ -52,19 +56,19 @@ public:
 	QmEvent *qmevent;
 	bool auto_destroy;
 };
-#endif /* QMCORE_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
-#ifdef QMCORE_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 struct qmcore_global_environment_t {
 	int argc;
 	char **argv;
 	int exit_code;
 };
-#endif /* QMCORE_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
-#ifdef QMCORE_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 extern qmcore_global_environment_t qmcore_global_environment;
-#endif /* QMCORE_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
 void qmMain();
 

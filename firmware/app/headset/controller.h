@@ -38,11 +38,11 @@ public:
 	bool getSmartStatus(SmartStatusDescription &description);
 	bool getAnalogStatus(bool &open_channels_missing);
 	bool getPTTState(bool &state);
-	bool getSmartCurrentChannel(int &number);
+	bool getSmartCurrentChannel(int &number, Multiradio::voice_channel_t &type);
 
 	sigc::signal<void, Status/*new_status*/> statusChanged;
 	sigc::signal<bool/*accepted*/, bool/*new_state*/> pttStateChanged; // single connection (returns value)
-	sigc::signal<void, int/*new_channel_number*/> smartCurrentChannelChanged;
+	sigc::signal<void, int/*new_channel_number*/, Multiradio::voice_channel_t/*new_channel_type*/> smartCurrentChannelChanged;
 private:
 	void pttStateChangedSlot();
 

@@ -30,19 +30,17 @@ VoiceServiceInterface::ChannelStatus VoiceServiceInterface::getCurrentChannelSta
 }
 
 int VoiceServiceInterface::getCurrentChannelNumber() {
-	if (!dispatcher->isVoiceMode())
-		return -1;
 	return (dispatcher->voice_channel - dispatcher->voice_channels_table.begin() + 1);
 }
 
 voice_channel_t VoiceServiceInterface::getCurrentChannelType() {
-	if (!dispatcher->isVoiceMode())
+	if (current_channel_status == ChannelDisabled)
 		return channelInvalid;
 	return (*(dispatcher->voice_channel)).type;
 }
 
 void VoiceServiceInterface::tuneNextChannel() {
-	if (!dispatcher->isVoiceMode())
+	if (!dispatcher->isVoiceChannelTunable())
 		return;
 	auto current_channel = dispatcher->voice_channel;
 	bool wrapped = false;
@@ -59,7 +57,7 @@ void VoiceServiceInterface::tuneNextChannel() {
 }
 
 void VoiceServiceInterface::tunePreviousChannel() {
-	if (!dispatcher->isVoiceMode())
+	if (!dispatcher->isVoiceChannelTunable())
 		return;
 	auto current_channel = dispatcher->voice_channel;
 	bool wrapped = false;

@@ -13,9 +13,9 @@ INCLUDEPATH += \
 	$$PWD/qmcore/include \
         $$PWD/qmhardwareio/include \
         $$PWD/qmkeysinput/include
+DEFINES += QM_PLATFORM_QT
 
 contains(QM_BUILD_MODULES,core) {
-    DEFINES += QMCORE_PLATFORM_QT
     SOURCES += \
         $$PWD/qmcore/src/qm_core_qt.cpp \
         $$PWD/qmcore/src/qmdebug.cpp \
@@ -31,7 +31,6 @@ contains(QM_BUILD_MODULES,core) {
 }
 
 contains(QM_BUILD_MODULES,hardwareio) {
-    DEFINES += QMHARDWAREIO_PLATFORM_QT
     HEADERS += \
         $$PWD/qmhardwareio/src/qmiopin_p.h \
         $$PWD/qmhardwareio/src/qmuart_p.h \
@@ -49,7 +48,6 @@ contains(QM_BUILD_MODULES,hardwareio) {
 }
 
 contains(QM_BUILD_MODULES,keysinput) {
-    DEFINES += QMKEYSINPUT_PLATFORM_QT
     HEADERS += \
         $$PWD/qmkeysinput/src/qmpushbuttonkey_p.h \
         $$PWD/qmkeysinput/src/qmmatrixkeyboard_p.h
