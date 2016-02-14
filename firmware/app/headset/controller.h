@@ -45,15 +45,19 @@ public:
 	sigc::signal<void, Status/*new_status*/> statusChanged;
 	sigc::signal<bool/*accepted*/, bool/*new_state*/> pttStateChanged; // single connection (returns value)
 	sigc::signal<void, int/*new_channel_number*/, Multiradio::voice_channel_t/*new_channel_type*/> smartCurrentChannelChanged;
+
 private:
-	void pttStateChangedSlot();
-	void smartReceivedCmd(uint8_t cmd, uint8_t* data, int data_len);
+	void processPttStateChanged();
+	void processPttDobounceTimeout();
+	void processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len);
 	void processHSUartPolling();
-	void processResponceTimeout();
+	void processCmdResponceTimeout();
+	void setStatus(Status new_status);
 
 	Status status;
 	QmPushButtonKey* ptt_key;
 	bool ptt_state;
+	QmTimer* ptt_debounce_timer;
 	SmartTransport* transport;
 	QmTimer* poll_timer;
 	QmTimer* responce_timer;

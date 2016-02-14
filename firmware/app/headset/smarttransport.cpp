@@ -7,7 +7,7 @@
  ******************************************************************************
  */
 
-#define QMDEBUGDOMAIN	headset
+#define QMDEBUGDOMAIN	hstransport
 #include "qmdebug.h"
 #include "qmendian.h"
 #include "qmuart.h"
@@ -225,3 +225,7 @@ int SmartTransport::bytestuff(uint8_t* input_data, uint8_t* output_data, int dat
 }
 
 } /* namespace Headset */
+
+#include "qmdebug_domains_start.h"
+QMDEBUG_DEFINE_DOMAIN(hstransport, LevelVerbose)
+#include "qmdebug_domains_end.h"
