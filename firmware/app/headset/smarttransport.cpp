@@ -123,21 +123,17 @@ void SmartTransport::disable() {
 
 void SmartTransport::transmitCmd(uint8_t cmd, uint8_t *data, int data_len) {
 	QM_ASSERT(data_len <= MAX_FRAME_DATA_SIZE);
-	GranitCRC crc;
 	qmDebugMessage(QmDebug::Info, "transmitting frame (cmd=0x%02X, data_len=%d)", cmd, data_len);
-	crc.update(&cmd, 1);
-	crc.update(data, data_len);
-	uint16_t inverted_crc = ~crc.result();
 	uint8_t frame_crc[2];
-	qmToLittleEndian(inverted_crc, frame_crc);
+	qmToLittleEndian(calcFrameCRC(cmd, data, data_len), frame_crc);
 	uint8_t frame_start = FRAME_START_DELIMITER;
 	uint8_t frame_stop = FRAME_END_DELIMITER;
 
 	uint8_t frame[MAX_FRAME_TOTAL_SIZE];
 	int frame_len = 0;
-	frame_len += applyBytestuffing(&cmd, (uint8_t*)(frame + frame_len), 1);
-	frame_len += applyBytestuffing(data, (uint8_t*)(frame + frame_len), data_len);
-	frame_len += applyBytestuffing(frame_crc, (uint8_t*)(frame + frame_len), sizeof(crc.result()));
+	frame_len += encodeFrameData(&cmd, (uint8_t*)(frame + frame_len), 1);
+	frame_len += encodeFrameData(data, (uint8_t*)(frame + frame_len), data_len);
+	frame_len += encodeFrameData(frame_crc, (uint8_t*)(frame + frame_len), 2);
 	QM_ASSERT(frame_len <= MAX_FRAME_TOTAL_SIZE);
 
 	int64_t written = 0;
@@ -158,7 +154,7 @@ void SmartTransport::processUartReceivedData() {
 				rx_state = rxstateFrame;
 				rx_frame_size = 0;
 			} else {
-				qmDebugMessage(QmDebug::Dump, "uart rx: - ignoring out-of-sync byte 0x%02X", byte);
+//				qmDebugMessage(QmDebug::Dump, "uart rx: - ignoring out-of-sync byte 0x%02X", byte);
 			}
 			break;
 		}
@@ -168,22 +164,20 @@ void SmartTransport::processUartReceivedData() {
 					qmDebugMessage(QmDebug::Info, "uart rx: - frame end");
 					rx_state = rxstateNone;
 					uint8_t frame_data[MAX_FRAME_PAYLOAD_SIZE];
-					int frame_data_size = deleteBytestuffing(rx_frame_buf, frame_data, rx_frame_size);
-					uint16_t crc_value = qmFromLittleEndian<uint16_t>(frame_data+(frame_data_size - 2));
-					crc_value = ~crc_value;
+					int frame_data_size = decodeFrameData(rx_frame_buf, frame_data, rx_frame_size);
 					GranitCRC crc;
-					crc.update(rx_frame_buf, (rx_frame_size - 2));
-					if (crc.result() != crc_value) {
+					crc.update(frame_data, (frame_data_size - 2));
+					if (crc.result() != extractFrameCRC(frame_data, frame_data_size)) {
 						qmDebugMessage(QmDebug::Warning, "uart rx: - bad frame (crc mismatch), dropping");
 						break;
 					}
-					uint8_t cmd = rx_frame_buf[0];
-					uint8_t* rx_data = (uint8_t*)(rx_frame_buf + 1);
-					int rx_data_len = rx_frame_size - 1/*cmd*/ - 2/*crc*/;
+					uint8_t cmd = frame_data[0];
+					uint8_t* rx_data = (uint8_t*)(frame_data + 1);
+					int rx_data_len = frame_data_size - 1/*cmd*/ - 2/*crc*/;
 					qmDebugMessage(QmDebug::Info, "received frame (cmd=0x%02X, data_len=%u)", cmd, rx_data_len);
 					receivedCmd(cmd, rx_data, rx_data_len);
 				} else {
-					qmDebugMessage(QmDebug::Dump, "uart rx: - frame data 0x%02X", byte);
+//					qmDebugMessage(QmDebug::Dump, "uart rx: - frame data 0x%02X", byte);
 					rx_frame_buf[rx_frame_size++] = byte;
 				}
 			} else {
@@ -213,7 +207,18 @@ void SmartTransport::dropRxSync() {
 	rx_state = rxstateNone;
 }
 
-int SmartTransport::applyBytestuffing(uint8_t* input_data, uint8_t* output_data, int data_len) {
+uint16_t SmartTransport::calcFrameCRC(uint8_t cmd, uint8_t *data, int data_len) {
+	GranitCRC crc;
+	crc.update(&cmd, 1);
+	crc.update(data, data_len);
+	return (uint16_t)~crc.result();
+}
+
+uint16_t SmartTransport::extractFrameCRC(uint8_t *data, int data_len) {
+	return (uint16_t)~qmFromLittleEndian<uint16_t>( (uint8_t*)(data+(data_len - 2)) );
+}
+
+int SmartTransport::encodeFrameData(uint8_t* input_data, uint8_t* output_data, int data_len) {
 	QM_ASSERT(data_len <= MAX_FRAME_PAYLOAD_SIZE);
 	int oindex = 0;
 	for (int i = 0; i < data_len; ++i) {
@@ -228,7 +233,7 @@ int SmartTransport::applyBytestuffing(uint8_t* input_data, uint8_t* output_data,
 	return oindex;
 }
 
-int SmartTransport::deleteBytestuffing(uint8_t* input_data, uint8_t* output_data, int data_len) {
+int SmartTransport::decodeFrameData(uint8_t* input_data, uint8_t* output_data, int data_len) {
 	QM_ASSERT(data_len <= MAX_FRAME_PAYLOAD_SIZE);
 	int oindex = 0;
 	int i = 0;

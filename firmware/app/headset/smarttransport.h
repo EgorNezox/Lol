@@ -33,8 +33,10 @@ private:
 	void processUartReceivedData();
 	void processUartReceivedErrors(bool data_errors, bool overflow);
 	void dropRxSync();
-	int applyBytestuffing(uint8_t* input_data, uint8_t* output_data, int data_len);
-	int deleteBytestuffing(uint8_t* input_data, uint8_t* output_data, int data_len);
+	uint16_t calcFrameCRC(uint8_t cmd, uint8_t *data, int data_len);
+	uint16_t extractFrameCRC(uint8_t *data, int data_len);
+	int encodeFrameData(uint8_t* input_data, uint8_t* output_data, int data_len);
+	int decodeFrameData(uint8_t* input_data, uint8_t* output_data, int data_len);
 
 	enum {
 		rxstateNone,

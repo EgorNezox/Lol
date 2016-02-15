@@ -310,15 +310,15 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 	case platformhwMatrixKeyboard:
 		params.mode = hgpioMode_In;
 		params.type = hgpioType_PPUp;
-		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 2}, &params);
-		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 3}, &params);
-		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 4}, &params);
-		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 5}, &params);
-		params.mode = hgpioMode_Out;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 6}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 7}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 8}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 9}, &params);
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 2}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 3}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 4}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPH, 5}, &params);
 		break;
 	case platformhwKeyboardButt1Iopin:
 		params.mode = hgpioMode_In;
@@ -493,18 +493,18 @@ void stm32f2_get_matrixkeyboard_pins(int platform_hw_resource,
 		*column_count = 4;
 		if (column_pins != NULL) {
 			*column_pins = (hal_gpio_pin_t*)malloc(sizeof(hal_gpio_pin_t) * (*column_count));
-			(*column_pins)[0] = (hal_gpio_pin_t){hgpioPH, 6};
-			(*column_pins)[1] = (hal_gpio_pin_t){hgpioPH, 7};
-			(*column_pins)[2] = (hal_gpio_pin_t){hgpioPH, 8};
-			(*column_pins)[3] = (hal_gpio_pin_t){hgpioPH, 9};
+			(*column_pins)[0] = (hal_gpio_pin_t){hgpioPH, 2};
+			(*column_pins)[1] = (hal_gpio_pin_t){hgpioPH, 3};
+			(*column_pins)[2] = (hal_gpio_pin_t){hgpioPH, 4};
+			(*column_pins)[3] = (hal_gpio_pin_t){hgpioPH, 5};
 		}
 		*row_count = 4;
 		if (row_pins != NULL) {
 			*row_pins = (hal_gpio_pin_t*)malloc(sizeof(hal_gpio_pin_t) * (*row_count));
-			(*row_pins)[0] = (hal_gpio_pin_t){hgpioPH, 2};
-			(*row_pins)[1] = (hal_gpio_pin_t){hgpioPH, 3};
-			(*row_pins)[2] = (hal_gpio_pin_t){hgpioPH, 4};
-			(*row_pins)[3] = (hal_gpio_pin_t){hgpioPH, 5};
+			(*row_pins)[0] = (hal_gpio_pin_t){hgpioPH, 6};
+			(*row_pins)[1] = (hal_gpio_pin_t){hgpioPH, 7};
+			(*row_pins)[2] = (hal_gpio_pin_t){hgpioPH, 8};
+			(*row_pins)[3] = (hal_gpio_pin_t){hgpioPH, 9};
 		}
 		break;
 	default: configASSERT(0); // no such resource
