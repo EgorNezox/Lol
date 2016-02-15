@@ -11,6 +11,7 @@
 #define SPIBUS_H_
 
 #include <qobject.h>
+#include <qlist.h>
 #include <qmap.h>
 
 class SPIDeviceInterface;
@@ -32,6 +33,7 @@ private:
 	static SPIBus* getInstance(int bus_hw_resource);
 	void registerSlave(int cs_hw_resource, SPIDeviceInterface *instance);
 	void unregisterSlave(SPIDeviceInterface *instance);
+	QList<SPIDeviceInterface*> getAddressedSlaves(int cs_hw_resource);
 
 	bool enabled;
 	QMultiMap<int, SPIDeviceInterface*> slaves;

@@ -7,8 +7,6 @@
  ******************************************************************************
  */
 
-#include <qlist.h>
-
 #include "spibus.h"
 #include "spideviceinterface.h"
 #include "hardware_emulation.h"
@@ -49,14 +47,21 @@ void SPIBus::unregisterSlave(SPIDeviceInterface* instance) {
 	slaves.remove(slaves.key(instance), instance);
 }
 
+QList<SPIDeviceInterface*> SPIBus::getAddressedSlaves(int cs_hw_resource) {
+	QList<SPIDeviceInterface*> list;
+	if (enabled) {
+		list = slaves.values(cs_hw_resource);
+		if (cs_hw_resource != -1)
+			list += slaves.values(-1);
+	}
+	return list;
+}
+
 void SPIBus::transferFullDuplex8bit(int cs_hw_resource,
 		quint8* rx_data, quint8* tx_data, int count) {
-	QList<SPIDeviceInterface*> addressed_slaves;
-	if (enabled) {
-		addressed_slaves = slaves.values(cs_hw_resource);
-		Q_FOREACH (SPIDeviceInterface* const &slave, addressed_slaves)
-			Q_EMIT slave->transferFullDuplex8bit(rx_data, tx_data, count);
-	}
+	QList<SPIDeviceInterface*> addressed_slaves = getAddressedSlaves(cs_hw_resource);
+	Q_FOREACH (SPIDeviceInterface* const &slave, addressed_slaves)
+		Q_EMIT slave->transferFullDuplex8bit(rx_data, tx_data, count);
 	if (addressed_slaves.isEmpty())
 		for (int i = 0; i < count; i++)
 			rx_data[i] = 0xFF;
@@ -64,12 +69,9 @@ void SPIBus::transferFullDuplex8bit(int cs_hw_resource,
 
 void SPIBus::transferFullDuplex16bit(int cs_hw_resource,
 		quint16* rx_data, quint16* tx_data, int count) {
-	QList<SPIDeviceInterface*> addressed_slaves;
-	if (enabled) {
-		addressed_slaves = slaves.values(cs_hw_resource);
-		Q_FOREACH (SPIDeviceInterface* const &slave, addressed_slaves)
-			Q_EMIT slave->transferFullDuplex16bit(rx_data, tx_data, count);
-	}
+	QList<SPIDeviceInterface*> addressed_slaves = getAddressedSlaves(cs_hw_resource);
+	Q_FOREACH (SPIDeviceInterface* const &slave, addressed_slaves)
+		Q_EMIT slave->transferFullDuplex16bit(rx_data, tx_data, count);
 	if (addressed_slaves.isEmpty())
 		for (int i = 0; i < count; i++)
 			rx_data[i] = 0xFFFF;
