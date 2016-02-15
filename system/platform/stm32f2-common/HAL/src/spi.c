@@ -35,12 +35,12 @@ static struct s_spibus_pcb {
 	{SPI2, SPI2_IRQn, RCC_APB1ENR_SPI2EN, 0, 0, 0, 0, 0, 0, 0},
 	{SPI3, SPI3_IRQn, RCC_APB1ENR_SPI3EN, 0, 0, 0, 0, 0, 0, 0}
 };
-static uint32_t spi_max_baud_rate_divider;
+static uint32_t spi_max_baud_rate_value;
 
 static void spi_irq_handler(struct s_spibus_pcb *spibus);
 
 void halinternal_spi_init(void) {
-	spi_max_baud_rate_divider = (SPI_CR1_BR >> POSITION_VAL(SPI_CR1_BR)) + 1;
+	spi_max_baud_rate_value = SPI_CR1_BR >> POSITION_VAL(SPI_CR1_BR);
 	for (int i = 0; i < sizeof(spibus_pcbs)/sizeof(spibus_pcbs[0]); i++) {
 		struct s_spibus_pcb *spibus = &(spibus_pcbs[i]);
 		spibus->mutex = xSemaphoreCreateMutex();
@@ -71,10 +71,8 @@ bool hal_spi_master_fd_transfer(int bus_instance, struct hal_spi_master_transfer
 	struct {
 		uint32_t CR1;
 		uint32_t CR2;
-		uint32_t apbclock;
-		uint32_t br_divider;
-	} init_struct = {0x00, 0x00, 0, 0};
-	halinternal_rcc_clocks_t rcc_clocks;
+		uint32_t br_value;
+	} init_struct = {0x00, 0x00, 0};
 	int transfer_count = 0;
 	init_struct.CR1 |= SPI_CR1_MSTR | SPI_CR1_SSI | SPI_CR1_SSM;
 	switch (t->data_size) {
@@ -112,18 +110,24 @@ bool hal_spi_master_fd_transfer(int bus_instance, struct hal_spi_master_transfer
 		break;
 	default: SYS_ASSERT(0);
 	}
-	halinternal_get_rcc_clocks(&rcc_clocks);
-	if (bus_instance == 1)
-		init_struct.apbclock = rcc_clocks.pclk2_frequency;
-	else
-		init_struct.apbclock = rcc_clocks.pclk1_frequency;
 	if (t->max_baud_rate != 0) {
-		init_struct.br_divider = ceil((float)(init_struct.apbclock/2)/(float)t->max_baud_rate);
-		init_struct.br_divider = min(init_struct.br_divider, spi_max_baud_rate_divider);
+		halinternal_rcc_clocks_t rcc_clocks;
+		uint32_t *pclk_frequency;
+		uint32_t divider;
+		halinternal_get_rcc_clocks(&rcc_clocks);
+		if (bus_instance == 1)
+			pclk_frequency = &rcc_clocks.pclk2_frequency;
+		else
+			pclk_frequency = &rcc_clocks.pclk1_frequency;
+		divider = ceil((double)(*pclk_frequency)/(double)(2 * t->max_baud_rate));
+		init_struct.br_value = 31 - __CLZ(divider);
+		if ((divider & ((1 << init_struct.br_value) - 1)) != 0)
+			init_struct.br_value++;
+		init_struct.br_value = min(init_struct.br_value, spi_max_baud_rate_value);
 	} else {
-		init_struct.br_divider = spi_max_baud_rate_divider;
+		init_struct.br_value = spi_max_baud_rate_value;
 	}
-	init_struct.CR1 |= (init_struct.br_divider - 1) << POSITION_VAL(SPI_CR1_BR);
+	init_struct.CR1 |= init_struct.br_value << POSITION_VAL(SPI_CR1_BR);
 	init_struct.CR2 |= (SPI_CR2_TXEIE | SPI_CR2_RXNEIE);
 
 	xSemaphoreTake(spibus->mutex, portMAX_DELAY);
@@ -175,6 +179,10 @@ static void spi_irq_handler(struct s_spibus_pcb *spibus) {
 			}
 		}
 		spibus->mt_rx_count--;
+		if (spibus->mt_rx_count == 0) {
+			spibus->spi->CR2 &= ~SPI_CR2_RXNEIE;
+			xSemaphoreGiveFromISR(spibus->smphr_transfer_sync, &xHigherPriorityTaskWoken);
+		}
 	}
 	if (((spibus->spi->SR & SPI_SR_TXE) != 0) && (spibus->mt_tx_count > 0)) {
 		if (spibus->mt_tx_ptr) {
@@ -193,12 +201,8 @@ static void spi_irq_handler(struct s_spibus_pcb *spibus) {
 		}
 		spibus->mt_tx_count--;
 		spibus->spi->DR = data_reg_value;
-	}
-	if (spibus->mt_tx_count == 0)
-		spibus->spi->CR2 &= ~SPI_CR2_TXEIE;
-	if (spibus->mt_rx_count == 0) {
-		spibus->spi->CR2 &= ~SPI_CR2_RXNEIE;
-		xSemaphoreGiveFromISR(spibus->smphr_transfer_sync, &xHigherPriorityTaskWoken);
+		if (spibus->mt_tx_count == 0)
+			spibus->spi->CR2 &= ~SPI_CR2_TXEIE;
 	}
 	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
