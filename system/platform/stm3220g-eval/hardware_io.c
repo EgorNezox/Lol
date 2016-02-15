@@ -206,3 +206,9 @@ int stm32f2_get_i2c_bus_instance(int platform_hw_resource) {
 	configASSERT(0); // no resources defined
 	return -1;
 }
+
+int stm32f2_get_spi_bus_instance(int platform_hw_resource) {
+	(void)platform_hw_resource;
+	configASSERT(0); // no resources defined
+	return -1;
+}

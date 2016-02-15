@@ -45,6 +45,7 @@ void halinternal_exti_init(void);
 void halinternal_timer_init(void);
 void halinternal_uart_init(void);
 void halinternal_i2c_init(void);
+void halinternal_spi_init(void);
 
 void halinternal_system_fault_handler(void);
 

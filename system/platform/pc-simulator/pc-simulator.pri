@@ -23,6 +23,8 @@ HEADERS += \
     $$PWD/port_hardwareio/uartconsolewidget.h \
     $$PWD/port_hardwareio/i2cbus.h \
     $$PWD/port_hardwareio/i2cdeviceinterface.h \
+    $$PWD/port_hardwareio/spibus.h \
+    $$PWD/port_hardwareio/spideviceinterface.h \
     $$PWD/port_ramtex_s6d0129_cfg_qt5seps525widget/qt/ramtexdisplaywidget.h
 SOURCES += \
     $$PWD/hardware_emulation.cpp \
