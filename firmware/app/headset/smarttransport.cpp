@@ -127,16 +127,17 @@ void SmartTransport::transmitCmd(uint8_t cmd, uint8_t *data, int data_len) {
 	qmDebugMessage(QmDebug::Info, "transmitting frame (cmd=0x%02X, data_len=%d)", cmd, data_len);
 	crc.update(&cmd, 1);
 	crc.update(data, data_len);
+	uint16_t inverted_crc = ~crc.result();
 	uint8_t frame_crc[2];
-	qmToBigEndian(crc.result(), frame_crc);
+	qmToLittleEndian(inverted_crc, frame_crc);
 	uint8_t frame_start = FRAME_START_DELIMITER;
 	uint8_t frame_stop = FRAME_END_DELIMITER;
 
 	uint8_t frame[MAX_FRAME_TOTAL_SIZE];
 	int frame_len = 0;
-	frame_len += bytestuff(&cmd, (uint8_t*)(frame + frame_len), 1);
-	frame_len += bytestuff(data, (uint8_t*)(frame + frame_len), data_len);
-	frame_len += bytestuff(frame_crc, (uint8_t*)(frame + frame_len), sizeof(crc.result()));
+	frame_len += applyBytestuffing(&cmd, (uint8_t*)(frame + frame_len), 1);
+	frame_len += applyBytestuffing(data, (uint8_t*)(frame + frame_len), data_len);
+	frame_len += applyBytestuffing(frame_crc, (uint8_t*)(frame + frame_len), sizeof(crc.result()));
 	QM_ASSERT(frame_len <= MAX_FRAME_TOTAL_SIZE);
 
 	int64_t written = 0;
@@ -166,11 +167,14 @@ void SmartTransport::processUartReceivedData() {
 				if (byte == FRAME_END_DELIMITER) {
 					qmDebugMessage(QmDebug::Info, "uart rx: - frame end");
 					rx_state = rxstateNone;
-					uint16_t crc_value = qmFromBigEndian<uint16_t>(rx_frame_buf+(rx_frame_size - 2));
+					uint8_t frame_data[MAX_FRAME_PAYLOAD_SIZE];
+					int frame_data_size = deleteBytestuffing(rx_frame_buf, frame_data, rx_frame_size);
+					uint16_t crc_value = qmFromLittleEndian<uint16_t>(frame_data+(frame_data_size - 2));
+					crc_value = ~crc_value;
 					GranitCRC crc;
 					crc.update(rx_frame_buf, (rx_frame_size - 2));
-					if (!crc.result() == crc_value) {
-						qmDebugMessage(QmDebug::Warning, "uart rx: - bad frame, dropping");
+					if (crc.result() != crc_value) {
+						qmDebugMessage(QmDebug::Warning, "uart rx: - bad frame (crc mismatch), dropping");
 						break;
 					}
 					uint8_t cmd = rx_frame_buf[0];
@@ -209,7 +213,7 @@ void SmartTransport::dropRxSync() {
 	rx_state = rxstateNone;
 }
 
-int SmartTransport::bytestuff(uint8_t* input_data, uint8_t* output_data, int data_len) {
+int SmartTransport::applyBytestuffing(uint8_t* input_data, uint8_t* output_data, int data_len) {
 	QM_ASSERT(data_len <= MAX_FRAME_PAYLOAD_SIZE);
 	int oindex = 0;
 	for (int i = 0; i < data_len; ++i) {
@@ -220,6 +224,22 @@ int SmartTransport::bytestuff(uint8_t* input_data, uint8_t* output_data, int dat
 		} else {
 			output_data[oindex++] = input_data[i];
 		}
+	}
+	return oindex;
+}
+
+int SmartTransport::deleteBytestuffing(uint8_t* input_data, uint8_t* output_data, int data_len) {
+	QM_ASSERT(data_len <= MAX_FRAME_PAYLOAD_SIZE);
+	int oindex = 0;
+	int i = 0;
+	while (i < data_len) {
+		if (input_data[i] == FRAME_SPEC_SYMBOL) {
+			output_data[oindex++] = input_data[i + 1] ^ 0x02;
+			++i;
+		} else {
+			output_data[oindex++] = input_data[i];
+		}
+		++i;
 	}
 	return oindex;
 }
