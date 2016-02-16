@@ -15,7 +15,8 @@ enum platformhw_resource_t {
 	platformhwInvalidResource = 0,
 	platformhwHeadsetUart,				// UART RS-232 гарнитуры
 	platformhwHeadsetPttIopin,			// I/O-пин тангенты гарнитуры
-	platformhwDataFlashSpi,				// SPI доступа Data-Flash
+	platformhwDataFlashSpi,				// SPI-шина Data-Flash
+	platformhwDataFlashCsPin,			// CS-пин Data-Flash
 	platformhwMatrixKeyboard,			// матричная клавиатура
 	platformhwKeyboardButt1Iopin,		// I/O-пин кнопки BUTT_1 двухкнопочной клавиатуры
 	platformhwKeyboardButt2Iopin,		// I/O-пин кнопки BUTT_2 двухкнопочной клавиатуры

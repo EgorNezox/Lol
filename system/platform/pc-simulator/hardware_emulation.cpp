@@ -20,6 +20,7 @@
 #include "port_hardwareio/iopininterface.h"
 #include "port_hardwareio/uartinterface.h"
 #include "port_hardwareio/i2cbus.h"
+#include "port_hardwareio/spibus.h"
 #include "port_keysinput/pushbuttonkeyinterface.h"
 #include "port_keysinput/matrixkeyboardinterface.h"
 
@@ -44,6 +45,7 @@ static MainWidget *main_widget = 0;
 static DspDevice *dsp_device = 0;
 static AtuDevice *atu_device = 0;
 static I2CBus *battery_smbus = 0;
+static SPIBus *data_flash_spibus = 0;
 static QMap<int, QObject*> resources_registry;
 static QMutex resources_registry_mutex;
 
@@ -59,6 +61,7 @@ void init() {
 	main_widget->activateWindow();
 	main_widget->raise();
 	battery_smbus = I2CBus::openInstance(platformhwBatterySmbusI2c);
+	data_flash_spibus = SPIBus::openInstance(platformhwDataFlashSpi);
 	PushbuttonkeyInterface::createInstance(platformhwHeadsetPttIopin); // TODO: emulate HeadsetPttIopin
 	IopinInterface::createInstance(platformhwKeyboardsLightIopin); // TODO: emulate KeyboardsLightIopin
 	IopinInterface::createInstance(platformhwEnRxRs232Iopin); // TODO: emulate EnRxRs232Iopin
@@ -71,6 +74,7 @@ void deinit() {
 	delete dsp_device;
 	delete atu_device;
 	I2CBus::closeInstance(battery_smbus);
+	SPIBus::closeInstance(data_flash_spibus);
 }
 
 int convertToPlatformHwResource(const QString &value) {

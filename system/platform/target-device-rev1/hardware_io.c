@@ -279,6 +279,7 @@ void stm32f2_hardware_io_init(void)
 {
 	stm32f2_ext_pins_init(platformhwBatterySmbusI2c);
 	hal_i2c_set_bus_mode(stm32f2_get_i2c_bus_instance(platformhwBatterySmbusI2c), hi2cModeSMBus);
+	stm32f2_ext_pins_init(platformhwDataFlashSpi);
 }
 
 void stm32f2_ext_pins_init(int platform_hw_resource) {
@@ -304,6 +305,10 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 12}, &params);
 		params.mode = hgpioMode_Out;
 		params.af = hgpioAF_SYS;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPD, 2}, &params);
+		break;
+	case platformhwDataFlashCsPin:
+		params.mode = hgpioMode_Out;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPD, 2}, &params);
 		break;
 	case platformhwMatrixKeyboard:
@@ -385,6 +390,9 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 12});
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPD, 2});
 		break;
+	case platformhwDataFlashCsPin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPD, 2});
+		break;
 	case platformhwMatrixKeyboard:
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 2});
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPH, 3});
@@ -433,6 +441,8 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 	switch (platform_hw_resource) {
 	case platformhwHeadsetPttIopin:
 		return (hal_gpio_pin_t){hgpioPF, 8};
+	case platformhwDataFlashCsPin:
+		return (hal_gpio_pin_t){hgpioPD, 2};
 	case platformhwKeyboardButt1Iopin:
 		return (hal_gpio_pin_t){hgpioPH, 11};
 	case platformhwKeyboardButt2Iopin:
@@ -479,6 +489,15 @@ int stm32f2_get_i2c_bus_instance(int platform_hw_resource) {
 	switch (platform_hw_resource) {
 	case platformhwBatterySmbusI2c:
 		return 1;
+	default: configASSERT(0); // no such resource
+	}
+	return -1;
+}
+
+int stm32f2_get_spi_bus_instance(int platform_hw_resource) {
+	switch (platform_hw_resource) {
+	case platformhwDataFlashSpi:
+		return 3;
 	default: configASSERT(0); // no such resource
 	}
 	return -1;
