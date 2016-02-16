@@ -70,6 +70,8 @@ bool QmTimer::event(QmEvent* event) {
 		if (d->is_active) {
 			if (!d->is_single_shot)
 				hal_timer_start(d->timerhandle, d->interval_value, 0);
+			else
+				d->is_active = false;
 			timeout.emit();
 		}
 		return true;
