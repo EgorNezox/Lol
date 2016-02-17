@@ -12,6 +12,7 @@
 #define SYS_INTERNAL_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "stm32f2xx.h"
 #include "system_hardware_config.h"
 
@@ -44,10 +45,12 @@ void halinternal_exti_init(void);
 void halinternal_timer_init(void);
 void halinternal_uart_init(void);
 void halinternal_i2c_init(void);
+void halinternal_spi_init(void);
 
 void halinternal_system_fault_handler(void);
 
 void halinternal_set_nvic_priority(IRQn_Type irqn);
 void halinternal_get_rcc_clocks(halinternal_rcc_clocks_t* clocks);
+bool halinternal_is_isr_active(void);
 
 #endif /* SYS_INTERNAL_H_ */

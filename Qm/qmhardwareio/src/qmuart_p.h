@@ -13,16 +13,16 @@
 #include "../../qmcore/src/qmobject_p.h"
 #include "qmuart.h"
 
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 #include "hal_uart.h"
 #include "../../qmcore/src/qm_core.h"
-#endif
-#ifdef QMHARDWAREIO_PLATFORM_QT
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
 #include <QObject>
 #include "port_hardwareio/uartinterface.h"
-#endif /* QMHARDWAREIO_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 class QmUartIOEvent : public QmSystemEvent
 {
 public:
@@ -34,8 +34,8 @@ public:
 	bool rx_data_pending, rx_data_errors, rx_overflow_suspended;
 	bool tx_completed;
 };
-#endif
-#ifdef QMHARDWAREIO_PLATFORM_QT
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
 class QmUartPrivate;
 class QmUartPrivateAdapter : public QObject
 {
@@ -55,7 +55,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void writeTx(const QByteArray &data);
 };
-#endif /* QMHARDWAREIO_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
 class QmUartPrivate : public QmObjectPrivate {
 	QM_DECLARE_PUBLIC(QmUart)
@@ -67,19 +67,19 @@ private:
 	void deinit();
 	int hw_resource;
 	QmUart::ConfigStruct config;
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 	void processEventHardwareIO();
 	int uart_instance;
 	hal_uart_handle_t uart_handle;
 	hal_ringbuffer_t *uart_rx_buffer, *uart_tx_buffer;
 	bool rx_active;
 	QmUartIOEvent io_event;
-#endif
-#ifdef QMHARDWAREIO_PLATFORM_QT
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
 	friend class QmUartPrivateAdapter;
 	bool active;
 	QmUartPrivateAdapter *uart_adapter;
-#endif /* QMHARDWAREIO_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 };
 
 #endif /* QMUART_P_H_ */

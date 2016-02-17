@@ -14,12 +14,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "FreeRTOS.h"
+#include "dl_list.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef void* hal_i2c_smbus_handle_t;
+
+struct hal_i2c_master_transfer_t;
+DLLIST_TYPEDEF_LIST(struct hal_i2c_master_transfer_t, hal_i2c_mt_queue)
 
 /*! Тип возвращаемого результата завершения передачи */
 typedef enum {
@@ -50,8 +54,13 @@ typedef enum {
 	hi2cDirectionTx = 1		/*!< передача (байт считывается из буфера) */
 } hal_i2c_direction_t;
 
-/*! Описание master-передачи I2C */
+/*! Описание master-передачи I2C
+ *
+ * При создании (выделении памяти) необходима инициализация
+ * путем вызова hal_i2c_init_master_transfer_struct().
+ */
 struct hal_i2c_master_transfer_t {
+	DLLIST_ELEMENT_FIELDS(struct hal_i2c_master_transfer_t, hal_i2c_mt_queue) /*!< для внутреннего использования */
 	hal_i2c_device_t device;	/*!< описание slave-устройства */
 	bool use_pec;				/*!< true - использовать PEC */
 	hal_i2c_direction_t *dirs;	/*!< указатель на направления передачи для соответствующих байт data */
@@ -60,7 +69,6 @@ struct hal_i2c_master_transfer_t {
 	void *userid;				/*!< (опциональный) пользовательский идентификатор */
 	/*! callback, вызываемый из ISR, индицирующий завершение передачи, начатой вызовом hal_i2c_start_master_transfer() */
 	void (*isrcallbackTransferCompleted)(struct hal_i2c_master_transfer_t *t, hal_i2c_transfer_result_t result, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
-	struct hal_i2c_master_transfer_t *previous, *next; /*!< для внутреннего использования */
 };
 
 /*! Описание параметров режима SMBus host */
@@ -80,6 +88,12 @@ typedef struct {
  * \param[in] mode		режим работы
  */
 void hal_i2c_set_bus_mode(int instance, hal_i2c_mode_t mode);
+
+/*! Инициализирует (подготавливает) описание master-передачи
+ *
+ * Необходимо выполнять при создании (выделении памяти) описания.
+ */
+void hal_i2c_init_master_transfer_struct(struct hal_i2c_master_transfer_t *t);
 
 /*! Запускает master-передачу данных из/в slave-устройство I2C
  *

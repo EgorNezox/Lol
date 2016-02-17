@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    qm_core_bmfreertos.cpp
+  * @file    qm_core_stm32f2xx.cpp
   * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
   * @date    11.09.2015
   *
@@ -36,11 +36,11 @@ static portTASK_FUNCTION(qmsystemThreadEntry, pvParameters);
 }
 
 QmMainThread* QmMainThread::self = 0;
-static QmSystemEvent *qm_sys_queue_top, *qm_sys_queue_bottom;
+static DLLIST_LIST_TYPE(qm_core_system_queue) qm_sys_queue;
 static SemaphoreHandle_t qm_sys_queue_semaphore;
 
 QmSystemEvent::QmSystemEvent() :
-	pending(false), previous(0), next(0)
+	DLLIST_ELEMENT_CLASS_INITIALIZER(qm_core_system_queue), pending(false)
 {
 	QM_ASSERT(uxTaskPriorityGet(NULL) < qmconfigSYSTEM_PRIORITY);
 }
@@ -68,37 +68,15 @@ void QmSystemEvent::setPendingFromISR(signed long * pxHigherPriorityTaskWoken) {
 void QmSystemEvent::checkAndPostToQueue() {
 	if (pending)
 		return;
-	if (qm_sys_queue_bottom) {
-		QM_ASSERT(qm_sys_queue_top != 0);
-		previous = qm_sys_queue_bottom;
-		qm_sys_queue_bottom->next = this;
-		qm_sys_queue_bottom = this;
-	} else {
-		QM_ASSERT(qm_sys_queue_top == 0);
-		qm_sys_queue_bottom = this;
-		qm_sys_queue_top = this;
-	}
+	QM_ASSERT(DLLIST_IS_IN_LIST(qm_core_system_queue, 0, this));
+	DLLIST_ADD_TO_LIST_BACK(qm_core_system_queue, &qm_sys_queue, this);
 	pending = true;
 }
 
 void QmSystemEvent::removeFromQueue() {
 	QM_ASSERT(pending);
-	if (previous) {
-		QM_ASSERT(qm_sys_queue_top != 0);
-		previous->next = next;
-	} else {
-		QM_ASSERT(qm_sys_queue_top == this);
-		qm_sys_queue_top = next;
-	}
-	if (next) {
-		QM_ASSERT(qm_sys_queue_bottom != 0);
-		next->previous = previous;
-	} else {
-		QM_ASSERT(qm_sys_queue_bottom == this);
-		qm_sys_queue_bottom = previous;
-	}
-	previous = 0;
-	next = 0;
+	QM_ASSERT(DLLIST_IS_IN_LIST(qm_core_system_queue, &qm_sys_queue, this));
+	DLLIST_REMOVE_FROM_LIST(qm_core_system_queue, &qm_sys_queue, this);
 	pending = false;
 }
 
@@ -111,7 +89,7 @@ void qmcoreProcessQueuedSystemEvents() {
 	QmSystemEvent *next_event = 0;
 	do {
 		portENTER_CRITICAL();
-		next_event = qm_sys_queue_top;
+		next_event = DLLIST_GET_LIST_FRONT(&qm_sys_queue);
 		if (next_event)
 			next_event->removeFromQueue();
 		portEXIT_CRITICAL();
@@ -121,8 +99,8 @@ void qmcoreProcessQueuedSystemEvents() {
 }
 
 int main(void) {
-	QM_ASSERT(configTICK_RATE_HZ <= 1000); // QmTimer implementation requirement
-	qm_sys_queue_top = qm_sys_queue_bottom = 0;
+	QM_ASSERT(sysconfigTIMER_TASK_PRIORITY > qmconfigSYSTEM_PRIORITY); // requirement of hal timer interfacing implementation
+	DLLIST_INIT_LIST(&qm_sys_queue);
 	qm_sys_queue_semaphore = xSemaphoreCreateBinary();
 	xTaskCreate(qmsystemThreadEntry, "qmsystem", qmconfigSYSTEM_STACK_SIZE, 0, qmconfigSYSTEM_PRIORITY, 0);
 	new QmMainThread();

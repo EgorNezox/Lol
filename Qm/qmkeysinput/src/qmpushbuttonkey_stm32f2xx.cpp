@@ -21,15 +21,14 @@
 #define QMPBKEY_DEBOUNCE_DELAY 20
 
 static void qmpushbuttonkeyStateChangedIsrCallback(hal_exti_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
-	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	QmPushButtonKeyPrivate* qmpbkeyPrivate_ptr = static_cast<QmPushButtonKeyPrivate*>(hal_exti_get_userid(handle));
 	hal_exti_close(handle);
-	xTimerResetFromISR(*(qmpbkeyPrivate_ptr->getDebounceTimer()), &xHigherPriorityTaskWoken);
-	portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+	hal_timer_start(qmpbkeyPrivate_ptr->getDebounceTimer(), QMPBKEY_DEBOUNCE_DELAY, pxHigherPriorityTaskWoken);
+	portEND_SWITCHING_ISR(*pxHigherPriorityTaskWoken);
 }
 
-static void qmpushbuttonkeyDebounceTimerFinished(xTimerHandle xTimer) {
-	QmPushButtonKeyPrivate* qmpbkeyPrivate_ptr = static_cast<QmPushButtonKeyPrivate*>(pvTimerGetTimerID(xTimer));
+static void qmpushbuttonkeyDebounceTimerFinished(hal_timer_handle_t handle) {
+	QmPushButtonKeyPrivate* qmpbkeyPrivate_ptr = static_cast<QmPushButtonKeyPrivate*>(hal_timer_get_userid(handle));
 	qmpbkeyPrivate_ptr->extiEnable();
 	qmpbkeyPrivate_ptr->postPbStateChangedEvent();
 }
@@ -40,8 +39,11 @@ QmPushButtonKeyPrivate::QmPushButtonKeyPrivate(QmPushButtonKey *q) :
 	exti_line(-1), exti_handle(0), event_posting_available(true)
 {
 	hal_exti_set_default_params(&exti_params);
-	debounce_timer = xTimerCreate(static_cast<const char*>("QmPushButtonKeyDebounceTimer"),
-			QMPBKEY_DEBOUNCE_DELAY / portTICK_RATE_MS, pdFALSE, static_cast<void*>(this), qmpushbuttonkeyDebounceTimerFinished);
+
+	hal_timer_params_t params;
+	params.userid = static_cast<void*>(this);
+	params.callbackTimeout = qmpushbuttonkeyDebounceTimerFinished;
+	debounce_timer = hal_timer_create(&params);
 }
 
 QmPushButtonKeyPrivate::~QmPushButtonKeyPrivate()
@@ -60,8 +62,8 @@ void QmPushButtonKeyPrivate::extiEnable() {
 	exti_handle = hal_exti_open(exti_line, &exti_params);
 }
 
-xTimerHandle* QmPushButtonKeyPrivate::getDebounceTimer() {
-	return &debounce_timer;
+hal_timer_handle_t QmPushButtonKeyPrivate::getDebounceTimer() {
+	return debounce_timer;
 }
 
 void QmPushButtonKeyPrivate::init() {
@@ -100,7 +102,7 @@ bool QmPushButtonKey::event(QmEvent* event) {
 		bool current_state = d->isGpioPressed();
 		if (d->updated_state != current_state) {
 			d->updated_state = current_state;
-			qmDebugMessage(QmDebug::Dump, "stateChanged");
+			qmDebugMessage(QmDebug::Dump, "stateChanged id=0x%X", (int)this);
 			stateChanged();
 		}
 		return true;

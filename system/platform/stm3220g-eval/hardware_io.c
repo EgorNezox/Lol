@@ -225,6 +225,7 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		break;
 	case platformhwHeadsetUart:
 	case platformhwDataFlashSpi:
+	case platformhwDataFlashCsPin:
 	case platformhwKeyboardsLightIopin:
 	case platformhwEnRxRs232Iopin:
 	case platformhwEnTxRs232Iopin:
@@ -267,6 +268,7 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 		break;
 	case platformhwHeadsetUart:
 	case platformhwDataFlashSpi:
+	case platformhwDataFlashCsPin:
 	case platformhwKeyboardsLightIopin:
 	case platformhwEnRxRs232Iopin:
 	case platformhwEnTxRs232Iopin:
@@ -286,6 +288,7 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 		return (hal_gpio_pin_t){hgpioPC, 13};
 	case platformhwKeyboardButt2Iopin:
 		return (hal_gpio_pin_t){hgpioPA, 0};
+	case platformhwDataFlashCsPin:
 	case platformhwKeyboardsLightIopin:
 	case platformhwEnRxRs232Iopin:
 	case platformhwEnTxRs232Iopin:
@@ -327,6 +330,15 @@ int stm32f2_get_i2c_bus_instance(int platform_hw_resource) {
 	switch (platform_hw_resource) {
 	case platformhwBatterySmbusI2c:
 		return 2;
+	default: configASSERT(0); // no such resource
+	}
+	return -1;
+}
+
+int stm32f2_get_spi_bus_instance(int platform_hw_resource) {
+	switch (platform_hw_resource) {
+	case platformhwDataFlashSpi:
+		return 3; //TODO: fake Data-Flash SPI (dummy implementation)
 	default: configASSERT(0); // no such resource
 	}
 	return -1;

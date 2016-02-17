@@ -10,43 +10,43 @@
 #ifndef QMTHREAD_P_H
 #define QMTHREAD_P_H
 
-#ifdef QMCORE_PLATFORM_BMFREERTOS
+#ifdef QM_PLATFORM_STM32F2XX
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
 #include "qmeventloop.h"
-#endif /* QMCORE_PLATFORM_BMFREERTOS */
+#endif /* QM_PLATFORM_STM32F2XX */
 #include "qmobject_p.h"
 
-#ifdef QMCORE_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 class QThread;
-#endif /* QMCORE_PLATFORM_QT */
-#ifdef QMCORE_PLATFORM_BMFREERTOS
+#endif /* QM_PLATFORM_QT */
+#ifdef QM_PLATFORM_STM32F2XX
 class QmEventDispatcher;
-#endif /* QMCORE_PLATFORM_BMFREERTOS */
+#endif /* QM_PLATFORM_STM32F2XX */
 
 class QmThreadPrivate : public QmObjectPrivate {
 	QM_DECLARE_PUBLIC(QmThread)
 public:
 	QmThreadPrivate(QmThread *q);
 	virtual ~QmThreadPrivate();
-#ifdef QMCORE_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 	bool is_main;
 	QThread *qt_adapter;
-#endif /* QMCORE_PLATFORM_QT */
-#ifdef QMCORE_PLATFORM_BMFREERTOS
+#endif /* QM_PLATFORM_QT */
+#ifdef QM_PLATFORM_STM32F2XX
 	QmEventDispatcher *event_dispatcher;
 	QmEventLoop event_loop;
 	TaskHandle_t task_handle;
 	SemaphoreHandle_t sync_semaphore;
-#endif /* QMCORE_PLATFORM_BMFREERTOS */
+#endif /* QM_PLATFORM_STM32F2XX */
 	bool running;
-#ifdef QMCORE_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 	friend class QmThreadPrivateAdapter;
-#endif /* QMCORE_PLATFORM_QT */
-#ifdef QMCORE_PLATFORM_BMFREERTOS
+#endif /* QM_PLATFORM_QT */
+#ifdef QM_PLATFORM_STM32F2XX
 	void taskFunction();
-#endif /* QMCORE_PLATFORM_BMFREERTOS */
+#endif /* QM_PLATFORM_STM32F2XX */
 };
 
 #endif // QMTHREAD_P_H

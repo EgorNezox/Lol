@@ -14,19 +14,18 @@
 #include "../../qmcore/src/qmobject_p.h"
 #include "qmpushbuttonkey.h"
 
-#ifdef QMKEYSINPUT_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 #include "hal_gpio.h"
 #include "hal_exti.h"
+#include "hal_timer.h"
 #include "../../qmcore/src/qm_core.h"
-#include "FreeRTOS.h"
-#include "timers.h"
-#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
-#ifdef QMKEYSINPUT_PLATFORM_QT
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
 #include <QObject>
 #include "port_keysinput/pushbuttonkeyinterface.h"
-#endif /* QMKEYSINPUT_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
-#ifdef QMKEYSINPUT_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 class QmPushButtonKeyPrivate;
 class QmPushButtonKeyPrivateAdapter : public QObject
 {
@@ -39,36 +38,36 @@ public:
 public Q_SLOTS:
     void processStateChanged();
 };
-#endif /* QMKEYSINPUT_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
 class QmPushButtonKeyPrivate : public QmObjectPrivate {
 	QM_DECLARE_PUBLIC(QmPushButtonKey)
 public:
 	QmPushButtonKeyPrivate(QmPushButtonKey *q);
     virtual ~QmPushButtonKeyPrivate();
-#ifdef QMKEYSINPUT_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
     void postPbStateChangedEvent();
 	void extiEnable();
-	xTimerHandle* getDebounceTimer();
-#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
+	hal_timer_handle_t getDebounceTimer();
+#endif /* QM_PLATFORM_STM32F2XX */
 private:
 	void init();
     void deinit();
     bool isGpioPressed();
 	int hw_resource;
 	bool updated_state;	
-#ifdef QMKEYSINPUT_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
     hal_gpio_pin_t gpio_pin;
 	int exti_line;
 	hal_exti_params_t exti_params;
 	hal_exti_handle_t exti_handle;
-	xTimerHandle debounce_timer;
+	hal_timer_handle_t debounce_timer;
     bool event_posting_available;
-#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
-#ifdef QMKEYSINPUT_PLATFORM_QT
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
     friend class QmPushButtonKeyPrivateAdapter;
     QmPushButtonKeyPrivateAdapter *pbkey_adapter;
-#endif /* QMKEYSINPUT_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 };
 
 #endif /* QMPUSHBUTTONKEY_P_H_ */

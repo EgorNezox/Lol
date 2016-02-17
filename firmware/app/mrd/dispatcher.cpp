@@ -70,12 +70,16 @@ bool Dispatcher::processHeadsetPttStateChange(bool new_state) {
 
 void Dispatcher::processHeadsetSmartCurrentChannelChange(int new_channel_number,
 		voice_channel_t new_channel_type) {
+	if (!dsp_controller->isReady())
+		return;
 	if (!changeVoiceChannel(new_channel_number, new_channel_type))
 		return;
 	updateVoiceChannel();
 }
 
 void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
+	if (!dsp_controller->isReady())
+		return;
 	switch (headset_status) {
 	case Headset::Controller::StatusAnalog:
 	case Headset::Controller::StatusSmartOk: {

@@ -9,62 +9,53 @@
 makepp_percent_subdirs=1
 include misc/target_build_header.mk
 
-ifeq ($(CORE_PLATFORM),bmfreertos)
-  DEFINES_system += QMCORE_PLATFORM_BMFREERTOS
+ifeq ($(PLATFORM),stm32f2xx)
+  DEFINES_system += QM_PLATFORM_STM32F2XX
 else
-  $(error "No CORE_PLATFORM specified")
+  $(error "No valid PLATFORM specified")
 endif
 
 QMCORE_INCLUDEPATH += qmcore/include
 QMCORE_SOURCES += \
-	qmcore/src/qm_core_$(CORE_PLATFORM).cpp \
+	qmcore/src/qm_core_$(PLATFORM).cpp \
 	qmcore/src/qmdebug.cpp \
 	qmcore/src/qmobject.cpp \
-	qmcore/src/qmobject_$(CORE_PLATFORM).cpp \
-	qmcore/src/qmthread_$(CORE_PLATFORM).cpp \
-	qmcore/src/qmmutex_$(CORE_PLATFORM).cpp \
+	qmcore/src/qmobject_$(PLATFORM).cpp \
+	qmcore/src/qmthread_$(PLATFORM).cpp \
+	qmcore/src/qmmutex_$(PLATFORM).cpp \
 	qmcore/src/qmmutexlocker.cpp \
-	qmcore/src/qmeventdispatcher_$(CORE_PLATFORM).cpp \
+	qmcore/src/qmeventdispatcher_$(PLATFORM).cpp \
 	qmcore/src/qmeventloop.cpp \
 	qmcore/src/qmtimer.cpp \
-	qmcore/src/qmtimer_$(CORE_PLATFORM).cpp \
+	qmcore/src/qmtimer_$(PLATFORM).cpp \
 	qmcore/src/qmapplication.cpp \
-	qmcore/src/qmapplication_$(CORE_PLATFORM).cpp
+	qmcore/src/qmapplication_$(PLATFORM).cpp
 $(sources_to_objects $(QMCORE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH)
 
 ifdef HARDWAREIO
-  ifeq ($(HARDWAREIO),stm32f2xx)
-  and ifeq ($(CORE_PLATFORM),bmfreertos)
-    DEFINES_system += QMHARDWAREIO_PLATFORM_STM32F2XX
-  else 
-    $(error "Unsupported Core/HardwareIO platform combination specified")
-  endif
   QMHARDWAREIO_INLCUDEPATH += qmhardwareio/include
   QMHARDWAREIO_SOURCES += \
   	qmhardwareio/src/qmiopin.cpp \
-  	qmhardwareio/src/qmiopin_$(HARDWAREIO).cpp \
+  	qmhardwareio/src/qmiopin_$(PLATFORM).cpp \
   	qmhardwareio/src/qmuart.cpp \
-  	qmhardwareio/src/qmuart_$(HARDWAREIO).cpp \
+  	qmhardwareio/src/qmuart_$(PLATFORM).cpp \
   	qmhardwareio/src/qmi2cdevice.cpp \
-  	qmhardwareio/src/qmi2cdevice_$(HARDWAREIO).cpp \
+  	qmhardwareio/src/qmi2cdevice_$(PLATFORM).cpp \
   	qmhardwareio/src/qmsmbushost.cpp \
-  	qmhardwareio/src/qmsmbushost_$(HARDWAREIO).cpp
+  	qmhardwareio/src/qmsmbushost_$(PLATFORM).cpp \
+  	qmhardwareio/src/qmspibus_$(PLATFORM).cpp \
+  	qmhardwareio/src/qmspidevice.cpp \
+  	qmhardwareio/src/qmspidevice_$(PLATFORM).cpp
   $(sources_to_objects $(QMHARDWAREIO_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH)
 endif
 
 ifdef KEYSINPUT
-  ifeq ($(KEYSINPUT),stm32f2xx)
-  and ifeq ($(CORE_PLATFORM),bmfreertos)
-    DEFINES_system += QMKEYSINPUT_PLATFORM_STM32F2XX
-  else 
-    $(error "Unsupported Core/KeysInput platform combination specified")
-  endif
   QMKEYSINPUT_INLCUDEPATH += qmkeysinput/include
   QMKEYSINPUT_SOURCES += \
   	qmkeysinput/src/qmpushbuttonkey.cpp \
-  	qmkeysinput/src/qmpushbuttonkey_$(KEYSINPUT).cpp \
+  	qmkeysinput/src/qmpushbuttonkey_$(PLATFORM).cpp \
   	qmkeysinput/src/qmmatrixkeyboard.cpp \
-  	qmkeysinput/src/qmmatrixkeyboard_$(KEYSINPUT).cpp
+  	qmkeysinput/src/qmmatrixkeyboard_$(PLATFORM).cpp
   $(sources_to_objects $(QMKEYSINPUT_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMKEYSINPUT_INLCUDEPATH)
 endif
 

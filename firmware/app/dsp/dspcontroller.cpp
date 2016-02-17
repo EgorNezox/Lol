@@ -52,6 +52,11 @@ DspController::~DspController()
 	delete pending_command;
 }
 
+
+bool DspController::isReady() {
+	return is_ready;
+}
+
 void DspController::startServicing() {
 	qmDebugMessage(QmDebug::Info, "start servicing...");
 	initResetState();

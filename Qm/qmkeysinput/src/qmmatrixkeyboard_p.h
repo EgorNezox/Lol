@@ -14,20 +14,19 @@
 #include "../../qmcore/src/qmobject_p.h"
 #include "qmmatrixkeyboard.h"
 
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 #include "hal_gpio.h"
+#include "hal_timer.h"
 #include "qmevent.h"
-#include "FreeRTOS.h"
-#include "timers.h"
-#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
-#ifdef QMKEYSINPUT_PLATFORM_QT
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
 #include <QObject>
 #include <QList>
 #include <QTimer>
 #include "port_keysinput/matrixkeyboardinterface.h"
-#endif /* QMKEYSINPUT_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 class QmMatrixKeyboardKeyStateChangedEvent : public QmEvent
 {
 public:
@@ -49,9 +48,9 @@ private:
 	int key_id;
 	QmMatrixKeyboard::PressType pressType;
 };
-#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
+#endif /* QM_PLATFORM_STM32F2XX */
 
-#ifdef QMKEYSINPUT_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 class QmMatrixKeyboardPrivateAdapter : public QObject
 {
     Q_OBJECT
@@ -80,23 +79,23 @@ private:
     int id;
     QTimer* timer;
 };
-#endif /* QMKEYSINPUT_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
 class QmMatrixKeyboardPrivate : public QmObjectPrivate {
 	QM_DECLARE_PUBLIC(QmMatrixKeyboard)
 public:
 	QmMatrixKeyboardPrivate(QmMatrixKeyboard *q);
 	virtual ~QmMatrixKeyboardPrivate();
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 	void scan();
 	void pressTimerFinished(int number);
-#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
+#endif /* QM_PLATFORM_STM32F2XX */
 private:
 	void init();
 	void deinit();
 	bool isKeyPressed(int id);
 	int hw_resource;
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 	typedef enum keyboard_state {
 		no_presses,
 		single_press,
@@ -118,8 +117,8 @@ private:
 	hal_gpio_pin_t* row_pins;
 	int column_count;
 	int row_count;
-	xTimerHandle* poll_timer;
-	xTimerHandle* press_timer;
+	hal_timer_handle_t poll_timer;
+	hal_timer_handle_t* press_timer;
 
 	bool* keyPressedLong; /*! Флаг длительного нажатия клавиши (устанавливается по истечении времени длительного нажатия) */
 	uint8_t* curKeysPressedSequence; /*! Последовательность нажатий клавиш */
@@ -127,8 +126,8 @@ private:
 	uint8_t* curKeysPressed;
 	uint8_t* prevKeysPressed;
 	uint8_t pressesCounter;
-#endif /* QMKEYSINPUT_PLATFORM_STM32F2XX */
-#ifdef QMKEYSINPUT_PLATFORM_QT
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
     void processKeyStateChanged(int id, bool state);
     void keyActionLong(int id);
 
@@ -138,7 +137,7 @@ private:
     int keys_count;
     friend class KeyActionTimer;
     QList<KeyActionTimer*> *timers;
-#endif /* QMKEYSINPUT_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 };
 
 #endif /* QMMATRIXKEYBOARD_P_H_ */
