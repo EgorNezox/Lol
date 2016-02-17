@@ -19,6 +19,10 @@ INCLUDEPATH_system += \
 	port_freertos_gcc_arm_cm3 \
 	port_qmcore_bmfreertos
 
+# SPI Flash File System port
+INCLUDEPATH_system += \
+	port_spiffs
+
 # newlib system integration
 SOURCES_system += \
 	$(wildcard port_newlib_freertos/*.c)
