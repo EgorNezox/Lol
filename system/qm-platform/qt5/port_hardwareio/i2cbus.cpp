@@ -11,7 +11,7 @@
 
 #include "i2cbus.h"
 #include "i2cdeviceinterface.h"
-#include "hardware_emulation.h"
+#include "hardware_resources.h"
 
 I2CBus::I2CBus()
 {

@@ -9,7 +9,7 @@
 
 #include "spibus.h"
 #include "spideviceinterface.h"
-#include "hardware_emulation.h"
+#include "hardware_resources.h"
 
 SPIBus::SPIBus() :
 	enabled(false)

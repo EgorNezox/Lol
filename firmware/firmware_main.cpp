@@ -8,7 +8,7 @@
   ******************************************************************************
  */
 
-#include "../system/platform/platform_hw_map.h"
+#include "../system/platform_hw_map.h"
 
 #include "qmdebug.h"
 #include "qmapplication.h"

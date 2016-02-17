@@ -2,7 +2,7 @@
 # @file    Makeppfile
 # @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
 # @date    03.09.2015
-# @brief   Make-файл сборки субпроекта для платформы на базе МК STM32F2xx
+# @brief   Make-файл сборки Qm-платформы под микроконтроллер STM32F2xx
 #
 #******************************************************************************
 
@@ -32,7 +32,7 @@ SOURCES_system += \
 	$(wildcard HAL/src/*.c) \
 	startup_stm32f2xx_freertos.s
 INCLUDEPATH_system += \
-	cfg_root \
+	../config \
 	HAL/include \
 	extra \
 	.

@@ -8,7 +8,7 @@
  */
 
 #include "iopininterface.h"
-#include "hardware_emulation.h"
+#include "hardware_resources.h"
 
 void IopinInterface::init() {
 	qRegisterMetaType<Level>();

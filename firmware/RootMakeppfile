@@ -11,18 +11,19 @@ TARGET_NAME = $(PROJECT_NAME)_firmware
 makepp_percent_subdirs=1
 include misc/target_build_subproject_header.mk
 
-# функциональные опции сборки
+# функциональные опции сборки системы
 DEFINES_system += BUILD_OPTION_ENABLE_DISPLAY_BUFFER=1
+
+# подключение сборки платформы и порта
+load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/qm-platform/stm32f2xx
+load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/port__$(BUILD_PORT)
+LDSCRIPTS += ../system/port__$(BUILD_PORT)/stm32_memory.ld
+
+# подключение сборки модулей Qm
+load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." PLATFORM=stm32f2xx HARDWAREIO=1 KEYSINPUT=1 ../Qm
 
 # подключение сборки сторонних компонентов
 load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/3rdparty/$( FreeRTOS STM32Cube_FW_F2 Ramtex_Graphic_Lib libsigc++ )
-
-# подключение сборки платформы
-load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/platform/$( stm32f2-common $(BUILD_PORT) )
-LDSCRIPTS += ../system/platform/$(BUILD_PORT)/stm32_memory.ld
-
-# подключение сборки Qm
-load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." PLATFORM=stm32f2xx HARDWAREIO=1 KEYSINPUT=1 ../Qm
 
 # подключение сборки прошивки
 SOURCES += \
@@ -43,8 +44,8 @@ $(sources_to_objects $(SOURCES)): IDIR += \
 	../system/3rdparty/Ramtex_Graphic_Lib/inc \
 	../system/3rdparty/Ramtex_Graphic_Lib/fonts \
 	../system/3rdparty/Ramtex_Graphic_Lib/icons \
-	../system/platform/$(BUILD_PORT)/port_ramtex_s6d0129_cfg_stm32f2/ccfg0129 \
-	../system/platform/$(BUILD_PORT)/port_ramtex_s6d0129_cfg_stm32f2/cfgio
+	../system/port__$(BUILD_PORT)/port_ramtex_s6d0129_cfg_stm32f2/ccfg0129 \
+	../system/port__$(BUILD_PORT)/port_ramtex_s6d0129_cfg_stm32f2/cfgio
 
 SOURCES_system += \
 	system_stm32f2/hardware_startup.c \

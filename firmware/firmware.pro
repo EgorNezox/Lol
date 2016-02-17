@@ -31,8 +31,8 @@ INCLUDEPATH += \
     ../system/3rdparty/Ramtex_Graphic_Lib/inc \
     ../system/3rdparty/Ramtex_Graphic_Lib/fonts \
     ../system/3rdparty/Ramtex_Graphic_Lib/icons \
-    ../system/platform/pc-simulator/port_ramtex_s6d0129_cfg_qt5seps525widget/ccfg0129 \
-    ../system/platform/pc-simulator/port_ramtex_s6d0129_cfg_qt5seps525widget/cfgio \
-    ../system/platform/pc-simulator/port_ramtex_s6d0129_cfg_qt5seps525widget/qt
+    ../system/qm-platform/qt5/port_ramtex_s6d0129_cfg_seps525/ccfg0129 \
+    ../system/qm-platform/qt5/port_ramtex_s6d0129_cfg_seps525/cfgio \
+    ../system/qm-platform/qt5/port_ramtex_s6d0129_cfg_seps525/qt
 
 DEFINES += PORT__PCSIMULATOR

@@ -11,7 +11,8 @@ TEMPLATE = app
 
 include(misc/qt_build_utils.pri)
 
-include(system/platform/pc-simulator/pc-simulator.pri)
+include(system/qm-platform/qt5/qm-platform-qt5.pri)
+include(system/port__pc-simulator/pc-simulator.pri)
 
 !win32:CONFIG(debug, debug|release): error("Non-debug build isn't supported")
 LIBS += -L$$OUT_PWD/firmware/debug/ -lfirmware

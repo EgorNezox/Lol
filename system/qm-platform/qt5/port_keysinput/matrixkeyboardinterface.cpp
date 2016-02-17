@@ -9,7 +9,7 @@
 
 #include <qdebug.h>
 #include "matrixkeyboardinterface.h"
-#include "hardware_emulation.h"
+#include "hardware_resources.h"
 
 MatrixKeyboardInterface::MatrixKeyboardInterface(int keysNumber) :
     keys_number(keysNumber)
