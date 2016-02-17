@@ -299,13 +299,11 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		break;
 	case platformhwDataFlashSpi:
 		params.mode = hgpioMode_AF;
+		params.type = hgpioType_PPUp;
 		params.af = hgpioAF_SPI_3_I2S_3;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 10}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 11}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 12}, &params);
-		params.mode = hgpioMode_Out;
-		params.af = hgpioAF_SYS;
-		hal_gpio_init((hal_gpio_pin_t){hgpioPD, 2}, &params);
 		break;
 	case platformhwDataFlashCsPin:
 		params.mode = hgpioMode_Out;
@@ -388,7 +386,6 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 10});
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 11});
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 12});
-		hal_gpio_deinit((hal_gpio_pin_t){hgpioPD, 2});
 		break;
 	case platformhwDataFlashCsPin:
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPD, 2});
