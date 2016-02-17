@@ -39,6 +39,7 @@ public:
 
 	DspController(int uart_resource, int reset_iopin_resource, QmObject *parent);
 	~DspController();
+	bool isReady();
 	void startServicing();
 	void setRadioParameters(RadioMode mode, uint32_t frequency);
 	void setRadioOperation(RadioOperation operation);
