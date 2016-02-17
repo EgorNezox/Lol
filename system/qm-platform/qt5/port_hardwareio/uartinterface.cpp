@@ -11,7 +11,7 @@
 #include "qmuart.h"
 
 #include "uartinterface.h"
-#include "hardware_emulation.h"
+#include "hardware_resources.h"
 
 // workaround for nested forward declaration
 struct QmUart_ConfigStruct : QmUart::ConfigStruct

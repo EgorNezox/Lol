@@ -1,9 +1,8 @@
 /**
   ******************************************************************************
-  * @file    hardware_emulation.cpp
+  * @file    hardware_resources.cpp
   * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
   * @date    05.11.2015
-  * @brief   Реализация эмуляциии аппаратных ресурсов для Qt
   *
   ******************************************************************************
   */
@@ -12,8 +11,7 @@
 #include <qmap.h>
 #include <qmutex.h>
 
-#include "hardware_emulation.h"
-#include "mainwidget.h"
+#include "hardware_resources.h"
 
 #ifndef Q_MOC_RUN
 namespace QtHwEmu
@@ -21,31 +19,19 @@ namespace QtHwEmu
 class QtHwEmu
 #endif
 {
-#if defined(Q_MOC_RUN)
+#ifdef Q_MOC_RUN
 	Q_GADGET
 	Q_ENUMS(platformhw_resource_t)
 public:
 #endif
-#include "../platform_hw_map.h"
+#include "../../platform_hw_map.h"
 	extern const QMetaObject staticMetaObject;
 }
 
 namespace QtHwEmu {
 
-static MainWidget *main_widget = 0;
 static QMap<int, QObject*> resources_registry;
 static QMutex resources_registry_mutex;
-
-void init() {
-	Q_ASSERT(main_widget == 0);
-	main_widget = new MainWidget();
-	main_widget->show();
-}
-
-void deinit() {
-	Q_ASSERT(main_widget != 0);
-	delete main_widget;
-}
 
 int convertToPlatformHwResource(const QString &value) {
 	bool cast_is_ok = false;
@@ -79,4 +65,4 @@ void releaseResource(QObject *interface) {
 
 } /* namespace QtHwEmu */
 
-#include "hardware_emulation.moc"
+#include "hardware_resources.moc"

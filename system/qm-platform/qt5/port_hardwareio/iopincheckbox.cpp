@@ -10,7 +10,7 @@
 #include <qmetaobject.h>
 
 #include "iopincheckbox.h"
-#include "hardware_emulation.h"
+#include "hardware_resources.h"
 
 IopinCheckBox::IopinCheckBox(QWidget *parent, int hw_resource) :
 	QCheckBox(parent), pin_interface(0)
