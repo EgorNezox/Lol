@@ -10,7 +10,7 @@
 #ifndef I2CDEVICEINTERFACE_H_
 #define I2CDEVICEINTERFACE_H_
 
-#include <QObject>
+#include <qobject.h>
 
 class I2CBus;
 

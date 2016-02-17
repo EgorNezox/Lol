@@ -10,7 +10,7 @@
 #ifndef IOPINCHECKBOX_H_
 #define IOPINCHECKBOX_H_
 
-#include <QCheckBox>
+#include <qcheckbox.h>
 #include "iopininterface.h"
 
 class IopinCheckBox: public QCheckBox {

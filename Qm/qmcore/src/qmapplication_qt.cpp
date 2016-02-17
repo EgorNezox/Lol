@@ -8,7 +8,7 @@
   */
 
 #include "hardware_emulation.h"
-#include <QApplication>
+#include <qapplication.h>
 #include "qmevent.h"
 #include "qm_core.h"
 #include "qmapplication.h"

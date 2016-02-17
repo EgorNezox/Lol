@@ -7,7 +7,7 @@
   ******************************************************************************
   */
 
-#include <QDebug>
+#include <qdebug.h>
 #include "pushbuttonkeyinterface.h"
 #include "hardware_emulation.h"
 

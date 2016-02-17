@@ -10,7 +10,7 @@
 #ifndef MATRIXKEYBOARDINTERFACE_H
 #define MATRIXKEYBOARDINTERFACE_H
 
-#include <QObject>
+#include <qobject.h>
 
 class MatrixKeyboardInterface : public QObject
 {

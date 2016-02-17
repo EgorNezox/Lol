@@ -10,8 +10,8 @@
 #ifndef PUSHBUTTONKEYINTERFACE_H
 #define PUSHBUTTONKEYINTERFACE_H
 
-#include <QObject>
-#include <QMetaType>
+#include <qobject.h>
+#include <qmetaobject.h>
 
 class PushbuttonkeyInterface : public QObject
 {

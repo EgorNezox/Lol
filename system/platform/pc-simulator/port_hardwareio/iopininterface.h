@@ -10,8 +10,8 @@
 #ifndef IOPININTERFACE_H_
 #define IOPININTERFACE_H_
 
-#include <QObject>
-#include <QMetaType>
+#include <qobject.h>
+#include <qmetatype.h>
 
 class IopinInterface : public QObject
 {

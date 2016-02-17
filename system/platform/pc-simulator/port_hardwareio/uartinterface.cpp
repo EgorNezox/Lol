@@ -7,7 +7,7 @@
  ******************************************************************************
  */
 
-#include <QMetaMethod>
+#include <qmetaobject.h>
 #include "qmuart.h"
 
 #include "uartinterface.h"

@@ -10,9 +10,9 @@
 #ifndef I2CBUS_H_
 #define I2CBUS_H_
 
-#include <QObject>
-#include <QByteArray>
-#include <QMap>
+#include <qobject.h>
+#include <qbytearray.h>
+#include <qmap.h>
 
 class I2CDeviceInterface;
 

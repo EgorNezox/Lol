@@ -11,8 +11,8 @@
 #ifndef HARDWARE_EMULATION_H_
 #define HARDWARE_EMULATION_H_
 
-#include <QObject>
-#include <QString>
+#include <qobject.h>
+#include <qstring.h>
 
 namespace QtHwEmu {
 

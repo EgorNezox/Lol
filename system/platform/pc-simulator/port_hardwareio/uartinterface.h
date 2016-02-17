@@ -12,9 +12,9 @@
 #ifndef UARTINTERFACE_H_
 #define UARTINTERFACE_H_
 
-#include <QObject>
-#include <QByteArray>
-#include <QMutex>
+#include <qobject.h>
+#include <qbytearray.h>
+#include <qmutex.h>
 
 struct QmUart_ConfigStruct;
 

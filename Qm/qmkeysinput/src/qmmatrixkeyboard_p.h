@@ -20,9 +20,9 @@
 #include "qmevent.h"
 #endif /* QM_PLATFORM_STM32F2XX */
 #ifdef QM_PLATFORM_QT
-#include <QObject>
-#include <QList>
-#include <QTimer>
+#include <qobject.h>
+#include <qlist.h>
+#include <qtimer.h>
 #include "port_keysinput/matrixkeyboardinterface.h"
 #endif /* QM_PLATFORM_QT */
 

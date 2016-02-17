@@ -7,8 +7,7 @@
  ******************************************************************************
  */
 
-#include <QMetaEnum>
-#include <QMetaObject>
+#include <qmetaobject.h>
 
 #include "iopincheckbox.h"
 #include "hardware_emulation.h"

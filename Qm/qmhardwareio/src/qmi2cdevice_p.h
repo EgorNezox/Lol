@@ -21,8 +21,8 @@
 #include "qmtimer.h"
 #endif /* QM_PLATFORM_STM32F2XX */
 #ifdef QM_PLATFORM_QT
-#include <QObject>
-#include <QByteArray>
+#include <qobject.h>
+#include <qbytearray.h>
 #include "port_hardwareio/i2cbus.h"
 #endif /* QM_PLATFORM_QT */
 

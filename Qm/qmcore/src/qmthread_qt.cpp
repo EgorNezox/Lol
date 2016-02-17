@@ -7,9 +7,9 @@
   ******************************************************************************
   */
 
-#include <QMap>
-#include <QMutex>
-#include <QThread>
+#include <qmap.h>
+#include <qmutex.h>
+#include <qthread.h>
 
 #define QMDEBUGDOMAIN QmCore
 #include "qm.h"

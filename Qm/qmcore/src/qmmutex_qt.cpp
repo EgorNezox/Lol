@@ -7,7 +7,7 @@
   ******************************************************************************
   */
 
-#include <QMutex>
+#include <qmutex.h>
 
 #include "qmdebug.h"
 #include "qmmutex.h"

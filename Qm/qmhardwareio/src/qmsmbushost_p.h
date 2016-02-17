@@ -18,7 +18,7 @@
 #include "../../qmcore/src/qm_core.h"
 #endif /* QM_PLATFORM_STM32F2XX */
 #ifdef QM_PLATFORM_QT
-#include <QObject>
+#include <qobject.h>
 #include "port_hardwareio/i2cbus.h"
 #endif /* QM_PLATFORM_QT */
 

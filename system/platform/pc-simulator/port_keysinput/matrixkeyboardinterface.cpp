@@ -7,7 +7,7 @@
   ******************************************************************************
   */
 
-#include <QDebug>
+#include <qdebug.h>
 #include "matrixkeyboardinterface.h"
 #include "hardware_emulation.h"
 
