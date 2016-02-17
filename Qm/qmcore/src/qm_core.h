@@ -15,7 +15,7 @@
 #include "dl_list.h"
 #endif /* QM_PLATFORM_STM32F2XX */
 #ifdef QM_PLATFORM_QT
-#include <QEvent>
+#include <qevent.h>
 #endif /* QM_PLATFORM_QT */
 
 #ifdef QM_PLATFORM_STM32F2XX

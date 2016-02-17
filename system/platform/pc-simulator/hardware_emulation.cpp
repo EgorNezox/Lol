@@ -8,10 +8,9 @@
   ******************************************************************************
   */
 
-#include <QMetaEnum>
-#include <QMetaObject>
-#include <QMap>
-#include <QMutex>
+#include <qmetaobject.h>
+#include <qmap.h>
+#include <qmutex.h>
 
 #include "hardware_emulation.h"
 #include "mainwidget.h"

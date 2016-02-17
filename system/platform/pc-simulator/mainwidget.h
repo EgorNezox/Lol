@@ -11,7 +11,7 @@
 #ifndef MAINWIDGET_H
 #define MAINWIDGET_H
 
-#include <QWidget>
+#include <qwidget.h>
 
 namespace Ui {
 class MainWidget;

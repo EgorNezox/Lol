@@ -8,8 +8,8 @@
   */
 
 #ifdef QM_PLATFORM_QT
-#include <QtGlobal>
-#include <QTime>
+#include <qglobal.h>
+#include <qdatetime.h>
 #endif
 #ifdef QM_PLATFORM_STM32F2XX
 #include "FreeRTOS.h"
