@@ -9,7 +9,7 @@
 
 #include <qdebug.h>
 #include "pushbuttonkey.h"
-#include "hardware_emulation.h"
+#include "hardware_resources.h"
 
 PushButtonKey::PushButtonKey(QWidget *parent, int hw_resource) :
     QPushButton(parent), pbkey_interface(0)

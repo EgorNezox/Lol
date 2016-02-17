@@ -11,7 +11,7 @@
 
 #include "uartconsolewidget.h"
 #include "ui_uartconsolewidget.h"
-#include "hardware_emulation.h"
+#include "hardware_resources.h"
 
 enum {
 	rxeditAscii,

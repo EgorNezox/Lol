@@ -9,7 +9,7 @@
 
 #include <qdebug.h>
 #include "pushbuttonkeyinterface.h"
-#include "hardware_emulation.h"
+#include "hardware_resources.h"
 
 PushbuttonkeyInterface::PushbuttonkeyInterface()
 {
