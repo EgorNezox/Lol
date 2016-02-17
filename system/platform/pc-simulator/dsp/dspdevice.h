@@ -11,9 +11,9 @@
 #ifndef DSP_DSPDEVICE_H
 #define DSP_DSPDEVICE_H
 
-#include <QMetaType>
-#include <QFrame>
-#include <QTimer>
+#include <qmetaobject.h>
+#include <qframe.h>
+#include <qtimer.h>
 #include "port_hardwareio/iopininterface.h"
 
 class QLabel;

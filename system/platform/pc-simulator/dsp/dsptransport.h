@@ -10,7 +10,7 @@
 #ifndef DSP_DSPTRANSPORT_H_
 #define DSP_DSPTRANSPORT_H_
 
-#include <QObject>
+#include <qobject.h>
 
 class UartInterface;
 

@@ -12,7 +12,7 @@
 
 #include "qmobject_p.h"
 #ifdef QM_PLATFORM_QT
-#include <QApplication>
+#include <qapplication.h>
 #endif /* QM_PLATFORM_QT */
 #ifdef QM_PLATFORM_STM32F2XX
 #include "qmeventloop.h"

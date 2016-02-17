@@ -7,8 +7,8 @@
   ******************************************************************************
   */
 
-#include <QObject>
-#include <QEvent>
+#include <qobject.h>
+#include <qevent.h>
 
 #include "qmobject.h"
 #include "qmobject_p.h"

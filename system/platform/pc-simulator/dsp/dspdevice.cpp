@@ -8,8 +8,8 @@
   ******************************************************************************
   */
 
-#include <QMetaObject>
-#include <QtEndian>
+#include <qmetaobject.h>
+#include <qendian.h>
 #include "dspdevice.h"
 #include "ui_dspdevice.h"
 #include "dsptransport.h"

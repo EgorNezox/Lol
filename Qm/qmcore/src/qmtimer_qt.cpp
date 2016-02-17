@@ -7,7 +7,7 @@
   ******************************************************************************
   */
 
-#include <QTimer>
+#include <qtimer.h>
 
 #include "qmobject_p.h"
 #include "qmtimer.h"

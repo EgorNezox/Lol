@@ -11,8 +11,8 @@
 #ifndef ATU_ATUDEVICE_H
 #define ATU_ATUDEVICE_H
 
-#include <QFrame>
-#include <QTimer>
+#include <qframe.h>
+#include <qtimer.h>
 
 namespace Ui {
 class AtuDevice;

@@ -10,8 +10,8 @@
 #ifndef UARTCONSOLEWIDGET_H
 #define UARTCONSOLEWIDGET_H
 
-#include <QFrame>
-#include <QRegExpValidator>
+#include <qframe.h>
+#include <qvalidator.h>
 #include "uartinterface.h"
 
 namespace Ui {

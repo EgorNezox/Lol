@@ -10,7 +10,7 @@
 #ifndef PUSHBUTTONKEY_H
 #define PUSHBUTTONKEY_H
 
-#include <QPushButton>
+#include <qpushbutton.h>
 #include "pushbuttonkeyinterface.h"
 
 class PushButtonKey : public QPushButton

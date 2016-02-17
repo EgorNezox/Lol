@@ -7,7 +7,7 @@
  ******************************************************************************
  */
 
-#include <QMetaMethod>
+#include <qmetaobject.h>
 
 #include "i2cbus.h"
 #include "i2cdeviceinterface.h"

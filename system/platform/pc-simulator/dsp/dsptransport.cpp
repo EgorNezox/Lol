@@ -7,7 +7,7 @@
  ******************************************************************************
  */
 
-#include <QtEndian>
+#include <qendian.h>
 #include "qmcrc.h"
 #include "port_hardwareio/uartinterface.h"
 #include "dsptransport.h"

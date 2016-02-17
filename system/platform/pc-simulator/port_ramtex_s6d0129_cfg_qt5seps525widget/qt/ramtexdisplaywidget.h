@@ -12,9 +12,9 @@
 #define RAMTEXDISPLAYWIDGET_H
 
 #ifdef __cplusplus
-#include <QWidget>
-#include <QMap>
-#include <QImage>
+#include <qwidget.h>
+#include <qmap.h>
+#include <qimage.h>
 #include "sgio.h"
 #endif /* __cplusplus */
 

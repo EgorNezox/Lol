@@ -7,7 +7,7 @@
  ******************************************************************************
  */
 
-#include <QTextTable>
+#include <qtexttable.h>
 
 #include "uartconsolewidget.h"
 #include "ui_uartconsolewidget.h"

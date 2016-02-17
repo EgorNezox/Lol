@@ -7,7 +7,7 @@
   ******************************************************************************
   */
 
-#include <QDebug>
+#include <qdebug.h>
 #include "qmmatrixkeyboard.h"
 #include "qmmatrixkeyboard_p.h"
 

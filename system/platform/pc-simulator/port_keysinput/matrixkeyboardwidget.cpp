@@ -7,7 +7,7 @@
   ******************************************************************************
   */
 
-#include <QDebug>
+#include <qdebug.h>
 #include "matrixkeyboardwidget.h"
 #include "ui_matrixkeyboardwidget.h"
 

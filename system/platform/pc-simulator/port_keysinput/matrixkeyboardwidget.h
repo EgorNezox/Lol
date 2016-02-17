@@ -10,8 +10,8 @@
 #ifndef MATRIXKEYBOARDWIDGET_H
 #define MATRIXKEYBOARDWIDGET_H
 
-#include <QFrame>
-#include <QButtonGroup>
+#include <qframe.h>
+#include <qbuttongroup.h>
 #include "matrixkeyboardinterface.h"
 
 namespace Ui {

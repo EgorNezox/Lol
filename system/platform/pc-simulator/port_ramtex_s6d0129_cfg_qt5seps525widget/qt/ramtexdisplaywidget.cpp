@@ -9,7 +9,7 @@
   */
 
 #include "gdispcfg.h"
-#include <QPainter>
+#include <qpainter.h>
 
 #include "ramtexdisplaywidget.h"
 
