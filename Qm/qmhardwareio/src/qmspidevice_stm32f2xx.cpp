@@ -14,7 +14,7 @@
 
 QmSPIDevicePrivate::QmSPIDevicePrivate(QmSPIDevice *q) :
 	QmObjectPrivate(q),
-	bus_hw_resource(-1), cs_hw_resource(-1)
+	cs_hw_resource(-1), bus_instance(-1)
 {
 }
 
@@ -26,9 +26,10 @@ void QmSPIDevicePrivate::init(int bus_hw_resource, QmSPIDevice::BusConfigStruct 
 	this->cs_hw_resource = cs_hw_resource;
 	if (cs_hw_resource != -1) {
 		stm32f2_ext_pins_init(cs_hw_resource);
-		hal_gpio_set_output(stm32f2_get_gpio_pin(cs_hw_resource), hgpioHigh);
+		cs_pin = stm32f2_get_gpio_pin(cs_hw_resource);
+		hal_gpio_set_output(cs_pin, hgpioHigh);
 	}
-	this->bus_hw_resource = bus_hw_resource;
+	bus_instance = stm32f2_get_spi_bus_instance(bus_hw_resource);
 	hal_spi_init_master_transfer_struct(&spi_transfer);
 	spi_transfer.max_baud_rate = bus_config->max_baud_rate;
 	switch (bus_config->cpha) {
@@ -50,30 +51,46 @@ void QmSPIDevicePrivate::deinit() {
 		stm32f2_ext_pins_deinit(cs_hw_resource);
 }
 
-bool QmSPIDevicePrivate::transferFullDuplex() {
+void QmSPIDevicePrivate::chipSelect() {
+	if (cs_hw_resource != -1)
+		hal_gpio_set_output(cs_pin, hgpioLow);
+}
+
+void QmSPIDevicePrivate::chipDeselect() {
+	if (cs_hw_resource != -1)
+		hal_gpio_set_output(cs_pin, hgpioHigh);
+}
+
+bool QmSPIDevice::transferBurstFullDuplex8bit(FD8Burst *bursts, int count) {
+	QM_D(QmSPIDevice);
 	bool result;
-	if (cs_hw_resource != -1)
-		hal_gpio_set_output(stm32f2_get_gpio_pin(cs_hw_resource), hgpioLow);
-	result = hal_spi_master_fd_transfer(stm32f2_get_spi_bus_instance(bus_hw_resource), &spi_transfer);
-	if (cs_hw_resource != -1)
-		hal_gpio_set_output(stm32f2_get_gpio_pin(cs_hw_resource), hgpioHigh);
+	d->chipSelect();
+	d->spi_transfer.data_size = hspiDataSize8bit;
+	for (int i = 0; i < count; i++) {
+		d->spi_transfer.rx_buffer = bursts[i].rx_data;
+		d->spi_transfer.tx_buffer = bursts[i].tx_data;
+		d->spi_transfer.buffer_size = bursts[i].count;
+		result = hal_spi_master_fd_transfer(d->bus_instance, &(d->spi_transfer));
+		if (!result)
+			break;
+	}
+	d->chipDeselect();
 	return result;
 }
 
-bool QmSPIDevice::transferFullDuplex8bit(uint8_t *rx_data, uint8_t *tx_data, int count) {
+bool QmSPIDevice::transferBurstFullDuplex16bit(FD16Burst *bursts, int count) {
 	QM_D(QmSPIDevice);
-	d->spi_transfer.data_size = hspiDataSize8bit;
-	d->spi_transfer.rx_buffer = rx_data;
-	d->spi_transfer.tx_buffer = tx_data;
-	d->spi_transfer.buffer_size = count;
-	return d->transferFullDuplex();
-}
-
-bool QmSPIDevice::transferFullDuplex16bit(uint16_t *rx_data, uint16_t *tx_data, int count) {
-	QM_D(QmSPIDevice);
+	bool result;
+	d->chipSelect();
 	d->spi_transfer.data_size = hspiDataSize16bit;
-	d->spi_transfer.rx_buffer = (uint8_t *)rx_data;
-	d->spi_transfer.tx_buffer = (uint8_t *)tx_data;
-	d->spi_transfer.buffer_size = 2*count;
-	return d->transferFullDuplex();
+	for (int i = 0; i < count; i++) {
+		d->spi_transfer.rx_buffer = (uint8_t *)(bursts[i].rx_data);
+		d->spi_transfer.tx_buffer = (uint8_t *)(bursts[i].tx_data);
+		d->spi_transfer.buffer_size = 2*(bursts[i].count);
+		result = hal_spi_master_fd_transfer(d->bus_instance, &(d->spi_transfer));
+		if (!result)
+			break;
+	}
+	d->chipDeselect();
+	return result;
 }

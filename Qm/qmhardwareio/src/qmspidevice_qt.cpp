@@ -7,7 +7,9 @@
   ******************************************************************************
   */
 
+#include <string.h>
 #include <qevent.h>
+#include <qbytearray.h>
 
 #include "qm.h"
 #include "qmspidevice_p.h"
@@ -43,7 +45,7 @@ bool QmSPIDevicePrivateAdapter::event(QEvent *e) {
 
 QmSPIDevicePrivate::QmSPIDevicePrivate(QmSPIDevice *q) :
 	QmObjectPrivate(q),
-	bus_hw_resource(-1), cs_hw_resource(-1), spidevice_adapter(0)
+	cs_hw_resource(-1), spidevice_adapter(0), bus_hw_resource(-1)
 {
 }
 
@@ -63,14 +65,46 @@ void QmSPIDevicePrivate::deinit()
 	delete spidevice_adapter;
 }
 
-bool QmSPIDevice::transferFullDuplex8bit(uint8_t *rx_data, uint8_t *tx_data, int count) {
+bool QmSPIDevice::transferBurstFullDuplex8bit(FD8Burst *bursts, int count) {
 	QM_D(QmSPIDevice);
-	Q_EMIT d->spidevice_adapter->transferFullDuplex8bit(d->cs_hw_resource, rx_data, tx_data, count);
+	int total_count = 0;
+	QByteArray rx_buffer, tx_buffer;
+	for (int i = 0; i < count; i++) {
+		if (bursts[i].tx_data)
+			tx_buffer.append((char *)bursts[i].tx_data, bursts[i].count);
+		else
+			tx_buffer.append(QByteArray(bursts[i].count, 0xFF));
+		total_count += bursts[i].count;
+	}
+	rx_buffer.resize(total_count);
+	Q_EMIT d->spidevice_adapter->transferFullDuplex8bit(d->cs_hw_resource, (quint8 *)rx_buffer.data(), (quint8 *)tx_buffer.data(), total_count);
+	total_count = 0;
+	for (int i = 0; i < count; i++) {
+		if (bursts[i].rx_data)
+			memcpy(bursts[i].rx_data, rx_buffer.data() + total_count, bursts[i].count);
+		total_count += bursts[i].count;
+	}
 	return true;
 }
 
-bool QmSPIDevice::transferFullDuplex16bit(uint16_t *rx_data, uint16_t *tx_data, int count) {
+bool QmSPIDevice::transferBurstFullDuplex16bit(FD16Burst *bursts, int count) {
 	QM_D(QmSPIDevice);
-	Q_EMIT d->spidevice_adapter->transferFullDuplex16bit(d->cs_hw_resource, rx_data, tx_data, count);
+	int total_count = 0;
+	QByteArray rx_buffer, tx_buffer;
+	for (int i = 0; i < count; i++) {
+		if (bursts[i].tx_data)
+			tx_buffer.append((char *)(bursts[i].tx_data), 2*(bursts[i].count));
+		else
+			tx_buffer.append(QByteArray(2*(bursts[i].count), 0xFF));
+		total_count += bursts[i].count;
+	}
+	rx_buffer.resize(2*total_count);
+	Q_EMIT d->spidevice_adapter->transferFullDuplex16bit(d->cs_hw_resource, (quint16 *)rx_buffer.data(), (quint16 *)tx_buffer.data(), total_count);
+	total_count = 0;
+	for (int i = 0; i < count; i++) {
+		if (bursts[i].rx_data)
+			memcpy(bursts[i].rx_data, rx_buffer.data() + 2*total_count, 2*(bursts[i].count));
+		total_count += bursts[i].count;
+	}
 	return true;
 }
