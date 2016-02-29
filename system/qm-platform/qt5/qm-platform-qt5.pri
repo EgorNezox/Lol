@@ -11,6 +11,7 @@ CONFIG += no_keywords # because of conflict with libsigc++
 
 INCLUDEPATH += \
     $$PWD \
+    $$PWD/../config \
     $$PWD/port_ramtex_s6d0129_cfg_seps525/ccfg0129 \
     $$PWD/port_ramtex_s6d0129_cfg_seps525/cfgio \
     $$PWD/port_ramtex_s6d0129_cfg_seps525/qt

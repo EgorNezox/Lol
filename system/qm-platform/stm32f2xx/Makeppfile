@@ -12,14 +12,11 @@ include misc/target_build_header.mk
 # STM32CubeF2 (CMSIS) Configuration
 DEFINES_system += "HSE_STARTUP_TIMEOUT=(0xFFFF)" # required for generated system_stm32f2xx__$(BUILD_PORT).c sources
 
-# FreeRTOS ARM Cortex-M3 port
+# FreeRTOS ARM Cortex-M3 port (Qm bare-metal)
 SOURCES_system += \
 	$(wildcard port_freertos_gcc_arm_cm3/*.c)
 INCLUDEPATH_system += \
-	port_freertos_gcc_arm_cm3
-
-# QmCore port for bare-metal freertos
-INCLUDEPATH_system += \
+	port_freertos_gcc_arm_cm3 \
 	port_qmcore_bmfreertos
 
 # newlib system integration
