@@ -1,0 +1,18 @@
+SPIFFS (SPI Flash File System)
+release 0.3.4 (https://github.com/pellepl/spiffs)
+
+Внесены изменения:
+- исправлен warning компилятора о неиспользуемом аргументе функции SPIFFS_buffer_bytes_for_filedescs()
+
+diff --git a/src/spiffs_hydrogen.c b/src/spiffs_hydrogen.c
+index a4c74cd..3a18538 100644
+--- a/src/spiffs_hydrogen.c
++++ b/src/spiffs_hydrogen.c
+@@ -22,6 +22,7 @@ static s32_t spiffs_fflush_cache(spiffs *fs, spiffs_file fh);
+ 
+ #if SPIFFS_BUFFER_HELP
+ u32_t SPIFFS_buffer_bytes_for_filedescs(spiffs *fs, u32_t num_descs) {
++  (void)fs;
+   return num_descs * sizeof(spiffs_fd);
+ }
+ #if SPIFFS_CACHE

@@ -11,7 +11,8 @@
 
 INCLUDEPATH += \
 	$$PWD/qmcore/include \
-	$$PWD/qmhardwareio/include
+	$$PWD/qmhardwareio/include \
+	$$PWD/qmstorage/include
 DEFINES += QM_PLATFORM_QT
 
 contains(QM_BUILD_MODULES,core) {
@@ -49,4 +50,11 @@ contains(QM_BUILD_MODULES,hardwareio) {
         $$PWD/qmhardwareio/src/qmspibus_qt.cpp \
         $$PWD/qmhardwareio/src/qmspidevice.cpp \
         $$PWD/qmhardwareio/src/qmspidevice_qt.cpp
+}
+
+contains(QM_BUILD_MODULES,storage) {
+    SOURCES += \
+        $$PWD/qmstorage/src/qmfile.cpp \
+        $$PWD/qmstorage/src/qmspiffs.cpp \
+        $$PWD/qmstorage/src/qmm25pdevice.cpp
 }
