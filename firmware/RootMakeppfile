@@ -13,6 +13,7 @@ include misc/target_build_subproject_header.mk
 
 # функциональные опции сборки
 DEFINES_system += BUILD_OPTION_ENABLE_DISPLAY_BUFFER=1
+DEFINES_system += GCS_DARK=1 
 
 # подключение сборки сторонних компонентов
 load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/3rdparty/$( FreeRTOS STM32Cube_FW_F2 Ramtex_Graphic_Lib libsigc++ )
