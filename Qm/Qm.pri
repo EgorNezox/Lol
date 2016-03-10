@@ -11,10 +11,11 @@
 
 INCLUDEPATH += \
 	$$PWD/qmcore/include \
-	$$PWD/qmhardwareio/include
+	$$PWD/qmhardwareio/include \
+	$$PWD/qmstorage/include
+DEFINES += QM_PLATFORM_QT
 
 contains(QM_BUILD_MODULES,core) {
-    DEFINES += QMCORE_PLATFORM_QT
     SOURCES += \
         $$PWD/qmcore/src/qm_core_qt.cpp \
         $$PWD/qmcore/src/qmdebug.cpp \
@@ -25,17 +26,18 @@ contains(QM_BUILD_MODULES,core) {
         $$PWD/qmcore/src/qmmutexlocker.cpp \
         $$PWD/qmcore/src/qmtimer.cpp \
         $$PWD/qmcore/src/qmtimer_qt.cpp \
+        $$PWD/qmcore/src/qmelapsedtimer_qt.cpp \
         $$PWD/qmcore/src/qmapplication.cpp \
         $$PWD/qmcore/src/qmapplication_qt.cpp
 }
 
 contains(QM_BUILD_MODULES,hardwareio) {
-    DEFINES += QMHARDWAREIO_PLATFORM_QT
     HEADERS += \
         $$PWD/qmhardwareio/src/qmiopin_p.h \
         $$PWD/qmhardwareio/src/qmuart_p.h \
         $$PWD/qmhardwareio/src/qmi2cdevice_p.h \
-        $$PWD/qmhardwareio/src/qmsmbushost_p.h
+        $$PWD/qmhardwareio/src/qmsmbushost_p.h \
+        $$PWD/qmhardwareio/src/qmspidevice_p.h
     SOURCES += \
         $$PWD/qmhardwareio/src/qmiopin.cpp \
         $$PWD/qmhardwareio/src/qmiopin_qt.cpp \
@@ -44,5 +46,15 @@ contains(QM_BUILD_MODULES,hardwareio) {
         $$PWD/qmhardwareio/src/qmi2cdevice.cpp \
         $$PWD/qmhardwareio/src/qmi2cdevice_qt.cpp \
         $$PWD/qmhardwareio/src/qmsmbushost.cpp \
-        $$PWD/qmhardwareio/src/qmsmbushost_qt.cpp
+        $$PWD/qmhardwareio/src/qmsmbushost_qt.cpp \
+        $$PWD/qmhardwareio/src/qmspibus_qt.cpp \
+        $$PWD/qmhardwareio/src/qmspidevice.cpp \
+        $$PWD/qmhardwareio/src/qmspidevice_qt.cpp
+}
+
+contains(QM_BUILD_MODULES,storage) {
+    SOURCES += \
+        $$PWD/qmstorage/src/qmfile.cpp \
+        $$PWD/qmstorage/src/qmspiffs.cpp \
+        $$PWD/qmstorage/src/qmm25pdevice.cpp
 }

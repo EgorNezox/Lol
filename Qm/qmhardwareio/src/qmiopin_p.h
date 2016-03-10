@@ -13,17 +13,17 @@
 #include "../../qmcore/src/qmobject_p.h"
 #include "qmiopin.h"
 
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 #include "hal_gpio.h"
 #include "hal_exti.h"
 #include "../../qmcore/src/qm_core.h"
-#endif
-#ifdef QMHARDWAREIO_PLATFORM_QT
-#include <QObject>
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
+#include <qobject.h>
 #include "port_hardwareio/iopininterface.h"
-#endif /* QMHARDWAREIO_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 class QmIoPinTriggerEvent : public QmSystemEvent
 {
 public:
@@ -32,8 +32,8 @@ private:
 	QmIopin *o;
 	void process();
 };
-#endif
-#ifdef QMHARDWAREIO_PLATFORM_QT
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
 class QmIopinPrivate;
 class QmIopinPrivateAdapter : public QObject
 {
@@ -49,7 +49,7 @@ public Q_SLOTS:
 Q_SIGNALS:
 	void writeOutputLevel(IopinInterface::Level level);
 };
-#endif /* QMHARDWAREIO_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 
 class QmIopinPrivate : public QmObjectPrivate {
 	QM_DECLARE_PUBLIC(QmIopin)
@@ -61,17 +61,17 @@ private:
 	void deinit();
 	int hw_resource;
 	QmIopin::LevelTriggerMode input_trigger_mode;
-#ifdef QMHARDWAREIO_PLATFORM_STM32F2XX
+#ifdef QM_PLATFORM_STM32F2XX
 	hal_gpio_pin_t gpio_pin;
 	int exti_line;
 	hal_exti_handle_t exti_handle;
 	QmIoPinTriggerEvent trigger_event;
-#endif
-#ifdef QMHARDWAREIO_PLATFORM_QT
+#endif /* QM_PLATFORM_STM32F2XX */
+#ifdef QM_PLATFORM_QT
 	friend class QmIopinPrivateAdapter;
 	QmIopinPrivateAdapter *iopin_adapter;
 	QmIopin::Level input_level;
-#endif /* QMHARDWAREIO_PLATFORM_QT */
+#endif /* QM_PLATFORM_QT */
 };
 
 #endif /* QMIOPIN_P_H_ */

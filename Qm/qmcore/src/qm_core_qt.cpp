@@ -7,7 +7,7 @@
   ******************************************************************************
   */
 
-#include <QEvent>
+#include <qevent.h>
 
 #include "qm.h"
 #include "qmevent.h"

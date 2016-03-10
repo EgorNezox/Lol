@@ -7,11 +7,11 @@
   ******************************************************************************
   */
 
-#ifdef QMCORE_PLATFORM_QT
-#include <QtGlobal>
-#include <QTime>
+#ifdef QM_PLATFORM_QT
+#include <qglobal.h>
+#include <qdatetime.h>
 #endif
-#ifdef QMCORE_PLATFORM_BMFREERTOS
+#ifdef QM_PLATFORM_STM32F2XX
 #include "FreeRTOS.h"
 #include "task.h"
 #endif
@@ -38,7 +38,7 @@ void QmDebug::message(const char * domain_name, msg_type_t type, const char * fo
 
 	qmdebug_mutex.lock();
 
-#ifdef QMCORE_PLATFORM_QT
+#ifdef QM_PLATFORM_QT
 	{
 		QTime t = QTime::currentTime();
 		char *buffer = 0;
@@ -49,12 +49,12 @@ void QmDebug::message(const char * domain_name, msg_type_t type, const char * fo
 		qDebug("[%02u:%02u:%02u.%03u, %s] %s: %s", t.hour(), t.minute(), t.second(), t.msec(), type_str, domain_name, buffer);
 		delete []buffer;
 	}
-#endif /* QMCORE_PLATFORM_QT */
-#ifdef QMCORE_PLATFORM_BMFREERTOS
+#endif /* QM_PLATFORM_QT */
+#ifdef QM_PLATFORM_STM32F2XX
 	printf("[%010lut, %s] %s: ", xTaskGetTickCount(), type_str, domain_name);
 	vprintf(format, args);
 	putchar('\n');
-#endif /* QMCORE_PLATFORM_BMFREERTOS */
+#endif /* QM_PLATFORM_STM32F2XX */
 
 	qmdebug_mutex.unlock();
 
