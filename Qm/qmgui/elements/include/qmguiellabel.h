@@ -21,11 +21,10 @@ struct QmGuiLabelParams{
 
 class QmGuiVisualObject;
 
-/*!Класс элемента надпись*/
 class QmGuiElLabel: public QmGuiElement{
 	public:
-		void Draw();
 		QmGuiElLabel(QmGuiLabelParams *params, char *text, QmGuiVisualObject *parent_obj);
+		void Draw();
 		void SetText(char *text);
 	private:
 		PGFONT font;
