@@ -57,7 +57,8 @@ void qmMain() {
 	ui_matrixkb_desc.key_id[platformhwKey9] = Ui::matrixkbkey9;
 	ui_auxkb_desc.key_iopin_resource[Ui::auxkbkeyChNext] = platformhwKeyboardButt1Iopin;
 	ui_auxkb_desc.key_iopin_resource[Ui::auxkbkeyChPrev] = platformhwKeyboardButt2Iopin;
-	Ui::Service ui_service(ui_matrixkb_desc, ui_auxkb_desc,
+
+    Ui::Service ui_service(ui_matrixkb_desc, ui_auxkb_desc,
 			&headset_controller,
 			mr_dispatcher.getMainServiceInterface(), mr_dispatcher.getVoiceServiceInterface(),
 			&power_battery);
@@ -65,9 +66,11 @@ void qmMain() {
 	kb_light_iopin.writeOutput(QmIopin::Level_Low);
 	data_storage_fs.init();
 	data_storage_fs.getVoiceChannelsTable(mr_channels_table);
-	if (mr_channels_table.empty())
+
+    if (mr_channels_table.empty())
 		ui_service.setNotification(Ui::NotificationMissingVoiceChannelsTable);
-	enrxrs232_iopin.writeOutput(QmIopin::Level_Low);
+
+    enrxrs232_iopin.writeOutput(QmIopin::Level_Low);
 	entxrs232_iopin.writeOutput(QmIopin::Level_High);
 	headset_controller.startServicing(mr_channels_table);
 	mr_dispatcher.startServicing(mr_channels_table);

@@ -556,9 +556,10 @@ void GUI_EL_Window::Draw(){
 
 //-----------------------------
 
-void GUI_EL_Window::CalcContentGeom(){
-	content.H=GEOM_H(el_geom);
-	content.W=GEOM_W(el_geom);
+void GUI_EL_Window::CalcContentGeom()
+{
+    content.H = GEOM_H(el_geom);
+    content.W = GEOM_W(el_geom);
 }
 
 
@@ -566,25 +567,37 @@ void GUI_EL_Window::CalcContentGeom(){
 
 //+++++++++++++Menu Item+++++++++++++++++++++
 
-GUI_EL_MenuItem::GUI_EL_MenuItem(MenuItemParams *params, MoonsGeometry *geom, char *text, bool draw_mark, GUI_Obj *parrent_obj):GUI_EL_Label(&params->label_params, geom, text, parrent_obj),
-	mark(&params->icon_params.element, geom, params->icon_params.icon, parrent_obj){
-	this->draw_mark=draw_mark;
+GUI_EL_MenuItem::GUI_EL_MenuItem(MenuItemParams *params,
+                                 MoonsGeometry  *geom,
+                                 char           *text,
+                                 bool            draw_mark,
+                                 bool            rec_flag,
+                                 GUI_Obj        *parrent_obj
+                                ):
+                                 GUI_EL_Label(&params->label_params, geom, text, parrent_obj),
+                                 mark(&params->icon_params.element, geom, params->icon_params.icon, parrent_obj)
+{
+    this->draw_mark = draw_mark;
+    this->rec_flag = rec_flag;
 }
 
-void GUI_EL_MenuItem::Draw(){
+void GUI_EL_MenuItem::Draw()
+{
 	GUI_EL_Label::Draw();
-	if(draw_mark) mark.Draw();
+    if (draw_mark) mark.Draw();
 	PrepareViewport();
-	gsetcolorf(GENERAL_FORE_COLOR);
-	groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,GLINE);
+    gsetcolorf(GENERAL_FORE_COLOR);
+    if (rec_flag)
+        groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,GLINE);
 
 }
 
 //-----------------------------
 
-void GUI_EL_MenuItem::CalcContentGeom(){
-	content.W=GEOM_W(el_geom)- margins.Left-margins.Right;
-	content.H=GEOM_H(el_geom)- margins.Top-margins.Bottom;
+void GUI_EL_MenuItem::CalcContentGeom()
+{
+    content.W = GEOM_W(el_geom) - margins.Left-margins.Right;
+    content.H = GEOM_H(el_geom) - margins.Top-margins.Bottom;
 }
 
 
@@ -592,11 +605,16 @@ void GUI_EL_MenuItem::CalcContentGeom(){
 
 //+++++++++++++Slider+++++++++++++++++++++
 
-GUI_EL_Slider::GUI_EL_Slider(SliderParams *params, MoonsGeometry *geom, GUI_Obj *parrent_obj):GUI_Element(geom, &no_align, &zero_margins, parrent_obj),
-	up_arrow(&GUI_EL_TEMP_SliderUpArrow, geom, sym_arrow_up, parrent_obj),
-	down_arrow(&GUI_EL_TEMP_SliderDownArrow, geom, sym_arrow_down, parrent_obj){
-	list_size=params->list_size;
-	window_size=params->window_size;
+GUI_EL_Slider::GUI_EL_Slider( SliderParams  *params,
+                              MoonsGeometry *geom,
+                              GUI_Obj       *parrent_obj
+                              ):
+                            GUI_Element(geom, &no_align, &zero_margins, parrent_obj),
+                            up_arrow(&GUI_EL_TEMP_SliderUpArrow, geom, sym_arrow_up, parrent_obj),
+                            down_arrow(&GUI_EL_TEMP_SliderDownArrow, geom, sym_arrow_down, parrent_obj)
+{
+    list_size   = params->list_size;
+    window_size = params->window_size;
 	SetWindowOffset(params->window_offset);
 }
 

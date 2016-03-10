@@ -22,7 +22,9 @@ SOURCES += \
     $$wildcardSources(app/headset, *.cpp) \
     $$wildcardSources(app/mrd, *.cpp) \
     $$wildcardSources(app/power, *.cpp) \
-    $$wildcardSources(app/ui, *.cpp)
+    $$wildcardSources(app/ui, *.cpp) \
+    app/ui/menu.cpp \
+    app/ui/gui_tree.cpp
 
 #!!! Временный хак для реализации прямого доступа к Ramtex из модуля UI
 #!!! Убрать, когда модуль будет переработан на использование средств Qm
@@ -36,3 +38,9 @@ INCLUDEPATH += \
     ../system/qm-platform/qt5/port_ramtex_s6d0129_cfg_seps525/qt
 
 DEFINES += PORT__PCSIMULATOR
+
+HEADERS += \
+    app/ui/menu.h \
+    app/ui/elements.h \
+    app/ui/service.h \
+    app/ui/gui_tree.h

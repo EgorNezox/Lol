@@ -20,10 +20,17 @@
 #include "../headset/controller.h"
 #include "../power/battery.h"
 
+#include "gui_obj.h"
+#include "menu.h"
+#include "gui_tree.h"
+
 /*FORWARD DECLARATIONS*/
 class GUI_Dialog_MainScr;
 class GUI_Indicator;
 class GUI_Dialog_MsgBox;
+class CGuiMenu;
+
+//class CGuiMenu;
 
 namespace Headset {
     class Controller;
@@ -54,7 +61,7 @@ public:
 	~Service();
 	void setNotification(NotificationType type);
 private:
-	void msgBox(char *text);
+    void msgBox(const char *text);
 	matrix_keyboard_t matrix_kb;
 	aux_keyboard_t aux_kb;
 	Headset::Controller *headset_controller;
@@ -65,9 +72,14 @@ private:
 	QmPushButtonKey *chnext_bt;
 	QmPushButtonKey *chprev_bt;
 	static bool single_instance;
-	GUI_Dialog_MainScr *main_scr;
-	GUI_Indicator *indicator;
-	GUI_Dialog_MsgBox *msg_box;
+
+    GUI_Dialog_MainScr  *main_scr;
+    GUI_Indicator       *indicator;
+    GUI_Dialog_MsgBox   *msg_box;
+
+    CGuiMenu *menu;
+    //GUI_Obj  currentBox;
+
 	void voiceChannelChanged();
 	void chNextHandler();
 	void chPrevHandler();
@@ -78,11 +90,15 @@ private:
 	Multiradio::VoiceServiceInterface* pGetVoiceService();
 	Power::Battery * pGetPowerBattery();
 	int getLanguage();
-	void clearNotification();
-	bool notify_dialog;
-	friend GUI_Indicator;
-	friend GUI_Dialog_MainScr;
-	friend GUI_Dialog_MsgBox;
+
+    void drawMainWindow();
+
+//	friend GUI_Indicator;
+//	friend GUI_Dialog_MainScr;
+//	friend GUI_Dialog_MsgBox;
+
+    void openMenu();
+    void draw();
 };
 
 } /* namespace Ui */

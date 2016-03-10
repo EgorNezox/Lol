@@ -55,7 +55,7 @@ extern LabelParams GUI_EL_TEMP_LabelCoords;
 extern LabelParams GUI_EL_TEMP_LabelSpBoxActive;
 extern LabelParams GUI_EL_TEMP_LabelSpBoxInactive;
 extern LabelParams GUI_EL_TEMP_LabelButton;
-extern LabelParams GUI_EL_TEMP_LabelMode;;
+extern LabelParams GUI_EL_TEMP_LabelMode;
 extern TextAreaParams GUI_EL_TEMP_CommonTextAreaLT;
 extern TextAreaParams GUI_EL_TEMP_CommonTextAreaCT;
 extern ElementParams GUI_EL_TEMP_IconSpBoxUp;

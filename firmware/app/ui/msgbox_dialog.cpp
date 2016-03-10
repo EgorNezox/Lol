@@ -31,12 +31,12 @@
 
 //----------CODE---------------
 
-GUI_Dialog_MsgBox::GUI_Dialog_MsgBox(MoonsGeometry* area, char *text, Alignment align, Ui::Service *service):GUI_Obj(area){
+GUI_Dialog_MsgBox::GUI_Dialog_MsgBox(MoonsGeometry* area, char *text, Alignment align):GUI_Obj(area){
 	window_geom={0,0,(GXT)(GEOM_W(this->area)-1),(GYT)(GEOM_H(this->area)-1)};
 	text_area_params=GUI_EL_TEMP_CommonTextAreaLT;
 	text_area_params.element.align=align;
 	this->text=text;
-	this->service=service;
+//	this->service=service;
 }
 
 //----------------------------
@@ -55,7 +55,7 @@ void GUI_Dialog_MsgBox::Draw(){
 	button_geom.ye=window_geom.ye-MARGIN;
 	GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral,&window_geom,(GUI_Obj *)this);
 	GUI_EL_TextArea text_area(&text_area_params,&text_area_geom,text,(GUI_Obj *)this);
-	GUI_EL_Button ok_button(&GUI_EL_TEMP_LabelButton, &button_geom, ok_texts[service->getLanguage()], bs_unselected,(GUI_Obj *)this);
+    GUI_EL_Button ok_button(&GUI_EL_TEMP_LabelButton, &button_geom, ok_texts[/*service->getLanguage()*/0], bs_unselected,(GUI_Obj *)this);
 
 	window.Draw();
 	text_area.Draw();
@@ -63,13 +63,13 @@ void GUI_Dialog_MsgBox::Draw(){
 }
 
 //-----------------------------
-
+/*
 void GUI_Dialog_MsgBox::keyHandler(UI_Key key){
 	switch(key){
-		case keyEnter:
-			service->clearNotification();
-			delete this;
+        case keyEnter:
+            //delete this;
 		default:
 			break;
 	}
 }
+*/

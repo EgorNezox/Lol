@@ -1,5 +1,8 @@
 #ifndef GDISPCFG_H
 #define GDISPCFG_H
+
+#include "sgtypes.h"
+
 /******************* gdispcfg.h *****************************
 
    CONFIGURATION FILE FOR THE GRAPHIC DISPLAY LIBRARY
