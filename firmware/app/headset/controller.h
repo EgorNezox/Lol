@@ -62,6 +62,7 @@ private:
 	void transmitCmd(uint8_t cmd, uint8_t *data, int data_len);
 	void processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len);
 	void processReceivedStatus(uint8_t* data, int data_len);
+	void processReceivedStatusAsync(uint8_t* data, int data_len);
 	void processHSUartPolling();
 	void processCmdResponceTimeout();
 	void processInitSmartHS();

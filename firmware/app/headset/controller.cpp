@@ -133,6 +133,11 @@ void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len) {
 			qmDebugMessage(QmDebug::Dump, "unexpected cmd HS_CMD_STATUS");
 			break;
 		}
+		if (state == StateSmartOk && !cmd_resp_timer->isActive()) {
+			qmDebugMessage(QmDebug::Dump, "asynchronous cmd HS_CMD_STATUS");
+			processReceivedStatusAsync(data, data_len);
+			break;
+		}
 		cmd_resp_timer->stop();
 		if (data_len == 0) { //идентичный отправленному пакет
 			cmd_resp_timer->stop();
@@ -194,7 +199,7 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 		break;
 	}
 	case StateSmartInitHSModeSetting: {
-		poll_timer->start();
+//		poll_timer->start();
 //		break;
 	}
 	case StateSmartOk: {
@@ -241,6 +246,51 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 	}
 	default:
 		QM_ASSERT(0);
+	}
+}
+
+void Controller::processReceivedStatusAsync(uint8_t* data, int data_len) {
+	switch (state) {
+	case StateSmartOk: {
+		uint16_t chan_number = qmFromLittleEndian<uint16_t>(data + 4);
+		uint8_t ch_mask = data[8];
+		uint8_t mode_mask = data[9];
+		uint8_t mode_mask_add = data[10];
+		uint8_t error_status = data[16] & 0x1;
+		qmDebugMessage(QmDebug::Dump, "chan_number: %d", chan_number);
+		qmDebugMessage(QmDebug::Dump, "ch_mask: 0x%X", ch_mask);
+		qmDebugMessage(QmDebug::Dump, "mode_mask: 0x%X", mode_mask);
+		qmDebugMessage(QmDebug::Dump, "mode_mask_add: 0x%X", mode_mask_add);
+		if (error_status) {
+			qmDebugMessage(QmDebug::Dump, "smart headset error");
+			updateState(StateSmartMalfunction);
+			break;
+		}
+		Multiradio::voice_channel_t chan_type = Multiradio::channelInvalid;
+		switch (ch_mask & 0x03) {
+		case 0: chan_type = Multiradio::channelOpen; break;
+		case 1: chan_type = Multiradio::channelClose; break;
+		}
+		switch ((ch_mask & 0x1C) >> 2) {
+		case 5: break;
+		default: qmDebugMessage(QmDebug::Dump, "headset channel speed is not match local");
+		}
+		if (ch_number != chan_number || ch_type != chan_type) {
+			ch_number = chan_number;
+			ch_type = chan_type;
+			updateState(StateSmartOk);
+			smartCurrentChannelChanged(ch_number, ch_type);
+			//TODO: transmit 0xB1
+			synchronizeHSState();
+		} else {
+			updateState(StateSmartOk);
+		}
+		indication_enable = (mode_mask_add & 0x01) == 0;
+		squelch_enable = ((mode_mask_add >> 1) & 0x01) == 0;
+		break;
+	}
+	default:
+		break;
 	}
 }
 
