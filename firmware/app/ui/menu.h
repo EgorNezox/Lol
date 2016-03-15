@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string>
-
+#include <QList>
 #include "service.h"
 #include "elements.h"
 #include "keyboard.h"
@@ -39,8 +39,10 @@ public:
     virtual ~CGuiMenu();
     void Draw();
 
-    GUI_EL_MenuItem *(item[6]);
     int focus;
+    void initItems(QList<std::string>, const char*, int);
+    void initDialog();
+    void setTitle(const char*);
 
 private:
     GUI_Obj obj;
@@ -51,10 +53,15 @@ private:
     std::string textStr;
 
     MenuItemParams itemParams;
-    MoonsGeometry  itemArea[5];
+    MoonsGeometry  itemArea[7];
     bool draw_mark;
 
-    int numItem = 4;
+    int numItem;
+    GUI_EL_MenuItem *(item[6]);
+
+    GUI_EL_Label *label[2];
+    GUI_EL_InputString *inputStr[2];
+    char *tx;
 };
 
 

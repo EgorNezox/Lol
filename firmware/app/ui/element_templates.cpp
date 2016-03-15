@@ -21,7 +21,7 @@
 
 LabelParams GUI_EL_TEMP_LabelChannel{
 	.element={{0,0,0,0},{alignHCenter, alignVCenter}},
-	.font=&Consolas25x58,
+    .font=&Consolas25x58,
 	.color_sch={GENERAL_TEXT_COLOR,GENERAL_BACK_COLOR},
 	.transparent=0
 };

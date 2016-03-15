@@ -60,6 +60,11 @@ public:
 			Power::Battery *power_battery);
 	~Service();
 	void setNotification(NotificationType type);
+    // апдэйт индикаторов
+    void updateHeadset(Headset::Controller::Status);
+    void updateMultiradio(Multiradio::MainServiceInterface::Status);
+    void updateBattery(int);
+
 private:
     void msgBox(const char *text);
 	matrix_keyboard_t matrix_kb;
@@ -78,7 +83,7 @@ private:
     GUI_Dialog_MsgBox   *msg_box;
 
     CGuiMenu *menu;
-    //GUI_Obj  currentBox;
+    CGuiTree  guiTree;
 
 	void voiceChannelChanged();
 	void chNextHandler();
@@ -93,12 +98,11 @@ private:
 
     void drawMainWindow();
 
-//	friend GUI_Indicator;
-//	friend GUI_Dialog_MainScr;
-//	friend GUI_Dialog_MsgBox;
-
-    void openMenu();
+    void drawMenu();
     void draw();
+    void drawIndicator();
+
+    int mainWindowModeId;
 };
 
 } /* namespace Ui */

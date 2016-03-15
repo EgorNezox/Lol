@@ -18,7 +18,7 @@
 //----------DEFINES------------
 
 #define MARGIN			4
-#define BUTTON_HEIGHT	15
+#define BUTTON_HEIGHT	13
 #define BUTTON_WIDTH	30
 
 //----------TYPES--------------
@@ -35,8 +35,7 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox(MoonsGeometry* area, char *text, Alignment 
 	window_geom={0,0,(GXT)(GEOM_W(this->area)-1),(GYT)(GEOM_H(this->area)-1)};
 	text_area_params=GUI_EL_TEMP_CommonTextAreaLT;
 	text_area_params.element.align=align;
-	this->text=text;
-//	this->service=service;
+    this->text=text;
 }
 
 //----------------------------
@@ -61,15 +60,3 @@ void GUI_Dialog_MsgBox::Draw(){
 	text_area.Draw();
 	ok_button.Draw();
 }
-
-//-----------------------------
-/*
-void GUI_Dialog_MsgBox::keyHandler(UI_Key key){
-	switch(key){
-        case keyEnter:
-            //delete this;
-		default:
-			break;
-	}
-}
-*/

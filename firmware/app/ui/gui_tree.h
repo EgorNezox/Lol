@@ -2,14 +2,16 @@
 #define GUI_STACK
 
 #include <string>
+#include <list>
 #include <QList>
-#include <stack>
+#include "texts.h"
 
 enum GuiWindowTypes
 {
     mainWindow,\
     messangeWindow,\
-    menuWindow
+    menuWindow,
+    dialogWindow
 };
 
 class CState
@@ -17,42 +19,87 @@ class CState
     GuiWindowTypes type;
     std::string name;
 public:
-    CState *nextState;
-    CState *prevState;
+    QList<CState*> nextState;
+    CState         *prevState;
 
 public:
-    CState(){ nextState = nullptr; prevState = nullptr; }
-    CState(GuiWindowTypes newType, const char *newName){ type = newType; setName(newName); }
+    CState(){ setType(menuWindow); nextState.clear(); prevState = nullptr; }
+    CState(const char *newName){ CState(); setName(newName); }
+    CState(GuiWindowTypes newType, const char *newName){ CState(); setName(newName); setType(newType); }
     const char* getName(){ return name.c_str(); }
     void  setName(const char* newName){ name.clear(); name.append(newName); }
     int getType(){ return type; }
+    void setType(GuiWindowTypes newType){ type = newType; }
+};
 
-    std::list<CState*> statesList;
+class CEndState: public CState
+{
+    //
+public:
+    int chack();
 };
 
 class CGuiTree
 {
 public:
-    static CGuiTree& getInstance()
-    {
-        static CGuiTree instance;
-        return instance;
-    }
+//    static CGuiTree& getInstance()
+//    {
+//         instance;
+//        return instance;
+//    }
+
     ~CGuiTree();
 
     void append(GuiWindowTypes, char*);
-    int  getLastElement(CState&);
+    void getLastElement(CState&);
     void delLastElement();
+    CState getCurrentState();
+    void resetCurrentState();
+    int advance(int);
+    int backvard();
 
+    CGuiTree(){ init(); }
 private:
-    CGuiTree(){}
     CGuiTree( const CGuiTree& );
     CGuiTree& operator=( CGuiTree& );
 
-    QList<const CState*> statesList;
+    CState* currentState;
+    QList<CState*> statesStack;
 
-protected:
+    CState MainWindow;
+    // 0 - 4
+    CState main, call, recv, data, settings;
+    // 1.1 - 1.5
+    CState condCmd, sms, post, groupCondCommand;
+    // 1.1.1 - 1.1.2
+    CState condCmdSimpl, condCmdDupl;
+    // 1.2.1.1 - 1.2.1.2
+    CState condCmdSimplGroupCall, condCmdSimplIndivCall;
+    // 1.3.1 - 1.3.2
+    CState smsNoRetrans, smsRetrans;
+    // 1.5.1 - 1.5.2
+    CState groupCondCommandSimpl, groupCondCommandDupl;
+    // 1.5.1.1 - 1.5.1.2
+    CState groupCondCommandSimplGroupCall, groupCondCommandSimplIndivCall;
+    // 2.1 - 2.3
+    CState recvTlf, recvSms, recvGroupCondCommsnds;
+    // 3.1 - 3.3
+    CState dataRecv, dataSend;
+    // 3.1.1 - 3.1.4
+    CState dataRecvCondCmd, dataRecvSms, dataRecvPost, dataRecvGroupCondCmd;
+    // 3.2.1 - 3.2.4
+    CState dataSendCondCmd, dataSendSms, dataSendPost, dataSendGroupCondCmd;
+    // 4.1 - 4.3
+    CState sttDateTime, sttConnParam, sttScan;
+    // 4.1.1 - 4.1.2
+    CState sttConnParamGPS, sttConnParamHand;
+    // 4.1.2.1 - 4.1.2.2
+    CState sttSetDate, sttSetTime;
+    // 4.2.1 - 4.2.2
+    CState sttSetFreq, sttSetSpeed;
+
     void init();
+
 };
 
 

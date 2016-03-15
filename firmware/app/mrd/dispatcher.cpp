@@ -40,6 +40,10 @@ Dispatcher::Dispatcher(int dsp_uart_resource, int dspreset_iopin_resource, int a
 
 Dispatcher::~Dispatcher()
 {
+    delete dsp_controller;
+    delete atu_controller;
+    delete main_service;
+    delete voice_service;
 }
 
 void Dispatcher::startServicing(const Multiradio::voice_channels_table_t& voice_channels_table) {

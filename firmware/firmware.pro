@@ -43,4 +43,7 @@ HEADERS += \
     app/ui/menu.h \
     app/ui/elements.h \
     app/ui/service.h \
-    app/ui/gui_tree.h
+    app/ui/gui_tree.h \
+    app/mrd/dispatcher.h \
+    app/mrd/mainserviceinterface.h \
+    app/mrd/voiceserviceinterface.h

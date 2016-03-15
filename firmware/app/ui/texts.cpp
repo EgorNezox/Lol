@@ -8,13 +8,14 @@
 
 #include "texts.h"
 
-char * mode_txt = (char *)"Речь";
+char * mode_txt[] = {(char *)"Речь", (char*)"АУС", (char*)"ГрупУК"};
 char *disabled_ch_txt = (char *)"--";
 char ch_open_letter='О';
 char ch_zero_letter='0';
 char ch_closed_letter='З';
 char ch_invalid_letter='!';
 
+const char* freq_khz = "кГц";
 
 char * ok_texts[LANG_COUNT]={(char *)"Ок"};
 char * missing_ch_table_txt[LANG_COUNT]={(char *)"Отсутствует таблица речевых каналов"};
@@ -22,23 +23,23 @@ char * missing_open_ch_txt[LANG_COUNT]={(char *)"Отсутствуют открытые речевые ка
 char * ch_table_mismatch_txt[LANG_COUNT]={(char *)"Несоответствие таблицы речевых каналов списку каналов гарнитуры"};
 
 
-char *mainMenu[] = {(char*)"\tВызов", (char*)"\tПрием", (char*)"\tДанные", (char*)"\tНастройки"};
+const char *mainMenu[] = {"ГЛАВНОЕ МЕНЮ", "\tВызов", "\tПрием", "\tДанные", "\tНастройки"};
 
-char *callSubMenu[] = {(char*)"ТЛФ", (char*)"Условные команды", (char*)"SMS", (char*)"Голосовая почта", (char*)"Группа усл.команд"};
-    char *commandsSubMenu[] = {(char*)"Одност.связь", (char*)"Двухст.связь"};
-        char *smplSubMenu[] = {(char*)"Индивидуяльный", (char*)"Групповой вызов"};
-        char *twSubMenu[] = {(char*)"Без ретранслятора", (char*)"С ретранслятором"};
-    char *smsSubMenu[] = {(char*)"Без ретранслятора", (char*)"С ретранслятором"};
-    char *groupCommandsSubMenu[] = {(char*)"Одност.связь", (char*)"Двухст.связь"};
+const char *callSubMenu[] = {"Условные команды", "SMS", "Голосовая почта", "Группа усл.команд"};
+    const char *commandsSubMenu[] = {"Одност.связь", "Двухст.связь"};
+        const char *smplSubMenu[] = {"Групповой вызов", "Индивидуальный"};
+        const char *twSubMenu[] = {"Без ретранслятора", "С ретранслятором"};
+    const char *smsSubMenu[] = {"Без ретранслятора", "С ретранслятором"};
+    const char *groupCommandsSubMenu[] = {"Одност.связь", "Двухст.связь"};
+        const char *groupCommandsSimplSubMenu[] = {"Групповой вызов", "Индивидуальный"};
 
-char *reciveSubMenu[] = {(char*)"Дежурный прием", (char*)"Сканирование", (char*)"ТЛФ", (char*)"Условные команды", (char*)"SMS", (char*)"Голосовая почта", (char*)"Группа усл.команд"};
+const char *reciveSubMenu[] = {"Речь", "Сообщение(АУС)", "Группа усл.команд"};
 
-char *dataSubMenu[] = {(char*)"Принятые", (char*)"Отправленные", (char*)"Сохраненые"};
-    char *recvSubMenu[] = {(char*)"Условные команды", (char*)"СМС", (char*)"Головая почта", (char*)"Группа усл.команд"};
-    char *sendSubMenu[] = {(char*)"Условные команды", (char*)"СМС", (char*)"Головая почта", (char*)"Группа усл.команд"};
-    char *saveSubMenu[] = {(char*)"Условные команды", (char*)"СМС", (char*)"Головая почта", (char*)"Группа усл.команд"};
+const char *dataSubMenu[] = {"Принятые", "Отправленные", "Сохраненые"};
+    const char *dataSubSubMenu[] = {"Условные команды", "СМС", "Головая почта", "Группа усл.команд"};
 
-char *settingsSubMenu[] = {(char*)"Дата/время", (char*)"Режим связи"};
-    char *dateAndTimeSubMenu[] = {(char*)"Установить дату", (char*)"Установить время"};
-    char *setTimeSubMenu[] = {(char*)"GPS синх-ция", (char*)"Ручная установка"};
-        char * modeSubMenu[] = {(char*)"Ручной", (char*)"Автоматический"};
+const char *settingsSubMenu[] = {"Дата/время", "Параметры связи", "Сканирование"};
+    const char *dateAndTimeSubMenu[] = {"GPS синх-ция", "Ручная установка"};
+        const char *setDateOrTime[] = {"Установить дату", "Установить время"};
+    const char *setConnParam[] = {"Частота", "Скорость"};
+    const char *useScanMenu[] = {"ВКЛ", "ВЫКЛ"};

@@ -14,6 +14,7 @@
 #include <stddef.h>
 #include <string>
 
+#include "service.h"
 #include "elements.h"
 #include "keyboard.h"
 
@@ -27,15 +28,23 @@ class GUI_Dialog_MainScr: public GUI_Obj{
 	public:
                 GUI_Dialog_MainScr(MoonsGeometry *area);
 		virtual ~GUI_Dialog_MainScr();
-		virtual void Draw();
-//		void keyHandler(UI_Key key);
+                virtual void Draw( Multiradio::VoiceServiceInterface::ChannelStatus status,
+                                   int ch_num,
+                                   Multiradio::voice_channel_t channel_type
+                                   );
+                void setModeText(const char*);
         private:
 		GUI_EL_Window *window;
 		GUI_EL_Label *ch_num_label;
 		GUI_EL_Label *mode_text;
+                GUI_EL_Label *freq;
 		bool cur_ch_invalid;
-                void updateChannel();
-//                void prepChString(char *str, int ch_num, Multiradio::voice_channel_t type );
+                std::string mode;
+                void updateChannel(Multiradio::VoiceServiceInterface::ChannelStatus status,
+                                   int ch_num,
+                                   Multiradio::voice_channel_t channel_type
+                                   );
+                void prepChString(char *str, int ch_num, Multiradio::voice_channel_t type );
 };
 
 //--------------------------
@@ -47,10 +56,14 @@ class GUI_Indicator: public GUI_Obj{
         public:
                 GUI_Indicator(MoonsGeometry *area);
 		virtual ~GUI_Indicator();
-//		void UpdateMultiradio(Multiradio::MainServiceInterface::Status status);
-//		void UpdateHeadset(Headset::Controller::Status status);
+                void UpdateMultiradio(Multiradio::MainServiceInterface::Status status);
+                void UpdateHeadset(Headset::Controller::Status status);
 		void UpdateBattery(int new_val);
-		virtual void Draw();
+                void Draw();
+                virtual void Draw( Multiradio::MainServiceInterface::Status,
+                                   Headset::Controller::Status,
+                                   int
+                                 );
         private:
 		GUI_EL_Icon *ind_multiradio;
 		GUI_EL_Icon *ind_headset;
@@ -63,8 +76,7 @@ class GUI_Dialog_MsgBox: public GUI_Obj{
         public:
                 GUI_Dialog_MsgBox(MoonsGeometry* area, char *text, Alignment align);
 		virtual ~GUI_Dialog_MsgBox();
-		virtual void Draw();
-//		void keyHandler(UI_Key key);
+                virtual void Draw();
 	protected:
 		MoonsGeometry window_geom;
                 TextAreaParams text_area_params;
