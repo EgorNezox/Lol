@@ -75,5 +75,5 @@ void qmMain() {
 	headset_controller.startServicing(mr_channels_table);
 	mr_dispatcher.startServicing(mr_channels_table);
 
-	app.exec();
+    app.exec();
 }
