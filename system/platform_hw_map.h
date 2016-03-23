@@ -30,23 +30,23 @@ enum platformhw_resource_t {
 };
 
 enum platformhw_matrixkb_key_t {
-#if defined(PORT__TARGET_DEVICE_REV1) //TODO: assign values for target-device-rev1 keys
-	platformhwKeyEnter,
-	platformhwKeyBack,
-	platformhwKeyUp,
-	platformhwKeyDown,
-	platformhwKeyLeft,
-	platformhwKeyRight,
-	platformhwKey0,
-	platformhwKey1,
-	platformhwKey2,
-	platformhwKey3,
-	platformhwKey4,
-	platformhwKey5,
-	platformhwKey6,
-	platformhwKey7,
-	platformhwKey8,
-	platformhwKey9,
+#if defined(PORT__TARGET_DEVICE_REV1)
+	platformhwKeyEnter		= 15,
+	platformhwKeyBack		= 0,
+	platformhwKeyUp			= 1,
+	platformhwKeyDown		= 2,
+	platformhwKeyLeft		= 3,
+	platformhwKeyRight		= 7,
+	platformhwKey0			= 11,
+	platformhwKey1			= 4,
+	platformhwKey2			= 8,
+	platformhwKey3			= 12,
+	platformhwKey4			= 5,
+	platformhwKey5			= 9,
+	platformhwKey6			= 13,
+	platformhwKey7			= 6,
+	platformhwKey8			= 10,
+	platformhwKey9			= 14
 #elif defined(PORT__STM3220G_EVAL)
 	platformhwKeyEnter	= 3,
 	platformhwKeyBack 	= 12,
