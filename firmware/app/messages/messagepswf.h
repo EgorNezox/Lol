@@ -24,6 +24,7 @@ namespace MessagesPSWF {
 class MessageSendPswf;
 struct PswfContent;
 
+
 class MessagePswf : public QmObject
 {
 public:
@@ -38,32 +39,30 @@ public:
         ReceivingToDsp = 0x62,
         ReceivingFromDsp = 0x63
     };
-    //    enum RadioMode {
-    //        RadioModeOff = 0,
-    //        RadioModeCarrierTx = 1,
-    //        RadioModeUSB = 7,
-    //        RadioModeFM = 9,
-    //        RadioModeSazhenData = 11,
-    //        RadioModePSWF = 20
-    //    };
-    //    enum RadioOperation {
-    //        RadioOperationOff,
-    //        RadioOperationRxMode,
-    //        RadioOperationTxMode,
-    //        RadioOperationCarrierTx
-    //    };
+
 
     MessagePswf(/*int uart_resource, int reset_iopin_resource,*/ QmObject *parent);
     ~MessagePswf();
 
-    void MessageSendPswf(UartDeviceAddress UartDevice, PswfMessageIndicator Indicator, float SNR, float WorkingFrequency, int S_ADR, int R_ADR, int COM_N, int L_CODE);
-    //    bool isReady();
-    //    void startServicing();
-    //    void setRadioParameters(RadioMode mode, uint32_t frequency);
-    //    void setRadioOperation(RadioOperation operation);
+    void MessageSendPswf(UartDeviceAddress UartDevice, PswfMessageIndicator Indicator, float SNR,float FreqMin, int S_ADR, int R_ADR, int COM_N, float L_CODE,int isGPS);
 
-    //    sigc::signal<void> started;
-    //    sigc::signal<void> setRadioCompleted;
+    float CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN);
+
+    float Calc_LCODE(int R_ADR, int S_ADR, int COM_N,int RN_KEY,int DAY, int HRS, int MIN,int SEC);
+
+    int mod(int a,int b);
+
+    uint8_t* CreateFrame(PswfContent Content);
+    void     ParsingFrame(uint8_t * data,PswfContent content);
+
+    int* getUserData();
+
+    int* getGPSData();
+
+
+
+
+    sigc::signal<void> setRadioCompleted;
 
 private:
     friend struct PswfContent;
