@@ -21,8 +21,20 @@
 #include "power/battery.h"
 #include "ui/service.h"
 
+void boot_enter_bootloader();
+
+static bool check_bootloader_condition() {
+	QmMatrixKeyboard k(platformhwMatrixKeyboard);
+	return (k.isKeyPressed(platformhwKeyEnter) && k.isKeyPressed(platformhwKeyBack));
+}
+
 void qmMain() {
 	QmApplication app;
+
+	if (check_bootloader_condition()) {
+		boot_enter_bootloader();
+		return;
+	}
 
 	Multiradio::voice_channels_table_t mr_channels_table;
 	DataStorage::FS data_storage_fs(platformhwDataFlashSpi);

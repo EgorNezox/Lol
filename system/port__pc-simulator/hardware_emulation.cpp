@@ -7,6 +7,8 @@
   ******************************************************************************
   */
 
+#include "qmessagebox.h"
+
 #include "hardware_emulation.h"
 #include "../platform_hw_map.h"
 #include "mainwidget.h"
@@ -53,6 +55,10 @@ void deinit() {
 	delete atu_device;
 	I2CBus::closeInstance(battery_smbus);
 	SPIBus::closeInstance(data_flash_spibus);
+}
+
+void show_message(const QString &text) {
+	QMessageBox::warning(0, "", text);
 }
 
 } /* namespace QtHwEmu */
