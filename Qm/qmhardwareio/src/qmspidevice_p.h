@@ -50,15 +50,18 @@ public:
 private:
 	void init(int bus_hw_resource, QmSPIDevice::BusConfigStruct *bus_config, int cs_hw_resource);
 	void deinit();
-	int bus_hw_resource;
 	int cs_hw_resource;
 #ifdef QM_PLATFORM_STM32F2XX
-	bool transferFullDuplex();
+	inline void chipSelect() __attribute__((always_inline));
+	inline void chipDeselect() __attribute__((always_inline));
+	hal_gpio_pin_t cs_pin;
+	int bus_instance;
 	struct hal_spi_master_transfer_t spi_transfer;
 #endif /* QM_PLATFORM_STM32F2XX */
 #ifdef QM_PLATFORM_QT
 	friend class QmSPIDevicePrivateAdapter;
 	QmSPIDevicePrivateAdapter *spidevice_adapter;
+	int bus_hw_resource;
 #endif /* QM_PLATFORM_QT */
 };
 

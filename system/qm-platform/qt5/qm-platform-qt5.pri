@@ -11,6 +11,8 @@ CONFIG += no_keywords # because of conflict with libsigc++
 
 INCLUDEPATH += \
     $$PWD \
+    $$PWD/../config \
+    $$PWD/port_spiffs \
     $$PWD/port_ramtex_s6d0129_cfg_seps525/ccfg0129 \
     $$PWD/port_ramtex_s6d0129_cfg_seps525/cfgio \
     $$PWD/port_ramtex_s6d0129_cfg_seps525/qt
@@ -27,7 +29,8 @@ HEADERS += \
     $$PWD/port_keysinput/pushbuttonkeyinterface.h \
     $$PWD/port_keysinput/matrixkeyboardwidget.h \
     $$PWD/port_keysinput/matrixkeyboardinterface.h \
-    $$PWD/port_ramtex_s6d0129_cfg_seps525/qt/ramtexdisplaywidget.h
+    $$PWD/port_ramtex_s6d0129_cfg_seps525/qt/ramtexdisplaywidget.h \
+    $$PWD/devices/flashm25pdevice.h
 SOURCES += \
     $$PWD/hardware_resources.cpp \
     $$wildcardSources(port_hardwareio, *.cpp) \
@@ -35,7 +38,8 @@ SOURCES += \
     $$wildcardSources(port_ramtex_s6d0129_cfg_seps525, *.c) \
     $$PWD/port_ramtex_s6d0129_cfg_seps525/ccfg0129/ghwinit.c \
     $$PWD/port_ramtex_s6d0129_cfg_seps525/cfgio/ghwioini.c \
-    $$PWD/port_ramtex_s6d0129_cfg_seps525/qt/ramtexdisplaywidget.cpp
+    $$PWD/port_ramtex_s6d0129_cfg_seps525/qt/ramtexdisplaywidget.cpp \
+    $$PWD/devices/flashm25pdevice.cpp
 FORMS += \
     $$PWD/port_hardwareio/uartconsolewidget.ui \
     $$PWD/port_keysinput/matrixkeyboardwidget.ui
