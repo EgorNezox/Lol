@@ -20,3 +20,13 @@ QmSPIDevice::~QmSPIDevice() {
 	QM_D(QmSPIDevice);
 	d->deinit();
 }
+
+bool QmSPIDevice::transferFullDuplex8bit(uint8_t *rx_data, uint8_t *tx_data, int count) {
+	FD8Burst single_burst = {rx_data, tx_data, count};
+	return transferBurstFullDuplex8bit(&single_burst, 1);
+}
+
+bool QmSPIDevice::transferFullDuplex16bit(uint16_t *rx_data, uint16_t *tx_data, int count) {
+	FD16Burst single_burst = {rx_data, tx_data, count};
+	return transferBurstFullDuplex16bit(&single_burst, 1);
+}

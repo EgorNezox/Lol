@@ -11,8 +11,9 @@
 
 INCLUDEPATH += \
 	$$PWD/qmcore/include \
-        $$PWD/qmhardwareio/include \
-        $$PWD/qmkeysinput/include
+	$$PWD/qmhardwareio/include \
+	$$PWD/qmkeysinput/include \
+	$$PWD/qmstorage/include
 DEFINES += QM_PLATFORM_QT
 
 contains(QM_BUILD_MODULES,core) {
@@ -26,6 +27,7 @@ contains(QM_BUILD_MODULES,core) {
         $$PWD/qmcore/src/qmmutexlocker.cpp \
         $$PWD/qmcore/src/qmtimer.cpp \
         $$PWD/qmcore/src/qmtimer_qt.cpp \
+        $$PWD/qmcore/src/qmelapsedtimer_qt.cpp \
         $$PWD/qmcore/src/qmapplication.cpp \
         $$PWD/qmcore/src/qmapplication_qt.cpp
 }
@@ -60,4 +62,11 @@ contains(QM_BUILD_MODULES,keysinput) {
         $$PWD/qmkeysinput/src/qmpushbuttonkey_qt.cpp \
         $$PWD/qmkeysinput/src/qmmatrixkeyboard.cpp \
         $$PWD/qmkeysinput/src/qmmatrixkeyboard_qt.cpp
+}
+
+contains(QM_BUILD_MODULES,storage) {
+    SOURCES += \
+        $$PWD/qmstorage/src/qmfile.cpp \
+        $$PWD/qmstorage/src/qmspiffs.cpp \
+        $$PWD/qmstorage/src/qmm25pdevice.cpp
 }

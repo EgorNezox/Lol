@@ -28,6 +28,7 @@ QMCORE_SOURCES += \
 	qmcore/src/qmeventloop.cpp \
 	qmcore/src/qmtimer.cpp \
 	qmcore/src/qmtimer_$(PLATFORM).cpp \
+	qmcore/src/qmelapsedtimer_$(PLATFORM).cpp \
 	qmcore/src/qmapplication.cpp \
 	qmcore/src/qmapplication_$(PLATFORM).cpp
 $(sources_to_objects $(QMCORE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH)
@@ -59,7 +60,16 @@ ifdef KEYSINPUT
   $(sources_to_objects $(QMKEYSINPUT_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMKEYSINPUT_INLCUDEPATH)
 endif
 
-INCLUDEPATH = $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH) $(QMKEYSINPUT_INLCUDEPATH)
-SOURCES_system = $(QMCORE_SOURCES) $(QMHARDWAREIO_SOURCES) $(QMKEYSINPUT_SOURCES)
+ifdef STORAGE
+  QMSTORAGE_INLCUDEPATH += qmstorage/include
+  QMSTORAGE_SOURCES += \
+  	qmstorage/src/qmfile.cpp \
+  	qmstorage/src/qmspiffs.cpp \
+  	qmstorage/src/qmm25pdevice.cpp
+  $(sources_to_objects $(QMSTORAGE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH) $(QMSTORAGE_INLCUDEPATH)
+endif
+
+INCLUDEPATH = $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH) $(QMKEYSINPUT_INLCUDEPATH) $(QMSTORAGE_INLCUDEPATH)
+SOURCES_system = $(QMCORE_SOURCES) $(QMHARDWAREIO_SOURCES) $(QMKEYSINPUT_SOURCES) $(QMSTORAGE_SOURCES)
 
 include misc/target_build_footer.mk

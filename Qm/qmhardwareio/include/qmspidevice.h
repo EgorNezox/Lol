@@ -36,6 +36,16 @@ public:
 		BusCPOL cpol; 			/*!< CPOL */
 		BusFirstBit first_bit;	/*!< порядок бит в данных */
 	};
+	struct FD8Burst {
+		uint8_t *rx_data;
+		uint8_t *tx_data;
+		int count;
+	};
+	struct FD16Burst {
+		uint16_t *rx_data;
+		uint16_t *tx_data;
+		int count;
+	};
 
 	/*! Constructs a device with the given \a parent.
 	 *
@@ -48,8 +58,10 @@ public:
 	virtual ~QmSPIDevice();
 
 	bool transferFullDuplex8bit(uint8_t *rx_data, uint8_t *tx_data, int count);
+	bool transferBurstFullDuplex8bit(FD8Burst *bursts, int count);
 
 	bool transferFullDuplex16bit(uint16_t *rx_data, uint16_t *tx_data, int count);
+	bool transferBurstFullDuplex16bit(FD16Burst *bursts, int count);
 
 private:
 	QM_DECLARE_PRIVATE(QmSPIDevice)

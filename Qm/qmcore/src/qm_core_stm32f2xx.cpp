@@ -17,6 +17,8 @@
 #include "qmthread.h"
 #include "qmthread_p.h"
 
+static_assert(sysconfigTIMER_TASK_PRIORITY > qmconfigSYSTEM_PRIORITY, ""); // requirement of hal timer interfacing implementation
+
 class QmMainThread : public QmThread
 {
 public:
@@ -99,7 +101,6 @@ void qmcoreProcessQueuedSystemEvents() {
 }
 
 int main(void) {
-	QM_ASSERT(sysconfigTIMER_TASK_PRIORITY > qmconfigSYSTEM_PRIORITY); // requirement of hal timer interfacing implementation
 	DLLIST_INIT_LIST(&qm_sys_queue);
 	qm_sys_queue_semaphore = xSemaphoreCreateBinary();
 	xTaskCreate(qmsystemThreadEntry, "qmsystem", qmconfigSYSTEM_STACK_SIZE, 0, qmconfigSYSTEM_PRIORITY, 0);

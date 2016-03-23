@@ -1,0 +1,15 @@
+#******************************************************************************
+# @file    Makeppfile
+# @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
+# @date    16.02.2016
+# @brief   Make-файл сборки SPIFFS
+#
+#******************************************************************************
+
+makepp_percent_subdirs=1
+include misc/target_build_header.mk
+
+INCLUDEPATH_system += src
+SOURCES_system += $(wildcard src/*.c)
+
+include misc/target_build_footer.mk
