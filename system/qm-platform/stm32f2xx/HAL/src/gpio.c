@@ -44,6 +44,10 @@ static uint32_t const GPIO_BITBAND_PORT_OFFSET[] = {
 static int gpio_exti_source_assignment[GPIO_PORT_PINS_COUNT];
 
 void halinternal_gpio_init(void) {
+	/* Включение всех портов.
+	 * Сброс не осуществляется, т.к. конфигурация пинов имеет особую роль в системе
+	 * (например, они могут быть уже задейстовованы до запуска системы).
+	 */
 	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
 	RCC->AHB1ENR |= 0
 			| RCC_AHB1ENR_GPIOAEN

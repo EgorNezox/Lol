@@ -1,18 +1,18 @@
 #******************************************************************************
 # @file    RootMakeppfile
 # @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
-# @date    26.08.2015
-# @brief   Корневой make-файл сборки программы firmware под платформу STM32F2xx
+# @date    19.05.2016
+# @brief   Корневой make-файл сборки программы bootloader
 #
 #******************************************************************************
 
-TARGET_NAME = $(PROJECT_NAME)_firmware
+TARGET_NAME = $(PROJECT_NAME)_bootloader
 
 makepp_percent_subdirs=1
 include misc/target_build_subproject_header.mk
 
 # функциональные опции сборки системы
-DEFINES_system += BUILD_OPTION_ENABLE_DISPLAY_BUFFER=1
+# <отсутствуют>
 
 # подключение сборки платформы и порта
 load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/qm-platform/stm32f2xx
@@ -20,17 +20,18 @@ load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/port__$(BUILD_
 LDSCRIPTS += ../system/port__$(BUILD_PORT)/stm32_memory.ld
 
 # подключение сборки модулей Qm
-load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." PLATFORM=stm32f2xx HARDWAREIO=1 STORAGE=1 ../Qm
+load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." PLATFORM=stm32f2xx KEYSINPUT=1 ../Qm
 
 # подключение сборки сторонних компонентов
-load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/3rdparty/$( FreeRTOS STM32Cube_FW_F2 Ramtex_Graphic_Lib libsigc++ spiffs )
+load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/3rdparty/$( FreeRTOS STM32Cube_FW_F2 Ramtex_Graphic_Lib libsigc++ )
 
-# подключение сборки прошивки
+# подключение сборки загрузчика
 SOURCES += \
-	firmware_main.cpp
+	bootloader_main.cpp
 SOURCES_system += \
-	system_stm32f2/system_stm32f2xx__$(BUILD_PORT).c
-INCLUDEPATH_system += system_stm32f2
-LDSCRIPTS += system_stm32f2/stm32_flash_and_extsram.ld
+	system/hardware_boot.c \
+	system/system_stm32f2xx.c
+INCLUDEPATH_system += system
+LDSCRIPTS += system/stm32_flash_and_sram.ld
 
 include misc/target_build_subproject_footer.mk

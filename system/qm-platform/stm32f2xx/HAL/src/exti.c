@@ -66,8 +66,15 @@ void halinternal_exti_init(void) {
 		exti_pcbs[i].userid = 0;
 		exti_pcbs[i].isrcallbackTrigger = 0;
 	}
+	EXTI->IMR = 0;
+	EXTI->EMR = 0;
+	EXTI->RTSR = 0;
+	EXTI->FTSR = 0;
+	EXTI->SWIER = 0;
+	EXTI->PR = 0x7FFFFF;
 	for (int i = 0; i < sizeof(nvic_irq_numbers)/sizeof(nvic_irq_numbers[0]); i++) {
 		halinternal_set_nvic_priority(nvic_irq_numbers[i]);
+		NVIC_ClearPendingIRQ(nvic_irq_numbers[i]);
 		NVIC_EnableIRQ(nvic_irq_numbers[i]);
 	}
 }

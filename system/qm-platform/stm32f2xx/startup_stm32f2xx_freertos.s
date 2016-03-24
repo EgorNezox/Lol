@@ -191,10 +191,8 @@ __isr_vector:
 	.globl	System_Startup_Entry
 	.type	System_Startup_Entry, %function
 System_Startup_Entry:
-#if 0 /* moved to Reset_Handler implementations of project */
 /* Call the clock system intitialization function.*/
 	bl	SystemInit
-#endif
 
 /* Setup processor vector table for ISR vectors defined in this system
  * MUST BE AFTER SystemInit call ! (STM32 implementation resets vector table to default)

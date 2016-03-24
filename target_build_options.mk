@@ -22,7 +22,7 @@ ARCH_FLAGS = -mthumb -mcpu=cortex-m3
 # Debugging options
 DEBUG_FLAGS = -g3
 # Compiler optimization options
-C_OPT_FLAGS = -O0 -ffunction-sections -fdata-sections
+C_OPT_FLAGS = -Og -flto -fno-fat-lto-objects -ffunction-sections -fdata-sections
 
 # общие опции компиляции для всех исходников на языке C
 CFLAGS = $(ARCH_FLAGS) $(DEBUG_FLAGS) $(C_OPT_FLAGS) -c -fmessage-length=0 -Wall -std=gnu99
@@ -31,4 +31,4 @@ CXXFLAGS = $(ARCH_FLAGS) $(DEBUG_FLAGS) $(C_OPT_FLAGS) -c -fmessage-length=0 -Wa
 # общие опции компиляции для всех исходников на языке Assembler
 ASFLAGS = $(ARCH_FLAGS) $(DEBUG_FLAGS) -c -fmessage-length=0 -Wall
 # опции линковщика
-LDFLAGS = $(ARCH_FLAGS) $(DEBUG_FLAGS) -Xlinker --gc-sections -Xlinker --fatal-warnings -Xlinker --warn-common
+LDFLAGS = $(ARCH_FLAGS) $(DEBUG_FLAGS) -flto -fuse-linker-plugin -Xlinker --gc-sections -Xlinker --fatal-warnings -Xlinker --warn-common
