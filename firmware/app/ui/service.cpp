@@ -66,7 +66,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     menu = nullptr;
     msg_box = nullptr;
 
-    // èñïðàâèòü íà ñåðâèñ
+    // Ð¸ÑÐ¿Ñ€Ð°Ð²Ð¸Ñ‚ÑŒ Ð½Ð° ÑÐµÑ€Ð²Ð¸Ñ
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
@@ -307,7 +307,7 @@ void Service::keyPressed(UI_Key key)
 
     switch( state.getType() )
     {
-    // Ãëàâíûé ýêðàí
+    // Ð“Ð»Ð°Ð²Ð½Ñ‹Ð¹ ÑÐºÑ€Ð°Ð½
     case mainWindow:
     {
         switch( key )
@@ -354,34 +354,34 @@ void Service::keyPressed(UI_Key key)
         }
         break;
     }
-        // â ìåíþ
+    // Ð² Ð¼ÐµÐ½ÑŽ
     case menuWindow:
     {
-        // ïåðåõîäèì âíèç ïî äåðåâó & çàïîìèíàåì ñîñòîÿíèå
+    	// Ð¿ÐµÑ€ÐµÑ…Ð¾Ð´Ð¸Ð¼ Ð²Ð½Ð¸Ð· Ð¿Ð¾ Ð´ÐµÑ€ÐµÐ²Ñƒ & Ð·Ð°Ð¿Ð¾Ð¼Ð¸Ð½Ð°ÐµÐ¼ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ðµ
         if ( key == keyEnter)
         {
             int rc = guiTree.advance(menu->focus);
             menu->focus = 0;
 
-            // ââîä ïàðàìåòðîâ
+            // Ð²Ð²Ð¾Ð´ Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ð¾Ð²
             if (rc == -1)
             {
                 //
             }
         }
-        // ïåðåõîäèì ââåðõ ïî äåðåâó & óäàëÿåì èç ñòçêà ïîñëåäíåå ñîñòîÿíèå
+        // Ð¿ÐµÑ€ÐµÑ…Ð¾Ð´Ð¸Ð¼ Ð²Ð²ÐµÑ€Ñ… Ð¿Ð¾ Ð´ÐµÑ€ÐµÐ²Ñƒ & ÑƒÐ´Ð°Ð»ÑÐµÐ¼ Ð¸Ð· ÑÑ‚Ð·ÐºÐ° Ð¿Ð¾ÑÐ»ÐµÐ´Ð½ÐµÐµ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ðµ
         if ( key == keyBack)
         {
             int rc = guiTree.backvard();
             menu->focus = 0;
         }
-        // äâèæåìñÿ ïî ñïèñêó ââåðõ
+        // Ð´Ð²Ð¸Ð¶ÐµÐ¼ÑÑ Ð¿Ð¾ ÑÐ¿Ð¸ÑÐºÑƒ Ð²Ð²ÐµÑ€Ñ…
         if (key == keyUp)
         {
             if ( menu->focus > 0 )
                 menu->focus--;
         }
-        // äâèæåìñÿ ïî ñïèñêó âíèç
+        // Ð´Ð²Ð¸Ð¶ÐµÐ¼ÑÑ Ð¿Ð¾ ÑÐ¿Ð¸ÑÐºÑƒ Ð²Ð½Ð¸Ð·
         if (key == keyDown)
         {
             if ( menu->focus < state.nextState.size()-1 )
@@ -446,7 +446,7 @@ void Service::drawMenu()
     {
         menu = new CGuiMenu(&ui_menu_msg_box_area, st.getName(), text, align);
     }
-    QList<std::string> t;
+    std::vector<std::string> t;
     if (st.nextState.size() > 0)
     {
         int removal = 0;
@@ -457,7 +457,7 @@ void Service::drawMenu()
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
 
-        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), st.nextState.size()); i++)
+        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
         {
             t.push_back( std::string(st.nextState[i]->getName()) );
         }

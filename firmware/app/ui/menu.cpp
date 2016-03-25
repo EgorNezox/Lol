@@ -60,7 +60,7 @@ void CGuiMenu::setTitle(const char* title)
     titleStr.append(title);
 }
 
-void CGuiMenu::initItems(QList<std::string> text, const char* title, int focusItem)
+void CGuiMenu::initItems(std::vector<std::string> text, const char* title, int focusItem)
 {
     setTitle(title);
 
