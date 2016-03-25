@@ -69,10 +69,6 @@ Indicator, float SNR,float FreqMin, int S_ADR, int R_ADR, int COM_N, float L_COD
 {
            int *data;
 
-
-
-            //float work_freq = FreqMin + CalcShiftFreq(0,0,data[0],data[1],data[2]);
-
             if ((Indicator == TransmitPackage))
             {
 

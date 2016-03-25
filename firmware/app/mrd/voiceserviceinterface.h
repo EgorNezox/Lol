@@ -31,6 +31,7 @@ public:
 	voice_channel_t getCurrentChannelType();
 	void tuneNextChannel();
 	void tunePreviousChannel();
+    void TuneFrequency(int Frequency);
 
 	sigc::signal<void> currentChannelChanged;
 

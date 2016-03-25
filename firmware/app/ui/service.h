@@ -65,6 +65,13 @@ public:
     void updateMultiradio(Multiradio::MainServiceInterface::Status);
     void updateBattery(int);
 
+
+    int getFreq();
+    void setFreq(int isFreq);
+    char mas_freq[10] = {0,0,0,0,0,0,0,0,0,0};
+    int mas_cnt = 0;
+
+
 private:
     void msgBox(const char *text);
 	matrix_keyboard_t matrix_kb;
@@ -90,11 +97,11 @@ private:
 	void chPrevHandler();
 	void keyPressed(UI_Key key);
 	void keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type);
-	Headset::Controller *pGetHeadsetController();
-	Multiradio::MainServiceInterface* pGetMultitradioService();
-	Multiradio::VoiceServiceInterface* pGetVoiceService();
-	Power::Battery * pGetPowerBattery();
-	int getLanguage();
+    Headset::Controller *pGetHeadsetController();
+    Multiradio::MainServiceInterface* pGetMultitradioService();
+    Multiradio::VoiceServiceInterface* pGetVoiceService();
+    Power::Battery * pGetPowerBattery();
+    int getLanguage();
 
     void drawMainWindow();
 
@@ -103,6 +110,8 @@ private:
     void drawIndicator();
 
     int mainWindowModeId;
+
+    int isFreq = 0;
 };
 
 } /* namespace Ui */
