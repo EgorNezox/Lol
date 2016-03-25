@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string>
-#include <QList>
+#include <vector>
 #include "service.h"
 #include "elements.h"
 #include "keyboard.h"
@@ -40,7 +40,7 @@ public:
     void Draw();
 
     int focus;
-    void initItems(QList<std::string>, const char*, int);
+    void initItems(std::vector<std::string>, const char*, int);
     void initDialog();
     void setTitle(const char*);
 

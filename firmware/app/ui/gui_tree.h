@@ -2,8 +2,7 @@
 #define GUI_STACK
 
 #include <string>
-#include <list>
-#include <QList>
+#include <vector>
 #include "texts.h"
 
 enum GuiWindowTypes
@@ -19,7 +18,7 @@ class CState
     GuiWindowTypes type;
     std::string name;
 public:
-    QList<CState*> nextState;
+    std::vector<CState*> nextState;
     CState         *prevState;
 
 public:
@@ -64,7 +63,7 @@ private:
     CGuiTree& operator=( CGuiTree& );
 
     CState* currentState;
-    QList<CState*> statesStack;
+    std::vector<CState*> statesStack;
 
     CState MainWindow;
     // 0 - 4
