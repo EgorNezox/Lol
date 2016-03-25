@@ -7,6 +7,7 @@
  ******************************************************************************
  */
 
+#include <stdlib.h>
 #include "qm.h"
 #include "qmdebug.h"
 #include "dialogs.h"
@@ -261,10 +262,8 @@ void Service::voiceChannelChanged()
 
 void Service::keyPressed(UI_Key key)
 {
-    MessagesPSWF::MessagePswf *pswf;// указываем ссылку на класс отправки ППРЧ
+    MessagesPSWF::MessagePswf *pswf;// СѓРєР°Р·С‹РІР°РµРј СЃСЃС‹Р»РєСѓ РЅР° РєР»Р°СЃСЃ РѕС‚РїСЂР°РІРєРё РџРџР Р§
     CState state = guiTree.getCurrentState();
-
-    QString str;
 
     if (getFreq() == 1)
      {
@@ -279,10 +278,9 @@ void Service::keyPressed(UI_Key key)
 
             if (key == keyChNext)
             {
-                QString str(mas_freq);
-                int freq = str.toInt();
+                int freq = atoi(mas_freq);
                 voice_service ->TuneFrequency(freq);
-               // guiTree.append(messangeWindow,"Установка частоты выполнена!");
+               // guiTree.append(messangeWindow,"РЈСЃС‚Р°РЅРѕРІРєР° С‡Р°СЃС‚РѕС‚С‹ РІС‹РїРѕР»РЅРµРЅР°!");
                 setFreq(0);
                 for(int i = 0; i<10;i++)
                     mas_freq[i] = 0;
@@ -331,7 +329,7 @@ void Service::keyPressed(UI_Key key)
             break;
         case key0:
            setFreq(1);
-          guiTree.append(messangeWindow,"Режим установки частоты");
+          guiTree.append(messangeWindow, (char*)"пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
           //pswf->MessageSendPswf(MessagePswf::UartDeviceAddress::TransmissionToDsp,
                                 //MessagePswf::PswfMessageIndicator::TransmitPackage,
                                //0.3,0.3,0,0,0,0.3,0);
