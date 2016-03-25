@@ -77,6 +77,7 @@ void VoiceServiceInterface::tunePreviousChannel() {
 void VoiceServiceInterface::TuneFrequency(int Frequency)
 {
     dispatcher->dsp_controller->setRadioParameters(DspController::RadioMode::RadioModeFM,Frequency);
+    dispatcher->dsp_controller->setRadioOperation(DspController::RadioOperation::RadioOperationRxMode);
 }
 
 void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
