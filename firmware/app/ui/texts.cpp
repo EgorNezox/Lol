@@ -16,6 +16,7 @@ char ch_closed_letter='«';
 char ch_invalid_letter='!';
 
 const char* freq_khz = "к√ц";
+const char* freq_hz = "√ц";
 
 char * ok_texts[LANG_COUNT]={(char *)"ќк"};
 char * missing_ch_table_txt[LANG_COUNT]={(char *)"ќтсутствует таблица речевых каналов"};

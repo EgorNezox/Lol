@@ -138,7 +138,7 @@ void GUI_EL_Label::Draw(){
 		gsetcolorf(color_sch.foreground);
 		if(!transparent){
 			gsetmode(COMMON_ELEMENT_VP_MODE);
-			groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,GFILL);
+            groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,GLINE);
 		}
 		else {
 			gsetmode(COMMON_ELEMENT_VP_MODE | GTRANSPERANT);

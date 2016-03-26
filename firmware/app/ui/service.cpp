@@ -27,7 +27,7 @@ namespace Ui {
 
 
 
-bool Service::single_instance = false; // Р·Р°РІРёСЃРёРјРѕСЃС‚СЊ РѕС‚ РµРґРёРЅСЃС‚РІРµРЅРЅРѕРіРѕ РґРёСЃРїР»РµСЏ РІ СЃРёСЃС‚РµРјРµ
+bool Service::single_instance = false; // ?·?°????N??????NN‚N? ??N‚ ?µ??????NN‚???µ?????????? ????N???»?µN ?? N??NN‚?µ???µ
 
 Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   aux_keyboard_t                     auxkb_desc,
@@ -261,59 +261,96 @@ void Service::voiceChannelChanged()
 
 void Service::keyPressed(UI_Key key)
 {
-    MessagesPSWF::MessagePswf *pswf;// указываем ссылку на класс отправки ППРЧ
+    MessagesPSWF::MessagePswf *pswf;// oeacuaaai nnueeo ia eeann ioi?aaee II??
     CState state = guiTree.getCurrentState();
 
     QString str;
 
-    if (getFreq() == 1)
+//    if (getFreq() == 1)
+//     {
+//        if ((key >=6) && (key<=15))
+//        {
+//            mas_freq[mas_cnt] = (char)48+(key-6);
+//            mas_cnt++;
+//        }
+//            draw();
+//            guiTree.append(messangeWindow,mas_freq);
+
+
+//            if (key == keyChNext)
+//            {
+//                QString str(mas_freq);
+//                int freq = str.toInt();
+//                voice_service ->TuneFrequency(freq);
+//               // guiTree.append(messangeWindow,"Onoaiiaea ?anoiou auiieiaia!");
+//                setFreq(0);
+//                for(int i = 0; i<10;i++)
+//                    mas_freq[i] = 0;
+//                mas_cnt = 0;
+
+//            }
+
+
+//            draw();
+//            //guiTree.delLastElement();
+
+//            if (msg_box != nullptr)
+//            {
+//                delete msg_box;
+//                msg_box = nullptr;
+//            }
+
+//     }
+     if ((status_rx == true) && (key != keyUp))
      {
-        if ((key >=6) && (key<=15))
-        {
-            mas_freq[mas_cnt] = (char)48+(key-6);
-            mas_cnt++;
-        }
-            draw();
-            guiTree.append(messangeWindow,mas_freq);
-
-
-            if (key == keyChNext)
-            {
-                QString str(mas_freq);
-                int freq = str.toInt();
-                voice_service ->TuneFrequency(freq);
-               // guiTree.append(messangeWindow,"Установка частоты выполнена!");
-                setFreq(0);
-                for(int i = 0; i<10;i++)
-                    mas_freq[i] = 0;
-                mas_cnt = 0;
-
-            }
-
-
-            draw();
-            //guiTree.delLastElement();
-
-            if (msg_box != nullptr)
-            {
-                delete msg_box;
-                msg_box = nullptr;
-            }
+          if ( (key >=6) && (key <=15))
+          mas_freq[mas_cnt] = (char) 48 + (key-6);
+          mas_cnt++;
+          main_scr->setFreq(mas_freq);
 
      }
 
+     else
 
+     if (main_scr->mwFocus == 0)
+     {
+         for(int i=0;i<mas_cnt;i++)
+         mas_freq[i] = 0;
 
+         status_rx = false;
+
+     }
+
+     if (main_scr->mwFocus == 1)
+     {
+         status_rx = true;
+
+         main_scr->clearFreq();
+
+     }
 
     switch( state.getType() )
     {
-    // Главный экран
+    // Aeaaiue ye?ai
     case mainWindow:
     {
         switch( key )
         {
         case keyEnter:
-            guiTree.advance(0);
+            if (status_rx)
+            {
+
+                status_rx = false;
+                main_scr->setFreq(mas_freq);
+                QString str(mas_freq);
+                int freq = str.toInt();
+                voice_service ->TuneFrequency(freq);
+                mas_cnt=0;
+                draw();
+
+            }
+            else
+               guiTree.advance(0);
             break;
         case keyChNext:
             pGetVoiceService()->tuneNextChannel();
@@ -331,7 +368,7 @@ void Service::keyPressed(UI_Key key)
             break;
         case key0:
            setFreq(1);
-          guiTree.append(messangeWindow,"Режим установки частоты");
+          guiTree.append(messangeWindow,"?a?ei onoaiiaee ?anoiou");
           //pswf->MessageSendPswf(MessagePswf::UartDeviceAddress::TransmissionToDsp,
                                 //MessagePswf::PswfMessageIndicator::TransmitPackage,
                                //0.3,0.3,0,0,0,0.3,0);
@@ -340,6 +377,7 @@ void Service::keyPressed(UI_Key key)
             //setFreq(1);
             //break;
         default:
+             main_scr->keyPressed(key);
             break;
         }
         break;
@@ -354,34 +392,34 @@ void Service::keyPressed(UI_Key key)
         }
         break;
     }
-        // в меню
+        // a iai?
     case menuWindow:
     {
-        // переходим вниз по дереву & запоминаем состояние
+        // ia?aoiaei aiec ii aa?aao & caiiieiaai ninoiyiea
         if ( key == keyEnter)
         {
             int rc = guiTree.advance(menu->focus);
             menu->focus = 0;
 
-            // ввод параметров
+            // aaia ia?aiao?ia
             if (rc == -1)
             {
                 //
             }
         }
-        // переходим вверх по дереву & удаляем из стзка последнее состояние
+        // ia?aoiaei aaa?o ii aa?aao & oaaeyai ec nocea iineaaiaa ninoiyiea
         if ( key == keyBack)
         {
             int rc = guiTree.backvard();
             menu->focus = 0;
         }
-        // движемся по списку вверх
+        // aae?ainy ii nieneo aaa?o
         if (key == keyUp)
         {
             if ( menu->focus > 0 )
                 menu->focus--;
         }
-        // движемся по списку вниз
+        // aae?ainy ii nieneo aiec
         if (key == keyDown)
         {
             if ( menu->focus < state.nextState.size()-1 )
