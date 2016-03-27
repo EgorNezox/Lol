@@ -70,6 +70,7 @@ public:
     void setFreq(int isFreq);
     char mas_freq[10] = {0,0,0,0,0,0,0,0,0,0};
     int mas_cnt = 0;
+    bool status_rx = false;
 
 
 private:
