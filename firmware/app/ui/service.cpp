@@ -262,7 +262,7 @@ void Service::voiceChannelChanged()
 
 void Service::keyPressed(UI_Key key)
 {
-    MessagesPSWF::MessagePswf *pswf;// указываем ссылку на класс отправки ППРЧ
+//    MessagesPSWF::MessagePswf *pswf;// указываем ссылку на класс отправки ППРЧ
     CState state = guiTree.getCurrentState();
 
 //    if (getFreq() == 1)
@@ -366,7 +366,7 @@ void Service::keyPressed(UI_Key key)
             break;
         case key0:
            setFreq(1);
-          guiTree.append(messangeWindow,"Режим установки частоты");
+           guiTree.append(messangeWindow, (char*)"Режим установки частоты");
           //pswf->MessageSendPswf(MessagePswf::UartDeviceAddress::TransmissionToDsp,
                                 //MessagePswf::PswfMessageIndicator::TransmitPackage,
                                //0.3,0.3,0,0,0,0.3,0);
@@ -408,7 +408,7 @@ void Service::keyPressed(UI_Key key)
         // переходим вверх по дереву & удаляем из стзка последнее состояние
         if ( key == keyBack)
         {
-            int rc = guiTree.backvard();
+            /*int rc = */guiTree.backvard();
             menu->focus = 0;
         }
         // движемся по списку вверх
@@ -420,7 +420,7 @@ void Service::keyPressed(UI_Key key)
         // движемся по списку вниз
         if (key == keyDown)
         {
-            if ( menu->focus < state.nextState.size()-1 )
+            if ( menu->focus < (int)state.nextState.size()-1 )
                 menu->focus++;
         }
         break;
