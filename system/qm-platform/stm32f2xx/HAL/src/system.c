@@ -13,10 +13,12 @@
 #include "task.h"
 #include "stm32f2xx.h"
 
+#include "system.h"
 #include "system_hw_io.h"
 #include "sys_internal.h"
 
 #define MPU_REGION_SIZE(n)	((n-1) << MPU_RASR_SIZE_Pos) // size = 2^n
+#define SYSTEM_BOOT_ADDRESS	0x1fff0000
 
 /*! Автоматическая инициализация средствами стандартной библиотеки (до входа в main) */
 void  __attribute__((constructor)) hal_system_init(void) {
@@ -127,4 +129,38 @@ void vApplicationMallocFailedHook(void) {
 	 *  - ошибка при вызове функции выделения памяти (запрашиваемый размер больше размера кучи, ...).
 	 */
 	halinternal_system_fault_handler();
+}
+
+void stm32f2_enter_bootloader() {
+	/* Firstly, disable and clear pending interrupts from all mcu peripherals */
+	for (int i = 0; i <= 80; i++) {
+		NVIC_DisableIRQ((IRQn_Type)i);
+		NVIC_ClearPendingIRQ((IRQn_Type)i);
+	}
+	/* Set system clock from HSI oscillator (and reset prescalers) */
+	RCC->CFGR &= ~RCC_CFGR_SW;
+	RCC->CFGR &= ~(RCC_CFGR_HPRE | RCC_CFGR_PPRE1  | RCC_CFGR_PPRE2);
+	while ((RCC->CFGR & RCC_CFGR_SWS ) != RCC_CFGR_SWS_HSI);
+	/* Reset access latency of flash interface to zero CPU cycles */
+	FLASH->ACR &= ~FLASH_ACR_LATENCY;
+	/* Reset HSE and main PLL */
+	RCC->CR &= ~(RCC_CR_HSEON | RCC_CR_PLLON);
+	/* Switch execution context to internal SRAM
+	 * It "detaches" stack from external memory, if any.
+	 * Warning: no local variables can be used since here !
+	 */
+	__asm volatile("mov sp, %0\n" : : "r" (0x20000000+256) : "sp");
+	/* Reset all peripheral clocks
+	 * Warning: breaks access to external memory (if any) since here !
+	 */
+	RCC->AHB1ENR = 0;
+	RCC->AHB2ENR = 0;
+	RCC->AHB3ENR = 0;
+	RCC->APB1ENR = 0;
+	RCC->APB2ENR = 0;
+	/* Prepare system boot state and jump to bootloader code */
+	SYSCFG->MEMRMP = SYSCFG_MEMRMP_MEM_MODE_0;
+	SCB->VTOR = SYSTEM_BOOT_ADDRESS;
+	__asm volatile("mov sp, %0\n" : : "r" (*(uint32_t *)SYSTEM_BOOT_ADDRESS) : "sp");
+	__asm volatile("bx %0" :: "r" (*(uint32_t *)(SYSTEM_BOOT_ADDRESS + 4)));
 }

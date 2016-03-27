@@ -20,7 +20,7 @@ win32-g++: PRE_TARGETDEPS += $$OUT_PWD/firmware/debug/libfirmware.a
 else:win32:!win32-g++: PRE_TARGETDEPS += $$OUT_PWD/firmware/debug/firmware.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/firmware/libfirmware.a
 
-QM_BUILD_MODULES = core hardwareio storage keysinput
+QM_BUILD_MODULES = core hardwareio keysinput storage
 include(Qm/Qm.pri)
 
 SIGCPP_BUILD = 1
