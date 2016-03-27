@@ -25,12 +25,12 @@ HEADERS += \
     $$PWD/port_hardwareio/i2cdeviceinterface.h \
     $$PWD/port_hardwareio/spibus.h \
     $$PWD/port_hardwareio/spideviceinterface.h \
-    $$PWD/port_ramtex_s6d0129_cfg_seps525/qt/ramtexdisplaywidget.h \
-    $$PWD/devices/flashm25pdevice.h \
     $$PWD/port_keysinput/pushbuttonkey.h \
     $$PWD/port_keysinput/pushbuttonkeyinterface.h \
     $$PWD/port_keysinput/matrixkeyboardwidget.h \
-    $$PWD/port_keysinput/matrixkeyboardinterface.h
+    $$PWD/port_keysinput/matrixkeyboardinterface.h \
+    $$PWD/port_ramtex_s6d0129_cfg_seps525/qt/ramtexdisplaywidget.h \
+    $$PWD/devices/flashm25pdevice.h
 SOURCES += \
     $$PWD/hardware_resources.cpp \
     $$wildcardSources(port_hardwareio, *.cpp) \

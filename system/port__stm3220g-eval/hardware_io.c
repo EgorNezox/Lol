@@ -216,7 +216,7 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		params.exti_source = true;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPA, 0}, &params);
 		break;
-	case platformhwBatterySmbusI2c: // CN2 connector, pins 33,34 (JP31 open)
+	case platformhwBatterySmbusI2c: // CN2 connector, pins 32, 33 (JP31 open)
 		params.mode = hgpioMode_AF;
 		params.type = hgpioType_OD;
 		params.af = hgpioAF_I2C_1_2_3;
@@ -262,7 +262,7 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 	case platformhwKeyboardButt2Iopin:
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPA, 0});
 		break;
-	case platformhwBatterySmbusI2c: // CN2 connector, pins 33,34 (JP31 open)
+	case platformhwBatterySmbusI2c: // CN2 connector, pins 32, 33 (JP31 open)
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 10});
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 11});
 		break;
