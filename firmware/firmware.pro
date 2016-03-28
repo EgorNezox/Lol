@@ -8,6 +8,8 @@
 
 TEMPLATE = lib
 CONFIG += staticlib
+CONFIG -= qt
+CONFIG += c++11
 
 include(../Qm/Qm.pri)
 include(../system/3rdparty/libsigc++/sigc++.pri)
