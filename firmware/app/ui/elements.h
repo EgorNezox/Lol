@@ -67,8 +67,9 @@ class GUI_EL_Label: public GUI_Element{
 		void Draw();
 		GUI_EL_Label(LabelParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj);
 		void SetText(char *text);
+        bool transparent;
 	private:
-		bool transparent;
+
 		PGFONT font;
 		ColorScheme color_sch;
 	protected:

@@ -25,26 +25,37 @@ extern MoonsGeometry ui_indicator_area;
 
 /*!Класс диалога главного рабочего экрана*/
 class GUI_Dialog_MainScr: public GUI_Obj{
-	public:
+    public:
                 GUI_Dialog_MainScr(MoonsGeometry *area);
-		virtual ~GUI_Dialog_MainScr();
+        virtual ~GUI_Dialog_MainScr();
                 virtual void Draw( Multiradio::VoiceServiceInterface::ChannelStatus status,
                                    int ch_num,
                                    Multiradio::voice_channel_t channel_type
                                    );
-                void setModeText(const char*);
+        void setModeText(const char*);
+        void setFocus(int newFocus){ focus = newFocus; }
+        void setFreq(char* mas_freq); /*QString str; str.append(fr); str.append(freq_hz); freq->SetText((char*)str.toStdString().c_str());*/
+        void clearFreq();
+        void keyPressed(UI_Key);
         private:
-		GUI_EL_Window *window;
-		GUI_EL_Label *ch_num_label;
-		GUI_EL_Label *mode_text;
-                GUI_EL_Label *freq;
-		bool cur_ch_invalid;
-                std::string mode;
+        GUI_EL_Window *window;
+        GUI_EL_Label *ch_num_label;
+        GUI_EL_Label *mode_text;
+        GUI_EL_Label *freq;
+        bool cur_ch_invalid;
+        std::string mode;
+        int focus = -2;
                 void updateChannel(Multiradio::VoiceServiceInterface::ChannelStatus status,
                                    int ch_num,
                                    Multiradio::voice_channel_t channel_type
                                    );
                 void prepChString(char *str, int ch_num, Multiradio::voice_channel_t type );
+public:
+    // фокус элементов главного экрана
+    int mwFocus = -2;
+    int mainWindowModeId = 0;
+    std::string s;
+    std::string s2;
 };
 
 //--------------------------
@@ -55,19 +66,19 @@ class GUI_Dialog_MainScr: public GUI_Obj{
 class GUI_Indicator: public GUI_Obj{
         public:
                 GUI_Indicator(MoonsGeometry *area);
-		virtual ~GUI_Indicator();
-                void UpdateMultiradio(Multiradio::MainServiceInterface::Status status);
-                void UpdateHeadset(Headset::Controller::Status status);
-		void UpdateBattery(int new_val);
-                void Draw();
-                virtual void Draw( Multiradio::MainServiceInterface::Status,
+        virtual ~GUI_Indicator();
+        void UpdateMultiradio(Multiradio::MainServiceInterface::Status status);
+        void UpdateHeadset(Headset::Controller::Status status);
+        void UpdateBattery(int new_val);
+        void Draw();
+        virtual void Draw( Multiradio::MainServiceInterface::Status,
                                    Headset::Controller::Status,
                                    int
-                                 );
-        private:
-		GUI_EL_Icon *ind_multiradio;
-		GUI_EL_Icon *ind_headset;
-		GUI_EL_Battery *ind_battery;
+                                   );
+private:
+        GUI_EL_Icon *ind_multiradio;
+        GUI_EL_Icon *ind_headset;
+        GUI_EL_Battery *ind_battery;
 };
 
 
@@ -75,15 +86,15 @@ class GUI_Indicator: public GUI_Obj{
 class GUI_Dialog_MsgBox: public GUI_Obj{
         public:
                 GUI_Dialog_MsgBox(MoonsGeometry* area, char *text, Alignment align);
-		virtual ~GUI_Dialog_MsgBox();
+        virtual ~GUI_Dialog_MsgBox();
                 virtual void Draw();
-	protected:
-		MoonsGeometry window_geom;
-                TextAreaParams text_area_params;
-		char *text;
-        private:
-		MoonsGeometry text_area_geom;
-		MoonsGeometry button_geom;
+    protected:
+        MoonsGeometry window_geom;
+        TextAreaParams text_area_params;
+        char *text;
+    private:
+        MoonsGeometry text_area_geom;
+        MoonsGeometry button_geom;
 };
 
 #endif /* DIALOGS_H_ */

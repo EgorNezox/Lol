@@ -7,16 +7,22 @@
  ******************************************************************************
  */
 
+#include <stdlib.h>
 #include "qm.h"
 #include "qmdebug.h"
 #include "dialogs.h"
 #include "service.h"
 #include "texts.h"
+#include "messages/messagepswf.h"
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
 MoonsGeometry ui_menu_msg_box_area  = { 5,5,GDISPW-5,GDISPH-5 };
 MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
+
+
+
+using namespace MessagesPSWF;
 
 namespace Ui {
 
@@ -35,7 +41,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     QM_ASSERT(single_instance == false);
     single_instance = true;
     //...
-    msg_box=NULL;
 
     this->matrix_kb          = matrixkb_desc;
     this->aux_kb             = auxkb_desc;
@@ -257,7 +262,71 @@ void Service::voiceChannelChanged()
 
 void Service::keyPressed(UI_Key key)
 {
+//    MessagesPSWF::MessagePswf *pswf;// указываем ссылку на класс отправки ППРЧ
     CState state = guiTree.getCurrentState();
+
+//    if (getFreq() == 1)
+//     {
+//        if ((key >=6) && (key<=15))
+//        {
+//            mas_freq[mas_cnt] = (char)48+(key-6);
+//            mas_cnt++;
+//        }
+//            draw();
+//            guiTree.append(messangeWindow,mas_freq);
+
+
+//            if (key == keyChNext)
+//            {
+//                QString str(mas_freq);
+//                int freq = str.toInt();
+//                voice_service ->TuneFrequency(freq);
+//               // guiTree.append(messangeWindow,"Установка частоты выполнена!");
+//                setFreq(0);
+//                for(int i = 0; i<10;i++)
+//                    mas_freq[i] = 0;
+//                mas_cnt = 0;
+
+//            }
+
+
+//            draw();
+//            //guiTree.delLastElement();
+
+//            if (msg_box != nullptr)
+//            {
+//                delete msg_box;
+//                msg_box = nullptr;
+//            }
+
+//     }
+     if ((status_rx == true) && (key != keyUp))
+     {
+          if ( (key >=6) && (key <=15))
+          mas_freq[mas_cnt] = (char) 48 + (key-6);
+          mas_cnt++;
+          main_scr->setFreq(mas_freq);
+
+     }
+
+     else
+
+     if (main_scr->mwFocus == 0)
+     {
+         for(int i=0;i<mas_cnt;i++)
+         mas_freq[i] = 0;
+
+         status_rx = false;
+
+     }
+
+     if (main_scr->mwFocus == 1)
+     {
+         status_rx = true;
+
+         main_scr->clearFreq();
+
+     }
 
     switch( state.getType() )
     {
@@ -267,7 +336,19 @@ void Service::keyPressed(UI_Key key)
         switch( key )
         {
         case keyEnter:
-            guiTree.advance(0);
+            if (status_rx)
+            {
+
+                status_rx = false;
+                main_scr->setFreq(mas_freq);
+                int freq = atoi(mas_freq);
+                voice_service ->TuneFrequency(freq);
+                mas_cnt=0;
+                draw();
+
+            }
+            else
+               guiTree.advance(0);
             break;
         case keyChNext:
             pGetVoiceService()->tuneNextChannel();
@@ -283,7 +364,18 @@ void Service::keyPressed(UI_Key key)
             if (mainWindowModeId < 2)
                 mainWindowModeId++;
             break;
+        case key0:
+           setFreq(1);
+           guiTree.append(messangeWindow, (char*)"Режим установки частоты");
+          //pswf->MessageSendPswf(MessagePswf::UartDeviceAddress::TransmissionToDsp,
+                                //MessagePswf::PswfMessageIndicator::TransmitPackage,
+                               //0.3,0.3,0,0,0,0.3,0);
+            break;
+        //case key1:
+            //setFreq(1);
+            //break;
         default:
+             main_scr->keyPressed(key);
             break;
         }
         break;
@@ -293,6 +385,8 @@ void Service::keyPressed(UI_Key key)
         if ( key == keyEnter)
         {
             guiTree.delLastElement();
+            delete msg_box;
+            msg_box = nullptr;
         }
         break;
     }
@@ -314,7 +408,7 @@ void Service::keyPressed(UI_Key key)
         // переходим вверх по дереву & удаляем из стзка последнее состояние
         if ( key == keyBack)
         {
-            int rc = guiTree.backvard();
+            /*int rc = */guiTree.backvard();
             menu->focus = 0;
         }
         // движемся по списку вверх
@@ -326,7 +420,7 @@ void Service::keyPressed(UI_Key key)
         // движемся по списку вниз
         if (key == keyDown)
         {
-            if ( menu->focus < state.nextState.size()-1 )
+            if ( menu->focus < (int)state.nextState.size()-1 )
                 menu->focus++;
         }
         break;
@@ -336,6 +430,13 @@ void Service::keyPressed(UI_Key key)
     }
 
     draw();
+    guiTree.delLastElement();
+
+    if (msg_box != nullptr)
+    {
+        delete msg_box;
+        msg_box = nullptr;
+    }
 }
 
 int Service::getLanguage()
@@ -430,5 +531,16 @@ void Service::draw()
     }
 
 }
+
+int Service::getFreq()
+{
+    return isFreq;
+}
+
+void Service::setFreq(int isFreq)
+{
+    Service::isFreq = isFreq;
+}
+
 
 }/* namespace Ui */

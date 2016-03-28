@@ -12,6 +12,7 @@
 #include "voiceserviceinterface.h"
 #include "dispatcher.h"
 
+
 namespace Multiradio {
 
 VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
@@ -70,7 +71,13 @@ void VoiceServiceInterface::tunePreviousChannel() {
 		if ((*dispatcher->voice_channel).type == channelOpen)
 			break;
 	}
-	dispatcher->updateVoiceChannel();
+    dispatcher->updateVoiceChannel();
+}
+
+void VoiceServiceInterface::TuneFrequency(int Frequency)
+{
+    dispatcher->dsp_controller->setRadioParameters(DspController::RadioMode::RadioModeFM,Frequency);
+    dispatcher->dsp_controller->setRadioOperation(DspController::RadioOperation::RadioOperationRxMode);
 }
 
 void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
