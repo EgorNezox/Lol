@@ -12,8 +12,8 @@
 INCLUDEPATH += \
 	$$PWD/qmcore/include \
 	$$PWD/qmhardwareio/include \
-	$$PWD/qmkeysinput/include \
-	$$PWD/qmstorage/include
+        $$PWD/qmstorage/include \
+	$$PWD/qmkeysinput/include
 DEFINES += QM_PLATFORM_QT
 
 contains(QM_BUILD_MODULES,core) {
@@ -53,6 +53,13 @@ contains(QM_BUILD_MODULES,hardwareio) {
         $$PWD/qmhardwareio/src/qmspidevice_qt.cpp
 }
 
+contains(QM_BUILD_MODULES,storage) {
+    SOURCES += \
+        $$PWD/qmstorage/src/qmfile.cpp \
+        $$PWD/qmstorage/src/qmspiffs.cpp \
+        $$PWD/qmstorage/src/qmm25pdevice.cpp
+}
+
 contains(QM_BUILD_MODULES,keysinput) {
     HEADERS += \
         $$PWD/qmkeysinput/src/qmpushbuttonkey_p.h \
@@ -62,11 +69,4 @@ contains(QM_BUILD_MODULES,keysinput) {
         $$PWD/qmkeysinput/src/qmpushbuttonkey_qt.cpp \
         $$PWD/qmkeysinput/src/qmmatrixkeyboard.cpp \
         $$PWD/qmkeysinput/src/qmmatrixkeyboard_qt.cpp
-}
-
-contains(QM_BUILD_MODULES,storage) {
-    SOURCES += \
-        $$PWD/qmstorage/src/qmfile.cpp \
-        $$PWD/qmstorage/src/qmspiffs.cpp \
-        $$PWD/qmstorage/src/qmm25pdevice.cpp
 }

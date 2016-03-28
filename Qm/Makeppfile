@@ -33,6 +33,28 @@ QMCORE_SOURCES += \
 	qmcore/src/qmapplication_$(PLATFORM).cpp
 $(sources_to_objects $(QMCORE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH)
 
+QMGUI_INCLUDEPATH += \
+	qmgui/core/include \
+	qmgui/elements/include \
+	qmgui/port/include
+QMGUI_SOURCES += \	
+	qmgui/core/src/qmgui.cpp \	
+	qmgui/core/src/qmguiobject.cpp \
+	qmgui/core/src/qmguivisualobject.cpp \
+	qmgui/core/src/qmguidialog.cpp \
+	qmgui/core/src/qmguiscenario.cpp \
+	qmgui/core/src/qmguiscreen.cpp \
+	qmgui/core/src/qmguielement.cpp 
+
+QMGUI_SOURCES += \
+	qmgui/elements/src/qmguiellabel.cpp \
+	qmgui/elements/src/qmguielicon.cpp \
+	qmgui/elements/src/qmguielwindow.cpp \
+	qmgui/elements/src/qmguielbattery.cpp
+	
+$(sources_to_objects $(QMGUI_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMGUI_INCLUDEPATH)
+
+
 ifdef HARDWAREIO
   QMHARDWAREIO_INLCUDEPATH += qmhardwareio/include
   QMHARDWAREIO_SOURCES += \
@@ -50,6 +72,14 @@ ifdef HARDWAREIO
   $(sources_to_objects $(QMHARDWAREIO_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH)
 endif
 
+ifdef STORAGE
+  QMSTORAGE_INLCUDEPATH += qmstorage/include
+  QMSTORAGE_SOURCES += \
+  	qmstorage/src/qmfile.cpp \
+  	qmstorage/src/qmspiffs.cpp \
+  	qmstorage/src/qmm25pdevice.cpp
+  $(sources_to_objects $(QMSTORAGE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH) $(QMSTORAGE_INLCUDEPATH)
+endif
 ifdef KEYSINPUT
   QMKEYSINPUT_INLCUDEPATH += qmkeysinput/include
   QMKEYSINPUT_SOURCES += \
@@ -60,16 +90,7 @@ ifdef KEYSINPUT
   $(sources_to_objects $(QMKEYSINPUT_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMKEYSINPUT_INLCUDEPATH)
 endif
 
-ifdef STORAGE
-  QMSTORAGE_INLCUDEPATH += qmstorage/include
-  QMSTORAGE_SOURCES += \
-  	qmstorage/src/qmfile.cpp \
-  	qmstorage/src/qmspiffs.cpp \
-  	qmstorage/src/qmm25pdevice.cpp
-  $(sources_to_objects $(QMSTORAGE_SOURCES)): IDIR += $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH) $(QMSTORAGE_INLCUDEPATH)
-endif
-
-INCLUDEPATH = $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH) $(QMKEYSINPUT_INLCUDEPATH) $(QMSTORAGE_INLCUDEPATH)
-SOURCES_system = $(QMCORE_SOURCES) $(QMHARDWAREIO_SOURCES) $(QMKEYSINPUT_SOURCES) $(QMSTORAGE_SOURCES)
+INCLUDEPATH = $(QMCORE_INCLUDEPATH) $(QMHARDWAREIO_INLCUDEPATH) $(QMSTORAGE_INLCUDEPATH) $(QMGUI_INCLUDEPATH) $(QMKEYSINPUT_INLCUDEPATH)
+SOURCES_system = $(QMCORE_SOURCES) $(QMHARDWAREIO_SOURCES) $(QMSTORAGE_SOURCES) $(QMGUI_SOURCES) $(QMKEYSINPUT_SOURCES)
 
 include misc/target_build_footer.mk

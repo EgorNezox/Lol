@@ -27,24 +27,27 @@
 
 //----------CODE---------------
 
-GUI_Indicator::GUI_Indicator(MoonsGeometry *area, Ui::Service *service):GUI_Obj(area){
-	this->service=service;
+GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
+{
 	MoonsGeometry icon_geom;
 
-	icon_geom=GEOM_ICON(0);
-	ind_multiradio=new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator,&icon_geom, sym_blank, (GUI_Obj *)this);
+    icon_geom = GEOM_ICON(0);
+    ind_multiradio = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
 
-	icon_geom=GEOM_ICON(1);
-	ind_headset=new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator,&icon_geom, sym_blank, (GUI_Obj *)this);
+    icon_geom = GEOM_ICON(1);
+    ind_headset = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
 
-
-	icon_geom={ICON_SIZE*6,0,ICON_SIZE*6+BATTERY_SIZE-1, ICON_SIZE-1};	//геометрия батарейки
-	ind_battery=new GUI_EL_Battery(&GUI_EL_TEMP_BatteryIndicator, service->pGetPowerBattery()->getChargeLevel(), &icon_geom, (GUI_Obj *)this);
+    icon_geom = {ICON_SIZE*6,0,ICON_SIZE*6+BATTERY_SIZE-1, ICON_SIZE-1};	//геометрия батарейки
+    ind_battery = new GUI_EL_Battery(&GUI_EL_TEMP_BatteryIndicator, 0, &icon_geom, (GUI_Obj *)this);
 }
 
 //-----------------------------
 
-GUI_Indicator::~GUI_Indicator(){
+GUI_Indicator::~GUI_Indicator()
+{
+    delete ind_multiradio;
+    delete ind_headset;
+    delete ind_battery;
 
 }
 
@@ -54,77 +57,80 @@ void GUI_Indicator::UpdateMultiradio(Multiradio::MainServiceInterface::Status st
 	switch(status){
 		case Multiradio::MainServiceInterface::StatusIdle:
 		case Multiradio::MainServiceInterface::StatusNotReady:
-			ind_multiradio->icon=sym_blank;
+            ind_multiradio->icon = sym_blank;
 			break;
 		case Multiradio::MainServiceInterface::StatusVoiceRx:
-			ind_multiradio->icon=sym_rx;
+            ind_multiradio->icon = sym_rx;
 			break;
 		case Multiradio::MainServiceInterface::StatusVoiceTx:
-			ind_multiradio->icon=sym_tx;
+            ind_multiradio->icon = sym_tx;
 			break;
 		case Multiradio::MainServiceInterface::StatusTuningTx:
-			ind_multiradio->icon=sym_tx_tune;
+            ind_multiradio->icon = sym_tx_tune;
 			break;
 		default:
 			QM_ASSERT(0);
 			break;
 	}
-	ind_multiradio->Draw();
 }
 
 void GUI_Indicator::UpdateBattery(int new_val){
-	QM_ASSERT(new_val>=0);
-	ind_battery->charge=new_val;
-	ind_battery->Draw();
+    QM_ASSERT(new_val >= 0);
+    ind_battery->charge = new_val;
 }
 
 
 //-----------------------------
 
 void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
-	bool open_ch_missing;
-	Headset::Controller::SmartStatusDescription smart_status;
-	switch(status){
+
+
+    switch(status)
+    {
 		case Headset::Controller::StatusNone:
-			ind_headset->icon=sym_headphones_none;
+            ind_headset->icon = sym_headphones_none;
 			break;
 		case Headset::Controller::StatusAnalog:
-			ind_headset->icon=sym_headphones_analog;
-			if(service->pGetHeadsetController()->getAnalogStatus(open_ch_missing)){
-				if(open_ch_missing){
-					service->setNotification(Ui::NotificationMissingOpenVoiceChannels);
-				}
-			}
+            ind_headset->icon = sym_headphones_analog;
 			break;
 		case Headset::Controller::StatusSmartOk:
-			ind_headset->icon=sym_headphones_smart;
-			if(service->pGetHeadsetController()->getSmartStatus(smart_status)){
-				if(smart_status.channels_mismatch){
-					service->setNotification(Ui::NotificationMismatchVoiceChannelsTable);
-				}
-			}
+            ind_headset->icon = sym_headphones_smart;
 			break;
 		case Headset::Controller::StatusSmartMalfunction:
-			ind_headset->icon=sym_headphones_broken;
+            ind_headset->icon = sym_headphones_broken;
 			break;
 		default:
 			QM_ASSERT(0);
 			break;
 	}
-	ind_headset->Draw();
 }
 
 
 //-----------------------------
 
-void GUI_Indicator::Draw(){
+void GUI_Indicator::Draw( Multiradio::MainServiceInterface::Status multiradioStatus,
+                          Headset::Controller::Status              headsetStatus,
+                          int                                      battaryStatus
+                         ){
 	gsetcolorb(GENERAL_BACK_COLOR);
 	gsetvp(0,0,GDISPW-1, GDISPH-1);
 	groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe,ui_indicator_area.ye,0,GFILL);
 
-	UpdateMultiradio(service->pGetMultitradioService()->getStatus());
-	UpdateHeadset(service->pGetHeadsetController()->getStatus());
-	UpdateBattery(service->pGetPowerBattery()->getChargeLevel());
+    UpdateMultiradio(multiradioStatus /*service->pGetMultitradioService()->getStatus()*/);
+    UpdateHeadset   (headsetStatus /*service->pGetHeadsetController()->getStatus()*/);
+    UpdateBattery   (battaryStatus /*service->pGetPowerBattery()->getChargeLevel()*/);
+
+    ind_battery->Draw();
+    ind_headset->Draw();
+    ind_multiradio->Draw();
 }
 
+void GUI_Indicator::Draw(){
+    gsetcolorb(GENERAL_BACK_COLOR);
+    gsetvp(0,0,GDISPW-1, GDISPH-1);
+    groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe,ui_indicator_area.ye,0,GFILL);
 
+    ind_battery->Draw();
+    ind_headset->Draw();
+    ind_multiradio->Draw();
+}

@@ -17,6 +17,7 @@
 #include "gui_elements_common.h"
 #include "gui_obj.h"
 
+
 //-----------------------------
 #define MAX_LABEL_LENGTH 30
 #define MAX_TEXT_AREA_LENGTH 180
@@ -225,11 +226,12 @@ struct MenuItemParams{
 class GUI_EL_MenuItem: public GUI_EL_Label{
 	public:
 		void Draw();
-		GUI_EL_MenuItem(MenuItemParams *params, MoonsGeometry *geom, char *text, bool draw_mark, GUI_Obj *parrent_obj );
+        GUI_EL_MenuItem(MenuItemParams *params, MoonsGeometry *geom, char *text, bool draw_mark, bool rec, GUI_Obj *parrent_obj );
 		char *text;
 	private:
 		GUI_EL_Icon mark;
 		bool draw_mark;
+        bool rec_flag;
 	protected:
 		void CalcContentGeom();
 };
@@ -323,6 +325,5 @@ class GUI_EL_MarkLvlBar: public GUI_EL_Bar{
 };
 
 #include "element_templates.h"
-
 
 #endif /* ELEMENTS_H_ */

@@ -9,6 +9,7 @@
 #ifndef GUI_ELEMENTS_COMMON_H_
 #define GUI_ELEMENTS_COMMON_H_
 
+#include "gdisp.h"
 
 #define CONTENT_XE(content) (content.x+content.W-1)
 #define CONTENT_YE(content) (content.y+content.H-1)
