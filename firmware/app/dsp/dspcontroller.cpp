@@ -438,7 +438,9 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
             qmToBigEndian((uint8_t)value.mic_amplify, tx_data+tx_data_len);
             tx_data_len += 1;
             break;
+        default: QM_ASSERT(0);
         }
+        break;
     }
 	default: QM_ASSERT(0);
 	}
