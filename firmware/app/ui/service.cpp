@@ -303,9 +303,11 @@ void Service::keyPressed(UI_Key key)
      if ((status_rx == true) && (key != keyUp))
      {
           if ( (key >=6) && (key <=15))
-          mas_freq[mas_cnt] = (char) 48 + (key-6);
-          mas_cnt++;
-          main_scr->setFreq(mas_freq);
+          {
+            mas_freq[mas_cnt] = (char) 48 + (key-6);
+            mas_cnt++;
+            main_scr->setFreq(mas_freq);
+          }
 
      }
 
@@ -313,9 +315,9 @@ void Service::keyPressed(UI_Key key)
 
      if (main_scr->mwFocus == 0)
      {
-         for(int i=0;i<mas_cnt;i++)
+         for(int i=0;i<10;i++)
          mas_freq[i] = 0;
-
+         mas_cnt = 0;
          status_rx = false;
 
      }
@@ -367,13 +369,14 @@ void Service::keyPressed(UI_Key key)
         case key0:
            setFreq(1);
            guiTree.append(messangeWindow, (char*)"Режим установки частоты");
-          //pswf->MessageSendPswf(MessagePswf::UartDeviceAddress::TransmissionToDsp,
-                                //MessagePswf::PswfMessageIndicator::TransmitPackage,
-                               //0.3,0.3,0,0,0,0.3,0);
-            break;
-        //case key1:
-            //setFreq(1);
-            //break;
+           break;
+        case keyBack:
+            if ((status_rx) && (mas_cnt >0))
+            {
+                mas_freq[mas_cnt-1] = 0;
+                mas_cnt--;
+                main_scr->setFreq(mas_freq);
+            }
         default:
              main_scr->keyPressed(key);
             break;
