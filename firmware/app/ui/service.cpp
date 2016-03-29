@@ -386,12 +386,30 @@ void Service::keyPressed(UI_Key key)
         {
             int rc;
             rc = guiTree.advance(menu->focus);
-            menu->focus = 0;
+
             // ввод параметров
             if (rc == -1)
             {
                 //
             }
+
+            if ((rc == 1) && menu->focus == 2)
+            {
+                // отрисовываем новое меню под громкость
+            static MoonsGeometry mode_text_geom2 = { 80,  5, 158,  32 };
+               // GUI_EL_TEMP_LabelMode.transparent  = false;
+           MoonsGeometry area;
+           MoonsGeometry window_geom2 = {0,0,(GXT)(GEOM_W(area)-1),(GYT)(GEOM_H(area)-1)};
+
+           GUI_EL_Window *window2    = new GUI_EL_Window(&GUI_EL_TEMP_WindowGeneralBack, &window_geom2,(GUI_Obj*)this);
+           GUI_EL_Label  *mode_text2 = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,&mode_text_geom2, NULL, (GUI_Obj*)this);
+
+            window2->Draw();
+            mode_text2->Draw();
+            }
+
+             menu->focus = 0;
+
             break;
         }
         // переходим вверх по дереву & удаляем из стзка последнее состояние
@@ -528,7 +546,7 @@ void Service::drawMenu()
     {
         menu = new CGuiMenu(&ui_menu_msg_box_area, st.getName(), text, align);
     }
-    std::vector<std::string> t;
+    std::list<std::string> t;
     if (st.nextState.size() > 0)
     {
         int removal = 0;
@@ -539,9 +557,10 @@ void Service::drawMenu()
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
 
-        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
+        for (auto &k: st.nextState)
+//        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
         {
-            t.push_back( std::string(st.nextState[i]->getName()) );
+            t.push_back( std::string(k->getName()) );
         }
         menu->initItems(t, st.getName(), focusItem);
 
