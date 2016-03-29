@@ -44,6 +44,10 @@ public:
     int focus;
     void initItems(std::list<std::string>, const char*, int);
     void initDialog(CEndState);
+    void initCallDialog();
+    void initVolumeDialog();
+    void initTwoStateDialog();
+
     void setTitle(const char*);
     void keyPressed(UI_Key);
     bool isEditing(){ return editing; }
@@ -51,6 +55,10 @@ public:
     std::string dstAddr, newDstAddr;
     std::string message, newMessage;
 
+
+    // ----
+    void incrVolume(){ if ( vol < 100) vol += 20; }
+    void decrVolume(){ if ( vol >  0 ) vol -= 20; }
 private:
     GUI_Obj obj;
     MoonsGeometry menuArea;
@@ -71,6 +79,7 @@ private:
     char *tx;
     bool editing;
 
+    int vol = 40;
 };
 
 

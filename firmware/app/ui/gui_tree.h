@@ -25,7 +25,9 @@ enum GuiWindowsSubType
     call,\
     recv,\
     data,\
-    settings
+    settings,\
+    twoState,\
+    volume
 };
 
 enum modeCall
@@ -82,6 +84,8 @@ public:
     std::list<SInputItemParameters*> listItem;
 
     void keyPressed(UI_Key){}
+
+    GuiWindowsSubType subType;
 };
 
 class CGuiTree
@@ -141,7 +145,7 @@ private:
     CEndState dataSendCondCmd, dataSendSms, dataSendPost, dataSendGroupCondCmd;
     // 4.1 - 4.3
     CState sttDateTime, sttConnParam;
-    CEndState sttScan, swAruArm, sttSuppress;
+    CEndState sttScan, swAruArm, sttSound, sttSuppress;
     // 4.1.1 - 4.1.2
     CState sttConnParamHand;
     CEndState sttConnParamGPS;

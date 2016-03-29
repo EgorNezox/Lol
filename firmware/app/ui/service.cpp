@@ -75,26 +75,26 @@ void Service::updateHeadset(Headset::Controller::Status status)
 
     switch(status)
     {
-        case Headset::Controller::StatusAnalog:
-            if(this->pGetHeadsetController()->getAnalogStatus(open_ch_missing))
+    case Headset::Controller::StatusAnalog:
+        if(this->pGetHeadsetController()->getAnalogStatus(open_ch_missing))
+        {
+            if(open_ch_missing)
             {
-                if(open_ch_missing)
-                {
-                    this->setNotification(Ui::NotificationMissingOpenVoiceChannels);
-                }
+                this->setNotification(Ui::NotificationMissingOpenVoiceChannels);
             }
-            break;
-        case Headset::Controller::StatusSmartOk:
-            if(this->pGetHeadsetController()->getSmartStatus(smart_status))
+        }
+        break;
+    case Headset::Controller::StatusSmartOk:
+        if(this->pGetHeadsetController()->getSmartStatus(smart_status))
+        {
+            if(smart_status.channels_mismatch)
             {
-                if(smart_status.channels_mismatch)
-                {
-                    this->setNotification(Ui::NotificationMismatchVoiceChannelsTable);
-                }
+                this->setNotification(Ui::NotificationMismatchVoiceChannelsTable);
             }
-            break;
-        default:
-            break;
+        }
+        break;
+    default:
+        break;
     }
 
     indicator->UpdateHeadset(status);
@@ -138,22 +138,22 @@ Service::~Service() {
 
 void Service::setNotification(NotificationType type)
 {
-        switch(type)
-        {
-            case NotificationMissingVoiceChannelsTable:
-                guiTree.append(messangeWindow, missing_ch_table_txt[getLanguage()]);
-                break;
-            case NotificationMissingOpenVoiceChannels:
-                guiTree.append(messangeWindow, missing_open_ch_txt[getLanguage()]);
-                break;
-            case NotificationMismatchVoiceChannelsTable:
-                guiTree.append(messangeWindow, ch_table_mismatch_txt[getLanguage()]);
-                break;
-            default:
-                QM_ASSERT(0);
-                break;
-        }
-        draw();
+    switch(type)
+    {
+    case NotificationMissingVoiceChannelsTable:
+        guiTree.append(messangeWindow, missing_ch_table_txt[getLanguage()]);
+        break;
+    case NotificationMissingOpenVoiceChannels:
+        guiTree.append(messangeWindow, missing_open_ch_txt[getLanguage()]);
+        break;
+    case NotificationMismatchVoiceChannelsTable:
+        guiTree.append(messangeWindow, ch_table_mismatch_txt[getLanguage()]);
+        break;
+    default:
+        QM_ASSERT(0);
+        break;
+    }
+    draw();
 }
 
 
@@ -281,7 +281,7 @@ void Service::keyPressed(UI_Key key)
                     main_scr->oFreq.clear();
                     main_scr->oFreq.append(main_scr->nFreq.c_str());
                     int freq = atoi(main_scr->nFreq.c_str());
-//                    voice_service->TuneFrequency(freq);
+                    //                    voice_service->TuneFrequency(freq);
                 }
                 if (main_scr->mwFocus == 1)
                 {
@@ -416,25 +416,15 @@ void Service::keyPressed(UI_Key key)
         // переходим вниз по дереву & запоминаем состояние
         if ( key == keyEnter)
         {
+            if (menu->focus == estate.listItem.size())
             {
-                if (menu->focus == estate.listItem.size())
-                {
-                    //---------
-                    // callback
-                    //---------
-                    guiTree.resetCurrentState();
-                }
-                else
-                {
-                    // ввод параметров
-                }
+                guiTree.resetCurrentState();
+            }
+            else
+            {
+                // ввод параметров
             }
             menu->focus = 0;
-            // ввод параметров
-            //if (rc == -1)
-            {
-                //
-            }
             break;
         }
         // переходим вверх по дереву & удаляем из стзка последнее состояние
@@ -444,20 +434,30 @@ void Service::keyPressed(UI_Key key)
             menu->focus = 0;
             break;
         }
-        // движемся по списку вверх
-        if (key == keyUp)
+        //            // движемся по списку вверх
+        //            if (key == keyUp)
+        //            {
+        //                if ( menu->focus > 0 )
+        //                    menu->focus--;
+        //                break;
+        //            }
+        //            // движемся по списку вниз
+        //            if (key == keyDown)
+        //            {
+        //                if ( menu->focus < estate.listItem.size() )
+        //                {     //if ( menu->focus < state.nextState.size()-1 )
+        //                    menu->focus++;
+        //                }
+        //                break;
+        //            }
+
+        switch(estate.subType)
         {
-            if ( menu->focus > 0 )
-                menu->focus--;
+        case GuiWindowsSubType::volume:
+            if (key == keyUp  ){ menu->incrVolume(); }
+            if (key == keyDown){ menu->decrVolume(); }
             break;
-        }
-        // движемся по списку вниз
-        if (key == keyDown)
-        {
-            if ( menu->focus < estate.listItem.size() )
-            {     //if ( menu->focus < state.nextState.size()-1 )
-                menu->focus++;
-            }
+        default:
             break;
         }
     }
@@ -466,10 +466,6 @@ void Service::keyPressed(UI_Key key)
         break;
     }
 
-    if (false)
-    {
-//        goToCallBack();
-    }
     draw();
 }
 
@@ -507,18 +503,20 @@ void Service::drawMainWindow()
 
 void Service::drawMenu()
 {
-    CState st = guiTree.getCurrentState();
     Alignment align = {alignHCenter,alignTop};
     const char* text = "";
     int focusItem;
 
     if(menu == nullptr)
     {
-        menu = new CGuiMenu(&ui_menu_msg_box_area, st.getName(), text, align);
+        menu = new CGuiMenu(&ui_menu_msg_box_area, guiTree.getCurrentState().getName(), text, align);
     }
-    std::list<std::string> t;
-    if (st.nextState.size() > 0)
+
+    if ( guiTree.getCurrentState().getType() == menuWindow )
     {
+        CState st = guiTree.getCurrentState();
+        std::list<std::string> t;
+
         int removal = 0;
         focusItem = menu->focus;
         if (menu->focus > MAIN_MENU_MAX_LIST_SIZE)
@@ -526,23 +524,47 @@ void Service::drawMenu()
             removal = menu->focus - MAIN_MENU_MAX_LIST_SIZE;
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
+        //        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
 
-//        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
         for (auto &k: st.nextState)
         {
             t.push_back( std::string(k->getName()) );
         }
 
         menu->initItems(t, st.getName(), focusItem);
-
+        menu->Draw();
+        t.clear();
     }
     else
     {
+        CEndState st = (CEndState&)guiTree.getCurrentState();
         menu->setTitle(st.getName());
-//        menu->initDialog();
+
+        switch( st.subType )
+        {
+        case call:
+            menu->initCallDialog();
+            break;
+        case recv:
+            menu->initTwoStateDialog();
+            break;
+        case data:
+            menu->initTwoStateDialog();
+            break;
+        case settings:
+            menu->initTwoStateDialog();
+            break;
+        case twoState:
+            menu->initTwoStateDialog();
+            break;
+        case volume:
+            menu->initVolumeDialog();
+            break;
+        default:
+            menu->initTwoStateDialog();
+            break;
+        }
     }
-    menu->Draw();
-    t.clear();
 }
 
 void Service::draw()
@@ -560,6 +582,9 @@ void Service::draw()
         msgBox( currentState.getName() );
         break;
     case menuWindow:
+        drawMenu();
+        break;
+    case endMenuWindow:
         drawMenu();
         break;
     default:

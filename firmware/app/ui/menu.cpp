@@ -85,6 +85,70 @@ void CGuiMenu::initDialog(CEndState state)
     item [size] = new GUI_EL_MenuItem(&itemParams, &itemArea[size],  (char*)trans, true, f, (GUI_Obj*)this);
 }
 
+void CGuiMenu::initCallDialog()
+{
+    //
+}
+
+void CGuiMenu::initTwoStateDialog()
+{
+    int i = 2;
+    itemArea[0] = {(GXT)(windowArea.xs + 7*MARGIN),
+                   (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
+                   (GXT)(windowArea.xe - 7*MARGIN),
+                   (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
+                  };
+
+//    MoonsGeometry volume_geom  = {  35,  25,  112,  85 };
+//    GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelChannel, &volume_geom,  NULL, (GUI_Obj*)this);
+//    volume->SetText("20");
+
+    // title
+    titleArea = {(GXT)(windowArea.xs + MARGIN),
+                 (GYT)(windowArea.ys + MARGIN),
+                 (GXT)(windowArea.xe - MARGIN),
+                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
+                };
+
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
+    GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
+
+    window.Draw();
+    title.Draw();
+}
+
+void CGuiMenu::initVolumeDialog()
+{
+    int i = 2;
+    itemArea[0] = {(GXT)(windowArea.xs + 7*MARGIN),
+                   (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
+                   (GXT)(windowArea.xe - 7*MARGIN),
+                   (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
+                  };
+
+    MoonsGeometry volume_geom  = {  35,  25,  112,  85 };
+    GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelChannel, &volume_geom,  NULL, (GUI_Obj*)this);
+
+    char s[3]; itoa( vol, s, 3);
+    volume->SetText((char*) s);
+
+    // title
+    titleArea = {(GXT)(windowArea.xs + MARGIN),
+                 (GYT)(windowArea.ys + MARGIN),
+                 (GXT)(windowArea.xe - MARGIN),
+                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
+                };
+
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
+    GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
+
+    window.Draw();
+    title.Draw();
+    volume->Draw();
+
+    delete volume;
+}
+
 void CGuiMenu::setTitle(const char* title)
 {
     titleStr.clear();
