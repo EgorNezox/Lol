@@ -95,7 +95,16 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
     freq->Draw();
 
 }
+void GUI_Dialog_MainScr::editingFreq(UI_Key key)
+{
 
+    if (nFreq.size() < 8)
+    {
+        if ( key > 5 && key < 17)
+            nFreq.push_back((char)(42 + key));
+    }
+    setFreq(nFreq.c_str());
+}
 //-----------------------------
 
 void GUI_Dialog_MainScr::updateChannel( Multiradio::VoiceServiceInterface::ChannelStatus status,
@@ -123,21 +132,10 @@ void GUI_Dialog_MainScr::updateChannel( Multiradio::VoiceServiceInterface::Chann
     }
 }
 
-
-void GUI_Dialog_MainScr::setFreq(char* mas_freq)
-{
-
-  //  if ((Key >= 6) && (Key<=15))
- //   s2.append((char *)(48+Key - 6));
-    freq->SetText( (char*) s2.append(mas_freq).append(freq_hz).c_str());
-    s2 =  "";
-
-}
-
-void GUI_Dialog_MainScr::clearFreq()
-{
-      freq->SetText("");
-}
+//void GUI_Dialog_MainScr::clearFreq()
+//{
+//      freq->SetText("");
+//}
 
 //-----------------------------
 

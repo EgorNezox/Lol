@@ -262,124 +262,104 @@ void Service::voiceChannelChanged()
 
 void Service::keyPressed(UI_Key key)
 {
-//    MessagesPSWF::MessagePswf *pswf;// указываем ссылку на класс отправки ППРЧ
     CState state = guiTree.getCurrentState();
-
-//    if (getFreq() == 1)
-//     {
-//        if ((key >=6) && (key<=15))
-//        {
-//            mas_freq[mas_cnt] = (char)48+(key-6);
-//            mas_cnt++;
-//        }
-//            draw();
-//            guiTree.append(messangeWindow,mas_freq);
-
-
-//            if (key == keyChNext)
-//            {
-//                QString str(mas_freq);
-//                int freq = str.toInt();
-//                voice_service ->TuneFrequency(freq);
-//               // guiTree.append(messangeWindow,"Установка частоты выполнена!");
-//                setFreq(0);
-//                for(int i = 0; i<10;i++)
-//                    mas_freq[i] = 0;
-//                mas_cnt = 0;
-
-//            }
-
-
-//            draw();
-//            //guiTree.delLastElement();
-
-//            if (msg_box != nullptr)
-//            {
-//                delete msg_box;
-//                msg_box = nullptr;
-//            }
-
-//     }
-     if ((status_rx == true) && (key != keyUp))
-     {
-          if ( (key >=6) && (key <=15))
-          {
-            mas_freq[mas_cnt] = (char) 48 + (key-6);
-            mas_cnt++;
-            main_scr->setFreq(mas_freq);
-          }
-
-     }
-
-     else
-
-     if (main_scr->mwFocus == 0)
-     {
-         for(int i=0;i<10;i++)
-         mas_freq[i] = 0;
-         mas_cnt = 0;
-         status_rx = false;
-
-     }
-
-     if (main_scr->mwFocus == 1)
-     {
-         status_rx = true;
-
-         main_scr->clearFreq();
-
-     }
 
     switch( state.getType() )
     {
     // Главный экран
     case mainWindow:
     {
-        switch( key )
+        if (main_scr->isEditing())
         {
-        case keyEnter:
-            if (status_rx)
+            switch(key)
             {
+            case keyBack:
+                main_scr->mwFocus = -2;
+                main_scr->setFocus(1-main_scr->mwFocus);
+                main_scr->editing = false;
+                main_scr->setFreq(main_scr->oFreq.c_str());
+                break;
+            case keyEnter:
+                // фиксация изменений
+                if (main_scr->mwFocus == 0)
+                {
+                    main_scr->oFreq.clear();
+                    main_scr->oFreq.append(main_scr->nFreq.c_str());
 
-                status_rx = false;
-                main_scr->setFreq(mas_freq);
-                int freq = atoi(mas_freq);
-                voice_service ->TuneFrequency(freq);
-                mas_cnt=0;
-                draw();
+                    //main_scr->setFreq(mas_freq);
+                    int freq = atoi(main_scr->nFreq.c_str());
+                    voice_service ->TuneFrequency(freq);
 
+                    main_scr->mwFocus = -2;
+                    main_scr->setFocus(1-main_scr->mwFocus);
+                    main_scr->editing = false;
+                }
+                if (main_scr->mwFocus == 1)
+                {
+                    //
+                }
+                break;
+            case keyLeft:
+                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
+                    main_scr->mainWindowModeId--;
+                break;
+            case keyRight:
+                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 2)
+                    main_scr->mainWindowModeId++;
+                break;
+            default:
+                if ( main_scr->mwFocus == 0 )
+                    main_scr->editingFreq(key);
+                break;
             }
-            else
-               guiTree.advance(0);
-            break;
-        case keyChNext:
-            pGetVoiceService()->tuneNextChannel();
-            break;
-        case keyChPrev:
-            pGetVoiceService()->tunePreviousChannel();
-            break;
-        case keyLeft:
-            if (mainWindowModeId > 0)
-                mainWindowModeId--;
-            break;
-        case keyRight:
-            if (mainWindowModeId < 2)
-                mainWindowModeId++;
-            break;
-        case key0:
-           setFreq(1);
-           guiTree.append(messangeWindow, (char*)"Режим установки частоты");
-           break;
-        case keyBack:
-            if ((status_rx) && (mas_cnt >0))
+        }
+        else
+        {
+            switch(key)
             {
-                mas_freq[mas_cnt-1] = 0;
-                mas_cnt--;
-                main_scr->setFreq(mas_freq);
+            case keyChNext:
+                pGetVoiceService()->tuneNextChannel();
+                break;
+            case keyChPrev:
+                pGetVoiceService()->tunePreviousChannel();
+                break;
+            case keyBack:
+                main_scr->mwFocus = -2;
+                main_scr->setFocus(1-main_scr->mwFocus);
+                break;
+            case keyUp:
+                if (main_scr->mwFocus < 1)
+                    main_scr->mwFocus++;
+                main_scr->setFocus(1-main_scr->mwFocus);
+                break;
+            case keyDown:
+                if (main_scr->mwFocus < 0)
+                    main_scr->mwFocus++;
+                if (main_scr->mwFocus > 0)
+                    main_scr->mwFocus--;
+                main_scr->setFocus(1-main_scr->mwFocus);
+                break;
+            case keyEnter:
+                if (main_scr->mwFocus < 0)
+                    guiTree.advance(0);
+                if (main_scr->mwFocus >= 0)
+                {
+                    main_scr->editing = true;
+                    if (main_scr->mwFocus == 0)
+                        main_scr->nFreq.clear();
+                }
+                break;
+            case keyLeft:
+                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
+                    main_scr->mainWindowModeId--;
+                break;
+            case keyRight:
+                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 2)
+                    main_scr->mainWindowModeId++;
+                break;
+            default:
+                break;
             }
-        default:
-             main_scr->keyPressed(key);
-            break;
         }
         break;
     }
@@ -388,59 +368,122 @@ void Service::keyPressed(UI_Key key)
         if ( key == keyEnter)
         {
             guiTree.delLastElement();
-            delete msg_box;
-            msg_box = nullptr;
+            if (msg_box != nullptr)
+            {
+                delete msg_box;
+                msg_box = nullptr;
+            }
         }
+//        else
+//            msg_box->keyPressed(key);
         break;
     }
-    // в меню
+        // в меню
     case menuWindow:
     {
-    	// переходим вниз по дереву & запоминаем состояние
+        // переходим вниз по дереву & запоминаем состояние
         if ( key == keyEnter)
         {
-            int rc = guiTree.advance(menu->focus);
+            int rc;
+            rc = guiTree.advance(menu->focus);
             menu->focus = 0;
-
             // ввод параметров
             if (rc == -1)
             {
                 //
             }
+            break;
         }
         // переходим вверх по дереву & удаляем из стзка последнее состояние
         if ( key == keyBack)
         {
-            /*int rc = */guiTree.backvard();
+            guiTree.backvard();
             menu->focus = 0;
+            break;
         }
         // движемся по списку вверх
         if (key == keyUp)
         {
             if ( menu->focus > 0 )
                 menu->focus--;
+            break;
         }
         // движемся по списку вниз
         if (key == keyDown)
         {
-            if ( menu->focus < (int)state.nextState.size()-1 )
-                menu->focus++;
+            if ( state.nextState.size() != 0 )
+            {
+                if ( menu->focus < state.nextState.size()-1 )
+                    menu->focus++;
+            }
+            break;
         }
+//        menu->keyPressed(key);
         break;
     }
+//    case endMenuWindow:
+//    {
+//        CEndState estate = (CEndState&)guiTree.getCurrentState();
+//        // переходим вниз по дереву & запоминаем состояние
+//        if ( key == keyEnter)
+//        {
+//            {
+//                if (menu->focus == estate.listItem.size())
+//                {
+//                    //---------
+//                    // callback
+//                    //---------
+//                    guiTree.resetCurrentState();
+//                }
+//                else
+//                {
+//                    // ввод параметров
+//                }
+//            }
+//            menu->focus = 0;
+//            // ввод параметров
+//            //if (rc == -1)
+//            {
+//                //
+//            }
+//            break;
+//        }
+//        // переходим вверх по дереву & удаляем из стзка последнее состояние
+//        if ( key == keyBack)
+//        {
+//            guiTree.backvard();
+//            menu->focus = 0;
+//            break;
+//        }
+//        // движемся по списку вверх
+//        if (key == keyUp)
+//        {
+//            if ( menu->focus > 0 )
+//                menu->focus--;
+//            break;
+//        }
+//        // движемся по списку вниз
+//        if (key == keyDown)
+//        {
+//            if ( menu->focus < estate.listItem.size() )
+//            {     //if ( menu->focus < state.nextState.size()-1 )
+//                menu->focus++;
+//            }
+//            break;
+//        }
+//    }
+        break;
     default:
         break;
     }
 
-    draw();
-    guiTree.delLastElement();
-
-    if (msg_box != nullptr)
+    if (false)
     {
-        delete msg_box;
-        msg_box = nullptr;
+//        goToCallBack();
     }
+    draw();
 }
+
 
 int Service::getLanguage()
 {

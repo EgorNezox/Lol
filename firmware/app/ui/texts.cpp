@@ -39,7 +39,7 @@ const char *reciveSubMenu[] = {"Речь", "Сообщение(АУС)", "Группа усл.команд"};
 const char *dataSubMenu[] = {"Принятые", "Отправленные", "Сохраненые"};
     const char *dataSubSubMenu[] = {"Условные команды", "СМС", "Головая почта", "Группа усл.команд"};
 
-const char *settingsSubMenu[] = {"Дата/время", "Параметры связи", "Сканирование"};
+const char *settingsSubMenu[] = {"Дата/время", "Параметры связи", "Сканирование","Громкость"};
     const char *dateAndTimeSubMenu[] = {"GPS синх-ция", "Ручная установка"};
         const char *setDateOrTime[] = {"Установить дату", "Установить время"};
     const char *setConnParam[] = {"Частота", "Скорость"};

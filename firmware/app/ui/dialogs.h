@@ -24,38 +24,50 @@ extern MoonsGeometry ui_indicator_area;
 //--------------------------
 
 /*!Класс диалога главного рабочего экрана*/
-class GUI_Dialog_MainScr: public GUI_Obj{
-    public:
-                GUI_Dialog_MainScr(MoonsGeometry *area);
-        virtual ~GUI_Dialog_MainScr();
-                virtual void Draw( Multiradio::VoiceServiceInterface::ChannelStatus status,
-                                   int ch_num,
-                                   Multiradio::voice_channel_t channel_type
-                                   );
-        void setModeText(const char*);
-        void setFocus(int newFocus){ focus = newFocus; }
-        void setFreq(char* mas_freq); /*QString str; str.append(fr); str.append(freq_hz); freq->SetText((char*)str.toStdString().c_str());*/
-        void clearFreq();
-        void keyPressed(UI_Key);
-        private:
-        GUI_EL_Window *window;
-        GUI_EL_Label *ch_num_label;
-        GUI_EL_Label *mode_text;
-        GUI_EL_Label *freq;
-        bool cur_ch_invalid;
-        std::string mode;
-        int focus = -2;
-                void updateChannel(Multiradio::VoiceServiceInterface::ChannelStatus status,
-                                   int ch_num,
-                                   Multiradio::voice_channel_t channel_type
-                                   );
-                void prepChString(char *str, int ch_num, Multiradio::voice_channel_t type );
+class GUI_Dialog_MainScr: public GUI_Obj
+{
+public:
+    GUI_Dialog_MainScr(MoonsGeometry *area);
+    virtual ~GUI_Dialog_MainScr();
+    virtual void Draw( Multiradio::VoiceServiceInterface::ChannelStatus status,
+                       int ch_num,
+                       Multiradio::voice_channel_t channel_type
+                       );
+    void setModeText(const char*);
+    void setFocus(int newFocus)
+    {
+        focus = newFocus;
+    }
+    void setFreq(const char *fr)
+    {
+        std::string str;
+        str.append(fr);
+        str.append(freq_hz);
+        freq->SetText((char*)str.c_str());
+    }
+    void editingFreq(UI_Key);
+    void keyPressed(UI_Key);
+    bool isEditing(){ if(editing) return true; else return false; }
+    bool editing;
+    std::string nFreq, oFreq;
+private:
+    GUI_EL_Window *window;
+    GUI_EL_Label *ch_num_label;
+    GUI_EL_Label *mode_text;
+    GUI_EL_Label *freq;
+    bool cur_ch_invalid;
+    std::string mode;
+    int focus = -2;
+
+    void updateChannel(Multiradio::VoiceServiceInterface::ChannelStatus status,
+                       int ch_num,
+                       Multiradio::voice_channel_t channel_type
+                       );
+    void prepChString(char *str, int ch_num, Multiradio::voice_channel_t type );
 public:
     // фокус элементов главного экрана
-    int mwFocus = -2;
+    int mwFocus = -1;
     int mainWindowModeId = 0;
-    std::string s;
-    std::string s2;
 };
 
 //--------------------------
