@@ -89,7 +89,7 @@ private:
     // 3.2.1 - 3.2.4
     CState dataSendCondCmd, dataSendSms, dataSendPost, dataSendGroupCondCmd;
     // 4.1 - 4.3
-    CState sttDateTime, sttConnParam, sttScan;
+    CState sttDateTime, sttConnParam, sttScan, sttVolume;
     // 4.1.1 - 4.1.2
     CState sttConnParamGPS, sttConnParamHand;
     // 4.1.2.1 - 4.1.2.2

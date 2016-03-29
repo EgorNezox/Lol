@@ -60,11 +60,12 @@ void CGuiMenu::setTitle(const char* title)
     titleStr.append(title);
 }
 
-void CGuiMenu::initItems(std::vector<std::string> text, const char* title, int focusItem)
+void CGuiMenu::initItems(std::list<std::string> text, const char* title, int focusItem)
 {
     setTitle(title);
 
-    for (int i = 0; i < text.size(); i++)
+    int i = 0;
+    for (auto &k: text)
     {
 
         itemArea[i] = {(GXT)(windowArea.xs + MARGIN),
@@ -78,7 +79,8 @@ void CGuiMenu::initItems(std::vector<std::string> text, const char* title, int f
         else
             f = false;
 
-        item[i] = new GUI_EL_MenuItem(&itemParams, &itemArea[i], (char*)text[i].c_str(), true, f, (GUI_Obj*)this);
+        item[i] = new GUI_EL_MenuItem(&itemParams, &itemArea[i], (char*)k.c_str(), true, f, (GUI_Obj*)this);
+        i++;
     }
 }
 

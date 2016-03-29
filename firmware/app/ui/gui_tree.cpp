@@ -27,7 +27,7 @@ void CGuiTree::init()
     // 3.2.1 - 3.2.4
     dataSendCondCmd.setName(dataSubSubMenu[0]); dataSendSms.setName(dataSubSubMenu[1]); dataSendPost.setName(dataSubSubMenu[2]); dataSendGroupCondCmd.setName(dataSubSubMenu[3]);
     // 4.1 - 4.2
-    sttDateTime.setName(settingsSubMenu[0]); sttConnParam.setName(settingsSubMenu[1]); sttScan.setName(settingsSubMenu[2]);
+    sttDateTime.setName(settingsSubMenu[0]); sttConnParam.setName(settingsSubMenu[1]); sttScan.setName(settingsSubMenu[2]); sttScan.setName(settingsSubMenu[3]);
     // 4.1.1 - 4.1.2
     sttConnParamGPS.setName(dateAndTimeSubMenu[0]); sttConnParamHand.setName(dateAndTimeSubMenu[1]);
     // 4.1.2.1 - 4.1.2.2
@@ -178,6 +178,9 @@ void CGuiTree::init()
             // 4.3 - Сканирование
             sttScan.prevState = &settings;
             sttScan.nextState.clear();
+            // 4.4 Громкость
+            sttVolume.prevState = &settings;
+            sttVolume.nextState.clear();
 
     currentState = &MainWindow;
     statesStack.clear();
