@@ -261,30 +261,94 @@ void Service::keyPressed(UI_Key key)
 
     switch( state.getType() )
     {
-    // Р“Р»Р°РІРЅС‹Р№ СЌРєСЂР°РЅ
+    // Главный экран
     case mainWindow:
     {
-        switch( key )
+        if (main_scr->isEditing())
         {
-        case keyEnter:
-            guiTree.advance(0);
-            break;
-        case keyChNext:
-            pGetVoiceService()->tuneNextChannel();
-            break;
-        case keyChPrev:
-            pGetVoiceService()->tunePreviousChannel();
-            break;
-        case keyLeft:
-            if (mainWindowModeId > 0)
-                mainWindowModeId--;
-            break;
-        case keyRight:
-            if (mainWindowModeId < 2)
-                mainWindowModeId++;
-            break;
-        default:
-            break;
+            switch(key)
+            {
+            case keyBack:
+                main_scr->mwFocus = -2;
+                main_scr->setFocus(1-main_scr->mwFocus);
+                main_scr->editing = false;
+                main_scr->setFreq(main_scr->oFreq.c_str());
+                break;
+            case keyEnter:
+                // фиксация изменений
+                if (main_scr->mwFocus == 0)
+                {
+                    main_scr->oFreq.clear();
+                    main_scr->oFreq.append(main_scr->nFreq.c_str());
+                    int freq = atoi(main_scr->nFreq.c_str());
+//                    voice_service->TuneFrequency(freq);
+                }
+                if (main_scr->mwFocus == 1)
+                {
+                    //
+                }
+                break;
+            case keyLeft:
+                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
+                    main_scr->mainWindowModeId--;
+                break;
+            case keyRight:
+                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 2)
+                    main_scr->mainWindowModeId++;
+                break;
+            default:
+                if ( main_scr->mwFocus == 0 )
+                    main_scr->editingFreq(key);
+                break;
+            }
+        }
+        else
+        {
+            switch(key)
+            {
+            case keyChNext:
+                pGetVoiceService()->tuneNextChannel();
+                break;
+            case keyChPrev:
+                pGetVoiceService()->tunePreviousChannel();
+                break;
+            case keyBack:
+                main_scr->mwFocus = -2;
+                main_scr->setFocus(1-main_scr->mwFocus);
+                break;
+            case keyUp:
+                if (main_scr->mwFocus < 1)
+                    main_scr->mwFocus++;
+                main_scr->setFocus(1-main_scr->mwFocus);
+                break;
+            case keyDown:
+                if (main_scr->mwFocus < 0)
+                    main_scr->mwFocus++;
+                if (main_scr->mwFocus > 0)
+                    main_scr->mwFocus--;
+                main_scr->setFocus(1-main_scr->mwFocus);
+                break;
+            case keyEnter:
+                if (main_scr->mwFocus < 0)
+                    guiTree.advance(0);
+                if (main_scr->mwFocus >= 0)
+                {
+                    main_scr->editing = true;
+                    if (main_scr->mwFocus == 0)
+                        main_scr->nFreq.clear();
+                }
+                break;
+            case keyLeft:
+                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
+                    main_scr->mainWindowModeId--;
+                break;
+            case keyRight:
+                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 2)
+                    main_scr->mainWindowModeId++;
+                break;
+            default:
+                break;
+            }
         }
         break;
     }
@@ -293,48 +357,119 @@ void Service::keyPressed(UI_Key key)
         if ( key == keyEnter)
         {
             guiTree.delLastElement();
+            if (msg_box != nullptr)
+            {
+                delete msg_box;
+                msg_box = nullptr;
+            }
         }
+        else
+            msg_box->keyPressed(key);
         break;
     }
-    // РІ РјРµРЅСЋ
+        // в меню
     case menuWindow:
     {
-    	// РїРµСЂРµС…РѕРґРёРј РІРЅРёР· РїРѕ РґРµСЂРµРІСѓ & Р·Р°РїРѕРјРёРЅР°РµРј СЃРѕСЃС‚РѕСЏРЅРёРµ
+        // переходим вниз по дереву & запоминаем состояние
         if ( key == keyEnter)
         {
-            int rc = guiTree.advance(menu->focus);
+            int rc;
+            rc = guiTree.advance(menu->focus);
             menu->focus = 0;
-
-            // РІРІРѕРґ РїР°СЂР°РјРµС‚СЂРѕРІ
+            // ввод параметров
             if (rc == -1)
             {
                 //
             }
+            break;
         }
-        // РїРµСЂРµС…РѕРґРёРј РІРІРµСЂС… РїРѕ РґРµСЂРµРІСѓ & СѓРґР°Р»СЏРµРј РёР· СЃС‚Р·РєР° РїРѕСЃР»РµРґРЅРµРµ СЃРѕСЃС‚РѕСЏРЅРёРµ
+        // переходим вверх по дереву & удаляем из стзка последнее состояние
         if ( key == keyBack)
         {
-            int rc = guiTree.backvard();
+            guiTree.backvard();
             menu->focus = 0;
+            break;
         }
-        // РґРІРёР¶РµРјСЃСЏ РїРѕ СЃРїРёСЃРєСѓ РІРІРµСЂС…
+        // движемся по списку вверх
         if (key == keyUp)
         {
             if ( menu->focus > 0 )
                 menu->focus--;
+            break;
         }
-        // РґРІРёР¶РµРјСЃСЏ РїРѕ СЃРїРёСЃРєСѓ РІРЅРёР·
+        // движемся по списку вниз
         if (key == keyDown)
         {
-            if ( menu->focus < state.nextState.size()-1 )
-                menu->focus++;
+            if ( state.nextState.size() != 0 )
+            {
+                if ( menu->focus < state.nextState.size()-1 )
+                    menu->focus++;
+            }
+            break;
         }
+        menu->keyPressed(key);
         break;
     }
+    case endMenuWindow:
+    {
+        CEndState estate = (CEndState&)guiTree.getCurrentState();
+        // переходим вниз по дереву & запоминаем состояние
+        if ( key == keyEnter)
+        {
+            {
+                if (menu->focus == estate.listItem.size())
+                {
+                    //---------
+                    // callback
+                    //---------
+                    guiTree.resetCurrentState();
+                }
+                else
+                {
+                    // ввод параметров
+                }
+            }
+            menu->focus = 0;
+            // ввод параметров
+            //if (rc == -1)
+            {
+                //
+            }
+            break;
+        }
+        // переходим вверх по дереву & удаляем из стзка последнее состояние
+        if ( key == keyBack)
+        {
+            guiTree.backvard();
+            menu->focus = 0;
+            break;
+        }
+        // движемся по списку вверх
+        if (key == keyUp)
+        {
+            if ( menu->focus > 0 )
+                menu->focus--;
+            break;
+        }
+        // движемся по списку вниз
+        if (key == keyDown)
+        {
+            if ( menu->focus < estate.listItem.size() )
+            {     //if ( menu->focus < state.nextState.size()-1 )
+                menu->focus++;
+            }
+            break;
+        }
+    }
+        break;
     default:
         break;
     }
 
+    if (false)
+    {
+//        goToCallBack();
+    }
     draw();
 }
 
@@ -381,7 +516,7 @@ void Service::drawMenu()
     {
         menu = new CGuiMenu(&ui_menu_msg_box_area, st.getName(), text, align);
     }
-    std::vector<std::string> t;
+    std::list<std::string> t;
     if (st.nextState.size() > 0)
     {
         int removal = 0;
@@ -392,17 +527,19 @@ void Service::drawMenu()
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
 
-        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
+//        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
+        for (auto &k: st.nextState)
         {
-            t.push_back( std::string(st.nextState[i]->getName()) );
+            t.push_back( std::string(k->getName()) );
         }
+
         menu->initItems(t, st.getName(), focusItem);
 
     }
     else
     {
         menu->setTitle(st.getName());
-        menu->initDialog();
+//        menu->initDialog();
     }
     menu->Draw();
     t.clear();

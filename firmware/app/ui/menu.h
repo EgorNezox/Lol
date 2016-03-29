@@ -4,11 +4,13 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string>
-#include <vector>
+#include <list>
+
+#include "gui_tree.h"
 #include "service.h"
 #include "elements.h"
 #include "keyboard.h"
-
+#include "ui_keys.h"
 #include "texts.h"
 
 #define MARGIN			4
@@ -40,9 +42,14 @@ public:
     void Draw();
 
     int focus;
-    void initItems(std::vector<std::string>, const char*, int);
-    void initDialog();
+    void initItems(std::list<std::string>, const char*, int);
+    void initDialog(CEndState);
     void setTitle(const char*);
+    void keyPressed(UI_Key);
+    bool isEditing(){ return editing; }
+
+    std::string dstAddr, newDstAddr;
+    std::string message, newMessage;
 
 private:
     GUI_Obj obj;
@@ -62,6 +69,8 @@ private:
     GUI_EL_Label *label[2];
     GUI_EL_InputString *inputStr[2];
     char *tx;
+    bool editing;
+
 };
 
 

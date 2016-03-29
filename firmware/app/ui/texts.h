@@ -22,6 +22,10 @@ extern char ch_closed_letter;
 extern char ch_invalid_letter;
 
 extern const char* freq_khz;
+extern const char* freq_hz;
+
+extern const char* trans;
+extern const char* callTitle[];
 
 extern char * ok_texts[LANG_COUNT];
 extern char * missing_ch_table_txt[LANG_COUNT];
