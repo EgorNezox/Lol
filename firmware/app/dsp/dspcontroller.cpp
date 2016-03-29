@@ -133,14 +133,24 @@ void DspController::setRadioOperation(RadioOperation operation) {
 	}
 	current_radio_operation = operation;
 	if (processing_required)
-		processRadioState();
+        processRadioState();
+}
+
+void DspController::setAudioVolumeLevel(uint8_t volume_level)
+{
+    QM_ASSERT(is_ready);
+    if (!resyncPendingCommand())
+        return;
+    ParameterValue command_value;
+    command_value.volume_level = volume_level;
+    sendCommand(Audiopath, AudioVolumeLevel, command_value);
 }
 
 void DspController::initResetState() {
 	radio_state = radiostateSync;
 	current_radio_operation = RadioOperationOff;
 	current_radio_mode = RadioModeOff;
-	current_radio_frequency = 0;
+    current_radio_frequency = 0;
 	pending_command->in_progress = false;
 }
 
@@ -373,6 +383,9 @@ void DspController::syncPendingCommand() {
 			syncNextRadioState();
 		processRadioState();
 		break;
+    case Audiopath:
+        radio_state = radiostateSync;
+        break;
 	}
 }
 
@@ -410,6 +423,23 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 		}
 		break;
 	}
+    case Audiopath: {
+        tx_address = 0x90;
+        switch (code) {
+        case AudioModeParameter:
+            qmToBigEndian((uint8_t)value.audio_mode, tx_data+tx_data_len);
+            tx_data_len += 1;
+            break;
+        case AudioVolumeLevel:
+            qmToBigEndian((uint8_t)value.volume_level, tx_data+tx_data_len);
+            tx_data_len += 1;
+            break;
+        case AudioMicAmplify:
+            qmToBigEndian((uint8_t)value.mic_amplify, tx_data+tx_data_len);
+            tx_data_len += 1;
+            break;
+        }
+    }
 	default: QM_ASSERT(0);
 	}
 	QM_ASSERT(pending_command->in_progress == false);

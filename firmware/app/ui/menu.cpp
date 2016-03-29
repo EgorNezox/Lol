@@ -1,4 +1,5 @@
-﻿#include "menu.h"
+﻿#include <stdio.h>
+#include "menu.h"
 #include <string.h>
 #include "all_sym_indicators.h"
 

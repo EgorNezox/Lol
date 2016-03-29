@@ -37,6 +37,13 @@ public:
         RadioOperationTxMode,
         RadioOperationCarrierTx
     };
+    enum AudioMode {
+        AudioModeOff = 0,
+        AudioModeRadiopath = 1,
+        AudioModeMicTest = 2,
+        AudioModePlayLongSignal = 3,
+        AudioModePlayShortSignal = 4
+    };
 
     DspController(int uart_resource, int reset_iopin_resource, QmObject *parent);
     ~DspController();
@@ -44,6 +51,7 @@ public:
     void startServicing();
     void setRadioParameters(RadioMode mode, uint32_t frequency);
     void setRadioOperation(RadioOperation operation);
+    void setAudioVolumeLevel(uint8_t volume_level);
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -53,7 +61,8 @@ private:
 
     enum Module {
         RxRadiopath,
-        TxRadiopath
+        TxRadiopath,
+        Audiopath
     };
     enum RxParameterCode {
         RxFrequency = 1,
@@ -63,9 +72,18 @@ private:
         TxFrequency = 1,
         TxRadioMode = 2
     };
+    enum AudioParameterCode {
+        AudioModeParameter = 0,
+        AudioVolumeLevel = 1,
+        AudioMicAmplify = 2
+    };
+
     union ParameterValue {
         uint32_t frequency;
         RadioMode radio_mode;
+        AudioMode audio_mode;
+        uint8_t volume_level;
+        uint8_t mic_amplify;
     };
 
     void initResetState();
