@@ -63,18 +63,18 @@ struct LabelParams{
 
 /*!Класс элемента надпись*/
 class GUI_EL_Label: public GUI_Element{
-    public:
-        void Draw();
-        GUI_EL_Label(LabelParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj);
-        void SetText(char *text);
-
+	public:
+		void Draw();
+		GUI_EL_Label(LabelParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj);
+		void SetText(char *text);
         bool transparent;
-    private:
-        PGFONT font;
-        ColorScheme color_sch;
-    protected:
-        void CalcContentGeom();
-        char text[MAX_LABEL_LENGTH];
+	private:
+
+		PGFONT font;
+		ColorScheme color_sch;
+	protected:
+		void CalcContentGeom();
+		char text[MAX_LABEL_LENGTH];
 };
 
 struct IconParams{

@@ -41,10 +41,10 @@ public:
     };
 
 
-    MessagePswf(/*int uart_resource, int reset_iopin_resource,*/ QmObject *parent);
+    MessagePswf(/*int uart_resource, int reset_iopin_resource,* QmObject *parent*/);
     ~MessagePswf();
 
-    void MessageSendPswf(UartDeviceAddress UartDevice, PswfMessageIndicator Indicator, float SNR,float FreqMin, int S_ADR, int R_ADR, int COM_N, float L_CODE,int isGPS);
+    void  MessageSendPswf(UartDeviceAddress UartDevice, PswfMessageIndicator Indicator, float SNR,float FreqMin, int S_ADR, int R_ADR, int COM_N, float L_CODE,int isGPS);
 
     float CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN);
 

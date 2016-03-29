@@ -195,6 +195,9 @@ void CGuiTree::init()
     sttSuppress.subType = GuiWindowsSubType::twoState;
     sttSuppress.prevState = &settings;
     sttSuppress.nextState.clear();
+            // 4.4 Громкость
+            sttVolume.prevState = &settings;
+            sttVolume.nextState.clear();
 
     currentState = &MainWindow;
     statesStack.clear();

@@ -66,32 +66,30 @@ private:
     void prepChString(char *str, int ch_num, Multiradio::voice_channel_t type );
 public:
     // фокус элементов главного экрана
-    int mwFocus;
-    int mainWindowModeId;
+    int mwFocus = -1;
+    int mainWindowModeId = 0;
 };
 
 //--------------------------
 
 /*!Класса панели индикаторов: отображает статусную информацию в верхней части экрана.
  * Объект этого класса создается глобально в единственном экземпляре. Работа с ним осуществляется напрямую*/
-class GUI_Indicator: public GUI_Obj
-{
-public:
-    GUI_Indicator(MoonsGeometry *area);
-    virtual ~GUI_Indicator();
-    void UpdateMultiradio(Multiradio::MainServiceInterface::Status status);
-    void UpdateHeadset(Headset::Controller::Status status);
-    void UpdateBattery(int new_val);
-    void Draw();
-    virtual void Draw( Multiradio::MainServiceInterface::Status,
-                       Headset::Controller::Status,
-                       int
-                       );
-
+class GUI_Indicator: public GUI_Obj{
+        public:
+                GUI_Indicator(MoonsGeometry *area);
+        virtual ~GUI_Indicator();
+        void UpdateMultiradio(Multiradio::MainServiceInterface::Status status);
+        void UpdateHeadset(Headset::Controller::Status status);
+        void UpdateBattery(int new_val);
+        void Draw();
+        virtual void Draw( Multiradio::MainServiceInterface::Status,
+                                   Headset::Controller::Status,
+                                   int
+                                   );
 private:
-    GUI_EL_Icon *ind_multiradio;
-    GUI_EL_Icon *ind_headset;
-    GUI_EL_Battery *ind_battery;
+        GUI_EL_Icon *ind_multiradio;
+        GUI_EL_Icon *ind_headset;
+        GUI_EL_Battery *ind_battery;
 };
 
 

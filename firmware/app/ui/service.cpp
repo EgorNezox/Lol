@@ -7,22 +7,28 @@
  ******************************************************************************
  */
 
+#include <stdlib.h>
 #include "qm.h"
 #include "qmdebug.h"
 #include "dialogs.h"
 #include "service.h"
 #include "texts.h"
+#include "messages/messagepswf.h"
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
 MoonsGeometry ui_menu_msg_box_area  = { 5,5,GDISPW-5,GDISPH-5 };
 MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
 
+
+
+using namespace MessagesPSWF;
+
 namespace Ui {
 
 
 
-bool Service::single_instance = false; // Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚ÑŒ Ð¾Ñ‚ ÐµÐ´Ð¸Ð½ÑÑ‚Ð²ÐµÐ½Ð½Ð¾Ð³Ð¾ Ð´Ð¸ÑÐ¿Ð»ÐµÑ Ð² ÑÐ¸ÑÑ‚ÐµÐ¼Ðµ
+bool Service::single_instance = false; // Ð Â·Ð Â°Ð Ð†Ð Ñ‘Ð¡ÐƒÐ Ñ‘Ð Ñ˜Ð Ñ•Ð¡ÐƒÐ¡â€šÐ¡ÐŠ Ð Ñ•Ð¡â€š Ð ÂµÐ Ò‘Ð Ñ‘Ð Ð…Ð¡ÐƒÐ¡â€šÐ Ð†Ð ÂµÐ Ð…Ð Ð…Ð Ñ•Ð Ñ–Ð Ñ• Ð Ò‘Ð Ñ‘Ð¡ÐƒÐ Ñ—Ð Â»Ð ÂµÐ¡Ð Ð Ð† Ð¡ÐƒÐ Ñ‘Ð¡ÐƒÐ¡â€šÐ ÂµÐ Ñ˜Ð Âµ
 
 Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   aux_keyboard_t                     auxkb_desc,
@@ -35,7 +41,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     QM_ASSERT(single_instance == false);
     single_instance = true;
     //...
-    msg_box=NULL;
 
     this->matrix_kb          = matrixkb_desc;
     this->aux_kb             = auxkb_desc;
@@ -62,7 +67,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     menu = nullptr;
     msg_box = nullptr;
 
-    // Ð¸ÑÐ¿Ñ€Ð°Ð²Ð¸Ñ‚ÑŒ Ð½Ð° ÑÐµÑ€Ð²Ð¸Ñ
+    // Ð Ñ‘Ð¡ÐƒÐ Ñ—Ð¡Ð‚Ð Â°Ð Ð†Ð Ñ‘Ð¡â€šÐ¡ÐŠ Ð Ð…Ð Â° Ð¡ÐƒÐ ÂµÐ¡Ð‚Ð Ð†Ð Ñ‘Ð¡Ðƒ
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
@@ -261,7 +266,7 @@ void Service::keyPressed(UI_Key key)
 
     switch( state.getType() )
     {
-    // Ãëàâíûé ýêðàí
+    // Ð“Ð»Ð°Ð²Ð½Ñ‹Ð¹ ÑÐºÑ€Ð°Ð½
     case mainWindow:
     {
         if (main_scr->isEditing())
@@ -275,7 +280,7 @@ void Service::keyPressed(UI_Key key)
                 main_scr->setFreq(main_scr->oFreq.c_str());
                 break;
             case keyEnter:
-                // ôèêñàöèÿ èçìåíåíèé
+                // Ñ„Ð¸ÐºÑÐ°Ñ†Ð¸Ñ Ð¸Ð·Ð¼ÐµÐ½ÐµÐ½Ð¸Ð¹
                 if (main_scr->mwFocus == 0)
                 {
                     main_scr->oFreq.clear();
@@ -367,37 +372,55 @@ void Service::keyPressed(UI_Key key)
             msg_box->keyPressed(key);
         break;
     }
-        // â ìåíþ
+        // Ð² Ð¼ÐµÐ½ÑŽ
     case menuWindow:
     {
-        // ïåðåõîäèì âíèç ïî äåðåâó & çàïîìèíàåì ñîñòîÿíèå
+        // Ð¿ÐµÑ€ÐµÑ…Ð¾Ð´Ð¸Ð¼ Ð²Ð½Ð¸Ð· Ð¿Ð¾ Ð´ÐµÑ€ÐµÐ²Ñƒ & Ð·Ð°Ð¿Ð¾Ð¼Ð¸Ð½Ð°ÐµÐ¼ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ðµ
         if ( key == keyEnter)
         {
             int rc;
             rc = guiTree.advance(menu->focus);
             menu->focus = 0;
-            // ââîä ïàðàìåòðîâ
+            // Ð²Ð²Ð¾Ð´ Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ð¾Ð²
             if (rc == -1)
             {
                 //
             }
+
+            if ((rc == 1) && menu->focus == 2)
+            {
+                // Ð¾Ñ‚Ñ€Ð¸ÑÐ¾Ð²Ñ‹Ð²Ð°ÐµÐ¼ Ð½Ð¾Ð²Ð¾Ðµ Ð¼ÐµÐ½ÑŽ Ð¿Ð¾Ð´ Ð³Ñ€Ð¾Ð¼ÐºÐ¾ÑÑ‚ÑŒ
+            static MoonsGeometry mode_text_geom2 = { 80,  5, 158,  32 };
+               // GUI_EL_TEMP_LabelMode.transparent  = false;
+           MoonsGeometry area;
+           MoonsGeometry window_geom2 = {0,0,(GXT)(GEOM_W(area)-1),(GYT)(GEOM_H(area)-1)};
+
+           GUI_EL_Window *window2    = new GUI_EL_Window(&GUI_EL_TEMP_WindowGeneralBack, &window_geom2,(GUI_Obj*)this);
+           GUI_EL_Label  *mode_text2 = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,&mode_text_geom2, NULL, (GUI_Obj*)this);
+
+            window2->Draw();
+            mode_text2->Draw();
+            }
+
+             menu->focus = 0;
+
             break;
         }
-        // ïåðåõîäèì ââåðõ ïî äåðåâó & óäàëÿåì èç ñòçêà ïîñëåäíåå ñîñòîÿíèå
+        // Ð¿ÐµÑ€ÐµÑ…Ð¾Ð´Ð¸Ð¼ Ð²Ð²ÐµÑ€Ñ… Ð¿Ð¾ Ð´ÐµÑ€ÐµÐ²Ñƒ & ÑƒÐ´Ð°Ð»ÑÐµÐ¼ Ð¸Ð· ÑÑ‚Ð·ÐºÐ° Ð¿Ð¾ÑÐ»ÐµÐ´Ð½ÐµÐµ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ðµ
         if ( key == keyBack)
         {
             guiTree.backvard();
             menu->focus = 0;
             break;
         }
-        // äâèæåìñÿ ïî ñïèñêó ââåðõ
+        // Ð´Ð²Ð¸Ð¶ÐµÐ¼ÑÑ Ð¿Ð¾ ÑÐ¿Ð¸ÑÐºÑƒ Ð²Ð²ÐµÑ€Ñ…
         if (key == keyUp)
         {
             if ( menu->focus > 0 )
                 menu->focus--;
             break;
         }
-        // äâèæåìñÿ ïî ñïèñêó âíèç
+        // Ð´Ð²Ð¸Ð¶ÐµÐ¼ÑÑ Ð¿Ð¾ ÑÐ¿Ð¸ÑÐºÑƒ Ð²Ð½Ð¸Ð·
         if (key == keyDown)
         {
             if ( state.nextState.size() != 0 )
@@ -413,7 +436,7 @@ void Service::keyPressed(UI_Key key)
     case endMenuWindow:
     {
         CEndState estate = (CEndState&)guiTree.getCurrentState();
-        // ïåðåõîäèì âíèç ïî äåðåâó & çàïîìèíàåì ñîñòîÿíèå
+        // Ð¿ÐµÑ€ÐµÑ…Ð¾Ð´Ð¸Ð¼ Ð²Ð½Ð¸Ð· Ð¿Ð¾ Ð´ÐµÑ€ÐµÐ²Ñƒ & Ð·Ð°Ð¿Ð¾Ð¼Ð¸Ð½Ð°ÐµÐ¼ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ðµ
         if ( key == keyEnter)
         {
             if (menu->focus == estate.listItem.size())
@@ -422,26 +445,26 @@ void Service::keyPressed(UI_Key key)
             }
             else
             {
-                // ââîä ïàðàìåòðîâ
+                // Ð²Ð²Ð¾Ð´ Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ð¾Ð²
             }
             menu->focus = 0;
             break;
         }
-        // ïåðåõîäèì ââåðõ ïî äåðåâó & óäàëÿåì èç ñòçêà ïîñëåäíåå ñîñòîÿíèå
+        // Ð¿ÐµÑ€ÐµÑ…Ð¾Ð´Ð¸Ð¼ Ð²Ð²ÐµÑ€Ñ… Ð¿Ð¾ Ð´ÐµÑ€ÐµÐ²Ñƒ & ÑƒÐ´Ð°Ð»ÑÐµÐ¼ Ð¸Ð· ÑÑ‚Ð·ÐºÐ° Ð¿Ð¾ÑÐ»ÐµÐ´Ð½ÐµÐµ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ðµ
         if ( key == keyBack)
         {
             guiTree.backvard();
             menu->focus = 0;
             break;
         }
-        //            // äâèæåìñÿ ïî ñïèñêó ââåðõ
+        //            // Ð´Ð²Ð¸Ð¶ÐµÐ¼ÑÑ Ð¿Ð¾ ÑÐ¿Ð¸ÑÐºÑƒ Ð²Ð²ÐµÑ€Ñ…
         //            if (key == keyUp)
         //            {
         //                if ( menu->focus > 0 )
         //                    menu->focus--;
         //                break;
         //            }
-        //            // äâèæåìñÿ ïî ñïèñêó âíèç
+        //            // Ð´Ð²Ð¸Ð¶ÐµÐ¼ÑÑ Ð¿Ð¾ ÑÐ¿Ð¸ÑÐºÑƒ Ð²Ð½Ð¸Ð·
         //            if (key == keyDown)
         //            {
         //                if ( menu->focus < estate.listItem.size() )
@@ -466,8 +489,13 @@ void Service::keyPressed(UI_Key key)
         break;
     }
 
+    if (false)
+    {
+//        goToCallBack();
+    }
     draw();
 }
+
 
 int Service::getLanguage()
 {
@@ -592,5 +620,16 @@ void Service::draw()
     }
 
 }
+
+int Service::getFreq()
+{
+    return isFreq;
+}
+
+void Service::setFreq(int isFreq)
+{
+    Service::isFreq = isFreq;
+}
+
 
 }/* namespace Ui */
