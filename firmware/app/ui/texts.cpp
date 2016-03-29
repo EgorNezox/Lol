@@ -8,6 +8,8 @@
 
 #include "texts.h"
 
+const char *test_Pass = {"Тестирование пройдено"};
+
 char * mode_txt[] = {(char *)"Речь", (char*)"АУС", (char*)"ГрупУК"};
 char *disabled_ch_txt = (char *)"--";
 char ch_open_letter='О';
@@ -17,7 +19,6 @@ char ch_invalid_letter='!';
 
 const char* freq_khz = "кГц\0";
 const char* freq_hz = "Гц\0";
-const char* freq_hz = "Гц";
 
 const char* trans = "Отправить";
 const char* callTitle[2] = {"команда\0", "адрес\0"};
@@ -48,3 +49,5 @@ const char *settingsSubMenu[] = {"Дата/время\0", "Параметры связи\0", "Сканирова
         const char *setDateOrTime[] = {"Установить дату\0", "Установить время\0"};
     const char *setConnParam[] = {"Частота\0", "Скорость\0"};
     const char *useScanMenu[] = {"ВКЛ\0", "ВЫКЛ\0"};
+
+

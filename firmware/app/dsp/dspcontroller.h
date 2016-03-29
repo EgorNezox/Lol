@@ -83,6 +83,7 @@ private:
     bool resyncPendingCommand();
     void sendCommand(Module module, int code, ParameterValue value);
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
+   // void setLevelVolume(uint8_t Level);
 
     bool is_ready;
     QmIopin *reset_iopin;
@@ -101,7 +102,7 @@ private:
         radiostateCmdCarrierTx
     } radio_state;
     RadioMode current_radio_mode;
-    RadioOperation current_radio_operation;
+    RadioOperation  current_radio_operation;
     uint32_t current_radio_frequency;
     DspCommand *pending_command;
 };

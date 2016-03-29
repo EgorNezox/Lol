@@ -129,7 +129,7 @@ void CGuiMenu::initVolumeDialog()
     MoonsGeometry volume_geom  = {  35,  25,  112,  85 };
     GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelChannel, &volume_geom,  NULL, (GUI_Obj*)this);
 
-    char s[3]; itoa( vol, s, 3);
+    char s[3]; sprintf(s,"%d",vol);
     volume->SetText((char*) s);
 
     // title

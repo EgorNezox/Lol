@@ -40,7 +40,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 {
     QM_ASSERT(single_instance == false);
     single_instance = true;
-    //...
 
     this->matrix_kb          = matrixkb_desc;
     this->aux_kb             = auxkb_desc;
@@ -62,7 +61,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     indicator = new GUI_Indicator     (&ui_indicator_area);
 
     mainWindowModeId = 0;
-    drawMainWindow();
+    //drawMainWindow();
 
     menu = nullptr;
     msg_box = nullptr;
@@ -71,6 +70,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
+
+    guiTree.append(messangeWindow, (char*)test_Pass);
+    msgBox(guiTree.getCurrentState().getName() );
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -505,7 +507,7 @@ int Service::getLanguage()
 void Service::msgBox(const char *text)
 {
     Alignment align = {alignHCenter,alignTop};
-    MoonsGeometry area = {0, 0, (GXT)(160), (GYT)(120)};
+    MoonsGeometry area = {0, 0, (GXT)(159), (GYT)(127)};
     if(msg_box == nullptr)
     {
         msg_box = new GUI_Dialog_MsgBox(&area, (char*)text, align);
