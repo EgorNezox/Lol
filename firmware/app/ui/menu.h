@@ -46,6 +46,9 @@ public:
     void initDialog(CEndState);
     void initCallDialog(CEndState);
     void initVolumeDialog();
+    void initScanDialog();
+    void initAruarmDialog();
+    void initSuppressDialog();
     void initTwoStateDialog();
 
     void setTitle(const char*);
@@ -56,10 +59,16 @@ public:
     std::string message, newMessage;
 
 
-    // ----
+    // volume
     void incrVolume(){ if ( vol < 100) vol += 20; }
     void decrVolume(){ if ( vol >  0 ) vol -= 20; }
     uint8_t  getVolume(){ return vol;}
+
+    // aru arm
+    void incrAruArm(){ action = true;  }
+    void decrAruArm(){ action = false; }
+    bool getAruArm() { return action;  }
+    bool action = false;
 
 private:
     GUI_Obj obj;

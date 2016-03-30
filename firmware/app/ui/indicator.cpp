@@ -37,6 +37,9 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
     icon_geom = GEOM_ICON(1);
     ind_headset = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
 
+    MoonsGeometry date_time_geom = {2*ICON_SIZE+5, 0, 5*ICON_SIZE+5, ICON_SIZE-1};
+    date_time = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &date_time_geom, (char*)"00:11 22:33", (GUI_Obj *)this);
+
     icon_geom = {ICON_SIZE*6,0,ICON_SIZE*6+BATTERY_SIZE-1, ICON_SIZE-1};	//геометрия батарейки
     ind_battery = new GUI_EL_Battery(&GUI_EL_TEMP_BatteryIndicator, 0, &icon_geom, (GUI_Obj *)this);
 }
@@ -45,6 +48,7 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
 
 GUI_Indicator::~GUI_Indicator()
 {
+    delete date_time;
     delete ind_multiradio;
     delete ind_headset;
     delete ind_battery;
@@ -123,6 +127,7 @@ void GUI_Indicator::Draw( Multiradio::MainServiceInterface::Status multiradioSta
     ind_battery->Draw();
     ind_headset->Draw();
     ind_multiradio->Draw();
+    date_time->Draw();
 }
 
 void GUI_Indicator::Draw(){
@@ -133,4 +138,5 @@ void GUI_Indicator::Draw(){
     ind_battery->Draw();
     ind_headset->Draw();
     ind_multiradio->Draw();
+    date_time->Draw();
 }

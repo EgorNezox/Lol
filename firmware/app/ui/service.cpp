@@ -483,6 +483,16 @@ void Service::keyPressed(UI_Key key)
         case GuiWindowsSubType::scan:
             break;
         case GuiWindowsSubType::aruarm:
+            if (key == keyUp  )
+            {
+                menu->incrAruArm();
+                bool level = menu->getAruArm();
+            }
+            if (key == keyDown)
+            {
+                menu->decrAruArm();
+                bool level = menu->getAruArm();
+            }
             break;
         case GuiWindowsSubType::suppress:
             break;
@@ -592,6 +602,8 @@ void Service::drawMenu()
             break;
         case twoState:
             menu->initTwoStateDialog();
+        case aruarm:
+            menu->initAruarmDialog();
             break;
         case volume:
             menu->initVolumeDialog();

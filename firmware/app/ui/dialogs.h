@@ -90,6 +90,8 @@ private:
         GUI_EL_Icon *ind_multiradio;
         GUI_EL_Icon *ind_headset;
         GUI_EL_Battery *ind_battery;
+
+        GUI_EL_Label *date_time;
 };
 
 

@@ -182,11 +182,11 @@ void CGuiTree::init()
     sttSetSpeed.prevState = &sttConnParam;
     sttSetSpeed.nextState.clear();
     // 4.3 - Сканирование
-    sttScan.subType = GuiWindowsSubType::twoState;
+    sttScan.subType = GuiWindowsSubType::scan;
     sttScan.prevState = &settings;
     sttScan.nextState.clear();
     // 4.4 - АРУ / АРМ
-    swAruArm.subType = GuiWindowsSubType::twoState;
+    swAruArm.subType = GuiWindowsSubType::aruarm;
     swAruArm.prevState = &settings;
     swAruArm.nextState.clear();
     // 4.5 - Громкость
@@ -194,7 +194,7 @@ void CGuiTree::init()
     sttSound.prevState = &settings;
     sttSound.nextState.clear();
     // 4.6 - Шумоподавитель
-    sttSuppress.subType = GuiWindowsSubType::twoState;
+    sttSuppress.subType = GuiWindowsSubType::suppress;
     sttSuppress.prevState = &settings;
     sttSuppress.nextState.clear();
 
