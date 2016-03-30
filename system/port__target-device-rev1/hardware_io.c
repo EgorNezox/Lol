@@ -380,6 +380,20 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 8}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 9}, &params);
 		break;
+	case platformhwNavigatorUart:
+		params.mode = hgpioMode_AF;
+		params.af = hgpioAF_UART_4_5_USART_6;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 6}, &params);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPC, 7}, &params);
+		break;
+	case platformhwNavigatorResetIopin:
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPG, 8}, &params);
+		break;
+	case platformhwNavigatorAntFlagIopin:
+		params.mode = hgpioMode_In;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPG, 6}, &params);
+		break;
 	default: configASSERT(0); // no such resource
 	}
 }
@@ -441,6 +455,16 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 8});
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 9});
 		break;
+	case platformhwNavigatorUart:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 6});
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPC, 7});
+		break;
+	case platformhwNavigatorResetIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPG, 8});
+		break;
+	case platformhwNavigatorAntFlagIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPG, 6});
+		break;
 	default: configASSERT(0); // no such resource
 	}
 }
@@ -463,6 +487,10 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 		return (hal_gpio_pin_t){hgpioPB, 12};
 	case platformhwDspResetIopin:
 		return (hal_gpio_pin_t){hgpioPH, 13};
+	case platformhwNavigatorResetIopin:
+		return (hal_gpio_pin_t){hgpioPG, 8};
+	case platformhwNavigatorAntFlagIopin:
+		return (hal_gpio_pin_t){hgpioPG, 6};
 	default: configASSERT(0); // no such resource
 	}
 	return (hal_gpio_pin_t){0, 0};
@@ -488,6 +516,8 @@ int stm32f2_get_uart_instance(int platform_hw_resource) {
 		return 1;
 	case platformhwAtuUart:
 		return 2;
+	case platformhwNavigatorUart:
+		return 6;
 	default: configASSERT(0); // no such resource
 	}
 	return -1;

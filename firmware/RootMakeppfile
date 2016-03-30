@@ -34,6 +34,7 @@ SOURCES += \
 	$(wildcard app/dsp/**/*.cpp) \
 	$(wildcard app/headset/**/*.cpp) \
 	$(wildcard app/mrd/**/*.cpp) \
+	$(wildcard app/navigation/**/*.cpp) \
 	$(wildcard app/power/**/*.cpp) \
 	$(wildcard app/ui/**/*.cpp)
 INCLUDEPATH += app

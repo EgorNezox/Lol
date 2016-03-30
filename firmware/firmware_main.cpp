@@ -18,6 +18,7 @@
 #include "datastorage/fs.h"
 #include "headset/controller.h"
 #include "mrd/dispatcher.h"
+#include "navigation/navigator.h"
 #include "power/battery.h"
 #include "ui/service.h"
 
@@ -87,5 +88,9 @@ void qmMain() {
 	headset_controller.startServicing(mr_channels_table);
 	mr_dispatcher.startServicing(mr_channels_table);
 
-    app.exec();
+#if defined(PORT__TARGET_DEVICE_REV1)
+	Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin, platformhwNavigatorAntFlagIopin);
+#endif /* PORT__TARGET_DEVICE_REV1 */
+
+	app.exec();
 }
