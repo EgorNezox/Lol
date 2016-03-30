@@ -10,7 +10,7 @@
 
 
 #define LANG_COUNT 1
-#define MAIN_MENU_MAX_LIST_SIZE 5
+#define MAIN_MENU_MAX_LIST_SIZE 6
 #define _LIST_SIZE 5
 #define SETTINGS_LIST_SIZE 2
 
@@ -25,6 +25,8 @@ extern char ch_invalid_letter;
 
 extern const char* freq_khz;
 extern const char* freq_hz;
+
+extern const char proc;
 
 extern const char* trans;
 extern const char* callTitle[];

@@ -73,6 +73,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     guiTree.append(messangeWindow, (char*)test_Pass);
     msgBox(guiTree.getCurrentState().getName() );
+
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -482,13 +483,15 @@ void Service::keyPressed(UI_Key key)
             if (key == keyUp  )
             {
                 menu->incrVolume();
-                voice_service->TuneAudioLevel(menu->getVolume());
+                uint8_t level = menu->getVolume();
+                voice_service->TuneAudioLevel(level);
 
             }
             if (key == keyDown)
             {
                 menu->decrVolume();
-                voice_service->TuneAudioLevel(menu->getVolume());
+                uint8_t level = menu->getVolume();
+                voice_service->TuneAudioLevel(level);
             }
             break;
         default:
