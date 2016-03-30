@@ -74,6 +74,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     guiTree.append(messangeWindow, (char*)test_Pass);
     msgBox(guiTree.getCurrentState().getName() );
+
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)

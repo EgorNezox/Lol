@@ -146,6 +146,20 @@ void DspController::setAudioVolumeLevel(uint8_t volume_level)
     sendCommand(Audiopath, AudioVolumeLevel, command_value);
 }
 
+void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
+{
+    QM_ASSERT(is_ready);
+    if (!resyncPendingCommand())
+        return;
+    ParameterValue command_value;
+    command_value.agc_mode = agc_mode;
+    if (RadioPath == 0)
+        sendCommand(RxRadiopath,AGCRX,command_value);
+    else
+        sendCommand(TxRadiopath,AGCTX,command_value);
+}
+
+
 void DspController::initResetState() {
 	radio_state = radiostateSync;
 	current_radio_operation = RadioOperationOff;
@@ -419,6 +433,13 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 			qmToBigEndian((uint8_t)value.radio_mode, tx_data+tx_data_len);
 			tx_data_len += 1;
 			break;
+        case 7:
+        case 8:
+            qmToBigEndian((uint8_t)value.agc_mode, tx_data+tx_data_len);
+            tx_data_len += 1;
+            break;
+
+
 		default: QM_ASSERT(0);
 		}
 		break;
@@ -442,6 +463,10 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
         }
         break;
     }
+
+
+
+
 	default: QM_ASSERT(0);
 	}
 	QM_ASSERT(pending_command->in_progress == false);

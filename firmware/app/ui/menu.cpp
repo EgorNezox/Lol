@@ -263,6 +263,7 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title, int foc
         else
             f = false;
 
+
         item[i] = new GUI_EL_MenuItem(&itemParams, &itemArea[i], (char*)k.c_str(), true, f, (GUI_Obj*)this);
         i++;
     }

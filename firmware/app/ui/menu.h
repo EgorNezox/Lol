@@ -81,7 +81,7 @@ private:
     char *tx;
     bool editing;
 
-    int vol = 40;
+    uint8_t vol = 100;
 };
 
 
