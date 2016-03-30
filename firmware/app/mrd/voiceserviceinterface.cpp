@@ -80,6 +80,11 @@ void VoiceServiceInterface::TuneFrequency(int Frequency)
     dispatcher->dsp_controller->setRadioOperation(DspController::RadioOperation::RadioOperationRxMode);
 }
 
+void VoiceServiceInterface::TuneAudioLevel(uint8_t volume_level)
+{
+    dispatcher->dsp_controller->setAudioVolumeLevel(volume_level);
+}
+
 void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
 	current_channel_status = status;
 	currentChannelChanged();

@@ -59,6 +59,8 @@ public:
     // ----
     void incrVolume(){ if ( vol < 100) vol += 20; }
     void decrVolume(){ if ( vol >  0 ) vol -= 20; }
+    int  getVolume(){ return vol;}
+
 private:
     GUI_Obj obj;
     MoonsGeometry menuArea;

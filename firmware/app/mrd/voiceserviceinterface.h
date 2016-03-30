@@ -32,6 +32,7 @@ public:
 	void tuneNextChannel();
 	void tunePreviousChannel();
     void TuneFrequency(int Frequency);
+    void TuneAudioLevel(uint8_t volume_level);
 
 	sigc::signal<void> currentChannelChanged;
 

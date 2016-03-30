@@ -288,7 +288,7 @@ void Service::keyPressed(UI_Key key)
                     main_scr->oFreq.clear();
                     main_scr->oFreq.append(main_scr->nFreq.c_str());
                     int freq = atoi(main_scr->nFreq.c_str());
-                    //                    voice_service->TuneFrequency(freq);
+                    voice_service->TuneFrequency(freq);
                 }
                 if (main_scr->mwFocus == 1)
                 {
@@ -479,8 +479,17 @@ void Service::keyPressed(UI_Key key)
         switch(estate.subType)
         {
         case GuiWindowsSubType::volume:
-            if (key == keyUp  ){ menu->incrVolume(); }
-            if (key == keyDown){ menu->decrVolume(); }
+            if (key == keyUp  )
+            {
+                menu->incrVolume();
+                voice_service->TuneAudioLevel(menu->getVolume());
+
+            }
+            if (key == keyDown)
+            {
+                menu->decrVolume();
+                voice_service->TuneAudioLevel(menu->getVolume());
+            }
             break;
         default:
             break;
