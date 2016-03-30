@@ -88,7 +88,9 @@ void qmMain() {
 	headset_controller.startServicing(mr_channels_table);
 	mr_dispatcher.startServicing(mr_channels_table);
 
+#if defined(PORT__TARGET_DEVICE_REV1)
 	Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin, platformhwNavigatorAntFlagIopin);
+#endif /* PORT__TARGET_DEVICE_REV1 */
 
 	app.exec();
 }
