@@ -74,8 +74,8 @@ private:
     };
     enum AudioParameterCode {
         AudioModeParameter = 0,
-        AudioVolumeLevel = 1,
-        AudioMicAmplify = 2
+        AudioVolumeLevel = 2,
+        AudioMicAmplify = 3
     };
 
     union ParameterValue {
