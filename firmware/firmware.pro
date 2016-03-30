@@ -22,6 +22,7 @@ SOURCES += \
     $$wildcardSources(app/dsp, *.cpp) \
     $$wildcardSources(app/headset, *.cpp) \
     $$wildcardSources(app/mrd, *.cpp) \
+    $$wildcardSources(app/navigator, *.cpp) \
     $$wildcardSources(app/power, *.cpp) \
     $$wildcardSources(app/ui, *.cpp) \
     app/ui/menu.cpp \
