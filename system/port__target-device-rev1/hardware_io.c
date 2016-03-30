@@ -394,6 +394,25 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		params.mode = hgpioMode_In;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPG, 6}, &params);
 		break;
+	case platformhwPowerHSControlIopin:
+		params.mode = hgpioMode_In;
+		params.exti_source = true;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPF, 10}, &params);
+		break;
+	case platformhwPowerControllerIopin:
+		params.mode = hgpioMode_Out;
+		hal_gpio_set_output((hal_gpio_pin_t){hgpioPE, 4}, hgpioHigh);
+		hal_gpio_init((hal_gpio_pin_t){hgpioPE, 4}, &params);
+		break;
+	case platformhwPowerOffIntIopin:
+		params.mode = hgpioMode_In;
+		params.exti_source = true;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPE, 2}, &params);
+		break;
+	case platformhwPowerSourceIopin:
+		params.mode = hgpioMode_In;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPE, 5}, &params);
+		break;
 	default: configASSERT(0); // no such resource
 	}
 }
@@ -465,6 +484,18 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 	case platformhwNavigatorAntFlagIopin:
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPG, 6});
 		break;
+	case platformhwPowerHSControlIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPF, 10});
+		break;
+	case platformhwPowerControllerIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPE, 4});
+		break;
+	case platformhwPowerOffIntIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPE, 2});
+		break;
+	case platformhwPowerSourceIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPE, 5});
+		break;
 	default: configASSERT(0); // no such resource
 	}
 }
@@ -491,6 +522,14 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 		return (hal_gpio_pin_t){hgpioPG, 8};
 	case platformhwNavigatorAntFlagIopin:
 		return (hal_gpio_pin_t){hgpioPG, 6};
+	case platformhwPowerHSControlIopin:
+		return (hal_gpio_pin_t){hgpioPF, 10};
+	case platformhwPowerControllerIopin:
+		return (hal_gpio_pin_t){hgpioPE, 4};
+	case platformhwPowerOffIntIopin:
+		return (hal_gpio_pin_t){hgpioPE, 2};
+	case platformhwPowerSourceIopin:
+		return (hal_gpio_pin_t){hgpioPE, 5};
 	default: configASSERT(0); // no such resource
 	}
 	return (hal_gpio_pin_t){0, 0};
@@ -504,6 +543,10 @@ int stm32f2_get_exti_line(int platform_hw_resource) {
 		return 11;
 	case platformhwKeyboardButt2Iopin:
 		return 12;
+	case platformhwPowerHSControlIopin:
+		return 10;
+	case platformhwPowerOffIntIopin:
+		return 2;
 	}
 	return -1;
 }
