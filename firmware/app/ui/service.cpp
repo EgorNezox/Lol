@@ -14,6 +14,7 @@
 #include "service.h"
 #include "texts.h"
 #include "messages/messagepswf.h"
+#include <thread>
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
@@ -28,7 +29,7 @@ namespace Ui {
 
 
 
-bool Service::single_instance = false; // Р·Р°РІРёСЃРёРјРѕСЃС‚СЊ РѕС‚ РµРґРёРЅСЃС‚РІРµРЅРЅРѕРіРѕ РґРёСЃРїР»РµСЏ РІ СЃРёСЃС‚РµРјРµ
+bool Service::single_instance = false; // � ·� °� І� ёСЃ� ё� ј� ѕСЃС‚СЊ � ѕС‚ � µ� ґ� ё� ЅСЃС‚� І� µ� Ѕ� Ѕ� ѕ� і� ѕ � ґ� ёСЃ� ї� »� µСЏ � І СЃ� ёСЃС‚� µ� ј� µ
 
 Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   aux_keyboard_t                     auxkb_desc,
@@ -66,7 +67,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     menu = nullptr;
     msg_box = nullptr;
 
-    // РёСЃРїСЂР°РІРёС‚СЊ РЅР° СЃРµСЂРІРёСЃ
+    // � ёСЃ� їСЂ� °� І� ёС‚СЊ � Ѕ� ° СЃ� µСЂ� І� ёСЃ
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
@@ -389,21 +390,6 @@ void Service::keyPressed(UI_Key key)
                 //
             }
 
-            if ((rc == 1) && menu->focus == 2)
-            {
-                // отрисовываем новое меню под громкость
-            static MoonsGeometry mode_text_geom2 = { 80,  5, 158,  32 };
-               // GUI_EL_TEMP_LabelMode.transparent  = false;
-           MoonsGeometry area;
-           MoonsGeometry window_geom2 = {0,0,(GXT)(GEOM_W(area)-1),(GYT)(GEOM_H(area)-1)};
-
-           GUI_EL_Window *window2    = new GUI_EL_Window(&GUI_EL_TEMP_WindowGeneralBack, &window_geom2,(GUI_Obj*)this);
-           GUI_EL_Label  *mode_text2 = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,&mode_text_geom2, NULL, (GUI_Obj*)this);
-
-            window2->Draw();
-            mode_text2->Draw();
-            }
-
              menu->focus = 0;
 
             break;
@@ -438,7 +424,7 @@ void Service::keyPressed(UI_Key key)
     case endMenuWindow:
     {
         CEndState estate = (CEndState&)guiTree.getCurrentState();
-        // переходим вниз по дереву & запоминаем состояние
+
         if ( key == keyEnter)
         {
             if (menu->focus == estate.listItem.size())
@@ -447,12 +433,12 @@ void Service::keyPressed(UI_Key key)
             }
             else
             {
-                // ввод параметров
+
             }
             menu->focus = 0;
             break;
         }
-        // переходим вверх по дереву & удаляем из стзка последнее состояние
+
         if ( key == keyBack)
         {
             guiTree.backvard();
@@ -482,14 +468,22 @@ void Service::keyPressed(UI_Key key)
             if (key == keyUp  )
             {
                 menu->incrVolume();
-                voice_service->TuneAudioLevel(menu->getVolume());
+                uint8_t level = menu->getVolume();
+                voice_service->TuneAudioLevel(level);
 
             }
             if (key == keyDown)
             {
                 menu->decrVolume();
-                voice_service->TuneAudioLevel(menu->getVolume());
+                uint8_t level = menu->getVolume();
+                voice_service->TuneAudioLevel(level);
             }
+            break;
+        case GuiWindowsSubType::scan:
+            break;
+        case GuiWindowsSubType::aruarm:
+            break;
+        case GuiWindowsSubType::Suppress:
             break;
         default:
             break;
@@ -563,6 +557,8 @@ void Service::drawMenu()
             removal = menu->focus - MAIN_MENU_MAX_LIST_SIZE;
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
+        //
+        // ���������
         //        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
 
         for (auto &k: st.nextState)
@@ -582,7 +578,7 @@ void Service::drawMenu()
         switch( st.subType )
         {
         case call:
-            menu->initCallDialog();
+            menu->initCallDialog(st);
             break;
         case recv:
             menu->initTwoStateDialog();

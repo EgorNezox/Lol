@@ -26,6 +26,9 @@ enum GuiWindowsSubType
     recv,\
     data,\
     settings,\
+    scan,\
+    aruarm,\
+    suppress,\
     twoState,\
     volume
 };

@@ -4,11 +4,11 @@
 #include "all_sym_indicators.h"
 
 CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, const char *text, Alignment align):CGuiDialog(area),
-                                                                                              editing(false),
-                                                                                              focus(0),
-                                                                                              numItem(7)
+    editing(false),
+    focus(0),
+    numItem(7)
 {
-    windowArea = {0,0,(GXT)(GEOM_W(this->area)-5),(GYT)(GEOM_H(this->area)-5)};
+    windowArea = {0,0,(GXT)(GEOM_W(this->area)-5),(GYT)(GEOM_H(this->area))};
     textAreaParams = GUI_EL_TEMP_CommonTextAreaLT;
     textAreaParams.element.align = align;
     this->setTitle(title);
@@ -43,12 +43,12 @@ void CGuiMenu::initDialog(CEndState state)
     params = GUI_EL_TEMP_CommonTextAreaLT;
     params.element.align = {alignHCenter, alignTop};
 
-    MoonsGeometry labelStrArea[5];
+    MoonsGeometry labelStrArea[6];
     bool f;
 
     auto size = state.listItem.size();
     int i = 0;
-//    for (int i = 0; i < size; i++)
+    //    for (int i = 0; i < size; i++)
     for (auto &k: state.listItem)
     {
         labelStrArea[i] = {(GXT)(windowArea.xs + MARGIN),
@@ -70,7 +70,7 @@ void CGuiMenu::initDialog(CEndState state)
         label[i] = new GUI_EL_Label   (&params,     &labelStrArea[i], (char*)k->label, (GUI_Obj*)this);
         item [i] = new GUI_EL_MenuItem(&itemParams, &itemArea[i],     (char*)k->inputStr.c_str(), true, f, (GUI_Obj*)this);
 
-    i++;
+        i++;
     }
 
     f = false;
@@ -86,25 +86,23 @@ void CGuiMenu::initDialog(CEndState state)
     item [size] = new GUI_EL_MenuItem(&itemParams, &itemArea[size],  (char*)trans, true, f, (GUI_Obj*)this);
 }
 
-void CGuiMenu::initCallDialog()
+
+
+
+void CGuiMenu::initCallDialog(CEndState state)
 {
-    //
-}
+    titleParams = GUI_EL_TEMP_LabelTitle;
+    titleParams.element.align = {alignHCenter, alignTop};
 
-void CGuiMenu::initTwoStateDialog()
-{
-    int i = 2;
-    itemArea[0] = {(GXT)(windowArea.xs + 7*MARGIN),
-                   (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
-                   (GXT)(windowArea.xe - 7*MARGIN),
-                   (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
-                  };
+    LabelParams params;
+    params = GUI_EL_TEMP_CommonTextAreaLT;
+    params.element.align = {alignHCenter, alignTop};
+    MoonsGeometry labelStrArea[6];
 
-//    MoonsGeometry volume_geom  = {  35,  25,  112,  85 };
-//    GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelChannel, &volume_geom,  NULL, (GUI_Obj*)this);
-//    volume->SetText("20");
+    bool f;
+    int i = 0;
+    auto size = state.listItem.size();
 
-    // title
     titleArea = {(GXT)(windowArea.xs + MARGIN),
                  (GYT)(windowArea.ys + MARGIN),
                  (GXT)(windowArea.xe - MARGIN),
@@ -114,8 +112,93 @@ void CGuiMenu::initTwoStateDialog()
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
     GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
 
+    for (auto &k: state.listItem)
+    {
+        labelStrArea[i] = {(GXT)(windowArea.xs + MARGIN),
+                           (GYT)(windowArea.ys + 17 + 2*i*(MARGIN + BUTTON_HEIGHT)),
+                           (GXT)(windowArea.xe - MARGIN),
+                           (GYT)(windowArea.ys + 14 + (2*i+1)*(MARGIN + BUTTON_HEIGHT) )
+                          };
+
+        itemArea[i] = {(GXT)(windowArea.xs + 40),
+                       (GYT)(windowArea.ys + 17 + (2*i+1)*(MARGIN + BUTTON_HEIGHT)),
+                       (GXT)(windowArea.xe - 40),
+                       (GYT)(windowArea.ys + 14 + (2*i+2)*(MARGIN + BUTTON_HEIGHT) )
+                      };
+
+        f = false;
+        if (i == focus)
+            f = true;
+
+
+        label[i] = new GUI_EL_Label   (&params,     &labelStrArea[i], (char*)k->label, (GUI_Obj*)this);
+        item [i] = new GUI_EL_MenuItem(&itemParams, &itemArea[i],     (char*)k->inputStr.c_str(), true, f, (GUI_Obj*)this);
+
+        i++;
+    }
+
+    f = false;
+    if (size == focus)
+        f = true;
+
+    itemArea[size] = {(GXT)(windowArea.xs + 40),
+                      (GYT)(windowArea.ys + 17 + 5 + 4*(MARGIN + BUTTON_HEIGHT)),
+                      (GXT)(windowArea.xe - 40),
+                      (GYT)(windowArea.ys + 14 + 5 + 5*(MARGIN + BUTTON_HEIGHT) )
+                     };
+    item [size] = new GUI_EL_MenuItem(&itemParams, &itemArea[size],  (char*)trans, true, f, (GUI_Obj*)this);
+
     window.Draw();
     title.Draw();
+
+    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
+        if (item[i] != nullptr)
+            item[i]->Draw();
+
+    for (int i = 0; i < 5; i++)
+    {    if (item[i] != nullptr) delete item[i]; item[i] = nullptr; }
+
+}
+
+
+
+
+void CGuiMenu::initTwoStateDialog()
+{
+    int i = 0;
+    itemArea[0] = {(GXT)(windowArea.xs + 7*MARGIN),
+                   (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
+                   (GXT)(windowArea.xe - 7*MARGIN),
+                   (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
+                  };
+
+    titleArea = {(GXT)(windowArea.xs + MARGIN),
+                 (GYT)(windowArea.ys + MARGIN),
+                 (GXT)(windowArea.xe - MARGIN),
+                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
+                };
+
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
+    GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
+
+    itemArea[0] = {  20,  20,  120,  90 };
+
+    itemParams.label_params = GUI_EL_TEMP_LabelChannel;
+    itemParams.label_params.element.align = {alignHCenter, alignTop};
+    itemParams.icon_params.element  = GUI_EL_TEMP_CommonIcon;
+    itemParams.icon_params.icon = sym_new_msg;
+
+    item [0] = new GUI_EL_MenuItem(&itemParams, &itemArea[0],  (char*)useScanMenu[0], true, true, (GUI_Obj*)this);
+
+    window.Draw();
+    title.Draw();
+
+    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
+        if (item[i] != nullptr)
+            item[i]->Draw();
+
+    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
+    {    if (item[i] != nullptr) delete item[i]; item[i] = nullptr; }
 }
 
 void CGuiMenu::initVolumeDialog()
@@ -127,11 +210,16 @@ void CGuiMenu::initVolumeDialog()
                    (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
                   };
 
-    MoonsGeometry volume_geom  = {  35,  25,  112,  85 };
+    MoonsGeometry volume_geom  = {  20,  20,  120,  90 };
     GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelChannel, &volume_geom,  NULL, (GUI_Obj*)this);
 
-    char s[3]; sprintf(s,"%d",vol);
-    volume->SetText((char*) s);
+    char s[4]; sprintf(s,"%d",vol);
+    std::string str;
+
+    str.append(s);
+    str.push_back(proc);
+    volume->SetText((char *)str.c_str());
+    str.clear();
 
     // title
     titleArea = {(GXT)(windowArea.xs + MARGIN),
@@ -167,7 +255,7 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title, int foc
         itemArea[i] = {(GXT)(windowArea.xs + MARGIN),
                        (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
                        (GXT)(windowArea.xe - MARGIN),
-                       (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
+                       (GYT)(windowArea.ys + 12 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
                       };
         bool f;
         if (i == focusItem)
@@ -207,7 +295,7 @@ void CGuiMenu::Draw()
         if (label[i] != nullptr)
             label[i]->Draw();
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 6; i++)
     {    if (item[i] != nullptr) delete item[i]; item[i] = nullptr; }
 
     for (int i = 0; i < 2; i++)

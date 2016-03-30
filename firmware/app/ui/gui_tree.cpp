@@ -182,9 +182,11 @@ void CGuiTree::init()
     sttSetSpeed.prevState = &sttConnParam;
     sttSetSpeed.nextState.clear();
     // 4.3 - Сканирование
+    sttScan.subType = GuiWindowsSubType::twoState;
     sttScan.prevState = &settings;
     sttScan.nextState.clear();
     // 4.4 - АРУ / АРМ
+    swAruArm.subType = GuiWindowsSubType::twoState;
     swAruArm.prevState = &settings;
     swAruArm.nextState.clear();
     // 4.5 - Громкость
