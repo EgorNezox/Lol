@@ -20,7 +20,7 @@ char ch_invalid_letter='!';
 const char* freq_khz = "кГц\0";
 const char* freq_hz = "Гц\0";
 
-const char proc = '@';
+const char proc = '%';
 
 const char* trans = "Отправить";
 const char* callTitle[2] = {"команда\0", "адрес\0"};
@@ -33,23 +33,23 @@ char * ch_table_mismatch_txt[LANG_COUNT]={(char *)"Несоответствие таблицы речевы
 
 const char *mainMenu[] = {"ГЛАВНОЕ МЕНЮ\0", "\tВызов\0", "\tПрием\0", "\tДанные\0", "\tНастройки\0"};
 
-const char *callSubMenu[] = {"Условные команды\0", "SMS\0", "Голосовая почта\0", "Группа усл.команд\0"};
-    const char *commandsSubMenu[] = {"Одност.связь\0", "Двухст.связь\0"};
-        const char *smplSubMenu[] = {"Групповой вызов\0", "Индивидуальный\0"};
-        const char *twSubMenu[] = {"Без ретранслятора\0", "С ретранслятором\0"};
-    const char *smsSubMenu[] = {"Без ретранслятора\0", "С ретранслятором\0"};
-    const char *groupCommandsSubMenu[] = {"Одност.связь\0", "Двухст.связь\0"};
-        const char *groupCommandsSimplSubMenu[] = {"Групповой вызов\0", "Индивидуальный\0"};
+const char *callSubMenu[] = {" Условные команды\0", " SMS\0", " Голосовая почта\0", " Группа усл.команд\0"};
+    const char *commandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
+        const char *smplSubMenu[] = {" Групповой вызов\0", " Индивидуальный\0"};
+        const char *twSubMenu[] = {" Без ретранслятора\0", " С ретранслятором\0"};
+    const char *smsSubMenu[] = {" Без ретранслятора\0", " С ретранслятором\0"};
+    const char *groupCommandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
+        const char *groupCommandsSimplSubMenu[] = {" Групповой вызов\0", " Индивидуальный\0"};
 
-const char *reciveSubMenu[] = {"Речь", "Сообщение(АУС)", "Группа усл.команд"};
+const char *reciveSubMenu[] = {" Речь", " Сообщение(АУС)", " Группа усл.команд"};
 
-const char *dataSubMenu[] = {"Принятые\0", "Отправленные\0", "Сохраненые\0"};
-    const char *dataSubSubMenu[] = {"Условные команды\0", "СМС\0", "Головая почта\0", "Группа усл.команд\0"};
+const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0"};
+    const char *dataSubSubMenu[] = {" Условные команды\0", " СМС\0", " Головая почта\0", " Группа усл.команд\0"};
 
-const char *settingsSubMenu[] = {"Дата/время\0", "Параметры связи\0", "Сканирование\0", "АРУ/АРМ\0", "Громкость\0", "Шумоподавитель\0"};
-    const char *dateAndTimeSubMenu[] = {"GPS синх-ция\0", "Ручная установка\0"};
-        const char *setDateOrTime[] = {"Установить дату\0", "Установить время\0"};
-    const char *setConnParam[] = {"Частота\0", "Скорость\0"};
+const char *settingsSubMenu[] = {" Дата/время\0", " Параметры связи\0", " Сканирование\0", " АРУ/АРМ\0", " Громкость\0", " Шумоподавитель\0"};
+    const char *dateAndTimeSubMenu[] = {" GPS синх-ция\0", " Ручная установка\0"};
+        const char *setDateOrTime[] = {" Установить дату\0", " Установить время\0"};
+    const char *setConnParam[] = {" Частота\0", " Скорость\0"};
     const char *useScanMenu[] = {"ВКЛ\0", "ВЫКЛ\0"};
 
 

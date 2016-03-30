@@ -10,7 +10,7 @@
 
 
 #define LANG_COUNT 1
-#define MAIN_MENU_MAX_LIST_SIZE 5
+#define MAIN_MENU_MAX_LIST_SIZE 6
 #define _LIST_SIZE 5
 #define SETTINGS_LIST_SIZE 2
 

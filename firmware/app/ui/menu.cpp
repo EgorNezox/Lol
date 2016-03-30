@@ -8,7 +8,7 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, const char *text, Ali
                                                                                               focus(0),
                                                                                               numItem(7)
 {
-    windowArea = {0,0,(GXT)(GEOM_W(this->area)-5),(GYT)(GEOM_H(this->area)-5)};
+    windowArea = {0,0,(GXT)(GEOM_W(this->area)-5),(GYT)(GEOM_H(this->area))};
     textAreaParams = GUI_EL_TEMP_CommonTextAreaLT;
     textAreaParams.element.align = align;
     this->setTitle(title);
@@ -43,7 +43,7 @@ void CGuiMenu::initDialog(CEndState state)
     params = GUI_EL_TEMP_CommonTextAreaLT;
     params.element.align = {alignHCenter, alignTop};
 
-    MoonsGeometry labelStrArea[5];
+    MoonsGeometry labelStrArea[6];
     bool f;
 
     auto size = state.listItem.size();
@@ -136,7 +136,7 @@ void CGuiMenu::initVolumeDialog()
     str.append(s);
     str.push_back(proc);
     volume->SetText((char *)str.c_str());
-    str = "";
+    str.clear();
 
     // title
     titleArea = {(GXT)(windowArea.xs + MARGIN),
@@ -172,7 +172,7 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title, int foc
         itemArea[i] = {(GXT)(windowArea.xs + MARGIN),
                        (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
                        (GXT)(windowArea.xe - MARGIN),
-                       (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
+                       (GYT)(windowArea.ys + 12 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
                       };
         bool f;
         if (i == focusItem)

@@ -37,7 +37,7 @@ GCODE GFONT FCODE Consolas25x58 =
    58,       /* height */
    sizeof(Consolas25x58sym[0]) - sizeof(GSYMHEAD), /* number of bytes in a symbol (including any alignment padding)*/
    (PGSYMBOL)Consolas25x58sym, /* pointer to array of SYMBOLS */
-   14,      /* num symbols */
+   15,      /* num symbols */
    (PGCODEPAGE)&Consolas25x58cp
    };
 
