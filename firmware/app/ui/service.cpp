@@ -483,7 +483,7 @@ void Service::keyPressed(UI_Key key)
             break;
         case GuiWindowsSubType::aruarm:
             break;
-        case GuiWindowsSubType::Suppress:
+        case GuiWindowsSubType::suppress:
             break;
         default:
             break;
