@@ -20,6 +20,8 @@ char ch_invalid_letter='!';
 const char* freq_khz = "к√ц\0";
 const char* freq_hz = "√ц\0";
 
+const char proc = '@';
+
 const char* trans = "ќтправить";
 const char* callTitle[2] = {"команда\0", "адрес\0"};
 

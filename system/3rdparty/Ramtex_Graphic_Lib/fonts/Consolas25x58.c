@@ -12,7 +12,7 @@
 static struct
    {
    GCPHEAD chp;
-   GCP_RANGE cpr[5];     /* Adjust this index if more codepage segments are added */
+   GCP_RANGE cpr[6];     /* Adjust this index if more codepage segments are added */
    }
 GCODE FCODE Consolas25x58cp =
    {
@@ -25,7 +25,7 @@ static struct
    GSYMHEAD sh;         /* Symbol header */
    SGUCHAR b[232];       /* Symbol data, "variable length" */
    }
-GCODE FCODE Consolas25x58sym[14] =
+GCODE FCODE Consolas25x58sym[15] =
    {
    #include "Consolas25x58.sym" /* Include symbols */
    };

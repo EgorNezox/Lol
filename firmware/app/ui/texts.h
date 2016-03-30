@@ -26,6 +26,8 @@ extern char ch_invalid_letter;
 extern const char* freq_khz;
 extern const char* freq_hz;
 
+extern const char proc;
+
 extern const char* trans;
 extern const char* callTitle[];
 

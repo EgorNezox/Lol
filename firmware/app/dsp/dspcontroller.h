@@ -45,6 +45,7 @@ public:
         AudioModePlayShortSignal = 4
     };
 
+
     DspController(int uart_resource, int reset_iopin_resource, QmObject *parent);
     ~DspController();
     bool isReady();
@@ -52,6 +53,7 @@ public:
     void setRadioParameters(RadioMode mode, uint32_t frequency);
     void setRadioOperation(RadioOperation operation);
     void setAudioVolumeLevel(uint8_t volume_level);
+    void setAGCParameters(uint8_t agc_mode,int RadioPath);
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -66,11 +68,13 @@ private:
     };
     enum RxParameterCode {
         RxFrequency = 1,
-        RxRadioMode = 2
+        RxRadioMode = 2,
+        AGCRX = 8
     };
     enum TxParameterCode {
         TxFrequency = 1,
-        TxRadioMode = 2
+        TxRadioMode = 2,
+        AGCTX = 7
     };
     enum AudioParameterCode {
         AudioModeParameter = 0,
@@ -84,6 +88,7 @@ private:
         AudioMode audio_mode;
         uint8_t volume_level;
         uint8_t mic_amplify;
+        uint8_t agc_mode; // !
     };
 
     void initResetState();
@@ -101,7 +106,6 @@ private:
     bool resyncPendingCommand();
     void sendCommand(Module module, int code, ParameterValue value);
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
-   // void setLevelVolume(uint8_t Level);
 
     bool is_ready;
     QmIopin *reset_iopin;

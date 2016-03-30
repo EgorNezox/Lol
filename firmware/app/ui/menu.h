@@ -59,7 +59,7 @@ public:
     // ----
     void incrVolume(){ if ( vol < 100) vol += 20; }
     void decrVolume(){ if ( vol >  0 ) vol -= 20; }
-    int  getVolume(){ return vol;}
+    uint8_t  getVolume(){ return vol;}
 
 private:
     GUI_Obj obj;
@@ -81,7 +81,7 @@ private:
     char *tx;
     bool editing;
 
-    int vol = 40;
+    uint8_t vol = 100;
 };
 
 

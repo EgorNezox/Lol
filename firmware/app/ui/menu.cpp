@@ -127,11 +127,16 @@ void CGuiMenu::initVolumeDialog()
                    (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
                   };
 
-    MoonsGeometry volume_geom  = {  35,  25,  112,  85 };
+    MoonsGeometry volume_geom  = {  20,  20,  120,  90 };
     GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelChannel, &volume_geom,  NULL, (GUI_Obj*)this);
 
-    char s[3]; sprintf(s,"%d",vol);
-    volume->SetText((char*) s);
+    char s[4]; sprintf(s,"%d",vol);
+    std::string str;
+
+    str.append(s);
+    str.push_back(proc);
+    volume->SetText((char *)str.c_str());
+    str = "";
 
     // title
     titleArea = {(GXT)(windowArea.xs + MARGIN),
