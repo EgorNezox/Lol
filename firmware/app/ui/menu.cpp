@@ -27,9 +27,6 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, const char *text, Ali
         label[i] = nullptr;
     }
 
-    inputStr[0] = nullptr;
-    inputStr[1] = nullptr;
-
     tx = nullptr;
     tx = new char[100];
 }
@@ -87,7 +84,31 @@ void CGuiMenu::initDialog(CEndState state)
 }
 
 
-
+void CGuiMenu::setCallParam(CEndState state, UI_Key key)
+{
+    int i = 0;
+    for (auto &k: state.listItem)
+    {
+        if (i == focus)
+        {
+            switch (key)
+            {
+            case keyBack:
+                if (k->inputStr.size() > 0){ k->inputStr.pop_back(); }
+                break;
+            case keyEnter:
+                break;
+            default:
+                if ( key > 5 && key < 16 && k->inputStr.size() < 2 )
+                {
+                    k->inputStr.push_back((char)(42+key));
+                }
+                break;
+            }
+        }
+        i++;
+    }
+}
 
 void CGuiMenu::initCallDialog(CEndState state)
 {
@@ -192,17 +213,17 @@ void CGuiMenu::initTwoStateDialog()
     itemParams.icon_params.element  = GUI_EL_TEMP_CommonIcon;
     itemParams.icon_params.icon = sym_new_msg;
 
-    item [0] = new GUI_EL_MenuItem(&itemParams, &itemArea[0],  (char*)useScanMenu[0], true, true, (GUI_Obj*)this);
+//    item[0] = new GUI_EL_MenuItem(&itemParams, &itemArea[0],  (char*)useScanMenu[0], true, true, (GUI_Obj*)this);
 
     window.Draw();
     title.Draw();
 
-    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
-        if (item[i] != nullptr)
-            item[i]->Draw();
+//    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
+//        if (item[i] != nullptr)
+//            item[i]->Draw();
 
-    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
-    {    if (item[i] != nullptr) delete item[i]; item[i] = nullptr; }
+//    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
+//    {    if (item[i] != nullptr) delete item[i]; item[i] = nullptr; }
 }
 
 void CGuiMenu::initVolumeDialog()
@@ -343,7 +364,7 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title, int foc
         itemArea[i] = {(GXT)(windowArea.xs + MARGIN),
                        (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
                        (GXT)(windowArea.xe - MARGIN),
-                       (GYT)(windowArea.ys + 12 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
+                       (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
                       };
         bool f;
         if (i == focusItem)
@@ -373,23 +394,20 @@ void CGuiMenu::Draw()
     title.Draw();
 
     for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
-        if (item[i] != nullptr)
-            item[i]->Draw();
-
-    for (int i = 0; i < 2; i++)
-        if (inputStr[i] != nullptr)
-            inputStr[i]->Draw();
-
-    for (int i = 0; i < 2; i++)
+    {
         if (label[i] != nullptr)
             label[i]->Draw();
+        if (item[i] != nullptr)
+            item[i]->Draw();
+    }
 
-    for (int i = 0; i < 6; i++)
-    {    if (item[i] != nullptr) delete item[i]; item[i] = nullptr; }
 
-    for (int i = 0; i < 2; i++)
-    {    if (inputStr[i] != nullptr){ delete inputStr[i]; inputStr[i] = nullptr;}
-        if (label[i] != nullptr){ delete label[i]; label[i] = nullptr;}}
+    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
+    {   if (item[i] != nullptr)
+            { delete item[i]; item[i] = nullptr;}
+        if (label[i] != nullptr)
+            { delete label[i]; label[i] = nullptr;}
+    }
 }
 
 CGuiMenu::~CGuiMenu()
@@ -397,10 +415,6 @@ CGuiMenu::~CGuiMenu()
     for (int i = 0; i < numItem; i++)
         if (item[i] != nullptr)
             delete item[i];
-
-    for (int i = 0; i < 2; i++)
-        if (inputStr[i] != nullptr)
-            delete inputStr[i];
 
     for (int i = 0; i < 2; i++)
         if (label[i] != nullptr)

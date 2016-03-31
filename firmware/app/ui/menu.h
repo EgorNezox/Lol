@@ -59,6 +59,8 @@ public:
     std::string dstAddr, newDstAddr;
     std::string message, newMessage;
 
+    // call
+    void setCallParam(CEndState, UI_Key);
 
     // volume
     void incrVolume(){ if ( vol < 100) vol += 20; }
@@ -88,9 +90,7 @@ private:
 
     int numItem;
     GUI_EL_MenuItem *(item[6]);
-
     GUI_EL_Label *label[6];
-    GUI_EL_InputString *inputStr[2];
     char *tx;
     bool editing;
 

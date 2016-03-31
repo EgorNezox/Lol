@@ -99,7 +99,7 @@ void Navigator::parsingData(uint8_t data[])
 
         int index_date =  index_long + sizeof(",v.v,b.b,");
 
-        for(int i = index_date; i<sizeof("ddmmyy"); i++)
+        for(int i = index_date; i < sizeof("ddmmyy"); i++)
             CoordDate.time[i] = data[index_time + i]; // получили время
 
 
