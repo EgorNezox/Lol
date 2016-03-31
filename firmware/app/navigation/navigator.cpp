@@ -87,5 +87,5 @@ void Navigator::parsingData(uint8_t data[], uint8_t len)
 } /* namespace Navigation */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(navigation, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(navigation, LevelDefault)
 #include "qmdebug_domains_end.h"
