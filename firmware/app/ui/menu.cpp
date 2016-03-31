@@ -24,7 +24,7 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, const char *text, Ali
     for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
     {
         item[i] = nullptr;
-        label[0] = nullptr;
+        label[i] = nullptr;
     }
 
     inputStr[0] = nullptr;
