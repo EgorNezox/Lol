@@ -379,37 +379,22 @@ void Service::keyPressed(UI_Key key)
         // в меню
     case menuWindow:
     {
-        // переходим вниз по дереву & запоминаем состояние
         if ( key == keyEnter)
         {
             int rc;
             rc = guiTree.advance(menu->focus);
             menu->focus = 0;
-            // ввод параметров
-            if (rc == -1)
-            {
-                //
-            }
-
-             menu->focus = 0;
-
-            break;
         }
-        // переходим вверх по дереву & удаляем из стзка последнее состояние
         if ( key == keyBack)
         {
             guiTree.backvard();
             menu->focus = 0;
-            break;
         }
-        // движемся по списку вверх
         if (key == keyUp)
         {
             if ( menu->focus > 0 )
                 menu->focus--;
-            break;
         }
-        // движемся по списку вниз
         if (key == keyDown)
         {
             if ( state.nextState.size() != 0 )
@@ -417,7 +402,6 @@ void Service::keyPressed(UI_Key key)
                 if ( menu->focus < state.nextState.size()-1 )
                     menu->focus++;
             }
-            break;
         }
         menu->keyPressed(key);
         break;
@@ -432,36 +416,16 @@ void Service::keyPressed(UI_Key key)
             {
                 guiTree.resetCurrentState();
             }
-            else
-            {
-
-            }
             menu->focus = 0;
-            break;
         }
-
         if ( key == keyBack)
         {
-            guiTree.backvard();
-            menu->focus = 0;
-            break;
+            if (menu->focus == 2)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
         }
-        //            // движемся по списку вверх
-        //            if (key == keyUp)
-        //            {
-        //                if ( menu->focus > 0 )
-        //                    menu->focus--;
-        //                break;
-        //            }
-        //            // движемся по списку вниз
-        //            if (key == keyDown)
-        //            {
-        //                if ( menu->focus < estate.listItem.size() )
-        //                {     //if ( menu->focus < state.nextState.size()-1 )
-        //                    menu->focus++;
-        //                }
-        //                break;
-        //            }
 
         switch(estate.subType)
         {
@@ -469,16 +433,14 @@ void Service::keyPressed(UI_Key key)
 
             switch (key){
             case keyUp:
-            {
                 if ( menu->focus > 0 )
                     menu->focus--;
-            }
-            break;
+                break;
             case keyDown:
-                {
-                    if ( menu->focus < estate.listItem.size() )
-                        menu->focus++;
-                }
+            {
+                if ( menu->focus < estate.listItem.size() )
+                    menu->focus++;
+            }
                 break;
             case keyEnter:
                 if ( menu->focus < estate.listItem.size() )
@@ -487,9 +449,27 @@ void Service::keyPressed(UI_Key key)
             default:
                 if ( key > 5 && key < 16)
                 {
-                    if ( menu->focus < estate.listItem.size() )
+                    menu->setCallParam(estate, key);
+                }
+                else if ( key == 1)
+                {
+                    int i = 0;
+                    for (auto &k: estate.listItem)
                     {
-                        menu->setCallParam(estate, key);
+                        if (menu->focus == i)
+                        {
+                            if (k->inputStr.size() > 0)
+                            {
+                                k->inputStr.pop_back();
+                            }
+                            else
+                            {
+                                guiTree.backvard();
+                                menu->focus = 0;
+                                break;
+                            }
+                        }
+                        i++;
                     }
                 }
                 break;
@@ -549,7 +529,7 @@ void Service::keyPressed(UI_Key key)
 
     if (false)
     {
-//        goToCallBack();
+        //        goToCallBack();
     }
     draw();
 }

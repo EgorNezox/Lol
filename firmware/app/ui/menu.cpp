@@ -94,7 +94,7 @@ void CGuiMenu::setCallParam(CEndState state, UI_Key key)
             switch (key)
             {
             case keyBack:
-                if (k->inputStr.size() > 0){ k->inputStr.pop_back(); }
+                //if (k->inputStr.size() > 0){ k->inputStr.pop_back(); }
                 break;
             case keyEnter:
                 break;
