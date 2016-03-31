@@ -22,7 +22,7 @@ struct Coord_Date
     uint8_t* time;
     uint8_t* latitude;
     uint8_t* longitude;
-} CoordDate;
+};
 
 class Navigator : public QmObject {
 public:
@@ -38,7 +38,7 @@ private:
 	void processUartReceivedErrors(bool data_errors, bool overflow);
     void parsingData(uint8_t data[]);
 
-
+    Coord_Date CoordDate;
 
 	QmIopin *reset_iopin;
 	QmIopin *ant_flag_iopin;
