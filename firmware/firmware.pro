@@ -64,4 +64,6 @@ HEADERS += \
     app/ui/texts.h \
     app/ui/ui_keys.h \
     app/multiradio.h \
-    app/messages/messagepswf.h
+    app/messages/messagepswf.h \
+    app/headset/smarttransport.h \
+    app/navigation/navigator.h

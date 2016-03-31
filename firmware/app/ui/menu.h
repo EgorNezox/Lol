@@ -65,10 +65,10 @@ public:
     uint8_t  getVolume(){ return vol;}
 
     // aru arm
-    void incrAruArm(){ action = true;  }
-    void decrAruArm(){ action = false; }
-    bool getAruArm() { return action;  }
-    bool action = false;
+    void    incrAruArm(){ action = 1;  }
+    void    decrAruArm(){ action = 0; }
+    uint8_t getAruArm() { return action;  }
+    uint8_t action = 0;
 
 private:
     GUI_Obj obj;

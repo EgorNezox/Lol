@@ -33,6 +33,7 @@ public:
 	void tunePreviousChannel();
     void TuneFrequency(int Frequency);
     void TuneAudioLevel(uint8_t volume_level);
+    void TurnAGCMode(uint8_t mode);
 
 	sigc::signal<void> currentChannelChanged;
 
