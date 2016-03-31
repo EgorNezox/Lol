@@ -465,6 +465,19 @@ void Service::keyPressed(UI_Key key)
 
         switch(estate.subType)
         {
+        case GuiWindowsSubType::call:
+            if (key == keyUp  )
+            {
+                if ( menu->focus > 0 )
+                    menu->focus--;
+
+            }
+            if (key == keyDown)
+            {
+                if ( menu->focus < estate.listItem.size() )
+                    menu->focus++;
+            }
+            break;
         case GuiWindowsSubType::volume:
             if (key == keyUp  )
             {

@@ -21,14 +21,14 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, const char *text, Ali
     itemParams.icon_params.element  = GUI_EL_TEMP_CommonIcon;
     itemParams.icon_params.icon = sym_new_msg;
 
-    for (int i = 0; i < numItem; i++)
+    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
+    {
         item[i] = nullptr;
+        label[0] = nullptr;
+    }
 
     inputStr[0] = nullptr;
     inputStr[1] = nullptr;
-
-    label[0] = nullptr;
-    label[1] = nullptr;
 
     tx = nullptr;
     tx = new char[100];
@@ -154,10 +154,14 @@ void CGuiMenu::initCallDialog(CEndState state)
     for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
         if (item[i] != nullptr)
             item[i]->Draw();
+    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
+        if (label[i] != nullptr)
+            label[i]->Draw();
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
     {    if (item[i] != nullptr) delete item[i]; item[i] = nullptr; }
-
+    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
+    {    if (label[i] != nullptr) delete label[i]; label[i] = nullptr; }
 }
 
 

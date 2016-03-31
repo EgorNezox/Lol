@@ -89,7 +89,7 @@ private:
     int numItem;
     GUI_EL_MenuItem *(item[6]);
 
-    GUI_EL_Label *label[2];
+    GUI_EL_Label *label[6];
     GUI_EL_InputString *inputStr[2];
     char *tx;
     bool editing;

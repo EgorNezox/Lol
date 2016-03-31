@@ -69,6 +69,8 @@ void CGuiTree::init()
     // 1.1.2 - Двухст.связь | только индивидуально
     condCmdDupl.prevState = &condCmd;
     condCmdDupl.nextState.clear();
+//    condCmdDupl.listItem.push_back( &condCmdDuplParameters1 );
+//    condCmdDupl.listItem.push_back( &condCmdDuplParameters2 );
     // 1.2 - SMS
     sms.prevState = &call;
     sms.nextState.clear();
