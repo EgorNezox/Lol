@@ -466,17 +466,40 @@ void Service::keyPressed(UI_Key key)
         switch(estate.subType)
         {
         case GuiWindowsSubType::call:
-            if (key == keyUp  )
+
+            switch (key){
+            case keyUp:
             {
                 if ( menu->focus > 0 )
                     menu->focus--;
-
             }
-            if (key == keyDown)
-            {
+            break;
+            case keyDown:
+                {
+                    if ( menu->focus < estate.listItem.size() )
+                        menu->focus++;
+                }
+                break;
+            case keyEnter:
                 if ( menu->focus < estate.listItem.size() )
-                    menu->focus++;
+                { /* callback */ }
+                break;
+            default:
+                if ( key > 5 && key < 16)
+                {
+                    if ( menu->focus < estate.listItem.size() )
+                    {
+                        menu->setCallParam(estate, key);
+                    }
+                }
+                break;
             }
+
+            if (estate.listItem.size() == 2)
+            {}
+            else if (estate.listItem.size() == 1)
+            {}
+            else {}
             break;
         case GuiWindowsSubType::volume:
             if (key == keyUp  )
@@ -611,13 +634,13 @@ void Service::drawMenu()
             menu->initCallDialog(st);
             break;
         case recv:
-            menu->initTwoStateDialog();
+            //menu->initTwoStateDialog();
             break;
         case data:
-            menu->initTwoStateDialog();
+            //menu->initTwoStateDialog();
             break;
         case settings:
-            menu->initTwoStateDialog();
+            //menu->initTwoStateDialog();
             break;
         case gpsCoord:
             menu->initGpsCoordinateDialog();
@@ -631,7 +654,7 @@ void Service::drawMenu()
             menu->initVolumeDialog();
             break;
         default:
-            menu->initTwoStateDialog();
+            //menu->initTwoStateDialog();
             break;
         }
     }
