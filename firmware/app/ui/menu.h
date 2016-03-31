@@ -66,10 +66,10 @@ public:
     uint8_t  getVolume(){ return vol;}
 
     // aru arm
-    void    incrAruArm(){ action = 1;  }
-    void    decrAruArm(){ action = 0; }
-    uint8_t getAruArm() { return action;  }
-    uint8_t action = 0;
+    void    incrAruArm(){ aruArmAction = 1;  }
+    void    decrAruArm(){ aruArmAction = 0; }
+    uint8_t getAruArm() { return aruArmAction;  }
+    uint8_t aruArmAction = 0;
 
     // gps coordinate
     std::string coord;

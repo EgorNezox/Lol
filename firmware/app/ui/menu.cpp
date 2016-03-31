@@ -254,7 +254,7 @@ void CGuiMenu::initAruarmDialog()
     char s[4]; sprintf(s,"%d",vol);
     std::string str;
 
-    if (aruArmAction)
+    if (aruArmAction == 1)
         volume->SetText((char *)useScanMenu[0]);
     else
         volume->SetText((char *)useScanMenu[1]);
