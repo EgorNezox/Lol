@@ -19,7 +19,7 @@ void CGuiTree::init()
     // 2.1 - 2.3
     recvTlf.setName(reciveSubMenu[0]); recvSms.setName(reciveSubMenu[1]); recvGroupCondCommsnds.setName(reciveSubMenu[2]);
     // 3.1 - 3.3
-    dataRecv.setName(dataSubMenu[0]), dataSend.setName(dataSubMenu[1]);
+    dataRecv.setName(dataSubMenu[0]), dataSend.setName(dataSubMenu[1]), dataGps.setName(dataSubMenu[3]);
     // 3.1.1 - 3.1.4
     dataRecvCondCmd.setName(dataSubSubMenu[0]); dataRecvSms.setName(dataSubSubMenu[1]); dataRecvPost.setName(dataSubSubMenu[2]); dataRecvGroupCondCmd.setName(dataSubSubMenu[3]);
     // 3.2.1 - 3.2.4
@@ -110,6 +110,7 @@ void CGuiTree::init()
     data.prevState = &main;
     data.nextState.push_back(&dataRecv);
     data.nextState.push_back(&dataSend);
+    data.nextState.push_back(&dataGps);
     // 3.1 - Принятые
     dataRecv.prevState = &data;
     dataRecv.nextState.push_back(&dataRecvCondCmd);
@@ -146,6 +147,10 @@ void CGuiTree::init()
     // 3.2.4 - Группа условных команд
     dataSendGroupCondCmd.prevState = &dataSend;
     dataSendGroupCondCmd.nextState.clear();
+    // 3.3 - GPS координаты
+    dataGps.subType = GuiWindowsSubType::gpsCoord;
+    dataGps.prevState = &data;
+    dataGps.nextState.clear();
     // 4 - Настройки
     settings.prevState = &main;
     settings.nextState.push_back(&sttDateTime);

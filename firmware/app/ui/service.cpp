@@ -497,6 +497,9 @@ void Service::keyPressed(UI_Key key)
                 //voice_service->TurnAGCMode(level);
             }
             break;
+        case GuiWindowsSubType::gpsCoord:
+
+            break;
         case GuiWindowsSubType::suppress:
             break;
         default:
@@ -602,6 +605,9 @@ void Service::drawMenu()
             break;
         case settings:
             menu->initTwoStateDialog();
+            break;
+        case gpsCoord:
+            menu->initGpsCoordinateDialog();
             break;
         case twoState:
             menu->initTwoStateDialog();
