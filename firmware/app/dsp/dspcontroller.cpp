@@ -154,9 +154,9 @@ void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
     ParameterValue command_value;
     command_value.agc_mode = agc_mode;
    // if (RadioPath == 0)
-        sendCommand(RxRadiopath,AGCRX,command_value);
+      sendCommand(RxRadiopath,AGCRX,command_value);
    // else
-        //sendCommand(TxRadiopath,AGCTX,command_value);
+      sendCommand(TxRadiopath,AGCTX,command_value);
 }
 
 

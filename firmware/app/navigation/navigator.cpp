@@ -9,6 +9,7 @@
 #include "qmdebug.h"
 #include "qmiopin.h"
 #include "qmuart.h"
+#include <string.h>
 
 #include "navigator.h"
 
@@ -53,6 +54,9 @@ void Navigator::processUartReceivedData() {
 		data[data_read] = '\0';
 		qmDebugMessage(QmDebug::Dump, (char*)data);
 	}
+
+    parsingData(data);
+
 	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 }
 
@@ -64,19 +68,39 @@ void Navigator::processUartReceivedErrors(bool data_errors, bool overflow) {
     uart->readData(0, uart->getRxDataAvailable()); // flush received chunks
 }
 
-void Navigator::parsingData(uint8_t data[], uint8_t len)
+void Navigator::parsingData(uint8_t data[])
 {
-    int count = 0;
-    uint8_t coordinate[len];
+    // вид строки
+    // $GPRMC,hhmmss.sss,A,GGMM.MM,P,gggmm.mm,J,v.v,b.b,ddmmyy,x.x,n,m*hh<CR><LF>
+
+    int index = 0;
+    char *search = "$GPRMC";
+    char *res;
 
 
-    while ((data[count] == (uint8_t)13) && (data[count+1] == (uint8_t)10))
-        count++;
+    res = strstr((const char *)data,search);
 
-   for(int i = 0; (i+1)<len;i++)
+    if (strlen(res) > 0)
     {
-       // coordinate[i]   = start + 6;
-       // coordinate[i+1] = start + 7;
+        index = strlen((const char *)data) - strlen((const char *)res);
+        int index_time = index + sizeof("$GPRMC,");
+
+        for(int i = index_time;i<sizeof("hhmmss.sss");i++)
+            CoordDate.data[i] = data[index_time+i]; //получил время
+
+        int index_lat  = index_time + sizeof("hhmmss.sss,A,");
+        int index_long = index_lat + sizeof("GGMM.MM,P,");
+
+        for(int i = index_lat;i<sizeof("GGMM.MM,P");i++)
+             CoordDate.latitude[i] = data[index_lat+i]; // получили широту
+
+        for(int i = index_long;i<sizeof("gggmm.mm,J");i++)
+            CoordDate.longitude[i] = data[index_long+i]; // получили долготу
+
+        int index_date =  index_long + sizeof(",v.v,b.b,");
+
+        for(int i = index_date; i<sizeof("ddmmyy"); i++)
+            CoordDate.time[i] = data[index_time + i]; // получили время
 
 
     }

@@ -15,6 +15,15 @@ class QmUart;
 
 namespace Navigation {
 
+
+struct Coord_Date
+{
+    uint8_t* data;
+    uint8_t* time;
+    uint8_t* latitude;
+    uint8_t* longitude;
+} CoordDate;
+
 class Navigator : public QmObject {
 public:
 	Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_iopin_resource);
@@ -24,7 +33,7 @@ private:
 //#if defined(PORT__TARGET_DEVICE_REV1)
 	void processUartReceivedData();
 	void processUartReceivedErrors(bool data_errors, bool overflow);
-    void parsingData(uint8_t data[], uint8_t len);
+    void parsingData(uint8_t data[]);
 
 
 	QmIopin *reset_iopin;
