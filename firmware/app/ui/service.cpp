@@ -494,7 +494,7 @@ void Service::keyPressed(UI_Key key)
             {
                 menu->decrAruArm();
                 uint8_t level = menu->getAruArm();
-                //voice_service->TurnAGCMode(level);
+                voice_service->TurnAGCMode(level);
             }
             break;
         case GuiWindowsSubType::gpsCoord:

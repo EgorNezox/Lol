@@ -24,6 +24,8 @@ private:
 //#if defined(PORT__TARGET_DEVICE_REV1)
 	void processUartReceivedData();
 	void processUartReceivedErrors(bool data_errors, bool overflow);
+    void parsingData(uint8_t data[], uint8_t len);
+
 
 	QmIopin *reset_iopin;
 	QmIopin *ant_flag_iopin;
