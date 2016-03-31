@@ -26,6 +26,7 @@ enum GuiWindowsSubType
     recv,\
     data,\
     settings,\
+    gpsCoord,\
     scan,\
     aruarm,\
     suppress,\
@@ -141,6 +142,7 @@ private:
     SInputItemParameters recvTlfParameters, recvSmsParameters, recvGroupCondCommsndsParameters;
     // 3.1 - 3.3
     CState dataRecv, dataSend;
+    CEndState dataGps;
     // 3.1.1 - 3.1.4
     CEndState dataRecvCondCmd, dataRecvSms, dataRecvPost, dataRecvGroupCondCmd;
 

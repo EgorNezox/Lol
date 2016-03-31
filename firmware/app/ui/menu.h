@@ -50,6 +50,7 @@ public:
     void initAruarmDialog();
     void initSuppressDialog();
     void initTwoStateDialog();
+    void initGpsCoordinateDialog();
 
     void setTitle(const char*);
     void keyPressed(UI_Key);
@@ -65,10 +66,13 @@ public:
     uint8_t  getVolume(){ return vol;}
 
     // aru arm
-    void incrAruArm(){ action = true;  }
-    void decrAruArm(){ action = false; }
-    bool getAruArm() { return action;  }
-    bool action = false;
+    void incrAruArm(){ aruArmAction = true;  }
+    void decrAruArm(){ aruArmAction = false; }
+    bool getAruArm() { return aruArmAction;  }
+    bool aruArmAction = false;
+
+    // gps coordinate
+    std::string coord;
 
 private:
     GUI_Obj obj;

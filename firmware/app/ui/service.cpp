@@ -494,6 +494,9 @@ void Service::keyPressed(UI_Key key)
                 bool level = menu->getAruArm();
             }
             break;
+        case GuiWindowsSubType::gpsCoord:
+
+            break;
         case GuiWindowsSubType::suppress:
             break;
         default:
@@ -599,6 +602,9 @@ void Service::drawMenu()
             break;
         case settings:
             menu->initTwoStateDialog();
+            break;
+        case gpsCoord:
+            menu->initGpsCoordinateDialog();
             break;
         case twoState:
             menu->initTwoStateDialog();
