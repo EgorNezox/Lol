@@ -499,12 +499,15 @@ void Service::keyPressed(UI_Key key)
             if (key == keyUp  )
             {
                 menu->incrAruArm();
-                bool level = menu->getAruArm();
+                uint8_t level = menu->getAruArm();
+                voice_service->TurnAGCMode(level);
+
             }
             if (key == keyDown)
             {
                 menu->decrAruArm();
-                bool level = menu->getAruArm();
+                uint8_t level = menu->getAruArm();
+                voice_service->TurnAGCMode(level);
             }
             break;
         case GuiWindowsSubType::gpsCoord:

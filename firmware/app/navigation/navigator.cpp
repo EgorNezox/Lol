@@ -61,7 +61,26 @@ void Navigator::processUartReceivedErrors(bool data_errors, bool overflow) {
 		qmDebugMessage(QmDebug::Info, "uart rx data errors");
 	if (overflow)
 		qmDebugMessage(QmDebug::Info, "uart rx overflow");
-	uart->readData(0, uart->getRxDataAvailable()); // flush received chunks
+    uart->readData(0, uart->getRxDataAvailable()); // flush received chunks
+}
+
+void Navigator::parsingData(uint8_t data[], uint8_t len)
+{
+    int count = 0;
+    uint8_t coordinate[len];
+
+
+    while ((data[count] == (uint8_t)13) && (data[count+1] == (uint8_t)10))
+        count++;
+
+   for(int i = 0; (i+1)<len;i++)
+    {
+       // coordinate[i]   = start + 6;
+       // coordinate[i+1] = start + 7;
+
+
+    }
+
 }
 //#endif /* PORT__TARGET_DEVICE_REV1 */
 

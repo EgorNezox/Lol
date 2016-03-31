@@ -85,6 +85,11 @@ void VoiceServiceInterface::TuneAudioLevel(uint8_t volume_level)
     dispatcher->dsp_controller->setAudioVolumeLevel(volume_level);
 }
 
+void VoiceServiceInterface::TurnAGCMode(uint8_t mode)
+{
+    dispatcher->dsp_controller->setAGCParameters(mode,0);
+}
+
 void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
 	current_channel_status = status;
 	currentChannelChanged();

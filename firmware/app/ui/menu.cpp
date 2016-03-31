@@ -258,7 +258,7 @@ void CGuiMenu::initAruarmDialog()
     char s[4]; sprintf(s,"%d",vol);
     std::string str;
 
-    if (aruArmAction)
+    if (aruArmAction == 1)
         volume->SetText((char *)useScanMenu[0]);
     else
         volume->SetText((char *)useScanMenu[1]);
@@ -302,7 +302,7 @@ void CGuiMenu::initGpsCoordinateDialog()
             volume[0] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[0],  NULL, (GUI_Obj*)this);
             volume[1] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[1],  NULL, (GUI_Obj*)this);
 
-    coord.append("0123456789");
+    coord.append("0123.4567,N");
     volume[0]->SetText((char *)coord.c_str());
     volume[1]->SetText((char *)coord.c_str());
 
