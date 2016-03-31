@@ -23,6 +23,7 @@ Controller::Controller(int hscontrol_iopin_resource, int controller_iopin_resour
 	hscontrol_iopin->setInputTriggerMode(QmIopin::InputTrigger_Falling);
 	hscontrol_iopin->inputTrigger.connect(sigc::mem_fun(this, &Controller::hsControlTriggered));
 	controller_iopin = new QmIopin(controller_iopin_resource);
+	controller_iopin->deinit();
 	offint_iopin = new QmIopin(offint_iopin_resource);
 	offint_iopin->setInputTriggerMode(QmIopin::InputTrigger_Falling);
 	offint_iopin->inputTrigger.connect(sigc::mem_fun(this, &Controller::offIntTriggered));
@@ -36,8 +37,7 @@ Controller::Controller(int hscontrol_iopin_resource, int controller_iopin_resour
 
 	if (QmIopin::Level_Low == source_iopin->readInput()) {
 		qmDebugMessage(QmDebug::Dump, "powering on from headset detected");
-		controller_iopin->writeOutput(QmIopin::Level_Low);
-		ctrl_pulse_timer->start();
+		ctrlPulseStart();
 	}
 }
 
@@ -51,14 +51,19 @@ void Controller::offIntTriggered() {
 }
 
 void Controller::ctrlPulseTimeout() {
-	controller_iopin->writeOutput(QmIopin::Level_High);
+	controller_iopin->deinit();
 }
 
 void Controller::hscontrolDebounceTimeout() {
 	if (QmIopin::Level_Low == hscontrol_iopin->readInput()) {
-		controller_iopin->writeOutput(QmIopin::Level_Low);
-		ctrl_pulse_timer->start();
+		ctrlPulseStart();
 	}
+}
+
+void Controller::ctrlPulseStart() {
+	controller_iopin->init();
+	controller_iopin->writeOutput(QmIopin::Level_Low);
+	ctrl_pulse_timer->start();
 }
 
 } /* namespace Power */

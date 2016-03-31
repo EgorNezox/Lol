@@ -38,8 +38,10 @@ void qmMain() {
 		return;
 	}
 
+#if defined(PORT__TARGET_DEVICE_REV1)
 	Power::Controller power_controller(platformhwPowerHSControlIopin, platformhwPowerControllerIopin,
 			platformhwPowerOffIntIopin, platformhwPowerSourceIopin);
+#endif /* PORT__TARGET_DEVICE_REV1 */
 
 	Multiradio::voice_channels_table_t mr_channels_table;
 	DataStorage::FS data_storage_fs(platformhwDataFlashSpi);

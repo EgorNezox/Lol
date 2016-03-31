@@ -44,6 +44,10 @@ public:
 
 	void writeOutput(Level level);
 
+	void init();
+
+	void deinit();
+
 	sigc::signal<void> inputTrigger;
 
 protected:

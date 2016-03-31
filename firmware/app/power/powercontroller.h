@@ -26,6 +26,7 @@ private:
 	void offIntTriggered();
 	void ctrlPulseTimeout();
 	void hscontrolDebounceTimeout();
+	void ctrlPulseStart();
 
 	QmIopin *hscontrol_iopin;
 	QmIopin *controller_iopin;

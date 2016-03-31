@@ -21,3 +21,13 @@ QmIopin::~QmIopin() {
 	QM_D(QmIopin);
 	d->deinit();
 }
+
+void QmIopin::init() {
+	QM_D(QmIopin);
+	d->init();
+}
+
+void QmIopin::deinit() {
+	QM_D(QmIopin);
+	d->deinit();
+}
