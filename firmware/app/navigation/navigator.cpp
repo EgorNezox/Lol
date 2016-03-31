@@ -43,7 +43,12 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 Navigator::~Navigator() {
 //#if defined(PORT__TARGET_DEVICE_REV1)
 	uart->close();
-//#endif /* PORT__TARGET_DEVICE_REV1 */
+    //#endif /* PORT__TARGET_DEVICE_REV1 */
+}
+
+Coord_Date *Navigator::getCoordDate()
+{
+    return &CoordDate;
 }
 
 //#if defined(PORT__TARGET_DEVICE_REV1)
@@ -102,7 +107,7 @@ void Navigator::parsingData(uint8_t data[])
         for(int i = index_date; i < sizeof("ddmmyy"); i++)
             CoordDate.time[i] = data[index_time + i]; // получили время
 
-         CoordinateUpdated<CoordDate>(CoordDate);
+         CoordinateUpdated(); // вызов сигнала опроса структуры
 
     }
 

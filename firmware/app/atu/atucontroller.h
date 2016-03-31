@@ -11,6 +11,7 @@
 #define FIRMWARE_APP_ATU_ATUCONTROLLER_H_
 
 #include "qmobject.h"
+#include <sigc++config.h>
 
 class QmTimer;
 class QmUart;

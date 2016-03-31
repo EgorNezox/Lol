@@ -29,7 +29,8 @@ public:
 	Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_iopin_resource);
 	~Navigator();
 
-     sigc::signal<CoordDate> CoordinateUpdated; // обновили дату и коорд.
+     sigc::signal<void> CoordinateUpdated; // обновили дату,время и координаты
+     Coord_Date* getCoordDate();
 
 private:
 //#if defined(PORT__TARGET_DEVICE_REV1)
