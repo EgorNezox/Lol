@@ -299,7 +299,7 @@ void Controller::processHSUartPolling() {
 }
 
 void Controller::processCmdResponceTimeout() {
-	qmDebugMessage(QmDebug::Warning, "cmd response timeout");
+	qmDebugMessage(QmDebug::Info, "cmd response timeout");
 	resetState();
 }
 
@@ -402,5 +402,5 @@ void Controller::synchronizeHSState() {
 } /* namespace Headset */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(hscontroller, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(hscontroller, LevelDefault)
 #include "qmdebug_domains_end.h"
