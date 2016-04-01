@@ -552,6 +552,11 @@ void Service::keyPressed(UI_Key key)
                 uint8_t level = menu->getVolume();
                 voice_service->TuneAudioLevel(level);
             }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
             break;
         }
         case GuiWindowsSubType::scan:
@@ -575,6 +580,27 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::gpsCoord:
               //  setCoordDate(Navigation::Navigator::getCoordDate);
+            break;
+        case GuiWindowsSubType::gpsSync:
+            break;
+        case GuiWindowsSubType::setDate:
+        case GuiWindowsSubType::setTime:
+        case GuiWindowsSubType::setFreq:
+        case GuiWindowsSubType::setSpeed:
+            switch ( key )
+            {
+            case keyEnter:
+            {  }
+                break;
+            case keyBack:
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+                break;
+            default:
+                break;
+            }
             break;
         case GuiWindowsSubType::suppress:
             break;
@@ -686,6 +712,13 @@ void Service::drawMenu()
         case gpsCoord:
             setCoordDate(navigator->getCoordDate());
             menu->initGpsCoordinateDialog();
+            break;
+        case gpsSync:
+            break;
+        case setDate:
+        case setTime:
+        case GuiWindowsSubType::setFreq:
+        case setSpeed:
             break;
         case twoState:
             menu->initTwoStateDialog();
