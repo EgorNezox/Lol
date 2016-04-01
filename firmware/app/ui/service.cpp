@@ -15,6 +15,7 @@
 #include "texts.h"
 #include "messages/messagepswf.h"
 #include <thread>
+#include <navigation/navigator.h>
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
@@ -36,12 +37,12 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   Headset::Controller               *headset_controller,
                   Multiradio::MainServiceInterface  *mr_main_service,
                   Multiradio::VoiceServiceInterface *mr_voice_service,
-                  Power::Battery                    *power_battery
-                  )
+                  Power::Battery                    *power_battery,
+                  Navigation::Navigator             *navigator                  )
 {
     QM_ASSERT(single_instance == false);
     single_instance = true;
-
+    this->navigator = navigator;
     this->matrix_kb          = matrixkb_desc;
     this->aux_kb             = auxkb_desc;
     this->multiradio_service = mr_main_service;
@@ -573,7 +574,7 @@ void Service::keyPressed(UI_Key key)
             break;
         }
         case GuiWindowsSubType::gpsCoord:
-
+              //  setCoordDate(Navigation::Navigator::getCoordDate);
             break;
         case GuiWindowsSubType::suppress:
             break;
@@ -683,6 +684,7 @@ void Service::drawMenu()
             //menu->initTwoStateDialog();
             break;
         case gpsCoord:
+            setCoordDate(navigator->getCoordDate());
             menu->initGpsCoordinateDialog();
             break;
         case twoState:
@@ -738,10 +740,8 @@ void Service::setFreq(int isFreq)
     Service::isFreq = isFreq;
 }
 
-void Service::setCoordDate(Navigation::Coord_Date*(*func)())
+void Service::setCoordDate(Navigation::Coord_Date *date)
 {
-   Navigation::Coord_Date* date = (Navigation::Coord_Date*)func;
-
    menu->coord_lat.append((char *)date->latitude);
    menu->coord_log.append((char *)date->longitude);
    menu->date.append((char *)date->data);

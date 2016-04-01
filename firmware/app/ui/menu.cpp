@@ -325,9 +325,12 @@ void CGuiMenu::initGpsCoordinateDialog()
             volume[0] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[0],  NULL, (GUI_Obj*)this);
             volume[1] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[1],  NULL, (GUI_Obj*)this);
 
+    if (coord_lat.size() == 0)
+    {
+        coord_lat.append("0123.4567,N");
+        coord_log.append("0123.4567,N");
+    }
 
-    coord_lat.append("0123.4567,N");
-    coord_log.append("0123.4567,N");
 
     volume[0]->SetText((char *)coord_lat.c_str());
     volume[1]->SetText((char *)coord_log.c_str());
