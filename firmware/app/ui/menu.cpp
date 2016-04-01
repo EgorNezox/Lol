@@ -103,6 +103,11 @@ void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
                 {
                     k->inputStr.push_back((char)(42+key));
                     // check
+                    int rc = atoi(k->inputStr.c_str());
+                    if ( i == 0 && rc > 31 )
+                    { k->inputStr.clear(); }
+                    if ( i == 0 && rc > 99 )
+                    { k->inputStr.clear(); }
                 }
                 break;
             }

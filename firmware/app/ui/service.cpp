@@ -551,6 +551,11 @@ void Service::keyPressed(UI_Key key)
                 uint8_t level = menu->getVolume();
                 voice_service->TuneAudioLevel(level);
             }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
             break;
         }
         case GuiWindowsSubType::scan:
@@ -693,8 +698,8 @@ void Service::drawMenu()
         case volume:
             menu->initVolumeDialog();
             break;
-//        case date:
-//            break;
+            //        case date:
+            //            break;
         default:
             //menu->initTwoStateDialog();
             break;
