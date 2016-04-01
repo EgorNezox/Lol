@@ -10,10 +10,14 @@
 #include "qmiopin.h"
 #include "qmuart.h"
 #include <string.h>
+#include <string>
+#include <list>
 
 #include "navigator.h"
 
 namespace Navigation {
+
+using namespace std;
 
 Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_iopin_resource) {
 //#if defined(PORT__TARGET_DEVICE_REV1)
@@ -60,8 +64,6 @@ void Navigator::processUartReceivedData() {
 		qmDebugMessage(QmDebug::Dump, (char*)data);
 	}
 
-
-    //void (*ptr)(int data);
     parsingData(data);
 
 
@@ -83,33 +85,88 @@ void Navigator::parsingData(uint8_t data[])
 
     int index = 0;
     char *search = "$GPRMC";
-    char *res;
+    //char *res;
 
-    res = strstr((const char *)data,search);
 
-    if (strlen(res) > 0)
+    std::list<std::string> str;
+
+    std::string res((const char *)data);
+
+    int index_end = 0;
+
+    while(index <= index_end)
     {
-        index = strlen((const char *)data) - strlen((const char *)res);
-        int index_time = index + strlen("$GPRMC,");
+        int probel = res.find('\r\n');
+        int index = res.find(',');
 
-        for(int i = 0;i<strlen("hhmmss.sss");i++)
-            CoordDate.time[i] = data[index_time+i]; //получил время
+        if (probel < index)
+            res = res.substr(probel+1,res.length());
+        else
+        {
+            index_end = res.find_last_of(',');
+            str.push_back(res.substr(0,index));
+            res = res.substr(index+1,res.length());
+        }
 
-        int index_lat  = index_time + strlen("hhmmss.sss,A,");
-        int index_long = index_lat + strlen("GGMM.MM,P,");
+    }
 
-        for(int i = 0;i<strlen("GGMM.MM,P");i++)
-             CoordDate.latitude[i] = data[index_lat+i]; // получили широту
+    int counter = 0;
+    bool rmc = false;
 
-        for(int i = 0;i<strlen("gggmm.mm,J");i++)
-            CoordDate.longitude[i] = data[index_long+i]; // получили долготу
 
-        int index_date =  index_long + strlen(",v.v,b.b,");
+    std::string s;
 
-        for(int i = 0; i <strlen("ddmmyy"); i++)
-            CoordDate.data[i] = data[index_date + i]; // получили дату
+    for( auto iter = str.begin(); iter != str.end(); iter++)
+    {
+        if (*iter == "$GPRMC")
+            rmc = true;
 
-        // CoordinateUpdated(); // вызов сигнала опроса структуры
+        if (rmc)
+         counter++;
+
+        if (counter == 2)
+        {
+            s = *iter;
+            memcpy(CoordDate.time,s.c_str(),10);
+            s.clear();
+        }
+
+        if (counter == 4)
+        {
+            s.append(*iter);
+            memcpy(&CoordDate.latitude[1],s.c_str(),11);
+
+        }
+
+        if (counter == 5)
+        {
+            s = *iter;
+            memcpy(&CoordDate.latitude[0],s.c_str(),1);
+            s.clear();
+        }
+
+        if (counter == 6)
+        {
+            s.append(*iter);
+            memcpy(CoordDate.longitude,s.c_str(),11);
+            s.clear();
+        }
+
+
+        if (counter == 7)
+        {
+            s = *iter;
+            memcpy(CoordDate.longitude,s.c_str(),1);
+            s.clear();
+        }
+
+        if (counter == 10)
+        {
+            s = *iter;
+            memcpy(CoordDate.data,s.c_str(),10);
+            s.clear();
+        }
+
 
     }
 }

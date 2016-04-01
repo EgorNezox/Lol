@@ -71,7 +71,7 @@ public:
     void    incrAruArm(){ aruArmAction = 1;  }
     void    decrAruArm(){ aruArmAction = 0; }
     uint8_t getAruArm() { return aruArmAction;  }
-    uint8_t aruArmAction = 0;
+    uint8_t aruArmAction = 1;
 
     // gps coordinate
     std::string coord_lat;

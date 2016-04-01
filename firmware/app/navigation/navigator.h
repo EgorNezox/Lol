@@ -18,10 +18,10 @@ namespace Navigation {
 
 struct Coord_Date
 {
-    uint8_t* data;
-    uint8_t* time;
-    uint8_t* latitude;
-    uint8_t* longitude;
+    uint8_t data[10];
+    uint8_t time[10];
+    uint8_t latitude[11];
+    uint8_t longitude[11];
 };
 
 class Navigator : public QmObject {
