@@ -56,21 +56,22 @@ void CGuiTree::init()
     condCmdSimpl.nextState.push_back(&condCmdSimplGroupCall);
     condCmdSimpl.nextState.push_back(&condCmdSimplIndivCall);
     // 1.1.1.1 - Групповой вызов
-    condCmdSimplGroupCall.subType = GuiWindowsSubType::call;
+    condCmdSimplGroupCall.subType = GuiWindowsSubType::simpleCondComm;
     condCmdSimplGroupCall.prevState = &condCmdSimpl;
     condCmdSimplGroupCall.nextState.clear();
     condCmdSimplGroupCall.listItem.push_back(&condCmdSimplGroupCallParameters );
     // 1.1.1.2 - Индивидуальный
-    condCmdSimplIndivCall.subType = GuiWindowsSubType::call;
+    condCmdSimplIndivCall.subType = GuiWindowsSubType::simpleCondComm;
     condCmdSimplIndivCall.prevState = &condCmdSimpl;
     condCmdSimplIndivCall.nextState.clear();
     condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters1 );
     condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters2 );
     // 1.1.2 - Двухст.связь | только индивидуально
+    condCmdDupl.subType = GuiWindowsSubType::duplCondComm;
     condCmdDupl.prevState = &condCmd;
     condCmdDupl.nextState.clear();
-//    condCmdDupl.listItem.push_back( &condCmdDuplParameters1 );
-//    condCmdDupl.listItem.push_back( &condCmdDuplParameters2 );
+    condCmdDupl.listItem.push_back( &condCmdDuplParameters1 );
+    condCmdDupl.listItem.push_back( &condCmdDuplParameters2 );
     // 1.2 - SMS
     sms.prevState = &call;
     sms.nextState.clear();

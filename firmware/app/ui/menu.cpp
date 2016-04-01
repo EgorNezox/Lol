@@ -23,7 +23,7 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, const char *text, Ali
 
     for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
     {
-        item[i] = nullptr;
+        item [i] = nullptr;
         label[i] = nullptr;
     }
 
@@ -45,7 +45,7 @@ void CGuiMenu::initDialog(CEndState state)
 
     auto size = state.listItem.size();
     int i = 0;
-    //    for (int i = 0; i < size; i++)
+
     for (auto &k: state.listItem)
     {
         labelStrArea[i] = {(GXT)(windowArea.xs + MARGIN),
@@ -84,7 +84,7 @@ void CGuiMenu::initDialog(CEndState state)
 }
 
 
-void CGuiMenu::setCallParam(CEndState state, UI_Key key)
+void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
 {
     int i = 0;
     for (auto &k: state.listItem)
@@ -102,6 +102,7 @@ void CGuiMenu::setCallParam(CEndState state, UI_Key key)
                 if ( key > 5 && key < 16 && k->inputStr.size() < 2 )
                 {
                     k->inputStr.push_back((char)(42+key));
+                    // check
                 }
                 break;
             }
@@ -110,7 +111,7 @@ void CGuiMenu::setCallParam(CEndState state, UI_Key key)
     }
 }
 
-void CGuiMenu::initCallDialog(CEndState state)
+void CGuiMenu::initCondCommDialog(CEndState state)
 {
     titleParams = GUI_EL_TEMP_LabelTitle;
     titleParams.element.align = {alignHCenter, alignTop};

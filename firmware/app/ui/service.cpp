@@ -124,14 +124,13 @@ void Service::updateBattery(int new_val)
 
 void Service::drawIndicator()
 {
-    if ( guiTree.getCurrentState().getType() == mainWindow)
+    if ( guiTree.getCurrentState().getType() == mainWindow )
         indicator->Draw();
 }
 
 Service::~Service() {
     QM_ASSERT(single_instance == true);
     single_instance = false;
-    //...
 
     delete menu;
     delete msg_box;
@@ -142,7 +141,6 @@ Service::~Service() {
     delete chprev_bt;
     delete main_scr;
     delete indicator;
-
 }
 
 void Service::setNotification(NotificationType type)
@@ -429,8 +427,8 @@ void Service::keyPressed(UI_Key key)
 
         switch(estate.subType)
         {
-        case GuiWindowsSubType::call:
-
+        case GuiWindowsSubType::simpleCondComm:
+        {
             switch (key){
             case keyUp:
                 if ( menu->focus > 0 )
@@ -449,7 +447,7 @@ void Service::keyPressed(UI_Key key)
             default:
                 if ( key > 5 && key < 16)
                 {
-                    menu->setCallParam(estate, key);
+                    menu->setCondCommParam(estate, key);
                 }
                 else if ( key == 1)
                 {
@@ -475,13 +473,71 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
 
+            // simplo
             if (estate.listItem.size() == 2)
             {}
             else if (estate.listItem.size() == 1)
             {}
             else {}
             break;
+        }
+        case GuiWindowsSubType::duplCondComm:
+        {
+            switch (key)
+            {
+            case keyUp:
+                if ( menu->focus > 0 )
+                    menu->focus--;
+                break;
+            case keyDown:
+            {
+                if ( menu->focus < estate.listItem.size() )
+                    menu->focus++;
+            }
+                break;
+            case keyEnter:
+                if ( menu->focus < estate.listItem.size() )
+                { /* callback */ }
+                break;
+            default:
+                if ( key > 5 && key < 16)
+                {
+                    menu->setCondCommParam(estate, key);
+                }
+                else if ( key == 1)
+                {
+                    int i = 0;
+                    for (auto &k: estate.listItem)
+                    {
+                        if (menu->focus == i)
+                        {
+                            if (k->inputStr.size() > 0)
+                            {
+                                k->inputStr.pop_back();
+                            }
+                            else
+                            {
+                                guiTree.backvard();
+                                menu->focus = 0;
+                                break;
+                            }
+                        }
+                        i++;
+                    }
+                }
+                break;
+            }
+
+            // duplo
+            if (estate.listItem.size() == 2)
+            {}
+            else if (estate.listItem.size() == 1)
+            {}
+            else {}
+        }
+            break;
         case GuiWindowsSubType::volume:
+        {
             if (key == keyUp  )
             {
                 menu->incrVolume();
@@ -496,9 +552,11 @@ void Service::keyPressed(UI_Key key)
                 voice_service->TuneAudioLevel(level);
             }
             break;
+        }
         case GuiWindowsSubType::scan:
             break;
         case GuiWindowsSubType::aruarm:
+        {
             if (key == keyUp  )
             {
                 menu->incrAruArm();
@@ -513,6 +571,7 @@ void Service::keyPressed(UI_Key key)
                 voice_service->TurnAGCMode(level);
             }
             break;
+        }
         case GuiWindowsSubType::gpsCoord:
 
             break;
@@ -610,8 +669,9 @@ void Service::drawMenu()
 
         switch( st.subType )
         {
-        case call:
-            menu->initCallDialog(st);
+        case simpleCondComm:
+        case duplCondComm:
+            menu->initCondCommDialog(st);
             break;
         case recv:
             //menu->initTwoStateDialog();
@@ -633,6 +693,8 @@ void Service::drawMenu()
         case volume:
             menu->initVolumeDialog();
             break;
+//        case date:
+//            break;
         default:
             //menu->initTwoStateDialog();
             break;

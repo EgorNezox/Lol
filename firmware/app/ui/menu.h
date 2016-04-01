@@ -44,7 +44,7 @@ public:
     int focus;
     void initItems(std::list<std::string>, const char*, int);
     void initDialog(CEndState);
-    void initCallDialog(CEndState);
+    void initCondCommDialog(CEndState);
     void initVolumeDialog();
     void initScanDialog();
     void initAruarmDialog();
@@ -60,7 +60,7 @@ public:
     std::string message, newMessage;
 
     // call
-    void setCallParam(CEndState, UI_Key);
+    void setCondCommParam(CEndState, UI_Key);
 
     // volume
     void incrVolume(){ if ( vol < 100) vol += 20; }

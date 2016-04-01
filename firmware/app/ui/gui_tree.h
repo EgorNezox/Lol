@@ -22,7 +22,9 @@ enum GuiWindowTypes
 
 enum GuiWindowsSubType
 {
-    call,\
+    //call,
+    simpleCondComm,\
+    duplCondComm,\
     recv,\
     data,\
     settings,\
@@ -123,7 +125,8 @@ private:
     // 1.1.1 - 1.1.2
     CState condCmdSimpl;
     CEndState condCmdDupl;
-    SInputItemParameters condCmdDuplParameters;
+    SInputItemParameters condCmdDuplParameters1{(char*)callTitle[1], "", 2, 0, 31},\
+                         condCmdDuplParameters2{(char*)callTitle[0], "", 2, 0, 31};
     // 1.2.1.1 - 1.2.1.2
     CEndState condCmdSimplGroupCall, condCmdSimplIndivCall;
     SInputItemParameters condCmdSimplGroupCallParameters {(char*)callTitle[0], "", 2, 0, 99},
