@@ -782,8 +782,25 @@ void Service::setCoordDate(Navigation::Coord_Date *date)
 
    menu->coord_lat.append((char *)date->latitude);
    menu->coord_log.append((char *)date->longitude);
-   indicator->date_time->SetText((char *)date->data);
-   indicator->date_time->SetText((char *)date->time);
+
+
+   std::string str;
+   str.push_back((char)date->data[0]);
+   str.push_back((char)date->data[1]);
+   str.push_back('.');
+   str.push_back((char)date->data[2]);
+   str.push_back((char)date->data[3]);
+
+   str.push_back((char)' ');
+
+   str.push_back((char)date->time[2]);
+   str.push_back((char)date->time[3]);
+   str.push_back((char)':');
+   str.push_back((char)date->time[0]);
+   str.push_back((char)date->time[1]);
+
+   indicator->date_time->SetText((char *)str.c_str());
+   str.clear();
 }
 
 
