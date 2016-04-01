@@ -76,6 +76,8 @@ public:
     // gps coordinate
     std::string coord_lat;
     std::string coord_log;
+    std::string date;
+    std::string time;
 
 private:
     GUI_Obj obj;

@@ -710,6 +710,13 @@ void Service::drawMenu()
         case gpsCoord:
             menu->initGpsCoordinateDialog();
             break;
+        case gpsSync:
+            break;
+        case setDate:
+        case setTime:
+        case GuiWindowsSubType::setFreq:
+        case setSpeed:
+            break;
         case twoState:
             menu->initTwoStateDialog();
         case aruarm:
@@ -718,8 +725,8 @@ void Service::drawMenu()
         case volume:
             menu->initVolumeDialog();
             break;
-            //        case date:
-            //            break;
+//        case date:
+//            break;
         default:
             //menu->initTwoStateDialog();
             break;
@@ -765,9 +772,11 @@ void Service::setFreq(int isFreq)
 
 void Service::setCoordDate(Navigation::Coord_Date*(*func)())
 {
-    Navigation::Coord_Date* date = (Navigation::Coord_Date*)func;
-    menu->coord_lat.append((char *)date->latitude);
-    menu->coord_log.append((char *)date->longitude);
+   Navigation::Coord_Date* date = (Navigation::Coord_Date*)func;
+   menu->coord_lat.append((char *)date->latitude);
+   menu->coord_log.append((char *)date->longitude);
+   menu->date.append((char *)date->data);
+   menu->time.append((char *)date->time);
 }
 
 
