@@ -793,11 +793,11 @@ void Service::setCoordDate(Navigation::Coord_Date *date)
 
    str.push_back((char)' ');
 
-   str.push_back((char)date->time[2]);
-   str.push_back((char)date->time[3]);
-   str.push_back((char)':');
    str.push_back((char)date->time[0]);
    str.push_back((char)date->time[1]);
+   str.push_back((char)':');
+   str.push_back((char)date->time[2]);
+   str.push_back((char)date->time[3]);
 
    indicator->date_time->SetText((char *)str.c_str());
    str.clear();
