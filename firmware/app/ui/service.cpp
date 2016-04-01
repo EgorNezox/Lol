@@ -743,6 +743,8 @@ void Service::setCoordDate(Navigation::Coord_Date*(*func)())
    Navigation::Coord_Date* date = (Navigation::Coord_Date*)func;
    menu->coord_lat.append((char *)date->latitude);
    menu->coord_log.append((char *)date->longitude);
+   menu->date.append((char *)date->data);
+   menu->time.append((char *)date->time);
 }
 
 
