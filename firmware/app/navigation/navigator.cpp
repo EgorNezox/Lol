@@ -60,7 +60,10 @@ void Navigator::processUartReceivedData() {
 		qmDebugMessage(QmDebug::Dump, (char*)data);
 	}
 
+
+    //void (*ptr)(int data);
     parsingData(data);
+
 
 	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 }
@@ -82,35 +85,33 @@ void Navigator::parsingData(uint8_t data[])
     char *search = "$GPRMC";
     char *res;
 
-
     res = strstr((const char *)data,search);
 
     if (strlen(res) > 0)
     {
         index = strlen((const char *)data) - strlen((const char *)res);
-        int index_time = index + sizeof("$GPRMC,");
+        int index_time = index + strlen("$GPRMC,");
 
-        for(int i = index_time;i<sizeof("hhmmss.sss");i++)
-            CoordDate.data[i] = data[index_time+i]; //получил время
+        for(int i = 0;i<strlen("hhmmss.sss");i++)
+            CoordDate.time[i] = data[index_time+i]; //получил время
 
-        int index_lat  = index_time + sizeof("hhmmss.sss,A,");
-        int index_long = index_lat + sizeof("GGMM.MM,P,");
+        int index_lat  = index_time + strlen("hhmmss.sss,A,");
+        int index_long = index_lat + strlen("GGMM.MM,P,");
 
-        for(int i = index_lat;i<sizeof("GGMM.MM,P");i++)
+        for(int i = 0;i<strlen("GGMM.MM,P");i++)
              CoordDate.latitude[i] = data[index_lat+i]; // получили широту
 
-        for(int i = index_long;i<sizeof("gggmm.mm,J");i++)
+        for(int i = 0;i<strlen("gggmm.mm,J");i++)
             CoordDate.longitude[i] = data[index_long+i]; // получили долготу
 
-        int index_date =  index_long + sizeof(",v.v,b.b,");
+        int index_date =  index_long + strlen(",v.v,b.b,");
 
-        for(int i = index_date; i < sizeof("ddmmyy"); i++)
-            CoordDate.time[i] = data[index_time + i]; // получили время
+        for(int i = 0; i <strlen("ddmmyy"); i++)
+            CoordDate.data[i] = data[index_date + i]; // получили дату
 
-         CoordinateUpdated(); // вызов сигнала опроса структуры
+        // CoordinateUpdated(); // вызов сигнала опроса структуры
 
     }
-
 }
 //#endif /* PORT__TARGET_DEVICE_REV1 */
 

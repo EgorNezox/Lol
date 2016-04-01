@@ -29,7 +29,7 @@ namespace Ui {
 
 
 
-bool Service::single_instance = false; // � ·� °� І� ёСЃ� ё� ј� ѕСЃС‚СЊ � ѕС‚ � µ� ґ� ё� ЅСЃС‚� І� µ� Ѕ� Ѕ� ѕ� і� ѕ � ґ� ёСЃ� ї� »� µСЏ � І СЃ� ёСЃС‚� µ� ј� µ
+bool Service::single_instance = false; // � ·� °� І� ёСЃ� ё� ј� ѕСЃС‚СЊ � ѕС‚ � µ� ґ� ё� ЅСЃС‚� І� µ� Ѕ� Ѕ� ѕ� і� ѕ � ґ� ёСЃ� ї� »� µСЏ � І СЃ� ёСЃС‚� µ� ј� µ
 
 Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   aux_keyboard_t                     auxkb_desc,
@@ -67,7 +67,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     menu = nullptr;
     msg_box = nullptr;
 
-    // � ёСЃ� їСЂ� °� І� ёС‚СЊ � Ѕ� ° СЃ� µСЂ� І� ёСЃ
+    // � ёСЃ� їСЂ� °� І� ёС‚СЊ � Ѕ� ° СЃ� µСЂ� І� ёСЃ
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
@@ -655,7 +655,7 @@ void Service::drawMenu()
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
         //
-        // ���������
+        // ���������
         //        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
 
         for (auto &k: st.nextState)
@@ -741,6 +741,13 @@ int Service::getFreq()
 void Service::setFreq(int isFreq)
 {
     Service::isFreq = isFreq;
+}
+
+void Service::setCoordDate(Navigation::Coord_Date*(*func)())
+{
+   Navigation::Coord_Date* date = (Navigation::Coord_Date*)func;
+   menu->coord_lat.append((char *)date->latitude);
+   menu->coord_log.append((char *)date->longitude);
 }
 
 

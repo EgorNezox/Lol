@@ -74,7 +74,9 @@ void qmMain() {
     Ui::Service ui_service(ui_matrixkb_desc, ui_auxkb_desc,
 			&headset_controller,
 			mr_dispatcher.getMainServiceInterface(), mr_dispatcher.getVoiceServiceInterface(),
-			&power_battery);
+            &power_battery);
+
+
 
 	kb_light_iopin.writeOutput(QmIopin::Level_Low);
 	data_storage_fs.init();
