@@ -56,21 +56,22 @@ void CGuiTree::init()
     condCmdSimpl.nextState.push_back(&condCmdSimplGroupCall);
     condCmdSimpl.nextState.push_back(&condCmdSimplIndivCall);
     // 1.1.1.1 - Групповой вызов
-    condCmdSimplGroupCall.subType = GuiWindowsSubType::call;
+    condCmdSimplGroupCall.subType = GuiWindowsSubType::simpleCondComm;
     condCmdSimplGroupCall.prevState = &condCmdSimpl;
     condCmdSimplGroupCall.nextState.clear();
     condCmdSimplGroupCall.listItem.push_back(&condCmdSimplGroupCallParameters );
     // 1.1.1.2 - Индивидуальный
-    condCmdSimplIndivCall.subType = GuiWindowsSubType::call;
+    condCmdSimplIndivCall.subType = GuiWindowsSubType::simpleCondComm;
     condCmdSimplIndivCall.prevState = &condCmdSimpl;
     condCmdSimplIndivCall.nextState.clear();
     condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters1 );
     condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters2 );
     // 1.1.2 - Двухст.связь | только индивидуально
+    condCmdDupl.subType = GuiWindowsSubType::duplCondComm;
     condCmdDupl.prevState = &condCmd;
     condCmdDupl.nextState.clear();
-//    condCmdDupl.listItem.push_back( &condCmdDuplParameters1 );
-//    condCmdDupl.listItem.push_back( &condCmdDuplParameters2 );
+    condCmdDupl.listItem.push_back( &condCmdDuplParameters1 );
+    condCmdDupl.listItem.push_back( &condCmdDuplParameters2 );
     // 1.2 - SMS
     sms.prevState = &call;
     sms.nextState.clear();
@@ -166,6 +167,7 @@ void CGuiTree::init()
     sttDateTime.nextState.push_back(&sttConnParamGPS);
     sttDateTime.nextState.push_back(&sttConnParamHand);
     // 4.1.1 - GPS синх-ция
+    sttConnParamGPS.subType = GuiWindowsSubType::gpsSync;
     sttConnParamGPS.prevState = &sttDateTime;
     sttConnParamGPS.nextState.clear();
     // 4.1.2 - Ручная установка
@@ -173,9 +175,11 @@ void CGuiTree::init()
     sttConnParamHand.nextState.push_back(&sttSetDate);
     sttConnParamHand.nextState.push_back(&sttSetTime);
     // 4.1.2.1 - Установить дату
+    sttSetDate.subType = GuiWindowsSubType::setDate;
     sttSetDate.prevState = &sttConnParamHand;
     sttSetDate.nextState.clear();
     // 4.1.2.2 - Установить время
+    sttSetTime.subType = GuiWindowsSubType::setTime;
     sttSetTime.prevState = &sttConnParamHand;
     sttSetTime.nextState.clear();
     // 4.2 - Параметры связи
@@ -183,9 +187,11 @@ void CGuiTree::init()
     sttConnParam.nextState.push_back(&sttSetFreq);
     sttConnParam.nextState.push_back(&sttSetSpeed);
     // 4.2.1 - Частота
+    sttSetFreq.subType = GuiWindowsSubType::setFreq;
     sttSetFreq.prevState = &sttConnParam;
     sttSetFreq.nextState.clear();
     // 4.2.2 - Скорость
+    sttSetSpeed.subType = GuiWindowsSubType::setSpeed;
     sttSetSpeed.prevState = &sttConnParam;
     sttSetSpeed.nextState.clear();
     // 4.3 - Сканирование

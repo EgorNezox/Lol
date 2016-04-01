@@ -51,6 +51,12 @@ void qmMain() {
 	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
 			&headset_controller);
 	Power::Battery power_battery(platformhwBatterySmbusI2c);
+
+//#if defined(PORT__TARGET_DEVICE_REV1)
+    Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin, platformhwNavigatorAntFlagIopin);
+//#endif /* PORT__TARGET_DEVICE_REV1 */
+
+
 	Ui::matrix_keyboard_t ui_matrixkb_desc;
 	Ui::aux_keyboard_t ui_auxkb_desc;
 	QmIopin kb_light_iopin(platformhwKeyboardsLightIopin);
@@ -77,10 +83,14 @@ void qmMain() {
 	ui_auxkb_desc.key_iopin_resource[Ui::auxkbkeyChNext] = platformhwKeyboardButt1Iopin;
 	ui_auxkb_desc.key_iopin_resource[Ui::auxkbkeyChPrev] = platformhwKeyboardButt2Iopin;
 
+
+
     Ui::Service ui_service(ui_matrixkb_desc, ui_auxkb_desc,
 			&headset_controller,
 			mr_dispatcher.getMainServiceInterface(), mr_dispatcher.getVoiceServiceInterface(),
-			&power_battery);
+            &power_battery,&navigator);
+
+
 
 	kb_light_iopin.writeOutput(QmIopin::Level_Low);
 	data_storage_fs.init();
@@ -94,9 +104,7 @@ void qmMain() {
 	headset_controller.startServicing(mr_channels_table);
 	mr_dispatcher.startServicing(mr_channels_table);
 
-#if defined(PORT__TARGET_DEVICE_REV1)
-	Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin, platformhwNavigatorAntFlagIopin);
-#endif /* PORT__TARGET_DEVICE_REV1 */
+
 
 	app.exec();
 }

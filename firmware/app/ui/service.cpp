@@ -15,6 +15,7 @@
 #include "texts.h"
 #include "messages/messagepswf.h"
 #include <thread>
+#include <navigation/navigator.h>
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
@@ -29,19 +30,19 @@ namespace Ui {
 
 
 
-bool Service::single_instance = false; // � ·� °� І� ёСЃ� ё� ј� ѕСЃС‚СЊ � ѕС‚ � µ� ґ� ё� ЅСЃС‚� І� µ� Ѕ� Ѕ� ѕ� і� ѕ � ґ� ёСЃ� ї� »� µСЏ � І СЃ� ёСЃС‚� µ� ј� µ
+bool Service::single_instance = false; // � ·� °� І� ёСЃ� ё� ј� ѕСЃС‚СЊ � ѕС‚ � µ� ґ� ё� ЅСЃС‚� І� µ� Ѕ� Ѕ� ѕ� і� ѕ � ґ� ёСЃ� ї� »� µСЏ � І СЃ� ёСЃС‚� µ� ј� µ
 
 Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   aux_keyboard_t                     auxkb_desc,
                   Headset::Controller               *headset_controller,
                   Multiradio::MainServiceInterface  *mr_main_service,
                   Multiradio::VoiceServiceInterface *mr_voice_service,
-                  Power::Battery                    *power_battery
-                  )
+                  Power::Battery                    *power_battery,
+                  Navigation::Navigator             *navigator                  )
 {
     QM_ASSERT(single_instance == false);
     single_instance = true;
-
+    this->navigator = navigator;
     this->matrix_kb          = matrixkb_desc;
     this->aux_kb             = auxkb_desc;
     this->multiradio_service = mr_main_service;
@@ -67,7 +68,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     menu = nullptr;
     msg_box = nullptr;
 
-    // � ёСЃ� їСЂ� °� І� ёС‚СЊ � Ѕ� ° СЃ� µСЂ� І� ёСЃ
+    // � ёСЃ� їСЂ� °� І� ёС‚СЊ � Ѕ� ° СЃ� µСЂ� І� ёСЃ
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
@@ -124,14 +125,13 @@ void Service::updateBattery(int new_val)
 
 void Service::drawIndicator()
 {
-    if ( guiTree.getCurrentState().getType() == mainWindow)
+    if ( guiTree.getCurrentState().getType() == mainWindow )
         indicator->Draw();
 }
 
 Service::~Service() {
     QM_ASSERT(single_instance == true);
     single_instance = false;
-    //...
 
     delete menu;
     delete msg_box;
@@ -142,7 +142,6 @@ Service::~Service() {
     delete chprev_bt;
     delete main_scr;
     delete indicator;
-
 }
 
 void Service::setNotification(NotificationType type)
@@ -429,8 +428,8 @@ void Service::keyPressed(UI_Key key)
 
         switch(estate.subType)
         {
-        case GuiWindowsSubType::call:
-
+        case GuiWindowsSubType::simpleCondComm:
+        {
             switch (key){
             case keyUp:
                 if ( menu->focus > 0 )
@@ -449,7 +448,7 @@ void Service::keyPressed(UI_Key key)
             default:
                 if ( key > 5 && key < 16)
                 {
-                    menu->setCallParam(estate, key);
+                    menu->setCondCommParam(estate, key);
                 }
                 else if ( key == 1)
                 {
@@ -475,13 +474,71 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
 
+            // simplo
             if (estate.listItem.size() == 2)
             {}
             else if (estate.listItem.size() == 1)
             {}
             else {}
             break;
+        }
+        case GuiWindowsSubType::duplCondComm:
+        {
+            switch (key)
+            {
+            case keyUp:
+                if ( menu->focus > 0 )
+                    menu->focus--;
+                break;
+            case keyDown:
+            {
+                if ( menu->focus < estate.listItem.size() )
+                    menu->focus++;
+            }
+                break;
+            case keyEnter:
+                if ( menu->focus < estate.listItem.size() )
+                { /* callback */ }
+                break;
+            default:
+                if ( key > 5 && key < 16)
+                {
+                    menu->setCondCommParam(estate, key);
+                }
+                else if ( key == 1)
+                {
+                    int i = 0;
+                    for (auto &k: estate.listItem)
+                    {
+                        if (menu->focus == i)
+                        {
+                            if (k->inputStr.size() > 0)
+                            {
+                                k->inputStr.pop_back();
+                            }
+                            else
+                            {
+                                guiTree.backvard();
+                                menu->focus = 0;
+                                break;
+                            }
+                        }
+                        i++;
+                    }
+                }
+                break;
+            }
+
+            // duplo
+            if (estate.listItem.size() == 2)
+            {}
+            else if (estate.listItem.size() == 1)
+            {}
+            else {}
+        }
+            break;
         case GuiWindowsSubType::volume:
+        {
             if (key == keyUp  )
             {
                 menu->incrVolume();
@@ -495,10 +552,17 @@ void Service::keyPressed(UI_Key key)
                 uint8_t level = menu->getVolume();
                 voice_service->TuneAudioLevel(level);
             }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
             break;
+        }
         case GuiWindowsSubType::scan:
             break;
         case GuiWindowsSubType::aruarm:
+        {
             if (key == keyUp  )
             {
                 menu->incrAruArm();
@@ -513,8 +577,30 @@ void Service::keyPressed(UI_Key key)
                 voice_service->TurnAGCMode(level);
             }
             break;
+        }
         case GuiWindowsSubType::gpsCoord:
-
+              //  setCoordDate(Navigation::Navigator::getCoordDate);
+            break;
+        case GuiWindowsSubType::gpsSync:
+            break;
+        case GuiWindowsSubType::setDate:
+        case GuiWindowsSubType::setTime:
+        case GuiWindowsSubType::setFreq:
+        case GuiWindowsSubType::setSpeed:
+            switch ( key )
+            {
+            case keyEnter:
+            {  }
+                break;
+            case keyBack:
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+                break;
+            default:
+                break;
+            }
             break;
         case GuiWindowsSubType::suppress:
             break;
@@ -591,7 +677,7 @@ void Service::drawMenu()
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
         //
-        // ���������
+        // ���������
         //        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
 
         for (auto &k: st.nextState)
@@ -610,8 +696,9 @@ void Service::drawMenu()
 
         switch( st.subType )
         {
-        case call:
-            menu->initCallDialog(st);
+        case simpleCondComm:
+        case duplCondComm:
+            menu->initCondCommDialog(st);
             break;
         case recv:
             //menu->initTwoStateDialog();
@@ -623,7 +710,15 @@ void Service::drawMenu()
             //menu->initTwoStateDialog();
             break;
         case gpsCoord:
+            setCoordDate(navigator->getCoordDate());
             menu->initGpsCoordinateDialog();
+            break;
+        case gpsSync:
+            break;
+        case setDate:
+        case setTime:
+        case GuiWindowsSubType::setFreq:
+        case setSpeed:
             break;
         case twoState:
             menu->initTwoStateDialog();
@@ -633,6 +728,8 @@ void Service::drawMenu()
         case volume:
             menu->initVolumeDialog();
             break;
+//        case date:
+//            break;
         default:
             //menu->initTwoStateDialog();
             break;
@@ -674,6 +771,14 @@ int Service::getFreq()
 void Service::setFreq(int isFreq)
 {
     Service::isFreq = isFreq;
+}
+
+void Service::setCoordDate(Navigation::Coord_Date *date)
+{
+   menu->coord_lat.append((char *)date->latitude);
+   menu->coord_log.append((char *)date->longitude);
+   menu->date.append((char *)date->data);
+   menu->time.append((char *)date->time);
 }
 
 

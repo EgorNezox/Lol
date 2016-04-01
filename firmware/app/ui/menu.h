@@ -44,7 +44,7 @@ public:
     int focus;
     void initItems(std::list<std::string>, const char*, int);
     void initDialog(CEndState);
-    void initCallDialog(CEndState);
+    void initCondCommDialog(CEndState);
     void initVolumeDialog();
     void initScanDialog();
     void initAruarmDialog();
@@ -60,7 +60,7 @@ public:
     std::string message, newMessage;
 
     // call
-    void setCallParam(CEndState, UI_Key);
+    void setCondCommParam(CEndState, UI_Key);
 
     // volume
     void incrVolume(){ if ( vol < 100) vol += 20; }
@@ -71,10 +71,13 @@ public:
     void    incrAruArm(){ aruArmAction = 1;  }
     void    decrAruArm(){ aruArmAction = 0; }
     uint8_t getAruArm() { return aruArmAction;  }
-    uint8_t aruArmAction = 0;
+    uint8_t aruArmAction = 1;
 
     // gps coordinate
-    std::string coord;
+    std::string coord_lat;
+    std::string coord_log;
+    std::string date;
+    std::string time;
 
 private:
     GUI_Obj obj;

@@ -23,7 +23,7 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, const char *text, Ali
 
     for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
     {
-        item[i] = nullptr;
+        item [i] = nullptr;
         label[i] = nullptr;
     }
 
@@ -45,7 +45,7 @@ void CGuiMenu::initDialog(CEndState state)
 
     auto size = state.listItem.size();
     int i = 0;
-    //    for (int i = 0; i < size; i++)
+
     for (auto &k: state.listItem)
     {
         labelStrArea[i] = {(GXT)(windowArea.xs + MARGIN),
@@ -84,7 +84,7 @@ void CGuiMenu::initDialog(CEndState state)
 }
 
 
-void CGuiMenu::setCallParam(CEndState state, UI_Key key)
+void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
 {
     int i = 0;
     for (auto &k: state.listItem)
@@ -102,6 +102,12 @@ void CGuiMenu::setCallParam(CEndState state, UI_Key key)
                 if ( key > 5 && key < 16 && k->inputStr.size() < 2 )
                 {
                     k->inputStr.push_back((char)(42+key));
+                    // check
+                    int rc = atoi(k->inputStr.c_str());
+                    if ( i == 0 && rc > 31 )
+                    { k->inputStr.clear(); }
+                    if ( i == 0 && rc > 99 )
+                    { k->inputStr.clear(); }
                 }
                 break;
             }
@@ -110,7 +116,7 @@ void CGuiMenu::setCallParam(CEndState state, UI_Key key)
     }
 }
 
-void CGuiMenu::initCallDialog(CEndState state)
+void CGuiMenu::initCondCommDialog(CEndState state)
 {
     titleParams = GUI_EL_TEMP_LabelTitle;
     titleParams.element.align = {alignHCenter, alignTop};
@@ -320,12 +326,19 @@ void CGuiMenu::initGpsCoordinateDialog()
             volume_geom[1]  = {  5,  60,  140,  90 };
 
     GUI_EL_Label* volume[2];
+
             volume[0] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[0],  NULL, (GUI_Obj*)this);
             volume[1] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[1],  NULL, (GUI_Obj*)this);
 
-    coord.append("0123.4567,N");
-    volume[0]->SetText((char *)coord.c_str());
-    volume[1]->SetText((char *)coord.c_str());
+    if (coord_lat.size() == 0)
+    {
+        coord_lat.append("0123.4567,N");
+        coord_log.append("0123.4567,N");
+    }
+
+
+    volume[0]->SetText((char *)coord_lat.c_str());
+    volume[1]->SetText((char *)coord_log.c_str());
 
     // title
     titleArea = {(GXT)(windowArea.xs + MARGIN),

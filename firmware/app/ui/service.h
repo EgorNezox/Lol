@@ -19,6 +19,7 @@
 #include "../mrd/mainserviceinterface.h"
 #include "../headset/controller.h"
 #include "../power/battery.h"
+#include "../navigation/navigator.h"
 
 #include "gui_obj.h"
 #include "menu.h"
@@ -57,7 +58,7 @@ public:
 	Service(matrix_keyboard_t matrixkb_desc, aux_keyboard_t auxkb_desc,
 			Headset::Controller *headset_controller,
 			Multiradio::MainServiceInterface *mr_main_service, Multiradio::VoiceServiceInterface *mr_voice_service,
-			Power::Battery *power_battery);
+            Power::Battery *power_battery, Navigation::Navigator *navigator);
 	~Service();
 	void setNotification(NotificationType type);
     // апдэйт индикаторов
@@ -66,6 +67,9 @@ public:
     void updateBattery(int);
     int  getFreq();
     void setFreq(int isFreq);
+
+
+    void setCoordDate(Navigation::Coord_Date*);
 
 private:
     void msgBox(const char *text);
@@ -79,7 +83,7 @@ private:
 	QmPushButtonKey *chnext_bt;
 	QmPushButtonKey *chprev_bt;
 	static bool single_instance;
-
+    Navigation::Navigator *navigator;
     GUI_Dialog_MainScr  *main_scr;
     GUI_Indicator       *indicator;
     GUI_Dialog_MsgBox   *msg_box;
