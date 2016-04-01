@@ -88,13 +88,13 @@ class GUI_Indicator: public GUI_Obj{
                                    );
         void setDateTime(std::string str)
         {
-
+            date_time->SetText((char*)str.c_str());
         }
 private:
         GUI_EL_Icon *ind_multiradio;
         GUI_EL_Icon *ind_headset;
         GUI_EL_Battery *ind_battery;
-
+public:
         GUI_EL_Label *date_time;
 };
 
