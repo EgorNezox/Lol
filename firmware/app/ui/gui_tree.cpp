@@ -167,7 +167,7 @@ void CGuiTree::init()
     sttDateTime.nextState.push_back(&sttConnParamGPS);
     sttDateTime.nextState.push_back(&sttConnParamHand);
     // 4.1.1 - GPS синх-ция
-//    sttConnParamGPS.subType = GuiWindowsSubType:: ;
+    sttConnParamGPS.subType = GuiWindowsSubType::gpsSync;
     sttConnParamGPS.prevState = &sttDateTime;
     sttConnParamGPS.nextState.clear();
     // 4.1.2 - Ручная установка
@@ -175,11 +175,11 @@ void CGuiTree::init()
     sttConnParamHand.nextState.push_back(&sttSetDate);
     sttConnParamHand.nextState.push_back(&sttSetTime);
     // 4.1.2.1 - Установить дату
-//    sttSetDate.subType = GuiWindowsSubType:: ;
+    sttSetDate.subType = GuiWindowsSubType::setDate;
     sttSetDate.prevState = &sttConnParamHand;
     sttSetDate.nextState.clear();
     // 4.1.2.2 - Установить время
-//    sttSetTime.subType = GuiWindowsSubType:: ;
+    sttSetTime.subType = GuiWindowsSubType::setTime;
     sttSetTime.prevState = &sttConnParamHand;
     sttSetTime.nextState.clear();
     // 4.2 - Параметры связи
@@ -187,11 +187,11 @@ void CGuiTree::init()
     sttConnParam.nextState.push_back(&sttSetFreq);
     sttConnParam.nextState.push_back(&sttSetSpeed);
     // 4.2.1 - Частота
-//    sttSetFreq.subType = GuiWindowsSubType:: ;
+    sttSetFreq.subType = GuiWindowsSubType::setFreq;
     sttSetFreq.prevState = &sttConnParam;
     sttSetFreq.nextState.clear();
     // 4.2.2 - Скорость
-//    sttSetSpeed = GuiWindowsSubType:: ;
+    sttSetSpeed.subType = GuiWindowsSubType::setSpeed;
     sttSetSpeed.prevState = &sttConnParam;
     sttSetSpeed.nextState.clear();
     // 4.3 - Сканирование

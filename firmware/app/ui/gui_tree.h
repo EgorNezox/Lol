@@ -29,6 +29,11 @@ enum GuiWindowsSubType
     data,\
     settings,\
     gpsCoord,\
+    gpsSync,\
+    setDate,\
+    setTime,\
+    setFreq,\
+    setSpeed,\
     scan,\
     aruarm,\
     suppress,\
