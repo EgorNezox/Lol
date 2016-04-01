@@ -19,6 +19,7 @@
 #include "../mrd/mainserviceinterface.h"
 #include "../headset/controller.h"
 #include "../power/battery.h"
+#include "../navigation/navigator.h"
 
 #include "gui_obj.h"
 #include "menu.h"
@@ -66,6 +67,9 @@ public:
     void updateBattery(int);
     int  getFreq();
     void setFreq(int isFreq);
+
+
+    void setCoordDate(Navigation::Coord_Date* (*func)());
 
 private:
     void msgBox(const char *text);

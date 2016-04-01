@@ -74,7 +74,8 @@ public:
     uint8_t aruArmAction = 0;
 
     // gps coordinate
-    std::string coord;
+    std::string coord_lat;
+    std::string coord_log;
 
 private:
     GUI_Obj obj;
