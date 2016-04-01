@@ -579,7 +579,11 @@ void Service::keyPressed(UI_Key key)
             break;
         }
         case GuiWindowsSubType::gpsCoord:
-              //  setCoordDate(Navigation::Navigator::getCoordDate);
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
             break;
         case GuiWindowsSubType::gpsSync:
             break;
@@ -613,10 +617,6 @@ void Service::keyPressed(UI_Key key)
         break;
     }
 
-    if (false)
-    {
-        //        goToCallBack();
-    }
     draw();
 }
 
@@ -775,6 +775,11 @@ void Service::setFreq(int isFreq)
 
 void Service::setCoordDate(Navigation::Coord_Date *date)
 {
+   menu->coord_lat.clear();
+   menu->coord_log.clear();
+   menu->date.clear();
+   menu->time.clear();
+
    menu->coord_lat.append((char *)date->latitude);
    menu->coord_log.append((char *)date->longitude);
    menu->date.append((char *)date->data);

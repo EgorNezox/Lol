@@ -86,6 +86,10 @@ class GUI_Indicator: public GUI_Obj{
                                    Headset::Controller::Status,
                                    int
                                    );
+        void setDateTime(std::string str)
+        {
+
+        }
 private:
         GUI_EL_Icon *ind_multiradio;
         GUI_EL_Icon *ind_headset;
