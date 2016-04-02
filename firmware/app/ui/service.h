@@ -21,6 +21,7 @@
 #include "../power/battery.h"
 #include "../navigation/navigator.h"
 
+
 #include "gui_obj.h"
 #include "menu.h"
 #include "gui_tree.h"
@@ -67,7 +68,8 @@ public:
     void updateBattery(int);
     int  getFreq();
     void setFreq(int isFreq);
-
+    float CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN);
+    float Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
 
     void setCoordDate(Navigation::Coord_Date*);
 
@@ -77,7 +79,7 @@ private:
 	aux_keyboard_t aux_kb;
 	Headset::Controller *headset_controller;
 	Multiradio::MainServiceInterface *multiradio_service;
-	Multiradio::VoiceServiceInterface *voice_service;
+    Multiradio::VoiceServiceInterface *voice_service;
 	Power::Battery *power_battery;
 	QmMatrixKeyboard *keyboard;
 	QmPushButtonKey *chnext_bt;
@@ -107,6 +109,7 @@ private:
     void drawMenu();
     void draw();
     void drawIndicator();
+
 
     int mainWindowModeId;
 

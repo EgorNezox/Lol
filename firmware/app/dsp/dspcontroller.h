@@ -54,6 +54,7 @@ public:
     void setRadioOperation(RadioOperation operation);
     void setAudioVolumeLevel(uint8_t volume_level);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
+    void setFSHHParametres(int RadioPath, float LCODE, float RN_KEY,float COM_N, float FREQ);
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -64,7 +65,8 @@ private:
     enum Module {
         RxRadiopath,
         TxRadiopath,
-        Audiopath
+        Audiopath,
+        FSHH
     };
     enum RxParameterCode {
         RxFrequency = 1,
@@ -82,14 +84,33 @@ private:
         AudioMicAmplify = 3
     };
 
+    enum FSHH
+    {
+        FSHH_RX = 1,
+        FSHH_TX = 0
+    };
+
     union ParameterValue {
         uint32_t frequency;
         RadioMode radio_mode;
         AudioMode audio_mode;
         uint8_t volume_level;
         uint8_t mic_amplify;
-        uint8_t agc_mode; // !
+        uint8_t agc_mode;
+        uint8_t fshh_mode;
     };
+
+
+    struct PswfContent{
+        int SNR;
+        int S_ADR;
+        int COM_N;
+        float RN_KEY;
+        float L_CODE;
+        float Frequency;
+        int Conditional_Command;
+    } ContentPSWF;
+
 
     void initResetState();
     void processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version);

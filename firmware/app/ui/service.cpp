@@ -16,6 +16,7 @@
 #include "messages/messagepswf.h"
 #include <thread>
 #include <navigation/navigator.h>
+#include <math.h>
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
@@ -710,7 +711,9 @@ void Service::drawMenu()
             //menu->initTwoStateDialog();
             break;
         case gpsCoord:
+#if !defined(PORT__PCSIMULATOR)
             setCoordDate(navigator->getCoordDate());
+#endif
             menu->initGpsCoordinateDialog();
             break;
         case gpsSync:
@@ -771,6 +774,19 @@ int Service::getFreq()
 void Service::setFreq(int isFreq)
 {
     Service::isFreq = isFreq;
+}
+
+float Service::CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN)
+{
+    int TOT_W = 6671000; // ширина разрешенных участков
+    float FR_SH = fmod(RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY, TOT_W);
+    return FR_SH;
+}
+
+float Service::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
+{
+    float L_CODE = fmod((R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY), 100);
+    return L_CODE;
 }
 
 void Service::setCoordDate(Navigation::Coord_Date *date)

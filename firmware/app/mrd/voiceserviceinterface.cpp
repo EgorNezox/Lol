@@ -11,6 +11,7 @@
 
 #include "voiceserviceinterface.h"
 #include "dispatcher.h"
+#include <math.h>
 
 
 namespace Multiradio {
@@ -76,8 +77,12 @@ void VoiceServiceInterface::tunePreviousChannel() {
 
 void VoiceServiceInterface::TuneFrequency(int Frequency)
 {
-    dispatcher->dsp_controller->setRadioParameters(DspController::RadioMode::RadioModeFM,Frequency);
-    dispatcher->dsp_controller->setRadioOperation(DspController::RadioOperation::RadioOperationRxMode);
+
+    if (Frequency >= 30000000)
+        dispatcher->dsp_controller->setRadioParameters(DspController::RadioModeFM,Frequency);
+    else
+        dispatcher->dsp_controller->setRadioParameters(DspController::RadioModeUSB,Frequency);// !!!!
+    dispatcher->dsp_controller->setRadioOperation(DspController::RadioOperationRxMode);
 }
 
 void VoiceServiceInterface::TuneAudioLevel(uint8_t volume_level)
@@ -88,6 +93,12 @@ void VoiceServiceInterface::TuneAudioLevel(uint8_t volume_level)
 void VoiceServiceInterface::TurnAGCMode(uint8_t mode)
 {
     dispatcher->dsp_controller->setAGCParameters(mode,0);
+}
+
+void VoiceServiceInterface::TurnFHSSMode(uint8_t mode, float LCODE, float RN_KEY, float COM_N,float FREQ)
+{
+    // нам важны только дата и время, с GUI или GPS решает service
+    dispatcher->dsp_controller->setFSHHParametres((char)mode,LCODE,RN_KEY,COM_N,FREQ);
 }
 
 void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {

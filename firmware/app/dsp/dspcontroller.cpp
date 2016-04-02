@@ -17,6 +17,7 @@
 
 #include "dspcontroller.h"
 #include "dsptransport.h"
+#include <string>
 
 #define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
 
@@ -157,6 +158,27 @@ void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
       sendCommand(RxRadiopath,AGCRX,command_value);
    // else
       sendCommand(TxRadiopath,AGCTX,command_value);
+}
+
+void DspController::setFSHHParametres(int RadioPath,float LCODE, float RN_KEY, float COM_N,float FREQ )
+{
+    QM_ASSERT(is_ready);
+    if (!resyncPendingCommand())
+        return;
+
+    ParameterValue command_value;
+    command_value.fshh_mode = 0;
+
+     ContentPSWF.L_CODE = LCODE;
+     ContentPSWF.COM_N = COM_N;
+     ContentPSWF.Frequency = FREQ;
+     ContentPSWF.RN_KEY = RN_KEY;
+
+     //if (RadioPath == 0)
+         //sendCommand(RxRadioMode,FSHH_RX,command_value);
+     //else
+        // sendCommand(TxRadioMode,FSHH_TX,command_value);
+
 }
 
 
@@ -424,6 +446,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 			tx_address = 0x50;
 		else
 			tx_address = 0x80;
+
 		switch (code) {
 		case 1:
 			qmToBigEndian(value.frequency, tx_data+tx_data_len);
@@ -438,8 +461,6 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
             qmToBigEndian((uint8_t)value.agc_mode, tx_data+tx_data_len);
             tx_data_len += 1;
             break;
-
-
 		default: QM_ASSERT(0);
 		}
 		break;
@@ -463,7 +484,27 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
         }
         break;
     }
+    // для ППРЧ
+    case FSHH:
+    {
+        tx_address = 0x72;
 
+        qmToBigEndian((uint8_t)value.fshh_mode, tx_data+tx_data_len);
+
+
+        switch(code)
+        {
+        case FSHH_RX:
+            tx_address = 0x63;
+            qmToBigEndian((uint8_t)value.fshh_mode, tx_data+tx_data_len);
+            break;
+        case FSHH_TX:
+            tx_address = 0x72;
+            qmToBigEndian((uint8_t)value.fshh_mode, tx_data+tx_data_len);
+            break;
+        }
+    }
+    break;
 
 
 
