@@ -35,6 +35,9 @@ public:
     void tuneSquelch(uint8_t value);
     void TuneAudioLevel(uint8_t volume_level);
     void TurnAGCMode(uint8_t mode);
+    void TurnFHSSMode(uint8_t mode, float LCODE, float RN_KEY,float COM_N, float FREQ);
+
+
 
 	sigc::signal<void> currentChannelChanged;
 

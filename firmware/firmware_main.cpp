@@ -52,9 +52,9 @@ void qmMain() {
 			&headset_controller);
 	Power::Battery power_battery(platformhwBatterySmbusI2c);
 
-//#if defined(PORT__TARGET_DEVICE_REV1)
+#if defined(PORT__TARGET_DEVICE_REV1)
     Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin, platformhwNavigatorAntFlagIopin);
-//#endif /* PORT__TARGET_DEVICE_REV1 */
+#endif /* PORT__TARGET_DEVICE_REV1 */
 
 
 	Ui::matrix_keyboard_t ui_matrixkb_desc;
@@ -84,12 +84,18 @@ void qmMain() {
 	ui_auxkb_desc.key_iopin_resource[Ui::auxkbkeyChPrev] = platformhwKeyboardButt2Iopin;
 
 
-
+#ifdef PORT__TARGET_DEVICE_REV1
     Ui::Service ui_service(ui_matrixkb_desc, ui_auxkb_desc,
 			&headset_controller,
 			mr_dispatcher.getMainServiceInterface(), mr_dispatcher.getVoiceServiceInterface(),
             &power_battery,&navigator);
-
+#endif
+#ifndef PORT__TARGET_DEVICE_REV1
+    Ui::Service ui_service(ui_matrixkb_desc, ui_auxkb_desc,
+            &headset_controller,
+            mr_dispatcher.getMainServiceInterface(), mr_dispatcher.getVoiceServiceInterface(),
+            &power_battery,0);
+#endif
 
 
 	kb_light_iopin.writeOutput(QmIopin::Level_Low);
