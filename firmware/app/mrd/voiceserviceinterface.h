@@ -32,6 +32,7 @@ public:
 	void tuneNextChannel();
 	void tunePreviousChannel();
     void TuneFrequency(int Frequency);
+    void tuneSquelch(uint8_t value);
     void TuneAudioLevel(uint8_t volume_level);
     void TurnAGCMode(uint8_t mode);
 

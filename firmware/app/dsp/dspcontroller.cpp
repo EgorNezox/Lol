@@ -136,6 +136,15 @@ void DspController::setRadioOperation(RadioOperation operation) {
         processRadioState();
 }
 
+void DspController::setRadioSquelch(uint8_t value) {
+	QM_ASSERT(is_ready);
+	if (!resyncPendingCommand())
+		return;
+	ParameterValue command_value;
+	command_value.squelch = value;
+	sendCommand(RxRadiopath, RxSquelch, command_value);
+}
+
 void DspController::setAudioVolumeLevel(uint8_t volume_level)
 {
     QM_ASSERT(is_ready);
@@ -432,6 +441,14 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 		case 2:
 			qmToBigEndian((uint8_t)value.radio_mode, tx_data+tx_data_len);
 			tx_data_len += 1;
+			break;
+		case 4:
+			if (module == RxRadiopath) {
+				qmToBigEndian((uint8_t)value.squelch, tx_data+tx_data_len);
+				tx_data_len += 1;
+			} else {
+				QM_ASSERT(0);
+			}
 			break;
         case 7:
         case 8:

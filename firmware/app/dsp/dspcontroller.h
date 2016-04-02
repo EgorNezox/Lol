@@ -52,6 +52,7 @@ public:
     void startServicing();
     void setRadioParameters(RadioMode mode, uint32_t frequency);
     void setRadioOperation(RadioOperation operation);
+    void setRadioSquelch(uint8_t value);
     void setAudioVolumeLevel(uint8_t volume_level);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
 
@@ -69,6 +70,7 @@ private:
     enum RxParameterCode {
         RxFrequency = 1,
         RxRadioMode = 2,
+		RxSquelch = 4,
         AGCRX = 8
     };
     enum TxParameterCode {
@@ -86,6 +88,7 @@ private:
         uint32_t frequency;
         RadioMode radio_mode;
         AudioMode audio_mode;
+        uint8_t squelch;
         uint8_t volume_level;
         uint8_t mic_amplify;
         uint8_t agc_mode; // !

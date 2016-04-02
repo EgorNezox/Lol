@@ -80,6 +80,13 @@ void VoiceServiceInterface::TuneFrequency(int Frequency)
     dispatcher->dsp_controller->setRadioOperation(DspController::RadioOperation::RadioOperationRxMode);
 }
 
+void VoiceServiceInterface::tuneSquelch(uint8_t value) {
+	if (value != 0 && (value < 6 || value > 24)) {
+		return;
+	}
+	dispatcher->dsp_controller->setRadioSquelch(value);
+}
+
 void VoiceServiceInterface::TuneAudioLevel(uint8_t volume_level)
 {
     dispatcher->dsp_controller->setAudioVolumeLevel(volume_level);
