@@ -71,14 +71,21 @@ public:
     // aru arm
     void    incrAruArm(GuiWindowsSubType);
     void    decrAruArm(GuiWindowsSubType);
-    uint8_t getAruArm() { return aruArmAction[focus];  }
-    uint8_t aruArmAction[2] = {1, 1};
+    uint8_t getAruArm() { return aruArmStatus[focus]; }
+    uint8_t aruArmStatus[2] = {1, 1};
+    uint8_t inclStatus = 1;
 
     // gps coordinate
     std::string coord_lat;
     std::string coord_log;
     std::string date;
     std::string time;
+
+    // scan
+    bool scanStatus = true;
+
+    // supress
+    bool supressStatus = true;
 
 private:
     GUI_Obj obj;

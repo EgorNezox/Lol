@@ -540,14 +540,14 @@ void Service::keyPressed(UI_Key key)
             break;
         case GuiWindowsSubType::volume:
         {
-            if (key == keyUp  )
+            if ( key == keyRight || key == keyUp )
             {
                 menu->incrVolume();
                 uint8_t level = menu->getVolume();
                 voice_service->TuneAudioLevel(level);
 
             }
-            if (key == keyDown)
+            if ( key == keyLeft || key == keyDown )
             {
                 menu->decrVolume();
                 uint8_t level = menu->getVolume();
@@ -561,7 +561,42 @@ void Service::keyPressed(UI_Key key)
             break;
         }
         case GuiWindowsSubType::scan:
+        {
+            if ( key == keyRight || key == keyUp )
+            {
+                menu->scanStatus = true;
+                menu->inclStatus = true;
+            }
+            if ( key == keyLeft  || key == keyDown )
+            {
+                menu->scanStatus = false;
+                menu->inclStatus = false;
+            }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+        }
+            break;
         case GuiWindowsSubType::suppress:
+        {
+            if ( key == keyRight || key == keyUp )
+            {
+                menu->supressStatus = true;
+                menu->inclStatus = true;
+            }
+            if ( key == keyLeft  || key == keyDown )
+            {
+                menu->supressStatus = false;
+                menu->inclStatus = false;
+            }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+        }
             break;
         case GuiWindowsSubType::aruarm:
         {
@@ -754,7 +789,12 @@ void Service::drawMenu()
         case twoState:
             menu->initTwoStateDialog();
         case scan:
+            menu->inclStatus = menu->scanStatus;
+            menu->initIncludeDialog();
+            break;
         case suppress:
+            menu->inclStatus = menu->supressStatus;
+            menu->initIncludeDialog();
             break;
         case aruarm:
             menu->initAruarmDialog();
