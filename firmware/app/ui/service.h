@@ -32,7 +32,7 @@ class GUI_Indicator;
 class GUI_Dialog_MsgBox;
 class CGuiMenu;
 
-//class CGuiMenu;
+
 
 namespace Headset {
     class Controller;
@@ -110,7 +110,7 @@ private:
     void draw();
     void drawIndicator();
 
-
+    int RN_KEY = 1;
     int mainWindowModeId;
 
     int isFreq = 0;

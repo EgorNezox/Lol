@@ -463,8 +463,9 @@ void Service::keyPressed(UI_Key key)
                     std::string dt(data);
                     std::string tm(time);
 
+                    // S_ADR  = 1 .. 32, пусть S_ADR = 1;
 
-                    int LCODE = Calc_LCODE(param[0],0,param[1],0,0,stoi(tm.substr(0,2)),
+                    int LCODE = Calc_LCODE(param[0],1,param[1],0,0,stoi(tm.substr(0,2)),
                             stoi(tm.substr(2,4)),
                             stoi(tm.substr(4,6)));
 
