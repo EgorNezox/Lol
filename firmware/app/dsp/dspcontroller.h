@@ -147,7 +147,8 @@ private:
         radiostateCmdTxOff,
         radiostateCmdRxMode,
         radiostateCmdTxMode,
-        radiostateCmdCarrierTx
+        radiostateCmdCarrierTx,
+        radiostateCmdPswfTx
     } radio_state;
     RadioMode current_radio_mode;
     RadioOperation  current_radio_operation;

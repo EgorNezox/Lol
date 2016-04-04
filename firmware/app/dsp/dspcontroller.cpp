@@ -177,6 +177,8 @@ void DspController::setPSWFParametres(int RadioPath,int LCODE, int RN_KEY, int C
 
     ParameterValue command_value;
 
+    radio_state = radiostateCmdModeOffRx;
+
     ContentPSWF.L_CODE = LCODE;
     ContentPSWF.COM_N = COM_N;
     ContentPSWF.Frequency = FREQ;
@@ -549,12 +551,8 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
             tx_address = 0x72;
             break;
         }
-
-
     }
     break;
-
-
 
 	default: QM_ASSERT(0);
 	}
