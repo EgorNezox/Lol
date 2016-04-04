@@ -272,27 +272,65 @@ void CGuiMenu::initVolumeDialog()
 
 void CGuiMenu::initAruarmDialog()
 {
-    int i = 2;
-    itemArea[0] = {(GXT)(windowArea.xs + 7*MARGIN),
-                   (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
-                   (GXT)(windowArea.xe - 7*MARGIN),
-                   (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
-                  };
+    MoonsGeometry volume_geom[4];
+    volume_geom[0] = {  3,  25,  50,  55 };
+    volume_geom[1] = {  3,  70,  50, 100 };
+    volume_geom[2] = { 54,  25, 140,  55 };
+    volume_geom[3] = { 54,  70, 140, 100 };
 
+    GUI_EL_Label *volume[4];
+    LabelParams param[4] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
+
+    for (int i = 0; i < 4; i++)
+        param[i].transparent = true;
+
+    if ( focus == 0 ) param[2].transparent = false;
+    if ( focus == 1 ) param[3].transparent = false;
+
+    for (int i = 0; i < 4; i++)
+        volume[i] = new GUI_EL_Label (&param[i], &volume_geom[i],  NULL, (GUI_Obj*)this);
+
+    volume[0]->SetText((char*)aru);
+    volume[1]->SetText((char*)arm);
+
+    for ( int i = 0; i < 2; i++)
+    {
+        if (aruArmStatus[i] == 1)
+            volume[2+i]->SetText((char *)useScanMenu[0]);
+        else
+            volume[2+i]->SetText((char *)useScanMenu[1]);
+    }
+
+    // title
+    titleArea = {(GXT)(windowArea.xs + MARGIN),
+                 (GYT)(windowArea.ys + MARGIN),
+                 (GXT)(windowArea.xe - MARGIN),
+                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
+                };
+
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
+    GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
+
+    window.Draw();
+    title.Draw();
+
+    for (int i = 0; i < 4; i++)
+        volume[i]->Draw();
+
+    for (int i = 0; i < 4; i++)
+        delete volume[i];
+}
+
+
+void CGuiMenu::initIncludeDialog()
+{
     MoonsGeometry volume_geom  = {  35,  40,  105,  70 };
     GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom,  NULL, (GUI_Obj*)this);
 
-    char s[4]; sprintf(s,"%d",vol);
-    std::string str;
-
-    if (aruArmAction == 1)
+    if (inclStatus == 1)
         volume->SetText((char *)useScanMenu[0]);
     else
         volume->SetText((char *)useScanMenu[1]);
-
-//    str.push_back(proc);
-//    volume->SetText((char *)str.c_str());
-//    str.clear();
 
     // title
     titleArea = {(GXT)(windowArea.xs + MARGIN),
@@ -520,5 +558,29 @@ void CGuiMenu::keyPressed(UI_Key key)
         newDstAddr.push_back(value);
     }else if( focus == 1 ){
         newMessage.push_back(value);
+    }
+}
+
+void CGuiMenu::incrAruArm(GuiWindowsSubType type)
+{
+    switch (type)
+    {
+    case GuiWindowsSubType::aruarm:
+        aruArmStatus[focus] = 1;
+        break;
+    default:
+        break;
+    }
+}
+
+void CGuiMenu::decrAruArm(GuiWindowsSubType type)
+{
+    switch (type)
+    {
+    case GuiWindowsSubType::aruarm:
+        aruArmStatus[focus] = 0;
+        break;
+    default:
+        break;
     }
 }

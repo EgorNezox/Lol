@@ -52,4 +52,5 @@ const char *settingsSubMenu[] = {" Дата/время\0", " Параметры связи\0", " Сканир
     const char *setConnParam[] = {" Частота\0", " Скорость\0"};
 
 const char *useScanMenu[] = {"ВКЛ\0", "ВЫКЛ\0"};
-
+const char *aru = "АРУ\0";
+const char *arm = "АРМ\0";
