@@ -61,6 +61,7 @@ public:
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
+    sigc::signal<void> savePacketPswf;
 
 private:
     friend struct DspCommand;
@@ -113,7 +114,7 @@ private:
 
     struct PswfContent{
         int TYPE;
-        uint32_t Frequency;
+        int Frequency;
         int SNR;
         int R_ADR;
         int S_ADR;
@@ -139,6 +140,9 @@ private:
     bool resyncPendingCommand();
     void sendCommand(Module module, int code, ParameterValue value);
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
+    void parsingData(uint8_t *data);
+
+
 
     bool is_ready;
     QmIopin *reset_iopin;

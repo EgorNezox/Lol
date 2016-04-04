@@ -555,6 +555,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
     // для ППРЧ
     case PSWFTransmitterTx:
     {
+        setPswfMode();
 
         tx_address = 0x72;
 
@@ -588,6 +589,14 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
         tx_data_len += 1;
 
     }
+
+    case PSWFTransmitterRx:
+    {
+        setPswfMode();
+
+
+    }
+
     break;
 
 	default: QM_ASSERT(0);
@@ -635,8 +644,22 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 		}
 		break;
 	}
+    case 0x63:{
+        if ((indicator == 30) && (value_len == 1))
+        {
+            parsingData(data);
+        }
+    }
+
 	default: break;
-	}
+    }
+}
+// maybe two sides of pswf
+void DspController::parsingData(uint8_t *data)
+{
+    ContentPSWF.TYPE = data[1];
+    ContentPSWF.Frequency = data[2];
+    memcpy(&ContentPSWF,data,sizeof(ContentPSWF));
 }
 
 } /* namespace Multiradio */
