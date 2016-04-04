@@ -586,7 +586,7 @@ void Service::keyPressed(UI_Key key)
                     menu->decrAruArm(estate.subType);
                 }
                 uint8_t vol = menu->getAruArm();
-                voice_service->TurnAGCMode(vol);
+                voice_service->TurnAGCMode(vol, menu->focus);
             }
             if ( key == keyRight )
             {
@@ -599,7 +599,7 @@ void Service::keyPressed(UI_Key key)
                     menu->incrAruArm(estate.subType);
                 }
                 uint8_t vol = menu->getAruArm();
-                voice_service->TurnAGCMode(vol);
+                voice_service->TurnAGCMode(vol, menu->focus);
             }
 
             if ( key == keyBack)

@@ -290,8 +290,8 @@ void CGuiMenu::initAruarmDialog()
     for (int i = 0; i < 4; i++)
         volume[i] = new GUI_EL_Label (&param[i], &volume_geom[i],  NULL, (GUI_Obj*)this);
 
-    volume[0]->SetText("ARU");
-    volume[1]->SetText("ARM");
+    volume[0]->SetText((char*)aru);
+    volume[1]->SetText((char*)arm);
 
     for ( int i = 0; i < 2; i++)
     {

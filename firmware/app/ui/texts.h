@@ -53,4 +53,7 @@ extern const char *setDateOrTime[];
 extern const char *setConnParam[];
 extern const char *useScanMenu[];
 
+extern const char *aru;
+extern const char *arm;
+
 #endif /* TEXTS_H_ */
