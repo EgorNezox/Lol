@@ -568,14 +568,14 @@ void Service::keyPressed(UI_Key key)
             {
                 menu->incrAruArm();
                 uint8_t level = menu->getAruArm();
-                voice_service->TurnAGCMode(level);
+                voice_service->TurnAGCMode(level, 0);
 
             }
             if (key == keyDown)
             {
                 menu->decrAruArm();
                 uint8_t level = menu->getAruArm();
-                voice_service->TurnAGCMode(level);
+                voice_service->TurnAGCMode(level, 0);
             }
             break;
         }
