@@ -75,7 +75,7 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 	case radiostateSync: {
 		switch (current_radio_operation) {
 		case RadioOperationOff:
-			radio_state = radiostateCmdRxFreq;
+			radio_state = radiostateCmdTxPower;
 			break;
 		case RadioOperationRxMode:
 			radio_state = radiostateCmdModeOffRx;
@@ -319,6 +319,14 @@ void DspController::processRadioState() {
 	switch (radio_state) {
 	case radiostateSync:
 		break;
+	case radiostateCmdTxPower: {
+		if (current_radio_frequency >= 30000000)
+			command_value.power = 80;
+		else
+			command_value.power = 100;
+		sendCommand(TxRadiopath, TxPower, command_value);
+		break;
+	}
 	case radiostateCmdRxFreq: {
 		command_value.frequency = current_radio_frequency;
 		sendCommand(RxRadiopath, RxFrequency, command_value);
@@ -364,6 +372,7 @@ void DspController::syncNextRadioState() {
 	case radiostateSync:
 		QM_ASSERT(0);
 		break;
+	case radiostateCmdTxPower:
 	case radiostateCmdModeOffRx:
 	case radiostateCmdModeOffTx: {
 		radio_state = radiostateCmdRxFreq;
@@ -476,7 +485,8 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 				qmToBigEndian((uint8_t)value.squelch, tx_data+tx_data_len);
 				tx_data_len += 1;
 			} else {
-				QM_ASSERT(0);
+				qmToBigEndian((uint8_t)value.power, tx_data+tx_data_len);
+				tx_data_len += 1;
 			}
 			break;
         case 7:
