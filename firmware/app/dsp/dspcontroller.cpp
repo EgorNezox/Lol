@@ -167,6 +167,7 @@ void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
       sendCommand(RxRadiopath,AGCRX,command_value);
     else
       sendCommand(TxRadiopath,AGCTX,command_value);
+    resyncPendingCommand();
 }
 
 void DspController::setPSWFParametres(int RadioPath,int LCODE, int RN_KEY, int COM_N,uint32_t FREQ)
