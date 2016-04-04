@@ -169,24 +169,29 @@ void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
       sendCommand(TxRadiopath,AGCTX,command_value);
 }
 
-void DspController::setFSHHParametres(int RadioPath,float LCODE, float RN_KEY, float COM_N,float FREQ )
+void DspController::setPSWFParametres(int RadioPath,int LCODE, int RN_KEY, int COM_N,uint32_t FREQ)
 {
     QM_ASSERT(is_ready);
     if (!resyncPendingCommand())
         return;
 
     ParameterValue command_value;
-    command_value.fshh_mode = 0;
 
-     ContentPSWF.L_CODE = LCODE;
-     ContentPSWF.COM_N = COM_N;
-     ContentPSWF.Frequency = FREQ;
-     ContentPSWF.RN_KEY = RN_KEY;
+    ContentPSWF.L_CODE = LCODE;
+    ContentPSWF.COM_N = COM_N;
+    ContentPSWF.Frequency = FREQ;
+    ContentPSWF.RN_KEY = RN_KEY;
 
-     //if (RadioPath == 0)
-         //sendCommand(RxRadioMode,FSHH_RX,command_value);
-     //else
-        // sendCommand(TxRadioMode,FSHH_TX,command_value);
+    if (RadioPath == 0)
+    {
+        command_value.pswf_indicator = 30;
+        sendCommand(PSWF,PSWF_RX,command_value);
+    }
+    else
+    {
+        command_value.pswf_indicator = 20;
+        sendCommand(PSWF,PSWF_TX,command_value);
+    }
 
 }
 
@@ -502,24 +507,50 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
         break;
     }
     // для ППРЧ
-    case FSHH:
+    case PSWF:
     {
         tx_address = 0x72;
 
-        qmToBigEndian((uint8_t)value.fshh_mode, tx_data+tx_data_len);
+        qmToBigEndian((uint8_t)value.pswf_indicator, tx_data+tx_data_len);
+        tx_data_len += 1;
 
+        qmToBigEndian((uint8_t)ContentPSWF.TYPE, tx_data+tx_data_len);
+        tx_data_len += 1;
+
+        uint8_t *freq = (uint8_t *)&ContentPSWF.Frequency;//
+
+        for(int i = 0; i<4; i++)
+        {
+            qmToBigEndian((uint8_t)freq[i], tx_data+tx_data_len);
+            tx_data_len += 1;
+        }
+
+        qmToBigEndian((uint8_t)ContentPSWF.SNR, tx_data+tx_data_len);
+        tx_data_len += 1;
+
+        qmToBigEndian((uint8_t)ContentPSWF.R_ADR, tx_data+tx_data_len);
+        tx_data_len += 1;
+
+        qmToBigEndian((uint8_t)ContentPSWF.S_ADR, tx_data+tx_data_len);
+        tx_data_len += 1;
+
+        qmToBigEndian((uint8_t)ContentPSWF.COM_N, tx_data+tx_data_len);
+        tx_data_len += 1;
+
+        qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data+tx_data_len);
+        tx_data_len += 1;
 
         switch(code)
         {
-        case FSHH_RX:
+        case PSWF_RX:
             tx_address = 0x63;
-            qmToBigEndian((uint8_t)value.fshh_mode, tx_data+tx_data_len);
             break;
-        case FSHH_TX:
+        case PSWF_TX:
             tx_address = 0x72;
-            qmToBigEndian((uint8_t)value.fshh_mode, tx_data+tx_data_len);
             break;
         }
+
+
     }
     break;
 
