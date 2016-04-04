@@ -474,13 +474,6 @@ void Service::keyPressed(UI_Key key)
                 }
                 break;
             }
-
-            // simplo
-            if (estate.listItem.size() == 2)
-            {}
-            else if (estate.listItem.size() == 1)
-            {}
-            else {}
             break;
         }
         case GuiWindowsSubType::duplCondComm:
@@ -529,13 +522,6 @@ void Service::keyPressed(UI_Key key)
                 }
                 break;
             }
-
-            // duplo
-            if (estate.listItem.size() == 2)
-            {}
-            else if (estate.listItem.size() == 1)
-            {}
-            else {}
         }
             break;
         case GuiWindowsSubType::volume:
@@ -657,21 +643,48 @@ void Service::keyPressed(UI_Key key)
         case GuiWindowsSubType::setTime:
         case GuiWindowsSubType::setFreq:
         case GuiWindowsSubType::setSpeed:
+        {
             switch ( key )
             {
             case keyEnter:
             {  }
                 break;
-            case keyBack:
-            {
-                guiTree.backvard();
-                menu->focus = 0;
-            }
+//            case keyBack:
+//            {
+//                guiTree.backvard();
+//                menu->focus = 0;
+//            }
                 break;
             default:
+                if ( key > 5 && key < 16)
+                {
+                    menu->setCondCommParam(estate, key);
+                }
+                else if ( key == 1)
+                {
+                    int i = 0;
+                    for (auto &k: estate.listItem)
+                    {
+                        if (menu->focus == i)
+                        {
+                            if (k->inputStr.size() > 0)
+                            {
+                                k->inputStr.pop_back();
+                            }
+                            else
+                            {
+                                guiTree.backvard();
+                                menu->focus = 0;
+                                break;
+                            }
+                        }
+                        i++;
+                    }
+                }
                 break;
             }
             break;
+        }
         default:
             break;
         }
@@ -723,7 +736,7 @@ void Service::drawMenu()
     const char* text = "";
     int focusItem;
 
-    if(menu == nullptr)
+    if( menu == nullptr )
     {
         menu = new CGuiMenu(&ui_menu_msg_box_area, guiTree.getCurrentState().getName(), text, align);
     }
@@ -760,46 +773,47 @@ void Service::drawMenu()
 
         switch( st.subType )
         {
-        case simpleCondComm:
-        case duplCondComm:
+        case GuiWindowsSubType::simpleCondComm:
+        case GuiWindowsSubType::duplCondComm:
             menu->initCondCommDialog(st);
             break;
-        case recv:
+        case GuiWindowsSubType::recv:
             //menu->initTwoStateDialog();
             break;
-        case data:
+        case GuiWindowsSubType::data:
             //menu->initTwoStateDialog();
             break;
-        case settings:
+        case GuiWindowsSubType::settings:
             //menu->initTwoStateDialog();
             break;
-        case gpsCoord:
+        case GuiWindowsSubType::gpsCoord:
 #if !defined(PORT__PCSIMULATOR)
             setCoordDate(navigator->getCoordDate());
 #endif
             menu->initGpsCoordinateDialog();
             break;
-        case gpsSync:
+        case GuiWindowsSubType::gpsSync:
             break;
-        case setDate:
-        case setTime:
+        case GuiWindowsSubType::setDate:
+        case GuiWindowsSubType::setTime:
         case GuiWindowsSubType::setFreq:
-        case setSpeed:
+        case GuiWindowsSubType::setSpeed:
+            menu->initSetParametersDialog();
             break;
-        case twoState:
+        case GuiWindowsSubType::twoState:
             menu->initTwoStateDialog();
-        case scan:
+        case GuiWindowsSubType::scan:
             menu->inclStatus = menu->scanStatus;
             menu->initIncludeDialog();
             break;
-        case suppress:
+        case GuiWindowsSubType::suppress:
             menu->inclStatus = menu->supressStatus;
             menu->initIncludeDialog();
             break;
-        case aruarm:
+        case GuiWindowsSubType::aruarm:
             menu->initAruarmDialog();
             break;
-        case volume:
+        case GuiWindowsSubType::volume:
             menu->initVolumeDialog();
             break;
 //        case date:
