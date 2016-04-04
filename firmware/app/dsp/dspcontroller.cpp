@@ -46,6 +46,12 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, QmObje
 	transport = new DspTransport(uart_resource, 2, this);
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 	initResetState();
+
+
+    timer_tx_pswf  = new QmTimer(true,this);
+    timer_tx_pswf->setInterval(1000);
+    timer_tx_pswf->timeout.connect(sigc::mem_fun(this, &DspController::transmitPswf));
+
 }
 
 DspController::~DspController()
@@ -177,9 +183,6 @@ void DspController::setPSWFParametres(int RadioPath,int LCODE, int RN_KEY, int C
         return;
 
     ParameterValue command_value;
-
-    radio_state = radiostateCmdModeOffRx;
-
     ContentPSWF.L_CODE = LCODE;
     ContentPSWF.COM_N = COM_N;
     ContentPSWF.Frequency = FREQ;
@@ -188,14 +191,46 @@ void DspController::setPSWFParametres(int RadioPath,int LCODE, int RN_KEY, int C
     if (RadioPath == 0)
     {
         command_value.pswf_indicator = 30;
-        sendCommand(PSWF,PSWF_RX,command_value);
+        sendCommand(PSWFReceiverTx,PSWF_RX,command_value);
     }
     else
     {
-        command_value.pswf_indicator = 20;
-        sendCommand(PSWF,PSWF_TX,command_value);
+
+         timer_tx_pswf->start();
+
+
+        //sendCommand(PSWFTransmitterTx,PSWF_TX,command_value);
     }
 
+}
+
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+void DspController::setPswfMode()
+{
+    ParameterValue comandValue;
+
+    comandValue.pswf_indicator = 20;
+
+    if (radio_state ==  radiostateCmdPswfTx)
+    {
+        sendCommand(RxRadiopath,2,comandValue);
+        comandValue.pswf_indicator = 0;
+        sendCommand(TxRadiopath,2,comandValue);
+    }
+    else
+        if (radio_state ==  radiostateCmdPswfRx)
+        {
+            sendCommand(RxRadiopath,2,comandValue);
+            comandValue.pswf_indicator = 0;
+            sendCommand(PSWFReceiverTx,2,comandValue);
+        }
+}
+
+void DspController::transmitPswf()
+{
+    ParameterValue command_value;
+    command_value.pswf_indicator = 20;
+    sendCommand(PSWFTransmitterTx,PSWF_TX,command_value);
 }
 
 
@@ -510,8 +545,9 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
         break;
     }
     // для ППРЧ
-    case PSWF:
+    case PSWFTransmitterTx:
     {
+
         tx_address = 0x72;
 
         qmToBigEndian((uint8_t)value.pswf_indicator, tx_data+tx_data_len);
@@ -543,15 +579,6 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
         qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data+tx_data_len);
         tx_data_len += 1;
 
-        switch(code)
-        {
-        case PSWF_RX:
-            tx_address = 0x63;
-            break;
-        case PSWF_TX:
-            tx_address = 0x72;
-            break;
-        }
     }
     break;
 

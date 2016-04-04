@@ -56,6 +56,8 @@ public:
     void setAudioVolumeLevel(uint8_t volume_level);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
     void setPSWFParametres(int RadioPath, int LCODE, int RN_KEY,int COM_N,uint32_t FREQ);
+    void setPswfMode();
+    void transmitPswf();
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -67,7 +69,12 @@ private:
         RxRadiopath,
         TxRadiopath,
         Audiopath,
-        PSWF
+        PSWFReceiverRx1,	//0x61
+        PSWFReceiverRx2,	//0x63
+        PSWFReceiverTx,		//0x60
+        PSWFTransmitterRx,	//0x73
+        PSWFTransmitterTx	//0x72
+
     };
     enum RxParameterCode {
         RxFrequency = 1,
@@ -136,7 +143,7 @@ private:
     bool is_ready;
     QmIopin *reset_iopin;
     DspTransport *transport;
-    QmTimer *startup_timer, *command_timer;
+    QmTimer *startup_timer, *command_timer,*timer_tx_pswf;
     enum {
         radiostateSync,
         radiostateCmdModeOffRx,
@@ -148,7 +155,8 @@ private:
         radiostateCmdRxMode,
         radiostateCmdTxMode,
         radiostateCmdCarrierTx,
-        radiostateCmdPswfTx
+        radiostateCmdPswfTx,
+        radiostateCmdPswfRx
     } radio_state;
     RadioMode current_radio_mode;
     RadioOperation  current_radio_operation;
