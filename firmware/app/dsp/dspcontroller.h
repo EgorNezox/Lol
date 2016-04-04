@@ -55,7 +55,7 @@ public:
     void setRadioSquelch(uint8_t value);
     void setAudioVolumeLevel(uint8_t volume_level);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
-    void setFSHHParametres(int RadioPath, float LCODE, float RN_KEY,float COM_N, float FREQ);
+    void setPSWFParametres(int RadioPath, int LCODE, int RN_KEY,int COM_N,uint32_t FREQ);
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -67,7 +67,7 @@ private:
         RxRadiopath,
         TxRadiopath,
         Audiopath,
-        FSHH
+        PSWF
     };
     enum RxParameterCode {
         RxFrequency = 1,
@@ -86,10 +86,10 @@ private:
         AudioMicAmplify = 3
     };
 
-    enum FSHH
+    enum PSWF
     {
-        FSHH_RX = 1,
-        FSHH_TX = 0
+        PSWF_RX = 0,
+        PSWF_TX = 1
     };
 
     union ParameterValue {
@@ -100,17 +100,19 @@ private:
         uint8_t volume_level;
         uint8_t mic_amplify;
         uint8_t agc_mode;
-        uint8_t fshh_mode;
+        uint8_t pswf_indicator;
     };
 
 
     struct PswfContent{
+        int TYPE;
+        uint32_t Frequency;
         int SNR;
+        int R_ADR;
         int S_ADR;
         int COM_N;
-        float RN_KEY;
-        float L_CODE;
-        float Frequency;
+        int L_CODE;
+        int RN_KEY;
         int Conditional_Command;
     } ContentPSWF;
 
