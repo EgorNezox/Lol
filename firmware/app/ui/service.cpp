@@ -561,21 +561,51 @@ void Service::keyPressed(UI_Key key)
             break;
         }
         case GuiWindowsSubType::scan:
+        case GuiWindowsSubType::suppress:
             break;
         case GuiWindowsSubType::aruarm:
         {
             if (key == keyUp  )
             {
-                menu->incrAruArm();
-                uint8_t level = menu->getAruArm();
-                voice_service->TurnAGCMode(level);
-
+                if ( menu->focus > 0 )
+                    menu->focus--;
             }
             if (key == keyDown)
             {
-                menu->decrAruArm();
-                uint8_t level = menu->getAruArm();
-                voice_service->TurnAGCMode(level);
+                if ( menu->focus < 1 )
+                    menu->focus++;
+            }
+            if ( key == keyLeft )
+            {
+                if ( menu->focus == 0 )
+                {
+                    menu->decrAruArm(estate.subType);
+                }
+                else
+                {
+                    menu->decrAruArm(estate.subType);
+                }
+                uint8_t vol = menu->getAruArm();
+                voice_service->TurnAGCMode(vol);
+            }
+            if ( key == keyRight )
+            {
+                if ( menu->focus == 0 )
+                {
+                    menu->incrAruArm(estate.subType);
+                }
+                else
+                {
+                    menu->incrAruArm(estate.subType);
+                }
+                uint8_t vol = menu->getAruArm();
+                voice_service->TurnAGCMode(vol);
+            }
+
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
             }
             break;
         }
@@ -606,8 +636,6 @@ void Service::keyPressed(UI_Key key)
             default:
                 break;
             }
-            break;
-        case GuiWindowsSubType::suppress:
             break;
         default:
             break;
@@ -725,6 +753,9 @@ void Service::drawMenu()
             break;
         case twoState:
             menu->initTwoStateDialog();
+        case scan:
+        case suppress:
+            break;
         case aruarm:
             menu->initAruarmDialog();
             break;

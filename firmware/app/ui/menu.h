@@ -48,6 +48,7 @@ public:
     void initVolumeDialog();
     void initScanDialog();
     void initAruarmDialog();
+    void initIncludeDialog();
     void initSuppressDialog();
     void initTwoStateDialog();
     void initGpsCoordinateDialog();
@@ -68,10 +69,10 @@ public:
     uint8_t  getVolume(){ return vol;}
 
     // aru arm
-    void    incrAruArm(){ aruArmAction = 1;  }
-    void    decrAruArm(){ aruArmAction = 0; }
-    uint8_t getAruArm() { return aruArmAction;  }
-    uint8_t aruArmAction = 1;
+    void    incrAruArm(GuiWindowsSubType);
+    void    decrAruArm(GuiWindowsSubType);
+    uint8_t getAruArm() { return aruArmAction[focus];  }
+    uint8_t aruArmAction[2] = {1, 1};
 
     // gps coordinate
     std::string coord_lat;

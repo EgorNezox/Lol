@@ -272,6 +272,58 @@ void CGuiMenu::initVolumeDialog()
 
 void CGuiMenu::initAruarmDialog()
 {
+    MoonsGeometry volume_geom[4];
+    volume_geom[0] = {  3,  25,  50,  55 };
+    volume_geom[1] = {  3,  70,  50, 100 };
+    volume_geom[2] = { 54,  25, 140,  55 };
+    volume_geom[3] = { 54,  70, 140, 100 };
+
+    GUI_EL_Label *volume[4];
+    LabelParams param[4] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
+
+    for (int i = 0; i < 4; i++)
+        param[i].transparent = true;
+
+    if ( focus == 0 ) param[2].transparent = false;
+    if ( focus == 1 ) param[3].transparent = false;
+
+    for (int i = 0; i < 4; i++)
+        volume[i] = new GUI_EL_Label (&param[i], &volume_geom[i],  NULL, (GUI_Obj*)this);
+
+    volume[0]->SetText("ARU");
+    volume[1]->SetText("ARM");
+
+    for ( int i = 0; i < 2; i++)
+    {
+        if (aruArmAction[i] == 1)
+            volume[2+i]->SetText((char *)useScanMenu[0]);
+        else
+            volume[2+i]->SetText((char *)useScanMenu[1]);
+    }
+
+    // title
+    titleArea = {(GXT)(windowArea.xs + MARGIN),
+                 (GYT)(windowArea.ys + MARGIN),
+                 (GXT)(windowArea.xe - MARGIN),
+                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
+                };
+
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
+    GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
+
+    window.Draw();
+    title.Draw();
+
+    for (int i = 0; i < 4; i++)
+        volume[i]->Draw();
+
+    for (int i = 0; i < 4; i++)
+        delete volume[i];
+}
+
+
+void CGuiMenu::initIncludeDialog()
+{
     int i = 2;
     itemArea[0] = {(GXT)(windowArea.xs + 7*MARGIN),
                    (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
@@ -285,10 +337,10 @@ void CGuiMenu::initAruarmDialog()
     char s[4]; sprintf(s,"%d",vol);
     std::string str;
 
-    if (aruArmAction == 1)
-        volume->SetText((char *)useScanMenu[0]);
-    else
-        volume->SetText((char *)useScanMenu[1]);
+//    if (aruArmAction == 1)
+//        volume->SetText((char *)useScanMenu[0]);
+//    else
+//        volume->SetText((char *)useScanMenu[1]);
 
 //    str.push_back(proc);
 //    volume->SetText((char *)str.c_str());
@@ -520,5 +572,25 @@ void CGuiMenu::keyPressed(UI_Key key)
         newDstAddr.push_back(value);
     }else if( focus == 1 ){
         newMessage.push_back(value);
+    }
+}
+
+void CGuiMenu::incrAruArm(GuiWindowsSubType type)
+{
+    switch (type)
+    {
+    case GuiWindowsSubType::aruarm:
+        aruArmAction[focus] = 1;
+    break;
+    }
+}
+
+void CGuiMenu::decrAruArm(GuiWindowsSubType type)
+{
+    switch (type)
+    {
+    case GuiWindowsSubType::aruarm:
+        aruArmAction[focus] = 0;
+    break;
     }
 }
