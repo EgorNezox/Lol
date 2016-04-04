@@ -47,8 +47,10 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, QmObje
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 	initResetState();
 
+    command_30 = 0;
 
-    timer_tx_pswf  = new QmTimer(true,this);
+
+    timer_tx_pswf  = new QmTimer(false,this);
     timer_tx_pswf->setInterval(1000);
     timer_tx_pswf->timeout.connect(sigc::mem_fun(this, &DspController::transmitPswf));
 
@@ -231,6 +233,12 @@ void DspController::transmitPswf()
     ParameterValue command_value;
     command_value.pswf_indicator = 20;
     sendCommand(PSWFTransmitterTx,PSWF_TX,command_value);
+    command_30++;
+    if (command_30 == 30)
+    {
+        timer_tx_pswf->stop();
+        command_30 = 0;
+    }
 }
 
 

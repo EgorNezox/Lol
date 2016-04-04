@@ -162,6 +162,8 @@ private:
     RadioOperation  current_radio_operation;
     uint32_t current_radio_frequency;
     DspCommand *pending_command;
+
+    int command_30 = 0;
 };
 
 } /* namespace Multiradio */
