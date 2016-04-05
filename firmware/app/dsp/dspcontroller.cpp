@@ -401,6 +401,9 @@ void DspController::processRadioState() {
 		sendCommand(TxRadiopath, TxRadioMode, command_value);
 		break;
 	}
+    default:
+        QM_ASSERT(0);
+        break;
 	}
 }
 
@@ -434,6 +437,9 @@ void DspController::syncNextRadioState() {
 		case RadioOperationCarrierTx:
 			radio_state = radiostateCmdCarrierTx;
 			break;
+        default:
+            QM_ASSERT(0);
+            break;
 		}
 		break;
 	}
@@ -443,6 +449,9 @@ void DspController::syncNextRadioState() {
 		radio_state = radiostateSync;
 		break;
 	}
+    default:
+        QM_ASSERT(0);
+        break;
 	}
 	if (radio_state == radiostateSync)
 		setRadioCompleted();
@@ -481,6 +490,9 @@ void DspController::syncPendingCommand() {
 		break;
     case Audiopath:
         radio_state = radiostateSync;
+        break;
+    default:
+        QM_ASSERT(0);
         break;
 	}
 }
@@ -552,7 +564,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
         }
         break;
     }
-    // для ППРЧ
+    // для ПП� Ч
     case PSWFTransmitterTx:
     {
 
