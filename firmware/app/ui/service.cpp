@@ -53,6 +53,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     ginit();
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
+
     keyboard= new QmMatrixKeyboard(matrix_kb.resource);
     keyboard->keyAction.connect(sigc::mem_fun(this, &Service::keyHandler));
     chnext_bt = new QmPushButtonKey(aux_kb.key_iopin_resource[auxkbkeyChNext]);
@@ -76,6 +77,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     guiTree.append(messangeWindow, (char*)test_Pass);
     msgBox(guiTree.getCurrentState().getName() );
+
+    voice_service->PswfRead.connect(sigc::mem_fun(this,&Service::getPSWF));
+    command_rx_30 = 0;
 
 }
 
@@ -921,6 +925,15 @@ void Service::setCoordDate(Navigation::Coord_Date *date)
 
    indicator->date_time->SetText((char *)str.c_str());
    str.clear();
+}
+
+void Service::getPSWF()
+{
+    if (command_rx_30 < 30)
+    {
+        BasePswfCadr.push_back( voice_service->ReturnDataPSWF() );
+        command_rx_30++;
+    }
 }
 
 

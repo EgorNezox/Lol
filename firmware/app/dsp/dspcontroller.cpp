@@ -54,6 +54,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, QmObje
     timer_tx_pswf->setInterval(1000);
     timer_tx_pswf->timeout.connect(sigc::mem_fun(this, &DspController::transmitPswf));
 
+//    this->savePacketPswf.connect(sigc::mem_fun(this,)&DspController::parsingData);
+
 }
 
 DspController::~DspController()
@@ -197,10 +199,7 @@ void DspController::setPSWFParametres(int RadioPath,int LCODE, int RN_KEY, int C
     }
     else
     {
-
          timer_tx_pswf->start();
-
-
         //sendCommand(PSWFTransmitterTx,PSWF_TX,command_value);
     }
 
@@ -647,7 +646,19 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     case 0x63:{
         if ((indicator == 30) && (value_len == 1))
         {
-            parsingData(data);
+            //memcpy(&ContentPSWF,data,sizeof(ContentPSWF) - 1);
+            for(int i = 0;i<12;i++)
+            {
+                if (i == 1)
+                {
+                    for(int j = 1; i<=4; i++)
+                        pswf_mas[i]  = (pswf_mas[i] << 8) + data[j];
+                    i+=3;
+                }
+                pswf_mas[i] = (int) data[i];
+
+            }
+            parsingData();
         }
     }
 
@@ -655,11 +666,14 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     }
 }
 // maybe two sides of pswf
-void DspController::parsingData(uint8_t *data)
+// заглушка для сообещения о заполнении структуры
+void DspController::parsingData()
 {
-    ContentPSWF.TYPE = data[1];
-    ContentPSWF.Frequency = data[2];
-    memcpy(&ContentPSWF,data,sizeof(ContentPSWF));
+}
+
+void *DspController::getContentPSWF()
+{
+    return &ContentPSWF;
 }
 
 } /* namespace Multiradio */

@@ -36,6 +36,9 @@ Dispatcher::Dispatcher(int dsp_uart_resource, int dspreset_iopin_resource, int a
 	atu_controller->requestTx.connect(sigc::mem_fun(this, &Dispatcher::processAtuRequestTx));
 	main_service = new MainServiceInterface(this);
 	voice_service = new VoiceServiceInterface(this);
+
+    voice_service->PswfRead.connect(sigc::mem_fun(this->dsp_controller,&DspController::parsingData));
+    //  доступ в voice_service будет через сигнал диспетчера от сигнала dspcontrollerа.
 }
 
 Dispatcher::~Dispatcher()

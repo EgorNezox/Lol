@@ -64,8 +64,8 @@ public:
     void setCondCommParam(CEndState, UI_Key);
 
     // volume
-    void incrVolume(){ if ( vol < 100) vol += 20; }
-    void decrVolume(){ if ( vol >  0 ) vol -= 20; }
+    void incrVolume(){ if ( vol < 100) vol += 5; }
+    void decrVolume(){ if ( vol >  0 ) vol -= 5; }
     uint8_t  getVolume(){ return vol;}
 
     // aru arm
