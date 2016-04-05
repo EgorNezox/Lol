@@ -54,6 +54,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, QmObje
     timer_tx_pswf->setInterval(1000);
     timer_tx_pswf->timeout.connect(sigc::mem_fun(this, &DspController::transmitPswf));
 
+//    this->savePacketPswf.connect(sigc::mem_fun(this,)&DspController::parsingData);
+
 }
 
 DspController::~DspController()
@@ -83,7 +85,7 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 	case radiostateSync: {
 		switch (current_radio_operation) {
 		case RadioOperationOff:
-			radio_state = radiostateCmdRxFreq;
+			radio_state = radiostateCmdTxPower;
 			break;
 		case RadioOperationRxMode:
 			radio_state = radiostateCmdModeOffRx;
@@ -197,10 +199,7 @@ void DspController::setPSWFParametres(int RadioPath,int LCODE, int RN_KEY, int C
     }
     else
     {
-
          timer_tx_pswf->start();
-
-
         //sendCommand(PSWFTransmitterTx,PSWF_TX,command_value);
     }
 
@@ -364,6 +363,14 @@ void DspController::processRadioState() {
 	switch (radio_state) {
 	case radiostateSync:
 		break;
+	case radiostateCmdTxPower: {
+		if (current_radio_frequency >= 30000000)
+			command_value.power = 80;
+		else
+			command_value.power = 100;
+		sendCommand(TxRadiopath, TxPower, command_value);
+		break;
+	}
 	case radiostateCmdRxFreq: {
 		command_value.frequency = current_radio_frequency;
 		sendCommand(RxRadiopath, RxFrequency, command_value);
@@ -412,6 +419,7 @@ void DspController::syncNextRadioState() {
 	case radiostateSync:
 		QM_ASSERT(0);
 		break;
+	case radiostateCmdTxPower:
 	case radiostateCmdModeOffRx:
 	case radiostateCmdModeOffTx: {
 		radio_state = radiostateCmdRxFreq;
@@ -533,7 +541,8 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 				qmToBigEndian((uint8_t)value.squelch, tx_data+tx_data_len);
 				tx_data_len += 1;
 			} else {
-				QM_ASSERT(0);
+				qmToBigEndian((uint8_t)value.power, tx_data+tx_data_len);
+				tx_data_len += 1;
 			}
 			break;
         case 7:
@@ -567,6 +576,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
     // для ПП� Ч
     case PSWFTransmitterTx:
     {
+        setPswfMode();
 
         tx_address = 0x72;
 
@@ -600,6 +610,14 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
         tx_data_len += 1;
 
     }
+
+    case PSWFTransmitterRx:
+    {
+        setPswfMode();
+
+
+    }
+
     break;
 
 	default: QM_ASSERT(0);
@@ -647,8 +665,37 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 		}
 		break;
 	}
+    case 0x63:{
+        if ((indicator == 30) && (value_len == 1))
+        {
+            //memcpy(&ContentPSWF,data,sizeof(ContentPSWF) - 1);
+            for(int i = 0;i<12;i++)
+            {
+                if (i == 1)
+                {
+                    for(int j = 1; i<=4; i++)
+                        pswf_mas[i]  = (pswf_mas[i] << 8) + data[j];
+                    i+=3;
+                }
+                pswf_mas[i] = (int) data[i];
+
+            }
+            parsingData();
+        }
+    }
+
 	default: break;
-	}
+    }
+}
+// maybe two sides of pswf
+// заглушка для сообещения о заполнении структуры
+void DspController::parsingData()
+{
+}
+
+void *DspController::getContentPSWF()
+{
+    return &ContentPSWF;
 }
 
 } /* namespace Multiradio */

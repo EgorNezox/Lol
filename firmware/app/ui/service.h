@@ -72,6 +72,7 @@ public:
     int Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
 
     void setCoordDate(Navigation::Coord_Date*);
+    void getPSWF();
 
 private:
     void msgBox(const char *text);
@@ -114,6 +115,8 @@ private:
     int mainWindowModeId;
 
     int isFreq = 0;
+    int command_rx_30 = 0;
+    std::list<int *> BasePswfCadr;
 };
 
 } /* namespace Ui */

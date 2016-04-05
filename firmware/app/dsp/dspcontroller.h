@@ -58,9 +58,13 @@ public:
     void setPSWFParametres(int RadioPath, int LCODE, int RN_KEY,int COM_N,uint32_t FREQ);
     void setPswfMode();
     void transmitPswf();
+    void parsingData();
+    void *getContentPSWF();
+    int pswf_mas[12];
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
+    sigc::signal<void> savePacketPswf;
 
 private:
     friend struct DspCommand;
@@ -85,6 +89,7 @@ private:
     enum TxParameterCode {
         TxFrequency = 1,
         TxRadioMode = 2,
+		TxPower = 4,
         AGCTX = 7
     };
     enum AudioParameterCode {
@@ -101,6 +106,7 @@ private:
 
     union ParameterValue {
         uint32_t frequency;
+        uint8_t power;
         RadioMode radio_mode;
         AudioMode audio_mode;
         uint8_t squelch;
@@ -112,16 +118,18 @@ private:
 
 
     struct PswfContent{
-        int TYPE;
+        uint8_t TYPE;
         uint32_t Frequency;
-        int SNR;
-        int R_ADR;
-        int S_ADR;
-        int COM_N;
-        int L_CODE;
-        int RN_KEY;
-        int Conditional_Command;
+        uint8_t SNR;
+        uint8_t R_ADR;
+        uint8_t S_ADR;
+        uint8_t COM_N;
+        uint8_t L_CODE;
+        uint8_t RN_KEY;
+        uint8_t Conditional_Command;
     } ContentPSWF;
+
+
 
 
     void initResetState();
@@ -140,6 +148,8 @@ private:
     void sendCommand(Module module, int code, ParameterValue value);
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
 
+
+
     bool is_ready;
     QmIopin *reset_iopin;
     DspTransport *transport;
@@ -148,6 +158,7 @@ private:
         radiostateSync,
         radiostateCmdModeOffRx,
         radiostateCmdModeOffTx,
+		radiostateCmdTxPower,
         radiostateCmdRxFreq,
         radiostateCmdTxFreq,
         radiostateCmdRxOff,
@@ -164,6 +175,7 @@ private:
     DspCommand *pending_command;
 
     int command_30 = 0;
+    int command_rx_30 = 0;
 };
 
 } /* namespace Multiradio */
