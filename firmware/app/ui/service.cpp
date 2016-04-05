@@ -431,7 +431,8 @@ void Service::keyPressed(UI_Key key)
         {
         case GuiWindowsSubType::simpleCondComm:  // условные команды
         {
-            switch (key){
+            switch (key)
+            {
             case keyUp:
                 if ( menu->focus > 0 )
                     menu->focus--;
@@ -691,7 +692,7 @@ void Service::keyPressed(UI_Key key)
             default:
                 if ( key > 5 && key < 16)
                 {
-                    menu->setCondCommParam(estate, key);
+                    menu->setSttParam(estate, key);
                 }
                 else if ( key == 1)
                 {

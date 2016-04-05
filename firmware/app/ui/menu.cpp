@@ -104,10 +104,18 @@ void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
                     k->inputStr.push_back((char)(42+key));
                     // check
                     int rc = atoi(k->inputStr.c_str());
-                    if ( i == 0 && rc > 31 )
-                    { k->inputStr.clear(); }
-                    if ( i == 0 && rc > 99 )
-                    { k->inputStr.clear(); }
+                    if ( state.listItem.size() == 2 )
+                    {
+                        if ( i == 0 && rc > 31 )
+                            { k->inputStr.clear(); }
+                        if ( i == 0 && rc > 99 )
+                            { k->inputStr.clear(); }
+                    }
+                    if ( state.listItem.size() == 1 )
+                    {
+                        if ( i == 0 && rc > 99 )
+                        { k->inputStr.clear(); }
+                    }
                 }
                 break;
             }
@@ -579,6 +587,38 @@ void CGuiMenu::decrAruArm(GuiWindowsSubType type)
     {
     case GuiWindowsSubType::aruarm:
         aruArmStatus[focus] = 0;
+        break;
+    default:
+        break;
+    }
+}
+
+void CGuiMenu::setSttParam(CEndState state, UI_Key key)
+{
+    GuiWindowsSubType type = state.subType;
+
+    switch ( type )
+    {
+    case setDate:
+
+        break;
+    case setTime:
+        break;
+    case setFreq:
+        break;
+    case setSpeed:
+        if (key == keyBack && speed.size() > 0)
+        {}
+        else if (key == keyBack && speed.size() == 0)
+        {}
+        if ( key > 5 && key < 17)
+        {
+            if ( speed.size() < 8)
+            {
+                speed.push_back(key+42);
+            }
+        }
+
         break;
     default:
         break;

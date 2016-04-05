@@ -164,8 +164,10 @@ private:
     CEndState sttConnParamGPS;
     // 4.1.2.1 - 4.1.2.2
     CEndState sttSetDate, sttSetTime;
+    SInputItemParameters dateParameters, timeParameters;
     // 4.2.1 - 4.2.2
     CEndState sttSetFreq, sttSetSpeed;
+    SInputItemParameters freqParameters, speedParameters;
 
     void init();
 

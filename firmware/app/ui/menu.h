@@ -88,6 +88,11 @@ public:
     // supress
     bool supressStatus = true;
 
+    // date, time, speed
+    std::string localDate, localTime, speed;
+
+    void setSttParam(CEndState, UI_Key);
+
 private:
     GUI_Obj obj;
     MoonsGeometry menuArea;
