@@ -53,6 +53,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     ginit();
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
+
     keyboard= new QmMatrixKeyboard(matrix_kb.resource);
     keyboard->keyAction.connect(sigc::mem_fun(this, &Service::keyHandler));
     chnext_bt = new QmPushButtonKey(aux_kb.key_iopin_resource[auxkbkeyChNext]);
@@ -76,6 +77,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     guiTree.append(messangeWindow, (char*)test_Pass);
     msgBox(guiTree.getCurrentState().getName() );
+
+    voice_service->PswfRead.connect(sigc::mem_fun(this,&Service::getPSWF));
+    command_rx_30 = 0;
 
 }
 
@@ -429,7 +433,7 @@ void Service::keyPressed(UI_Key key)
 
         switch(estate.subType)
         {
-        case GuiWindowsSubType::simpleCondComm:
+        case GuiWindowsSubType::simpleCondComm:  // условные команды
         {
             switch (key){
             case keyUp:
@@ -444,7 +448,40 @@ void Service::keyPressed(UI_Key key)
                 break;
             case keyEnter:
                 if ( menu->focus < estate.listItem.size() )
-                { /* callback */ }
+                {
+                    /* callback */
+                    int param[2]; // 0 -R_ADR, 1 - COM_N
+                    int i = 0;
+
+                    for (auto &k: estate.listItem)
+                    {
+                        param[i] = atoi(k->inputStr.c_str());
+                        i++;
+                    }
+
+                    Navigation::Coord_Date* date = navigator->getCoordDate();
+                    char * data = (char *)date->data;
+                    char * time = (char *)date->time;
+
+
+                    std::string dt(data);
+                    std::string tm(time);
+
+                    // S_ADR  = 1 .. 32, пусть S_ADR = 1;
+
+                    int LCODE = Calc_LCODE(param[0],1,param[1],0,0,stoi(tm.substr(0,2)),
+                            stoi(tm.substr(2,4)),
+                            stoi(tm.substr(4,6)));
+
+                    //RN_KEY - ?
+
+                    int FREQ  = CalcShiftFreq(0,0,stoi(tm.substr(0,2)),
+                                              stoi(tm.substr(2,4)),
+                                              stoi(tm.substr(4,6)));
+                    voice_service->TurnPSWFMode(1,LCODE,param[0],param[1],FREQ);
+
+
+                }
                 break;
             default:
                 if ( key > 5 && key < 16)
@@ -540,14 +577,14 @@ void Service::keyPressed(UI_Key key)
             break;
         case GuiWindowsSubType::volume:
         {
-            if (key == keyUp  )
+            if ( key == keyRight || key == keyUp )
             {
                 menu->incrVolume();
                 uint8_t level = menu->getVolume();
                 voice_service->TuneAudioLevel(level);
 
             }
-            if (key == keyDown)
+            if ( key == keyLeft || key == keyDown )
             {
                 menu->decrVolume();
                 uint8_t level = menu->getVolume();
@@ -561,7 +598,42 @@ void Service::keyPressed(UI_Key key)
             break;
         }
         case GuiWindowsSubType::scan:
+        {
+            if ( key == keyRight || key == keyUp )
+            {
+                menu->scanStatus = true;
+                menu->inclStatus = true;
+            }
+            if ( key == keyLeft  || key == keyDown )
+            {
+                menu->scanStatus = false;
+                menu->inclStatus = false;
+            }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+        }
+            break;
         case GuiWindowsSubType::suppress:
+        {
+            if ( key == keyRight || key == keyUp )
+            {
+                menu->supressStatus = true;
+                menu->inclStatus = true;
+            }
+            if ( key == keyLeft  || key == keyDown )
+            {
+                menu->supressStatus = false;
+                menu->inclStatus = false;
+            }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+        }
             break;
         case GuiWindowsSubType::aruarm:
         {
@@ -754,7 +826,12 @@ void Service::drawMenu()
         case twoState:
             menu->initTwoStateDialog();
         case scan:
+            menu->inclStatus = menu->scanStatus;
+            menu->initIncludeDialog();
+            break;
         case suppress:
+            menu->inclStatus = menu->supressStatus;
+            menu->initIncludeDialog();
             break;
         case aruarm:
             menu->initAruarmDialog();
@@ -807,16 +884,16 @@ void Service::setFreq(int isFreq)
     Service::isFreq = isFreq;
 }
 
-float Service::CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN)
+int Service::CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN)
 {
     int TOT_W = 6671000; // ширина разрешенных участков
-    float FR_SH = fmod(RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY, TOT_W);
+    int FR_SH = fmod(RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY, TOT_W);
     return FR_SH;
 }
 
-float Service::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
+int Service::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
 {
-    float L_CODE = fmod((R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY), 100);
+    int L_CODE = fmod((R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY), 100);
     return L_CODE;
 }
 
@@ -848,6 +925,15 @@ void Service::setCoordDate(Navigation::Coord_Date *date)
 
    indicator->date_time->SetText((char *)str.c_str());
    str.clear();
+}
+
+void Service::getPSWF()
+{
+    if (command_rx_30 < 30)
+    {
+        BasePswfCadr.push_back( voice_service->ReturnDataPSWF() );
+        command_rx_30++;
+    }
 }
 
 

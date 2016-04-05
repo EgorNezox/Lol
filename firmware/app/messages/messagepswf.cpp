@@ -123,7 +123,7 @@ Indicator, float SNR,float FreqMin, int S_ADR, int R_ADR, int COM_N, float L_COD
                     frame[2] = 0x2;
                     frame[3] = 0x20;
 
-                    transport->transmitFrame(0x63,frame,4); // отправка запроса на ППРЧ
+                    transport->transmitFrame(0x50,frame,4); // отправка запроса на ППРЧ
 
                     frame[2] = 0x1;
 
@@ -133,7 +133,7 @@ Indicator, float SNR,float FreqMin, int S_ADR, int R_ADR, int COM_N, float L_COD
                     for(int i = 0; i<4;i++)
                         frame[i+3] = freq[i];
 
-                    transport->transmitFrame(0x63,frame,4); // установка частоты
+                    transport->transmitFrame(0x50,frame,4); // установка частоты
 
                     uint8_t *data;
 

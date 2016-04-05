@@ -56,9 +56,15 @@ public:
     void setAudioVolumeLevel(uint8_t volume_level);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
     void setPSWFParametres(int RadioPath, int LCODE, int RN_KEY,int COM_N,uint32_t FREQ);
+    void setPswfMode();
+    void transmitPswf();
+    void parsingData();
+    void *getContentPSWF();
+    int pswf_mas[12];
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
+    sigc::signal<void> savePacketPswf;
 
 private:
     friend struct DspCommand;
@@ -67,7 +73,12 @@ private:
         RxRadiopath,
         TxRadiopath,
         Audiopath,
-        PSWF
+        PSWFReceiverRx1,	//0x61
+        PSWFReceiverRx2,	//0x63
+        PSWFReceiverTx,		//0x60
+        PSWFTransmitterRx,	//0x73
+        PSWFTransmitterTx	//0x72
+
     };
     enum RxParameterCode {
         RxFrequency = 1,
@@ -107,16 +118,18 @@ private:
 
 
     struct PswfContent{
-        int TYPE;
+        uint8_t TYPE;
         uint32_t Frequency;
-        int SNR;
-        int R_ADR;
-        int S_ADR;
-        int COM_N;
-        int L_CODE;
-        int RN_KEY;
-        int Conditional_Command;
+        uint8_t SNR;
+        uint8_t R_ADR;
+        uint8_t S_ADR;
+        uint8_t COM_N;
+        uint8_t L_CODE;
+        uint8_t RN_KEY;
+        uint8_t Conditional_Command;
     } ContentPSWF;
+
+
 
 
     void initResetState();
@@ -135,10 +148,12 @@ private:
     void sendCommand(Module module, int code, ParameterValue value);
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
 
+
+
     bool is_ready;
     QmIopin *reset_iopin;
     DspTransport *transport;
-    QmTimer *startup_timer, *command_timer;
+    QmTimer *startup_timer, *command_timer,*timer_tx_pswf;
     enum {
         radiostateSync,
         radiostateCmdModeOffRx,
@@ -150,12 +165,17 @@ private:
         radiostateCmdTxOff,
         radiostateCmdRxMode,
         radiostateCmdTxMode,
-        radiostateCmdCarrierTx
+        radiostateCmdCarrierTx,
+        radiostateCmdPswfTx,
+        radiostateCmdPswfRx
     } radio_state;
     RadioMode current_radio_mode;
     RadioOperation  current_radio_operation;
     uint32_t current_radio_frequency;
     DspCommand *pending_command;
+
+    int command_30 = 0;
+    int command_rx_30 = 0;
 };
 
 } /* namespace Multiradio */

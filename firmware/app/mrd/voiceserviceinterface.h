@@ -35,11 +35,12 @@ public:
     void tuneSquelch(uint8_t value);
     void TuneAudioLevel(uint8_t volume_level);
     void TurnAGCMode(uint8_t mode, int radio_path);
-    void TurnFHSSMode(uint8_t mode, int LCODE, int RN_KEY,int COM_N, uint32_t FREQ);
-
+    void TurnPSWFMode(uint8_t mode, int LCODE, int RN_KEY,int COM_N, uint32_t FREQ);
+    int *ReturnDataPSWF();
 
 
 	sigc::signal<void> currentChannelChanged;
+    sigc::signal<void> PswfRead;
 
 private:
 	friend class Dispatcher;

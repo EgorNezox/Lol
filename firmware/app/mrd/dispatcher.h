@@ -59,6 +59,8 @@ private:
 	VoiceServiceInterface *voice_service;
 	voice_channels_table_t voice_channels_table;
 	voice_channels_table_t::iterator voice_channel;
+
+    sigc::signal<void> getPSWF();
 };
 
 } /* namespace Multiradio */

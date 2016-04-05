@@ -32,7 +32,7 @@ class GUI_Indicator;
 class GUI_Dialog_MsgBox;
 class CGuiMenu;
 
-//class CGuiMenu;
+
 
 namespace Headset {
     class Controller;
@@ -68,10 +68,11 @@ public:
     void updateBattery(int);
     int  getFreq();
     void setFreq(int isFreq);
-    float CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN);
-    float Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
+    int CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN);
+    int Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
 
     void setCoordDate(Navigation::Coord_Date*);
+    void getPSWF();
 
 private:
     void msgBox(const char *text);
@@ -110,10 +111,12 @@ private:
     void draw();
     void drawIndicator();
 
-
+    int RN_KEY = 1;
     int mainWindowModeId;
 
     int isFreq = 0;
+    int command_rx_30 = 0;
+    std::list<int *> BasePswfCadr;
 };
 
 } /* namespace Ui */

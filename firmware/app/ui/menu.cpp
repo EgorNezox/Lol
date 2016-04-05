@@ -295,7 +295,7 @@ void CGuiMenu::initAruarmDialog()
 
     for ( int i = 0; i < 2; i++)
     {
-        if (aruArmAction[i] == 1)
+        if (aruArmStatus[i] == 1)
             volume[2+i]->SetText((char *)useScanMenu[0]);
         else
             volume[2+i]->SetText((char *)useScanMenu[1]);
@@ -324,27 +324,13 @@ void CGuiMenu::initAruarmDialog()
 
 void CGuiMenu::initIncludeDialog()
 {
-    int i = 2;
-    itemArea[0] = {(GXT)(windowArea.xs + 7*MARGIN),
-                   (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
-                   (GXT)(windowArea.xe - 7*MARGIN),
-                   (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
-                  };
-
     MoonsGeometry volume_geom  = {  35,  40,  105,  70 };
     GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom,  NULL, (GUI_Obj*)this);
 
-    char s[4]; sprintf(s,"%d",vol);
-    std::string str;
-
-//    if (aruArmAction == 1)
-//        volume->SetText((char *)useScanMenu[0]);
-//    else
-//        volume->SetText((char *)useScanMenu[1]);
-
-//    str.push_back(proc);
-//    volume->SetText((char *)str.c_str());
-//    str.clear();
+    if (inclStatus == 1)
+        volume->SetText((char *)useScanMenu[0]);
+    else
+        volume->SetText((char *)useScanMenu[1]);
 
     // title
     titleArea = {(GXT)(windowArea.xs + MARGIN),
@@ -580,8 +566,10 @@ void CGuiMenu::incrAruArm(GuiWindowsSubType type)
     switch (type)
     {
     case GuiWindowsSubType::aruarm:
-        aruArmAction[focus] = 1;
-    break;
+        aruArmStatus[focus] = 1;
+        break;
+    default:
+        break;
     }
 }
 
@@ -590,7 +578,9 @@ void CGuiMenu::decrAruArm(GuiWindowsSubType type)
     switch (type)
     {
     case GuiWindowsSubType::aruarm:
-        aruArmAction[focus] = 0;
-    break;
+        aruArmStatus[focus] = 0;
+        break;
+    default:
+        break;
     }
 }
