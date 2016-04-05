@@ -73,18 +73,7 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 	QM_ASSERT(is_ready);
 	switch (radio_state) {
 	case radiostateSync: {
-		switch (current_radio_operation) {
-		case RadioOperationOff:
-			radio_state = radiostateCmdTxPower;
-			break;
-		case RadioOperationRxMode:
-			radio_state = radiostateCmdModeOffRx;
-			break;
-		case RadioOperationTxMode:
-		case RadioOperationCarrierTx:
-			radio_state = radiostateCmdModeOffTx;
-			break;
-		}
+		radio_state = radiostateCmdTxPower;
 		break;
 	}
 	case radiostateCmdRxOff:
@@ -372,7 +361,21 @@ void DspController::syncNextRadioState() {
 	case radiostateSync:
 		QM_ASSERT(0);
 		break;
-	case radiostateCmdTxPower:
+	case radiostateCmdTxPower: {
+		switch (current_radio_operation) {
+		case RadioOperationOff:
+			radio_state = radiostateCmdRxFreq;
+			break;
+		case RadioOperationRxMode:
+			radio_state = radiostateCmdModeOffRx;
+			break;
+		case RadioOperationTxMode:
+		case RadioOperationCarrierTx:
+			radio_state = radiostateCmdModeOffTx;
+			break;
+		}
+		break;
+	}
 	case radiostateCmdModeOffRx:
 	case radiostateCmdModeOffTx: {
 		radio_state = radiostateCmdRxFreq;
