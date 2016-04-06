@@ -50,7 +50,8 @@ enum modeCall
 class CState
 {
     GuiWindowTypes type;
-    std::string    name;
+    std::string    title;
+    std::string    text;
 public:
     std::list<CState*> nextState;
     CState*        prevState;
@@ -66,17 +67,36 @@ public:
         CState();
         setName(newName);
     }
+    CState(const char* newTitle, const char* newText)
+    {
+        CState();
+        setName(newTitle);
+        setText(newText);
+    }
     CState(GuiWindowTypes newType, const char* newName)
     {
         CState();
         setName(newName);
         setType(newType);
+        setText("");
     }
+
+    CState(GuiWindowTypes newType, const char* newName, const char* newText)
+    {
+        CState();
+        setName(newName);
+        setType(newType);
+        setText(newText);
+    }
+
+    ~CState(){ title.clear(); text.clear(); }
 // private:
-    const char* getName(){ return name.c_str(); }
-    void setName(const char* newName){ name.clear(); name.append(newName); }
+    const char* getName(){ return title.c_str(); }
+    void setName(const char* newTitle){ title.clear(); title.append(newTitle); }
     int  getType(){ return type; }
     void setType(GuiWindowTypes newType){ type = newType; }
+    void setText(const char* newText){ text.clear(); text.append(newText); }
+    const char* getText(){ return text.c_str(); }
 };
 
 struct SInputItemParameters
@@ -105,7 +125,8 @@ public:
     CGuiTree(){ init(); }
     ~CGuiTree();
 
-    void append(GuiWindowTypes, char*);
+    void append(GuiWindowTypes, const char*);
+    void append(GuiWindowTypes, const char*, const char*);
     void getLastElement(CState&);
     void delLastElement();
     void resetCurrentState();

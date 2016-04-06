@@ -270,9 +270,14 @@ int CGuiTree::backvard()
         return -1;
 }
 
-void CGuiTree::append(GuiWindowTypes type, char* p)
+void CGuiTree::append(GuiWindowTypes type, const char* title)
 {
-    statesStack.push_back(&*(new CState(type, p)));
+    statesStack.push_back(&*(new CState(type, title)));
+}
+
+void CGuiTree::append(GuiWindowTypes type, const char* title, const char* text)
+{
+    statesStack.push_back(&*(new CState(type, title, text)));
 }
 
 void CGuiTree::getLastElement( CState& st )

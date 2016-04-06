@@ -75,8 +75,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
 
-    guiTree.append(messangeWindow, (char*)test_Pass);
-    msgBox(guiTree.getCurrentState().getName() );
+    guiTree.append(messangeWindow, (char*)test_Pass/*, "nfvjoidesbvbsdvob"*/);
+    msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
 
     voice_service->PswfRead.connect(sigc::mem_fun(this,&Service::getPSWF));
     command_rx_30 = 0;
@@ -741,13 +741,24 @@ int Service::getLanguage()
     return 0;
 }
 
-void Service::msgBox(const char *text)
+void Service::msgBox(const char *title)
 {
     Alignment align = {alignHCenter,alignTop};
-    MoonsGeometry area = {0, 0, (GXT)(159), (GYT)(127)};
+    MoonsGeometry area = {1, 1, (GXT)(159), (GYT)(127)};
     if(msg_box == nullptr)
     {
-        msg_box = new GUI_Dialog_MsgBox(&area, (char*)text, align);
+        msg_box = new GUI_Dialog_MsgBox(&area, (char*)title, align);
+    }
+    msg_box->Draw();
+}
+
+void Service::msgBox(const char *title, const char *text)
+{
+    Alignment align = {alignHCenter,alignTop};
+    MoonsGeometry area = {1, 1, (GXT)(159), (GYT)(127)};
+    if(msg_box == nullptr)
+    {
+        msg_box = new GUI_Dialog_MsgBox(&area, (char*)title, (char*)text, align);
     }
     msg_box->Draw();
 }
@@ -865,7 +876,10 @@ void Service::draw()
         drawMainWindow();
         break;
     case messangeWindow:
-        msgBox( currentState.getName() );
+        if ( currentState.getText() != "" )
+            msgBox( currentState.getName(), currentState.getText() );
+        else
+            msgBox( currentState.getName() );
         break;
     case menuWindow:
         drawMenu();
