@@ -89,6 +89,7 @@ private:
     enum TxParameterCode {
         TxFrequency = 1,
         TxRadioMode = 2,
+		TxPower = 4,
         AGCTX = 7
     };
     enum AudioParameterCode {
@@ -105,6 +106,7 @@ private:
 
     union ParameterValue {
         uint32_t frequency;
+        uint8_t power;
         RadioMode radio_mode;
         AudioMode audio_mode;
         uint8_t squelch;
@@ -156,6 +158,7 @@ private:
         radiostateSync,
         radiostateCmdModeOffRx,
         radiostateCmdModeOffTx,
+		radiostateCmdTxPower,
         radiostateCmdRxFreq,
         radiostateCmdTxFreq,
         radiostateCmdRxOff,

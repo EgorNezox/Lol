@@ -469,15 +469,15 @@ void Service::keyPressed(UI_Key key)
 
                     // S_ADR  = 1 .. 32, пусть S_ADR = 1;
 
-                    int LCODE = Calc_LCODE(param[0],1,param[1],0,0,stoi(tm.substr(0,2)),
-                            stoi(tm.substr(2,4)),
-                            stoi(tm.substr(4,6)));
+                    int LCODE = Calc_LCODE(param[0],1,param[1],0,0,atoi(tm.substr(0,2).c_str()),
+                            atoi(tm.substr(2,4).c_str()),
+                            atoi(tm.substr(4,6).c_str()));
 
                     //RN_KEY - ?
 
-                    int FREQ  = CalcShiftFreq(0,0,stoi(tm.substr(0,2)),
-                                              stoi(tm.substr(2,4)),
-                                              stoi(tm.substr(4,6)));
+                    int FREQ  = CalcShiftFreq(0,0,atoi(tm.substr(0,2).c_str()),
+                                              atoi(tm.substr(2,4).c_str()),
+                                              atoi(tm.substr(4,6).c_str()));
                     voice_service->TurnPSWFMode(1,LCODE,param[0],param[1],FREQ);
 
 
