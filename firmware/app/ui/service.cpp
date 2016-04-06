@@ -937,6 +937,9 @@ void Service::setCoordDate(Navigation::Coord_Date *date)
    str.push_back((char)' ');
 
    str.push_back((char)date->time[0]);
+
+
+
    str.push_back((char)date->time[1]);
    str.push_back((char)':');
    str.push_back((char)date->time[2]);
@@ -950,10 +953,12 @@ void Service::getPSWF()
 {
     if (command_rx_30 < 30)
     {
-        BasePswfCadr.push_back( voice_service->ReturnDataPSWF() );
+        int *pointer = voice_service->ReturnDataPSWF();
+        BasePswfCadr.push_back(pointer);
+        int freq = pointer[1];
+        voice_service->TuneFrequency(freq);
         command_rx_30++;
     }
 }
-
 
 }/* namespace Ui */

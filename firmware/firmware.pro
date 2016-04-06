@@ -66,4 +66,5 @@ HEADERS += \
     app/multiradio.h \
     app/messages/messagepswf.h \
     app/headset/smarttransport.h \
-    app/navigation/navigator.h
+    app/navigation/navigator.h \
+    app/dsp/sheldure.h

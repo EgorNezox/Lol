@@ -11,6 +11,8 @@
 #define FIRMWARE_APP_DSP_DSPCONTROLLER_H_
 
 #include "qmobject.h"
+#include "sheldure.h"
+#include <list>
 
 class QmTimer;
 class QmIopin;
@@ -60,6 +62,7 @@ public:
     void transmitPswf();
     void parsingData();
     void *getContentPSWF();
+    bool questPending();
     int pswf_mas[12];
 
     sigc::signal<void> started;
@@ -68,6 +71,7 @@ public:
 
 private:
     friend struct DspCommand;
+    std::list<DspCommand> ListSheldure;
 
     enum Module {
         RxRadiopath,
@@ -130,8 +134,6 @@ private:
     } ContentPSWF;
 
 
-
-
     void initResetState();
     void processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version);
     void processStartupTimeout();
@@ -176,7 +178,11 @@ private:
 
     int command_30 = 0;
     int command_rx_30 = 0;
+
+
 };
+
+
 
 } /* namespace Multiradio */
 
