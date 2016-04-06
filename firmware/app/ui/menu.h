@@ -13,6 +13,8 @@
 #include "ui_keys.h"
 #include "texts.h"
 
+#include <chrono>
+
 #define MARGIN			4
 #define BUTTON_HEIGHT	13
 #define BUTTON_WIDTH	30
@@ -64,6 +66,9 @@ public:
     // call
     void setCondCommParam(CEndState, UI_Key);
 
+    // message
+    void inputMessage( CEndState , UI_Key);
+
     // volume
     void incrVolume(){ if ( vol < 100) vol += 5; }
     void decrVolume(){ if ( vol >  0 ) vol -= 5; }
@@ -109,7 +114,7 @@ private:
     GUI_EL_MenuItem *(item[6]);
     GUI_EL_Label *label[6];
     char *tx;
-    bool editing;
+    bool editing = false;
 
     uint8_t vol = 100;
 };

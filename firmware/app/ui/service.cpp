@@ -562,6 +562,9 @@ void Service::keyPressed(UI_Key key)
             }
         }
             break;
+        case GuiWindowsSubType::message:
+            menu->inputMessage( (CEndState&)guiTree.getCurrentState(), key );
+            break;
         case GuiWindowsSubType::volume:
         {
             if ( key == keyRight || key == keyUp )
@@ -825,6 +828,9 @@ void Service::drawMenu()
         case GuiWindowsSubType::simpleCondComm:
         case GuiWindowsSubType::duplCondComm:
             menu->initCondCommDialog(st);
+            break;
+        case GuiWindowsSubType::message:
+
             break;
         case GuiWindowsSubType::recv:
             //menu->initTwoStateDialog();

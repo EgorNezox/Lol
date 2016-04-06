@@ -642,3 +642,9 @@ void CGuiMenu::initSetParametersDialog(std::string text)
     title.Draw();
     volume.Draw();
 }
+
+void CGuiMenu::inputMessage( CEndState state, UI_Key key)
+{
+    //
+    //std::chrono::duration_values diffValue = std::chrono::high_resolution_clock::now();
+}
