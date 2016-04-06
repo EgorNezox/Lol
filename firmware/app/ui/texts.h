@@ -56,4 +56,7 @@ extern const char *useScanMenu[];
 extern const char *aru;
 extern const char *arm;
 
+extern const char *error_SWF;
+extern const char *true_SWF;
+
 #endif /* TEXTS_H_ */

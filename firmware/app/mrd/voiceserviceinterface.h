@@ -12,6 +12,7 @@
 
 #include "qmobject.h"
 #include "multiradio.h"
+#include "../ui/texts.h"
 
 namespace Multiradio {
 

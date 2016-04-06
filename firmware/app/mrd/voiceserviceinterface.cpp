@@ -118,9 +118,9 @@ const char* VoiceServiceInterface::ReturnSwfStatus()
 {
     const char *text;
     if (dispatcher->dsp_controller->swf_res <=2)
-        text = "Ошибка АФУ";
+        text = error_SWF;
     else
-        text = "Нет ошибок";
+        text = true_SWF;
 
     return text;
 }

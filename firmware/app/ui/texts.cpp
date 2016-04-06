@@ -54,3 +54,6 @@ const char *settingsSubMenu[] = {" Дата/время\0", " Параметры связи\0", " Сканир
 const char *useScanMenu[] = {"ВКЛ\0", "ВЫКЛ\0"};
 const char *aru = "АРУ\0";
 const char *arm = "АРМ\0";
+const char *error_SWF = "Ошибка АФУ\0";
+const char *true_SWF = "Нет ошибок\0";
+
