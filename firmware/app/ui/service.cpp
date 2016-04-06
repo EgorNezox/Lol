@@ -75,7 +75,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
 
-    guiTree.append(messangeWindow, (char*)test_Pass/*, "nfvjoidesbvbsdvob"*/);
+    guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
     msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
 
     voice_service->PswfRead.connect(sigc::mem_fun(this,&Service::getPSWF));
