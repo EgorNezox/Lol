@@ -10,6 +10,7 @@
 #ifndef FIRMWARE_APP_DSP_DSPCONTROLLER_H_
 #define FIRMWARE_APP_DSP_DSPCONTROLLER_H_
 
+#include <list>
 #include "qmobject.h"
 
 class QmTimer;
@@ -58,6 +59,7 @@ public:
     void setPSWFParametres(int RadioPath, int LCODE, int RN_KEY,int COM_N,uint32_t FREQ);
     void setPswfMode();
     void transmitPswf();
+    void changePswfRxFrequency();
     void parsingData();
     void *getContentPSWF();
     int pswf_mas[12];
@@ -73,12 +75,8 @@ private:
         RxRadiopath,
         TxRadiopath,
         Audiopath,
-        PSWFReceiverRx1,	//0x61
-        PSWFReceiverRx2,	//0x63
-        PSWFReceiverTx,		//0x60
-        PSWFTransmitterRx,	//0x73
-        PSWFTransmitterTx	//0x72
-
+        PSWFReceiver,		//0x60
+        PSWFTransmitter		//0x72
     };
     enum RxParameterCode {
         RxFrequency = 1,
@@ -103,6 +101,13 @@ private:
         PSWF_RX = 0,
         PSWF_TX = 1
     };
+    enum PswfRxParameterCode {
+    	PswfRxState = 0,
+		PswfRxRAdr = 1,
+		PswfRxFrequency = 2,
+		PswfRxFreqSignal = 3,
+		PswfRxMode = 4
+    };
 
     union ParameterValue {
         uint32_t frequency;
@@ -114,10 +119,12 @@ private:
         uint8_t mic_amplify;
         uint8_t agc_mode;
         uint8_t pswf_indicator;
+        uint8_t pswf_r_adr;
     };
 
 
     struct PswfContent{
+    	uint8_t indicator;
         uint8_t TYPE;
         uint32_t Frequency;
         uint8_t SNR;
@@ -146,6 +153,7 @@ private:
     void syncPendingCommand();
     bool resyncPendingCommand();
     void sendCommand(Module module, int code, ParameterValue value);
+    void sendPswf(Module module);
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
 
 
@@ -154,6 +162,7 @@ private:
     QmIopin *reset_iopin;
     DspTransport *transport;
     QmTimer *startup_timer, *command_timer,*timer_tx_pswf;
+    QmTimer *timer_rx_pswf;
     enum {
         radiostateSync,
         radiostateCmdModeOffRx,
@@ -173,6 +182,8 @@ private:
     RadioOperation  current_radio_operation;
     uint32_t current_radio_frequency;
     DspCommand *pending_command;
+
+    std::list<DspCommand> *cmd_queue;
 
     int command_30 = 0;
     int command_rx_30 = 0;
