@@ -19,6 +19,7 @@
 #include "dsptransport.h"
 #include <string>
 
+
 #define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
 
 namespace Multiradio {
@@ -54,7 +55,6 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, QmObje
     timer_tx_pswf->setInterval(1000);
     timer_tx_pswf->timeout.connect(sigc::mem_fun(this, &DspController::transmitPswf));
 
-//    this->savePacketPswf.connect(sigc::mem_fun(this,)&DspController::parsingData);
 
 }
 
@@ -502,122 +502,140 @@ bool DspController::resyncPendingCommand() {
 }
 
 void DspController::sendCommand(Module module, int code, ParameterValue value) {
-	uint8_t tx_address;
-	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
-	int tx_data_len = DEFAULT_PACKET_HEADER_LEN;
-	qmToBigEndian((uint8_t)2, tx_data+0); // индикатор: "команда (установка)"
-	qmToBigEndian((uint8_t)code, tx_data+1); // код параметра
-	switch (module) {
-	case RxRadiopath:
-	case TxRadiopath: {
-		if (module == RxRadiopath)
-			tx_address = 0x50;
-		else
-			tx_address = 0x80;
 
-		switch (code) {
-		case 1:
-			qmToBigEndian(value.frequency, tx_data+tx_data_len);
-			tx_data_len += 4;
-			break;
-		case 2:
-			qmToBigEndian((uint8_t)value.radio_mode, tx_data+tx_data_len);
-			tx_data_len += 1;
-			break;
-		case 4:
-			if (module == RxRadiopath) {
-				qmToBigEndian((uint8_t)value.squelch, tx_data+tx_data_len);
-				tx_data_len += 1;
-			} else {
-				qmToBigEndian((uint8_t)value.power, tx_data+tx_data_len);
-				tx_data_len += 1;
-			}
-			break;
-        case 7:
-        case 8:
-            qmToBigEndian((uint8_t)value.agc_mode, tx_data+tx_data_len);
-            tx_data_len += 1;
+
+
+    if (pending_command->in_progress == false)
+    {
+        if (ListSheldure.size() != 0 )
+        {
+            DspCommand sheldure = (DspCommand) ListSheldure.front();
+            module = sheldure.module;
+            code   = sheldure.code;
+            value  = sheldure.value;
+            ListSheldure.pop_front();
+        }
+        uint8_t tx_address;
+        uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
+        int tx_data_len = DEFAULT_PACKET_HEADER_LEN;
+        qmToBigEndian((uint8_t)2, tx_data+0); // индикатор: "команда (установка)"
+        qmToBigEndian((uint8_t)code, tx_data+1); // код параметра
+        switch (module) {
+        case RxRadiopath:
+        case TxRadiopath: {
+            if (module == RxRadiopath)
+                tx_address = 0x50;
+            else
+                tx_address = 0x80;
+
+            switch (code) {
+            case 1:
+                qmToBigEndian(value.frequency, tx_data+tx_data_len);
+                tx_data_len += 4;
+                break;
+            case 2:
+                qmToBigEndian((uint8_t)value.radio_mode, tx_data+tx_data_len);
+                tx_data_len += 1;
+                break;
+            case 4:
+                if (module == RxRadiopath) {
+                    qmToBigEndian((uint8_t)value.squelch, tx_data+tx_data_len);
+                    tx_data_len += 1;
+                } else {
+                    qmToBigEndian((uint8_t)value.power, tx_data+tx_data_len);
+                    tx_data_len += 1;
+                }
+                break;
+            case 7:
+            case 8:
+                qmToBigEndian((uint8_t)value.agc_mode, tx_data+tx_data_len);
+                tx_data_len += 1;
+                break;
+            default: QM_ASSERT(0);
+            }
             break;
-		default: QM_ASSERT(0);
-		}
-		break;
-	}
-    case Audiopath: {
-        tx_address = 0x90;
-        switch (code) {
-        case AudioModeParameter:
-            qmToBigEndian((uint8_t)value.audio_mode, tx_data+tx_data_len);
-            tx_data_len += 1;
+        }
+        case Audiopath: {
+            tx_address = 0x90;
+            switch (code) {
+            case AudioModeParameter:
+                qmToBigEndian((uint8_t)value.audio_mode, tx_data+tx_data_len);
+                tx_data_len += 1;
+                break;
+            case AudioVolumeLevel:
+                qmToBigEndian((uint8_t)value.volume_level, tx_data+tx_data_len);
+                tx_data_len += 1;
+                break;
+            case AudioMicAmplify:
+                qmToBigEndian((uint8_t)value.mic_amplify, tx_data+tx_data_len);
+                tx_data_len += 1;
+                break;
+            default: QM_ASSERT(0);
+            }
             break;
-        case AudioVolumeLevel:
-            qmToBigEndian((uint8_t)value.volume_level, tx_data+tx_data_len);
+        }
+            // для ППРЧ
+        case PSWFTransmitterTx:
+        {
+            setPswfMode();
+
+            tx_address = 0x72;
+
+            qmToBigEndian((uint8_t)value.pswf_indicator, tx_data+tx_data_len);
             tx_data_len += 1;
-            break;
-        case AudioMicAmplify:
-            qmToBigEndian((uint8_t)value.mic_amplify, tx_data+tx_data_len);
+
+            qmToBigEndian((uint8_t)ContentPSWF.TYPE, tx_data+tx_data_len);
             tx_data_len += 1;
+
+            uint8_t *freq = (uint8_t *)&ContentPSWF.Frequency;//
+
+            for(int i = 0; i<4; i++)
+            {
+                qmToBigEndian((uint8_t)freq[i], tx_data+tx_data_len);
+                tx_data_len += 1;
+            }
+
+            qmToBigEndian((uint8_t)ContentPSWF.SNR, tx_data+tx_data_len);
+            tx_data_len += 1;
+
+            qmToBigEndian((uint8_t)ContentPSWF.R_ADR, tx_data+tx_data_len);
+            tx_data_len += 1;
+
+            qmToBigEndian((uint8_t)ContentPSWF.S_ADR, tx_data+tx_data_len);
+            tx_data_len += 1;
+
+            qmToBigEndian((uint8_t)ContentPSWF.COM_N, tx_data+tx_data_len);
+            tx_data_len += 1;
+
+            qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data+tx_data_len);
+            tx_data_len += 1;
+
+        }
+
+        case PSWFTransmitterRx:
+        {
+            setPswfMode();
+        }
             break;
+
         default: QM_ASSERT(0);
         }
-        break;
+
+        QM_ASSERT(pending_command->in_progress == false);
+        pending_command->in_progress = true;
+        pending_command->sync_next = true;
+        pending_command->module = module;
+        pending_command->code = code;
+        pending_command->value = value;
+        transport->transmitFrame(tx_address, tx_data, tx_data_len);
+        command_timer->start();
     }
-    // для ППРЧ
-    case PSWFTransmitterTx:
+
+    else
     {
-        setPswfMode();
-
-        tx_address = 0x72;
-
-        qmToBigEndian((uint8_t)value.pswf_indicator, tx_data+tx_data_len);
-        tx_data_len += 1;
-
-        qmToBigEndian((uint8_t)ContentPSWF.TYPE, tx_data+tx_data_len);
-        tx_data_len += 1;
-
-        uint8_t *freq = (uint8_t *)&ContentPSWF.Frequency;//
-
-        for(int i = 0; i<4; i++)
-        {
-            qmToBigEndian((uint8_t)freq[i], tx_data+tx_data_len);
-            tx_data_len += 1;
-        }
-
-        qmToBigEndian((uint8_t)ContentPSWF.SNR, tx_data+tx_data_len);
-        tx_data_len += 1;
-
-        qmToBigEndian((uint8_t)ContentPSWF.R_ADR, tx_data+tx_data_len);
-        tx_data_len += 1;
-
-        qmToBigEndian((uint8_t)ContentPSWF.S_ADR, tx_data+tx_data_len);
-        tx_data_len += 1;
-
-        qmToBigEndian((uint8_t)ContentPSWF.COM_N, tx_data+tx_data_len);
-        tx_data_len += 1;
-
-        qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data+tx_data_len);
-        tx_data_len += 1;
-
+       questPending();
     }
 
-    case PSWFTransmitterRx:
-    {
-        setPswfMode();
-
-
-    }
-
-    break;
-
-	default: QM_ASSERT(0);
-	}
-	QM_ASSERT(pending_command->in_progress == false);
-	pending_command->in_progress = true;
-	pending_command->sync_next = true;
-	pending_command->module = module;
-	pending_command->code = code;
-	pending_command->value = value;
-	transport->transmitFrame(tx_address, tx_data, tx_data_len);
-	command_timer->start();
 }
 
 void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len) {
@@ -684,6 +702,12 @@ void DspController::parsingData()
 void *DspController::getContentPSWF()
 {
     return &ContentPSWF;
+}
+
+bool DspController::questPending()
+{
+   ListSheldure.push_back(*pending_command); //  добавляем неотправленную команду
+   return true;
 }
 
 } /* namespace Multiradio */
