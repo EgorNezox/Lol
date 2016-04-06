@@ -58,6 +58,9 @@ public:
     void setAudioVolumeLevel(uint8_t volume_level);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
     void setPSWFParametres(int RadioPath, int LCODE, int RN_KEY,int COM_N,uint32_t FREQ);
+
+
+    void getSwr();
     void setPswfMode();
     void transmitPswf();
     void parsingData();
@@ -68,6 +71,8 @@ public:
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void> savePacketPswf;
+
+    float swf_res = 2; // надо изменить значение на нижнее предельное
 
 private:
     friend struct DspCommand;
@@ -118,6 +123,7 @@ private:
         uint8_t mic_amplify;
         uint8_t agc_mode;
         uint8_t pswf_indicator;
+        uint8_t swf_mode;
     };
 
 
@@ -151,7 +157,6 @@ private:
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
 
 
-
     bool is_ready;
     QmIopin *reset_iopin;
     DspTransport *transport;
@@ -179,6 +184,8 @@ private:
     int command_30 = 0;
     int command_rx_30 = 0;
 
+    uint32_t fwd_wave = 0;
+    uint32_t ref_wave = 0;
 
 };
 

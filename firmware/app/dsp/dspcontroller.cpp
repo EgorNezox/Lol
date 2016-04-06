@@ -205,6 +205,20 @@ void DspController::setPSWFParametres(int RadioPath,int LCODE, int RN_KEY, int C
 
 }
 
+void DspController::getSwr()
+{
+    QM_ASSERT(is_ready);
+    if (!resyncPendingCommand())
+        return;
+
+    ParameterValue commandValue;
+    commandValue.swf_mode = 5;
+    sendCommand(TxRadiopath,0,commandValue);
+
+    commandValue.swf_mode = 6;
+    sendCommand(TxRadiopath,0,commandValue);
+}
+
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void DspController::setPswfMode()
 {
@@ -503,8 +517,6 @@ bool DspController::resyncPendingCommand() {
 
 void DspController::sendCommand(Module module, int code, ParameterValue value) {
 
-
-
     if (pending_command->in_progress == false)
     {
         if (ListSheldure.size() != 0 )
@@ -658,7 +670,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 			if ((code == 1) && (value_len == 4)) {
 				value.frequency = qmFromBigEndian<uint32_t>(value_ptr+0);
 			} else if ((code == 2) && (value_len == 1)) {
-				value.radio_mode = (RadioMode)qmFromBigEndian<uint8_t>(value_ptr+0);
+                value.radio_mode = (RadioMode)qmFromBigEndian<uint8_t>(value_ptr+0);
 			} else {
 				break;
 			}
@@ -667,6 +679,18 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 				module = RxRadiopath;
 			else
 				module = TxRadiopath;
+            if (code == 5)
+                fwd_wave = qmFromBigEndian<uint32_t>(value_ptr+0);
+            if (code == 6)
+            {
+                ref_wave = qmFromBigEndian<uint32_t>(value_ptr+0);
+                if (fwd_wave > 0)
+                {
+                    swf_res = (fwd_wave+ref_wave)/(fwd_wave-ref_wave);
+                }
+            }
+
+
 			processCommandResponse((indicator == 3), module, code, value);
 		}
 		break;
@@ -680,7 +704,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 if (i == 1)
                 {
                     for(int j = 1; i<=4; i++)
-                        pswf_mas[i]  = (pswf_mas[i] << 8) + data[j];
+                    pswf_mas[i]  = (pswf_mas[i] << 8) + data[j];
                     i+=3;
                 }
                 pswf_mas[i] = (int) data[i];
@@ -693,6 +717,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	default: break;
     }
 }
+
+
 // maybe two sides of pswf
 // заглушка для сообещения о заполнении структуры
 void DspController::parsingData()

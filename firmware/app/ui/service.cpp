@@ -461,12 +461,30 @@ void Service::keyPressed(UI_Key key)
                     }
 
                     Navigation::Coord_Date* date = navigator->getCoordDate();
-                    char * data = (char *)date->data;
-                    char * time = (char *)date->time;
+
+                    char * data = NULL;
+                    char *time  = NULL;
+
+                    data = (char *)date->data;
+                    time = (char *)date->time;
 
 
-                    std::string dt(data);
-                    std::string tm(time);
+
+                    std::string dt;
+                    std::string tm;
+
+                    if ((data != NULL) &&  (time != NULL) &&
+                        (sizeof(data) >5) && (sizeof(time) >5))
+                    {
+                         dt = std::string(data);
+                         tm = std::string(time);
+                    }
+                         else
+                    {
+                         dt = std::string("060416");
+                         tm = std::string("143722");
+                    }
+
 
                     // S_ADR  = 1 .. 32, пусть S_ADR = 1;
 
