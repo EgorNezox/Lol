@@ -52,7 +52,7 @@ public:
     void initSuppressDialog();
     void initTwoStateDialog();
     void initGpsCoordinateDialog();
-    void initSetParametersDialog(){};
+    void initSetParametersDialog(std::string);
 
     void setTitle(const char*);
     void keyPressed(UI_Key);

@@ -818,12 +818,6 @@ void Service::drawMenu()
         case GuiWindowsSubType::recv:
             //menu->initTwoStateDialog();
             break;
-        case GuiWindowsSubType::data:
-            //menu->initTwoStateDialog();
-            break;
-        case GuiWindowsSubType::settings:
-            //menu->initTwoStateDialog();
-            break;
         case GuiWindowsSubType::gpsCoord:
 #if !defined(PORT__PCSIMULATOR)
             setCoordDate(navigator->getCoordDate());
@@ -836,7 +830,7 @@ void Service::drawMenu()
         case GuiWindowsSubType::setTime:
         case GuiWindowsSubType::setFreq:
         case GuiWindowsSubType::setSpeed:
-            menu->initSetParametersDialog();
+            menu->initSetParametersDialog( st.listItem.front()->inputStr );
             break;
         case GuiWindowsSubType::twoState:
             menu->initTwoStateDialog();
@@ -854,10 +848,7 @@ void Service::drawMenu()
         case GuiWindowsSubType::volume:
             menu->initVolumeDialog();
             break;
-//        case date:
-//            break;
         default:
-            //menu->initTwoStateDialog();
             break;
         }
     }
@@ -867,7 +858,6 @@ void Service::draw()
 {
     CState currentState;
     guiTree.getLastElement(currentState);
-
 
     switch(currentState.getType())
     {

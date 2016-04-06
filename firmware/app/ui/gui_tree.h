@@ -167,7 +167,8 @@ private:
     SInputItemParameters dateParameters, timeParameters;
     // 4.2.1 - 4.2.2
     CEndState sttSetFreq, sttSetSpeed;
-    SInputItemParameters freqParameters, speedParameters;
+    SInputItemParameters freqParameters {(char*)setConnParam[0], "1", 2, 0, 31} ,
+                         speedParameters{(char*)setConnParam[1], "2", 2, 0, 31};
 
     void init();
 

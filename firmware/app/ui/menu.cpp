@@ -596,6 +596,7 @@ void CGuiMenu::decrAruArm(GuiWindowsSubType type)
 void CGuiMenu::setSttParam(CEndState state, UI_Key key)
 {
     GuiWindowsSubType type = state.subType;
+    std::string *str; str = &state.listItem.front()->inputStr;
 
     switch ( type )
     {
@@ -607,15 +608,15 @@ void CGuiMenu::setSttParam(CEndState state, UI_Key key)
     case setFreq:
         break;
     case setSpeed:
-        if (key == keyBack && speed.size() > 0)
+        if (key == keyBack && str->size() > 0)
         {}
-        else if (key == keyBack && speed.size() == 0)
+        else if (key == keyBack && str->size() == 0)
         {}
         if ( key > 5 && key < 17)
         {
-            if ( speed.size() < 8)
+            if ( str->size() < 8)
             {
-                speed.push_back(key+42);
+                str->push_back(key+42);
             }
         }
 
@@ -623,4 +624,21 @@ void CGuiMenu::setSttParam(CEndState state, UI_Key key)
     default:
         break;
     }
+}
+
+void CGuiMenu::initSetParametersDialog(std::string text)
+{
+    MoonsGeometry volume_geom  = {  35,  40,  105,  65 };
+    LabelParams label_param = GUI_EL_TEMP_LabelMode;
+    //label_param = ;
+
+    titleArea = { 35, 15, 105, 34};
+
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
+    GUI_EL_Label  title (&titleParams,               &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
+    GUI_EL_Label  volume(&label_param,               &volume_geom, (char *)text.c_str()   , (GUI_Obj*)this);
+
+    window.Draw();
+    title.Draw();
+    volume.Draw();
 }
