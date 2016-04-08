@@ -18,6 +18,7 @@
 #include "dspcontroller.h"
 #include "dsptransport.h"
 #include <string>
+#include "../navigation/navigator.h"
 
 
 #define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
@@ -261,15 +262,16 @@ void DspController::transmitPswf()
     command_tx30++;
 }
 
+
+
 void DspController::changePswfRxFrequency() {
-	ParameterValue param;
-	param.frequency = ContentPSWF.Frequency;
-	sendCommand(RxRadiopath, RxFrequency, param);
+    ParameterValue param;
+    param.frequency = ContentPSWF.Frequency;
+    sendCommand(RxRadiopath, RxFrequency, param);
     if (command_rx30 == 30) {
         command_rx30 = 0;
-		//TODO:
-	}
-
+        //TODO:
+    }
 
     // поиск совпадений в массиве
     command[command_rx30] = *(bufer_pswf[command_rx30] + 9);
@@ -281,7 +283,10 @@ void DspController::changePswfRxFrequency() {
             if (command[j] == command[command_rx30]){
                 sucsess_pswf = true;
                 ContentPSWF.COM_N = command[command_rx30];
-                ContentPSWF.L_CODE = lcode;
+                ContentPSWF.L_CODE = lcode; // изменяем параметры для передачи
+                ContentPSWF.R_ADR = ContentPSWF.S_ADR;
+                // Пусть пока свой адрес равен 1
+                ContentPSWF.S_ADR = 1;
                 if (quite == 1)
                     quit_timer->start();
             }

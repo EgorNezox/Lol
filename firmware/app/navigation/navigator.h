@@ -32,11 +32,14 @@ public:
      sigc::signal<void> CoordinateUpdated; // обновили дату,время и координаты
      Coord_Date* getCoordDate();
 
+     int Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
+
 private:
 //#if defined(PORT__TARGET_DEVICE_REV1)
 	void processUartReceivedData();
 	void processUartReceivedErrors(bool data_errors, bool overflow);
     void parsingData(uint8_t data[]);
+
 
     Coord_Date CoordDate;
 

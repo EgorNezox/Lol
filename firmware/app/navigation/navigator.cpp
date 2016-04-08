@@ -12,7 +12,7 @@
 #include <string.h>
 #include <string>
 #include <list>
-
+#include <math.h>
 #include "navigator.h"
 
 namespace Navigation {
@@ -53,6 +53,12 @@ Navigator::~Navigator() {
 Coord_Date *Navigator::getCoordDate()
 {
     return &CoordDate;
+}
+
+int Navigator::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
+{
+    int L_CODE = fmod((R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY), 100);
+    return L_CODE;
 }
 
 //#if defined(PORT__TARGET_DEVICE_REV1)
