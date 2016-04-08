@@ -49,7 +49,8 @@ void qmMain() {
 	QmIopin entxrs232_iopin(platformhwEnTxRs232Iopin);
 	Headset::Controller headset_controller(platformhwHeadsetUart, platformhwHeadsetPttIopin);
 #if defined(PORT__TARGET_DEVICE_REV1)
-    Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin, platformhwNavigatorAntFlagIopin);
+    Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin,
+    		platformhwNavigatorAntFlagIopin, platformhwNavigator1PPSIopin);
 #endif /* PORT__TARGET_DEVICE_REV1 */
 	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
 			&headset_controller, &navigator);

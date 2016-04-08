@@ -64,7 +64,7 @@ public:
 
 
     void getSwr();
-    void setPswfMode();
+    void setPswfMode(int radio_path);
     void transmitPswf();
     void changePswfRxFrequency();
     void parsingData();

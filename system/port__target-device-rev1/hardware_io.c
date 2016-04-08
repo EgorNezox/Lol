@@ -394,6 +394,11 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		params.mode = hgpioMode_In;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPG, 6}, &params);
 		break;
+	case platformhwNavigator1PPSIopin:
+		params.mode = hgpioMode_In;
+		params.exti_source = true;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPG, 7}, &params);
+		break;
 	case platformhwPowerHSControlIopin:
 		params.mode = hgpioMode_In;
 		params.exti_source = true;
@@ -484,6 +489,9 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 	case platformhwNavigatorAntFlagIopin:
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPG, 6});
 		break;
+	case platformhwNavigator1PPSIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPG, 7});
+		break;
 	case platformhwPowerHSControlIopin:
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPF, 10});
 		break;
@@ -522,6 +530,8 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 		return (hal_gpio_pin_t){hgpioPG, 8};
 	case platformhwNavigatorAntFlagIopin:
 		return (hal_gpio_pin_t){hgpioPG, 6};
+	case platformhwNavigator1PPSIopin:
+		return (hal_gpio_pin_t){hgpioPG, 7};
 	case platformhwPowerHSControlIopin:
 		return (hal_gpio_pin_t){hgpioPF, 10};
 	case platformhwPowerControllerIopin:
@@ -543,6 +553,8 @@ int stm32f2_get_exti_line(int platform_hw_resource) {
 		return 11;
 	case platformhwKeyboardButt2Iopin:
 		return 12;
+	case platformhwNavigator1PPSIopin:
+		return 7;
 	case platformhwPowerHSControlIopin:
 		return 10;
 	case platformhwPowerOffIntIopin:

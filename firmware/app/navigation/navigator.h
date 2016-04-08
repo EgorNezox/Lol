@@ -26,7 +26,7 @@ struct Coord_Date
 
 class Navigator : public QmObject {
 public:
-	Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_iopin_resource);
+	Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_iopin_resource, int sync_pulse_iopin_resource);
 	~Navigator();
 
      sigc::signal<void> CoordinateUpdated; // обновили дату,время и координаты
@@ -40,12 +40,14 @@ private:
 	void processUartReceivedData();
 	void processUartReceivedErrors(bool data_errors, bool overflow);
     void parsingData(uint8_t data[]);
+    void processSyncPulse();
 
 
     Coord_Date CoordDate;
 
 	QmIopin *reset_iopin;
 	QmIopin *ant_flag_iopin;
+	QmIopin *sync_pulse_iopin;
 	QmUart *uart;
 //#endif /* PORT__TARGET_DEVICE_REV1 */
 };
