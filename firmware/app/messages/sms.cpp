@@ -26,19 +26,23 @@ void sms::getPolynom(int *input)
     int *output = (int*) malloc(255*sizeof(int));
 
     // задать параметры settings
-    for(int i = 0; i<8;i++)
+    // 1. Генерируем полином
+    gen_poly(&setting);
+    // 2. Получаем поле Галуа
+    GenerateGaloisField(&setting);
+    // 3. Выполняем кодирование
+    rs_encode(&setting,input,output,255);
+    int *outputs = (int*)malloc(259*sizeof(int));
+
+    for(int i = 0; i<255;i++)
+        outputs[i] = output[i];
+    for(int i = 255;i<259;i++)
+        outputs[i] = getRandomBits(4)[i - 255];
+
+    for(int i = 0; i<37;i++)
     {
-        // 1. Генерируем полином
-        gen_poly(&setting);
-        // 2. Получаем поле Галуа
-        GenerateGaloisField(&setting);
-        // 3. Выполняем кодирование
-        rs_encode(&setting,input,output,255);
-        output_post[i] = (int*)malloc(259*sizeof(int));
-//        memcpy((output_post+i),output,255*sizeof(int));
-//        memcpy((output_post[i]),output,4*sizeof(int));
-        for(int j = 0; j<255;j++) output_post[i][j] = output[j];
-        for(int j = 255;j<259;j++) output_post[i][j] = getRandomBits(4)[j];
+        //        memcpy((output_post+i),output,255*sizeof(int));
+        //        memcpy((output_post[i]),output,4*sizeof(int));
     }
 
 }
@@ -69,4 +73,6 @@ int sms::getCALL_LCODE(int CYC_N,char *date)
     return CALL_L_CODE = fmod(R_ADR + S_ADR + CYC_N + RN_KEY + SEC + MIN + HRS + DAY, 100);
 
 }
+
+
 
