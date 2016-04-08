@@ -7,6 +7,7 @@
  ******************************************************************************
  */
 
+#include <malloc.h>
 #include "qm.h"
 #define QMDEBUGDOMAIN	dspcontroller
 #include "qmdebug.h"
@@ -18,7 +19,6 @@
 #include "dspcontroller.h"
 #include "dsptransport.h"
 #include <string>
-#include "../navigation/navigator.h"
 
 
 #define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
@@ -33,7 +33,7 @@ struct DspCommand {
 	DspController::ParameterValue value;
 };
 
-DspController::DspController(int uart_resource, int reset_iopin_resource, QmObject *parent) :
+DspController::DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, QmObject *parent) :
 	QmObject(parent),
 	is_ready(false)
 {
@@ -48,6 +48,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, QmObje
 	transport = new DspTransport(uart_resource, 2, this);
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 	initResetState();
+
+	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
 
     command_tx30 = 0;
     command_rx30 = 0;
@@ -67,6 +69,10 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, QmObje
     quit_timer->setInterval(30000);
     quit_timer->timeout.connect(sigc::mem_fun(this,&DspController::transmitPswf));
 
+    for (int i = 0; i < 30; ++i)
+    	bufer_pswf[i] = (char*)malloc(12 * sizeof(char));
+
+    quite = 0;
 }
 
 DspController::~DspController()
@@ -245,11 +251,24 @@ void DspController::setPswfMode()
     }
 }
 
+void DspController::syncPulseDetected() {
+	if (!is_ready)
+		return;
+	switch (radio_state) {
+	case radiostateCmdPswfRx : {
+		changePswfRxFrequency();
+		break;
+	}
+	case radiostateCmdPswfTx : {
+		transmitPswf();
+		break;
+	}
+	default: break;
+	}
+}
+
 void DspController::transmitPswf()
 {
-//    ParameterValue command_value;
-//    command_value.pswf_indicator = 20;
-//    sendCommand(PSWFTransmitter,PSWF_TX,command_value);
     sendPswf(PSWFTransmitter);
     if (command_tx30 == 30)
     {
@@ -268,33 +287,35 @@ void DspController::changePswfRxFrequency() {
     ParameterValue param;
     param.frequency = ContentPSWF.Frequency;
     sendCommand(RxRadiopath, RxFrequency, param);
-    if (command_rx30 == 30) {
-        command_rx30 = 0;
-        //TODO:
-    }
+}
 
-    // поиск совпадений в массиве
-    command[command_rx30] = *(bufer_pswf[command_rx30] + 9);
-    char lcode  = *(bufer_pswf[command_rx30] + 10);
+void DspController::RecievedPswf()
+{
+	if (command_rx30 == 30) {
+		command_rx30 = 0;
+	}
 
-    if (command_rx30 - 1 >=0)
-        for(int j = command_rx30 - 1; j>0;j--)
-        {
-            if (command[j] == command[command_rx30]){
-                sucsess_pswf = true;
-                ContentPSWF.COM_N = command[command_rx30];
-                ContentPSWF.L_CODE = lcode; // изменяем параметры для передачи
-                ContentPSWF.R_ADR = ContentPSWF.S_ADR;
-                // Пусть пока свой адрес равен 1
-                ContentPSWF.S_ADR = 1;
-                if (quite == 1)
-                    quit_timer->start();
-            }
+	// поиск совпадений в массиве
+	command[command_rx30] = bufer_pswf[command_rx30][9];
+	char lcode  = bufer_pswf[command_rx30][10];
 
-        }
+	if (command_rx30 - 1 >=0)
+		for(int j = command_rx30 - 1; j>0;j--)
+		{
+			if (command[j] == command[command_rx30]){
+				sucsess_pswf = true;
+				ContentPSWF.COM_N = command[command_rx30];
+				ContentPSWF.L_CODE = lcode; // изменяем параметры для передачи
+				ContentPSWF.R_ADR = ContentPSWF.S_ADR;
+				// Пусть пока свой адрес равен 1
+				ContentPSWF.S_ADR = 1;
+				if (quite == 1)
+					quit_timer->start();
+			}
 
-    ++command_rx30;
+		}
 
+	++command_rx30;
 }
 
 
@@ -705,8 +726,10 @@ void DspController::sendPswf(Module module) {
 //	pending_command->code = code;
 //	pending_command->value = value;
 	transport->transmitFrame(tx_address, tx_data, tx_data_len);
-    if (sucsess_pswf == false) // продумать
-	command_timer->start();
+    if (sucsess_pswf == false) { //TODO: продумать
+    	sucsess_pswf = true;
+    	command_timer->start();
+    }
 }
 
 void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len) {
@@ -755,8 +778,10 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 		break;
 	}
     case 0x63: {
-        if ((indicator == 30) && (value_len == 1))
+        if ((indicator == 30) /*&& (value_len == 1)*/)
         {
+        	QM_ASSERT(command_rx30 < 30);
+        	QM_ASSERT(value_len <= 12);
             memcpy(bufer_pswf[command_rx30],data,value_len);
             // копируем значения в  bufer_command
 
@@ -771,7 +796,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 pswf_mas[i] = (int) data[i];
 
             }
-            parsingData();
+//            parsingData();
+            RecievedPswf();
         }
         break;
     }

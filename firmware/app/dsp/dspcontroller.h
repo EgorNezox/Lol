@@ -14,6 +14,7 @@
 #include "qmobject.h"
 #include "sheldure.h"
 #include <list>
+#include "../navigation/navigator.h"
 
 class QmTimer;
 class QmIopin;
@@ -49,7 +50,7 @@ public:
     };
 
 
-    DspController(int uart_resource, int reset_iopin_resource, QmObject *parent);
+    DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, QmObject *parent);
     ~DspController();
     bool isReady();
     void startServicing();
@@ -59,6 +60,7 @@ public:
     void setAudioVolumeLevel(uint8_t volume_level);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
     void setPSWFParametres(int RadioPath, int LCODE, int RN_KEY,int COM_N,uint32_t FREQ);
+    void RecievedPswf();
 
 
     void getSwr();
@@ -68,6 +70,7 @@ public:
     void parsingData();
     void *getContentPSWF();
     bool questPending();
+    void syncPulseDetected();
 
     void transmitSMS();
 
@@ -209,8 +212,6 @@ private:
     char  command[30];
 
     bool sucsess_pswf = false;
-
-
 };
 
 

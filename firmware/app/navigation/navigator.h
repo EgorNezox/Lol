@@ -30,6 +30,7 @@ public:
 	~Navigator();
 
      sigc::signal<void> CoordinateUpdated; // обновили дату,время и координаты
+     sigc::signal<void> syncPulse;
      Coord_Date* getCoordDate();
 
      int Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
