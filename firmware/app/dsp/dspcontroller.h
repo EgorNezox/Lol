@@ -68,11 +68,15 @@ public:
     void parsingData();
     void *getContentPSWF();
     bool questPending();
+
+    void ReturnPswfFromDSP();
     int pswf_mas[12];
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void> savePacketPswf;
+
+    uint8_t quite;
 
     float swf_res = 2; // надо изменить значение на нижнее предельное
 
@@ -169,7 +173,7 @@ private:
     QmIopin *reset_iopin;
     DspTransport *transport;
     QmTimer *startup_timer, *command_timer,*timer_tx_pswf,*timer_rx_pswf;
-    QmTimer *timer_rx_pswf;
+    QmTimer *quit_timer;
     enum {
         radiostateSync,
         radiostateCmdModeOffRx,
@@ -192,14 +196,18 @@ private:
 
     std::list<DspCommand> *cmd_queue;
 
-    int command_30 = 0;
-    int command_rx_30 = 0;
+    int command_tx30 = 0;
+    int command_rx30 = 0;
 
     uint32_t fwd_wave = 0;
     uint32_t ref_wave = 0;
 
     // кольцевой буфер для сообщений
     char* bufer_pswf[30];
+    char  command[30];
+
+    bool sucsess_pswf = false;
+
 
 };
 

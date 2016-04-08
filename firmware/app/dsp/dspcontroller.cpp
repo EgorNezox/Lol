@@ -61,9 +61,10 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, QmObje
 
     timer_rx_pswf = new QmTimer(false,this);
     timer_rx_pswf->setInterval(1000);
-    timer_rx_pswf->timeout.connect(sigc::mem_fun(this,&DspController::recievedPswf));
 
-//    this->savePacketPswf.connect(sigc::mem_fun(this,)&DspController::parsingData);
+    quit_timer = new QmTimer(true,this);
+    quit_timer->setInterval(30000);
+    quit_timer->timeout.connect(sigc::mem_fun(this,&DspController::transmitPswf));
 
 }
 
@@ -249,7 +250,7 @@ void DspController::transmitPswf()
 //    command_value.pswf_indicator = 20;
 //    sendCommand(PSWFTransmitter,PSWF_TX,command_value);
     sendPswf(PSWFTransmitter);
-    if (command_30 == 30)
+    if (command_tx30 == 30)
     {
     	qmDebugMessage(QmDebug::Warning, "PSWF trinsmitting finished");
         timer_tx_pswf->stop();
@@ -257,29 +258,38 @@ void DspController::transmitPswf()
         radio_state = radiostateCmdPswfRx;
         setPswfMode();
     }
-    command_30++;
+    command_tx30++;
 }
 
 void DspController::changePswfRxFrequency() {
 	ParameterValue param;
 	param.frequency = ContentPSWF.Frequency;
 	sendCommand(RxRadiopath, RxFrequency, param);
-	if (command_30 == 30) {
-		command_30 = 0;
+    if (command_rx30 == 30) {
+        command_rx30 = 0;
 		//TODO:
 	}
-	++command_30;
-}
 
-    if (strlen((const char*)bufer_pswf[command_rx30]) > 4)
-    {
-        command_rx30++;
-        for(int i = 0; i<command_rx30;i++)
+
+    // поиск совпадений в массиве
+    command[command_rx30] = *(bufer_pswf[command_rx30] + 9);
+    char lcode  = *(bufer_pswf[command_rx30] + 10);
+
+    if (command_rx30 - 1 >=0)
+        for(int j = command_rx30 - 1; j>0;j--)
         {
-            char com = *(bufer_pswf[i] + 9);
+            if (command[j] == command[command_rx30]){
+                sucsess_pswf = true;
+                ContentPSWF.COM_N = command[command_rx30];
+                ContentPSWF.L_CODE = lcode;
+                if (quite == 1)
+                    quit_timer->start();
+            }
 
         }
-    }
+
+    ++command_rx30;
+
 }
 
 
@@ -690,6 +700,7 @@ void DspController::sendPswf(Module module) {
 //	pending_command->code = code;
 //	pending_command->value = value;
 	transport->transmitFrame(tx_address, tx_data, tx_data_len);
+    if (sucsess_pswf == false) // продумать
 	command_timer->start();
 }
 
@@ -791,6 +802,11 @@ bool DspController::questPending()
 {
    ListSheldure.push_back(*pending_command); //  добавляем неотправленную команду
    return true;
+}
+
+void DspController::ReturnPswfFromDSP()
+{
+
 }
 
 } /* namespace Multiradio */
