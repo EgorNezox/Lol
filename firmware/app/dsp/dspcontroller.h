@@ -69,6 +69,8 @@ public:
     void *getContentPSWF();
     bool questPending();
 
+    void transmitSMS();
+
     void ReturnPswfFromDSP();
     int pswf_mas[12];
 

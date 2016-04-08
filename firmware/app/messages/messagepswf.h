@@ -59,9 +59,6 @@ public:
 
     int* getGPSData();
 
-
-
-
     sigc::signal<void> setRadioCompleted;
 
 private:
