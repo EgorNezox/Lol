@@ -114,6 +114,17 @@ int *VoiceServiceInterface::ReturnDataPSWF()
     dispatcher->dsp_controller->getContentPSWF();
 }
 
+const char* VoiceServiceInterface::ReturnSwfStatus()
+{
+    const char *text;
+    if (dispatcher->dsp_controller->swf_res <=2)
+        text = error_SWF;
+    else
+        text = true_SWF;
+
+    return text;
+}
+
 void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
 	current_channel_status = status;
 	currentChannelChanged();

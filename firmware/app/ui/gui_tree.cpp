@@ -178,10 +178,12 @@ void CGuiTree::init()
     sttSetDate.subType = GuiWindowsSubType::setDate;
     sttSetDate.prevState = &sttConnParamHand;
     sttSetDate.nextState.clear();
+    sttSetDate.listItem.push_back(&dateParameters);
     // 4.1.2.2 - Установить время
     sttSetTime.subType = GuiWindowsSubType::setTime;
     sttSetTime.prevState = &sttConnParamHand;
     sttSetTime.nextState.clear();
+    sttSetTime.listItem.push_back(&timeParameters);
     // 4.2 - Параметры связи
     sttConnParam.prevState = &settings;
     sttConnParam.nextState.push_back(&sttSetFreq);
@@ -190,10 +192,12 @@ void CGuiTree::init()
     sttSetFreq.subType = GuiWindowsSubType::setFreq;
     sttSetFreq.prevState = &sttConnParam;
     sttSetFreq.nextState.clear();
+    sttSetFreq.listItem.push_back(&freqParameters);
     // 4.2.2 - Скорость
     sttSetSpeed.subType = GuiWindowsSubType::setSpeed;
     sttSetSpeed.prevState = &sttConnParam;
     sttSetSpeed.nextState.clear();
+    sttSetSpeed.listItem.push_back(&speedParameters);
     // 4.3 - Сканирование
     sttScan.subType = GuiWindowsSubType::scan;
     sttScan.prevState = &settings;
@@ -266,9 +270,14 @@ int CGuiTree::backvard()
         return -1;
 }
 
-void CGuiTree::append(GuiWindowTypes type, char* p)
+void CGuiTree::append(GuiWindowTypes type, const char* title)
 {
-    statesStack.push_back(&*(new CState(type, p)));
+    statesStack.push_back(&*(new CState(type, title)));
+}
+
+void CGuiTree::append(GuiWindowTypes type, const char* title, const char* text)
+{
+    statesStack.push_back(&*(new CState(type, title, text)));
 }
 
 void CGuiTree::getLastElement( CState& st )

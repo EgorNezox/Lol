@@ -12,6 +12,7 @@
 
 #include "qmobject.h"
 #include "multiradio.h"
+#include "../ui/texts.h"
 
 namespace Multiradio {
 
@@ -37,6 +38,7 @@ public:
     void TurnAGCMode(uint8_t mode, int radio_path);
     void TurnPSWFMode(uint8_t mode, int LCODE, int RN_KEY,int COM_N, uint32_t FREQ);
     int *ReturnDataPSWF();
+    const char* ReturnSwfStatus();
 
 
 	sigc::signal<void> currentChannelChanged;

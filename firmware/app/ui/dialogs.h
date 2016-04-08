@@ -103,15 +103,19 @@ public:
 class GUI_Dialog_MsgBox: public GUI_Obj
 {
 public:
-    GUI_Dialog_MsgBox(MoonsGeometry* area, char *text, Alignment align);
+    GUI_Dialog_MsgBox(MoonsGeometry* area, const char *title, Alignment align);
+    GUI_Dialog_MsgBox(MoonsGeometry* area, const char *title, const char *text, Alignment align);
     virtual ~GUI_Dialog_MsgBox();
     virtual void Draw();
     void keyPressed(UI_Key);
 protected:
     MoonsGeometry window_geom;
+    TextAreaParams title_area_params;
     TextAreaParams text_area_params;
-    char *text;
+    std::string title;
+    std::string text;
 private:
+    MoonsGeometry title_area_geom;
     MoonsGeometry text_area_geom;
     MoonsGeometry button_geom;
 };

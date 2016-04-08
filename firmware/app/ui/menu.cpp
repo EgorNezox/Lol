@@ -104,10 +104,18 @@ void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
                     k->inputStr.push_back((char)(42+key));
                     // check
                     int rc = atoi(k->inputStr.c_str());
-                    if ( i == 0 && rc > 31 )
-                    { k->inputStr.clear(); }
-                    if ( i == 0 && rc > 99 )
-                    { k->inputStr.clear(); }
+                    if ( state.listItem.size() == 2 )
+                    {
+                        if ( i == 0 && rc > 31 )
+                            { k->inputStr.clear(); }
+                        if ( i == 0 && rc > 99 )
+                            { k->inputStr.clear(); }
+                    }
+                    if ( state.listItem.size() == 1 )
+                    {
+                        if ( i == 0 && rc > 99 )
+                        { k->inputStr.clear(); }
+                    }
                 }
                 break;
             }
@@ -583,4 +591,60 @@ void CGuiMenu::decrAruArm(GuiWindowsSubType type)
     default:
         break;
     }
+}
+
+void CGuiMenu::setSttParam(CEndState state, UI_Key key)
+{
+    GuiWindowsSubType type = state.subType;
+    std::string *str; str = &state.listItem.front()->inputStr;
+
+    switch ( type )
+    {
+    case setDate:
+
+        break;
+    case setTime:
+        break;
+    case setFreq:
+        break;
+    case setSpeed:
+        if (key == keyBack && str->size() > 0)
+        {}
+        else if (key == keyBack && str->size() == 0)
+        {}
+        if ( key > 5 && key < 17)
+        {
+            if ( str->size() < 8)
+            {
+                str->push_back(key+42);
+            }
+        }
+
+        break;
+    default:
+        break;
+    }
+}
+
+void CGuiMenu::initSetParametersDialog(std::string text)
+{
+    MoonsGeometry volume_geom  = {  35,  40,  105,  65 };
+    LabelParams label_param = GUI_EL_TEMP_LabelMode;
+    //label_param = ;
+
+    titleArea = { 35, 15, 105, 34};
+
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
+    GUI_EL_Label  title (&titleParams,               &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
+    GUI_EL_Label  volume(&label_param,               &volume_geom, (char *)text.c_str()   , (GUI_Obj*)this);
+
+    window.Draw();
+    title.Draw();
+    volume.Draw();
+}
+
+void CGuiMenu::inputMessage( CEndState state, UI_Key key)
+{
+    //
+    //std::chrono::duration_values diffValue = std::chrono::high_resolution_clock::now();
 }
