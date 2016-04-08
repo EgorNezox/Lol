@@ -63,6 +63,8 @@ public:
     void getSwr();
     void setPswfMode();
     void transmitPswf();
+    void recievedPswf();
+
     void parsingData();
     void *getContentPSWF();
     bool questPending();
@@ -160,7 +162,7 @@ private:
     bool is_ready;
     QmIopin *reset_iopin;
     DspTransport *transport;
-    QmTimer *startup_timer, *command_timer,*timer_tx_pswf;
+    QmTimer *startup_timer, *command_timer,*timer_tx_pswf,*timer_rx_pswf;
     enum {
         radiostateSync,
         radiostateCmdModeOffRx,
@@ -181,11 +183,14 @@ private:
     uint32_t current_radio_frequency;
     DspCommand *pending_command;
 
-    int command_30 = 0;
-    int command_rx_30 = 0;
+    int command_tx30 = 0;
+    int command_rx30 = 0;
 
     uint32_t fwd_wave = 0;
     uint32_t ref_wave = 0;
+
+    // кольцевой буфер для сообщений
+    char* bufer_pswf[30];
 
 };
 

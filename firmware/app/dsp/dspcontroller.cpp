@@ -48,13 +48,16 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, QmObje
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 	initResetState();
 
-    command_30 = 0;
-
+    command_tx30 = 0;
+    command_rx30 = 0;
 
     timer_tx_pswf  = new QmTimer(false,this);
     timer_tx_pswf->setInterval(1000);
     timer_tx_pswf->timeout.connect(sigc::mem_fun(this, &DspController::transmitPswf));
 
+    timer_rx_pswf = new QmTimer(false,this);
+    timer_rx_pswf->setInterval(1000);
+    timer_rx_pswf->timeout.connect(sigc::mem_fun(this,&DspController::recievedPswf));
 
 }
 
@@ -246,11 +249,27 @@ void DspController::transmitPswf()
     ParameterValue command_value;
     command_value.pswf_indicator = 20;
     sendCommand(PSWFTransmitterTx,PSWF_TX,command_value);
-    command_30++;
-    if (command_30 == 30)
+    command_tx30++;
+    if (command_tx30 == 30)
     {
         timer_tx_pswf->stop();
-        command_30 = 0;
+        command_tx30 = 0;
+    }
+}
+
+void DspController::recievedPswf()
+{
+    if (command_rx30 == 30)
+        command_rx30 = 0;
+
+    if (strlen((const char*)bufer_pswf[command_rx30]) > 4)
+    {
+        command_rx30++;
+        for(int i = 0; i<command_rx30;i++)
+        {
+            char com = *(bufer_pswf[i] + 9);
+
+        }
     }
 }
 
@@ -627,6 +646,22 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
         case PSWFTransmitterRx:
         {
             setPswfMode();
+
+            tx_address = 0x60;
+
+            if ((code == 1) && (ContentPSWF.R_ADR>0 && ContentPSWF.R_ADR<32))
+            {
+                qmToBigEndian((uint8_t)ContentPSWF.R_ADR, tx_data+tx_data_len);
+                tx_data_len += 1;
+            }
+
+            if (code == 2)
+            {
+                qmToBigEndian((uint8_t)ContentPSWF.Frequency, tx_data+tx_data_len);
+                tx_data_len += 1;
+            }
+
+
         }
             break;
 
@@ -698,7 +733,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     case 0x63:{
         if ((indicator == 30) && (value_len == 1))
         {
-            //memcpy(&ContentPSWF,data,sizeof(ContentPSWF) - 1);
+            memcpy(bufer_pswf[command_rx30],data,value_len);
+            // копируем значения в  bufer_command
+
             for(int i = 0;i<12;i++)
             {
                 if (i == 1)
