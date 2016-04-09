@@ -41,6 +41,7 @@ void sms::getPolynom(int *input)
 
     for(int i = 0; i<37;i++)
     {
+
         //        memcpy((output_post+i),output,255*sizeof(int));
         //        memcpy((output_post[i]),output,4*sizeof(int));
     }
