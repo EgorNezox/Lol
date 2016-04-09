@@ -81,7 +81,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->PswfRead.connect(sigc::mem_fun(this,&Service::getPSWF));
     command_rx_30 = 0;
 
-    voice_service->CommandRecieved.connect(sigc::mem_fun(this,&getSignalRecieverFrame));
+    voice_service->CommandRecieved.connect(sigc::mem_fun(this,&Service::getSignalRecieverFrame));
 
 }
 

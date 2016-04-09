@@ -21,7 +21,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 	dispatcher(dispatcher),
 	current_channel_status(ChannelDisabled)
 {
-    dispatcher->dsp_controller->commandOK.connect(sigc::mem_fun(this,&commandReciever));
+    dispatcher->dsp_controller->commandOK.connect(sigc::mem_fun(this,&VoiceServiceInterface::commandReciever));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
