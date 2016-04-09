@@ -750,6 +750,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	}
 	case 0x51:
 	case 0x81: {
+
 		if ((indicator == 3) || (indicator == 4)) { // "команда выполнена", "команда не выполнена" ?
 			ParameterValue value;
 			if ((code == 1) && (value_len == 4)) {
@@ -781,6 +782,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 		break;
 	}
     case 0x63: {
+
+        commandOK(); // пришла команда
         if ((indicator == 30) /*&& (value_len == 1)*/)
         {
         	QM_ASSERT(command_rx30 < 30);

@@ -81,6 +81,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->PswfRead.connect(sigc::mem_fun(this,&Service::getPSWF));
     command_rx_30 = 0;
 
+    voice_service->CommandRecieved.connect(sigc::mem_fun(this,&getSignalRecieverFrame));
+
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -760,6 +762,14 @@ void Service::keyPressed(UI_Key key)
 int Service::getLanguage()
 {
     return 0;
+}
+
+void Service::getSignalRecieverFrame()
+{
+   static int count = 0;
+   if (count == 0)
+   msgBox("Принят пакетик");
+   count++;
 }
 
 void Service::msgBox(const char *title)

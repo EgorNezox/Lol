@@ -53,7 +53,7 @@ void qmMain() {
     		platformhwNavigatorAntFlagIopin, platformhwNavigator1PPSIopin);
 #endif /* PORT__TARGET_DEVICE_REV1 */
 	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
-			&headset_controller, &navigator);
+            &headset_controller, 0/*&navigator*/);
 	Power::Battery power_battery(platformhwBatterySmbusI2c);
 
 	Ui::matrix_keyboard_t ui_matrixkb_desc;

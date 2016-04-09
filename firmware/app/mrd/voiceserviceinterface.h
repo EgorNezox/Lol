@@ -18,7 +18,7 @@ namespace Multiradio {
 
 class Dispatcher;
 
-class VoiceServiceInterface : QmObject
+class VoiceServiceInterface : public QmObject
 {
 public:
 	enum ChannelStatus {
@@ -41,8 +41,10 @@ public:
     const char* ReturnSwfStatus();
 
 
+
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
+    sigc::signal<void> CommandRecieved;
 
 private:
 	friend class Dispatcher;
@@ -50,6 +52,8 @@ private:
 	VoiceServiceInterface(Dispatcher *dispatcher);
 	~VoiceServiceInterface();
 	void setCurrentChannel(ChannelStatus status);
+
+    void commandReciever();
 
 	Dispatcher *dispatcher;
 	ChannelStatus current_channel_status;

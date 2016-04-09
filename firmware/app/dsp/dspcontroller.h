@@ -80,6 +80,7 @@ public:
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void> savePacketPswf;
+    sigc::signal<void> commandOK;
 
     uint8_t quite;
 
