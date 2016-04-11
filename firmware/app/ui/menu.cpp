@@ -733,6 +733,7 @@ void CGuiMenu::initSmsInputDialog(const char* titleStr, std::string addrStr, std
     MoonsGeometry volume_geom = { 5, 47, 140, 110 };
 
     LabelParams param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
+    param[1].element.align = {alignLeft, alignTop};
 
     for (int i = 0; i < 2; i++)
         param[i].transparent = true;
