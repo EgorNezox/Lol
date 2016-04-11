@@ -273,7 +273,7 @@ void DspController::syncPulseDetected() {
     }
 }
 
-int* DspController::getDataTime()
+void DspController::getDataTime()
 {
     Navigation::Coord_Date *date = navigator->getCoordDate();
 
@@ -292,30 +292,28 @@ int* DspController::getDataTime()
     int min = atoi(mn_ch);
     int sec = atoi(sec_ch);
 
-    int date_time[4];
+
     date_time[0] = day;
     date_time[1] = hrs;
     date_time[2] = min;
     date_time[3] = sec;
 
-    return date_time;
+
 }
 
 void DspController::transmitPswf()
 {
 
-    int *dtime;
-    dtime = (int*) malloc(4*sizeof(int));
-    dtime = getDataTime();
+    getDataTime();
 
     ContentPSWF.L_CODE = navigator->Calc_LCODE(ContentPSWF.R_ADR,
                                                ContentPSWF.S_ADR,
                                                ContentPSWF.COM_N,
                                                ContentPSWF.RN_KEY,
-                                               dtime[0],
-                                               dtime[1],
-                                               dtime[2],
-                                               dtime[3]);
+                                               date_time[0],
+                                               date_time[1],
+                                               date_time[2],
+                                               date_time[3]);
 
 
     sendPswf(PSWFTransmitter);
@@ -333,11 +331,21 @@ void DspController::transmitPswf()
 
 void DspController::changePswfRxFrequency() {
 
-     int *dtime;
-     dtime = (int*) malloc(4*sizeof(int));
-     dtime = getDataTime();
+    getDataTime();
     // RN_KEY по умолчанию 0  - пока другого нет
-    ContentPSWF.Frequency = CalcShiftFreq(0,dtime[3],dtime[0],dtime[1],dtime[2]);
+    ContentPSWF.Frequency = CalcShiftFreq(0,date_time[3],date_time[0],
+                                            date_time[1],date_time[2]);
+
+
+    ContentPSWF.L_CODE = navigator->Calc_LCODE(ContentPSWF.R_ADR,
+                                               ContentPSWF.S_ADR,
+                                               ContentPSWF.COM_N,
+                                               ContentPSWF.RN_KEY,
+                                               date_time[0],
+                                               date_time[1],
+                                               date_time[2],
+                                               date_time[3]);
+
 
     ParameterValue param;
     param.frequency = ContentPSWF.Frequency;

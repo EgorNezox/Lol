@@ -90,7 +90,7 @@ public:
     bool questPending();
     void syncPulseDetected();
 
-    int* getDataTime();
+    void getDataTime();
 
     void transmitSMS();
 
@@ -237,6 +237,8 @@ private:
     char  command[30];
 
     bool sucsess_pswf = false;
+
+    int date_time[4];
 };
 
 
