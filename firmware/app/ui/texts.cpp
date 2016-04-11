@@ -70,4 +70,4 @@ const char ch_key7[] = { 'Ф', 'Х', 'Ц', 'Ч' };
 const char ch_key8[] = { 'Ш', 'Щ', 'Ъ', 'Ы' };
 const char ch_key9[] = { 'Ь', 'Э', 'Ю', 'Я' };
 
-
+const char *recvCondCommand = "Принята условная команда\0";

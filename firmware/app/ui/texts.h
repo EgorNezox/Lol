@@ -72,4 +72,5 @@ extern const char ch_key7[4];
 extern const char ch_key8[4];
 extern const char ch_key9[4];
 
+extern const char *recvCondCommand;
 #endif /* TEXTS_H_ */

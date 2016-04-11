@@ -594,7 +594,6 @@ void Service::keyPressed(UI_Key key)
 
                 	 voice_service->TurnPSWFMode(0,LCODE,param[0],param[1],FREQ);
 
-                    msgBox("Принята условная команда", "RN_Key = ");
                 }
                 break;
             default:
@@ -852,7 +851,9 @@ int Service::getLanguage()
 
 void Service::FirstPacketPSWFRecieved(uint8_t packet)
 {
-  // TODO: show dialog for firts packet
+    std::string str;
+    sprintf( (char*)str.c_str(), "\t%d", packet);
+    msgBox("Принята условная команда", str.c_str());
 }
 
 void Service::msgBox(const char *title)
