@@ -79,6 +79,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     quite = 0;
 
     pswfRxStateSync = 0;
+    pswfTxStateSync = 0;
 }
 
 DspController::~DspController()
@@ -254,7 +255,9 @@ void DspController::setPswfMode(int radio_path)
     	sendCommand(RxRadiopath, RxRadioMode, comandValue);
     	comandValue.pswf_indicator = RadioModePSWF;
     	sendCommand(TxRadiopath, TxRadioMode, comandValue);
-    	radio_state = radiostateCmdPswfTx;
+    	pswfTxStateSync = 0;
+    	radio_state = radiostatePswfTxPrepare;
+    	qmDebugMessage(QmDebug::Dump, "setPswfMode() radiostatePswfTxPrepare");
     	break;
     }
     default: QM_ASSERT(0); break;
@@ -270,7 +273,7 @@ void DspController::syncPulseDetected() {
 		changePswfRxFrequency();
 		break;
 	}
-	case radiostateCmdPswfTx : {
+	case radiostatePswfTx : {
 		qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateCmdPswfTx");
 		transmitPswf();
 		break;
@@ -363,10 +366,10 @@ void DspController::RecievedPswf()
     // поиск совпадений в массиве
     command[command_rx30] = bufer_pswf[command_rx30][9]; // com_n
 
-    static int count = 0;
-    if (count == 0)
-        firstPacket((uint8_t)command[command_rx30]);
-    count++;
+//    static int count = 0;
+//    if (count == 0)
+//        firstPacket((uint8_t)command[command_rx30]);
+//    count++;
 
     if (command_rx30 - 1 >=0)
         for(int j = command_rx30 - 1; j>0;j--)
@@ -393,7 +396,7 @@ void DspController::setFrequencyPswf()
     int sum = 0;
     int fr_sh = CalcShiftFreq(0,date_time[3],date_time[0],date_time[1],date_time[2]);
 
-    QM_ASSERT(fr_sh > 0 && fr_sh < 6670000);
+    QM_ASSERT(fr_sh >= 0 && fr_sh <= 6670);
 
     bool find_fr = false;
     int i = 0;
@@ -405,7 +408,7 @@ void DspController::setFrequencyPswf()
         if (fr_sh < sum)
         {
             fr_sh = fr_sh - (sum - (frequence_bandwidth[i+1] - frequence_bandwidth[i]));
-            ContentPSWF.Frequency = (frequence_bandwidth[i] + fr_sh);
+            ContentPSWF.Frequency = (frequence_bandwidth[i] + fr_sh * 1000);
             find_fr = true;
         }
 
@@ -416,7 +419,7 @@ void DspController::setFrequencyPswf()
 
 int DspController::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
 {
-    int TOT_W = 6671000; // ширина разрешенных участков
+    int TOT_W = 6670; // ширина разрешенных участков
 
     int SEC_MLT = value_sec[SEC]; // SEC_MLT выбираем в массиве
 
@@ -817,6 +820,10 @@ void DspController::sendPswf(Module module) {
 
     setFrequencyPswf();
 
+    ContentPSWF.indicator = 20;
+    ContentPSWF.TYPE = 0;
+
+
 	uint8_t tx_address = 0x72;
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 	int tx_data_len = 0;
@@ -824,7 +831,7 @@ void DspController::sendPswf(Module module) {
 	++tx_data_len;
 	qmToBigEndian((uint8_t)ContentPSWF.TYPE, tx_data + tx_data_len);
 	++tx_data_len;
-	qmToBigEndian((uint8_t)ContentPSWF.Frequency, tx_data + tx_data_len);
+	qmToBigEndian((uint32_t)ContentPSWF.Frequency, tx_data + tx_data_len);
 	tx_data_len += 4;
 	qmToBigEndian((uint8_t)ContentPSWF.SNR, tx_data+tx_data_len);
 	++tx_data_len;
@@ -861,6 +868,14 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 		if (pswfRxStateSync == 3) {
 			radio_state = radiostatePswfRx;
 			qmDebugMessage(QmDebug::Dump, "syncPendingCommand() radiostatePswfRx");
+		}
+	}
+	if (radio_state == radiostatePswfTxPrepare) {
+		++pswfTxStateSync;
+		qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radiostatePswfTxPrepare %d", pswfTxStateSync);
+		if (pswfTxStateSync == 2) {
+			radio_state = radiostatePswfTx;
+			qmDebugMessage(QmDebug::Dump, "syncPendingCommand() radiostatePswfTx");
 		}
 	}
 	uint8_t indicator = qmFromBigEndian<uint8_t>(data+0);
@@ -919,6 +934,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         	QM_ASSERT(value_len <= 12);
             memcpy(bufer_pswf[command_rx30],data,value_len);
             // копируем значения в  bufer_command
+
+            static int count = 0;
+            if (count == 0)
+            	firstPacket((uint8_t)data[8]);
+            count++;
 
             RecievedPswf();
         }

@@ -240,7 +240,8 @@ private:
         radiostateCmdRxMode,
         radiostateCmdTxMode,
         radiostateCmdCarrierTx,
-        radiostateCmdPswfTx,
+		radiostatePswfTxPrepare,
+		radiostatePswfTx,
         radiostatePswfRxPrepare,
 		radiostatePswfRx
     } radio_state;
@@ -268,6 +269,7 @@ private:
     int date_time[4];
 
     int pswfRxStateSync;
+    int pswfTxStateSync;
 };
 
 
