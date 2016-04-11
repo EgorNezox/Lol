@@ -730,7 +730,7 @@ void CGuiMenu::initSmsInputDialog(const char* titleStr, std::string addrStr, std
 {
     titleArea   = { 5,  5, 140,  20 };
     MoonsGeometry addrArea    = { 5, 25, 140,  44 };
-    MoonsGeometry volume_geom = { 5, 47, 140, 115 };
+    MoonsGeometry volume_geom = { 5, 47, 140, 110 };
 
     LabelParams param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
 
