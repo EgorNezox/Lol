@@ -71,7 +71,8 @@ public:
 
     // message ( SMS )
     void initSmsInputDialog(const char *, std::string, std::string);
-    void inputMessage( CEndState, UI_Key);
+    void inputSmsMessage( CEndState, UI_Key );
+    void inputSmsAddr( CEndState, UI_Key );
     UI_Key prevKey = keyBack;
     char ch = ' ';
     int keyPressCount = 0;

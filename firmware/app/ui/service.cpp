@@ -552,8 +552,6 @@ void Service::keyPressed(UI_Key key)
                 	data = (char *)date->data;
                 	time = (char *)date->time;
 
-
-
                 	std::string dt;
                 	std::string tm;
 
@@ -581,7 +579,6 @@ void Service::keyPressed(UI_Key key)
 
                      voice_service->TurnPSWFMode(0,param[0],param[1]);
 
-                    msgBox("Принята условная команда", "RN_Key = ");
                 }
                 break;
             default:
@@ -644,8 +641,16 @@ void Service::keyPressed(UI_Key key)
             }
             default:
                 CEndState elem = (CEndState&)guiTree.getCurrentState();
-                if ( elem.listItem.back()->inputStr.size() < 99 )
-                    menu->inputMessage( (CEndState&)guiTree.getCurrentState(), key );
+                if ( menu->focus == 0)
+                {
+                    if ( elem.listItem.front()->inputStr.size() < 2 )
+                        menu->inputSmsAddr( (CEndState&)guiTree.getCurrentState(), key );
+                }
+                else
+                {
+                    if ( elem.listItem.back()->inputStr.size() < 99 )
+                        menu->inputSmsMessage( (CEndState&)guiTree.getCurrentState(), key );
+                }
                 break;
             }
             break;
@@ -831,7 +836,9 @@ int Service::getLanguage()
 
 void Service::FirstPacketPSWFRecieved(uint8_t packet)
 {
-  // TODO: show dialog for firts packet
+    std::string str;
+    sprintf( (char*)str.c_str(), "\t%d", packet);
+    msgBox("Принята условная команда", str.c_str());
 }
 
 void Service::msgBox(const char *title)

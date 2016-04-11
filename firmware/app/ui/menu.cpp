@@ -107,9 +107,9 @@ void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
                     if ( state.listItem.size() == 2 )
                     {
                         if ( i == 0 && rc > 31 )
-                            { k->inputStr.clear(); }
+                        { k->inputStr.clear(); }
                         if ( i == 0 && rc > 99 )
-                            { k->inputStr.clear(); }
+                        { k->inputStr.clear(); }
                     }
                     if ( state.listItem.size() == 1 )
                     {
@@ -227,17 +227,17 @@ void CGuiMenu::initTwoStateDialog()
     itemParams.icon_params.element  = GUI_EL_TEMP_CommonIcon;
     itemParams.icon_params.icon = sym_new_msg;
 
-//    item[0] = new GUI_EL_MenuItem(&itemParams, &itemArea[0],  (char*)useScanMenu[0], true, true, (GUI_Obj*)this);
+    //    item[0] = new GUI_EL_MenuItem(&itemParams, &itemArea[0],  (char*)useScanMenu[0], true, true, (GUI_Obj*)this);
 
     window.Draw();
     title.Draw();
 
-//    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
-//        if (item[i] != nullptr)
-//            item[i]->Draw();
+    //    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
+    //        if (item[i] != nullptr)
+    //            item[i]->Draw();
 
-//    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
-//    {    if (item[i] != nullptr) delete item[i]; item[i] = nullptr; }
+    //    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
+    //    {    if (item[i] != nullptr) delete item[i]; item[i] = nullptr; }
 }
 
 void CGuiMenu::initVolumeDialog()
@@ -368,13 +368,13 @@ void CGuiMenu::initGpsCoordinateDialog()
                   };
 
     MoonsGeometry volume_geom[2];
-            volume_geom[0]  = {  5,  30,  140,  60 };
-            volume_geom[1]  = {  5,  60,  140,  90 };
+    volume_geom[0]  = {  5,  30,  140,  60 };
+    volume_geom[1]  = {  5,  60,  140,  90 };
 
     GUI_EL_Label* volume[2];
 
-            volume[0] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[0],  NULL, (GUI_Obj*)this);
-            volume[1] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[1],  NULL, (GUI_Obj*)this);
+    volume[0] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[0],  NULL, (GUI_Obj*)this);
+    volume[1] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[1],  NULL, (GUI_Obj*)this);
 
     if (coord_lat.size() == 0)
     {
@@ -463,9 +463,9 @@ void CGuiMenu::Draw()
 
     for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
     {   if (item[i] != nullptr)
-            { delete item[i]; item[i] = nullptr;}
+        { delete item[i]; item[i] = nullptr;}
         if (label[i] != nullptr)
-            { delete label[i]; label[i] = nullptr;}
+        { delete label[i]; label[i] = nullptr;}
     }
 }
 
@@ -517,55 +517,20 @@ void CGuiMenu::keyPressed(UI_Key key)
             //
         }
         break;
-    case key0:
-        value = '0';
-        editing = true;
-        break;
-    case key1:
-        value = '1';
-        editing = true;
-        break;
-    case key2:
-        value = '2';
-        editing = true;
-        break;
-    case key3:
-        value = '3';
-        editing = true;
-        break;
-    case key4:
-        value = '4';
-        editing = true;
-        break;
-    case key5:
-        value = '5';
-        editing = true;
-        break;
-    case key6:
-        value = '6';
-        editing = true;
-        break;
-    case key7:
-        value = '7';
-        editing = true;
-        break;
-    case key8:
-        value = '8';
-        editing = true;
-        break;
-    case key9:
-        value = '9';
-        editing = true;
-        break;
     default:
         break;
     }
 
+    if ( key > 5 && key < 16)
+    {
+        value = 42+key;
+        editing = true;
+    }
     if ( focus == 0)
     {
-        newDstAddr.push_back(value);
+        newDstAddr.push_back( value );
     }else if( focus == 1 ){
-        newMessage.push_back(value);
+        newMessage.push_back( value );
     }
 }
 
@@ -612,7 +577,7 @@ void CGuiMenu::setSttParam(CEndState state, UI_Key key)
         {}
         else if (key == keyBack && str->size() == 0)
         {}
-        if ( key > 5 && key < 17)
+        if ( key > 5 && key < 16)
         {
             if ( str->size() < 8)
             {
@@ -643,7 +608,7 @@ void CGuiMenu::initSetParametersDialog(std::string text)
     volume.Draw();
 }
 
-void CGuiMenu::inputMessage( CEndState state, UI_Key key)
+void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)
 {
     auto newTime = std::chrono::steady_clock::now();
 
@@ -651,7 +616,7 @@ void CGuiMenu::inputMessage( CEndState state, UI_Key key)
     {
         if (prevKey == key)
         {
-//            qDebug() << "  " << ( newTime - ct ).count() << "\n";
+            //            qDebug() << "  " << ( newTime - ct ).count() << "\n";
 
             if ( ( newTime - ct ).count() < 500*(1000000) )
             {
@@ -747,13 +712,28 @@ void CGuiMenu::inputMessage( CEndState state, UI_Key key)
 
 }
 
+void CGuiMenu::inputSmsAddr(CEndState state, UI_Key key)
+{
+    auto k = state.listItem.front();
+    if ( key > 5 && key < 16 && k->inputStr.size() < 2 )
+    {
+        k->inputStr.push_back((char)(42+key));
+        // check
+        int rc = atoi(k->inputStr.c_str());
+
+        if ( rc > 31 )
+        { k->inputStr.clear(); }
+    }
+}
+
 void CGuiMenu::initSmsInputDialog(const char* titleStr, std::string addrStr, std::string msgStr )
 {
-                  titleArea   = { 5,  5, 140,  20 };
+    titleArea   = { 5,  5, 140,  20 };
     MoonsGeometry addrArea    = { 5, 25, 140,  44 };
-    MoonsGeometry volume_geom = { 5, 47, 140, 115 };
+    MoonsGeometry volume_geom = { 5, 47, 140, 110 };
 
     LabelParams param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
+    param[1].element.align = {alignLeft, alignTop};
 
     for (int i = 0; i < 2; i++)
         param[i].transparent = true;
