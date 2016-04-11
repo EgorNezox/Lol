@@ -393,15 +393,19 @@ void DspController::setFrequencyPswf()
     int sum = 0;
     int fr_sh = CalcShiftFreq(0,date_time[3],date_time[0],date_time[1],date_time[2]);
 
+    QM_ASSERT(fr_sh > 0 && fr_sh < 6670000);
+
     bool find_fr = false;
     int i = 0;
+
+
     while(find_fr == false)
     {
         sum += (frequence_bandwidth[i+1] - frequence_bandwidth[i]);
         if (fr_sh < sum)
         {
             fr_sh = fr_sh - (sum - (frequence_bandwidth[i+1] - frequence_bandwidth[i]));
-            ContentPSWF.Frequency = (frequence_bandwidth[i] + fr_sh) * 1000;
+            ContentPSWF.Frequency = (frequence_bandwidth[i] + fr_sh);
             find_fr = true;
         }
 
