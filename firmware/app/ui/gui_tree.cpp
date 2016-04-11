@@ -73,8 +73,11 @@ void CGuiTree::init()
     condCmdDupl.listItem.push_back( &condCmdDuplParameters1 );
     condCmdDupl.listItem.push_back( &condCmdDuplParameters2 );
     // 1.2 - SMS
+    sms.subType = GuiWindowsSubType::message;
     sms.prevState = &call;
     sms.nextState.clear();
+    sms.listItem.push_back(&smsParameters1);
+    sms.listItem.push_back(&smsParameters2);
     // 1.3 - Голосовая почта
     post.prevState = &call;
     post.nextState.clear();

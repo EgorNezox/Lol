@@ -425,14 +425,6 @@ void Service::keyPressed(UI_Key key)
             }
             menu->focus = 0;
         }
-        if ( key == keyBack)
-        {
-            if (menu->focus == 2)
-            {
-                guiTree.backvard();
-                menu->focus = 0;
-            }
-        }
 
         switch(estate.subType)
         {
@@ -477,15 +469,15 @@ void Service::keyPressed(UI_Key key)
                     std::string tm;
 
                     if ((data != NULL) &&  (time != NULL) &&
-                        (sizeof(data) >5) && (sizeof(time) >5))
+                            (sizeof(data) >5) && (sizeof(time) >5))
                     {
-                         dt = std::string(data);
-                         tm = std::string(time);
+                        dt = std::string(data);
+                        tm = std::string(time);
                     }
-                         else
+                    else
                     {
-                         dt = std::string("060416");
-                         tm = std::string("143722");
+                        dt = std::string("060416");
+                        tm = std::string("143722");
                     }
 
 
@@ -639,8 +631,41 @@ void Service::keyPressed(UI_Key key)
         }
             break;
         case GuiWindowsSubType::message:
-            menu->inputMessage( (CEndState&)guiTree.getCurrentState(), key );
+        {
+            switch ( key )
+            {
+            case keyUp:
+            {
+                if ( menu->focus > 0 )
+                    menu->focus--;
+            }
+                break;
+            case keyDown:
+            {
+                if ( menu->focus < estate.listItem.size() )
+                    menu->focus++;
+            }
+                break;
+            case keyBack:
+            {
+                CEndState elem = (CEndState&)guiTree.getCurrentState();
+                if ( elem.listItem.back()->inputStr.size() > 0 )
+                    elem.listItem.back()->inputStr.pop_back();
+                else
+                {
+                    guiTree.backvard();
+                    menu->focus = 0;
+                }
+                break;
+            }
+            default:
+                CEndState elem = (CEndState&)guiTree.getCurrentState();
+                if ( elem.listItem.back()->inputStr.size() < 99 )
+                    menu->inputMessage( (CEndState&)guiTree.getCurrentState(), key );
+                break;
+            }
             break;
+        }
         case GuiWindowsSubType::volume:
         {
             if ( key == keyRight || key == keyUp )
@@ -766,11 +791,11 @@ void Service::keyPressed(UI_Key key)
             case keyEnter:
             {  }
                 break;
-//            case keyBack:
-//            {
-//                guiTree.backvard();
-//                menu->focus = 0;
-//            }
+                //            case keyBack:
+                //            {
+                //                guiTree.backvard();
+                //                menu->focus = 0;
+                //            }
                 break;
             default:
                 if ( key > 5 && key < 16)
@@ -917,7 +942,7 @@ void Service::drawMenu()
             menu->initCondCommDialog(st);
             break;
         case GuiWindowsSubType::message:
-
+            menu->initSmsInputDialog( st.getName(), st.listItem.front()->inputStr, st.listItem.back()->inputStr );
             break;
         case GuiWindowsSubType::recv:
             //menu->initTwoStateDialog();
@@ -1012,35 +1037,35 @@ int Service::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, in
 
 void Service::setCoordDate(Navigation::Coord_Date *date)
 {
-   menu->coord_lat.clear();
-   menu->coord_log.clear();
-   menu->date.clear();
-   menu->time.clear();
+    menu->coord_lat.clear();
+    menu->coord_log.clear();
+    menu->date.clear();
+    menu->time.clear();
 
-   menu->coord_lat.append((char *)date->latitude);
-   menu->coord_log.append((char *)date->longitude);
-
-
-   std::string str;
-   str.push_back((char)date->data[0]);
-   str.push_back((char)date->data[1]);
-   str.push_back('.');
-   str.push_back((char)date->data[2]);
-   str.push_back((char)date->data[3]);
-
-   str.push_back((char)' ');
-
-   str.push_back((char)date->time[0]);
+    menu->coord_lat.append((char *)date->latitude);
+    menu->coord_log.append((char *)date->longitude);
 
 
+    std::string str;
+    str.push_back((char)date->data[0]);
+    str.push_back((char)date->data[1]);
+    str.push_back('.');
+    str.push_back((char)date->data[2]);
+    str.push_back((char)date->data[3]);
 
-   str.push_back((char)date->time[1]);
-   str.push_back((char)':');
-   str.push_back((char)date->time[2]);
-   str.push_back((char)date->time[3]);
+    str.push_back((char)' ');
 
-   indicator->date_time->SetText((char *)str.c_str());
-   str.clear();
+    str.push_back((char)date->time[0]);
+
+
+
+    str.push_back((char)date->time[1]);
+    str.push_back((char)':');
+    str.push_back((char)date->time[2]);
+    str.push_back((char)date->time[3]);
+
+    indicator->date_time->SetText((char *)str.c_str());
+    str.clear();
 }
 
 void Service::getPSWF()

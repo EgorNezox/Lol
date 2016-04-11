@@ -57,3 +57,17 @@ const char *arm = "АРМ\0";
 const char *error_SWF = "Ошибка АФУ\0";
 const char *true_SWF = "Нет ошибок\0";
 
+const char *smsText[] = {"Адрес\0", "\0"};
+
+const char ch_key0[2] = { '0', '\t'};
+const char ch_key1[] = { '.', ',', '!', '?', '\"', ':' };
+const char ch_key2[] = { 'А', 'Б', 'В', 'Г' };
+const char ch_key3[] = { 'Д', 'Е', 'Ж', 'З' };
+const char ch_key4[] = { 'И', 'Й', 'К', 'Л' };
+const char ch_key5[] = { 'М', 'Н', 'О', 'П' };
+const char ch_key6[] = { 'Р', 'С', 'Т', 'У' };
+const char ch_key7[] = { 'Ф', 'Х', 'Ц', 'Ч' };
+const char ch_key8[] = { 'Ш', 'Щ', 'Ъ', 'Ы' };
+const char ch_key9[] = { 'Ь', 'Э', 'Ю', 'Я' };
+
+
