@@ -104,10 +104,10 @@ void VoiceServiceInterface::TurnAGCMode(uint8_t mode, int radio_path)
     dispatcher->dsp_controller->setAGCParameters(mode, radio_path);
 }
 
-void VoiceServiceInterface::TurnPSWFMode(uint8_t mode, int LCODE, int R_ADR,int COM_N, uint32_t FREQ)
+void VoiceServiceInterface::TurnPSWFMode(uint8_t mode,int R_ADR,int COM_N)
 {
     // нам важны только дата и время, с GUI и GPS решает service
-    dispatcher->dsp_controller->setPSWFParametres((char)mode,LCODE,R_ADR,COM_N,FREQ);
+    dispatcher->dsp_controller->setPSWFParametres((char)mode,R_ADR,COM_N);
 }
 
 int *VoiceServiceInterface::ReturnDataPSWF()

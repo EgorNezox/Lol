@@ -481,18 +481,7 @@ void Service::keyPressed(UI_Key key)
                     }
 
 
-                    // S_ADR  = 1 .. 32, пусть S_ADR = 1;
-
-                    int LCODE = Calc_LCODE(param[0],1,param[1],0,0,atoi(tm.substr(0,2).c_str()),
-                            atoi(tm.substr(2,4).c_str()),
-                            atoi(tm.substr(4,6).c_str()));
-
-                    //RN_KEY - ?
-
-                    int FREQ  = CalcShiftFreq(0,0,atoi(tm.substr(0,2).c_str()),
-                                              atoi(tm.substr(2,4).c_str()),
-                                              atoi(tm.substr(4,6).c_str()));
-                    voice_service->TurnPSWFMode(1,LCODE,param[0],param[1],FREQ);
+                    voice_service->TurnPSWFMode(1,param[0],param[1]);
 
 
                 }
@@ -579,20 +568,16 @@ void Service::keyPressed(UI_Key key)
                 	}
 
 
-                	// S_ADR  = 1 .. 32, пусть S_ADR = 1;
+//                	int LCODE = Calc_LCODE(param[0],1,param[1],0,0,atoi(tm.substr(0,2).c_str()),
+//                			atoi(tm.substr(2,4).c_str()),
+//							atoi(tm.substr(4,6).c_str()));
 
-                	int LCODE = Calc_LCODE(param[0],1,param[1],0,0,atoi(tm.substr(0,2).c_str()),
-                			atoi(tm.substr(2,4).c_str()),
-							atoi(tm.substr(4,6).c_str()));
-
-                	//RN_KEY - ?
-
-                	int FREQ  = CalcShiftFreq(0,0,atoi(tm.substr(0,2).c_str()),
-                					atoi(tm.substr(2,4).c_str()),
-									atoi(tm.substr(4,6).c_str()));
+//                	int FREQ  = CalcShiftFreq(0,0,atoi(tm.substr(0,2).c_str()),
+//                					atoi(tm.substr(2,4).c_str()),
+//									atoi(tm.substr(4,6).c_str()));
 
 
-                	 voice_service->TurnPSWFMode(0,LCODE,param[0],param[1],FREQ);
+                     voice_service->TurnPSWFMode(0,param[0],param[1]);
 
                 }
                 break;
@@ -1020,24 +1005,6 @@ int Service::getFreq()
 void Service::setFreq(int isFreq)
 {
     Service::isFreq = isFreq;
-}
-
-int Service::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
-{
-    int TOT_W = 6671000; //
-
-    int SEC_MLT = value_sec[SEC]; // SEC_MLT
-
-    // RN_KEY
-
-    int FR_SH = (RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY)% TOT_W;
-    return FR_SH;
-}
-
-int Service::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
-{
-    int L_CODE = (R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY)% 100;
-    return L_CODE;
 }
 
 void Service::setCoordDate(Navigation::Coord_Date *date)
