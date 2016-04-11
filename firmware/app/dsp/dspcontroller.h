@@ -103,6 +103,8 @@ public:
     void setPSWFParametres(int RadioPath, int R_ADR,int COM_N);
     void RecievedPswf();
 
+    void setFrequencyPswf();
+
 
     void getSwr();
     void setPswfMode(int radio_path);

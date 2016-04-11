@@ -197,23 +197,7 @@ void DspController::setPSWFParametres(int RadioPath, int R_ADR, int COM_N)
         return;
 
     getDataTime();
-    int sum = 0;
-    int fr_sh = CalcShiftFreq(0,date_time[3],date_time[0],date_time[1],date_time[2]);
-
-    bool find_fr = false;
-    int i = 0;
-    while(find_fr == false)
-    {
-        sum += (frequence_bandwidth[i+1] - frequence_bandwidth[i]);
-        if (fr_sh < sum)
-        {
-            fr_sh = fr_sh - (sum - (frequence_bandwidth[i+1] - frequence_bandwidth[i]));
-            ContentPSWF.Frequency = (frequence_bandwidth[i] + fr_sh) * 1000;
-            find_fr = true;
-        }
-
-        i++;
-    }
+    setFrequencyPswf();
 
     ContentPSWF.indicator = 20;
     ContentPSWF.TYPE = 0;
@@ -357,8 +341,7 @@ void DspController::changePswfRxFrequency() {
     QM_ASSERT(date_time[1]>=0 && date_time[1]<=23);
     QM_ASSERT(date_time[0]>=1 && date_time[0]<=31);
 
-    ContentPSWF.Frequency = CalcShiftFreq(0,date_time[3],date_time[0],
-                                            date_time[1],date_time[2]);
+    setFrequencyPswf();
 
 
     ParameterValue param;
@@ -400,6 +383,27 @@ void DspController::RecievedPswf()
     ++command_rx30;
 
 
+}
+
+void DspController::setFrequencyPswf()
+{
+    int sum = 0;
+    int fr_sh = CalcShiftFreq(0,date_time[3],date_time[0],date_time[1],date_time[2]);
+
+    bool find_fr = false;
+    int i = 0;
+    while(find_fr == false)
+    {
+        sum += (frequence_bandwidth[i+1] - frequence_bandwidth[i]);
+        if (fr_sh < sum)
+        {
+            fr_sh = fr_sh - (sum - (frequence_bandwidth[i+1] - frequence_bandwidth[i]));
+            ContentPSWF.Frequency = (frequence_bandwidth[i] + fr_sh) * 1000;
+            find_fr = true;
+        }
+
+        i++;
+    }
 }
 
 
@@ -801,7 +805,11 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 }
 
 void DspController::sendPswf(Module module) {
+
 	qmDebugMessage(QmDebug::Dump, "sendPswf(%d)", module);
+
+    setFrequencyPswf();
+
 	uint8_t tx_address = 0x72;
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 	int tx_data_len = 0;
@@ -832,6 +840,8 @@ void DspController::sendPswf(Module module) {
     if (sucsess_pswf == false) { //TODO: продумать
     	sucsess_pswf = true;
 //    	command_timer->start(); //TODO: ?
+
+
     }
 }
 
