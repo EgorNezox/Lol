@@ -77,6 +77,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
 
     quite = 0;
+
+    pswfRxStateSync = 0;
 }
 
 DspController::~DspController()
@@ -229,7 +231,6 @@ void DspController::getSwr()
     sendCommand(TxRadiopath,0,commandValue);
 }
 
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void DspController::setPswfMode(int radio_path)
 {
     ParameterValue comandValue;
@@ -239,7 +240,9 @@ void DspController::setPswfMode(int radio_path)
     	sendCommand(TxRadiopath, TxRadioMode, comandValue);
     	comandValue.pswf_indicator = RadioModePSWF;
     	sendCommand(RxRadiopath, RxRadioMode, comandValue);
-    	radio_state = radiostateCmdPswfRx;
+    	pswfRxStateSync = 0;
+    	radio_state = radiostatePswfRxPrepare;
+    	qmDebugMessage(QmDebug::Dump, "setPswfMode() radiostatePswfRxPrepare");
     	break;
     }
     case 1: {
@@ -258,7 +261,7 @@ void DspController::syncPulseDetected() {
 	if (!is_ready)
 		return;
 	switch (radio_state) {
-	case radiostateCmdPswfRx : {
+	case radiostatePswfRx : {
 		qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateCmdPswfRx");
 		changePswfRxFrequency();
 		break;
@@ -335,7 +338,7 @@ void DspController::changePswfRxFrequency() {
     QM_ASSERT(date_time[3]>=0 && date_time[3]<=59);
     QM_ASSERT(date_time[2]>=0 && date_time[2]<=59);
     QM_ASSERT(date_time[1]>=0 && date_time[1]<=23);
-    QM_ASSERT(date_time[0]>=1 && date_time[0]<=31);
+    QM_ASSERT(date_time[0]>=0 && date_time[0]<=31);
 
     ContentPSWF.Frequency = CalcShiftFreq(0,date_time[3],date_time[0],
                                             date_time[1],date_time[2]);
@@ -818,6 +821,14 @@ void DspController::sendPswf(Module module) {
 void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len) {
 	if (data_len < DEFAULT_PACKET_HEADER_LEN)
 		return;
+	if (radio_state == radiostatePswfRxPrepare) {
+		++pswfRxStateSync;
+		qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radiostatePswfRxPrepare %d", pswfRxStateSync);
+		if (pswfRxStateSync == 3) {
+			radio_state = radiostatePswfRx;
+			qmDebugMessage(QmDebug::Dump, "syncPendingCommand() radiostatePswfRx");
+		}
+	}
 	uint8_t indicator = qmFromBigEndian<uint8_t>(data+0);
 	uint8_t code = qmFromBigEndian<uint8_t>(data+1);
 	uint8_t *value_ptr = data + 2;
@@ -838,7 +849,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 			} else if ((code == 2) && (value_len == 1)) {
                 value.radio_mode = (RadioMode)qmFromBigEndian<uint8_t>(value_ptr+0);
 			} else {
-				break;
+//				break;
 			}
 			Module module;
 			if (address == 0x51)
@@ -855,14 +866,19 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                     swf_res = (fwd_wave+ref_wave)/(fwd_wave-ref_wave);
                 }
             }
-
-
 			processCommandResponse((indicator == 3), module, code, value);
 		}
 		break;
 	}
+	case 0x61: {
+		if (radio_state == radiostatePswfRxPrepare) {
+			qmDebugMessage(QmDebug::Dump, "processReceivedFrame() 0x61 received");
+			ParameterValue value;
+			processCommandResponse((indicator == 1), PSWFReceiver, code, value);
+		}
+		break;
+	}
     case 0x63: {
-
         if (indicator == 30)
         {
         	QM_ASSERT(command_rx30 < 30);

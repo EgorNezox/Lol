@@ -51,11 +51,8 @@ void qmMain() {
 #if defined(PORT__TARGET_DEVICE_REV1)
     Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin,
     		platformhwNavigatorAntFlagIopin, platformhwNavigator1PPSIopin);
-#endif /* PORT__TARGET_DEVICE_REV1 */
-
-#ifdef PORT__TARGET_DEVICE_REV1
 	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
-            &headset_controller, 0/*&navigator*/);
+            &headset_controller, &navigator);
 #else
     Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
             &headset_controller, 0);

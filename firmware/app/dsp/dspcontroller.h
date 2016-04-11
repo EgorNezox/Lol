@@ -216,7 +216,8 @@ private:
         radiostateCmdTxMode,
         radiostateCmdCarrierTx,
         radiostateCmdPswfTx,
-        radiostateCmdPswfRx
+        radiostatePswfRxPrepare,
+		radiostatePswfRx
     } radio_state;
     RadioMode current_radio_mode;
     RadioOperation  current_radio_operation;
@@ -240,6 +241,8 @@ private:
     bool sucsess_pswf = false;
 
     int date_time[4];
+
+    int pswfRxStateSync;
 };
 
 
