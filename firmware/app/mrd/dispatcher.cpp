@@ -21,14 +21,15 @@
 namespace Multiradio {
 
 Dispatcher::Dispatcher(int dsp_uart_resource, int dspreset_iopin_resource, int atu_uart_resource,
-		Headset::Controller *headset_controller) :
+		Headset::Controller *headset_controller,
+		Navigation::Navigator *navigator) :
 	QmObject(0),
 	headset_controller(headset_controller), voice_channel(voice_channels_table.end())
 {
 	headset_controller->statusChanged.connect(sigc::mem_fun(this, &Dispatcher::setupVoiceMode));
 	headset_controller->pttStateChanged.connect(sigc::mem_fun(this, &Dispatcher::processHeadsetPttStateChange));
 	headset_controller->smartCurrentChannelChanged.connect(sigc::mem_fun(this, &Dispatcher::processHeadsetSmartCurrentChannelChange));
-	dsp_controller = new DspController(dsp_uart_resource, dspreset_iopin_resource, this);
+	dsp_controller = new DspController(dsp_uart_resource, dspreset_iopin_resource, navigator, this);
 	dsp_controller->started.connect(sigc::mem_fun(this, &Dispatcher::processDspStartup));
 	dsp_controller->setRadioCompleted.connect(sigc::mem_fun(this, &Dispatcher::processDspSetRadioCompletion));
 	atu_controller = new AtuController(atu_uart_resource, this);
@@ -36,6 +37,8 @@ Dispatcher::Dispatcher(int dsp_uart_resource, int dspreset_iopin_resource, int a
 	atu_controller->requestTx.connect(sigc::mem_fun(this, &Dispatcher::processAtuRequestTx));
 	main_service = new MainServiceInterface(this);
 	voice_service = new VoiceServiceInterface(this);
+
+
 
     voice_service->PswfRead.connect(sigc::mem_fun(this->dsp_controller,&DspController::parsingData));
     //  доступ в voice_service будет через сигнал диспетчера от сигнала dspcontrollerа.

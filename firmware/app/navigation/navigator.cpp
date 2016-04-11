@@ -12,14 +12,14 @@
 #include <string.h>
 #include <string>
 #include <list>
-
+#include <math.h>
 #include "navigator.h"
 
 namespace Navigation {
 
 using namespace std;
 
-Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_iopin_resource) {
+Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_iopin_resource, int sync_pulse_iopin_resource) {
 //#if defined(PORT__TARGET_DEVICE_REV1)
 	reset_iopin = new QmIopin(reset_iopin_resource, this);
 	reset_iopin->writeOutput(QmIopin::Level_Low);
@@ -38,6 +38,9 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 	reset_iopin->writeOutput(QmIopin::Level_High);
 	ant_flag_iopin = new QmIopin(ant_flag_iopin_resource, this);
 	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
+	sync_pulse_iopin = new QmIopin(sync_pulse_iopin_resource, this);
+	sync_pulse_iopin->setInputTriggerMode(QmIopin::InputTrigger_Rising);
+	sync_pulse_iopin->inputTrigger.connect(sigc::mem_fun(this, &Navigator::processSyncPulse));
 //#else
 //	QM_UNUSED(uart_resource);
 //	QM_UNUSED(reset_iopin_resource);
@@ -53,6 +56,12 @@ Navigator::~Navigator() {
 Coord_Date *Navigator::getCoordDate()
 {
     return &CoordDate;
+}
+
+int Navigator::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
+{
+    int L_CODE = fmod((R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY), 100);
+    return L_CODE;
 }
 
 //#if defined(PORT__TARGET_DEVICE_REV1)
@@ -169,6 +178,10 @@ void Navigator::parsingData(uint8_t data[])
 
 
     }
+}
+
+void Navigator::processSyncPulse() {
+	syncPulse();
 }
 //#endif /* PORT__TARGET_DEVICE_REV1 */
 

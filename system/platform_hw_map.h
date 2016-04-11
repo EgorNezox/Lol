@@ -30,6 +30,7 @@ enum platformhw_resource_t {
 	platformhwNavigatorUart,			// UART ГНСС приемника
 	platformhwNavigatorResetIopin,		// I/O-пин сигнала RESET ГНСС приемника
 	platformhwNavigatorAntFlagIopin,	// I/O-пин сигнала ANT_FLAG ГНСС приемника
+	platformhwNavigator1PPSIopin,		// I/O-пин сигнала 1PPS ГНСС приемника
 	platformhwPowerHSControlIopin,		// I/O-пин цепи вкл./выкл. радиостанции гартинуры
 	platformhwPowerControllerIopin,		// I/O-пин управления контроллером кнопки вкл./выкл. питания
 	platformhwPowerOffIntIopin,			// I/O-пин прерывания предупреждения о выключении питания
