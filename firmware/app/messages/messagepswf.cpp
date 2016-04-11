@@ -64,21 +64,28 @@ struct MessPSWF
 
 DspTransport *transport;
 
-void MessagePswf::MessageSendPswf(UartDeviceAddress UartDevice, PswfMessageIndicator
-Indicator, float SNR,float FreqMin, int S_ADR, int R_ADR, int COM_N, float L_CODE,int isGPS)
+void MessagePswf::MessageSendPswf( UartDeviceAddress UartDevice,
+                                   PswfMessageIndicator Indicator,
+                                   float SNR,
+                                   float FreqMin,
+                                   int S_ADR,
+                                   int R_ADR,
+                                   int COM_N,
+                                   float L_CODE,
+                                   int isGPS)
 {
            int *data;
 
             if ((Indicator == TransmitPackage))
             {
 
-                uint8_t *frame;
+                uint8_t frame[4];
                 frame[0] = 0x80;
                 frame[1] = 0x2;
                 frame[2] = 0x2;
                 frame[3] = 0x20;
 
-                transport->transmitFrame(0x72,frame,4); // отправка запроса на ППРЧ
+                transport->transmitFrame(0x72,frame,4); // отправка запроса на ПП� Ч
 
 
                 // Заполняем структуру для передачи
@@ -88,21 +95,18 @@ Indicator, float SNR,float FreqMin, int S_ADR, int R_ADR, int COM_N, float L_COD
                 Content.SNR = SNR;
                 Content.COM_N = COM_N;
 
-
-
-
                 // отправка последовательности с помощью функции DSP Command
 
                 uint8_t *packet;
 
-                for(int i = 0; i<30;i++)
+                for(int i = 0; i < 30; i++)
                 {
 
                     if (isGPS) data = getGPSData(); else data = getUserData();
 
                     Content.L_CODE    = Calc_LCODE(R_ADR,S_ADR,COM_N,0,data[0],data[1],data[2],data[3]); // L_CODE тестовый
 
-                    Content.Frequency = FreqMin + CalcShiftFreq(0,0,data[0],data[1],data[2]);            //расчет параметра смещения рабочей частоты
+                    Content.Frequency = FreqMin + CalcShiftFreq( 0, 0, data[0], data[1], data[2] );            //расчет параметра смещения рабочей частоты
 
                     packet = CreateFrame(Content);
 
@@ -123,14 +127,14 @@ Indicator, float SNR,float FreqMin, int S_ADR, int R_ADR, int COM_N, float L_COD
                     frame[2] = 0x2;
                     frame[3] = 0x20;
 
-                    transport->transmitFrame(0x50,frame,4); // отправка запроса на ППРЧ
+                    transport->transmitFrame(0x50,frame,4); // отправка запроса на ПП� Ч
 
                     frame[2] = 0x1;
 
                     char freq[4];
                     sprintf(freq,"%f",Content.Frequency);
 
-                    for(int i = 0; i<4;i++)
+                    for(int i = 0; i < 4; i++)
                         frame[i+3] = freq[i];
 
                     transport->transmitFrame(0x50,frame,4); // установка частоты
@@ -197,9 +201,9 @@ uint8_t* MessagePswf::CreateFrame(PswfContent Content)
       a[2] = (uint8_t) Content.SNR;
 
       char freq[4];
-      sprintf(freq,"%f",Content.Frequency);
+      sprintf(freq,"%f", Content.Frequency);
 
-      for(int i = 0; i<4;i++)
+      for(int i = 0; i < 4; i++)
           a[i+3] = freq[i];
 
       a[7]  = (uint8_t) Content.S_ADR;
