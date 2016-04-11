@@ -14,6 +14,9 @@
 #include "texts.h"
 
 #include <chrono>
+#include <ctime>
+
+#include <QDebug>
 
 #define MARGIN			4
 #define BUTTON_HEIGHT	13
@@ -66,8 +69,13 @@ public:
     // call
     void setCondCommParam(CEndState, UI_Key);
 
-    // message
+    // message ( SMS )
+    void initSmsInputDialog(const char *, std::string, std::string);
     void inputMessage( CEndState , UI_Key);
+    UI_Key prevKey = keyBack;
+    char ch = ' ';
+    int keyPressCount = 0;
+    std::chrono::time_point<std::chrono::steady_clock> ct = std::chrono::steady_clock::now();
 
     // volume
     void incrVolume(){ if ( vol < 100) vol += 5; }

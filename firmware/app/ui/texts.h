@@ -59,4 +59,17 @@ extern const char *arm;
 extern const char *error_SWF;
 extern const char *true_SWF;
 
+extern const char *smsText[];
+
+extern const char ch_key0[2];
+extern const char ch_key1[6];
+extern const char ch_key2[4];
+extern const char ch_key3[4];
+extern const char ch_key4[4];
+extern const char ch_key5[4];
+extern const char ch_key6[4];
+extern const char ch_key7[4];
+extern const char ch_key8[4];
+extern const char ch_key9[4];
+
 #endif /* TEXTS_H_ */

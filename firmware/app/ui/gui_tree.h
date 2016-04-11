@@ -148,7 +148,10 @@ private:
     // 0 - 4
     CState main, call, recv, data, settings;
     // 1.1 - 1.5
-    CState condCmd, sms, post, groupCondCommand;
+    CState condCmd, post, groupCondCommand;
+    CEndState sms;
+    SInputItemParameters smsParameters1{(char*)smsText[0], "", 2, 0, 31},\
+                         smsParameters2{(char*)smsText[1], "", 2, 0, 31};
     // 1.1.1 - 1.1.2
     CState condCmdSimpl;
     CEndState condCmdDupl;
