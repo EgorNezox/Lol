@@ -651,7 +651,7 @@ void CGuiMenu::inputMessage( CEndState state, UI_Key key)
     {
         if (prevKey == key)
         {
-            qDebug() << "  " << ( newTime - ct ).count() << "\n";
+//            qDebug() << "  " << ( newTime - ct ).count() << "\n";
 
             if ( ( newTime - ct ).count() < 500*(1000000) )
             {

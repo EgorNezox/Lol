@@ -16,7 +16,7 @@
 #include <chrono>
 #include <ctime>
 
-#include <QDebug>
+//#include <QDebug>
 
 #define MARGIN			4
 #define BUTTON_HEIGHT	13

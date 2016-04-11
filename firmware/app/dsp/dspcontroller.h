@@ -59,7 +59,7 @@ public:
     void setRadioSquelch(uint8_t value);
     void setAudioVolumeLevel(uint8_t volume_level);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
-    void setPSWFParametres(int RadioPath, int LCODE, int RN_KEY,int COM_N,uint32_t FREQ);
+    void setPSWFParametres(int RadioPath, int LCODE, int R_ADR,int COM_N,uint32_t FREQ);
     void RecievedPswf();
 
 
@@ -173,6 +173,10 @@ private:
     void sendCommand(Module module, int code, ParameterValue value);
     void sendPswf(Module module);
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
+
+    int CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN);
+
+    Navigation::Navigator * navigator;
 
 
     bool is_ready;
