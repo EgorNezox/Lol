@@ -128,7 +128,7 @@ private:
     Power::Battery * pGetPowerBattery();
     int getLanguage();
 
-    void getSignalRecieverFrame();
+    void FirstPacketPSWFRecieved(uint8_t packet);
 
     void drawMainWindow();
 

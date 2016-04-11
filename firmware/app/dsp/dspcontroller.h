@@ -99,8 +99,7 @@ public:
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
-    sigc::signal<void> savePacketPswf;
-    sigc::signal<void> commandOK;
+    sigc::signal<void,uint8_t> firstPacket;
 
     uint8_t quite;
 
@@ -233,8 +232,10 @@ private:
     uint32_t ref_wave = 0;
 
     // кольцевой буфер для сообщений
-    char* bufer_pswf[30];
+    char bufer_pswf[30][12];
     char  command[30];
+
+    char com_n[30];
 
     bool sucsess_pswf = false;
 
