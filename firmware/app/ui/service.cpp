@@ -543,8 +543,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             case keyEnter:
                 if ( menu->focus < estate.listItem.size() )
-                { /* callback */
-
+                {
                 	//TODO: temp fix))
 
                 	int param[2]; // 0 -R_ADR, 1 - COM_N
@@ -597,7 +596,7 @@ void Service::keyPressed(UI_Key key)
 
                 	 voice_service->TurnPSWFMode(0,LCODE,param[0],param[1],FREQ);
 
-
+                    msgBox("Принята условная команда", "RN_Key = ");
                 }
                 break;
             default:

@@ -52,8 +52,15 @@ void qmMain() {
     Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin,
     		platformhwNavigatorAntFlagIopin, platformhwNavigator1PPSIopin);
 #endif /* PORT__TARGET_DEVICE_REV1 */
+
+#ifdef PORT__TARGET_DEVICE_REV1
 	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
             &headset_controller, &navigator);
+#else
+    Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
+            &headset_controller, 0);
+#endif
+
 	Power::Battery power_battery(platformhwBatterySmbusI2c);
 
 	Ui::matrix_keyboard_t ui_matrixkb_desc;
@@ -62,6 +69,7 @@ void qmMain() {
 #if !defined(PORT__PCSIMULATOR)
     QM_ASSERT(Ui::matrixkbKeysCount == QmMatrixKeyboard::keysNumber(platformhwMatrixKeyboard));
 #endif
+
 	ui_matrixkb_desc.resource = platformhwMatrixKeyboard;
 	ui_matrixkb_desc.key_id[platformhwKeyEnter] = Ui::matrixkbkeyEnter;
 	ui_matrixkb_desc.key_id[platformhwKeyBack] = Ui::matrixkbkeyBack;
@@ -91,10 +99,15 @@ void qmMain() {
 			&navigator);
 #endif
 #ifndef PORT__TARGET_DEVICE_REV1
-    Ui::Service ui_service(ui_matrixkb_desc, ui_auxkb_desc,
-            &headset_controller,
-            mr_dispatcher.getMainServiceInterface(), mr_dispatcher.getVoiceServiceInterface(),
-            &power_battery,0);
+    Ui::Service ui_service(
+                            ui_matrixkb_desc,
+                            ui_auxkb_desc,
+                            &headset_controller,
+                            mr_dispatcher.getMainServiceInterface(),
+                            mr_dispatcher.getVoiceServiceInterface(),
+                            &power_battery,
+                            0
+                );
 #endif
 
 

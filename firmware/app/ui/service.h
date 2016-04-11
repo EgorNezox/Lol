@@ -56,10 +56,13 @@ enum NotificationType {
 
 class Service : public sigc::trackable {
 public:
-	Service(matrix_keyboard_t matrixkb_desc, aux_keyboard_t auxkb_desc,
+    Service(matrix_keyboard_t matrixkb_desc,
+            aux_keyboard_t auxkb_desc,
 			Headset::Controller *headset_controller,
-			Multiradio::MainServiceInterface *mr_main_service, Multiradio::VoiceServiceInterface *mr_voice_service,
-            Power::Battery *power_battery, Navigation::Navigator *navigator);
+            Multiradio::MainServiceInterface *mr_main_service,
+            Multiradio::VoiceServiceInterface *mr_voice_service,
+            Power::Battery *power_battery,
+            Navigation::Navigator *navigator);
 	~Service();
 	void setNotification(NotificationType type);
     // апдэйт индикаторов
