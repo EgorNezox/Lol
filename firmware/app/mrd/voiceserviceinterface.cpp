@@ -21,7 +21,8 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 	dispatcher(dispatcher),
 	current_channel_status(ChannelDisabled)
 {
-    dispatcher->dsp_controller->commandOK.connect(sigc::mem_fun(this,&VoiceServiceInterface::commandReciever));
+    dispatcher->dsp_controller->firstPacket.connect(sigc::mem_fun(this,&VoiceServiceInterface::fistPacketRecieve));
+
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
@@ -130,9 +131,9 @@ void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
     currentChannelChanged();
 }
 
-void VoiceServiceInterface::commandReciever()
+void VoiceServiceInterface::fistPacketRecieve(uint8_t packet)
 {
-    CommandRecieved();
+   firstPacket(packet);
 }
 
 } /* namespace Multiradio */

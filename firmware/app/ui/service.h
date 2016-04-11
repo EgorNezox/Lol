@@ -54,6 +54,24 @@ enum NotificationType {
 };
 
 
+static int value_sec[60] =
+{
+
+    0,        5,       10,       15 ,      20,       25,
+    1,        6,       11 ,      16,       21,       26,
+    2,        7,       12,       17,       22,       27,
+    3,        8,       13,       18,       23,       28,
+    4,        9,       14,       19,       24,       29,
+    0,        5,       10,       15,       20,       25,
+    1,        6,       11 ,      16 ,      21,       26,
+    2,        7,       12,       17,       22,       27,
+    3,        8,       13,       18,       23,       28,
+    4,        9,       14 ,      19,       24,       29
+
+};
+
+
+
 class Service : public sigc::trackable {
 public:
     Service(matrix_keyboard_t matrixkb_desc,
@@ -71,7 +89,7 @@ public:
     void updateBattery(int);
     int  getFreq();
     void setFreq(int isFreq);
-    int CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN);
+    int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
 
     void setCoordDate(Navigation::Coord_Date*);
@@ -110,7 +128,7 @@ private:
     Power::Battery * pGetPowerBattery();
     int getLanguage();
 
-    void getSignalRecieverFrame();
+    void FirstPacketPSWFRecieved(uint8_t packet);
 
     void drawMainWindow();
 

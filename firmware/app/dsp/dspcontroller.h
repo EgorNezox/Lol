@@ -12,7 +12,6 @@
 
 #include <list>
 #include "qmobject.h"
-#include "sheldure.h"
 #include <list>
 #include "../navigation/navigator.h"
 
@@ -23,6 +22,25 @@ namespace Multiradio {
 
 class DspTransport;
 struct DspCommand;
+
+
+
+static int value_sec[60] =
+{
+
+    0,        5,       10,       15 ,      20,       25,
+    1,        6,       11 ,      16,       21,       26,
+    2,        7,       12,       17,       22,       27,
+    3,        8,       13,       18,       23,       28,
+    4,        9,       14,       19,       24,       29,
+    0,        5,       10,       15,       20,       25,
+    1,        6,       11 ,      16 ,      21,       26,
+    2,        7,       12,       17,       22,       27,
+    3,        8,       13,       18,       23,       28,
+    4,        9,       14 ,      19,       24,       29
+
+};
+
 
 class DspController : public QmObject
 {
@@ -72,6 +90,8 @@ public:
     bool questPending();
     void syncPulseDetected();
 
+    void getDataTime();
+
     void transmitSMS();
 
     void ReturnPswfFromDSP();
@@ -79,8 +99,7 @@ public:
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
-    sigc::signal<void> savePacketPswf;
-    sigc::signal<void> commandOK;
+    sigc::signal<void,uint8_t> firstPacket;
 
     uint8_t quite;
 
@@ -174,7 +193,7 @@ private:
     void sendPswf(Module module);
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
 
-    int CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN);
+    int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
 
     Navigation::Navigator * navigator;
 
@@ -213,10 +232,14 @@ private:
     uint32_t ref_wave = 0;
 
     // кольцевой буфер для сообщений
-    char* bufer_pswf[30];
+    char bufer_pswf[30][12];
     char  command[30];
 
+    char com_n[30];
+
     bool sucsess_pswf = false;
+
+    int date_time[4];
 };
 
 

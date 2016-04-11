@@ -69,6 +69,5 @@ HEADERS += \
     app/messages/messagepswf.h \
     app/headset/smarttransport.h \
     app/navigation/navigator.h \
-    app/dsp/sheldure.h \
     app/messages/sms.h \
     app/messages/rs_tms.h

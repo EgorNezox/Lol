@@ -82,7 +82,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->PswfRead.connect(sigc::mem_fun(this,&Service::getPSWF));
     command_rx_30 = 0;
 
-    voice_service->CommandRecieved.connect(sigc::mem_fun(this,&Service::getSignalRecieverFrame));
+    voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
 
 }
 
@@ -850,15 +850,9 @@ int Service::getLanguage()
     return 0;
 }
 
-void Service::getSignalRecieverFrame()
+void Service::FirstPacketPSWFRecieved(uint8_t packet)
 {
-//	msgBox("30th packed received");
-	static int count = 0;
-	count++;
-
-	char str[64];
-	sprintf(str, "Packet received %d", count);
-	msgBox(str);
+  // TODO: show dialog for firts packet
 }
 
 void Service::msgBox(const char *title)
@@ -1027,16 +1021,21 @@ void Service::setFreq(int isFreq)
     Service::isFreq = isFreq;
 }
 
-int Service::CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN)
+int Service::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
 {
-    int TOT_W = 6671000; // ширина разрешенных участков
-    int FR_SH = fmod(RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY, TOT_W);
+    int TOT_W = 6671000; //
+
+    int SEC_MLT = value_sec[SEC]; // SEC_MLT
+
+    // RN_KEY
+
+    int FR_SH = (RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY)% TOT_W;
     return FR_SH;
 }
 
 int Service::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
 {
-    int L_CODE = fmod((R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY), 100);
+    int L_CODE = (R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY)% 100;
     return L_CODE;
 }
 
