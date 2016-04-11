@@ -18,8 +18,11 @@
 
 #include "dspcontroller.h"
 #include "dsptransport.h"
-#include <string>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 
+#define PSWF_SELF_ADR	1
 
 #define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
 
@@ -50,6 +53,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	initResetState();
 
 	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
+
+	this->navigator = navigator;
 
     command_tx30 = 0;
     command_rx30 = 0;
@@ -186,7 +191,7 @@ void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
     resyncPendingCommand();
 }
 
-void DspController::setPSWFParametres(int RadioPath,int LCODE, int RN_KEY, int COM_N,uint32_t FREQ)
+void DspController::setPSWFParametres(int RadioPath,int LCODE, int R_ADR, int COM_N,uint32_t FREQ)
 {
     QM_ASSERT(is_ready);
     if (!resyncPendingCommand())
@@ -197,12 +202,12 @@ void DspController::setPSWFParametres(int RadioPath,int LCODE, int RN_KEY, int C
     ContentPSWF.L_CODE = LCODE;
     ContentPSWF.COM_N = COM_N;
     ContentPSWF.Frequency = FREQ;
-    ContentPSWF.RN_KEY = RN_KEY;
+    ContentPSWF.RN_KEY = 1;
+    ContentPSWF.R_ADR = R_ADR;
 
     if (RadioPath == 0) {
-        radio_state = radiostateCmdPswfRx;
         ParameterValue param;
-        param.pswf_r_adr = 1;
+        param.pswf_r_adr = PSWF_SELF_ADR;
         sendCommand(PSWFReceiver, PswfRxRAdr, param);
         setPswfMode(0);
 //        timer_rx_pswf->start();
@@ -285,15 +290,31 @@ void DspController::transmitPswf()
 
 
 void DspController::changePswfRxFrequency() {
+	Navigation::Coord_Date *date = navigator->getCoordDate();
+
+	char day_ch[3] = {0,0,0};
+	char hr_ch[3] = {0,0,0};
+	char mn_ch[3] = {0,0,0};
+
+	memcpy(day_ch,&date->data[0],2);
+	memcpy(hr_ch,&date->time[0],2);
+	memcpy(hr_ch,&date->time[2],2);
+
+	int day = atoi(day_ch); // TODO:
+	int hrs = atoi(hr_ch);
+	int min = atoi(mn_ch);
+
+	ContentPSWF.Frequency = CalcShiftFreq(1,24,day,hrs,min);
+
     ParameterValue param;
     param.frequency = ContentPSWF.Frequency;
-    sendCommand(RxRadiopath, RxFrequency, param);
+    sendCommand(PSWFReceiver, PswfRxFrequency, param);
 }
 
 void DspController::RecievedPswf()
 {
 	qmDebugMessage(QmDebug::Warning, "RecievedPswf() command_rx30 = %d", command_rx30);
-	if (command_rx30 == 30) {
+	if (command_rx30 == 30 - 1) {
 		command_rx30 = 0;
 		radio_state = radiostateSync;
 	}
@@ -311,7 +332,7 @@ void DspController::RecievedPswf()
 				ContentPSWF.L_CODE = lcode; // изменяем параметры для передачи
 				ContentPSWF.R_ADR = ContentPSWF.S_ADR;
 				// Пусть пока свой адрес равен 1
-				ContentPSWF.S_ADR = 1;
+				ContentPSWF.S_ADR = PSWF_SELF_ADR;
 //				if (quite == 1) //TODO: это пока не реализовано
 //					quit_timer->start();
 			}
@@ -319,6 +340,16 @@ void DspController::RecievedPswf()
 		}
 
 	++command_rx30;
+
+	commandOK();
+}
+
+
+int DspController::CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN)
+{
+    int TOT_W = 6671000; // ширина разрешенных участков
+    int FR_SH = fmod(RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY, TOT_W);
+    return FR_SH;
 }
 
 
@@ -684,8 +715,14 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 				tx_data_len += 1;
 				break;
 			}
+			case PswfRxFrequency: {
+				qmToBigEndian(value.frequency, tx_data+tx_data_len);
+				tx_data_len += 4;
+				break;
+			}
 			default: break;
 			}
+			break;
 		}
 		default: QM_ASSERT(0);
 		}
@@ -783,7 +820,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	}
     case 0x63: {
 
-        commandOK(); // пришла команда
+//        commandOK(); // пришла команда
         if ((indicator == 30) /*&& (value_len == 1)*/)
         {
         	QM_ASSERT(command_rx30 < 30);

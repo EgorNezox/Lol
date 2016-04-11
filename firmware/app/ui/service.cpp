@@ -17,6 +17,7 @@
 #include <thread>
 #include <navigation/navigator.h>
 #include <math.h>
+#include <stdio.h>
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
@@ -550,7 +551,62 @@ void Service::keyPressed(UI_Key key)
                 break;
             case keyEnter:
                 if ( menu->focus < estate.listItem.size() )
-                { /* callback */ }
+                { /* callback */
+
+                	//TODO: temp fix))
+
+                	int param[2]; // 0 -R_ADR, 1 - COM_N
+                	int i = 0;
+
+                	for (auto &k: estate.listItem)
+                	{
+                		param[i] = atoi(k->inputStr.c_str());
+                		i++;
+                	}
+
+                	Navigation::Coord_Date* date = navigator->getCoordDate();
+
+                	char * data = NULL;
+                	char *time  = NULL;
+
+                	data = (char *)date->data;
+                	time = (char *)date->time;
+
+
+
+                	std::string dt;
+                	std::string tm;
+
+                	if ((data != NULL) &&  (time != NULL) &&
+                			(sizeof(data) >5) && (sizeof(time) >5))
+                	{
+                		dt = std::string(data);
+                		tm = std::string(time);
+                	}
+                	else
+                	{
+                		dt = std::string("060416");
+                		tm = std::string("143722");
+                	}
+
+
+                	// S_ADR  = 1 .. 32, пусть S_ADR = 1;
+
+                	int LCODE = Calc_LCODE(param[0],1,param[1],0,0,atoi(tm.substr(0,2).c_str()),
+                			atoi(tm.substr(2,4).c_str()),
+							atoi(tm.substr(4,6).c_str()));
+
+                	//RN_KEY - ?
+
+                	int FREQ  = CalcShiftFreq(0,0,atoi(tm.substr(0,2).c_str()),
+                					atoi(tm.substr(2,4).c_str()),
+									atoi(tm.substr(4,6).c_str()));
+
+
+                	 voice_service->TurnPSWFMode(0,LCODE,param[0],param[1],FREQ);
+
+
+                }
                 break;
             default:
                 if ( key > 5 && key < 16)
@@ -766,10 +822,13 @@ int Service::getLanguage()
 
 void Service::getSignalRecieverFrame()
 {
-   static int count = 0;
-   if (count == 0)
-   msgBox("Принят пакетик");
-   count++;
+//	msgBox("30th packed received");
+	static int count = 0;
+	count++;
+
+	char str[64];
+	sprintf(str, "Packet received %d", count);
+	msgBox(str);
 }
 
 void Service::msgBox(const char *title)
@@ -906,9 +965,10 @@ void Service::draw()
 
     switch(currentState.getType())
     {
-    case mainWindow:
+    case mainWindow:{
         drawMainWindow();
         break;
+    }
     case messangeWindow:
         if ( currentState.getText() != "" )
             msgBox( currentState.getName(), currentState.getText() );
