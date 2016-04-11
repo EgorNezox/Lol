@@ -1022,16 +1022,21 @@ void Service::setFreq(int isFreq)
     Service::isFreq = isFreq;
 }
 
-int Service::CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN)
+int Service::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
 {
     int TOT_W = 6671000; // ширина разрешенных участков
-    int FR_SH = fmod(RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY, TOT_W);
+
+    int SEC_MLT = value_sec[SEC]; // SEC_MLT выбираем в массиве
+
+    // RN_KEY - ключ подсети, аналогия с ip-сетью, поставим 0 по умолчанию
+
+    int FR_SH = (RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY)% TOT_W;
     return FR_SH;
 }
 
 int Service::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
 {
-    int L_CODE = fmod((R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY), 100);
+    int L_CODE = (R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY)% 100;
     return L_CODE;
 }
 

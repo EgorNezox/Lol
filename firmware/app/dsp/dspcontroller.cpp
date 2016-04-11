@@ -210,10 +210,9 @@ void DspController::setPSWFParametres(int RadioPath,int LCODE, int R_ADR, int CO
         param.pswf_r_adr = PSWF_SELF_ADR;
         sendCommand(PSWFReceiver, PswfRxRAdr, param);
         setPswfMode(0);
-//        timer_rx_pswf->start();
+
     } else {
     	setPswfMode(1);
-//    	timer_tx_pswf->start();
     }
 }
 
@@ -271,15 +270,58 @@ void DspController::syncPulseDetected() {
 		break;
 	}
 	default: break;
-	}
+    }
+}
+
+int* DspController::getDataTime()
+{
+    Navigation::Coord_Date *date = navigator->getCoordDate();
+
+    char day_ch[3] = {0,0,0};
+    char hr_ch[3] = {0,0,0};
+    char mn_ch[3] = {0,0,0};
+    char sec_ch[3] = {0,0,0};
+
+    memcpy(day_ch,&date->data[0],2);
+    memcpy(hr_ch,&date->time[0],2);
+    memcpy(mn_ch,&date->time[2],2);
+    memcpy(sec_ch,&date->time[4],2);
+
+    int day = atoi(day_ch); // TODO:
+    int hrs = atoi(hr_ch);
+    int min = atoi(mn_ch);
+    int sec = atoi(sec_ch);
+
+    int date_time[4];
+    date_time[0] = day;
+    date_time[1] = hrs;
+    date_time[2] = min;
+    date_time[3] = sec;
+
+    return date_time;
 }
 
 void DspController::transmitPswf()
 {
+
+    int *dtime;
+    dtime = (int*) malloc(4*sizeof(int));
+    dtime = getDataTime();
+
+    ContentPSWF.L_CODE = navigator->Calc_LCODE(ContentPSWF.R_ADR,
+                                               ContentPSWF.S_ADR,
+                                               ContentPSWF.COM_N,
+                                               ContentPSWF.RN_KEY,
+                                               dtime[0],
+                                               dtime[1],
+                                               dtime[2],
+                                               dtime[3]);
+
+
     sendPswf(PSWFTransmitter);
     if (command_tx30 == 30)
     {
-    	qmDebugMessage(QmDebug::Dump, "PSWF trinsmitting finished");
+        qmDebugMessage(QmDebug::Dump, "PSWF trinsmitting finished");
         timer_tx_pswf->stop();
         command_tx30 = 0;
         setPswfMode(0);
@@ -290,21 +332,12 @@ void DspController::transmitPswf()
 
 
 void DspController::changePswfRxFrequency() {
-	Navigation::Coord_Date *date = navigator->getCoordDate();
 
-	char day_ch[3] = {0,0,0};
-	char hr_ch[3] = {0,0,0};
-	char mn_ch[3] = {0,0,0};
-
-	memcpy(day_ch,&date->data[0],2);
-	memcpy(hr_ch,&date->time[0],2);
-	memcpy(hr_ch,&date->time[2],2);
-
-	int day = atoi(day_ch); // TODO:
-	int hrs = atoi(hr_ch);
-	int min = atoi(mn_ch);
-
-	ContentPSWF.Frequency = CalcShiftFreq(1,24,day,hrs,min);
+     int *dtime;
+     dtime = (int*) malloc(4*sizeof(int));
+     dtime = getDataTime();
+    // RN_KEY по умолчанию 0  - пока другого нет
+    ContentPSWF.Frequency = CalcShiftFreq(0,dtime[3],dtime[0],dtime[1],dtime[2]);
 
     ParameterValue param;
     param.frequency = ContentPSWF.Frequency;
@@ -313,42 +346,47 @@ void DspController::changePswfRxFrequency() {
 
 void DspController::RecievedPswf()
 {
-	qmDebugMessage(QmDebug::Warning, "RecievedPswf() command_rx30 = %d", command_rx30);
-	if (command_rx30 == 30 - 1) {
-		command_rx30 = 0;
-		radio_state = radiostateSync;
-	}
+    qmDebugMessage(QmDebug::Warning, "RecievedPswf() command_rx30 = %d", command_rx30);
+    if (command_rx30 == 30 - 1) {
+        command_rx30 = 0;
+        radio_state = radiostateSync;
+    }
 
-	// поиск совпадений в массиве
-	command[command_rx30] = bufer_pswf[command_rx30][9];
-	char lcode  = bufer_pswf[command_rx30][10];
+    // поиск совпадений в массиве
+    command[command_rx30] = bufer_pswf[command_rx30][9];
+    char lcode  = bufer_pswf[command_rx30][10];
 
-	if (command_rx30 - 1 >=0)
-		for(int j = command_rx30 - 1; j>0;j--)
-		{
-			if (command[j] == command[command_rx30]){
-				sucsess_pswf = true;
-				ContentPSWF.COM_N = command[command_rx30];
-				ContentPSWF.L_CODE = lcode; // изменяем параметры для передачи
-				ContentPSWF.R_ADR = ContentPSWF.S_ADR;
-				// Пусть пока свой адрес равен 1
-				ContentPSWF.S_ADR = PSWF_SELF_ADR;
-//				if (quite == 1) //TODO: это пока не реализовано
-//					quit_timer->start();
-			}
+    if (command_rx30 - 1 >=0)
+        for(int j = command_rx30 - 1; j>0;j--)
+        {
+            if (command[j] == command[command_rx30]){
+                sucsess_pswf = true;
+                ContentPSWF.COM_N = command[command_rx30];
+                ContentPSWF.L_CODE = lcode; // изменяем параметры для передачи
+                ContentPSWF.R_ADR = ContentPSWF.S_ADR;
+                // Пусть пока свой адрес равен 1
+                ContentPSWF.S_ADR = PSWF_SELF_ADR;
+                //				if (quite == 1) //TODO: это пока не реализовано
+                //					quit_timer->start();
+            }
 
-		}
+        }
 
-	++command_rx30;
+    ++command_rx30;
 
-	commandOK();
+    commandOK();
 }
 
 
-int DspController::CalcShiftFreq(int RN_KEY, int SEC_MLT, int DAY, int HRS, int MIN)
+int DspController::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
 {
     int TOT_W = 6671000; // ширина разрешенных участков
-    int FR_SH = fmod(RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY, TOT_W);
+
+    int SEC_MLT = value_sec[SEC]; // SEC_MLT выбираем в массиве
+
+    // RN_KEY - ключ подсети, аналогия с ip-сетью, поставим 0 по умолчанию
+
+    int FR_SH = (RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY)% TOT_W;
     return FR_SH;
 }
 
