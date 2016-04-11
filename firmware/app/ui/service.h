@@ -70,8 +70,6 @@ static int value_sec[60] =
 
 };
 
-
-
 class Service : public sigc::trackable {
 public:
     Service(matrix_keyboard_t matrixkb_desc,

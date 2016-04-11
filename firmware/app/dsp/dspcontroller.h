@@ -42,6 +42,29 @@ static int value_sec[60] =
 };
 
 
+static int frequence_bandwidth[34] =
+{
+    1622,     2158,
+    2206,     2483,
+    2517,     2610,
+    2665,     2835,
+    3170,     3385,
+    3515,     3885,
+    4015,     4635,
+    4765,     4980,
+    5075,     5465,
+    5745,     5885,
+    6215,     6510,
+    6780,     7185,
+    7465,     8800,
+    9055,     9385,
+    9915,     9980,
+    10115,    11160,
+    11415,    11585
+
+};
+
+
 class DspController : public QmObject
 {
 public:
@@ -77,7 +100,7 @@ public:
     void setRadioSquelch(uint8_t value);
     void setAudioVolumeLevel(uint8_t volume_level);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
-    void setPSWFParametres(int RadioPath, int LCODE, int R_ADR,int COM_N,uint32_t FREQ);
+    void setPSWFParametres(int RadioPath, int R_ADR,int COM_N);
     void RecievedPswf();
 
 

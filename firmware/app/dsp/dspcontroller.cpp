@@ -190,19 +190,40 @@ void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
     resyncPendingCommand();
 }
 
-void DspController::setPSWFParametres(int RadioPath,int LCODE, int R_ADR, int COM_N,uint32_t FREQ)
+void DspController::setPSWFParametres(int RadioPath, int R_ADR, int COM_N)
 {
     QM_ASSERT(is_ready);
     if (!resyncPendingCommand())
         return;
 
+    getDataTime();
+    int sum = 0;
+    int fr_sh = CalcShiftFreq(0,date_time[3],date_time[0],date_time[1],date_time[2]);
+
+    bool find_fr = false;
+    int i = 0;
+    while(find_fr == false)
+    {
+        sum += (frequence_bandwidth[i+1] - frequence_bandwidth[i]);
+        if (fr_sh < sum)
+        {
+            fr_sh = fr_sh - (sum - (frequence_bandwidth[i+1] - frequence_bandwidth[i]));
+            ContentPSWF.Frequency = frequence_bandwidth[i] + fr_sh;
+            find_fr = true;
+        }
+
+        i++;
+    }
+
     ContentPSWF.indicator = 20;
     ContentPSWF.TYPE = 0;
-    ContentPSWF.L_CODE = LCODE;
     ContentPSWF.COM_N = COM_N;
-    ContentPSWF.Frequency = FREQ;
+//    ContentPSWF.Frequency = fr_sh + current_radio_frequency;
     ContentPSWF.RN_KEY = 1;
     ContentPSWF.R_ADR = R_ADR;
+
+    ContentPSWF.L_CODE = navigator->Calc_LCODE(R_ADR,1,COM_N,0,date_time[0],
+            date_time[1],date_time[2],date_time[3]);
 
     if (RadioPath == 0) {
         ParameterValue param;
