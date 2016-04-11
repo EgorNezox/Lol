@@ -563,8 +563,6 @@ void Service::keyPressed(UI_Key key)
                 	data = (char *)date->data;
                 	time = (char *)date->time;
 
-
-
                 	std::string dt;
                 	std::string tm;
 
@@ -659,8 +657,16 @@ void Service::keyPressed(UI_Key key)
             }
             default:
                 CEndState elem = (CEndState&)guiTree.getCurrentState();
-                if ( elem.listItem.back()->inputStr.size() < 99 )
-                    menu->inputMessage( (CEndState&)guiTree.getCurrentState(), key );
+                if ( menu->focus == 0)
+                {
+                    if ( elem.listItem.front()->inputStr.size() < 2 )
+                        menu->inputSmsAddr( (CEndState&)guiTree.getCurrentState(), key );
+                }
+                else
+                {
+                    if ( elem.listItem.back()->inputStr.size() < 99 )
+                        menu->inputSmsMessage( (CEndState&)guiTree.getCurrentState(), key );
+                }
                 break;
             }
             break;
