@@ -208,7 +208,7 @@ void DspController::setPSWFParametres(int RadioPath, int R_ADR, int COM_N)
         if (fr_sh < sum)
         {
             fr_sh = fr_sh - (sum - (frequence_bandwidth[i+1] - frequence_bandwidth[i]));
-            ContentPSWF.Frequency = frequence_bandwidth[i] + fr_sh;
+            ContentPSWF.Frequency = (frequence_bandwidth[i] + fr_sh) * 1000;
             find_fr = true;
         }
 
@@ -218,7 +218,6 @@ void DspController::setPSWFParametres(int RadioPath, int R_ADR, int COM_N)
     ContentPSWF.indicator = 20;
     ContentPSWF.TYPE = 0;
     ContentPSWF.COM_N = COM_N;
-//    ContentPSWF.Frequency = fr_sh + current_radio_frequency;
     ContentPSWF.RN_KEY = 1;
     ContentPSWF.R_ADR = R_ADR;
 
