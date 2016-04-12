@@ -132,7 +132,7 @@ void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
     currentChannelChanged();
 }
 
-void VoiceServiceInterface::fistPacketRecieve(uint8_t packet)
+void VoiceServiceInterface::fistPacketRecieve(int packet)
 {
    firstPacket(packet);
 }

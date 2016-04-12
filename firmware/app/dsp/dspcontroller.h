@@ -124,7 +124,7 @@ public:
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
-    sigc::signal<void,uint8_t> firstPacket;
+    sigc::signal<void,int> firstPacket;
 
     uint8_t quite;
 

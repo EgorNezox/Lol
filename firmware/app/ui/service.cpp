@@ -362,6 +362,15 @@ void Service::keyPressed(UI_Key key)
                 if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 2)
                     main_scr->mainWindowModeId++;
                 break;
+            case key0:
+			{
+				int p = 10;
+				char sym;
+				sprintf(&sym,"%d",p);
+
+				msgBox("Receive first packet: fatality ", &sym);
+			}
+                break;
             default:
                 break;
             }
@@ -830,31 +839,43 @@ int Service::getLanguage()
     return 0;
 }
 
-void Service::FirstPacketPSWFRecieved(uint8_t packet)
+void Service::FirstPacketPSWFRecieved(int packet)
 {
-    std::string str;
-    sprintf( (char*)str.c_str(), "%d", packet);
-    msgBox("Принята условная команда\t", str.c_str());
+	if ( packet >= 0 && packet < 100 )
+	{
+		char sym;
+	    sprintf(&sym,"%d",packet);
+		msgBox("Recieved packet ", &sym);
+	}
+	else if ( packet > 99)
+	{
+		msgBox("Recieved packet: Fatal error\t");
+	}
+	else
+	{
+		msgBox("Recieved packet: Unknow error\t");
+	}
 }
 
 void Service::msgBox(const char *title)
 {
-    Alignment align = {alignHCenter,alignTop};
-    MoonsGeometry area = {1, 1, (GXT)(159), (GYT)(127)};
+    Alignment align007 = {alignHCenter,alignTop};
+    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
     if(msg_box == nullptr)
     {
-        msg_box = new GUI_Dialog_MsgBox(&area, (char*)title, align);
+        msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, align007);
     }
     msg_box->Draw();
 }
 
 void Service::msgBox(const char *title, const char *text)
 {
-    Alignment align = {alignHCenter,alignTop};
-    MoonsGeometry area = {1, 1, (GXT)(159), (GYT)(127)};
+    Alignment align007 = {alignHCenter,alignTop};
+    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+
     if(msg_box == nullptr)
     {
-        msg_box = new GUI_Dialog_MsgBox(&area, (char*)title, (char*)text, align);
+        msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (char*)text, align007);
     }
     msg_box->Draw();
 }
