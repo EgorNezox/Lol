@@ -36,6 +36,44 @@ struct DspCommand {
 	DspController::ParameterValue value;
 };
 
+static int value_sec[60] =
+{
+
+    0,        5,       10,       15 ,      20,       25,
+    1,        6,       11 ,      16,       21,       26,
+    2,        7,       12,       17,       22,       27,
+    3,        8,       13,       18,       23,       28,
+    4,        9,       14,       19,       24,       29,
+    0,        5,       10,       15,       20,       25,
+    1,        6,       11 ,      16 ,      21,       26,
+    2,        7,       12,       17,       22,       27,
+    3,        8,       13,       18,       23,       28,
+    4,        9,       14 ,      19,       24,       29
+
+};
+
+static int frequence_bandwidth[34] =
+{
+    1622000,     2158000,
+    2206000,     2483000,
+    2517000,     2610000,
+    2665000,     2835000,
+    3170000,     3385000,
+    3515000,     3885000,
+    4015000,     4635000,
+    4765000,     4980000,
+    5075000,     5465000,
+    5745000,     5885000,
+    6215000,     6510000,
+    6780000,     7185000,
+    7465000,     8800000,
+    9055000,     9385000,
+    9915000,     9980000,
+    10115000,    11160000,
+    11415000,    11585000
+
+};
+
 DspController::DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, QmObject *parent) :
 	QmObject(parent),
 	is_ready(false)
@@ -52,29 +90,12 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 	initResetState();
 
-	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
-
 	this->navigator = navigator;
+	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
 
     command_tx30 = 0;
     command_rx30 = 0;
     cmd_queue = new std::list<DspCommand>();
-
-    timer_tx_pswf  = new QmTimer(false,this);
-    timer_tx_pswf->setInterval(1000);
-    timer_tx_pswf->timeout.connect(sigc::mem_fun(this, &DspController::transmitPswf));
-    timer_rx_pswf  = new QmTimer(false,this);
-    timer_rx_pswf->setInterval(1000);
-    timer_rx_pswf->timeout.connect(sigc::mem_fun(this, &DspController::changePswfRxFrequency));
-
-    timer_rx_pswf = new QmTimer(false,this);
-    timer_rx_pswf->setInterval(1000);
-
-//    quit_timer = new QmTimer(true,this);
-//    quit_timer->setInterval(30000);
-//    quit_timer->timeout.connect(sigc::mem_fun(this,&DspController::transmitPswf));
-
-
 
     quite = 0;
 
@@ -301,13 +322,10 @@ void DspController::getDataTime()
     int min = atoi(mn_ch);
     int sec = atoi(sec_ch);
 
-
     date_time[0] = day;
     date_time[1] = hrs;
     date_time[2] = min;
     date_time[3] = sec;
-
-
 }
 
 void DspController::transmitPswf()
@@ -324,14 +342,13 @@ void DspController::transmitPswf()
                                                date_time[2],
                                                date_time[3]);
 
-
     sendPswf(PSWFTransmitter);
     if (command_tx30 == 30)
     {
+    	radio_state = radiostateSync;
         qmDebugMessage(QmDebug::Dump, "PSWF trinsmitting finished");
-        timer_tx_pswf->stop();
         command_tx30 = 0;
-        setPswfMode(0);
+        setPSWFParametres(0, ContentPSWF.R_ADR, ContentPSWF.COM_N);
     }
     command_tx30++;
 }
@@ -365,11 +382,6 @@ void DspController::RecievedPswf()
 
     // поиск совпадений в массиве
     command[command_rx30] = bufer_pswf[command_rx30][8]; // com_n
-
-//    static int count = 0;
-//    if (count == 0)
-//        firstPacket((uint8_t)command[command_rx30]);
-//    count++;
 
 //    if (command_rx30 - 1 >=0)
 //        for(int j = command_rx30 - 1; j>0;j--)

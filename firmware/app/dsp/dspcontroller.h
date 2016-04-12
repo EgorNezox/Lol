@@ -23,48 +23,6 @@ namespace Multiradio {
 class DspTransport;
 struct DspCommand;
 
-
-
-static int value_sec[60] =
-{
-
-    0,        5,       10,       15 ,      20,       25,
-    1,        6,       11 ,      16,       21,       26,
-    2,        7,       12,       17,       22,       27,
-    3,        8,       13,       18,       23,       28,
-    4,        9,       14,       19,       24,       29,
-    0,        5,       10,       15,       20,       25,
-    1,        6,       11 ,      16 ,      21,       26,
-    2,        7,       12,       17,       22,       27,
-    3,        8,       13,       18,       23,       28,
-    4,        9,       14 ,      19,       24,       29
-
-};
-
-
-static int frequence_bandwidth[34] =
-{
-    1622000,     2158000,
-    2206000,     2483000,
-    2517000,     2610000,
-    2665000,     2835000,
-    3170000,     3385000,
-    3515000,     3885000,
-    4015000,     4635000,
-    4765000,     4980000,
-    5075000,     5465000,
-    5745000,     5885000,
-    6215000,     6510000,
-    6780000,     7185000,
-    7465000,     8800000,
-    9055000,     9385000,
-    9915000,     9980000,
-    10115000,    11160000,
-    11415000,    11585000
-
-};
-
-
 class DspController : public QmObject
 {
 public:
@@ -120,7 +78,6 @@ public:
     void transmitSMS();
 
     void ReturnPswfFromDSP();
-    int pswf_mas[12];
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -226,7 +183,7 @@ private:
     bool is_ready;
     QmIopin *reset_iopin;
     DspTransport *transport;
-    QmTimer *startup_timer, *command_timer,*timer_tx_pswf,*timer_rx_pswf;
+    QmTimer *startup_timer, *command_timer;
     QmTimer *quit_timer;
     enum {
         radiostateSync,
