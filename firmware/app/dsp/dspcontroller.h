@@ -42,6 +42,29 @@ static int value_sec[60] =
 };
 
 
+static int frequence_bandwidth[34] =
+{
+    1622000,     2158000,
+    2206000,     2483000,
+    2517000,     2610000,
+    2665000,     2835000,
+    3170000,     3385000,
+    3515000,     3885000,
+    4015000,     4635000,
+    4765000,     4980000,
+    5075000,     5465000,
+    5745000,     5885000,
+    6215000,     6510000,
+    6780000,     7185000,
+    7465000,     8800000,
+    9055000,     9385000,
+    9915000,     9980000,
+    10115000,    11160000,
+    11415000,    11585000
+
+};
+
+
 class DspController : public QmObject
 {
 public:
@@ -77,8 +100,10 @@ public:
     void setRadioSquelch(uint8_t value);
     void setAudioVolumeLevel(uint8_t volume_level);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
-    void setPSWFParametres(int RadioPath, int LCODE, int R_ADR,int COM_N,uint32_t FREQ);
+    void setPSWFParametres(int RadioPath, int R_ADR,int COM_N);
     void RecievedPswf();
+
+    void setFrequencyPswf();
 
 
     void getSwr();
@@ -215,8 +240,10 @@ private:
         radiostateCmdRxMode,
         radiostateCmdTxMode,
         radiostateCmdCarrierTx,
-        radiostateCmdPswfTx,
-        radiostateCmdPswfRx
+		radiostatePswfTxPrepare,
+		radiostatePswfTx,
+        radiostatePswfRxPrepare,
+		radiostatePswfRx
     } radio_state;
     RadioMode current_radio_mode;
     RadioOperation  current_radio_operation;
@@ -240,6 +267,9 @@ private:
     bool sucsess_pswf = false;
 
     int date_time[4];
+
+    int pswfRxStateSync;
+    int pswfTxStateSync;
 };
 
 
