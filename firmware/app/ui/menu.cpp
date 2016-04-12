@@ -595,7 +595,6 @@ void CGuiMenu::initSetParametersDialog(std::string text)
 {
     MoonsGeometry volume_geom  = {  35,  40,  105,  65 };
     LabelParams label_param = GUI_EL_TEMP_LabelMode;
-    //label_param = ;
 
     titleArea = { 35, 15, 105, 34};
 
@@ -616,97 +615,69 @@ void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)
     {
         if (prevKey == key)
         {
-            //            qDebug() << "  " << ( newTime - ct ).count() << "\n";
-
-            if ( ( newTime - ct ).count() < 500*(1000000) )
+            if ( ( newTime - ct ).count() < 800*(1000000) )
             {
                 keyPressCount++;
-                if ( keyPressCount > 4 ) keyPressCount = 0;
+                switch ( key )
+                {
+                case key0:
+                    if ( keyPressCount > 1 ) keyPressCount = 0;
+                    break;
+                case key1:
+                    if ( keyPressCount > 5) keyPressCount = 0;
+                    break;
+                default:
+                    if ( keyPressCount > 3 ) keyPressCount = 0;
+                    break;
+                }
+
                 auto elem = state.listItem.back();
                 elem->inputStr.pop_back();
-            }
-
-            auto elem = state.listItem.back();
-            switch (key)
-            {
-            case key0:
-                elem->inputStr.push_back(ch_key0[keyPressCount]);
-                break;
-            case key1:
-                elem->inputStr.push_back(ch_key1[keyPressCount]);
-                break;
-            case key2:
-                elem->inputStr.push_back(ch_key2[keyPressCount]);
-                break;
-            case key3:
-                elem->inputStr.push_back(ch_key3[keyPressCount]);
-                break;
-            case key4:
-                elem->inputStr.push_back(ch_key4[keyPressCount]);
-                break;
-            case key5:
-                elem->inputStr.push_back(ch_key5[keyPressCount]);
-                break;
-            case key6:
-                elem->inputStr.push_back(ch_key6[keyPressCount]);
-                break;
-            case key7:
-                elem->inputStr.push_back(ch_key7[keyPressCount]);
-                break;
-            case key8:
-                elem->inputStr.push_back(ch_key8[keyPressCount]);
-                break;
-            case key9:
-                elem->inputStr.push_back(ch_key9[keyPressCount]);
-                break;
-            default:
-                //
-                break;
             }
         }
         else
         {
             keyPressCount = 0;
-            auto elem = state.listItem.back();
-            switch (key)
-            {
-            case key0:
-                elem->inputStr.push_back(ch_key0[keyPressCount]);
-                break;
-            case key1:
-                elem->inputStr.push_back(ch_key1[keyPressCount]);
-                break;
-            case key2:
-                elem->inputStr.push_back(ch_key2[keyPressCount]);
-                break;
-            case key3:
-                elem->inputStr.push_back(ch_key3[keyPressCount]);
-                break;
-            case key4:
-                elem->inputStr.push_back(ch_key4[keyPressCount]);
-                break;
-            case key5:
-                elem->inputStr.push_back(ch_key5[keyPressCount]);
-                break;
-            case key6:
-                elem->inputStr.push_back(ch_key6[keyPressCount]);
-                break;
-            case key7:
-                elem->inputStr.push_back(ch_key7[keyPressCount]);
-                break;
-            case key8:
-                elem->inputStr.push_back(ch_key8[keyPressCount]);
-                break;
-            case key9:
-                elem->inputStr.push_back(ch_key9[keyPressCount]);
-                break;
-            default:
-                //
-                break;
-            }
             prevKey = key;
         }
 
+        auto elem = state.listItem.back();
+        switch (key)
+        {
+        case key0:
+            elem->inputStr.push_back(ch_key0[keyPressCount]);
+            break;
+        case key1:
+            elem->inputStr.push_back(ch_key1[keyPressCount]);
+            break;
+        case key2:
+            elem->inputStr.push_back(ch_key2[keyPressCount]);
+            break;
+        case key3:
+            elem->inputStr.push_back(ch_key3[keyPressCount]);
+            break;
+        case key4:
+            elem->inputStr.push_back(ch_key4[keyPressCount]);
+            break;
+        case key5:
+            elem->inputStr.push_back(ch_key5[keyPressCount]);
+            break;
+        case key6:
+            elem->inputStr.push_back(ch_key6[keyPressCount]);
+            break;
+        case key7:
+            elem->inputStr.push_back(ch_key7[keyPressCount]);
+            break;
+        case key8:
+            elem->inputStr.push_back(ch_key8[keyPressCount]);
+            break;
+        case key9:
+            elem->inputStr.push_back(ch_key9[keyPressCount]);
+            break;
+        default:
+            //
+            break;
+        }
         ct = std::chrono::steady_clock::now();
     }
 
@@ -728,11 +699,12 @@ void CGuiMenu::inputSmsAddr(CEndState state, UI_Key key)
 
 void CGuiMenu::initSmsInputDialog(const char* titleStr, std::string addrStr, std::string msgStr )
 {
-    titleArea   = { 5,  5, 140,  20 };
-    MoonsGeometry addrArea    = { 5, 25, 140,  44 };
-    MoonsGeometry volume_geom = { 5, 47, 140, 110 };
+    titleArea   = { 5,  5, 150,  20 };
+    MoonsGeometry addrArea    = { 5, 24, 150,  44 };
+    MoonsGeometry volume_geom = { 5, 50, 150, 100 };
 
-    LabelParams param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
+    LabelParams param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_CommonTextAreaLT};
+    param[0].element.align = {alignHCenter, alignTop};
     param[1].element.align = {alignLeft, alignTop};
 
     for (int i = 0; i < 2; i++)
@@ -743,11 +715,11 @@ void CGuiMenu::initSmsInputDialog(const char* titleStr, std::string addrStr, std
 
     GUI_EL_Window   window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
     GUI_EL_Label    title (&titleParams,               &titleArea,   (char*)titleStr,         (GUI_Obj *)this);
-    GUI_EL_Label    addr  (&param[0],                  &addrArea,    (char*)addrStr.c_str(),  (GUI_Obj *)this);
+    GUI_EL_Label    addr  (&param[0],                  &addrArea,    (char*)/*addrStr.c_str()*/"000",  (GUI_Obj *)this);
     GUI_EL_TextArea volume(&param[1],                  &volume_geom, (char*)msgStr.c_str(),   (GUI_Obj *)this);
 
     window.Draw();
     title.Draw();
     addr.Draw();
-    volume.Draw();
+    //volume.Draw();
 }

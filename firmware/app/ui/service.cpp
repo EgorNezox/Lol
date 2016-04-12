@@ -21,7 +21,7 @@
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
-MoonsGeometry ui_menu_msg_box_area  = { 5,5,GDISPW-5,GDISPH-5 };
+MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
 
 
@@ -661,11 +661,13 @@ void Service::keyPressed(UI_Key key)
                     if ( elem.listItem.front()->inputStr.size() < 2 )
                         menu->inputSmsAddr( (CEndState&)guiTree.getCurrentState(), key );
                 }
-                else
+                else if ( menu->focus == 1 )
                 {
                     if ( elem.listItem.back()->inputStr.size() < 99 )
                         menu->inputSmsMessage( (CEndState&)guiTree.getCurrentState(), key );
                 }
+                else
+                {}
                 break;
             }
             break;
@@ -794,12 +796,6 @@ void Service::keyPressed(UI_Key key)
             {
             case keyEnter:
             {  }
-                break;
-                //            case keyBack:
-                //            {
-                //                guiTree.backvard();
-                //                menu->focus = 0;
-                //            }
                 break;
             default:
                 if ( key > 5 && key < 16)
@@ -1061,9 +1057,6 @@ void Service::setCoordDate(Navigation::Coord_Date *date)
     str.push_back((char)' ');
 
     str.push_back((char)date->time[0]);
-
-
-
     str.push_back((char)date->time[1]);
     str.push_back((char)':');
     str.push_back((char)date->time[2]);

@@ -51,9 +51,9 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	transport = new DspTransport(uart_resource, 2, this);
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 	initResetState();
-
+#ifdef PORT__TARGET_DEVICE_REV1
 	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
-
+#endif
 	this->navigator = navigator;
 
     command_tx30 = 0;
@@ -744,7 +744,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 			}
 			break;
 		}
-		// для ППРЧ
+		// для ПП� Ч
 		case PSWFTransmitter: {
 			QM_ASSERT(0);
 			break;

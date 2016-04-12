@@ -55,7 +55,7 @@ void qmMain() {
 
 #ifdef PORT__TARGET_DEVICE_REV1
 	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
-            &headset_controller, 0/*&navigator*/);
+            &headset_controller, &navigator);
 #else
     Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
             &headset_controller, 0);
@@ -92,19 +92,20 @@ void qmMain() {
 
 
 #ifdef PORT__TARGET_DEVICE_REV1
-    Ui::Service ui_service(ui_matrixkb_desc, ui_auxkb_desc,
-			&headset_controller,
-			mr_dispatcher.getMainServiceInterface(), mr_dispatcher.getVoiceServiceInterface(),
-            &power_battery,
-			&navigator);
-#endif
-#ifndef PORT__TARGET_DEVICE_REV1
+    Ui::Service ui_service( ui_matrixkb_desc, ui_auxkb_desc,
+                           &headset_controller,
+                            mr_dispatcher.getMainServiceInterface(),
+                            mr_dispatcher.getVoiceServiceInterface(),
+                           &power_battery,
+                           &navigator\
+                          );
+#else
     Ui::Service ui_service(
                             ui_matrixkb_desc,
                             ui_auxkb_desc,
                             &headset_controller,
-                            mr_dispatcher.getMainServiceInterface(),
-                            mr_dispatcher.getVoiceServiceInterface(),
+                             mr_dispatcher.getMainServiceInterface(),
+                             mr_dispatcher.getVoiceServiceInterface(),
                             &power_battery,
                             0
                 );
