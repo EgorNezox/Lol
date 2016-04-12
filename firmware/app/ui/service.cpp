@@ -833,8 +833,8 @@ int Service::getLanguage()
 void Service::FirstPacketPSWFRecieved(uint8_t packet)
 {
     std::string str;
-    sprintf( (char*)str.c_str(), "\t%d", packet);
-    msgBox("Принята условная команда", str.c_str());
+    sprintf( (char*)str.c_str(), "%d", packet);
+    msgBox("Принята условная команда\t", str.c_str());
 }
 
 void Service::msgBox(const char *title)

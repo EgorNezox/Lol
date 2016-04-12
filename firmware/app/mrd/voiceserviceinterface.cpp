@@ -22,18 +22,19 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 	current_channel_status(ChannelDisabled)
 {
     dispatcher->dsp_controller->firstPacket.connect(sigc::mem_fun(this,&VoiceServiceInterface::fistPacketRecieve));
-
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
 {
 }
 
-VoiceServiceInterface::ChannelStatus VoiceServiceInterface::getCurrentChannelStatus() {
+VoiceServiceInterface::ChannelStatus VoiceServiceInterface::getCurrentChannelStatus()
+{
 	return current_channel_status;
 }
 
-int VoiceServiceInterface::getCurrentChannelNumber() {
+int VoiceServiceInterface::getCurrentChannelNumber()
+{
 	return (dispatcher->voice_channel - dispatcher->voice_channels_table.begin() + 1);
 }
 
