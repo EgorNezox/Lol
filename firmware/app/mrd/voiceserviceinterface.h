@@ -44,7 +44,7 @@ public:
 
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
-    sigc::signal<void,uint8_t> firstPacket;
+    sigc::signal<void,int> firstPacket;
 
 private:
 	friend class Dispatcher;
@@ -53,7 +53,7 @@ private:
 	~VoiceServiceInterface();
 	void setCurrentChannel(ChannelStatus status);
 
-    void fistPacketRecieve(uint8_t packet);
+    void fistPacketRecieve(int packet);
 
 	Dispatcher *dispatcher;
 	ChannelStatus current_channel_status;

@@ -81,7 +81,7 @@ public:
             Navigation::Navigator *navigator);
 	~Service();
 	void setNotification(NotificationType type);
-    // апдэйт индикаторов
+    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     void updateHeadset(Headset::Controller::Status);
     void updateMultiradio(Multiradio::MainServiceInterface::Status);
     void updateBattery(int);
@@ -125,7 +125,7 @@ private:
     Power::Battery * pGetPowerBattery();
     int getLanguage();
 
-    void FirstPacketPSWFRecieved(uint8_t packet);
+    void FirstPacketPSWFRecieved(int packet);
 
     void drawMainWindow();
 

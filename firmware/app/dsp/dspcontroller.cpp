@@ -342,14 +342,14 @@ void DspController::changePswfRxFrequency() {
 
     getDataTime();
     // RN_KEY по умолчанию 0  - пока другого нет
-    QM_ASSERT(date_time[3]>=0 && date_time[3]<=59);
-    QM_ASSERT(date_time[2]>=0 && date_time[2]<=59);
-    QM_ASSERT(date_time[1]>=0 && date_time[1]<=23);
-    QM_ASSERT(date_time[0]>=0 && date_time[0]<=31);
+    //QM_ASSERT(date_time[3]>=0 && date_time[3]<=59);
+    //QM_ASSERT(date_time[2]>=0 && date_time[2]<=59);
+    //QM_ASSERT(date_time[1]>=0 && date_time[1]<=23);
+    //QM_ASSERT(date_time[0]>=0 && date_time[0]<=31);
 
     setFrequencyPswf();
 
-
+     //TODO: fix assert
     ParameterValue param;
     param.frequency = ContentPSWF.Frequency;
     sendCommand(PSWFReceiver, PswfRxFrequency, param);
@@ -364,27 +364,27 @@ void DspController::RecievedPswf()
     }
 
     // поиск совпадений в массиве
-    command[command_rx30] = bufer_pswf[command_rx30][9]; // com_n
+    command[command_rx30] = bufer_pswf[command_rx30][8]; // com_n
 
 //    static int count = 0;
 //    if (count == 0)
 //        firstPacket((uint8_t)command[command_rx30]);
 //    count++;
 
-    if (command_rx30 - 1 >=0)
-        for(int j = command_rx30 - 1; j>0;j--)
-        {
-            if (command[j] == command[command_rx30]){
-                sucsess_pswf = true;
-                ContentPSWF.COM_N = command[command_rx30];
-                ContentPSWF.R_ADR = ContentPSWF.S_ADR;
-                // Пусть пока свой адрес равен 1
-                ContentPSWF.S_ADR = PSWF_SELF_ADR;
-                //				if (quite == 1) //TODO: это пока не реализовано
-                //					quit_timer->start();
-            }
-
-        }
+//    if (command_rx30 - 1 >=0)
+//        for(int j = command_rx30 - 1; j>0;j--)
+//        {
+//            if (command[j] == command[command_rx30]){
+//                sucsess_pswf = true;
+//                ContentPSWF.COM_N = command[command_rx30];
+//                ContentPSWF.R_ADR = ContentPSWF.S_ADR;
+//                // Пусть пока свой адрес равен 1
+//                ContentPSWF.S_ADR = PSWF_SELF_ADR;
+//                //				if (quite == 1) //TODO: это пока не реализовано
+//                //					quit_timer->start();
+//            }
+//
+//        }
 
     ++command_rx30;
 
@@ -822,7 +822,7 @@ void DspController::sendPswf(Module module) {
 
     ContentPSWF.indicator = 20;
     ContentPSWF.TYPE = 0;
-
+    ContentPSWF.SNR =  9;
 
 	uint8_t tx_address = 0x72;
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
@@ -840,9 +840,10 @@ void DspController::sendPswf(Module module) {
 	qmToBigEndian((uint8_t)ContentPSWF.S_ADR, tx_data+tx_data_len);
 	++tx_data_len;
 	qmToBigEndian((uint8_t)ContentPSWF.COM_N, tx_data+tx_data_len);
-	++tx_data_len;
+    ++tx_data_len;
 	qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data+tx_data_len);
 	++tx_data_len;
+
 
 	QM_ASSERT(pending_command->in_progress == false);
 	pending_command->in_progress = true;
@@ -882,6 +883,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	uint8_t code = qmFromBigEndian<uint8_t>(data+1);
 	uint8_t *value_ptr = data + 2;
 	int value_len = data_len - 2;
+
 	switch (address) {
 	case 0x11: {
 		if ((indicator == 5) && (code == 2) && (value_len == 6)) // инициативное сообщение с цифровой информацией о прошивке ?
@@ -931,13 +933,13 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         if (indicator == 30)
         {
         	QM_ASSERT(command_rx30 < 30);
-        	QM_ASSERT(value_len <= 12);
-            memcpy(bufer_pswf[command_rx30],data,value_len);
+        	//QM_ASSERT(value_len <= 12);
+            //memcpy(bufer_pswf[command_rx30],data,10);
             // копируем значения в  bufer_command
 
             static int count = 0;
             if (count == 0)
-            	firstPacket((uint8_t)data[8]);
+            	firstPacket((int)data[8]);
             count++;
 
             RecievedPswf();
