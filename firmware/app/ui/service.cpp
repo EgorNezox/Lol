@@ -425,14 +425,14 @@ void Service::keyPressed(UI_Key key)
     {
         CEndState estate = (CEndState&)guiTree.getCurrentState();
 
-        if ( key == keyEnter)
-        {
-            if (menu->focus == estate.listItem.size())
-            {
-                guiTree.resetCurrentState();
-            }
-            menu->focus = 0;
-        }
+//        if ( key == keyEnter)
+//        {
+//            if (menu->focus == estate.listItem.size())
+//            {
+//                guiTree.resetCurrentState();
+//            }
+//            menu->focus = 0;
+//        }
 
         switch(estate.subType)
         {
@@ -451,7 +451,21 @@ void Service::keyPressed(UI_Key key)
             }
                 break;
             case keyEnter:
-                if ( menu->focus < estate.listItem.size() )
+            {
+                bool flag = false;
+                if ( estate.listItem.size() == 2 )
+                {
+                    if (estate.listItem.front()->inputStr.size() != 0 &&
+                            estate.listItem.back()->inputStr.size() != 0 )
+                    { flag = true; }
+                }
+                else
+                {
+                    if ( estate.listItem.front()->inputStr.size() != 0 )
+                    { flag = true; }
+                }
+
+                if ( menu->focus == estate.listItem.size() && flag )
                 {
                     /* callback */
                     int param[2]; // 0 -R_ADR, 1 - COM_N
@@ -465,12 +479,13 @@ void Service::keyPressed(UI_Key key)
                     voice_service->TurnPSWFMode(1,param[0],param[1]);
                 }
                 break;
+            }
             default:
                 if ( key > 5 && key < 16)
                 {
                     menu->setCondCommParam(estate, key);
                 }
-                else if ( key == 1)
+                else if ( key == keyBack)
                 {
                     int i = 0;
                     for (auto &k: estate.listItem)
@@ -489,6 +504,11 @@ void Service::keyPressed(UI_Key key)
                             }
                         }
                         i++;
+                    }
+                    if ( menu->focus == estate.listItem.size() )
+                    {
+                        guiTree.backvard();
+                        menu->focus = 0;
                     }
                 }
                 break;
