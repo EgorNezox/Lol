@@ -89,7 +89,7 @@ public:
     void setFreq(int isFreq);
 
 
-    void setCoordDate(Navigation::Coord_Date*);
+    void setCoordDate(Navigation::Coord_Date);
     void getPSWF();
 
 private:

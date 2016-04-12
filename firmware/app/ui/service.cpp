@@ -365,9 +365,9 @@ void Service::keyPressed(UI_Key key)
             case key0:
 			{
 				int p = 10;
-				char sym;
-				sprintf(&sym,"%d",p);
-                guiTree.append(messangeWindow, (char*)"Receive first packet", &sym);
+				char sym[64];
+				sprintf(sym,"%d",p);
+                guiTree.append(messangeWindow, (char*)"Receive first packet", sym);
 			}
                 break;
             default:
@@ -462,36 +462,7 @@ void Service::keyPressed(UI_Key key)
                         param[i] = atoi(k->inputStr.c_str());
                         i++;
                     }
-
-                    Navigation::Coord_Date* date = navigator->getCoordDate();
-
-                    char * data = NULL;
-                    char *time  = NULL;
-
-                    data = (char *)date->data;
-                    time = (char *)date->time;
-
-
-
-                    std::string dt;
-                    std::string tm;
-
-                    if ((data != NULL) &&  (time != NULL) &&
-                            (sizeof(data) >5) && (sizeof(time) >5))
-                    {
-                        dt = std::string(data);
-                        tm = std::string(time);
-                    }
-                    else
-                    {
-                        dt = std::string("060416");
-                        tm = std::string("143722");
-                    }
-
-
                     voice_service->TurnPSWFMode(1,param[0],param[1]);
-
-
                 }
                 break;
             default:
@@ -551,42 +522,7 @@ void Service::keyPressed(UI_Key key)
                 		param[i] = atoi(k->inputStr.c_str());
                 		i++;
                 	}
-
-                	Navigation::Coord_Date* date = navigator->getCoordDate();
-
-                	char * data = NULL;
-                	char *time  = NULL;
-
-                	data = (char *)date->data;
-                	time = (char *)date->time;
-
-                	std::string dt;
-                	std::string tm;
-
-                	if ((data != NULL) &&  (time != NULL) &&
-                			(sizeof(data) >5) && (sizeof(time) >5))
-                	{
-                		dt = std::string(data);
-                		tm = std::string(time);
-                	}
-                	else
-                	{
-                		dt = std::string("060416");
-                		tm = std::string("143722");
-                	}
-
-
-//                	int LCODE = Calc_LCODE(param[0],1,param[1],0,0,atoi(tm.substr(0,2).c_str()),
-//                			atoi(tm.substr(2,4).c_str()),
-//							atoi(tm.substr(4,6).c_str()));
-
-//                	int FREQ  = CalcShiftFreq(0,0,atoi(tm.substr(0,2).c_str()),
-//                					atoi(tm.substr(2,4).c_str()),
-//									atoi(tm.substr(4,6).c_str()));
-
-
-                     voice_service->TurnPSWFMode(0,param[0],param[1]);
-
+                	voice_service->TurnPSWFMode(0,param[0],param[1]);
                 }
                 break;
             default:
@@ -842,17 +778,20 @@ void Service::FirstPacketPSWFRecieved(int packet)
 {
 	if ( packet >= 0 && packet < 100 )
 	{
-		char sym;
-	    sprintf(&sym,"%d",packet);
-        guiTree.append(messangeWindow, "Recieved packet ", &sym);
+		char sym[64];
+	    sprintf(sym,"%d",packet);
+        guiTree.append(messangeWindow, "Recieved packet ", sym);
+        msgBox( "Recieved packet ", sym );
 	}
 	else if ( packet > 99)
 	{
         guiTree.append(messangeWindow, "Recieved packet: Fatal error\t");
+        msgBox( "Recieved packet: Fatal error\t" );
 	}
 	else
 	{
         guiTree.append(messangeWindow, "Recieved packet: Unknow error\t");
+        msgBox( "Recieved packet: Unknow error\t" );
 	}
 }
 
@@ -1023,31 +962,31 @@ void Service::setFreq(int isFreq)
     Service::isFreq = isFreq;
 }
 
-void Service::setCoordDate(Navigation::Coord_Date *date)
+void Service::setCoordDate(Navigation::Coord_Date date)
 {
     menu->coord_lat.clear();
     menu->coord_log.clear();
     menu->date.clear();
     menu->time.clear();
 
-    menu->coord_lat.append((char *)date->latitude);
-    menu->coord_log.append((char *)date->longitude);
+    menu->coord_lat.append((char *)date.latitude);
+    menu->coord_log.append((char *)date.longitude);
 
 
     std::string str;
-    str.push_back((char)date->data[0]);
-    str.push_back((char)date->data[1]);
+    str.push_back((char)date.data[0]);
+    str.push_back((char)date.data[1]);
     str.push_back('.');
-    str.push_back((char)date->data[2]);
-    str.push_back((char)date->data[3]);
+    str.push_back((char)date.data[2]);
+    str.push_back((char)date.data[3]);
 
     str.push_back((char)' ');
 
-    str.push_back((char)date->time[0]);
-    str.push_back((char)date->time[1]);
+    str.push_back((char)date.time[0]);
+    str.push_back((char)date.time[1]);
     str.push_back((char)':');
-    str.push_back((char)date->time[2]);
-    str.push_back((char)date->time[3]);
+    str.push_back((char)date.time[2]);
+    str.push_back((char)date.time[3]);
 
     indicator->date_time->SetText((char *)str.c_str());
     str.clear();

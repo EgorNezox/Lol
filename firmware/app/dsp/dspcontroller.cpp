@@ -89,10 +89,10 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	transport = new DspTransport(uart_resource, 2, this);
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 	initResetState();
-#ifdef PORT__TARGET_DEVICE_REV1
+
 	this->navigator = navigator;
 	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
-#endif
+
     command_tx30 = 0;
     command_rx30 = 0;
     cmd_queue = new std::list<DspCommand>();
@@ -305,17 +305,17 @@ void DspController::syncPulseDetected() {
 
 void DspController::getDataTime()
 {
-    Navigation::Coord_Date *date = navigator->getCoordDate();
+    Navigation::Coord_Date date = navigator->getCoordDate();
 
     char day_ch[3] = {0,0,0};
     char hr_ch[3] = {0,0,0};
     char mn_ch[3] = {0,0,0};
     char sec_ch[3] = {0,0,0};
 
-    memcpy(day_ch,&date->data[0],2);
-    memcpy(hr_ch,&date->time[0],2);
-    memcpy(mn_ch,&date->time[2],2);
-    memcpy(sec_ch,&date->time[4],2);
+    memcpy(day_ch,&date.data[0],2);
+    memcpy(hr_ch,&date.time[0],2);
+    memcpy(mn_ch,&date.time[2],2);
+    memcpy(sec_ch,&date.time[4],2);
 
     int day = atoi(day_ch); // TODO:
     int hrs = atoi(hr_ch);
@@ -342,15 +342,16 @@ void DspController::transmitPswf()
                                                date_time[2],
                                                date_time[3]);
 
-    sendPswf(PSWFTransmitter);
     if (command_tx30 == 30)
     {
     	radio_state = radiostateSync;
         qmDebugMessage(QmDebug::Dump, "PSWF trinsmitting finished");
         command_tx30 = 0;
         setPSWFParametres(0, ContentPSWF.R_ADR, ContentPSWF.COM_N);
+        return;
     }
     command_tx30++;
+    sendPswf(PSWFTransmitter);
 }
 
 
@@ -790,7 +791,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 			}
 			break;
 		}
-		// для ПП� Ч
+		// для ПП� Ч
 		case PSWFTransmitter: {
 			QM_ASSERT(0);
 			break;
@@ -945,14 +946,21 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         if (indicator == 30)
         {
         	QM_ASSERT(command_rx30 < 30);
-        	//QM_ASSERT(value_len <= 12);
+//        	QM_ASSERT(value_len <= 20);
             //memcpy(bufer_pswf[command_rx30],data,10);
             // копируем значения в  bufer_command
 
-            static int count = 0;
-            if (count == 0)
-            	firstPacket((int)data[8]);
-            count++;
+			if (value_len < 15) {
+				static int count = 0;
+				if (count == 0)
+					firstPacket((int)data[9]);
+				count++;
+			} else {
+				static int count = 0;
+				if (count == 0)
+					firstPacket(0);
+				count++;
+			}
 
             RecievedPswf();
         }
