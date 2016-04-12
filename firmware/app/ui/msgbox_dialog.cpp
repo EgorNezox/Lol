@@ -50,6 +50,7 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
                                       const char *p_text,
                                       Alignment align
                                       )
+    :GUI_Obj(area)
 {
     this->window_geom = { 1, 1, 166, 126 };
     title_area_params = GUI_EL_TEMP_CommonTextAreaLT;

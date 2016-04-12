@@ -59,7 +59,7 @@ const char *true_SWF = "Нет ошибок\0";
 
 const char *smsText[] = {"Адрес\0", "\0"};
 
-const char ch_key0[2] = { '0', '\t'};
+const char ch_key0[2] = { '0', '\ '};
 const char ch_key1[] = { '.', ',', '!', '?', '\"', ':' };
 const char ch_key2[] = { 'А', 'Б', 'В', 'Г' };
 const char ch_key3[] = { 'Д', 'Е', 'Ж', 'З' };
