@@ -367,8 +367,7 @@ void Service::keyPressed(UI_Key key)
 				int p = 10;
 				char sym;
 				sprintf(&sym,"%d",p);
-
-				msgBox("Receive first packet: fatality ", &sym);
+                guiTree.append(messangeWindow, (char*)"Receive first packet", &sym);
 			}
                 break;
             default:
@@ -845,15 +844,15 @@ void Service::FirstPacketPSWFRecieved(int packet)
 	{
 		char sym;
 	    sprintf(&sym,"%d",packet);
-		msgBox("Recieved packet ", &sym);
+        guiTree.append(messangeWindow, "Recieved packet ", &sym);
 	}
 	else if ( packet > 99)
 	{
-		msgBox("Recieved packet: Fatal error\t");
+        guiTree.append(messangeWindow, "Recieved packet: Fatal error\t");
 	}
 	else
 	{
-		msgBox("Recieved packet: Unknow error\t");
+        guiTree.append(messangeWindow, "Recieved packet: Unknow error\t");
 	}
 }
 
