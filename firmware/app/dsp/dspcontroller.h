@@ -200,7 +200,8 @@ private:
 		radiostatePswfTxPrepare,
 		radiostatePswfTx,
         radiostatePswfRxPrepare,
-		radiostatePswfRx
+        radiostatePswfRx,
+        radiostatePswfAsk
     } radio_state;
     RadioMode current_radio_mode;
     RadioOperation  current_radio_operation;

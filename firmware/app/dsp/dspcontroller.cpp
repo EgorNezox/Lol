@@ -232,8 +232,6 @@ void DspController::setPSWFParametres(int RadioPath, int R_ADR, int COM_N)
     ContentPSWF.RN_KEY = 1;
     ContentPSWF.R_ADR = R_ADR;
 
-    ContentPSWF.L_CODE = navigator->Calc_LCODE(0/*R_ADR*/,0,COM_N,0,date_time[0],
-            date_time[1],date_time[2],date_time[3]);
 
     if (RadioPath == 0) {
         ParameterValue param;
@@ -302,6 +300,12 @@ void DspController::syncPulseDetected() {
 		transmitPswf();
 		break;
 	}
+    case radiostatePswfAsk:
+    {
+        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostatePswfAsk");
+        break;
+    }
+
 	default: break;
     }
 }
@@ -404,9 +408,6 @@ void DspController::RecievedPswf()
         firstPacket((int)recievedPswfBuffer.at(command_rx30).at(0)); // COM_N
 
     }
-
-
-
 
     for(int i =0; i<recievedPswfBuffer.size(); i++)
     {
@@ -989,9 +990,13 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         break;
     }
     case 0x73: {
-    	ParameterValue value;
-    	value.frequency = 0;
-    	processCommandResponse((indicator == 3), PSWFTransmitter, code, value);
+        ParameterValue value;
+        value.frequency = 0;
+        processCommandResponse((indicator == 3), PSWFTransmitter, code, value);
+        if (radio_state == radiostatePswfAsk)
+        {
+            setPSWFParametres(0,ContentPSWF.R_ADR,ContentPSWF.COM_N);
+        }
     	break;
     }
 	default: break;
