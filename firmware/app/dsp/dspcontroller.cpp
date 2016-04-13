@@ -36,6 +36,44 @@ struct DspCommand {
 	DspController::ParameterValue value;
 };
 
+static int value_sec[60] =
+{
+
+    0,        5,       10,       15 ,      20,       25,
+    1,        6,       11 ,      16,       21,       26,
+    2,        7,       12,       17,       22,       27,
+    3,        8,       13,       18,       23,       28,
+    4,        9,       14,       19,       24,       29,
+    0,        5,       10,       15,       20,       25,
+    1,        6,       11 ,      16 ,      21,       26,
+    2,        7,       12,       17,       22,       27,
+    3,        8,       13,       18,       23,       28,
+    4,        9,       14 ,      19,       24,       29
+
+};
+
+static int frequence_bandwidth[34] =
+{
+    1622000,     2158000,
+    2206000,     2483000,
+    2517000,     2610000,
+    2665000,     2835000,
+    3170000,     3385000,
+    3515000,     3885000,
+    4015000,     4635000,
+    4765000,     4980000,
+    5075000,     5465000,
+    5745000,     5885000,
+    6215000,     6510000,
+    6780000,     7185000,
+    7465000,     8800000,
+    9055000,     9385000,
+    9915000,     9980000,
+    10115000,    11160000,
+    11415000,    11585000
+
+};
+
 DspController::DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, QmObject *parent) :
 	QmObject(parent),
 	is_ready(false)
@@ -52,31 +90,17 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 	initResetState();
 
-	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
-
 	this->navigator = navigator;
+	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
 
     command_tx30 = 0;
     command_rx30 = 0;
     cmd_queue = new std::list<DspCommand>();
 
-    timer_tx_pswf  = new QmTimer(false,this);
-    timer_tx_pswf->setInterval(1000);
-    timer_tx_pswf->timeout.connect(sigc::mem_fun(this, &DspController::transmitPswf));
-    timer_rx_pswf  = new QmTimer(false,this);
-    timer_rx_pswf->setInterval(1000);
-    timer_rx_pswf->timeout.connect(sigc::mem_fun(this, &DspController::changePswfRxFrequency));
-
-    timer_rx_pswf = new QmTimer(false,this);
-    timer_rx_pswf->setInterval(1000);
-
-//    quit_timer = new QmTimer(true,this);
-//    quit_timer->setInterval(30000);
-//    quit_timer->timeout.connect(sigc::mem_fun(this,&DspController::transmitPswf));
-
-
-
     quite = 0;
+
+    pswfRxStateSync = 0;
+    pswfTxStateSync = 0;
 }
 
 DspController::~DspController()
@@ -233,7 +257,6 @@ void DspController::getSwr()
     sendCommand(TxRadiopath,0,commandValue);
 }
 
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void DspController::setPswfMode(int radio_path)
 {
     ParameterValue comandValue;
@@ -243,7 +266,9 @@ void DspController::setPswfMode(int radio_path)
     	sendCommand(TxRadiopath, TxRadioMode, comandValue);
     	comandValue.pswf_indicator = RadioModePSWF;
     	sendCommand(RxRadiopath, RxRadioMode, comandValue);
-    	radio_state = radiostateCmdPswfRx;
+    	pswfRxStateSync = 0;
+    	radio_state = radiostatePswfRxPrepare;
+    	qmDebugMessage(QmDebug::Dump, "setPswfMode() radiostatePswfRxPrepare");
     	break;
     }
     case 1: {
@@ -251,7 +276,9 @@ void DspController::setPswfMode(int radio_path)
     	sendCommand(RxRadiopath, RxRadioMode, comandValue);
     	comandValue.pswf_indicator = RadioModePSWF;
     	sendCommand(TxRadiopath, TxRadioMode, comandValue);
-    	radio_state = radiostateCmdPswfTx;
+    	pswfTxStateSync = 0;
+    	radio_state = radiostatePswfTxPrepare;
+    	qmDebugMessage(QmDebug::Dump, "setPswfMode() radiostatePswfTxPrepare");
     	break;
     }
     default: QM_ASSERT(0); break;
@@ -262,12 +289,12 @@ void DspController::syncPulseDetected() {
 	if (!is_ready)
 		return;
 	switch (radio_state) {
-	case radiostateCmdPswfRx : {
+	case radiostatePswfRx : {
 		qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateCmdPswfRx");
 		changePswfRxFrequency();
 		break;
 	}
-	case radiostateCmdPswfTx : {
+	case radiostatePswfTx : {
 		qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateCmdPswfTx");
 		transmitPswf();
 		break;
@@ -278,30 +305,27 @@ void DspController::syncPulseDetected() {
 
 void DspController::getDataTime()
 {
-    Navigation::Coord_Date *date = navigator->getCoordDate();
+    Navigation::Coord_Date date = navigator->getCoordDate();
 
     char day_ch[3] = {0,0,0};
     char hr_ch[3] = {0,0,0};
     char mn_ch[3] = {0,0,0};
     char sec_ch[3] = {0,0,0};
 
-    memcpy(day_ch,&date->data[0],2);
-    memcpy(hr_ch,&date->time[0],2);
-    memcpy(mn_ch,&date->time[2],2);
-    memcpy(sec_ch,&date->time[4],2);
+    memcpy(day_ch,&date.data[0],2);
+    memcpy(hr_ch,&date.time[0],2);
+    memcpy(mn_ch,&date.time[2],2);
+    memcpy(sec_ch,&date.time[4],2);
 
     int day = atoi(day_ch); // TODO:
     int hrs = atoi(hr_ch);
     int min = atoi(mn_ch);
     int sec = atoi(sec_ch);
 
-
     date_time[0] = day;
     date_time[1] = hrs;
     date_time[2] = min;
     date_time[3] = sec;
-
-
 }
 
 void DspController::transmitPswf()
@@ -318,16 +342,16 @@ void DspController::transmitPswf()
                                                date_time[2],
                                                date_time[3]);
 
-
-    sendPswf(PSWFTransmitter);
     if (command_tx30 == 30)
     {
+    	radio_state = radiostateSync;
         qmDebugMessage(QmDebug::Dump, "PSWF trinsmitting finished");
-        timer_tx_pswf->stop();
         command_tx30 = 0;
-        setPswfMode(0);
+        setPSWFParametres(0, ContentPSWF.R_ADR, ContentPSWF.COM_N);
+        return;
     }
     command_tx30++;
+    sendPswf(PSWFTransmitter);
 }
 
 
@@ -336,14 +360,14 @@ void DspController::changePswfRxFrequency() {
 
     getDataTime();
     // RN_KEY по умолчанию 0  - пока другого нет
-    QM_ASSERT(date_time[3]>=0 && date_time[3]<=59);
-    QM_ASSERT(date_time[2]>=0 && date_time[2]<=59);
-    QM_ASSERT(date_time[1]>=0 && date_time[1]<=23);
-    QM_ASSERT(date_time[0]>=1 && date_time[0]<=31);
+    //QM_ASSERT(date_time[3]>=0 && date_time[3]<=59);
+    //QM_ASSERT(date_time[2]>=0 && date_time[2]<=59);
+    //QM_ASSERT(date_time[1]>=0 && date_time[1]<=23);
+    //QM_ASSERT(date_time[0]>=0 && date_time[0]<=31);
 
     setFrequencyPswf();
 
-
+     //TODO: fix assert
     ParameterValue param;
     param.frequency = ContentPSWF.Frequency;
     sendCommand(PSWFReceiver, PswfRxFrequency, param);
@@ -358,28 +382,22 @@ void DspController::RecievedPswf()
     }
 
     // поиск совпадений в массиве
-    command[command_rx30] = bufer_pswf[command_rx30][9]; // com_n
+    command[command_rx30] = bufer_pswf[command_rx30][8]; // com_n
 
-    static int count = 0;
-    if (count == 0)
-        firstPacket((uint8_t)command[command_rx30]);
-    count++;
-
-    if (command_rx30 - 1 >=0)
-        for(int j = command_rx30 - 1; j>0;j--)
-        {
-            if (command[j] == command[command_rx30]){
-                sucsess_pswf = true;
-                ContentPSWF.COM_N = command[command_rx30];
-                ContentPSWF.R_ADR = ContentPSWF.S_ADR;
-                // Пусть пока свой адрес равен 1
-                ContentPSWF.S_ADR = PSWF_SELF_ADR;
-                //				if (quite == 1) //TODO: это пока не реализовано
-                //					quit_timer->start();
-                // TODO: через 30 секунд отправить пакет на dsp
-            }
-
-        }
+//    if (command_rx30 - 1 >=0)
+//        for(int j = command_rx30 - 1; j>0;j--)
+//        {
+//            if (command[j] == command[command_rx30]){
+//                sucsess_pswf = true;
+//                ContentPSWF.COM_N = command[command_rx30];
+//                ContentPSWF.R_ADR = ContentPSWF.S_ADR;
+//                // Пусть пока свой адрес равен 1
+//                ContentPSWF.S_ADR = PSWF_SELF_ADR;
+//                //				if (quite == 1) //TODO: это пока не реализовано
+//                //					quit_timer->start();
+//            }
+//
+//        }
 
     ++command_rx30;
 
@@ -391,15 +409,19 @@ void DspController::setFrequencyPswf()
     int sum = 0;
     int fr_sh = CalcShiftFreq(0,date_time[3],date_time[0],date_time[1],date_time[2]);
 
+    QM_ASSERT(fr_sh >= 0 && fr_sh <= 6670);
+
     bool find_fr = false;
     int i = 0;
+
+
     while(find_fr == false)
     {
         sum += (frequence_bandwidth[i+1] - frequence_bandwidth[i]);
         if (fr_sh < sum)
         {
             fr_sh = fr_sh - (sum - (frequence_bandwidth[i+1] - frequence_bandwidth[i]));
-            ContentPSWF.Frequency = (frequence_bandwidth[i] + fr_sh) * 1000;
+            ContentPSWF.Frequency = (frequence_bandwidth[i] + fr_sh * 1000);
             find_fr = true;
         }
 
@@ -410,7 +432,7 @@ void DspController::setFrequencyPswf()
 
 int DspController::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
 {
-    int TOT_W = 6671000; // ширина разрешенных участков
+    int TOT_W = 6670; // ширина разрешенных участков
 
     int SEC_MLT = value_sec[SEC]; // SEC_MLT выбираем в массиве
 
@@ -769,7 +791,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 			}
 			break;
 		}
-		// для ППРЧ
+		// для ПП� Ч
 		case PSWFTransmitter: {
 			QM_ASSERT(0);
 			break;
@@ -811,6 +833,10 @@ void DspController::sendPswf(Module module) {
 
     setFrequencyPswf();
 
+    ContentPSWF.indicator = 20;
+    ContentPSWF.TYPE = 0;
+    ContentPSWF.SNR =  9;
+
 	uint8_t tx_address = 0x72;
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 	int tx_data_len = 0;
@@ -818,7 +844,7 @@ void DspController::sendPswf(Module module) {
 	++tx_data_len;
 	qmToBigEndian((uint8_t)ContentPSWF.TYPE, tx_data + tx_data_len);
 	++tx_data_len;
-	qmToBigEndian((uint8_t)ContentPSWF.Frequency, tx_data + tx_data_len);
+	qmToBigEndian((uint32_t)ContentPSWF.Frequency, tx_data + tx_data_len);
 	tx_data_len += 4;
 	qmToBigEndian((uint8_t)ContentPSWF.SNR, tx_data+tx_data_len);
 	++tx_data_len;
@@ -827,9 +853,10 @@ void DspController::sendPswf(Module module) {
 	qmToBigEndian((uint8_t)ContentPSWF.S_ADR, tx_data+tx_data_len);
 	++tx_data_len;
 	qmToBigEndian((uint8_t)ContentPSWF.COM_N, tx_data+tx_data_len);
-	++tx_data_len;
+    ++tx_data_len;
 	qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data+tx_data_len);
 	++tx_data_len;
+
 
 	QM_ASSERT(pending_command->in_progress == false);
 	pending_command->in_progress = true;
@@ -849,10 +876,27 @@ void DspController::sendPswf(Module module) {
 void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len) {
 	if (data_len < DEFAULT_PACKET_HEADER_LEN)
 		return;
+	if (radio_state == radiostatePswfRxPrepare) {
+		++pswfRxStateSync;
+		qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radiostatePswfRxPrepare %d", pswfRxStateSync);
+		if (pswfRxStateSync == 3) {
+			radio_state = radiostatePswfRx;
+			qmDebugMessage(QmDebug::Dump, "syncPendingCommand() radiostatePswfRx");
+		}
+	}
+	if (radio_state == radiostatePswfTxPrepare) {
+		++pswfTxStateSync;
+		qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radiostatePswfTxPrepare %d", pswfTxStateSync);
+		if (pswfTxStateSync == 2) {
+			radio_state = radiostatePswfTx;
+			qmDebugMessage(QmDebug::Dump, "syncPendingCommand() radiostatePswfTx");
+		}
+	}
 	uint8_t indicator = qmFromBigEndian<uint8_t>(data+0);
 	uint8_t code = qmFromBigEndian<uint8_t>(data+1);
 	uint8_t *value_ptr = data + 2;
 	int value_len = data_len - 2;
+
 	switch (address) {
 	case 0x11: {
 		if ((indicator == 5) && (code == 2) && (value_len == 6)) // инициативное сообщение с цифровой информацией о прошивке ?
@@ -869,7 +913,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 			} else if ((code == 2) && (value_len == 1)) {
                 value.radio_mode = (RadioMode)qmFromBigEndian<uint8_t>(value_ptr+0);
 			} else {
-				break;
+//				break;
 			}
 			Module module;
 			if (address == 0x51)
@@ -886,20 +930,37 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                     swf_res = (fwd_wave+ref_wave)/(fwd_wave-ref_wave);
                 }
             }
-
-
 			processCommandResponse((indicator == 3), module, code, value);
 		}
 		break;
 	}
+	case 0x61: {
+		if (radio_state == radiostatePswfRxPrepare) {
+			qmDebugMessage(QmDebug::Dump, "processReceivedFrame() 0x61 received");
+			ParameterValue value;
+			processCommandResponse((indicator == 1), PSWFReceiver, code, value);
+		}
+		break;
+	}
     case 0x63: {
-
         if (indicator == 30)
         {
         	QM_ASSERT(command_rx30 < 30);
-        	QM_ASSERT(value_len <= 12);
-            memcpy(bufer_pswf[command_rx30],data,value_len);
+//        	QM_ASSERT(value_len <= 20);
+            //memcpy(bufer_pswf[command_rx30],data,10);
             // копируем значения в  bufer_command
+
+			if (value_len < 15) {
+				static int count = 0;
+				if (count == 0)
+					firstPacket((int)data[9]);
+				count++;
+			} else {
+				static int count = 0;
+				if (count == 0)
+					firstPacket(0);
+				count++;
+			}
 
             RecievedPswf();
         }

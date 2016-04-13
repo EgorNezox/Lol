@@ -113,7 +113,8 @@ protected:
     TextAreaParams title_area_params;
     TextAreaParams text_area_params;
     std::string title;
-    std::string text;
+//    std::string text;
+    char* text;
 private:
     MoonsGeometry title_area_geom;
     MoonsGeometry text_area_geom;

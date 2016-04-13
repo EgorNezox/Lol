@@ -122,7 +122,9 @@ GUI_EL_Label::GUI_EL_Label(LabelParams *params, MoonsGeometry *geom, char *text,
 //-----------------------------
 
 void GUI_EL_Label::SetText(char *text){
-	if(text!=0){
+    if(text!=0)
+    {
+        memset(this->text, 0, MAX_LABEL_LENGTH);
 		strcpy(this->text, text);
 	}
 }

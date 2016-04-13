@@ -50,6 +50,7 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
                                       const char *p_text,
                                       Alignment align
                                       )
+    :GUI_Obj(area)
 {
     this->window_geom = { 1, 1, 166, 126 };
     title_area_params = GUI_EL_TEMP_CommonTextAreaLT;
@@ -57,7 +58,7 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
     text_area_params = GUI_EL_TEMP_CommonTextAreaLT;
     text_area_params.element.align = align;
     this->title = p_title;
-    this->text.append( p_text );
+    this->text = (char*)p_text;
 }
 
 //----------------------------
@@ -80,7 +81,7 @@ void GUI_Dialog_MsgBox::Draw(){
 
   GUI_EL_Window   window( &GUI_EL_TEMP_WindowGeneral, &window_geom, (GUI_Obj *)this );
   GUI_EL_TextArea title_area( &title_area_params, &title_area_geom, (char*)title.c_str(), (GUI_Obj *)this );
-  GUI_EL_TextArea text_area ( &text_area_params,  &text_area_geom,  (char*)text.c_str(),  (GUI_Obj *)this );
+  GUI_EL_TextArea text_area ( &text_area_params,  &text_area_geom,  (char*)text,  (GUI_Obj *)this );
   GUI_EL_Button   ok_button( &GUI_EL_TEMP_LabelButton, &button_geom, ok_texts[/*service->getLanguage()*/0], bs_unselected, (GUI_Obj *)this);
 
   window.Draw();

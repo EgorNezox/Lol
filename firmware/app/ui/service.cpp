@@ -21,7 +21,7 @@
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
-MoonsGeometry ui_menu_msg_box_area  = { 5,5,GDISPW-5,GDISPH-5 };
+MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
 
 
@@ -362,6 +362,14 @@ void Service::keyPressed(UI_Key key)
                 if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 2)
                     main_scr->mainWindowModeId++;
                 break;
+            case key0:
+			{
+				int p = 10;
+				char sym[64];
+				sprintf(sym,"%d",p);
+                guiTree.append(messangeWindow, (char*)"Receive first packet", sym);
+			}
+                break;
             default:
                 break;
             }
@@ -417,14 +425,14 @@ void Service::keyPressed(UI_Key key)
     {
         CEndState estate = (CEndState&)guiTree.getCurrentState();
 
-        if ( key == keyEnter)
-        {
-            if (menu->focus == estate.listItem.size())
-            {
-                guiTree.resetCurrentState();
-            }
-            menu->focus = 0;
-        }
+//        if ( key == keyEnter)
+//        {
+//            if (menu->focus == estate.listItem.size())
+//            {
+//                guiTree.resetCurrentState();
+//            }
+//            menu->focus = 0;
+//        }
 
         switch(estate.subType)
         {
@@ -443,7 +451,21 @@ void Service::keyPressed(UI_Key key)
             }
                 break;
             case keyEnter:
-                if ( menu->focus < estate.listItem.size() )
+            {
+                bool flag = false;
+                if ( estate.listItem.size() == 2 )
+                {
+                    if (estate.listItem.front()->inputStr.size() != 0 &&
+                            estate.listItem.back()->inputStr.size() != 0 )
+                    { flag = true; }
+                }
+                else
+                {
+                    if ( estate.listItem.front()->inputStr.size() != 0 )
+                    { flag = true; }
+                }
+
+                if ( menu->focus == estate.listItem.size() && flag )
                 {
                     /* callback */
                     int param[2]; // 0 -R_ADR, 1 - COM_N
@@ -454,18 +476,16 @@ void Service::keyPressed(UI_Key key)
                         param[i] = atoi(k->inputStr.c_str());
                         i++;
                     }
-
                     voice_service->TurnPSWFMode(1,param[0],param[1]);
-
-
                 }
                 break;
+            }
             default:
                 if ( key > 5 && key < 16)
                 {
                     menu->setCondCommParam(estate, key);
                 }
-                else if ( key == 1)
+                else if ( key == keyBack)
                 {
                     int i = 0;
                     for (auto &k: estate.listItem)
@@ -484,6 +504,11 @@ void Service::keyPressed(UI_Key key)
                             }
                         }
                         i++;
+                    }
+                    if ( menu->focus == estate.listItem.size() )
+                    {
+                        guiTree.backvard();
+                        menu->focus = 0;
                     }
                 }
                 break;
@@ -517,9 +542,7 @@ void Service::keyPressed(UI_Key key)
                         param[i] = atoi(k->inputStr.c_str());
                         i++;
                     }
-
-                    voice_service->TurnPSWFMode(0,param[0],param[1]);
-
+                	voice_service->TurnPSWFMode(0,param[0],param[1]);
                 }
                 break;
             default:
@@ -587,11 +610,13 @@ void Service::keyPressed(UI_Key key)
                     if ( elem.listItem.front()->inputStr.size() < 2 )
                         menu->inputSmsAddr( (CEndState&)guiTree.getCurrentState(), key );
                 }
-                else
+                else if ( menu->focus == 1 )
                 {
                     if ( elem.listItem.back()->inputStr.size() < 99 )
                         menu->inputSmsMessage( (CEndState&)guiTree.getCurrentState(), key );
                 }
+                else
+                {}
                 break;
             }
             break;
@@ -721,12 +746,6 @@ void Service::keyPressed(UI_Key key)
             case keyEnter:
             {  }
                 break;
-                //            case keyBack:
-                //            {
-                //                guiTree.backvard();
-                //                menu->focus = 0;
-                //            }
-                break;
             default:
                 if ( key > 5 && key < 16)
                 {
@@ -775,31 +794,46 @@ int Service::getLanguage()
     return 0;
 }
 
-void Service::FirstPacketPSWFRecieved(uint8_t packet)
+void Service::FirstPacketPSWFRecieved(int packet)
 {
-    std::string str;
-    sprintf( (char*)str.c_str(), "\t%d", packet);
-    msgBox("Принята условная команда", str.c_str());
+	if ( packet >= 0 && packet < 100 )
+	{
+		char sym[64];
+	    sprintf(sym,"%d",packet);
+        guiTree.append(messangeWindow, "Recieved packet ", sym);
+        msgBox( "Recieved packet ", sym );
+	}
+	else if ( packet > 99)
+	{
+        guiTree.append(messangeWindow, "Recieved packet: Fatal error\t");
+        msgBox( "Recieved packet: Fatal error\t" );
+	}
+	else
+	{
+        guiTree.append(messangeWindow, "Recieved packet: Unknow error\t");
+        msgBox( "Recieved packet: Unknow error\t" );
+	}
 }
 
 void Service::msgBox(const char *title)
 {
-    Alignment align = {alignHCenter,alignTop};
-    MoonsGeometry area = {1, 1, (GXT)(159), (GYT)(127)};
+    Alignment align007 = {alignHCenter,alignTop};
+    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
     if(msg_box == nullptr)
     {
-        msg_box = new GUI_Dialog_MsgBox(&area, (char*)title, align);
+        msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, align007);
     }
     msg_box->Draw();
 }
 
 void Service::msgBox(const char *title, const char *text)
 {
-    Alignment align = {alignHCenter,alignTop};
-    MoonsGeometry area = {1, 1, (GXT)(159), (GYT)(127)};
+    Alignment align007 = {alignHCenter,alignTop};
+    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+
     if(msg_box == nullptr)
     {
-        msg_box = new GUI_Dialog_MsgBox(&area, (char*)title, (char*)text, align);
+        msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (char*)text, align007);
     }
     msg_box->Draw();
 }
@@ -948,34 +982,31 @@ void Service::setFreq(int isFreq)
     Service::isFreq = isFreq;
 }
 
-void Service::setCoordDate(Navigation::Coord_Date *date)
+void Service::setCoordDate(Navigation::Coord_Date date)
 {
     menu->coord_lat.clear();
     menu->coord_log.clear();
     menu->date.clear();
     menu->time.clear();
 
-    menu->coord_lat.append((char *)date->latitude);
-    menu->coord_log.append((char *)date->longitude);
+    menu->coord_lat.append((char *)date.latitude);
+    menu->coord_log.append((char *)date.longitude);
 
 
     std::string str;
-    str.push_back((char)date->data[0]);
-    str.push_back((char)date->data[1]);
+    str.push_back((char)date.data[0]);
+    str.push_back((char)date.data[1]);
     str.push_back('.');
-    str.push_back((char)date->data[2]);
-    str.push_back((char)date->data[3]);
+    str.push_back((char)date.data[2]);
+    str.push_back((char)date.data[3]);
 
     str.push_back((char)' ');
 
-    str.push_back((char)date->time[0]);
-
-
-
-    str.push_back((char)date->time[1]);
+    str.push_back((char)date.time[0]);
+    str.push_back((char)date.time[1]);
     str.push_back((char)':');
-    str.push_back((char)date->time[2]);
-    str.push_back((char)date->time[3]);
+    str.push_back((char)date.time[2]);
+    str.push_back((char)date.time[3]);
 
     indicator->date_time->SetText((char *)str.c_str());
     str.clear();

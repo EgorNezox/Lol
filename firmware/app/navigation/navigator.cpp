@@ -53,9 +53,9 @@ Navigator::~Navigator() {
     //#endif /* PORT__TARGET_DEVICE_REV1 */
 }
 
-Coord_Date *Navigator::getCoordDate()
+Coord_Date Navigator::getCoordDate()
 {
-    return &CoordDate;
+    return CoordDate;
 }
 
 int Navigator::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)

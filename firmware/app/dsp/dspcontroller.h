@@ -23,48 +23,6 @@ namespace Multiradio {
 class DspTransport;
 struct DspCommand;
 
-
-
-static int value_sec[60] =
-{
-
-    0,        5,       10,       15 ,      20,       25,
-    1,        6,       11 ,      16,       21,       26,
-    2,        7,       12,       17,       22,       27,
-    3,        8,       13,       18,       23,       28,
-    4,        9,       14,       19,       24,       29,
-    0,        5,       10,       15,       20,       25,
-    1,        6,       11 ,      16 ,      21,       26,
-    2,        7,       12,       17,       22,       27,
-    3,        8,       13,       18,       23,       28,
-    4,        9,       14 ,      19,       24,       29
-
-};
-
-
-static int frequence_bandwidth[34] =
-{
-    1622,     2158,
-    2206,     2483,
-    2517,     2610,
-    2665,     2835,
-    3170,     3385,
-    3515,     3885,
-    4015,     4635,
-    4765,     4980,
-    5075,     5465,
-    5745,     5885,
-    6215,     6510,
-    6780,     7185,
-    7465,     8800,
-    9055,     9385,
-    9915,     9980,
-    10115,    11160,
-    11415,    11585
-
-};
-
-
 class DspController : public QmObject
 {
 public:
@@ -120,11 +78,10 @@ public:
     void transmitSMS();
 
     void ReturnPswfFromDSP();
-    int pswf_mas[12];
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
-    sigc::signal<void,uint8_t> firstPacket;
+    sigc::signal<void,int> firstPacket;
 
     uint8_t quite;
 
@@ -226,7 +183,7 @@ private:
     bool is_ready;
     QmIopin *reset_iopin;
     DspTransport *transport;
-    QmTimer *startup_timer, *command_timer,*timer_tx_pswf,*timer_rx_pswf;
+    QmTimer *startup_timer, *command_timer;
     QmTimer *quit_timer;
     enum {
         radiostateSync,
@@ -240,8 +197,10 @@ private:
         radiostateCmdRxMode,
         radiostateCmdTxMode,
         radiostateCmdCarrierTx,
-        radiostateCmdPswfTx,
-        radiostateCmdPswfRx
+		radiostatePswfTxPrepare,
+		radiostatePswfTx,
+        radiostatePswfRxPrepare,
+		radiostatePswfRx
     } radio_state;
     RadioMode current_radio_mode;
     RadioOperation  current_radio_operation;
@@ -265,6 +224,9 @@ private:
     bool sucsess_pswf = false;
 
     int date_time[4];
+
+    int pswfRxStateSync;
+    int pswfTxStateSync;
 };
 
 
