@@ -455,32 +455,6 @@ void Service::keyPressed(UI_Key key)
                         i++;
                     }
 
-                    Navigation::Coord_Date* date = navigator->getCoordDate();
-
-                    char * data = NULL;
-                    char *time  = NULL;
-
-                    data = (char *)date->data;
-                    time = (char *)date->time;
-
-
-
-                    std::string dt;
-                    std::string tm;
-
-                    if ((data != NULL) &&  (time != NULL) &&
-                            (sizeof(data) >5) && (sizeof(time) >5))
-                    {
-                        dt = std::string(data);
-                        tm = std::string(time);
-                    }
-                    else
-                    {
-                        dt = std::string("060416");
-                        tm = std::string("143722");
-                    }
-
-
                     voice_service->TurnPSWFMode(1,param[0],param[1]);
 
 
@@ -533,51 +507,18 @@ void Service::keyPressed(UI_Key key)
             case keyEnter:
                 if ( menu->focus < estate.listItem.size() )
                 {
-                	//TODO: temp fix))
+                    //TODO: temp fix))
 
-                	int param[2]; // 0 -R_ADR, 1 - COM_N
-                	int i = 0;
+                    int param[2]; // 0 -R_ADR, 1 - COM_N
+                    int i = 0;
 
-                	for (auto &k: estate.listItem)
-                	{
-                		param[i] = atoi(k->inputStr.c_str());
-                		i++;
-                	}
+                    for (auto &k: estate.listItem)
+                    {
+                        param[i] = atoi(k->inputStr.c_str());
+                        i++;
+                    }
 
-                	Navigation::Coord_Date* date = navigator->getCoordDate();
-
-                	char * data = NULL;
-                	char *time  = NULL;
-
-                	data = (char *)date->data;
-                	time = (char *)date->time;
-
-                	std::string dt;
-                	std::string tm;
-
-                	if ((data != NULL) &&  (time != NULL) &&
-                			(sizeof(data) >5) && (sizeof(time) >5))
-                	{
-                		dt = std::string(data);
-                		tm = std::string(time);
-                	}
-                	else
-                	{
-                		dt = std::string("060416");
-                		tm = std::string("143722");
-                	}
-
-
-//                	int LCODE = Calc_LCODE(param[0],1,param[1],0,0,atoi(tm.substr(0,2).c_str()),
-//                			atoi(tm.substr(2,4).c_str()),
-//							atoi(tm.substr(4,6).c_str()));
-
-//                	int FREQ  = CalcShiftFreq(0,0,atoi(tm.substr(0,2).c_str()),
-//                					atoi(tm.substr(2,4).c_str()),
-//									atoi(tm.substr(4,6).c_str()));
-
-
-                     voice_service->TurnPSWFMode(0,param[0],param[1]);
+                    voice_service->TurnPSWFMode(0,param[0],param[1]);
 
                 }
                 break;

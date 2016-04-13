@@ -54,22 +54,6 @@ enum NotificationType {
 };
 
 
-static int value_sec[60] =
-{
-
-    0,        5,       10,       15 ,      20,       25,
-    1,        6,       11 ,      16,       21,       26,
-    2,        7,       12,       17,       22,       27,
-    3,        8,       13,       18,       23,       28,
-    4,        9,       14,       19,       24,       29,
-    0,        5,       10,       15,       20,       25,
-    1,        6,       11 ,      16 ,      21,       26,
-    2,        7,       12,       17,       22,       27,
-    3,        8,       13,       18,       23,       28,
-    4,        9,       14 ,      19,       24,       29
-
-};
-
 class Service : public sigc::trackable {
 public:
     Service(matrix_keyboard_t matrixkb_desc,
@@ -139,7 +123,6 @@ private:
     int isFreq = 0;
     int command_rx_30 = 0;
     std::list<int *> BasePswfCadr;
-
 
 };
 

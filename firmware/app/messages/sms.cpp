@@ -19,11 +19,12 @@ char *sms::get8Byte()
 }
 
 // int содержит 0 и 1
-void sms::getPolynom(int *input)
+void sms::formPacket(int *input)
 {
-    int *random = getRandomBits(12);
+    int *random = (int*)malloc(12*sizeof(int));
+    random = getRandomBits(12);
     memcpy(input,random,12*sizeof(int));
-    int *output = (int*) malloc(255*sizeof(int));
+    int *output = (int*) malloc(259*sizeof(int));
 
     // задать параметры settings
     // 1. Генерируем полином
@@ -32,18 +33,14 @@ void sms::getPolynom(int *input)
     GenerateGaloisField(&setting);
     // 3. Выполняем кодирование
     rs_encode(&setting,input,output,255);
-    int *outputs = (int*)malloc(259*sizeof(int));
 
-    for(int i = 0; i<255;i++)
-        outputs[i] = output[i];
     for(int i = 255;i<259;i++)
-        outputs[i] = getRandomBits(4)[i - 255];
+        output[i] = getRandomBits(4)[i - 255];
 
+    int *mas = (int*) malloc(7*sizeof(int));
     for(int i = 0; i<37;i++)
     {
-
-        //        memcpy((output_post+i),output,255*sizeof(int));
-        //        memcpy((output_post[i]),output,4*sizeof(int));
+        memcpy(&mas,&output[i*7],7*sizeof(int));
     }
 
 }

@@ -376,6 +376,7 @@ void DspController::RecievedPswf()
                 ContentPSWF.S_ADR = PSWF_SELF_ADR;
                 //				if (quite == 1) //TODO: это пока не реализовано
                 //					quit_timer->start();
+                // TODO: через 30 секунд отправить пакет на dsp
             }
 
         }
