@@ -103,6 +103,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     pswfTxStateSync = 0;
 
     ready_pswf_Ui = true;
+    private_lcode = 0;
 }
 
 DspController::~DspController()
@@ -231,7 +232,7 @@ void DspController::setPSWFParametres(int RadioPath, int R_ADR, int COM_N)
     ContentPSWF.RN_KEY = 1;
     ContentPSWF.R_ADR = R_ADR;
 
-    ContentPSWF.L_CODE = navigator->Calc_LCODE(R_ADR,1,COM_N,0,date_time[0],
+    ContentPSWF.L_CODE = navigator->Calc_LCODE(0/*R_ADR*/,0,COM_N,0,date_time[0],
             date_time[1],date_time[2],date_time[3]);
 
     if (RadioPath == 0) {
@@ -335,8 +336,8 @@ void DspController::transmitPswf()
 
     getDataTime();
 
-    ContentPSWF.L_CODE = navigator->Calc_LCODE(ContentPSWF.R_ADR,
-                                               ContentPSWF.S_ADR,
+    ContentPSWF.L_CODE = navigator->Calc_LCODE(0/*ContentPSWF.R_ADR*/,
+                                               0/*ContentPSWF.S_ADR*/,
                                                ContentPSWF.COM_N,
                                                ContentPSWF.RN_KEY,
                                                date_time[0],
@@ -369,6 +370,9 @@ void DspController::changePswfRxFrequency() {
 
     setFrequencyPswf();
 
+
+
+
      //TODO: fix assert
     ParameterValue param;
     param.frequency = ContentPSWF.Frequency;
@@ -381,6 +385,7 @@ void DspController::RecievedPswf()
     if (command_rx30 == 30) {
     	ready_pswf_Ui = true;
         command_rx30 = 0;
+        recievedPswfBuffer.erase(recievedPswfBuffer.begin());
         //radio_state = radiostateSync;
     }
     else
@@ -388,23 +393,37 @@ void DspController::RecievedPswf()
     	ready_pswf_Ui = false;
     }
 
-    // поиск совпадений в массиве
-    command[command_rx30] = bufer_pswf[command_rx30][8]; // com_n
 
-//    if (command_rx30 - 1 >=0)
-//        for(int j = command_rx30 - 1; j>0;j--)
-//        {
-//            if (command[j] == command[command_rx30]){
-//                sucsess_pswf = true;
-//                ContentPSWF.COM_N = command[command_rx30];
-//                ContentPSWF.R_ADR = ContentPSWF.S_ADR;
-//                // Пусть пока свой адрес равен 1
-//                ContentPSWF.S_ADR = PSWF_SELF_ADR;
-//                //				if (quite == 1) //TODO: это пока не реализовано
-//                //					quit_timer->start();
-//            }
-//
-//        }
+    private_lcode = navigator->Calc_LCODE(0,0,recievedPswfBuffer.at(command_rx30).at(1),0,
+            date_time[0],date_time[1],
+            date_time[2],date_time[3]); // рачет l_code на приеме
+
+
+    if (private_lcode == (int)recievedPswfBuffer.at(command_rx30).at(1))
+    {
+        firstPacket((int)recievedPswfBuffer.at(command_rx30).at(0)); // COM_N
+
+    }
+
+
+
+
+    for(int i =0; i<recievedPswfBuffer.size(); i++)
+    {
+        if (i != command_rx30)
+        if (recievedPswfBuffer.at(command_rx30).at(0) == recievedPswfBuffer.at(i).at(0))
+            sucsess_pswf = true;
+    }
+
+    if (sucsess_pswf == true)
+    {
+        ContentPSWF.COM_N = (int)recievedPswfBuffer.at(command_rx30).at(0);
+        ContentPSWF.R_ADR = ContentPSWF.S_ADR;
+        ContentPSWF.S_ADR = PSWF_SELF_ADR;
+        // отправка
+    }
+
+
 
     ++command_rx30;
 
@@ -955,21 +974,15 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         {
         	QM_ASSERT(command_rx30 <= 30);
 //        	QM_ASSERT(value_len <= 20);
-            //memcpy(bufer_pswf[command_rx30],data,10);
+            memcpy(bufer_pswf[command_rx30],data,10);
             // копируем значения в  bufer_command
 
-			if (value_len < 15) {
+            std::vector<char> pswf_data;
 
-				if (ready_pswf_Ui == true)
-				{
-					firstPacket((int)data[9]);
+            pswf_data.push_back(data[9]);
+            pswf_data.push_back(data[10]);
 
-			     }
-			} else {
-
-					firstPacket(0);
-
-			}
+            recievedPswfBuffer.push_back(pswf_data);
 
             RecievedPswf();
         }

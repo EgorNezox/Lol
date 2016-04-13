@@ -10,10 +10,10 @@
 #ifndef FIRMWARE_APP_DSP_DSPCONTROLLER_H_
 #define FIRMWARE_APP_DSP_DSPCONTROLLER_H_
 
-#include <list>
 #include "qmobject.h"
-#include <list>
 #include "../navigation/navigator.h"
+#include <list>
+#include <vector>
 
 class QmTimer;
 class QmIopin;
@@ -229,6 +229,10 @@ private:
     int pswfTxStateSync;
 
     bool ready_pswf_Ui = true;
+
+    int private_lcode = 0;
+
+    std::vector< std::vector<char> > recievedPswfBuffer;
 };
 
 
