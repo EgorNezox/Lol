@@ -101,6 +101,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     pswfRxStateSync = 0;
     pswfTxStateSync = 0;
+
+    ready_pswf_Ui = true;
 }
 
 DspController::~DspController()
@@ -376,9 +378,14 @@ void DspController::changePswfRxFrequency() {
 void DspController::RecievedPswf()
 {
     qmDebugMessage(QmDebug::Warning, "RecievedPswf() command_rx30 = %d", command_rx30);
-    if (command_rx30 == 30 - 1) {
+    if (command_rx30 == 30) {
+    	ready_pswf_Ui = true;
         command_rx30 = 0;
-        radio_state = radiostateSync;
+        //radio_state = radiostateSync;
+    }
+    else
+    {
+    	ready_pswf_Ui = false;
     }
 
     // поиск совпадений в массиве
@@ -406,27 +413,28 @@ void DspController::RecievedPswf()
 
 void DspController::setFrequencyPswf()
 {
-    int sum = 0;
-    int fr_sh = CalcShiftFreq(0,date_time[3],date_time[0],date_time[1],date_time[2]);
+	int sum = 0;
+	int fr_sh = CalcShiftFreq(0,date_time[3],date_time[0],date_time[1],date_time[2]);
 
-    QM_ASSERT(fr_sh >= 0 && fr_sh <= 6670);
+	QM_ASSERT(fr_sh >= 0 && fr_sh <= 6670);
 
-    bool find_fr = false;
-    int i = 0;
+	fr_sh = fr_sh * 1000; // Гц
 
+	bool find_fr = false;
+	int i = 0;
 
-    while(find_fr == false)
-    {
-        sum += (frequence_bandwidth[i+1] - frequence_bandwidth[i]);
-        if (fr_sh < sum)
-        {
-            fr_sh = fr_sh - (sum - (frequence_bandwidth[i+1] - frequence_bandwidth[i]));
-            ContentPSWF.Frequency = (frequence_bandwidth[i] + fr_sh * 1000);
-            find_fr = true;
-        }
+	while(find_fr == false)
+	{
+		sum += (frequence_bandwidth[i+1] - frequence_bandwidth[i]);
+		if (fr_sh < sum)
+		{
+			fr_sh = fr_sh - (sum - (frequence_bandwidth[i+1] - frequence_bandwidth[i]));
+			ContentPSWF.Frequency = (frequence_bandwidth[i] + fr_sh);
+			find_fr = true;
+		}
 
-        i++;
-    }
+		i++;
+	}
 }
 
 
@@ -945,21 +953,22 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     case 0x63: {
         if (indicator == 30)
         {
-        	QM_ASSERT(command_rx30 < 30);
+        	QM_ASSERT(command_rx30 <= 30);
 //        	QM_ASSERT(value_len <= 20);
             //memcpy(bufer_pswf[command_rx30],data,10);
             // копируем значения в  bufer_command
 
 			if (value_len < 15) {
-				static int count = 0;
-				if (count == 0)
+
+				if (ready_pswf_Ui == true)
+				{
 					firstPacket((int)data[9]);
-				count++;
+
+			     }
 			} else {
-				static int count = 0;
-				if (count == 0)
+
 					firstPacket(0);
-				count++;
+
 			}
 
             RecievedPswf();

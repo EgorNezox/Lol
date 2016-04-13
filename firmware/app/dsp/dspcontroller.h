@@ -227,6 +227,8 @@ private:
 
     int pswfRxStateSync;
     int pswfTxStateSync;
+
+    bool ready_pswf_Ui = true;
 };
 
 
