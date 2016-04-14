@@ -997,7 +997,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         {
             setPSWFParametres(0,ContentPSWF.R_ADR,ContentPSWF.COM_N);
         }
-    	break;
+        break;
     }
 	default: break;
     }
