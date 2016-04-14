@@ -15,6 +15,7 @@
 
 class QmTimer;
 class QmUart;
+class QmIopin;
 
 namespace Multiradio {
 
@@ -31,7 +32,7 @@ public:
 		modeActiveTx
 	};
 
-	AtuController(int uart_resource, QmObject *parent);
+	AtuController(int uart_resource, int iopin_resource, QmObject *parent);
 	~AtuController();
 	void startServicing();
 	bool isDeviceOperational();
@@ -39,6 +40,7 @@ public:
 	bool enterBypassMode();
 	bool tuneTxMode(uint32_t frequency);
 	void acknowledgeTxRequest();
+	void setRadioPowerOff(bool enable);
 
 	sigc::signal<void, Mode/*new_mode*/> modeChanged;
 	sigc::signal<void, bool/*enable*/> requestTx;
@@ -96,6 +98,7 @@ private:
 		bool truncated;
 	} uart_rx_frame;
 	static const uint8_t antenna;
+	QmIopin *poff_iopin;
 };
 
 } /* namespace Multiradio */

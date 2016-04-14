@@ -24,7 +24,7 @@ class VoiceServiceInterface;
 class Dispatcher : public QmObject
 {
 public:
-	Dispatcher(int dsp_uart_resource, int dspreset_iopin_resource, int atu_uart_resource,
+	Dispatcher(int dsp_uart_resource, int dspreset_iopin_resource, int atu_uart_resource, int atu_iopin_resource,
 			Headset::Controller *headset_controller, Navigation::Navigator *navigator);
 	~Dispatcher();
 	void startServicing(const Multiradio::voice_channels_table_t &voice_channels_table);

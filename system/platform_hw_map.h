@@ -26,6 +26,7 @@ enum platformhw_resource_t {
 	platformhwDspUart,					// UART DSP
 	platformhwDspResetIopin,			// I/O-пин сигнала RESET DSP
 	platformhwAtuUart,					// UART АСУ
+	platformhwAtuIopin,					// I/O-пин АСУ
 	platformhwBatterySmbusI2c,			// I2C шины SMBus аккумуляторной батареи
 	platformhwNavigatorUart,			// UART ГНСС приемника
 	platformhwNavigatorResetIopin,		// I/O-пин сигнала RESET ГНСС приемника

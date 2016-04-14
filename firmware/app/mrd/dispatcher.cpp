@@ -23,6 +23,7 @@ namespace Multiradio {
 Dispatcher::Dispatcher( int dsp_uart_resource,
                         int dspreset_iopin_resource,
                         int atu_uart_resource,
+						int atu_iopin_resource,
                         Headset::Controller *headset_controller,
                         Navigation::Navigator *navigator
                         ) :
@@ -36,7 +37,7 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 	dsp_controller = new DspController(dsp_uart_resource, dspreset_iopin_resource, navigator, this);
 	dsp_controller->started.connect(sigc::mem_fun(this, &Dispatcher::processDspStartup));
 	dsp_controller->setRadioCompleted.connect(sigc::mem_fun(this, &Dispatcher::processDspSetRadioCompletion));
-	atu_controller = new AtuController(atu_uart_resource, this);
+	atu_controller = new AtuController(atu_uart_resource, atu_iopin_resource, this);
 	atu_controller->modeChanged.connect(sigc::mem_fun(this, &Dispatcher::processAtuModeChange));
 	atu_controller->requestTx.connect(sigc::mem_fun(this, &Dispatcher::processAtuRequestTx));
 	main_service = new MainServiceInterface(this);
@@ -182,8 +183,8 @@ void Dispatcher::processDspSetRadioCompletion() {
 	if (main_service->current_status == MainServiceInterface::StatusTuningTx) {
 		if (atu_controller->getMode() != AtuController::modeTuning)
 			atu_controller->tuneTxMode((*voice_channel).frequency);
-		else
-			atu_controller->acknowledgeTxRequest();
+//		else
+//			atu_controller->acknowledgeTxRequest();
 	}
 }
 
@@ -197,12 +198,15 @@ void Dispatcher::startIdle() {
 }
 
 void Dispatcher::startVoiceTx() {
+	atu_controller->setRadioPowerOff(true);
 	dsp_controller->setRadioOperation(DspController::RadioOperationTxMode);
 	main_service->setStatus(MainServiceInterface::StatusVoiceTx);
 }
 
 void Dispatcher::prepareTuningTx() {
-	dsp_controller->setRadioOperation(DspController::RadioOperationOff);
+//	dsp_controller->setRadioOperation(DspController::RadioOperationOff);
+	atu_controller->setRadioPowerOff(false);
+	dsp_controller->setRadioOperation(DspController::RadioOperationCarrierTx);
 	main_service->setStatus(MainServiceInterface::StatusTuningTx);
 	voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
 }

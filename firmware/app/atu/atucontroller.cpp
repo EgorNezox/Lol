@@ -13,6 +13,7 @@
 #include "qmthread.h"
 #include "qmtimer.h"
 #include "qmuart.h"
+#include "qmiopin.h"
 
 #include "atucontroller.h"
 
@@ -23,7 +24,7 @@ namespace Multiradio {
 
 const uint8_t AtuController::antenna = 0;
 
-AtuController::AtuController(int uart_resource, QmObject *parent) :
+AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *parent) :
 	QmObject(parent),
 	mode(modeNone), tx_tuning_state(false)
 {
@@ -49,6 +50,7 @@ AtuController::AtuController(int uart_resource, QmObject *parent) :
 	tx_tune_timer = new QmTimer(true, this);
 	tx_tune_timer->setInterval(100);
 	tx_tune_timer->timeout.connect(sigc::mem_fun(this, &AtuController::processTxTuneTimeout));
+	poff_iopin = new QmIopin(iopin_resource, this);
 }
 
 AtuController::~AtuController()
@@ -104,6 +106,10 @@ void AtuController::acknowledgeTxRequest() {
 	sendFrame(frameid, 0, 0);
 	tx_tuning_state = !tx_tuning_state;
 	tx_tune_timer->start();
+}
+
+void AtuController::setRadioPowerOff(bool enable) {
+	poff_iopin->writeOutput(enable ? QmIopin::Level_High : QmIopin::Level_Low);
 }
 
 void AtuController::setMode(Mode mode) {
@@ -206,7 +212,9 @@ void AtuController::processReceivedTuningFrame(uint8_t id) {
 			finishCommand();
 			setMode(modeTuning);
 			tx_tuning_state = (id == frameid_U)?true:false;
-			requestTx(tx_tuning_state);
+//			requestTx(tx_tuning_state);
+			setRadioPowerOff(tx_tuning_state);
+			acknowledgeTxRequest();
 			break;
 		default:
 			processReceivedUnexpectedFrame(id);
