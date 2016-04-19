@@ -22,7 +22,7 @@
 
 namespace Multiradio {
 
-const uint8_t AtuController::antenna = 0;
+const uint8_t AtuController::antenna = 1;
 
 AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *parent) :
 	QmObject(parent),
@@ -88,14 +88,14 @@ bool AtuController::enterBypassMode() {
 bool AtuController::tuneTxMode(uint32_t frequency) {
 	if (!((mode == modeBypass) || (mode == modeActiveTx)))
 		return false;
+	setMode(modeStartTuning);
 	uint32_t encoded_freq = frequency/10;
 	uint8_t command_data[4];
 	command_data[0] = (encoded_freq >> 16) & 0xFF;
 	command_data[1] = (encoded_freq >> 8) & 0xFF;
 	command_data[2] = (encoded_freq) & 0xFF;
-	command_data[3] = 0;
+	command_data[3] = antenna;
 	startCommand(commandEnterTuningMode, command_data, sizeof(command_data), 2);
-	setMode(modeStartTuning);
 	return true;
 }
 
@@ -213,7 +213,7 @@ void AtuController::processReceivedTuningFrame(uint8_t id) {
 			setMode(modeTuning);
 			tx_tuning_state = (id == frameid_U)?true:false;
 //			requestTx(tx_tuning_state);
-			setRadioPowerOff(tx_tuning_state);
+			setRadioPowerOff(!tx_tuning_state);
 			acknowledgeTxRequest();
 			break;
 		default:
@@ -234,13 +234,17 @@ void AtuController::processReceivedTuningFrame(uint8_t id) {
 			if (!tx_tuning_state)
 				break;
 			tx_tune_timer->stop();
-			requestTx(true);
+//			requestTx(true);
+			setRadioPowerOff(false);
+			acknowledgeTxRequest();
 			break;
 		case frameid_D:
 			if (tx_tuning_state)
 				break;
 			tx_tune_timer->stop();
-			requestTx(false);
+//			requestTx(false);
+			setRadioPowerOff(true);
+			acknowledgeTxRequest();
 			break;
 		default:
 			processReceivedUnexpectedFrame(id);

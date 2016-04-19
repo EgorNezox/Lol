@@ -198,14 +198,14 @@ void Dispatcher::startIdle() {
 }
 
 void Dispatcher::startVoiceTx() {
-	atu_controller->setRadioPowerOff(true);
+	atu_controller->setRadioPowerOff(false);
 	dsp_controller->setRadioOperation(DspController::RadioOperationTxMode);
 	main_service->setStatus(MainServiceInterface::StatusVoiceTx);
 }
 
 void Dispatcher::prepareTuningTx() {
 //	dsp_controller->setRadioOperation(DspController::RadioOperationOff);
-	atu_controller->setRadioPowerOff(false);
+	atu_controller->setRadioPowerOff(true);
 	dsp_controller->setRadioOperation(DspController::RadioOperationCarrierTx);
 	main_service->setStatus(MainServiceInterface::StatusTuningTx);
 	voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
