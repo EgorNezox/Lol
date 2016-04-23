@@ -176,6 +176,7 @@ private:
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
 
     int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
+    int prevSecond(int second);
 
     Navigation::Navigator * navigator;
 
@@ -201,7 +202,8 @@ private:
 		radiostatePswfTx,
         radiostatePswfRxPrepare,
         radiostatePswfRx,
-        radiostatePswfAsk
+		radiostatePswfAckPrepare,
+		radiostatePswfAck
     } radio_state;
     RadioMode current_radio_mode;
     RadioOperation  current_radio_operation;
@@ -222,16 +224,15 @@ private:
 
     char com_n[30];
 
-    bool sucsess_pswf = false;
+    int sucsess_pswf;
+    bool pswf_first_packet_received;
 
     int date_time[4];
 
     int pswfRxStateSync;
     int pswfTxStateSync;
 
-    bool ready_pswf_Ui = true;
-
-    int private_lcode = 0;
+    char private_lcode;
 
     std::vector< std::vector<char> > recievedPswfBuffer;
 };
