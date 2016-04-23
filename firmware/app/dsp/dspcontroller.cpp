@@ -1017,5 +1017,5 @@ void DspController::ReturnPswfFromDSP()
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelInfo)
 #include "qmdebug_domains_end.h"

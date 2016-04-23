@@ -22,11 +22,9 @@
 
 namespace Multiradio {
 
-const uint8_t AtuController::antenna = 1;
-
 AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *parent) :
 	QmObject(parent),
-	mode(modeNone), tx_tuning_state(false)
+	mode(modeNone), tx_tuning_state(false), antenna(0)
 {
 	command.id = commandInactive;
 	command.data_buf = new uint8_t[MAX_FRAME_DATA_SIZE];
@@ -77,8 +75,9 @@ AtuController::Mode AtuController::getMode() {
 	return mode;
 }
 
-bool AtuController::enterBypassMode() {
-	if (mode != modeActiveTx)
+bool AtuController::enterBypassMode(uint32_t frequency) {
+	setAntenna(frequency);
+	if (!((mode == modeActiveTx) || (mode == modeBypass)) || (antenna == 0))
 		return false;
 	startCommand(commandEnterBypassMode, &antenna, 1, 2);
 	setMode(modeStartingBypass);
@@ -86,7 +85,8 @@ bool AtuController::enterBypassMode() {
 }
 
 bool AtuController::tuneTxMode(uint32_t frequency) {
-	if (!((mode == modeBypass) || (mode == modeActiveTx)))
+	setAntenna(frequency);
+	if (!((mode == modeBypass) || (mode == modeActiveTx)) || (antenna == 0))
 		return false;
 	setMode(modeStartTuning);
 	uint32_t encoded_freq = frequency/10;
@@ -110,6 +110,7 @@ void AtuController::acknowledgeTxRequest() {
 
 void AtuController::setRadioPowerOff(bool enable) {
 	poff_iopin->writeOutput(enable ? QmIopin::Level_High : QmIopin::Level_Low);
+	QmThread::msleep(10);
 }
 
 void AtuController::setMode(Mode mode) {
@@ -379,8 +380,18 @@ void AtuController::processUartReceivedData() {
 	}
 }
 
+void AtuController::setAntenna(uint32_t frequency) {
+	if ((4000000 <= frequency) && (frequency < 10500000)) {
+		antenna = 1;
+	} else if ((10500000 <= frequency) && (frequency < 30000000)) {
+		antenna = 2;
+	} else {
+		antenna = 0;
+	}
+}
+
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(atucontroller, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(atucontroller, LevelInfo)
 #include "qmdebug_domains_end.h"

@@ -37,7 +37,7 @@ public:
 	void startServicing();
 	bool isDeviceOperational();
 	Mode getMode();
-	bool enterBypassMode();
+	bool enterBypassMode(uint32_t frequency);
 	bool tuneTxMode(uint32_t frequency);
 	void acknowledgeTxRequest();
 	void setRadioPowerOff(bool enable);
@@ -76,6 +76,7 @@ private:
 	void sendFrame(uint8_t id, const uint8_t *data, int data_len);
 	void sendNak();
 	void processUartReceivedData();
+	void setAntenna(uint32_t frequency);
 
 	Mode mode;
 	bool tx_tuning_state;
@@ -97,7 +98,7 @@ private:
 		int data_len;
 		bool truncated;
 	} uart_rx_frame;
-	static const uint8_t antenna;
+	uint8_t antenna;
 	QmIopin *poff_iopin;
 };
 
