@@ -93,18 +93,21 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	this->navigator = navigator;
 	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
 
-    command_tx30 = 0;
-    command_rx30 = 0;
     cmd_queue = new std::list<DspCommand>();
 
-    quite = 0;
+    fwd_wave = 0;
+    ref_wave = 0;
+
+    command_tx30 = 0;
+    command_rx30 = 0;
 
     pswfRxStateSync = 0;
     pswfTxStateSync = 0;
 
-    private_lcode = 0;
-    sucsess_pswf = 30;
+    success_pswf = 30;
     pswf_first_packet_received = false;
+    pswf_ack = false;
+    private_lcode = 0;
 }
 
 DspController::~DspController()
@@ -218,34 +221,6 @@ void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
     resyncPendingCommand();
 }
 
-void DspController::setPSWFParametres(int RadioPath, int R_ADR, int COM_N)
-{
-	qmDebugMessage(QmDebug::Dump, "setPSWFParametres(%d, %d, %d)", RadioPath, R_ADR, COM_N);
-    QM_ASSERT(is_ready);
-    if (!resyncPendingCommand())
-        return;
-
-    getDataTime();
-    setFrequencyPswf();
-
-    ContentPSWF.indicator = 20;
-    ContentPSWF.TYPE = 0;
-    ContentPSWF.COM_N = COM_N;
-    ContentPSWF.RN_KEY = 1;
-    ContentPSWF.R_ADR = R_ADR;
-
-
-    if (RadioPath == 0) {
-        ParameterValue param;
-        param.pswf_r_adr = PSWF_SELF_ADR;
-        sendCommand(PSWFReceiver, PswfRxRAdr, param);
-        setPswfMode(0);
-
-    } else {
-    	setPswfMode(1);
-    }
-}
-
 void DspController::getSwr()
 {
     QM_ASSERT(is_ready);
@@ -260,63 +235,20 @@ void DspController::getSwr()
     sendCommand(TxRadiopath,0,commandValue);
 }
 
-void DspController::setPswfMode(int radio_path)
-{
-    ParameterValue comandValue;
-    switch (radio_path) {
-    case 0: {
-    	comandValue.radio_mode = RadioModeOff;
-    	sendCommand(TxRadiopath, TxRadioMode, comandValue);
-    	comandValue.pswf_indicator = RadioModePSWF;
-    	sendCommand(RxRadiopath, RxRadioMode, comandValue);
-    	pswfRxStateSync = 0;
-    	radio_state = radiostatePswfRxPrepare;
-    	qmDebugMessage(QmDebug::Dump, "setPswfMode() radiostatePswfRxPrepare");
-    	break;
-    }
-    case 1: {
-    	comandValue.radio_mode = RadioModeOff;
-    	sendCommand(RxRadiopath, RxRadioMode, comandValue);
-    	comandValue.pswf_indicator = RadioModePSWF;
-    	sendCommand(TxRadiopath, TxRadioMode, comandValue);
-    	pswfTxStateSync = 0;
-    	switch (radio_state) {
-    	case radiostatePswfAck: {
-    		radio_state = radiostatePswfAckPrepare;
-    		break;
-    	}
-    	default: {
-    		radio_state = radiostatePswfTxPrepare;
-    	}
-    	}
-
-    	qmDebugMessage(QmDebug::Dump, "setPswfMode() radiostatePswfTxPrepare");
-    	break;
-    }
-    default: QM_ASSERT(0); break;
-    }
-}
-
 void DspController::syncPulseDetected() {
 	if (!is_ready)
 		return;
 	switch (radio_state) {
 	case radiostatePswfRx : {
-		qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateCmdPswfRx");
+		qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostatePswfRx");
 		changePswfRxFrequency();
 		break;
 	}
 	case radiostatePswfTx : {
-		qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateCmdPswfTx");
+		qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostatePswfTx");
 		transmitPswf();
 		break;
 	}
-    case radiostatePswfAck: {
-        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostatePswfAck");
-        transmitPswf();
-        break;
-    }
-
 	default: break;
     }
 }
@@ -348,66 +280,52 @@ void DspController::getDataTime()
 
 void DspController::transmitPswf()
 {
-
     getDataTime();
+    ContentPSWF.L_CODE = navigator->Calc_LCODE(
+    		0 /*ContentPSWF.R_ADR*/, 0 /*ContentPSWF.S_ADR*/,
+    		ContentPSWF.COM_N, ContentPSWF.RN_KEY,
+			date_time[0], date_time[1], date_time[2], date_time[3]);
 
-    ContentPSWF.L_CODE = navigator->Calc_LCODE(0/*ContentPSWF.R_ADR*/,
-                                               0/*ContentPSWF.S_ADR*/,
-                                               ContentPSWF.COM_N,
-                                               ContentPSWF.RN_KEY,
-                                               date_time[0],
-                                               date_time[1],
-                                               date_time[2],
-                                               date_time[3]);
-
+    qmDebugMessage(QmDebug::Dump, "transmitPswf() command_tx30 = %d", command_tx30);
     if (command_tx30 == 30)
     {
         qmDebugMessage(QmDebug::Dump, "PSWF trinsmitting finished");
         command_tx30 = 0;
-        switch (radio_state) {
-        case radiostatePswfTx:
-        	setPSWFParametres(0, ContentPSWF.R_ADR, ContentPSWF.COM_N);
-        	return;
+        if (pswf_ack) {
+        	startPSWFReceiving(false);
+        } else {
+        	qmDebugMessage(QmDebug::Dump, "radio_state = radiostateSync");
+        	radio_state = radiostateSync;
         }
-        radio_state = radiostateSync;
         return;
     }
-    command_tx30++;
+    ++command_tx30;
     sendPswf(PSWFTransmitter);
 }
 
-
-
-void DspController::changePswfRxFrequency() {
-
-//	if (sucsess_pswf) {
-//		++command_rx30;
-//		qmDebugMessage(QmDebug::Warning, "changePswfRxFrequency() command_rx30 = %d", command_rx30);
-//		checkRxCounter();
-//	}
-
+void DspController::changePswfRxFrequency()
+{
 	if (pswf_first_packet_received) {
-		sucsess_pswf--;
-		qmDebugMessage(QmDebug::Dump, "changePswfRxFrequency() sucsess_pswf = %d", sucsess_pswf);
-		if (sucsess_pswf == 0) {
-			radio_state = radiostatePswfAck;
-			setPSWFParametres(1, ContentPSWF.R_ADR, ContentPSWF.COM_N);
+		success_pswf--;
+		qmDebugMessage(QmDebug::Dump, "changePswfRxFrequency() success_pswf = %d", success_pswf);
+		if (success_pswf == 0) {
+			qmDebugMessage(QmDebug::Dump, "PSWF receiving finished");
 			pswf_first_packet_received = false;
-			sucsess_pswf = 30;
+			success_pswf = 30;
 			command_rx30 = 0;
+			if (pswf_ack) {
+				startPSWFTransmitting(false, ContentPSWF.R_ADR, ContentPSWF.COM_N);
+			} else {
+				qmDebugMessage(QmDebug::Dump, "radio_state = radiostateSync");
+				radio_state = radiostateSync;
+			}
+			return;
 		}
 	}
 
     getDataTime();
-    // RN_KEY по умолчанию 0  - пока другого нет
-    //QM_ASSERT(date_time[3]>=0 && date_time[3]<=59);
-    //QM_ASSERT(date_time[2]>=0 && date_time[2]<=59);
-    //QM_ASSERT(date_time[1]>=0 && date_time[1]<=23);
-    //QM_ASSERT(date_time[0]>=0 && date_time[0]<=31);
-
     setFrequencyPswf();
 
-     //TODO: fix assert
     ParameterValue param;
     param.frequency = ContentPSWF.Frequency;
     sendCommand(PSWFReceiver, PswfRxFrequency, param);
@@ -420,46 +338,30 @@ void DspController::RecievedPswf()
     if (command_rx30 == 30) {
         command_rx30 = 0;
         recievedPswfBuffer.erase(recievedPswfBuffer.begin());
-        //radio_state = radiostateSync;
-//        if (sucsess_pswf) {
-////        	sucsess_pswf = false;
-//        	 setPSWFParametres(1, ContentPSWF.R_ADR, ContentPSWF.COM_N);
-//        }
     }
-//    if (sucsess_pswf != 30) {
-//    	qmDebugMessage(QmDebug::Dump, "sucsess_pswf = true, ignore packet");
-//    	return;
-//    }
-
 
     private_lcode = navigator->Calc_LCODE(0,0,recievedPswfBuffer.at(command_rx30).at(0),1,
-            date_time[0],date_time[1], date_time[2],prevSecond(prevSecond(date_time[3])));
-
+            date_time[0],date_time[1], date_time[2],prevSecond(date_time[3]));
 
     qmDebugMessage(QmDebug::Dump, "private_lcode = %d,lcode = %d", private_lcode,recievedPswfBuffer.at(command_rx30).at(1));
 
     for(int i =0; i<recievedPswfBuffer.size(); i++)
     {
-        if (i != command_rx30)
-        if (recievedPswfBuffer.at(command_rx30).at(0) == recievedPswfBuffer.at(i).at(0)) {
-//            sucsess_pswf = 30 - command_rx30;
-            ContentPSWF.COM_N = recievedPswfBuffer.at(command_rx30).at(0);
-            ContentPSWF.R_ADR = ContentPSWF.S_ADR;
-            ContentPSWF.S_ADR = PSWF_SELF_ADR;
-            if (private_lcode == recievedPswfBuffer.at(command_rx30).at(1))
-            firstPacket(ContentPSWF.COM_N); // COM_N
-        }
+    	if (i != command_rx30)
+    		if (recievedPswfBuffer.at(command_rx30).at(0) == recievedPswfBuffer.at(i).at(0)) {
+    			ContentPSWF.COM_N = recievedPswfBuffer.at(command_rx30).at(0);
+    			ContentPSWF.R_ADR = ContentPSWF.S_ADR;
+    			ContentPSWF.S_ADR = PSWF_SELF_ADR;
+    			if (private_lcode == recievedPswfBuffer.at(command_rx30).at(1))
+    				firstPacket(ContentPSWF.COM_N); // COM_N
+    		}
     }
-
-    qmDebugMessage(QmDebug::Dump, "sucsess_pswf = %d", sucsess_pswf);
     ++command_rx30;
-
 }
 
 int DspController::prevSecond(int second) {
-	if (second == 0) {
+	if (second == 0)
 		return 59;
-	}
 	return second - 1;
 }
 
@@ -925,12 +827,6 @@ void DspController::sendPswf(Module module) {
 //	pending_command->code = code;
 //	pending_command->value = value;
 	transport->transmitFrame(tx_address, tx_data, tx_data_len);
-    if (sucsess_pswf == false) { //TODO: продумать
-    	sucsess_pswf = true;
-//    	command_timer->start(); //TODO: ?
-
-
-    }
 }
 
 void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len) {
@@ -938,26 +834,18 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 		return;
 	if (radio_state == radiostatePswfRxPrepare) {
 		++pswfRxStateSync;
-		qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radiostatePswfRxPrepare %d", pswfRxStateSync);
+		qmDebugMessage(QmDebug::Dump, "processReceivedFrame() pswfRxStateSync = %d", pswfRxStateSync);
 		if (pswfRxStateSync == 3) {
 			radio_state = radiostatePswfRx;
-			qmDebugMessage(QmDebug::Dump, "syncPendingCommand() radiostatePswfRx");
+			qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radio_state = radiostatePswfRx");
 		}
 	}
-	if (radio_state == radiostatePswfTxPrepare || radio_state == radiostatePswfAckPrepare) {
+	if (radio_state == radiostatePswfTxPrepare) {
 		++pswfTxStateSync;
-		qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radiostatePswfTxPrepare %d", pswfTxStateSync);
+		qmDebugMessage(QmDebug::Dump, "processReceivedFrame() pswfTxStateSync = %d", pswfTxStateSync);
 		if (pswfTxStateSync == 2) {
-			switch (radio_state) {
-			case radiostatePswfTxPrepare:
-				radio_state = radiostatePswfTx;
-				break;
-			case radiostatePswfAckPrepare:
-				radio_state = radiostatePswfAck;
-				break;
-			}
-
-			qmDebugMessage(QmDebug::Dump, "syncPendingCommand() radiostatePswfTx");
+			radio_state = radiostatePswfTx;
+			qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radio_state = radiostatePswfTx");
 		}
 	}
 	uint8_t indicator = qmFromBigEndian<uint8_t>(data+0);
@@ -973,7 +861,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	}
 	case 0x51:
 	case 0x81: {
-
 		if ((indicator == 3) || (indicator == 4)) { // "команда выполнена", "команда не выполнена" ?
 			ParameterValue value;
 			if ((code == 1) && (value_len == 4)) {
@@ -1014,18 +901,10 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     	qmDebugMessage(QmDebug::Dump, "0x63 received");
         if (indicator == 30)
         {
-        	QM_ASSERT(command_rx30 <= 30);
-//        	QM_ASSERT(value_len <= 20);
-            memcpy(bufer_pswf[command_rx30],data,10);
-            // копируем значения в  bufer_command
-
-            std::vector<char> pswf_data;
-
+        	std::vector<char> pswf_data;
             pswf_data.push_back(data[9]);
             pswf_data.push_back(data[10]);
-
             recievedPswfBuffer.push_back(pswf_data);
-
             RecievedPswf();
         }
         break;
@@ -1034,10 +913,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         ParameterValue value;
         value.frequency = 0;
         processCommandResponse((indicator == 3), PSWFTransmitter, code, value);
-//        if (radio_state == radiostatePswfAck)
-//        {
-//            setPSWFParametres(0,ContentPSWF.R_ADR,ContentPSWF.COM_N);
-//        }
         break;
     }
 	default: break;
@@ -1059,18 +934,56 @@ void DspController::parsingData()
 
 void *DspController::getContentPSWF()
 {
-    return &ContentPSWF;
+	return &ContentPSWF;
 }
 
-bool DspController::questPending()
-{
-   ListSheldure.push_back(*pending_command); //  добавляем неотправленную команду
-   return true;
+void DspController::startPSWFReceiving(bool ack) {
+	qmDebugMessage(QmDebug::Dump, "startPSWFReceiving(%d)", ack);
+	QM_ASSERT(is_ready);
+	if (!resyncPendingCommand())
+		return;
+
+	pswf_ack = ack;
+	getDataTime();
+	setFrequencyPswf();
+
+	ParameterValue param;
+	param.pswf_r_adr = PSWF_SELF_ADR;
+	sendCommand(PSWFReceiver, PswfRxRAdr, param);
+
+	ParameterValue comandValue;
+	comandValue.radio_mode = RadioModeOff;
+	sendCommand(TxRadiopath, TxRadioMode, comandValue);
+	comandValue.pswf_indicator = RadioModePSWF;
+	sendCommand(RxRadiopath, RxRadioMode, comandValue);
+	pswfRxStateSync = 0;
+	radio_state = radiostatePswfRxPrepare;
 }
 
-void DspController::ReturnPswfFromDSP()
-{
+void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd) {
+	qmDebugMessage(QmDebug::Dump, "startPSWFTransmitting(%d, %d, %d)", ack, r_adr, cmd);
+    QM_ASSERT(is_ready);
+    if (!resyncPendingCommand())
+        return;
 
+    pswf_ack = ack;
+    getDataTime();
+    setFrequencyPswf();
+
+    ContentPSWF.indicator = 20;
+    ContentPSWF.TYPE = 0;
+    ContentPSWF.COM_N = cmd;
+    ContentPSWF.RN_KEY = 1;
+    ContentPSWF.R_ADR = r_adr;
+    ContentPSWF.S_ADR = PSWF_SELF_ADR;
+
+    ParameterValue comandValue;
+    comandValue.radio_mode = RadioModeOff;
+    sendCommand(RxRadiopath, RxRadioMode, comandValue);
+    comandValue.pswf_indicator = RadioModePSWF;
+    sendCommand(TxRadiopath, TxRadioMode, comandValue);
+    pswfTxStateSync = 0;
+    radio_state = radiostatePswfTxPrepare;
 }
 
 } /* namespace Multiradio */

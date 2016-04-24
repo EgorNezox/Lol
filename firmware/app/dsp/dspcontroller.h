@@ -58,38 +58,21 @@ public:
     void setRadioSquelch(uint8_t value);
     void setAudioVolumeLevel(uint8_t volume_level);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
-    void setPSWFParametres(int RadioPath, int R_ADR,int COM_N);
-    void RecievedPswf();
 
-    void setFrequencyPswf();
+    void startPSWFReceiving(bool ack);
+    void startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd);
 
-
-    void getSwr();
-    void setPswfMode(int radio_path);
-    void transmitPswf();
-    void changePswfRxFrequency();
     void parsingData();
     void *getContentPSWF();
-    bool questPending();
-    void syncPulseDetected();
-
-    void getDataTime();
-
-    void transmitSMS();
-
-    void ReturnPswfFromDSP();
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void,int> firstPacket;
 
-    uint8_t quite;
-
     float swf_res = 2; // надо изменить значение на нижнее предельное
 
 private:
     friend struct DspCommand;
-    std::list<DspCommand> ListSheldure;
 
     enum Module {
         RxRadiopath,
@@ -143,7 +126,6 @@ private:
         uint8_t swf_mode;
     };
 
-
     struct PswfContent{
     	uint8_t indicator;
         uint8_t TYPE;
@@ -156,7 +138,6 @@ private:
         uint8_t RN_KEY;
         uint8_t Conditional_Command;
     } ContentPSWF;
-
 
     void initResetState();
     void processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version);
@@ -178,8 +159,17 @@ private:
     int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int prevSecond(int second);
 
-    Navigation::Navigator * navigator;
+    void RecievedPswf();
+    void setFrequencyPswf();
 
+    void getSwr();
+    void transmitPswf();
+    void changePswfRxFrequency();
+    void syncPulseDetected();
+    void getDataTime();
+    void transmitSMS();
+
+    Navigation::Navigator *navigator;
 
     bool is_ready;
     QmIopin *reset_iopin;
@@ -201,9 +191,7 @@ private:
 		radiostatePswfTxPrepare,
 		radiostatePswfTx,
         radiostatePswfRxPrepare,
-        radiostatePswfRx,
-		radiostatePswfAckPrepare,
-		radiostatePswfAck
+        radiostatePswfRx
     } radio_state;
     RadioMode current_radio_mode;
     RadioOperation  current_radio_operation;
@@ -212,25 +200,20 @@ private:
 
     std::list<DspCommand> *cmd_queue;
 
-    int command_tx30 = 0;
-    int command_rx30 = 0;
+    uint32_t fwd_wave;
+    uint32_t ref_wave;
 
-    uint32_t fwd_wave = 0;
-    uint32_t ref_wave = 0;
-
-    // кольцевой буфер для сообщений
-    char bufer_pswf[30][12];
-    char  command[30];
-
-    char com_n[30];
-
-    int sucsess_pswf;
-    bool pswf_first_packet_received;
-
-    int date_time[4];
+    int command_tx30;
+    int command_rx30;
 
     int pswfRxStateSync;
     int pswfTxStateSync;
+
+    int success_pswf;
+    bool pswf_first_packet_received;
+    bool pswf_ack;
+
+    int date_time[4];
 
     char private_lcode;
 
