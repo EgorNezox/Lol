@@ -261,6 +261,7 @@ void DspController::syncPulseDetected() {
 	}
     case radiostateSmsRx:{
         qmDebugMessage(QmDebug::Dump, "syncPulseDetected() SmsRx");
+        recSms();
         break;
     }
     case radiostateSmsTx:{
@@ -916,7 +917,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 		}
 	}
     //----------sms-----------------------------------------------------
-    if (radio_state == radiostateSmsTxPrepare) {
+    if (radio_state == radiostateSmsRxPrepare) {
         ++smsRxStateSync;
         qmDebugMessage(QmDebug::Dump, "processReceivedFrame() smsRxStateSync = %d", smsRxStateSync);
         if (smsRxStateSync == 3) {
