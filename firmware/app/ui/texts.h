@@ -26,6 +26,8 @@ extern char ch_invalid_letter;
 extern const char* freq_khz;
 extern const char* freq_hz;
 
+extern const char* speed_bit;
+
 extern const char proc;
 
 extern const char* trans;
@@ -53,8 +55,9 @@ extern const char *setDateOrTime[];
 extern const char *setConnParam[];
 extern const char *useScanMenu[];
 
-extern const char *aru;
-extern const char *arm;
+extern const char *aruStr;
+extern const char *armStr;
+extern const char *ausStr;
 
 extern const char *error_SWF;
 extern const char *true_SWF;
@@ -72,5 +75,5 @@ extern const char ch_key7[4];
 extern const char ch_key8[4];
 extern const char ch_key9[4];
 
-extern const char *recvCondCommand;
+extern const char *recvCondCommandStr;
 #endif /* TEXTS_H_ */

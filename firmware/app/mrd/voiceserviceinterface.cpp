@@ -131,6 +131,18 @@ const char* VoiceServiceInterface::ReturnSwfStatus()
     return text;
 }
 
+void VoiceServiceInterface::TurnSMSMode(int r_adr, char *message)
+{
+   dispatcher->dsp_controller->startSMSTransmitting(r_adr,(uint8_t*)message);
+}
+
+void VoiceServiceInterface::TurnSMSMode()
+{
+    dispatcher->dsp_controller->startSMSRecieving();
+}
+
+
+
 void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
 	current_channel_status = status;
     currentChannelChanged();

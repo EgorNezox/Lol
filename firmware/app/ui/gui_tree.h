@@ -27,6 +27,7 @@ enum GuiWindowsSubType
     duplCondComm,\
     message,
     recv,\
+    recvSms,
     data,\
     settings,\
     gpsCoord,\
@@ -36,7 +37,7 @@ enum GuiWindowsSubType
     setFreq,\
     setSpeed,\
     scan,\
-    aruarm,\
+    aruarmaus,\
     suppress,\
     twoState,\
     volume

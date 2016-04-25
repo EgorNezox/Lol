@@ -42,7 +42,7 @@ public:
 class CGuiMenu: public CGuiDialog
 {
 public:
-    CGuiMenu(MoonsGeometry* area, const char *title, const char *text, Alignment align);
+    CGuiMenu(MoonsGeometry* area, const char *title, Alignment align);
     virtual ~CGuiMenu();
     void Draw();
 
@@ -70,7 +70,7 @@ public:
     void setCondCommParam(CEndState, UI_Key);
 
     // message ( SMS )
-    void initSmsInputDialog(const char *, std::string, std::string);
+    void initTxSmsDialog(const char *, std::string, std::string);
     void inputSmsMessage( CEndState, UI_Key );
     void inputSmsAddr( CEndState, UI_Key );
     UI_Key prevKey = keyBack;
@@ -78,16 +78,19 @@ public:
     int keyPressCount = 0;
     std::chrono::time_point<std::chrono::steady_clock> ct = std::chrono::steady_clock::now();
 
+    // recv sms
+    void initRxSmsDialog();
+
     // volume
     void incrVolume(){ if ( vol < 100) vol += 5; }
     void decrVolume(){ if ( vol >  0 ) vol -= 5; }
     uint8_t  getVolume(){ return vol;}
 
     // aru arm
-    void    incrAruArm(GuiWindowsSubType);
-    void    decrAruArm(GuiWindowsSubType);
-    uint8_t getAruArm() { return aruArmStatus[focus]; }
-    uint8_t aruArmStatus[2] = {1, 1};
+    void    incrAruArmAsu(GuiWindowsSubType);
+    void    decrAruArmAsu(GuiWindowsSubType);
+    uint8_t getAruArmAsu() { return aruArmAsuStatus[focus]; }
+    uint8_t aruArmAsuStatus[3] = {1, 1, 1};
     uint8_t inclStatus = 1;
 
     // gps coordinate

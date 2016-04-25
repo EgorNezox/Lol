@@ -62,8 +62,12 @@ public:
     void startPSWFReceiving(bool ack);
     void startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd);
 
+    void startSMSRecieving();
+    void startSMSTransmitting(uint8_t r_adr,uint8_t *message);
+
     void parsingData();
     void *getContentPSWF();
+
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -139,6 +143,42 @@ private:
         uint8_t Conditional_Command;
     } ContentPSWF;
 
+
+    struct SmsContent
+    {
+        uint8_t indicator;
+        uint8_t TYPE;
+        uint32_t Frequency;
+        uint8_t SNR;
+        uint8_t R_ADR;
+        uint8_t S_ADR;
+        uint8_t COM_N;
+        uint8_t L_CODE;
+        uint8_t RN_KEY;
+        uint8_t stage;
+        uint8_t message[100];
+    } ContentSms;
+
+    enum SmsStageTx
+    {
+       StageTx_info = 0,
+       StageTx_rec  = 1,
+       StageTx_trans = 2,
+       StageTx_quit = 3
+    };
+
+    enum SmsStageRx
+    {
+       StageRx_info = 4,
+       StageRx_trans = 5,
+       StageRx_data = 6,
+       StageRx_quit = 7
+    };
+
+
+    int *counterSms;
+
+
     void initResetState();
     void processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version);
     void processStartupTimeout();
@@ -160,7 +200,7 @@ private:
     int prevSecond(int second);
 
     void RecievedPswf();
-    void setFrequencyPswf();
+    int setFrequencyPswf();
 
     void getSwr();
     void transmitPswf();
@@ -168,6 +208,8 @@ private:
     void syncPulseDetected();
     void getDataTime();
     void transmitSMS();
+    void sendSms(Module module);
+    void recSms();
 
     Navigation::Navigator *navigator;
 
@@ -191,7 +233,11 @@ private:
 		radiostatePswfTxPrepare,
 		radiostatePswfTx,
         radiostatePswfRxPrepare,
-        radiostatePswfRx
+        radiostatePswfRx,
+        radiostateSmsTx,
+        radiostateSmsRx,
+        radiostateSmsRxPrepare,
+        radiostateSmsTxPrepare
     } radio_state;
     RadioMode current_radio_mode;
     RadioOperation  current_radio_operation;
@@ -209,6 +255,9 @@ private:
     int pswfRxStateSync;
     int pswfTxStateSync;
 
+    int smsRxStateSync;
+    int smsTxStateSync;
+
     int success_pswf;
     bool pswf_first_packet_received;
     bool pswf_ack;
@@ -218,6 +267,7 @@ private:
     char private_lcode;
 
     std::vector< std::vector<char> > recievedPswfBuffer;
+    std::vector< std::vector<char> > recievedSmsBuffer;
 };
 
 

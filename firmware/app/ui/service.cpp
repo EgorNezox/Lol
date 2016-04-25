@@ -40,7 +40,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   Multiradio::MainServiceInterface  *mr_main_service,
                   Multiradio::VoiceServiceInterface *mr_voice_service,
                   Power::Battery                    *power_battery,
-                  Navigation::Navigator             *navigator                  )
+                  Navigation::Navigator             *navigator )
 {
     QM_ASSERT(single_instance == false);
     single_instance = true;
@@ -65,9 +65,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     main_scr  = new GUI_Dialog_MainScr(&ui_common_dialog_area);
     indicator = new GUI_Indicator     (&ui_indicator_area);
 
-    mainWindowModeId = 0;
-    //drawMainWindow();
-
     menu = nullptr;
     msg_box = nullptr;
 
@@ -83,7 +80,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     command_rx_30 = 0;
 
     voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
-
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -299,10 +295,21 @@ void Service::keyPressed(UI_Key key)
                     int freq = atoi(main_scr->nFreq.c_str());
                     voice_service->TuneFrequency(freq);
                 }
-                if (main_scr->mwFocus == 1)
+                // Ðå÷ü
+                switch ( main_scr->mainWindowModeId )
                 {
-                    //
+                case 0:
+                {}
+                    // ÀÓÑ
+                case 1:
+                {}
+                    // ÃÓÊ
+                case 2:
+                {}
+                default:
+                    break;
                 }
+
                 break;
             case keyLeft:
                 if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
@@ -354,21 +361,21 @@ void Service::keyPressed(UI_Key key)
                         main_scr->nFreq.clear();
                 }
                 break;
-            case keyLeft:
-                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
-                    main_scr->mainWindowModeId--;
-                break;
-            case keyRight:
-                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 2)
-                    main_scr->mainWindowModeId++;
-                break;
+                //            case keyLeft:
+                //                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
+                //                    main_scr->mainWindowModeId--;
+                //                break;
+                //            case keyRight:
+                //                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 2)
+                //                    main_scr->mainWindowModeId++;
+                //                break;
             case key0:
-			{
-				int p = 10;
-				char sym[64];
-				sprintf(sym,"%d",p);
+            {
+                int p = 10;
+                char sym[64];
+                sprintf(sym,"%d",p);
                 guiTree.append(messangeWindow, (char*)"Receive first packet", sym);
-			}
+            }
                 break;
             default:
                 break;
@@ -396,8 +403,7 @@ void Service::keyPressed(UI_Key key)
     {
         if ( key == keyEnter)
         {
-            int rc;
-            rc = guiTree.advance(menu->focus);
+            guiTree.advance(menu->focus);
             menu->focus = 0;
         }
         if ( key == keyBack)
@@ -425,14 +431,14 @@ void Service::keyPressed(UI_Key key)
     {
         CEndState estate = (CEndState&)guiTree.getCurrentState();
 
-//        if ( key == keyEnter)
-//        {
-//            if (menu->focus == estate.listItem.size())
-//            {
-//                guiTree.resetCurrentState();
-//            }
-//            menu->focus = 0;
-//        }
+        //        if ( key == keyEnter)
+        //        {
+        //            if (menu->focus == estate.listItem.size())
+        //            {
+        //                guiTree.resetCurrentState();
+        //            }
+        //            menu->focus = 0;
+        //        }
 
         switch(estate.subType)
         {
@@ -542,7 +548,7 @@ void Service::keyPressed(UI_Key key)
                         param[i] = atoi(k->inputStr.c_str());
                         i++;
                     }
-                	voice_service->TurnPSWFMode(0,param[0],param[1]);
+                    voice_service->TurnPSWFMode(0,param[0],param[1]);
                 }
                 break;
             default:
@@ -573,8 +579,8 @@ void Service::keyPressed(UI_Key key)
                 }
                 break;
             }
-        }
             break;
+        }
         case GuiWindowsSubType::message:
         {
             switch ( key )
@@ -593,13 +599,48 @@ void Service::keyPressed(UI_Key key)
                 break;
             case keyBack:
             {
+                int i = 0;
                 CEndState elem = (CEndState&)guiTree.getCurrentState();
-                if ( elem.listItem.back()->inputStr.size() > 0 )
-                    elem.listItem.back()->inputStr.pop_back();
-                else
+                for ( auto &k: elem.listItem )
                 {
-                    guiTree.backvard();
-                    menu->focus = 0;
+                    if ( menu->focus == i)
+                    {
+                        if ( k->inputStr.size() > 0 )
+                            k->inputStr.pop_back();
+                        else
+                        {
+                            guiTree.backvard();
+                            menu->focus = 0;
+                        }
+                    }
+                    i++;
+                }
+                break;
+            }
+            case keyEnter:
+            {
+                CEndState elem = (CEndState&)guiTree.getCurrentState();
+                if (menu->focus == 2)
+                {
+                    if (elem.listItem.front()->inputStr.size() != 0 && elem.listItem.back()->inputStr.size() != 0)
+                    {
+
+                        int r_adr;
+                        char *mes;
+                        int cnt = 0;
+
+                        menu->focus = 0;
+                        guiTree.resetCurrentState();
+                        for ( auto &k: elem.listItem)
+                        {
+                            if (cnt == 0) r_adr = atoi(k->inputStr.c_str());
+                            else mes = (char*)k->inputStr.c_str();
+                            k->inputStr.clear();
+                            cnt++;
+                        }
+
+                        voice_service->TurnSMSMode(r_adr,mes);
+                    }
                 }
                 break;
             }
@@ -612,12 +653,27 @@ void Service::keyPressed(UI_Key key)
                 }
                 else if ( menu->focus == 1 )
                 {
-                    if ( elem.listItem.back()->inputStr.size() < 99 )
+                    if ( elem.listItem.back()->inputStr.size() < 74 )
                         menu->inputSmsMessage( (CEndState&)guiTree.getCurrentState(), key );
                 }
                 else
                 {}
                 break;
+            }
+            break;
+        }
+        case GuiWindowsSubType::recvSms:
+        {
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+            if ( key == keyEnter)
+            {
+                /* call */
+                voice_service->TurnSMSMode();
+                guiTree.resetCurrentState();
             }
             break;
         }
@@ -660,8 +716,8 @@ void Service::keyPressed(UI_Key key)
                 guiTree.backvard();
                 menu->focus = 0;
             }
-        }
             break;
+        }
         case GuiWindowsSubType::suppress:
         {
             if ( key == keyRight || key == keyUp )
@@ -679,9 +735,9 @@ void Service::keyPressed(UI_Key key)
                 guiTree.backvard();
                 menu->focus = 0;
             }
-        }
             break;
-        case GuiWindowsSubType::aruarm:
+        }
+        case GuiWindowsSubType::aruarmaus:
         {
             if (key == keyUp  )
             {
@@ -690,33 +746,41 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyDown)
             {
-                if ( menu->focus < 1 )
+                if ( menu->focus < 2 )
                     menu->focus++;
             }
             if ( key == keyLeft )
             {
                 if ( menu->focus == 0 )
                 {
-                    menu->decrAruArm(estate.subType);
+                    menu->decrAruArmAsu(estate.subType);
+                }
+                else if ( menu->focus == 1)
+                {
+                    menu->decrAruArmAsu(estate.subType);
                 }
                 else
                 {
-                    menu->decrAruArm(estate.subType);
+                    menu->decrAruArmAsu(estate.subType);
                 }
-                uint8_t vol = menu->getAruArm();
+                uint8_t vol = menu->getAruArmAsu();
                 voice_service->TurnAGCMode(vol, menu->focus);
             }
             if ( key == keyRight )
             {
                 if ( menu->focus == 0 )
                 {
-                    menu->incrAruArm(estate.subType);
+                    menu->incrAruArmAsu(estate.subType);
+                }
+                else if ( menu->focus == 1 )
+                {
+                    menu->incrAruArmAsu(estate.subType);
                 }
                 else
                 {
-                    menu->incrAruArm(estate.subType);
+                    menu->incrAruArmAsu(estate.subType);
                 }
-                uint8_t vol = menu->getAruArm();
+                uint8_t vol = menu->getAruArmAsu();
                 voice_service->TurnAGCMode(vol, menu->focus);
             }
 
@@ -728,14 +792,18 @@ void Service::keyPressed(UI_Key key)
             break;
         }
         case GuiWindowsSubType::gpsCoord:
+        {
             if ( key == keyBack)
             {
                 guiTree.backvard();
                 menu->focus = 0;
             }
             break;
+        }
         case GuiWindowsSubType::gpsSync:
+        {
             break;
+        }
         case GuiWindowsSubType::setDate:
         case GuiWindowsSubType::setTime:
         case GuiWindowsSubType::setFreq:
@@ -745,6 +813,34 @@ void Service::keyPressed(UI_Key key)
             {
             case keyEnter:
             {  }
+                break;
+            case keyBack:
+            {
+                int i = 0;
+                for (auto &k: estate.listItem)
+                {
+                    if (menu->focus == i)
+                    {
+                        if (k->inputStr.size() > 0)
+                        {
+                            k->inputStr.pop_back();
+                        }
+                        else
+                        {
+                            guiTree.backvard();
+                            menu->focus = 0;
+                            break;
+                        }
+                    }
+                    i++;
+                }
+                if ( menu->focus == estate.listItem.size() )
+                {
+                    guiTree.backvard();
+                    menu->focus = 0;
+                }
+
+            }
                 break;
             default:
                 if ( key > 5 && key < 16)
@@ -796,23 +892,23 @@ int Service::getLanguage()
 
 void Service::FirstPacketPSWFRecieved(int packet)
 {
-	if ( packet >= 0 && packet < 100 )
-	{
-		char sym[64];
-	    sprintf(sym,"%d",packet);
+    if ( packet >= 0 && packet < 100 )
+    {
+        char sym[64];
+        sprintf(sym,"%d",packet);
         guiTree.append(messangeWindow, "Recieved packet ", sym);
         msgBox( "Recieved packet ", sym );
-	}
-	else if ( packet > 99)
-	{
+    }
+    else if ( packet > 99)
+    {
         guiTree.append(messangeWindow, "Recieved packet: Fatal error\t");
         msgBox( "Recieved packet: Fatal error\t" );
-	}
-	else
-	{
+    }
+    else
+    {
         guiTree.append(messangeWindow, "Recieved packet: Unknow error\t");
         msgBox( "Recieved packet: Unknow error\t" );
-	}
+    }
 }
 
 void Service::msgBox(const char *title)
@@ -840,7 +936,7 @@ void Service::msgBox(const char *title, const char *text)
 
 void Service::drawMainWindow()
 {
-    main_scr->setModeText(mode_txt[mainWindowModeId]);
+    main_scr->setModeText(mode_txt[main_scr->mainWindowModeId]);
 
     Multiradio::VoiceServiceInterface *voice_service = pGetVoiceService();
 
@@ -857,12 +953,11 @@ void Service::drawMainWindow()
 void Service::drawMenu()
 {
     Alignment align = {alignHCenter,alignTop};
-    const char* text = "";
     int focusItem;
 
     if( menu == nullptr )
     {
-        menu = new CGuiMenu(&ui_menu_msg_box_area, guiTree.getCurrentState().getName(), text, align);
+        menu = new CGuiMenu(&ui_menu_msg_box_area, guiTree.getCurrentState().getName(), align);
     }
 
     if ( guiTree.getCurrentState().getType() == menuWindow )
@@ -902,10 +997,10 @@ void Service::drawMenu()
             menu->initCondCommDialog(st);
             break;
         case GuiWindowsSubType::message:
-            menu->initSmsInputDialog( st.getName(), st.listItem.front()->inputStr, st.listItem.back()->inputStr );
+            menu->initTxSmsDialog( st.getName(), st.listItem.front()->inputStr, st.listItem.back()->inputStr );
             break;
-        case GuiWindowsSubType::recv:
-            //menu->initTwoStateDialog();
+        case GuiWindowsSubType::recvSms:
+            menu->initRxSmsDialog();
             break;
         case GuiWindowsSubType::gpsCoord:
 #if !defined(PORT__PCSIMULATOR)
@@ -916,11 +1011,29 @@ void Service::drawMenu()
         case GuiWindowsSubType::gpsSync:
             break;
         case GuiWindowsSubType::setDate:
-        case GuiWindowsSubType::setTime:
-        case GuiWindowsSubType::setFreq:
-        case GuiWindowsSubType::setSpeed:
-            menu->initSetParametersDialog( st.listItem.front()->inputStr );
+        {
+            std::string str; str.append(st.listItem.front()->inputStr);// str.append(freq_hz);
+            menu->initSetParametersDialog( str );
             break;
+        }
+        case GuiWindowsSubType::setTime:
+        {
+            std::string str; str.append(st.listItem.front()->inputStr);// str.append(freq_hz);
+            menu->initSetParametersDialog( str );
+            break;
+        }
+        case GuiWindowsSubType::setFreq:
+        {
+            std::string str; str.append(st.listItem.front()->inputStr); str.append(" ").append(freq_hz);
+            menu->initSetParametersDialog( str );
+            break;
+        }
+        case GuiWindowsSubType::setSpeed:
+        {
+            std::string str; str.append(st.listItem.front()->inputStr); if ( str.size() >= 5 ){ str.push_back('\n');} str.append(" ").append(speed_bit);
+            menu->initSetParametersDialog( str );
+            break;
+        }
         case GuiWindowsSubType::twoState:
             menu->initTwoStateDialog();
         case GuiWindowsSubType::scan:
@@ -931,7 +1044,7 @@ void Service::drawMenu()
             menu->inclStatus = menu->supressStatus;
             menu->initIncludeDialog();
             break;
-        case GuiWindowsSubType::aruarm:
+        case GuiWindowsSubType::aruarmaus:
             menu->initAruarmDialog();
             break;
         case GuiWindowsSubType::volume:
@@ -955,11 +1068,7 @@ void Service::draw()
         break;
     }
     case messangeWindow:
-        if ( currentState.getText() != "" )
-            msgBox( currentState.getName(), currentState.getText() );
-        else
-            msgBox( currentState.getName() );
-        break;
+        msgBox( currentState.getName(), currentState.getText() );
     case menuWindow:
         drawMenu();
         break;
@@ -969,7 +1078,6 @@ void Service::draw()
     default:
         break;
     }
-
 }
 
 int Service::getFreq()
@@ -992,7 +1100,6 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     menu->coord_lat.append((char *)date.latitude);
     menu->coord_log.append((char *)date.longitude);
 
-
     std::string str;
     str.push_back((char)date.data[0]);
     str.push_back((char)date.data[1]);
@@ -1001,7 +1108,6 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     str.push_back((char)date.data[3]);
 
     str.push_back((char)' ');
-
     str.push_back((char)date.time[0]);
     str.push_back((char)date.time[1]);
     str.push_back((char)':');

@@ -40,7 +40,8 @@ public:
     int *ReturnDataPSWF();
     const char* ReturnSwfStatus();
 
-
+    void TurnSMSMode(int r_adr,char *message);
+    void TurnSMSMode();
 
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;

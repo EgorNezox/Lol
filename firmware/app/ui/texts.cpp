@@ -10,7 +10,7 @@
 
 const char *test_Pass = {"Тестирование пройдено"};
 
-char * mode_txt[] = {(char *)"Речь", (char*)"АУС", (char*)"ГрупУК"};
+char *mode_txt[] = {(char *)"Речь", (char*)"АУС", (char*)"ГрупУК"};
 char *disabled_ch_txt = (char *)"--";
 char ch_open_letter='О';
 char ch_zero_letter='0';
@@ -20,10 +20,12 @@ char ch_invalid_letter='!';
 const char* freq_khz = "кГц\0";
 const char* freq_hz = "Гц\0";
 
+const char* speed_bit = "бит/с";
+
 const char proc = '%';
 
 const char* trans = "Отправить";
-const char* callTitle[2] = {"команда\0", "адрес\0"};
+const char* callTitle[2] = {"Команда\0", "Адрес\0"};
 
 char * ok_texts[LANG_COUNT]={(char *)"Ок"};
 char * missing_ch_table_txt[LANG_COUNT]={(char *)"Отсутствует таблица речевых каналов"};
@@ -41,23 +43,24 @@ const char *callSubMenu[] = {" Условные команды\0", " SMS\0", " Голосовая почта\
     const char *groupCommandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
         const char *groupCommandsSimplSubMenu[] = {" Групповой вызов\0", " Индивидуальный\0"};
 
-const char *reciveSubMenu[] = {" Речь", " Сообщение(АУС)", " Группа усл.команд"};
+const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " Сообщение(АУС)\0", " УК\0", " Группа усл.команд\0"};
 
 const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0", " GPS координаты\0"};
     const char *dataSubSubMenu[] = {" Условные команды\0", " СМС\0", " Головая почта\0", " Группа усл.команд\0"};
 
-const char *settingsSubMenu[] = {" Дата/время\0", " Параметры связи\0", " Сканирование\0", " АРУ/АРМ\0", " Громкость\0", " Шумоподавитель\0"};
+const char *settingsSubMenu[] = {" Дата/время\0", " Параметры связи\0", " Сканирование\0", " АРУ / АРМ / АУC\0", " Громкость\0", " Шумоподавитель\0"};
     const char *dateAndTimeSubMenu[] = {" GPS синх-ция\0", " Ручная установка\0"};
         const char *setDateOrTime[] = {" Установить дату\0", " Установить время\0"};
     const char *setConnParam[] = {" Частота\0", " Скорость\0"};
 
 const char *useScanMenu[] = {"ВКЛ\0", "ВЫКЛ\0"};
-const char *aru = "АРУ\0";
-const char *arm = "АРМ\0";
+const char *aruStr = "АРУ\0";
+const char *armStr = "АРМ\0";
+const char *ausStr = "АУC\0";
 const char *error_SWF = "Ошибка АФУ\0";
 const char *true_SWF = "Нет ошибок\0";
 
-const char *smsText[] = {"Адрес\0", "\0"};
+const char *smsText[] = {"Адрес: \0", "Сообщение:\n\0"};
 
 const char ch_key0[2] = { '0', '\ '};
 const char ch_key1[] = { '.', ',', '!', '?', '\"', ':' };

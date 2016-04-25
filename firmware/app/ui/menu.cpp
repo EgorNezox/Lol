@@ -3,7 +3,7 @@
 #include <string.h>
 #include "all_sym_indicators.h"
 
-CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, const char *text, Alignment align):CGuiDialog(area),
+CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, Alignment align):CGuiDialog(area),
     editing(false),
     focus(0),
     numItem(7)
@@ -43,7 +43,7 @@ void CGuiMenu::initDialog(CEndState state)
     MoonsGeometry labelStrArea[6];
     bool f;
 
-    auto size = state.listItem.size();
+    int size = state.listItem.size();
     int i = 0;
 
     for (auto &k: state.listItem)
@@ -94,8 +94,10 @@ void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
             switch (key)
             {
             case keyBack:
+            {
                 //if (k->inputStr.size() > 0){ k->inputStr.pop_back(); }
                 break;
+            }
             case keyEnter:
                 break;
             default:
@@ -136,7 +138,7 @@ void CGuiMenu::initCondCommDialog(CEndState state)
 
     bool f;
     int i = 0;
-    auto size = state.listItem.size();
+    int size = state.listItem.size();
 
     titleArea = {(GXT)(windowArea.xs + MARGIN),
                  (GYT)(windowArea.ys + MARGIN),
@@ -280,33 +282,41 @@ void CGuiMenu::initVolumeDialog()
 
 void CGuiMenu::initAruarmDialog()
 {
-    MoonsGeometry volume_geom[4];
-    volume_geom[0] = {  3,  25,  50,  55 };
-    volume_geom[1] = {  3,  70,  50, 100 };
-    volume_geom[2] = { 54,  25, 140,  55 };
-    volume_geom[3] = { 54,  70, 140, 100 };
+    MoonsGeometry volume_geom[6];
+    volume_geom[0] = {  3,  20,  50,  48 };
+    volume_geom[1] = {  3,  53,  50,  81 };
+    volume_geom[2] = {  3,  86,  50, 114 };
 
-    GUI_EL_Label *volume[4];
-    LabelParams param[4] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
+    volume_geom[3] = { 70,  20, 140,  48 };
+    volume_geom[4] = { 70,  53, 140,  81 };
+    volume_geom[5] = { 70,  86, 140, 114 };
 
-    for (int i = 0; i < 4; i++)
+    GUI_EL_Label *volume[6];
+    LabelParams param[6] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
+
+    for (int i = 0; i < 6; i++)
+    {
         param[i].transparent = true;
+        param[i].element.align = {alignHCenter, alignVCenter};
+    }
 
-    if ( focus == 0 ) param[2].transparent = false;
-    if ( focus == 1 ) param[3].transparent = false;
+    if ( focus == 0 ) param[3].transparent = false;
+    if ( focus == 1 ) param[4].transparent = false;
+    if ( focus == 2 ) param[5].transparent = false;
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 6; i++)
         volume[i] = new GUI_EL_Label (&param[i], &volume_geom[i],  NULL, (GUI_Obj*)this);
 
-    volume[0]->SetText((char*)aru);
-    volume[1]->SetText((char*)arm);
+    volume[0]->SetText((char*)aruStr);
+    volume[1]->SetText((char*)armStr);
+    volume[2]->SetText((char*)ausStr);
 
-    for ( int i = 0; i < 2; i++)
+    for ( int i = 0; i < 3; i++)
     {
-        if (aruArmStatus[i] == 1)
-            volume[2+i]->SetText((char *)useScanMenu[0]);
+        if (aruArmAsuStatus[i] == 1)
+            volume[3+i]->SetText((char *)useScanMenu[0]);
         else
-            volume[2+i]->SetText((char *)useScanMenu[1]);
+            volume[3+i]->SetText((char *)useScanMenu[1]);
     }
 
     // title
@@ -322,10 +332,10 @@ void CGuiMenu::initAruarmDialog()
     window.Draw();
     title.Draw();
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 6; i++)
         volume[i]->Draw();
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 6; i++)
         delete volume[i];
 }
 
@@ -381,7 +391,6 @@ void CGuiMenu::initGpsCoordinateDialog()
         coord_lat.append("0123.4567,N");
         coord_log.append("0123.4567,N");
     }
-
 
     volume[0]->SetText((char *)coord_lat.c_str());
     volume[1]->SetText((char *)coord_log.c_str());
@@ -534,24 +543,24 @@ void CGuiMenu::keyPressed(UI_Key key)
     }
 }
 
-void CGuiMenu::incrAruArm(GuiWindowsSubType type)
+void CGuiMenu::incrAruArmAsu(GuiWindowsSubType type)
 {
     switch (type)
     {
-    case GuiWindowsSubType::aruarm:
-        aruArmStatus[focus] = 1;
+    case GuiWindowsSubType::aruarmaus:
+        aruArmAsuStatus[focus] = 1;
         break;
     default:
         break;
     }
 }
 
-void CGuiMenu::decrAruArm(GuiWindowsSubType type)
+void CGuiMenu::decrAruArmAsu(GuiWindowsSubType type)
 {
     switch (type)
     {
-    case GuiWindowsSubType::aruarm:
-        aruArmStatus[focus] = 0;
+    case GuiWindowsSubType::aruarmaus:
+        aruArmAsuStatus[focus] = 0;
         break;
     default:
         break;
@@ -566,26 +575,36 @@ void CGuiMenu::setSttParam(CEndState state, UI_Key key)
     switch ( type )
     {
     case setDate:
-
+    {
         break;
+    }
     case setTime:
+    {
         break;
+    }
     case setFreq:
-        break;
     case setSpeed:
+    {
         if (key == keyBack && str->size() > 0)
-        {}
+        {
+            str->pop_back();
+        }
         else if (key == keyBack && str->size() == 0)
         {}
         if ( key > 5 && key < 16)
         {
-            if ( str->size() < 8)
+            if ( str->size() == 0 && key != key0)
+            {
+                str->push_back(key+42);
+            }
+            else if ( str->size() > 0 && str->size() < 8 )
             {
                 str->push_back(key+42);
             }
         }
 
         break;
+    }
     default:
         break;
     }
@@ -593,14 +612,19 @@ void CGuiMenu::setSttParam(CEndState state, UI_Key key)
 
 void CGuiMenu::initSetParametersDialog(std::string text)
 {
-    MoonsGeometry volume_geom  = {  35,  40,  105,  65 };
-    LabelParams label_param = GUI_EL_TEMP_LabelMode;
+    MoonsGeometry volume_geom  = {  5,  50,  160,  95 };
+    LabelParams label_param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
 
-    titleArea = { 35, 15, 105, 34};
+    titleArea = { 5, 10, 160, 35};
+    label_param[0].transparent = true;
+    label_param[1].transparent = true;
 
-    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
-    GUI_EL_Label  title (&titleParams,               &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
-    GUI_EL_Label  volume(&label_param,               &volume_geom, (char *)text.c_str()   , (GUI_Obj*)this);
+    label_param[0].element.align = { alignHCenter, alignTop };
+    label_param[1].element.align = { alignHCenter, alignTop };
+
+    GUI_EL_Window   window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
+    GUI_EL_Label    title (&label_param[0],            &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
+    GUI_EL_TextArea volume(&label_param[1],            &volume_geom, (char*)text.c_str(),     (GUI_Obj *)this);
 
     window.Draw();
     title.Draw();
@@ -642,6 +666,8 @@ void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)
         }
 
         auto elem = state.listItem.back();
+        if ( (elem->inputStr.size() > 0) && (elem->inputStr.size()%16 == 0) )
+        { elem->inputStr.push_back('\n'); }
         switch (key)
         {
         case key0:
@@ -697,29 +723,56 @@ void CGuiMenu::inputSmsAddr(CEndState state, UI_Key key)
     }
 }
 
-void CGuiMenu::initSmsInputDialog(const char* titleStr, std::string addrStr, std::string msgStr )
+void CGuiMenu::initTxSmsDialog(const char* titleStr, std::string addrStr, std::string msgStr )
 {
-    titleArea   = { 5,  5, 150,  20 };
-    MoonsGeometry addrArea    = { 5, 24, 150,  44 };
-    MoonsGeometry volume_geom = { 5, 50, 150, 100 };
+                  titleArea   = {  5,   5, 150,  20 };
+    MoonsGeometry addrArea    = {  7,  20, 147,  40 };
+    MoonsGeometry volume_geom = {  7,  35, 147, 100 };
+    MoonsGeometry button_geom = { 40, 110, 110, 125 };
 
-    LabelParams param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_CommonTextAreaLT};
-    param[0].element.align = {alignHCenter, alignTop};
+    LabelParams param[3] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelButton};
+    param[0].element.align = {alignLeft, alignTop};
     param[1].element.align = {alignLeft, alignTop};
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 3; i++)
         param[i].transparent = true;
 
-    if ( focus == 0 ) param[0].transparent = false;
-    if ( focus == 1 ) param[1].transparent = false;
+    if ( focus == 2 ) param[2].transparent = false;
 
-    GUI_EL_Window   window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
-    GUI_EL_Label    title (&titleParams,               &titleArea,   (char*)titleStr,         (GUI_Obj *)this);
-    GUI_EL_Label    addr  (&param[0],                  &addrArea,    (char*)/*addrStr.c_str()*/"000",  (GUI_Obj *)this);
-    GUI_EL_TextArea volume(&param[1],                  &volume_geom, (char*)msgStr.c_str(),   (GUI_Obj *)this);
+    std::string str1, str2;
+
+    if ( focus == 0 ){ str1.append("->"); }else{ /*if (focus != 2)*/str1.append("  "); }
+    if ( focus == 1 ){ str2.append("->"); }else{ /*if (focus != 2)*/str2.append("  "); }
+    str1.append(smsText[0]); str1.append(addrStr);
+    str2.append(smsText[1]); str2.append(msgStr);
+
+    GUI_EL_Window   window    (&GUI_EL_TEMP_WindowGeneral, &windowArea,                       (GUI_Obj *)this);
+    GUI_EL_Label    title     ( &titleParams,              &titleArea,   (char*)titleStr,     (GUI_Obj *)this);
+    GUI_EL_TextArea addr      (&param[0],                  &addrArea,    (char*)str1.c_str(), (GUI_Obj *)this);
+    GUI_EL_TextArea volume    (&param[1],                  &volume_geom, (char*)str2.c_str(), (GUI_Obj *)this);
+    GUI_EL_Label    ok_button (&param[2],                  &button_geom, (char*)trans,        (GUI_Obj *)this);
 
     window.Draw();
     title.Draw();
     addr.Draw();
-    //volume.Draw();
+    volume.Draw();
+    ok_button.Draw();
+}
+
+void CGuiMenu::initRxSmsDialog()
+{
+        titleArea   = {  5,   5, 150,  20 };
+    MoonsGeometry button_geom = { 40, 110, 110, 125 };
+
+    LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
+    param.element.align = {alignLeft, alignTop};
+    param.transparent = true;
+
+    GUI_EL_Window   window    (&GUI_EL_TEMP_WindowGeneral, &windowArea,                       (GUI_Obj *)this);
+    GUI_EL_Label    title     ( &titleParams,              &titleArea,   (char*)titleStr.c_str(),     (GUI_Obj *)this);
+    GUI_EL_Label    ok_button (&param,                  &button_geom, (char*)trans,        (GUI_Obj *)this);
+
+    window.Draw();
+    title.Draw();
+    ok_button.Draw();
 }

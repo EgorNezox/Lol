@@ -107,6 +107,7 @@ void CGuiTree::init()
     recvTlf.prevState = &recv;
     recvTlf.nextState.clear();
     // 2.5 - Сообщение (АУС)
+    recvSms.subType = GuiWindowsSubType::recvSms;
     recvSms.prevState = &recv;
     recvSms.nextState.clear();
     // 2.7 - Группа условных команд
@@ -206,7 +207,7 @@ void CGuiTree::init()
     sttScan.prevState = &settings;
     sttScan.nextState.clear();
     // 4.4 - АРУ / АРМ
-    swAruArm.subType = GuiWindowsSubType::aruarm;
+    swAruArm.subType = GuiWindowsSubType::aruarmaus;
     swAruArm.prevState = &settings;
     swAruArm.nextState.clear();
     // 4.5 - Громкость
