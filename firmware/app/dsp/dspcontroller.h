@@ -48,6 +48,18 @@ public:
         AudioModePlayShortSignal = 4
     };
 
+    enum SmsStage
+	{
+    	StageNone = -1,
+		StageTx_call = 0,
+		StageTx_call_ack  = 1,
+		StageTx_data = 2,
+		StageTx_quit = 3,
+		StageRx_call = 4,
+		StageRx_call_ack = 5,
+		StageRx_data = 6,
+		StageRx_quit = 7
+	};
 
     DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, QmObject *parent);
     ~DspController();
@@ -62,16 +74,21 @@ public:
     void startPSWFReceiving(bool ack);
     void startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd);
 
-    void startSMSRecieving();
-    void startSMSTransmitting(uint8_t r_adr,uint8_t *message);
+    void startSMSRecieving(SmsStage stage = StageRx_call);
+    void startSMSTransmitting(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call);
 
     void parsingData();
     void *getContentPSWF();
 
+    bool* ConvertBit(uint8_t data);
+    uint8_t* Text(uint8_t *message);
+    uint8_t ConvertByte(bool* data);
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void,int> firstPacket;
+    sigc::signal<void> smsReceived;
+    sigc::signal<void> smsFailed;
 
     float swf_res = 2; // надо изменить значение на нижнее предельное
 
@@ -112,7 +129,7 @@ private:
     	PswfRxState = 0,
 		PswfRxRAdr = 1,
 		PswfRxFrequency = 2,
-		PswfRxFreqSignal = 3,
+		PswfRxFreqSignal = 3, // TODO:
 		PswfRxMode = 4
     };
 
@@ -155,26 +172,9 @@ private:
         uint8_t COM_N;
         uint8_t L_CODE;
         uint8_t RN_KEY;
-        uint8_t stage;
-        uint8_t message[100];
+        SmsStage stage;
+        uint8_t message[259];
     } ContentSms;
-
-    enum SmsStageTx
-    {
-       StageTx_info = 0,
-       StageTx_rec  = 1,
-       StageTx_trans = 2,
-       StageTx_quit = 3
-    };
-
-    enum SmsStageRx
-    {
-       StageRx_info = 4,
-       StageRx_trans = 5,
-       StageRx_data = 6,
-       StageRx_quit = 7
-    };
-
 
     int *counterSms;
 
@@ -200,7 +200,7 @@ private:
     int prevSecond(int second);
 
     void RecievedPswf();
-    int setFrequencyPswf();
+    int getFrequencyPswf();
 
     void getSwr();
     void transmitPswf();
@@ -210,6 +210,10 @@ private:
     void transmitSMS();
     void sendSms(Module module);
     void recSms();
+
+    void changeSmsRxFrequency();
+
+    void startSMSCmdTransmitting(SmsStage stage);
 
     Navigation::Navigator *navigator;
 
@@ -237,7 +241,9 @@ private:
         radiostateSmsTx,
         radiostateSmsRx,
         radiostateSmsRxPrepare,
-        radiostateSmsTxPrepare
+        radiostateSmsTxPrepare,
+		radiostateSmsTxRxSwitch,
+		radiostateSmsRxTxSwitch
     } radio_state;
     RadioMode current_radio_mode;
     RadioOperation  current_radio_operation;

@@ -18,6 +18,7 @@
 #include <navigation/navigator.h>
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
@@ -32,7 +33,7 @@ namespace Ui {
 
 
 
-bool Service::single_instance = false; // � ·� °� І� ёСЃ� ё� ј� ѕСЃС‚СЊ � ѕС‚ � µ� ґ� ё� ЅСЃС‚� І� µ� Ѕ� Ѕ� ѕ� і� ѕ � ґ� ёСЃ� ї� »� µСЏ � І СЃ� ёСЃС‚� µ� ј� µ
+bool Service::single_instance = false; // пїЅ В·пїЅ В°пїЅ Р†пїЅ С‘РЎРѓпїЅ С‘пїЅ С�пїЅ С•РЎРѓРЎвЂљРЎРЉ пїЅ С•РЎвЂљ пїЅ ВµпїЅ Т‘пїЅ С‘пїЅ Р…РЎРѓРЎвЂљпїЅ Р†пїЅ ВµпїЅ Р…пїЅ Р…пїЅ С•пїЅ С–пїЅ С• пїЅ Т‘пїЅ С‘РЎРѓпїЅ С—пїЅ В»пїЅ ВµРЎРЏ пїЅ Р† РЎРѓпїЅ С‘РЎРѓРЎвЂљпїЅ ВµпїЅ С�пїЅ Вµ
 
 Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   aux_keyboard_t                     auxkb_desc,
@@ -68,7 +69,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     menu = nullptr;
     msg_box = nullptr;
 
-    // � ёСЃ� їСЂ� °� І� ёС‚СЊ � Ѕ� ° СЃ� µСЂ� І� ёСЃ
+    // пїЅ С‘РЎРѓпїЅ С—РЎР‚пїЅ В°пїЅ Р†пїЅ С‘РЎвЂљРЎРЉ пїЅ Р…пїЅ В° РЎРѓпїЅ ВµРЎР‚пїЅ Р†пїЅ С‘РЎРѓ
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
@@ -273,7 +274,7 @@ void Service::keyPressed(UI_Key key)
 
     switch( state.getType() )
     {
-    // Главный экран
+    // Р“Р»Р°РІРЅС‹Р№ СЌРєСЂР°РЅ
     case mainWindow:
     {
         if (main_scr->isEditing())
@@ -287,7 +288,7 @@ void Service::keyPressed(UI_Key key)
                 main_scr->setFreq(main_scr->oFreq.c_str());
                 break;
             case keyEnter:
-                // фиксация изменений
+                // С„РёРєСЃР°С†РёСЏ РёР·РјРµРЅРµРЅРёР№
                 if (main_scr->mwFocus == 0)
                 {
                     main_scr->oFreq.clear();
@@ -295,15 +296,15 @@ void Service::keyPressed(UI_Key key)
                     int freq = atoi(main_scr->nFreq.c_str());
                     voice_service->TuneFrequency(freq);
                 }
-                // ����
+                // Речь
                 switch ( main_scr->mainWindowModeId )
                 {
                 case 0:
                 {}
-                    // ���
+                    // АУС
                 case 1:
                 {}
-                    // ���
+                    // ГУК
                 case 2:
                 {}
                 default:
@@ -398,7 +399,7 @@ void Service::keyPressed(UI_Key key)
             msg_box->keyPressed(key);
         break;
     }
-        // в меню
+        // РІ РјРµРЅСЋ
     case menuWindow:
     {
         if ( key == keyEnter)
@@ -442,7 +443,7 @@ void Service::keyPressed(UI_Key key)
 
         switch(estate.subType)
         {
-        case GuiWindowsSubType::simpleCondComm:  // условные команды
+        case GuiWindowsSubType::simpleCondComm:  // СѓСЃР»РѕРІРЅС‹Рµ РєРѕРјР°РЅРґС‹
         {
             switch (key)
             {
@@ -626,7 +627,7 @@ void Service::keyPressed(UI_Key key)
                     {
 
                         int r_adr;
-                        char *mes;
+                        char mes[100];
                         int cnt = 0;
 
                         menu->focus = 0;
@@ -634,7 +635,7 @@ void Service::keyPressed(UI_Key key)
                         for ( auto &k: elem.listItem)
                         {
                             if (cnt == 0) r_adr = atoi(k->inputStr.c_str());
-                            else mes = (char*)k->inputStr.c_str();
+                            else strcpy(mes,k->inputStr.c_str());
                             k->inputStr.clear();
                             cnt++;
                         }
@@ -672,8 +673,8 @@ void Service::keyPressed(UI_Key key)
             if ( key == keyEnter)
             {
                 /* call */
-                voice_service->TurnSMSMode();
                 guiTree.resetCurrentState();
+                voice_service->TurnSMSMode();
             }
             break;
         }
@@ -973,7 +974,7 @@ void Service::drawMenu()
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
         //
-        // ���������
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         //        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
 
         for (auto &k: st.nextState)

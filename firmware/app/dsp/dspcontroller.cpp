@@ -82,7 +82,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	startup_timer = new QmTimer(true, this);
 	startup_timer->timeout.connect(sigc::mem_fun(this, &DspController::processStartupTimeout));
 	command_timer = new QmTimer(true, this);
-	command_timer->setInterval(100);
+	command_timer->setInterval(50);
 	command_timer->timeout.connect(sigc::mem_fun(this, &DspController::processCommandTimeout));
 	reset_iopin = new QmIopin(reset_iopin_resource, this);
 	// max_tx_queue_size: 1 команда радиотракта + 1 запас
@@ -90,10 +90,10 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 	initResetState();
 
-    #if defined(PORT__TARGET_DEVICE_REV1)
+    //#if defined(PORT__TARGET_DEVICE_REV1)
 	this->navigator = navigator;
 	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
-    #endif
+    //#endif
 
     cmd_queue = new std::list<DspCommand>();
 
@@ -116,7 +116,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     counterSms = new int[8]{18,18,37,6,18,18,37,6};
 
-    ContentSms.stage = -1;
+    ContentSms.stage = StageNone;
 }
 
 DspController::~DspController()
@@ -260,14 +260,20 @@ void DspController::syncPulseDetected() {
 		break;
 	}
     case radiostateSmsRx:{
-        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() SmsRx");
-        recSms();
+        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateSmsRx");
+        changeSmsRxFrequency();
         break;
     }
     case radiostateSmsTx:{
-        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() SmsTx");
+        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateSmsTx");
         transmitSMS();
         break;
+    }
+    case radiostateSmsTxRxSwitch: {
+    	qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateSmsTxRxSwitch");
+    	radio_state = radiostateSmsRxPrepare;
+    	startSMSRecieving(ContentSms.stage);
+    	break;
     }
 	default: break;
     }
@@ -308,38 +314,73 @@ void DspController::transmitSMS()
                 date_time[0], date_time[1], date_time[2], date_time[3]);
 
 
-    if (ContentSms.stage == StageTx_info)
+    if (ContentSms.stage == StageTx_call)
     {
-        if (counterSms[StageTx_info] == 0)
+        if (counterSms[StageTx_call] == 0)
         {
-            counterSms[StageTx_info] = 18;
-            qmDebugMessage(QmDebug::Dump, "Sms info finished");
-            radio_state = radiostateSmsRx;
-            ContentSms.stage = StageTx_rec;
+            counterSms[StageTx_call] = 18;
+            qmDebugMessage(QmDebug::Dump, "ContentSms.stage = StageTx_call_ack");
+            ContentSms.stage = StageTx_call_ack;
+            radio_state = radiostateSmsTxRxSwitch;
+            return;
         }
         else
         {
-            counterSms[StageTx_info] = counterSms[StageTx_info] - 1;
+            counterSms[StageTx_call] = counterSms[StageTx_call] - 1;
+            qmDebugMessage(QmDebug::Dump, "counterSms[StageTx_call] = %d", counterSms[StageTx_call]);
         }
     }
 
-    if (ContentSms.stage == StageRx_trans)
+    if (ContentSms.stage == StageRx_call_ack)
     {
-        if (counterSms[StageRx_trans] == 0)
+        if (counterSms[StageRx_call_ack] == 0)
         {
-            counterSms[StageRx_trans] = 18;
-            qmDebugMessage(QmDebug::Dump, "Sms rx transmit finished");
-            radio_state = radiostateSmsRx;
+            counterSms[StageRx_call_ack] = 18;
+            qmDebugMessage(QmDebug::Dump, "ContentSms.stage = StageRx_data");
             ContentSms.stage = StageRx_data;
+            radio_state = radiostateSmsTxRxSwitch;
+            return;
         }
         else
         {
-            counterSms[StageRx_trans] = counterSms[StageRx_trans] - 1;
+            counterSms[StageRx_call_ack] = counterSms[StageRx_call_ack] - 1;
+            qmDebugMessage(QmDebug::Dump, "counterSms[StageRx_call_ack] = %d", counterSms[StageRx_call_ack]);
         }
     }
 
+    if (ContentSms.stage == StageTx_data)
+    {
+    	if (counterSms[StageTx_data] == 0)
+    	{
+    		counterSms[StageTx_data] = 37;
+    		qmDebugMessage(QmDebug::Dump, "ContentSms.stage = StageTx_quit");
+    		ContentSms.stage = StageTx_quit;
+    		radio_state = radiostateSmsTxRxSwitch;
+    	}
+    	else
+    	{
+    		counterSms[StageTx_data] = counterSms[StageTx_data] - 1;
+    		qmDebugMessage(QmDebug::Dump, "counterSms[StageTx_data] = %d", counterSms[StageTx_data]);
+    	}
+    }
+    if (ContentSms.stage == StageRx_quit)
+    {
+        if (counterSms[StageRx_quit] == 0)
+        {
+            counterSms[StageRx_quit] = 6;
+            qmDebugMessage(QmDebug::Dump, "ContentSms.stage = StageNone");
+            ContentSms.stage = StageNone;
+            radio_state = radiostateSync;
+            qmDebugMessage(QmDebug::Dump, "Sms receiving finished");
+            return;
+        }
+        else
+        {
+            counterSms[StageRx_quit] = counterSms[StageRx_quit] - 1; // TODO:
+            qmDebugMessage(QmDebug::Dump, "counterSms[StageRx_quit] = %d", counterSms[StageRx_quit]);
+        }
+    }
     sendSms(PSWFTransmitter);
-
 }
 
 void DspController::transmitPswf()
@@ -388,12 +429,30 @@ void DspController::changePswfRxFrequency()
 	}
 
     getDataTime();
-    setFrequencyPswf();
+    ContentPSWF.Frequency = getFrequencyPswf();
 
     ParameterValue param;
     param.frequency = ContentPSWF.Frequency;
     sendCommand(PSWFReceiver, PswfRxFrequency, param);
 }
+
+
+void DspController::changeSmsRxFrequency()
+{
+	getDataTime();
+	ContentSms.Frequency = getFrequencyPswf();
+
+	ParameterValue param;
+	param.frequency = ContentSms.Frequency;
+	if (ContentSms.stage == StageRx_data)
+		sendCommand(PSWFReceiver, 3, param);
+	else
+		sendCommand(PSWFReceiver, PswfRxFrequency, param);
+
+	if (pswf_first_packet_received)
+		recSms();
+}
+
 
 void DspController::RecievedPswf()
 {
@@ -429,7 +488,7 @@ int DspController::prevSecond(int second) {
 	return second - 1;
 }
 
-int DspController::setFrequencyPswf()
+int DspController::getFrequencyPswf()
 {
     int frequency = 0;
 
@@ -727,6 +786,7 @@ void DspController::processCommandResponse(bool success, Module module, int code
 }
 
 void DspController::syncPendingCommand() {
+	qmDebugMessage(QmDebug::Dump,"reload progress state");
 	pending_command->in_progress = false;
 	switch (pending_command->module) {
 	case RxRadiopath:
@@ -740,6 +800,8 @@ void DspController::syncPendingCommand() {
         break;
     case PSWFReceiver:
     case PSWFTransmitter:
+    	break;
+    default:
     	break;
 	}
 }
@@ -835,9 +897,19 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
 				tx_data_len += 1;
 				break;
 			}
-			case PswfRxFrequency: {
+			case PswfRxFrequency:
+			case PswfRxFreqSignal:
+			{
 				qmToBigEndian(value.frequency, tx_data+tx_data_len);
 				tx_data_len += 4;
+				if (ContentSms.stage == StageRx_data)
+				{
+					qmToBigEndian(value.frequency, tx_data+tx_data_len);
+					tx_data_len += 4;
+					qmToBigEndian(0, tx_data+tx_data_len);
+				    tx_data_len += 1;
+
+				}
 				break;
 			}
 			default: break;
@@ -861,7 +933,7 @@ void DspController::sendPswf(Module module) {
 
 	qmDebugMessage(QmDebug::Dump, "sendPswf(%d)", module);
 
-    ContentPSWF.Frequency = setFrequencyPswf();
+    ContentPSWF.Frequency = getFrequencyPswf();
 
     ContentPSWF.indicator = 20;
     ContentPSWF.TYPE = 0;
@@ -928,12 +1000,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     if (radio_state == radiostateSmsTxPrepare) {
         ++smsTxStateSync;
         qmDebugMessage(QmDebug::Dump, "processReceivedFrame() smsTxStateSync = %d", smsTxStateSync);
-        if (pswfTxStateSync == 2) {
+        if (smsTxStateSync == 2) {
             radio_state = radiostateSmsTx;
             qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radio_state = radiostateSmsTx");
         }
     }
-
     //-------------------------------------------------------------------
 
 
@@ -979,7 +1050,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 		break;
 	}
 	case 0x61: {
-		if (radio_state == radiostatePswfRxPrepare) {
+	if ((radio_state == radiostatePswfRxPrepare) || (radio_state == radiostateSmsRxPrepare))
+		{
 			qmDebugMessage(QmDebug::Dump, "processReceivedFrame() 0x61 received");
 			ParameterValue value;
 			processCommandResponse((indicator == 1), PSWFReceiver, code, value);
@@ -988,15 +1060,16 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	}
     case 0x63: {
     	qmDebugMessage(QmDebug::Dump, "0x63 received");
-        if (indicator == 30)
-        {
+    	if (indicator == 31) {
+    		qmDebugMessage(QmDebug::Dump, "0x63 cadr not recieved");
+    	} else if (indicator == 30) {
             if (ContentSms.stage > -1)
             {
                 std::vector<char> sms_data;
                 sms_data.push_back(data[8]);
                 sms_data.push_back(data[9]);
                 recievedSmsBuffer.push_back(sms_data);
-                recSms();
+                pswf_first_packet_received = true;
             }
             else
             {
@@ -1010,9 +1083,27 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         break;
     }
     case 0x73: {
+    	qmDebugMessage(QmDebug::Dump, "processReceivedFrame() 0x73 received, %d" ,indicator);
         ParameterValue value;
         value.frequency = 0;
-        processCommandResponse((indicator == 3), PSWFTransmitter, code, value);
+        switch(radio_state)
+        {
+        case radiostateSmsTx:
+        	if (indicator == 22) {
+        		value.frequency = qmFromBigEndian<uint32_t>(value_ptr+0);
+        		qmDebugMessage(QmDebug::Dump, " frequency =  %d " ,value.frequency);
+        	}
+        	processCommandResponse((indicator == 24), PSWFTransmitter, code, value);
+        	break;
+        case radiostateSmsRx:
+        	processCommandResponse((indicator == 1), PSWFTransmitter, code, value);
+        	break;
+        case radiostatePswfTx:
+        case radiostatePswfRx:
+        	processCommandResponse((indicator == 3), PSWFTransmitter, code, value);
+			 break;
+        }
+
         break;
     }
 	default: break;
@@ -1024,7 +1115,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 		sendCommand(cmd.module, cmd.code, cmd.value);
 	}
 }
-
 
 // maybe two sides of pswf
 // заглушка для сообещения о заполнении структуры
@@ -1039,14 +1129,15 @@ void *DspController::getContentPSWF()
 
 void DspController::sendSms(Module module)
 {
-    ContentSms.Frequency = setFrequencyPswf();
+    ContentSms.Frequency = getFrequencyPswf();
     ContentSms.indicator = 20;
     ContentSms.SNR =  7;
 
-    if (ContentSms.stage < 1)
-        ContentSms.TYPE = 0;
-    else
-        ContentSms.TYPE = 1;
+    if (ContentSms.stage == StageTx_data) {
+    	ContentSms.TYPE = 1;
+    } else {
+    	ContentSms.TYPE = 0;
+    }
 
     uint8_t tx_address = 0x72;
     uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
@@ -1058,91 +1149,107 @@ void DspController::sendSms(Module module)
     ++tx_data_len;
     qmToBigEndian((uint32_t)ContentSms.Frequency, tx_data + tx_data_len);
     tx_data_len += 4;
-    // tx
-    if (ContentSms.stage == StageTx_info)
-    {
-        static int counter = 0;
-        ++counter;
 
-        qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
-        ++tx_data_len;
-        qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);
-        ++tx_data_len;
-        qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len);
-        ++tx_data_len;
-        qmToBigEndian((uint8_t)counter, tx_data+tx_data_len);
-        ++tx_data_len;
-        qmToBigEndian((uint8_t)ContentSms.L_CODE, tx_data+tx_data_len);
-        ++tx_data_len;
+    qmDebugMessage(QmDebug::Dump, " ContentSms.Frequency =  %d " ,ContentSms.Frequency);
+    // tx
+    if (ContentSms.stage == StageTx_call)
+    {
+    	static int counter = 0;
+    	if (counter == 18) counter = 0;
+    	++counter;
+
+    	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)counter, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.L_CODE, tx_data+tx_data_len);
+    	++tx_data_len;
     }
     // tx
-    if (ContentSms.stage == StageTx_trans)
+    if (ContentSms.stage == StageTx_data)
     {
-        int FST_N = 0;
-        static int cntChvc = 7;
-        if (cntChvc == 259) cntChvc = 0;
-        qmToBigEndian((uint8_t)ContentPSWF.SNR, tx_data+tx_data_len);
-        ++tx_data_len;
-        qmToBigEndian((uint8_t)FST_N, tx_data+tx_data_len);
-        ++tx_data_len;
-        for(int i = 0;i<=cntChvc;i++)
-        {
-            qmToBigEndian((uint8_t)ContentSms.message[i], tx_data+tx_data_len);
-            ++tx_data_len;
-        }
-       cntChvc += 7;
+    	int FST_N = 0;
+    	static int cntChvc = 7;
+    	if (cntChvc == 259) cntChvc = 7;
+    	qmToBigEndian((uint8_t)ContentPSWF.SNR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)FST_N, tx_data+tx_data_len);
+    	++tx_data_len;
+    	for(int i = cntChvc - 7;i<=cntChvc;i++)
+    	{
+    		qmToBigEndian((uint8_t)ContentSms.message[i], tx_data+tx_data_len);
+    		++tx_data_len;
+    	}
+    	cntChvc += 7;
     }
     //rx
-    if (ContentSms.stage == StageRx_trans)
+    if (ContentSms.stage == StageRx_call_ack)
     {
-        int wzn = 0;
+    	int wzn = 0;
 
-        qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
-        ++tx_data_len;
-        qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);
-        ++tx_data_len;
-        qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len);
-        ++tx_data_len;
-        qmToBigEndian((uint8_t)wzn, tx_data+tx_data_len);
-        ++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)wzn, tx_data+tx_data_len);
+    	++tx_data_len;
 
-        qmToBigEndian((uint8_t)ContentSms.L_CODE, tx_data+tx_data_len);
-        ++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.L_CODE, tx_data+tx_data_len);
+    	++tx_data_len;
     }
 
-
-    QM_ASSERT(pending_command->in_progress == false);
-    pending_command->in_progress = true;
-    pending_command->sync_next = true;
-    pending_command->module = module;
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
 }
 
 void DspController::recSms()
 {
-    qmDebugMessage(QmDebug::Dump, "RecievedSMS");
-
-    if (ContentSms.stage == StageTx_rec)
+	qmDebugMessage(QmDebug::Dump, "recSms() ContentSms.stage =  %d", ContentSms.stage);
+    if (ContentSms.stage == StageTx_call_ack)
     {
-        if (counterSms[StageTx_rec] == 0)
+    	qmDebugMessage(QmDebug::Dump, "recSms() counterSms[StageTx_rec] =  %d", counterSms[StageTx_call_ack]);
+        if (counterSms[StageTx_call_ack] == 0)
         {
-            ContentSms.stage = StageTx_trans;
-            radio_state =  radiostateSmsTx;
-            counterSms[StageTx_rec] = 18;
+        	qmDebugMessage(QmDebug::Dump, "recSms() recievedSmsBuffer.size() =  %d", recievedSmsBuffer.size());
+        	if (recievedSmsBuffer.size() == 18) {
+        		startSMSTransmitting(0, ContentSms.message, StageTx_data);  //TODO:
+        	} else {
+        		qmDebugMessage(QmDebug::Dump, "recSms() smsFailed, radio_state = radiostateSync");
+        		smsFailed();
+        		radio_state = radiostateSync;
+        		ContentSms.stage = StageNone;
+        	}
+            counterSms[StageTx_call_ack] = 18;
+            pswf_first_packet_received = false;
         }
         else
         {
-            counterSms[StageTx_rec] = counterSms[StageTx_rec] - 1;
+            counterSms[StageTx_call_ack] = counterSms[StageTx_call_ack] - 1;
         }
     }
 
     if (ContentSms.stage == StageTx_quit)
     {
+    	qmDebugMessage(QmDebug::Dump, "recSms() counterSms[StageTx_quit] =  %d", counterSms[StageTx_quit]);
         if (counterSms[StageTx_quit] == 0)
         {
-            ContentSms.stage = -1;
+            qmDebugMessage(QmDebug::Dump, "recSms() recievedSmsBuffer.size() =  %d", recievedSmsBuffer.size());
+            if (recievedSmsBuffer.size() == 18 + 6) {
+            	qmDebugMessage(QmDebug::Dump, "recSms() SMS transmitting successfully finished");
+            	//TODO: sms tx finished
+            } else {
+            	qmDebugMessage(QmDebug::Dump, "recSms() smsFailed, radio_state = radiostateSync");
+            	smsFailed();
+            }
             radio_state = radiostateSync;
+            ContentSms.stage = StageNone;
             counterSms[StageTx_quit] = 6;
+            pswf_first_packet_received = false;
         }
         else
         {
@@ -1150,18 +1257,48 @@ void DspController::recSms()
         }
     }
 
-    if (ContentSms.stage == StageRx_info)
+    if (ContentSms.stage == StageRx_call)
     {
-        if (counterSms[StageRx_info] == 0)
+    	qmDebugMessage(QmDebug::Dump, "recSms() counterSms[StageRx_info] =  %d", counterSms[StageRx_call]);
+        if (counterSms[StageRx_call] == 0)
         {
-            ContentSms.stage = StageRx_trans;
-            radio_state = radiostateSmsTx;
-            counterSms[StageRx_info] = 18;
+            qmDebugMessage(QmDebug::Dump, "recSms() recievedSmsBuffer.size() =  %d", recievedSmsBuffer.size());
+            if (recievedSmsBuffer.size() == 18) {
+            	startSMSCmdTransmitting(StageRx_call_ack);
+            } else {
+            	qmDebugMessage(QmDebug::Dump, "recSms() smsFailed, radio_state = radiostateSync");
+            	smsFailed();
+            	radio_state = radiostateSync;
+            	ContentSms.stage = StageNone;
+            }
+            counterSms[StageRx_call] = 18;
+            pswf_first_packet_received = false;
         }
-
         else
         {
-           counterSms[StageRx_info] = counterSms[StageRx_info] - 1;
+           counterSms[StageRx_call] = counterSms[StageRx_call] - 1;
+        }
+    }
+
+    if (ContentSms.stage == StageRx_data) {
+    	qmDebugMessage(QmDebug::Dump, "recSms() counterSms[StageRx_data] =  %d", counterSms[StageRx_data]);
+        if (counterSms[StageRx_data] == 0)
+        {
+            qmDebugMessage(QmDebug::Dump, "recSms() recievedSmsBuffer.size() =  %d", recievedSmsBuffer.size());
+            if (recievedSmsBuffer.size() == 18 + 37) {
+            	startSMSCmdTransmitting(StageRx_quit);
+            } else {
+            	qmDebugMessage(QmDebug::Dump, "recSms() smsFailed, radio_state = radiostateSync");
+            	smsFailed();
+            	radio_state = radiostateSync;
+            	ContentSms.stage = StageNone;
+            }
+            counterSms[StageRx_data] = 37;
+            pswf_first_packet_received = false;
+        }
+        else
+        {
+           counterSms[StageRx_data] = counterSms[StageRx_data] - 1;
         }
     }
 
@@ -1175,7 +1312,7 @@ void DspController::startPSWFReceiving(bool ack) {
 
 	pswf_ack = ack;
 	getDataTime();
-    ContentPSWF.Frequency = setFrequencyPswf();
+    ContentPSWF.Frequency = getFrequencyPswf();
 
 	ParameterValue param;
 	param.pswf_r_adr = PSWF_SELF_ADR;
@@ -1198,7 +1335,7 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd) 
 
     pswf_ack = ack;
     getDataTime();
-    ContentPSWF.Frequency = setFrequencyPswf();
+    ContentPSWF.Frequency = getFrequencyPswf();
 
     ContentPSWF.indicator = 20;
     ContentPSWF.TYPE = 0;
@@ -1216,15 +1353,15 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd) 
     radio_state = radiostatePswfTxPrepare;
 }
 
-void DspController::startSMSRecieving()
+void DspController::startSMSRecieving(SmsStage stage)
 {
     qmDebugMessage(QmDebug::Dump, "startSmsReceiving");
     QM_ASSERT(is_ready);
-    if (!resyncPendingCommand())
-        return;
+//    if (!resyncPendingCommand())
+//        return;
 
     getDataTime();
-    ContentSms.Frequency = setFrequencyPswf();
+    ContentSms.Frequency = getFrequencyPswf();
 
     ParameterValue param;
     param.pswf_r_adr = PSWF_SELF_ADR;
@@ -1237,18 +1374,18 @@ void DspController::startSMSRecieving()
     sendCommand(RxRadiopath, RxRadioMode, comandValue);
     smsRxStateSync = 0;
     radio_state = radiostateSmsRxPrepare;
-    ContentSms.stage =  StageRx_info;
+    ContentSms.stage = stage;
 }
 
-void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message)
+void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStage stage)
 {
-    qmDebugMessage(QmDebug::Dump, "SMS tranmit (%d, %d)",r_adr, message);
+    qmDebugMessage(QmDebug::Dump, "SMS tranmit (%d, %s)",r_adr, message);
     QM_ASSERT(is_ready);
-    if (!resyncPendingCommand())
-        return;
+//    if (!resyncPendingCommand())
+//        return;
 
     getDataTime();
-    ContentSms.Frequency = setFrequencyPswf();
+    ContentSms.Frequency = getFrequencyPswf();
 
     ContentSms.indicator = 20;
     ContentSms.TYPE = 0;
@@ -1265,9 +1402,101 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message)
     sendCommand(TxRadiopath, TxRadioMode, comandValue);
     smsTxStateSync = 0;
     radio_state = radiostateSmsTxPrepare;
-    ContentSms.stage = StageTx_info;
+    ContentSms.stage = stage;
+}
+
+void DspController::startSMSCmdTransmitting(SmsStage stage)
+{
+    qmDebugMessage(QmDebug::Dump, "startSMSCmdTransmitting(%d)", stage);
+    QM_ASSERT(is_ready);
+//    if (!resyncPendingCommand())
+//        return;
+
+    getDataTime();
+    ContentSms.Frequency = getFrequencyPswf();
+
+    ContentSms.indicator = 20;
+    ContentSms.TYPE = 0;
+    ContentSms.RN_KEY = 1;
+    ContentSms.R_ADR = 0;
+    ContentSms.S_ADR = PSWF_SELF_ADR;
+
+
+    ParameterValue comandValue;
+    comandValue.radio_mode = RadioModeOff;
+    sendCommand(RxRadiopath, RxRadioMode, comandValue);
+    comandValue.pswf_indicator = RadioModePSWF;
+
+
+    sendCommand(TxRadiopath, TxRadioMode, comandValue);
+    smsTxStateSync = 0;
+    radio_state = radiostateSmsTxPrepare;
+    ContentSms.stage = stage;
+}
+
+
+bool* DspController::ConvertBit(uint8_t data)
+{
+	bool sim[7];
+
+	for(int i = 1; i<8; i++)
+	{
+		double st = 8;
+		double osn = 2;
+		while ((uint8_t)pow(osn,st) > data){
+			st = st -1;
+			data = data - (uint8_t)pow(osn,st);
+		}
+		sim[(int)st] = 1;
+	}
+
+	return sim;
+}
+
+uint8_t DspController::ConvertByte(bool* data)
+{
+	int sum = 0;
+	for(int i = 0; i<7;i++)
+		sum+= pow(2,7-i)*data[i];
+	return sum;
+}
+
+
+
+// 700 simbols
+uint8_t* DspController::Text(uint8_t *message)
+{
+	int index = 0;
+	bool mes[704];
+	uint8_t sms[88];
+	int i = 0;
+
+	while (message[i] != '\0')
+		++index;
+
+	for(int i = 0; i<index;i++)
+		memcpy(&mes,ConvertBit(message[i]),7); // �� 7 ��������
+
+	if ((7*index) < 700)
+		for(int i = index; i<700;i++)
+			mes[i] = 0;
+
+	for(int i = 700; i<704;i++)
+	  mes[i] = 0; // ��������� ����
+
+
+	for(int i = 0;i<88;i++)
+	{
+		bool str[7];
+		memcpy(&str,&mes[i*8] ,8);
+		sms[i] = ConvertByte(str);
+	}
+
+	return sms;
 
 }
+
+
 
 } /* namespace Multiradio */
 
