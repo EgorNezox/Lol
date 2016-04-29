@@ -21,12 +21,21 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include "..\dsp\rs_tms.h"
+
+
 
 #define PSWF_SELF_ADR	1
 
 #define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
 
+
+
 namespace Multiradio {
+
+using namespace Galua;
+rs_settings rs_255_93;
 
 struct DspCommand {
 	bool in_progress;
@@ -117,6 +126,14 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     counterSms = new int[8]{18,18,37,6,18,18,37,6};
 
     ContentSms.stage = StageNone;
+
+
+    initrs(rs_255_93);
+    GenerateGaloisField(&rs_255_93);
+    gen_poly(&rs_255_93);
+
+    pack_manager = new PackageManager();
+
 }
 
 DspController::~DspController()
@@ -1065,9 +1082,13 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     	} else if (indicator == 30) {
             if (ContentSms.stage > -1)
             {
+            	qmDebugMessage(QmDebug::Dump, "processReceivedFrame() data_len = %d", data_len);
                 std::vector<char> sms_data;
-                sms_data.push_back(data[8]);
-                sms_data.push_back(data[9]);
+                for(int i = 8; i < data_len; i++) {
+                	 sms_data.push_back(data[i]);
+                	 qmDebugMessage(QmDebug::Dump, "data[%d] = %d", i, data[i]);
+                }
+
                 recievedSmsBuffer.push_back(sms_data);
                 pswf_first_packet_received = true;
             }
@@ -1179,7 +1200,7 @@ void DspController::sendSms(Module module)
     	++tx_data_len;
     	qmToBigEndian((uint8_t)FST_N, tx_data+tx_data_len);
     	++tx_data_len;
-    	for(int i = cntChvc - 7;i<=cntChvc;i++)
+    	for(int i = cntChvc - 7;i<cntChvc;i++)
     	{
     		qmToBigEndian((uint8_t)ContentSms.message[i], tx_data+tx_data_len);
     		++tx_data_len;
@@ -1287,6 +1308,8 @@ void DspController::recSms()
             qmDebugMessage(QmDebug::Dump, "recSms() recievedSmsBuffer.size() =  %d", recievedSmsBuffer.size());
             if (recievedSmsBuffer.size() == 18 + 37) {
             	startSMSCmdTransmitting(StageRx_quit);
+            	//int temp=eras_dec_rs(decode_bit,rs_data_clear,&rs_255_93);
+            	generateSmsReceived(); //TODO:
             } else {
             	qmDebugMessage(QmDebug::Dump, "recSms() smsFailed, radio_state = radiostateSync");
             	smsFailed();
@@ -1298,10 +1321,48 @@ void DspController::recSms()
         }
         else
         {
+//           static int count = 0;
+//           if (count >= 259) count = 0;
+//           for(int a = 0; a<7;a++) {
+////        	   decode_bit[count] = (int)recievedSmsBuffer.at(recievedSmsBuffer.size() - 1).at(a);
+////        	   decode_bit[count] = (int)recievedSmsBuffer.at(18).at(a);
+//        	   ++count;
+//           }
+
            counterSms[StageRx_data] = counterSms[StageRx_data] - 1;
         }
     }
 
+}
+
+void DspController::generateSmsReceived()
+{
+    int count = 0;
+    for (int i = 18; i < recievedSmsBuffer.size(); ++i) {
+    	if (count >= 100) {
+    		break;
+    	}
+    	for (int j = 0; j < 7; ++j) {
+    		sms_content[count] = recievedSmsBuffer.at(i).at(j);
+    		++count;
+    		if (count >= 100) {
+    			break;
+    		}
+    	}
+    }
+
+
+//	for (int i = 0; i < 100; ++i) {
+//		sms_content[i] = (char)decode_bit[i];
+//	}
+	sms_content[99] = '\0';
+	qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
+	smsPacketMessage();
+}
+
+char* DspController::getSmsContent()
+{
+	return sms_content;
 }
 
 void DspController::startPSWFReceiving(bool ack) {
@@ -1389,7 +1450,25 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
     ContentSms.indicator = 20;
     ContentSms.TYPE = 0;
-    strcpy((char*)ContentSms.message,(const char*)message);
+    int ind = strlen((const char*)message);
+
+ /*   uint8_t sms[256];
+    for(int i =0; i<256;i++) sms[i] = 0;
+
+    pack_manager->Text(message,sms,ind);
+    for(int i = 88; i<93;i++) sms[i] = 0;
+    int sms_abc[256];
+    for(int i = 0; i<256;i++) sms_abc[i] = sms[i];
+
+    encode_rs(sms_abc,&sms_abc[93],&rs_255_93);
+
+    for(int i = 0; i<255;i++) ContentSms.message[i] = sms_abc[i];*/
+
+
+    for(int i = 0; i<ind;i++) ContentSms.message[i] = message[i];
+
+//    int temp=eras_dec_rs(sms_abc,rs_data_clear,&rs_255_93);
+
     ContentSms.RN_KEY = 1;
     ContentSms.R_ADR = r_adr;
     ContentSms.S_ADR = PSWF_SELF_ADR;
@@ -1434,67 +1513,6 @@ void DspController::startSMSCmdTransmitting(SmsStage stage)
     ContentSms.stage = stage;
 }
 
-
-bool* DspController::ConvertBit(uint8_t data)
-{
-	bool sim[7];
-
-	for(int i = 1; i<8; i++)
-	{
-		double st = 8;
-		double osn = 2;
-		while ((uint8_t)pow(osn,st) > data){
-			st = st -1;
-			data = data - (uint8_t)pow(osn,st);
-		}
-		sim[(int)st] = 1;
-	}
-
-	return sim;
-}
-
-uint8_t DspController::ConvertByte(bool* data)
-{
-	int sum = 0;
-	for(int i = 0; i<7;i++)
-		sum+= pow(2,7-i)*data[i];
-	return sum;
-}
-
-
-
-// 700 simbols
-uint8_t* DspController::Text(uint8_t *message)
-{
-	int index = 0;
-	bool mes[704];
-	uint8_t sms[88];
-	int i = 0;
-
-	while (message[i] != '\0')
-		++index;
-
-	for(int i = 0; i<index;i++)
-		memcpy(&mes,ConvertBit(message[i]),7); // �� 7 ��������
-
-	if ((7*index) < 700)
-		for(int i = index; i<700;i++)
-			mes[i] = 0;
-
-	for(int i = 700; i<704;i++)
-	  mes[i] = 0; // ��������� ����
-
-
-	for(int i = 0;i<88;i++)
-	{
-		bool str[7];
-		memcpy(&str,&mes[i*8] ,8);
-		sms[i] = ConvertByte(str);
-	}
-
-	return sms;
-
-}
 
 
 

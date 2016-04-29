@@ -110,6 +110,7 @@ private:
     int getLanguage();
 
     void FirstPacketPSWFRecieved(int packet);
+    void smsMessage();
 
     void drawMainWindow();
 

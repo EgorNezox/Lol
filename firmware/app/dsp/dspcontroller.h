@@ -14,11 +14,14 @@
 #include "../navigation/navigator.h"
 #include <list>
 #include <vector>
+#include "packagemanager.h"
+
 
 class QmTimer;
 class QmIopin;
 
 namespace Multiradio {
+
 
 class DspTransport;
 struct DspCommand;
@@ -80,17 +83,22 @@ public:
     void parsingData();
     void *getContentPSWF();
 
-    bool* ConvertBit(uint8_t data);
-    uint8_t* Text(uint8_t *message);
-    uint8_t ConvertByte(bool* data);
+    char* getSmsContent();
+
+
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void,int> firstPacket;
     sigc::signal<void> smsReceived;
     sigc::signal<void> smsFailed;
+    sigc::signal<void> smsPacketMessage;
 
     float swf_res = 2; // надо изменить значение на нижнее предельное
+
+    PackageManager *pack_manager;
+
+    int decode_bit[255];
 
 private:
     friend struct DspCommand;
@@ -215,6 +223,8 @@ private:
 
     void startSMSCmdTransmitting(SmsStage stage);
 
+    void generateSmsReceived();
+
     Navigation::Navigator *navigator;
 
     bool is_ready;
@@ -274,6 +284,11 @@ private:
 
     std::vector< std::vector<char> > recievedPswfBuffer;
     std::vector< std::vector<char> > recievedSmsBuffer;
+
+
+    int rs_data_clear[255];
+
+    char sms_content[100];
 };
 
 

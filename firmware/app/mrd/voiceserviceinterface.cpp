@@ -22,6 +22,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 	current_channel_status(ChannelDisabled)
 {
     dispatcher->dsp_controller->firstPacket.connect(sigc::mem_fun(this,&VoiceServiceInterface::fistPacketRecieve));
+    dispatcher->dsp_controller->smsPacketMessage.connect(sigc::mem_fun(this,&VoiceServiceInterface::smsMessage));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
@@ -117,7 +118,8 @@ void VoiceServiceInterface::TurnPSWFMode(uint8_t mode,int R_ADR,int COM_N)
 
 int *VoiceServiceInterface::ReturnDataPSWF()
 {
-    dispatcher->dsp_controller->getContentPSWF();
+//    return dispatcher->dsp_controller->getContentPSWF();
+	return NULL;
 }
 
 const char* VoiceServiceInterface::ReturnSwfStatus()
@@ -141,7 +143,10 @@ void VoiceServiceInterface::TurnSMSMode()
     dispatcher->dsp_controller->startSMSRecieving();
 }
 
-
+char* VoiceServiceInterface::getSmsContent()
+{
+	return dispatcher->dsp_controller->getSmsContent();
+}
 
 void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
 	current_channel_status = status;
@@ -150,7 +155,12 @@ void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
 
 void VoiceServiceInterface::fistPacketRecieve(int packet)
 {
-   firstPacket(packet);
+	firstPacket(packet);
+}
+
+void VoiceServiceInterface::smsMessage()
+{
+	smsMess();
 }
 
 } /* namespace Multiradio */

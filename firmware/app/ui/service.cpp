@@ -81,6 +81,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     command_rx_30 = 0;
 
     voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
+    voice_service->smsMess.connect(sigc::mem_fun(this,&Service::smsMessage));
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -1129,6 +1130,16 @@ void Service::getPSWF()
         voice_service->TuneFrequency(freq);
         command_rx_30++;
     }
+}
+
+void Service::smsMessage()
+{
+	char sym[100];//TODO:
+	memcpy(sym, voice_service->getSmsContent(), 50);
+	sym[49] = '\0';
+
+	guiTree.append(messangeWindow, "Recieved packet ", sym);
+	msgBox( "Recieved SMS", sym );
 }
 
 }/* namespace Ui */

@@ -1,7 +1,7 @@
 #ifndef SMS_H
 #define SMS_H
 
-#include "rs_tms.h"
+
 
 class sms
 {

@@ -43,9 +43,12 @@ public:
     void TurnSMSMode(int r_adr,char *message);
     void TurnSMSMode();
 
+    char* getSmsContent();
+
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
     sigc::signal<void,int> firstPacket;
+    sigc::signal<void> smsMess;
 
 private:
 	friend class Dispatcher;
@@ -55,6 +58,7 @@ private:
 	void setCurrentChannel(ChannelStatus status);
 
     void fistPacketRecieve(int packet);
+    void smsMessage();
 
 	Dispatcher *dispatcher;
 	ChannelStatus current_channel_status;
