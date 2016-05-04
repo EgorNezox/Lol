@@ -91,7 +91,7 @@ public:
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void,int> firstPacket;
     sigc::signal<void> smsReceived;
-    sigc::signal<void> smsFailed;
+    sigc::signal<void,int> smsFailed;
     sigc::signal<void> smsPacketMessage;
 
     float swf_res = 2; // надо изменить значение на нижнее предельное
@@ -225,6 +225,10 @@ private:
 
     void generateSmsReceived();
 
+    int check_rx_call();
+
+    int calc_asc_code(int ack);
+
     Navigation::Navigator *navigator;
 
     bool is_ready;
@@ -284,6 +288,10 @@ private:
 
     std::vector< std::vector<char> > recievedPswfBuffer;
     std::vector< std::vector<char> > recievedSmsBuffer;
+
+    std::vector<int> syncro_recieve;
+    std::vector<int> tx_call_ask_vector;
+    std::vector<int> quit_vector;
 
 
     int rs_data_clear[255];

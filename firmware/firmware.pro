@@ -28,8 +28,7 @@ SOURCES += \
     app/ui/menu.cpp \
     app/ui/gui_tree.cpp \
     app/messages/messagepswf.cpp \
-    app/messages/sms.cpp \
-    app/messages/rs_tms.c
+    app/messages/sms.cpp
 
 #!!! Временный хак для реализации прямого доступа к Ramtex из модуля UI
 #!!! Убрать, когда модуль будет переработан на использование средств Qm

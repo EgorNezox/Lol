@@ -82,6 +82,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
     voice_service->smsMess.connect(sigc::mem_fun(this,&Service::smsMessage));
+    voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -133,6 +134,22 @@ void Service::drawIndicator()
 {
     if ( guiTree.getCurrentState().getType() == mainWindow )
         indicator->Draw();
+}
+
+void Service::FailedSms(int stage)
+{
+    char sym[64];
+    const char* stage1 = "Ошибка приема SMS";
+    const char* stage2 = "Квитанция однозначно не определена";
+    if (stage == 0){
+        guiTree.append(messangeWindow, "Failed Sms", stage1);
+        msgBox( "Recieved packet ", stage1 );
+    }
+
+    if (stage == 1){
+        guiTree.append(messangeWindow, "Failed Sms", stage2);
+        msgBox( "Recieved packet ", stage2);
+    }
 }
 
 Service::~Service() {

@@ -42,12 +42,14 @@ public:
 
     void TurnSMSMode(int r_adr,char *message);
     void TurnSMSMode();
+    void SmsFailStage(int stage);
 
     char* getSmsContent();
 
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
     sigc::signal<void,int> firstPacket;
+    sigc::signal<void,int> smsFailed;
     sigc::signal<void> smsMess;
 
 private:

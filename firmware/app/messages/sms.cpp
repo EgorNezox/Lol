@@ -28,11 +28,11 @@ void sms::formPacket(int *input)
 
     // задать параметры settings
     // 1. Генерируем полином
-    gen_poly(&setting);
+    //gen_poly(&setting);
     // 2. Получаем поле Галуа
-    GenerateGaloisField(&setting);
+    //GenerateGaloisField(&setting);
     // 3. Выполняем кодирование
-    rs_encode(&setting,input,output,255);
+    //rs_encode(&setting,input,output,255);
 
     for(int i = 255;i<259;i++)
         output[i] = getRandomBits(4)[i - 255];

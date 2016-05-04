@@ -118,6 +118,8 @@ private:
     void draw();
     void drawIndicator();
 
+    void FailedSms(int stage);
+
     int RN_KEY = 1;
     int mainWindowModeId;
 

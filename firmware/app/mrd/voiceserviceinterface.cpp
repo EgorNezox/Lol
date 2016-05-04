@@ -23,6 +23,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 {
     dispatcher->dsp_controller->firstPacket.connect(sigc::mem_fun(this,&VoiceServiceInterface::fistPacketRecieve));
     dispatcher->dsp_controller->smsPacketMessage.connect(sigc::mem_fun(this,&VoiceServiceInterface::smsMessage));
+    dispatcher->dsp_controller->smsFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::SmsFailStage));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
@@ -141,6 +142,11 @@ void VoiceServiceInterface::TurnSMSMode(int r_adr, char *message)
 void VoiceServiceInterface::TurnSMSMode()
 {
     dispatcher->dsp_controller->startSMSRecieving();
+}
+
+void VoiceServiceInterface::SmsFailStage(int stage)
+{
+    smsFailed(stage);
 }
 
 char* VoiceServiceInterface::getSmsContent()
