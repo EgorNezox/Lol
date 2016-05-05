@@ -1394,7 +1394,20 @@ void DspController::generateSmsReceived()
   //  GenerateGaloisField(&rs_255_93);
   //  gen_poly(&rs_255_93);
 
+
     int temp=eras_dec_rs(data,rs_data_clear,&rs_255_93);
+
+    uint8_t crc_chk[87];
+
+    for(int i = 0;i<87;i++) crc_chk[i] = data[i];
+
+
+    uint32_t abc = pack_manager->CRC32(crc_chk,87);
+
+    int abc2 = 0;
+
+    for(int i = 3;i>=0;i--) abc2 = data[87+i] << 8*i;
+
 
     for(int i = 0;i<93;i++) sms_content[i] = data[i];
 
@@ -1545,9 +1558,18 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     for(int i = 0; i<255;i++) ContentSms.message[i] = sms_abc[i];*/
     int data_sms[255];
 
-    //for(int i = 0;i<259;i++) ContentSms.message[i] = 0;
+    int sms[255];
+
+    //pack_manager->Text(message,sms,ind);
+
     if (ContentSms.stage == StageNone){
     for(int i = 0; i<ind;i++) ContentSms.message[i] = message[i];
+
+
+
+    uint32_t abc = pack_manager->CRC32(ContentSms.message,87);
+
+    for(int i = 0;i<4;i++) ContentSms.message[87+i] = abc >> (8*i);
 
     for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
 

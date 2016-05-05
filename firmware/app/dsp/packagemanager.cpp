@@ -3,7 +3,7 @@
 
 PackageManager::PackageManager()
 {
-    //makeTable(CRC_POLY1);
+    makeTable(CRC_POLY1);
 }
 
 void PackageManager::ConvertBit(uint8_t src, bool dest[7])
@@ -49,6 +49,11 @@ void PackageManager::Text(uint8_t *message, uint8_t* sms,int index)
         memcpy(&str,&mes[i*8] ,8);
         ConvertByte(str, sms[i]);
     }
+}
+
+void PackageManager::UnpackText(uint8_t *message)
+{
+
 }
 
 
