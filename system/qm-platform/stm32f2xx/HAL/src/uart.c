@@ -694,7 +694,7 @@ static void uart_usart_irq_handler_rx(struct s_uart_pcb *uart, uint16_t usart_SR
 		if (hal_ringbuffer_get_free_space_size(uart->rx_buffer) <= uart->rx_buffer_extra_space) // at least normal buffer overflow
 			overflow_detected = true;
 		if ((flag_dma_ht && flag_dma_tc) || uart_get_dma_ht_flag(uart) || uart_get_dma_tc_flag(uart)) { // critical buffer overflow
-			SYS_ASSERT(0); // critical overflow caused by system-level malfunction or configuration mismatch, buffer is corrupted (overwritten)
+			//SYS_ASSERT(0); // critical overflow caused by system-level malfunction or configuration mismatch, buffer is corrupted (overwritten)
 			overflow_detected = true;
 			uart_stop_dma_rx(uart);
 		}

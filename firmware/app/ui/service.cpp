@@ -139,16 +139,15 @@ void Service::drawIndicator()
 void Service::FailedSms(int stage)
 {
     char sym[64];
-    const char* stage1 = "Ошибка приема SMS";
-    const char* stage2 = "Квитанция однозначно не определена";
+
     if (stage == 0){
-        guiTree.append(messangeWindow, "Failed Sms", stage1);
-        msgBox( "Recieved packet ", stage1 );
+        guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail1);
+        msgBox( "Recieved packet ", sms_quit_fail1 );
     }
 
     if (stage == 1){
-        guiTree.append(messangeWindow, "Failed Sms", stage2);
-        msgBox( "Recieved packet ", stage2);
+        guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
+        msgBox( "Recieved packet ", sms_quit_fail2);
     }
 }
 
@@ -1151,11 +1150,13 @@ void Service::getPSWF()
 
 void Service::smsMessage()
 {
-	char sym[100];//TODO:
+	char sym[50];//TODO:
+	for(int i = 0; i<50;++i) sym[i] = '0';
+
 	memcpy(sym, voice_service->getSmsContent(), 50);
 	sym[49] = '\0';
 
-	guiTree.append(messangeWindow, "Recieved packet ", sym);
+	guiTree.append(messangeWindow, "Recieved SMS ", sym);
 	msgBox( "Recieved SMS", sym );
 }
 

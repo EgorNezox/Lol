@@ -282,12 +282,14 @@ private:
     bool pswf_first_packet_received;
     bool pswf_ack;
 
+    char rec_sms[37];
+
     int date_time[4];
 
     char private_lcode;
 
     std::vector< std::vector<char> > recievedPswfBuffer;
-    std::vector< std::vector<char> > recievedSmsBuffer;
+    std::vector< std::vector<uint8_t> > recievedSmsBuffer;
 
     std::vector<int> syncro_recieve;
     std::vector<int> tx_call_ask_vector;

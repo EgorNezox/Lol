@@ -64,6 +64,9 @@ extern const char *true_SWF;
 
 extern const char *smsText[];
 
+extern const char *sms_quit_fail1;
+extern const char *sms_quit_fail2;
+
 extern const char ch_key0[2];
 extern const char ch_key1[6];
 extern const char ch_key2[4];
