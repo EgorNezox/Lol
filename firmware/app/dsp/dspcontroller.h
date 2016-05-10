@@ -85,6 +85,8 @@ public:
 
     char* getSmsContent();
 
+    void processSyncPulse();
+
 
 
     sigc::signal<void> started;
@@ -204,6 +206,7 @@ private:
     void sendPswf(Module module);
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
 
+
     int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int prevSecond(int second);
 
@@ -236,6 +239,9 @@ private:
     DspTransport *transport;
     QmTimer *startup_timer, *command_timer;
     QmTimer *quit_timer;
+    QmTimer *sync_pulse_delay_timer; //delay is needed for Navigator NMEA processing after sync pulse
+
+
     enum {
         radiostateSync,
         radiostateCmdModeOffRx,

@@ -104,6 +104,11 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
     //#endif
 
+
+	sync_pulse_delay_timer = new QmTimer(true, this);
+	sync_pulse_delay_timer->setInterval(100);
+	sync_pulse_delay_timer->timeout.connect(sigc::mem_fun(this, &DspController::processSyncPulse));
+
     cmd_queue = new std::list<DspCommand>();
 
     fwd_wave = 0;
@@ -267,7 +272,13 @@ void DspController::getSwr()
     sendCommand(TxRadiopath,0,commandValue);
 }
 
+
 void DspController::syncPulseDetected() {
+	sync_pulse_delay_timer->start();
+}
+
+
+void DspController::processSyncPulse(){
 	if (!is_ready)
 		return;
 	switch (radio_state) {
@@ -1365,58 +1376,51 @@ void DspController::recSms()
 
 void DspController::generateSmsReceived()
 {
-    int count = 0;
-//    for (int i = 0; i < recievedSmsBuffer.size(); ++i) {
-//    	if (count >= 100) {
-//    		break;
-//    	}
-//    	for (int j = 0; j < 7; ++j) {
-//    		sms_content[count] = recievedSmsBuffer.at(i).at(j);
-//    		++count;
-//    		if (count >= 100) {
-//    			break;
-//    		}
-//    	}
-//    }
+	int count = 0;
+	int data[255];
+
+	for(int j = 0;j<=recievedSmsBuffer.size()-1;j++){
+		for(int i = 0; i<7;i++)
+		{
+			data[count] = recievedSmsBuffer.at(j).at(i);
+			++count;
+		}
+	}
+
+	int temp=eras_dec_rs(data,rs_data_clear,&rs_255_93);
+
+	uint8_t crc_chk[87];
+	uint8_t packed[100];
+
+	for(int i = 0;i<100;i++) packed[i] = 0;
+
+	for(int i = 0;i<87;i++) crc_chk[i] = data[i];
+
+	int diagn = pack_manager->decompressMass(crc_chk,87,packed,100,7);
+
+	uint32_t crc_calc = pack_manager->CRC32(crc_chk,87);
 
 
-    int data[255];
+	uint32_t crc_packet = 0;
+	int k = 3;
+	while(k >=0){
+		crc_packet += (data[87+k] & 0xFF) << (8*k);
+		k--;
+	}
 
-    for(int j = 0;j<=recievedSmsBuffer.size()-1;j++){
-    	for(int i = 0; i<7;i++)
-    	{
-    		data[count] = recievedSmsBuffer.at(j).at(i);
-    		++count;
-    	}
-    }
+	if (crc_packet != crc_calc)
+	{
+		smsFailed(3);
+	}
 
-
-  //  GenerateGaloisField(&rs_255_93);
-  //  gen_poly(&rs_255_93);
-
-
-    int temp=eras_dec_rs(data,rs_data_clear,&rs_255_93);
-
-    uint8_t crc_chk[87];
-
-    for(int i = 0;i<87;i++) crc_chk[i] = data[i];
-
-
-    uint32_t abc = pack_manager->CRC32(crc_chk,87);
-
-    int abc2 = 0;
-
-    for(int i = 3;i>=0;i--) abc2 = data[87+i] << 8*i;
-
-
-    for(int i = 0;i<93;i++) sms_content[i] = data[i];
-
-    recievedSmsBuffer.erase(recievedSmsBuffer.begin(),recievedSmsBuffer.end());
-
-
-	sms_content[99] = '\0';
-	qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
-    smsPacketMessage();
+	else
+	{
+		for(int i = 0;i<93;i++) sms_content[i] = data[i];
+		recievedSmsBuffer.erase(recievedSmsBuffer.begin(),recievedSmsBuffer.end());
+		sms_content[99] = '\0';
+		qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
+		smsPacketMessage();
+	}
 }
 
 int DspController::check_rx_call()
@@ -1535,8 +1539,6 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 {
     qmDebugMessage(QmDebug::Dump, "SMS tranmit (%d, %s)",r_adr, message);
     QM_ASSERT(is_ready);
-//    if (!resyncPendingCommand())
-//        return;
 
     getDataTime();
     ContentSms.Frequency = getFrequencyPswf();
@@ -1545,45 +1547,29 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     ContentSms.TYPE = 0;
     int ind = strlen((const char*)message);
 
- /*   uint8_t sms[256];
-    for(int i =0; i<256;i++) sms[i] = 0;
 
-    pack_manager->Text(message,sms,ind);
-    for(int i = 88; i<93;i++) sms[i] = 0;
-    int sms_abc[256];
-    for(int i = 0; i<256;i++) sms_abc[i] = sms[i];
-
-    encode_rs(sms_abc,&sms_abc[93],&rs_255_93);
-
-    for(int i = 0; i<255;i++) ContentSms.message[i] = sms_abc[i];*/
     int data_sms[255];
 
     int sms[255];
 
     //pack_manager->Text(message,sms,ind);
 
-    if (ContentSms.stage == StageNone){
-    for(int i = 0; i<ind;i++) ContentSms.message[i] = message[i];
+    if (ContentSms.stage == StageNone)
+    {
+    	for(int i = 0; i<ind;i++) ContentSms.message[i] = message[i];
 
+    	pack_manager->compressMass(ContentSms.message,87,7);
 
+    	uint32_t abc = pack_manager->CRC32(ContentSms.message,87);
 
-    uint32_t abc = pack_manager->CRC32(ContentSms.message,87);
+    	for(int i = 0;i<4;i++) ContentSms.message[87+i] = abc >> (8*i);
+    	for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
+    	for(int i = 0; i<259;i++) data_sms[i] = (int)ContentSms.message[i];
 
-    for(int i = 0;i<4;i++) ContentSms.message[87+i] = abc >> (8*i);
+    	int temp=encode_rs(data_sms,&data_sms[93],&rs_255_93);
+    	for(int i = 0; i<255;i++)ContentSms.message[i]  = data_sms[i];
 
-    for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
-
-
-
-    for(int i = 0; i<259;i++) data_sms[i] = (int)ContentSms.message[i];
-    int temp=encode_rs(data_sms,&data_sms[93],&rs_255_93);
-    for(int i = 0; i<255;i++)ContentSms.message[i]  = data_sms[i];
-
-    ContentSms.message[0] = 8;
-    ContentSms.message[1] = 8;
     }
-
-   	//int temp1=eras_dec_rs(data_sms,rs_data_clear,&rs_255_93);
 
 
     ContentSms.RN_KEY = 1;

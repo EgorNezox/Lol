@@ -66,6 +66,7 @@ extern const char *smsText[];
 
 extern const char *sms_quit_fail1;
 extern const char *sms_quit_fail2;
+extern const char *sms_crc_fail;
 
 extern const char ch_key0[2];
 extern const char ch_key1[6];
