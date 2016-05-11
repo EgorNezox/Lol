@@ -25,6 +25,7 @@ enum GuiWindowsSubType
     //call,
     simpleCondComm,\
     duplCondComm,\
+	recvCondComm,\
     message,
     recv,\
     recvSms,

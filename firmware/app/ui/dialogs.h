@@ -81,11 +81,13 @@ class GUI_Indicator: public GUI_Obj{
         void UpdateMultiradio(Multiradio::MainServiceInterface::Status status);
         void UpdateHeadset(Headset::Controller::Status status);
         void UpdateBattery(int new_val);
+        void UpdateGpsStatus(bool);
         void Draw();
         virtual void Draw( Multiradio::MainServiceInterface::Status,
-                                   Headset::Controller::Status,
-                                   int
-                                   );
+                           Headset::Controller::Status,
+                           int,
+                           bool
+                          );
         void setDateTime(std::string str)
         {
             date_time->SetText((char*)str.c_str());
@@ -96,6 +98,7 @@ private:
         GUI_EL_Battery *ind_battery;
 public:
         GUI_EL_Label *date_time;
+        GUI_EL_Label *gpsLabel;
 };
 
 

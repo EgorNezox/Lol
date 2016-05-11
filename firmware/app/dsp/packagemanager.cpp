@@ -5,55 +5,55 @@
 PackageManager::PackageManager()
 {
     makeTable(CRC_POLY1);
-//    koi_sim.insert(std::pair<char,int>(ch_key1[0],46));
-//    koi_sim.insert(ch_key1[1],44);
-//    koi_sim.insert(ch_key1[2],33);
-//    koi_sim.insert(ch_key1[3],63);
-//    koi_sim.insert(ch_key1[4],34);
-//    koi_sim.insert(ch_key1[5],58);
-//    koi_sim.insert(ch_key2[0],97);
-//    koi_sim.insert(ch_key2[1],98);
-//    koi_sim.insert(ch_key2[2],119);
-//    koi_sim.insert(ch_key2[3],103);
-//    koi_sim.insert(ch_key3[0],100);
-//    koi_sim.insert(ch_key3[1],101);
-//    koi_sim.insert(ch_key3[2],118);
-//    koi_sim.insert(ch_key3[3],122);
-//    koi_sim.insert(ch_key4[0],105);
-//    koi_sim.insert(ch_key4[1],106);
-//    koi_sim.insert(ch_key4[2],107);
-//    koi_sim.insert(ch_key4[3],108);
-//    koi_sim.insert(ch_key5[0],109);
-//    koi_sim.insert(ch_key5[1],110);
-//    koi_sim.insert(ch_key5[2],111);
-//    koi_sim.insert(ch_key5[3],112);
-//    koi_sim.insert(ch_key6[0],114);
-//    koi_sim.insert(ch_key6[1],115);
-//    koi_sim.insert(ch_key6[2],116);
-//    koi_sim.insert(ch_key6[3],117);
-//    koi_sim.insert(ch_key7[0],102);
-//    koi_sim.insert(ch_key7[1],104);
-//    koi_sim.insert(ch_key7[2],99);
-//    koi_sim.insert(ch_key7[3],126);
-//    koi_sim.insert(ch_key8[0],123);
-//    koi_sim.insert(ch_key8[1],125);
-//    koi_sim.insert(ch_key8[2],-1);
-//    koi_sim.insert(ch_key8[3],121);
-//    koi_sim.insert(ch_key9[0],120);
-//    koi_sim.insert(ch_key9[1],124);
-//    koi_sim.insert(ch_key9[2],96);
-//    koi_sim.insert(ch_key9[3],113);
-//    koi_sim.insert(ch_key0[0],48);
-//    koi_sim.insert('1',49);
-//    koi_sim.insert('2',50);
-//    koi_sim.insert('3',51);
-//    koi_sim.insert('4',52);
-//    koi_sim.insert('5',53);
-//    koi_sim.insert('6',54);
-//    koi_sim.insert('7',55);
-//    koi_sim.insert('8',56);
-//    koi_sim.insert('9',57);
-//    koi_sim.insert(ch_key0[1],32);
+    koi_sim.insert(std::pair<char,int>(ch_key1[0],46));
+    koi_sim.insert(std::pair<char,int>(ch_key1[1],44));
+    koi_sim.insert(std::pair<char,int>(ch_key1[2],33));
+    koi_sim.insert(std::pair<char,int>(ch_key1[3],63));
+    koi_sim.insert(std::pair<char,int>(ch_key1[4],34));
+    koi_sim.insert(std::pair<char,int>(ch_key1[5],58));
+    koi_sim.insert(std::pair<char,int>(ch_key2[0],97));
+    koi_sim.insert(std::pair<char,int>(ch_key2[1],98));
+    koi_sim.insert(std::pair<char,int>(ch_key2[2],119));
+    koi_sim.insert(std::pair<char,int>(ch_key2[3],103));
+    koi_sim.insert(std::pair<char,int>(ch_key3[0],100));
+    koi_sim.insert(std::pair<char,int>(ch_key3[1],101));
+    koi_sim.insert(std::pair<char,int>(ch_key3[2],118));
+    koi_sim.insert(std::pair<char,int>(ch_key3[3],122));
+    koi_sim.insert(std::pair<char,int>(ch_key4[0],105));
+    koi_sim.insert(std::pair<char,int>(ch_key4[1],106));
+    koi_sim.insert(std::pair<char,int>(ch_key4[2],107));
+    koi_sim.insert(std::pair<char,int>(ch_key4[3],108));
+    koi_sim.insert(std::pair<char,int>(ch_key5[0],109));
+    koi_sim.insert(std::pair<char,int>(ch_key5[1],110));
+    koi_sim.insert(std::pair<char,int>(ch_key5[2],111));
+    koi_sim.insert(std::pair<char,int>(ch_key5[3],112));
+    koi_sim.insert(std::pair<char,int>(ch_key6[0],114));
+    koi_sim.insert(std::pair<char,int>(ch_key6[1],115));
+    koi_sim.insert(std::pair<char,int>(ch_key6[2],116));
+    koi_sim.insert(std::pair<char,int>(ch_key6[3],117));
+    koi_sim.insert(std::pair<char,int>(ch_key7[0],102));
+    koi_sim.insert(std::pair<char,int>(ch_key7[1],104));
+    koi_sim.insert(std::pair<char,int>(ch_key7[2],99));
+    koi_sim.insert(std::pair<char,int>(ch_key7[3],126));
+    koi_sim.insert(std::pair<char,int>(ch_key8[0],123));
+    koi_sim.insert(std::pair<char,int>(ch_key8[1],125));
+    koi_sim.insert(std::pair<char,int>(ch_key8[2],-1)); // ъ знака нет
+    koi_sim.insert(std::pair<char,int>(ch_key8[3],121));
+    koi_sim.insert(std::pair<char,int>(ch_key9[0],120));
+    koi_sim.insert(std::pair<char,int>(ch_key9[1],124));
+    koi_sim.insert(std::pair<char,int>(ch_key9[2],96));
+    koi_sim.insert(std::pair<char,int>(ch_key9[3],113));
+    koi_sim.insert(std::pair<char,int>(ch_key0[0],48));
+    koi_sim.insert(std::pair<char,int>('1',49));
+    koi_sim.insert(std::pair<char,int>('2',50));
+    koi_sim.insert(std::pair<char,int>('3',51));
+    koi_sim.insert(std::pair<char,int>('4',52));
+    koi_sim.insert(std::pair<char,int>('5',53));
+    koi_sim.insert(std::pair<char,int>('6',54));
+    koi_sim.insert(std::pair<char,int>('7',55));
+    koi_sim.insert(std::pair<char,int>('8',56));
+    koi_sim.insert(std::pair<char,int>('9',57));
+    koi_sim.insert(std::pair<char,int>(ch_key0[1],32));
 
 }
 
@@ -252,7 +252,32 @@ int PackageManager::compressMass(uint8_t *srcBuf,int srcLen,int numBits)
 
 void PackageManager::to_Koi7(uint8_t *message)
 {
+	int i = 0;
+	while(message[i] != '\0')
+	{
+		auto it = koi_sim.find((char)message[i]);
 
+		if (it != koi_sim.end())
+			message[i] = it->second;
+		++i;
+	}
+}
+
+
+void PackageManager::to_Win1251(uint8_t *message)
+{
+	int i = 0;
+		while(message[i] != '\0')
+		{
+			for(auto &it: koi_sim)
+			{
+				if (it.second == message[i]){
+				message[i] = it.first;
+				break;
+				}
+			}
+			++i;
+		}
 }
 
 void PackageManager::makeTable(int polynomChoosen)

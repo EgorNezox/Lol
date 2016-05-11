@@ -23,6 +23,7 @@ public:
     int compressMass(uint8_t *srcBuf,int srcLen,int numBits);
 
     void to_Koi7(uint8_t *message);
+    void to_Win1251(uint8_t *message);
 
 
 private:

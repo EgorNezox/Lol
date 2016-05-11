@@ -37,10 +37,14 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
     icon_geom = GEOM_ICON(1);
     ind_headset = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
 
-    MoonsGeometry date_time_geom = {2*ICON_SIZE+5, 0, 5*ICON_SIZE+5, ICON_SIZE-1};
+    MoonsGeometry date_time_geom = {2*ICON_SIZE+3, 0, 4*ICON_SIZE+24, ICON_SIZE-1};
     date_time = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &date_time_geom, (char*)"04.04 10:40", (GUI_Obj *)this);
 
+    MoonsGeometry gpsLabelArea = {4*ICON_SIZE+25, 0, ICON_SIZE*6, ICON_SIZE-1};
+    gpsLabel = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &gpsLabelArea, (char*)"X", (GUI_Obj*)this);
+
     icon_geom = {ICON_SIZE*6,0,ICON_SIZE*6+BATTERY_SIZE-1, ICON_SIZE-1};	//геометрия батарейки
+
     ind_battery = new GUI_EL_Battery(&GUI_EL_TEMP_BatteryIndicator, 0, &icon_geom, (GUI_Obj *)this);
 }
 
@@ -52,7 +56,7 @@ GUI_Indicator::~GUI_Indicator()
     delete ind_multiradio;
     delete ind_headset;
     delete ind_battery;
-
+    delete gpsLabel;
 }
 
 //-----------------------------
@@ -83,6 +87,12 @@ void GUI_Indicator::UpdateBattery(int new_val){
     ind_battery->charge = new_val;
 }
 
+void GUI_Indicator::UpdateGpsStatus(bool status){
+    if ( status )
+        gpsLabel->SetText("G");
+    else
+        gpsLabel->SetText("X");
+}
 
 //-----------------------------
 
@@ -114,7 +124,8 @@ void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
 
 void GUI_Indicator::Draw( Multiradio::MainServiceInterface::Status multiradioStatus,
                           Headset::Controller::Status              headsetStatus,
-                          int                                      battaryStatus
+                          int                                      battaryStatus,
+                          bool                                     gpsStatus
                          ){
 	gsetcolorb(GENERAL_BACK_COLOR);
 	gsetvp(0,0,GDISPW-1, GDISPH-1);
@@ -123,11 +134,13 @@ void GUI_Indicator::Draw( Multiradio::MainServiceInterface::Status multiradioSta
     UpdateMultiradio(multiradioStatus /*service->pGetMultitradioService()->getStatus()*/);
     UpdateHeadset   (headsetStatus /*service->pGetHeadsetController()->getStatus()*/);
     UpdateBattery   (battaryStatus /*service->pGetPowerBattery()->getChargeLevel()*/);
+    UpdateGpsStatus (gpsStatus);
 
     ind_battery->Draw();
     ind_headset->Draw();
     ind_multiradio->Draw();
     date_time->Draw();
+    gpsLabel->Draw();
 }
 
 void GUI_Indicator::Draw(){
@@ -139,4 +152,5 @@ void GUI_Indicator::Draw(){
     ind_headset->Draw();
     ind_multiradio->Draw();
     date_time->Draw();
+    gpsLabel->Draw();
 }

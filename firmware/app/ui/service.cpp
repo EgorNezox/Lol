@@ -686,6 +686,21 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::recvCondComm:
+        {
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+            if ( key == keyEnter)
+            {
+                /* call */
+                guiTree.resetCurrentState();
+                voice_service->TurnPSWFMode(0,0,0);
+            }
+            break;
+        }
         case GuiWindowsSubType::recvSms:
         {
             if ( key == keyBack)
@@ -968,10 +983,23 @@ void Service::drawMainWindow()
                    voice_service->getCurrentChannelNumber(),
                    voice_service->getCurrentChannelType());
 
+
+    bool gpsStatus = false;
+
+#ifndef PORT_PCSIMULATOR
+    Navigation::Coord_Date date = navigator->getCoordDate();
+    char ch[10];
+    memcpy(&ch,&date.data,10);
+    if (atoi((const char*)ch) != 0)
+    {
+    	gpsStatus = true;
+    }
+#endif
+
     indicator->Draw(pGetMultitradioService()->getStatus(),
                     pGetHeadsetController()->getStatus(),
-                    pGetPowerBattery()->getChargeLevel()
-                    );
+                    pGetPowerBattery()->getChargeLevel(),
+                    gpsStatus);
 }
 
 void Service::drawMenu()
@@ -1026,6 +1054,11 @@ void Service::drawMenu()
         case GuiWindowsSubType::recvSms:
             menu->initRxSmsDialog();
             break;
+        case GuiWindowsSubType::recvCondComm:
+        {
+        	menu->initRxSmsDialog();
+        	break;
+        }
         case GuiWindowsSubType::gpsCoord:
 #if !defined(PORT__PCSIMULATOR)
             setCoordDate(navigator->getCoordDate());
@@ -1153,6 +1186,36 @@ void Service::getPSWF()
         command_rx_30++;
     }
 }
+
+
+void Service::updateSystemTime()
+{
+    if ( true/*gpsSynchronization*/ )
+    {
+        setCoordDate(navigator->getCoordDate());
+    }
+    else
+    {
+        Navigation::Coord_Date data;
+        memset( &data.latitude,  0, 11 );
+        memset( &data.longitude, 0, 11 );
+
+        data.data[0] = 2;
+        data.data[1] = 6;
+        data.data[2] = 0;
+        data.data[3] = 4;
+
+        data.time[0] = 1;
+        data.time[1] = 2;
+        data.time[2] = 1;
+        data.time[3] = 1;
+
+        setCoordDate( data );
+    }
+}
+
+
+
 
 void Service::smsMessage()
 {

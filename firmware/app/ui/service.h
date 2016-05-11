@@ -117,6 +117,7 @@ private:
     void drawMenu();
     void draw();
     void drawIndicator();
+    void updateSystemTime();
 
     void FailedSms(int stage);
 

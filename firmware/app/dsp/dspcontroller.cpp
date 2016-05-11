@@ -1277,6 +1277,23 @@ void DspController::sendSms(Module module)
     	++tx_data_len;
     }
 
+    if (ContentSms.stage == StageTx_quit)
+    {
+    	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	uint8_t ack = 0;
+    	qmToBigEndian((uint8_t)ack, tx_data+tx_data_len);
+    	++tx_data_len;
+    	uint8_t ack_code  = calc_ack_code(ack);
+    	qmToBigEndian((uint8_t)ack_code, tx_data+tx_data_len);
+    	++tx_data_len;
+
+    }
+
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
 }
 
@@ -1396,7 +1413,9 @@ void DspController::generateSmsReceived()
 
 	for(int i = 0;i<87;i++) crc_chk[i] = data[i];
 
-	int diagn = pack_manager->decompressMass(crc_chk,87,packed,100,7);
+	int diagn = pack_manager->decompressMass(crc_chk,87,packed,100,7); //test
+
+    pack_manager->to_Win1251(packed); //test
 
 	uint32_t crc_calc = pack_manager->CRC32(crc_chk,87);
 
@@ -1442,7 +1461,7 @@ int DspController::check_rx_call()
     return false;
 }
 
-int DspController::calc_asc_code(int ack)
+int DspController::calc_ack_code(int ack)
 {
     int ACK_CODE = (ContentSms.R_ADR + ContentSms.S_ADR + ack + ContentSms.RN_KEY +
                     date_time[0] + date_time[1]+ date_time[2] + date_time[3]) % 100;
@@ -1558,7 +1577,9 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     {
     	for(int i = 0; i<ind;i++) ContentSms.message[i] = message[i];
 
-    	pack_manager->compressMass(ContentSms.message,87,7);
+    	pack_manager->to_Koi7(ContentSms.message); // test
+
+    	pack_manager->compressMass(ContentSms.message,87,7); //test
 
     	uint32_t abc = pack_manager->CRC32(ContentSms.message,87);
 

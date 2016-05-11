@@ -230,7 +230,7 @@ private:
 
     int check_rx_call();
 
-    int calc_asc_code(int ack);
+    int calc_ack_code(int ack);
 
     Navigation::Navigator *navigator;
 
