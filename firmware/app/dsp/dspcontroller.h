@@ -215,6 +215,7 @@ private:
 
     void getSwr();
     void transmitPswf();
+    void addSeconds(int *date_time);
     void changePswfRxFrequency();
     void syncPulseDetected();
     void getDataTime();

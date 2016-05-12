@@ -25,10 +25,13 @@ enum GuiWindowsSubType
     //call,
     simpleCondComm,\
     duplCondComm,\
-	recvCondComm,\
+    txGroupCondComm,\
     message,
     recv,\
-    recvSms,
+    recvSms,\
+    recvCondComm,\
+    recvGroupCondComm,\
+    recvSilence,\
     data,\
     settings,\
     gpsCoord,\
@@ -40,6 +43,7 @@ enum GuiWindowsSubType
     scan,\
     aruarmaus,\
     suppress,\
+    waitGuk,\
     twoState,\
     volume
 };
@@ -170,11 +174,11 @@ private:
     SInputItemParameters groupCondCommandDuplParameters;
     // 1.5.1.1 - 1.5.1.2
     CEndState groupCondCommandSimplGroupCall, groupCondCommandSimplIndivCall;
-    SInputItemParameters groupCondCommandSimplGroupCallParameters,
-                         groupCondCommandSimplIndivCallParameters;
+    SInputItemParameters groupCondCommandSimplCallParameters[4];
     // 2.1 - 2.3
-    CEndState recvTlf, recvSms, recvGroupCondCommsnds;
+    CEndState recvTlf, recvSms, recvAus, recvCondCommand, recvGroupCondCommsnds, recvSilence;
     SInputItemParameters recvTlfParameters, recvSmsParameters, recvGroupCondCommsndsParameters;
+    SInputItemParameters gpsSynchronization;
     // 3.1 - 3.3
     CState dataRecv, dataSend;
     CEndState dataGps;
@@ -185,7 +189,7 @@ private:
     CEndState dataSendCondCmd, dataSendSms, dataSendPost, dataSendGroupCondCmd;
     // 4.1 - 4.3
     CState sttDateTime, sttConnParam;
-    CEndState sttScan, swAruArm, sttSound, sttSuppress;
+    CEndState sttScan, swAruArm, sttSound, sttSuppress, sttWaitGuk;
     // 4.1.1 - 4.1.2
     CState sttConnParamHand;
     CEndState sttConnParamGPS;
@@ -195,7 +199,7 @@ private:
     // 4.2.1 - 4.2.2
     CEndState sttSetFreq, sttSetSpeed;
     SInputItemParameters freqParameters {(char*)setConnParam[0], "1", 2, 0, 31} ,
-                         speedParameters{(char*)setConnParam[1], "2", 2, 0, 31};
+                         speedParameters{(char*)setConnParam[1], "25000", 2, 0, 31};
 
     void init();
 

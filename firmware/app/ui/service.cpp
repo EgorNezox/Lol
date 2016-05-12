@@ -936,7 +936,7 @@ void Service::FirstPacketPSWFRecieved(int packet)
         char sym[64];
         sprintf(sym,"%d",packet);
         guiTree.append(messangeWindow, "Recieved packet ", sym);
-        msgBox( "Recieved packet ", sym );
+        msgBox( "Recieved packet ", (int)packet );
     }
     else if ( packet > 99)
     {
@@ -969,6 +969,18 @@ void Service::msgBox(const char *title, const char *text)
     if(msg_box == nullptr)
     {
         msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (char*)text, align007);
+    }
+    msg_box->Draw();
+}
+
+void Service::msgBox(const char *title, const int condCmd)
+{
+    Alignment align007 = {alignHCenter,alignTop};
+    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+
+    if(msg_box == nullptr)
+    {
+        msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, align007);
     }
     msg_box->Draw();
 }
@@ -1125,7 +1137,14 @@ void Service::draw()
         break;
     }
     case messangeWindow:
-        msgBox( currentState.getName(), currentState.getText() );
+    {
+    	int cmd = atoi(currentState.getText());
+    	if ( cmd >= 0 && cmd < 100)
+    		msgBox( currentState.getName(), cmd );
+    	else
+    		msgBox( currentState.getName(), currentState.getText() );
+    break;
+    }
     case menuWindow:
         drawMenu();
         break;

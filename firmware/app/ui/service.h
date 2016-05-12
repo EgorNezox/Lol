@@ -79,6 +79,7 @@ public:
 private:
     void msgBox(const char *text);
     void msgBox(const char* title, const char *text);
+    void msgBox(const char* title, const int condCmd );
 
 	matrix_keyboard_t matrix_kb;
 	aux_keyboard_t aux_kb;

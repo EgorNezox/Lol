@@ -13,6 +13,9 @@ class QmIopin;
 class QmUart;
 //#endif /* PORT__TARGET_DEVICE_REV1 */
 
+#include <thread>
+#include <chrono>
+
 namespace Navigation {
 
 

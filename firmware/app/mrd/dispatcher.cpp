@@ -73,8 +73,8 @@ void Dispatcher::processDspStartup() {
 }
 
 bool Dispatcher::processHeadsetPttStateChange(bool new_state) {
-	if (!isVoiceMode())
-		return false;
+//	if (!isVoiceMode())
+//		return false;
 	setVoiceDirection(new_state);
 	return true;
 }

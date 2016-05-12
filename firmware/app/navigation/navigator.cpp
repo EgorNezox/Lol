@@ -60,7 +60,7 @@ Coord_Date Navigator::getCoordDate()
 
 int Navigator::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
 {
-    int L_CODE = (R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY)% 100;
+    int L_CODE = (R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY) % 100;
     return L_CODE;
 }
 
@@ -73,8 +73,7 @@ void Navigator::processUartReceivedData() {
 		qmDebugMessage(QmDebug::Dump, (char*)data);
 	}
 
-    parsingData(data);
-
+	parsingData(data);
 
 	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 }

@@ -17,7 +17,7 @@ void CGuiTree::init()
     // 1.5.1.1 - 1.5.1.2
     groupCondCommandSimplGroupCall.setName(groupCommandsSimplSubMenu[0]); groupCondCommandSimplIndivCall.setName(groupCommandsSimplSubMenu[1]);
     // 2.1 - 2.3
-    recvTlf.setName(reciveSubMenu[0]); recvSms.setName(reciveSubMenu[1]); recvGroupCondCommsnds.setName(reciveSubMenu[2]);
+    recvTlf.setName(reciveSubMenu[0]); recvSms.setName(reciveSubMenu[1]); recvAus.setName(reciveSubMenu[2]); recvCondCommand.setName(reciveSubMenu[3]); recvGroupCondCommsnds.setName(reciveSubMenu[4]); recvSilence.setName(reciveSubMenu[5]);
     // 3.1 - 3.3
     dataRecv.setName(dataSubMenu[0]), dataSend.setName(dataSubMenu[1]), dataGps.setName(dataSubMenu[3]);
     // 3.1.1 - 3.1.4
@@ -25,7 +25,7 @@ void CGuiTree::init()
     // 3.2.1 - 3.2.4
     dataSendCondCmd.setName(dataSubSubMenu[0]); dataSendSms.setName(dataSubSubMenu[1]); dataSendPost.setName(dataSubSubMenu[2]); dataSendGroupCondCmd.setName(dataSubSubMenu[3]);
     // 4.1 - 4.2
-    sttDateTime.setName(settingsSubMenu[0]); sttConnParam.setName(settingsSubMenu[1]); sttScan.setName(settingsSubMenu[2]); swAruArm.setName(settingsSubMenu[3]); sttSound.setName(settingsSubMenu[4]); sttSuppress.setName(settingsSubMenu[5]);
+    sttDateTime.setName(settingsSubMenu[0]); sttConnParam.setName(settingsSubMenu[1]); sttScan.setName(settingsSubMenu[2]); swAruArm.setName(settingsSubMenu[3]); sttSound.setName(settingsSubMenu[4]); sttSuppress.setName(settingsSubMenu[5]); sttWaitGuk.setName(settingsSubMenu[6]);
     // 4.1.1 - 4.1.2
     sttConnParamGPS.setName(dateAndTimeSubMenu[0]); sttConnParamHand.setName(dateAndTimeSubMenu[1]);
     // 4.1.2.1 - 4.1.2.2
@@ -90,11 +90,20 @@ void CGuiTree::init()
     groupCondCommandSimpl.nextState.push_back(&groupCondCommandSimplGroupCall);
     groupCondCommandSimpl.nextState.push_back(&groupCondCommandSimplIndivCall);
     // 1.4.1.1 - Групповой вызов
+    groupCondCommandSimplGroupCall.subType = GuiWindowsSubType::txGroupCondComm;
     groupCondCommandSimplGroupCall.prevState = &groupCondCommandSimpl;
     groupCondCommandSimplGroupCall.nextState.clear();
+    groupCondCommandSimplGroupCall.listItem.push_back(&groupCondCommandSimplCallParameters[0]);
+    groupCondCommandSimplGroupCall.listItem.push_back(&groupCondCommandSimplCallParameters[1]);
+    groupCondCommandSimplGroupCall.listItem.push_back(&groupCondCommandSimplCallParameters[2]);
     // 1.4.1.2 - Индивидуальный
+    groupCondCommandSimplIndivCall.subType = GuiWindowsSubType::txGroupCondComm;
     groupCondCommandSimplIndivCall.prevState = &groupCondCommandSimpl;
     groupCondCommandSimplIndivCall.nextState.clear();
+    groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[0]);
+    groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[1]);
+    groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[2]);
+    groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[3]);
     // 1.4.2 - двухсторонняя связь
     groupCondCommandDupl.prevState = &groupCondCommand;
     groupCondCommandDupl.nextState.clear();
@@ -102,17 +111,32 @@ void CGuiTree::init()
     recv.prevState = &main;
     recv.nextState.push_back(&recvTlf);
     recv.nextState.push_back(&recvSms);
+    recv.nextState.push_back(&recvAus);
+    recv.nextState.push_back(&recvCondCommand);
     recv.nextState.push_back(&recvGroupCondCommsnds);
+    recv.nextState.push_back(&recvSilence);
     // 2.3 - Речь
     recvTlf.prevState = &recv;
     recvTlf.nextState.clear();
-    // 2.5 - Сообщение (АУС)
+    // 2.5 - Сообщение (СМС)
     recvSms.subType = GuiWindowsSubType::recvSms;
     recvSms.prevState = &recv;
     recvSms.nextState.clear();
-    // 2.7 - Группа условных команд
+    // 2.6 - Сообщение (АУС)
+    recvAus.prevState = &recv;
+    recvAus.nextState.clear();
+    // 2.7 - Условные команды
+    recvCondCommand.subType = GuiWindowsSubType::recvCondComm;
+    recvCondCommand.prevState = &recv;
+    recvCondCommand.nextState.clear();
+    // 2.8 - Группа условных команд
+    recvGroupCondCommsnds.subType = GuiWindowsSubType::recvGroupCondComm;
     recvGroupCondCommsnds.prevState = &recv;
     recvGroupCondCommsnds.nextState.clear();
+    // 2.9 - Режим радиомолчания
+    recvSilence.subType = GuiWindowsSubType::recvSilence;
+    recvSilence.prevState = &recv;
+    recvSilence.nextState.clear();
     // 3 - Данные
     data.prevState = &main;
     data.nextState.push_back(&dataRecv);
@@ -163,7 +187,6 @@ void CGuiTree::init()
     settings.nextState.push_back(&sttDateTime);
     settings.nextState.push_back(&sttConnParam);
     settings.nextState.push_back(&sttScan);
-    settings.nextState.push_back(&swAruArm);
     settings.nextState.push_back(&sttSound);
     settings.nextState.push_back(&sttSuppress);
     // 4.1 - Дата/время
@@ -174,6 +197,7 @@ void CGuiTree::init()
     sttConnParamGPS.subType = GuiWindowsSubType::gpsSync;
     sttConnParamGPS.prevState = &sttDateTime;
     sttConnParamGPS.nextState.clear();
+    sttConnParamGPS.listItem.push_back(&gpsSynchronization);
     // 4.1.2 - Ручная установка
     sttConnParamHand.prevState = &sttDateTime;
     sttConnParamHand.nextState.push_back(&sttSetDate);
@@ -192,6 +216,8 @@ void CGuiTree::init()
     sttConnParam.prevState = &settings;
     sttConnParam.nextState.push_back(&sttSetFreq);
     sttConnParam.nextState.push_back(&sttSetSpeed);
+    sttConnParam.nextState.push_back(&swAruArm);
+    sttConnParam.nextState.push_back(&sttWaitGuk);
     // 4.2.1 - Частота
     sttSetFreq.subType = GuiWindowsSubType::setFreq;
     sttSetFreq.prevState = &sttConnParam;
@@ -202,14 +228,18 @@ void CGuiTree::init()
     sttSetSpeed.prevState = &sttConnParam;
     sttSetSpeed.nextState.clear();
     sttSetSpeed.listItem.push_back(&speedParameters);
+    // 4.2.3 - АРУ / АРМ / АСУ
+    swAruArm.subType = GuiWindowsSubType::aruarmaus;
+    swAruArm.prevState = &sttConnParam;
+    swAruArm.nextState.clear();
+    // 4.2.4 - Ожидание ГУК
+    sttWaitGuk.subType = GuiWindowsSubType::waitGuk;
+    sttWaitGuk.prevState = &sttConnParam;
+    sttWaitGuk.nextState.clear();
     // 4.3 - Сканирование
     sttScan.subType = GuiWindowsSubType::scan;
     sttScan.prevState = &settings;
     sttScan.nextState.clear();
-    // 4.4 - АРУ / АРМ
-    swAruArm.subType = GuiWindowsSubType::aruarmaus;
-    swAruArm.prevState = &settings;
-    swAruArm.nextState.clear();
     // 4.5 - Громкость
     sttSound.subType = GuiWindowsSubType::volume;
     sttSound.prevState = &settings;

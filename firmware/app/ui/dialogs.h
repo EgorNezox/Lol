@@ -17,6 +17,7 @@
 #include "service.h"
 #include "elements.h"
 #include "keyboard.h"
+#include <stdio.h>
 
 extern MoonsGeometry ui_common_dialog_area;
 extern MoonsGeometry ui_indicator_area;
@@ -108,6 +109,7 @@ class GUI_Dialog_MsgBox: public GUI_Obj
 public:
     GUI_Dialog_MsgBox(MoonsGeometry* area, const char *title, Alignment align);
     GUI_Dialog_MsgBox(MoonsGeometry* area, const char *title, const char *text, Alignment align);
+    GUI_Dialog_MsgBox(MoonsGeometry*, const char*, const int, Alignment);
     virtual ~GUI_Dialog_MsgBox();
     virtual void Draw();
     void keyPressed(UI_Key);

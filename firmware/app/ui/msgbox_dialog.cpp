@@ -61,6 +61,24 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
     this->text = (char*)p_text;
 }
 
+GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
+                                      const char *p_title,
+                                      const int p_text,
+                                      Alignment align
+                                      )
+    :GUI_Obj(area)
+{
+    this->window_geom = { 1, 1, 166, 126 };
+    title_area_params = GUI_EL_TEMP_CommonTextAreaLT;
+    title_area_params.element.align = align;
+    text_area_params = GUI_EL_TEMP_LabelMode;
+    text_area_params.element.align = align;
+    this->title = p_title;
+
+    char sym[64];
+    sprintf(sym,"%d",p_text);
+    this->text = sym;
+}
 //----------------------------
 
 GUI_Dialog_MsgBox::~GUI_Dialog_MsgBox()

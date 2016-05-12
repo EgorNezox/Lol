@@ -106,7 +106,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
 
 	sync_pulse_delay_timer = new QmTimer(true, this);
-	sync_pulse_delay_timer->setInterval(100);
+	sync_pulse_delay_timer->setInterval(1);
 	sync_pulse_delay_timer->timeout.connect(sigc::mem_fun(this, &DspController::processSyncPulse));
 
     cmd_queue = new std::list<DspCommand>();
@@ -419,8 +419,9 @@ void DspController::transmitSMS()
 void DspController::transmitPswf()
 {
     getDataTime();
+    addSeconds(date_time);
     ContentPSWF.L_CODE = navigator->Calc_LCODE(
-    		0 /*ContentPSWF.R_ADR*/, 0 /*ContentPSWF.S_ADR*/,
+    		ContentPSWF.R_ADR /*ContentPSWF.R_ADR*/, ContentPSWF.S_ADR /*ContentPSWF.S_ADR*/,
     		ContentPSWF.COM_N, ContentPSWF.RN_KEY,
 			date_time[0], date_time[1], date_time[2], date_time[3]);
 
@@ -439,6 +440,22 @@ void DspController::transmitPswf()
     }
     ++command_tx30;
     sendPswf(PSWFTransmitter);
+}
+
+void DspController::addSeconds(int *date_time) {
+	date_time[3] += 2;
+	if (date_time[3] >= 60) {
+		date_time[3] %= 60;
+		date_time[2]++;
+		if (date_time[2] >= 60) {
+			date_time[2] %= 60;
+			date_time[1]++;
+			if (date_time[1] >= 24) {
+				date_time[1] %= 24;
+				date_time[0]++;
+			}
+		}
+	}
 }
 
 void DspController::changePswfRxFrequency()
@@ -496,8 +513,11 @@ void DspController::RecievedPswf()
         recievedPswfBuffer.erase(recievedPswfBuffer.begin());
     }
 
+//    private_lcode = navigator->Calc_LCODE(0,0,recievedPswfBuffer.at(command_rx30).at(0),1,
+//            date_time[0],date_time[1], date_time[2],prevSecond(date_time[3]));
+
     private_lcode = navigator->Calc_LCODE(0,0,recievedPswfBuffer.at(command_rx30).at(0),1,
-            date_time[0],date_time[1], date_time[2],prevSecond(date_time[3]));
+    		date_time[0],date_time[1], date_time[2], date_time[3]); //TODO: fix receiving
 
     qmDebugMessage(QmDebug::Dump, "private_lcode = %d,lcode = %d", private_lcode,recievedPswfBuffer.at(command_rx30).at(1));
 
@@ -526,41 +546,59 @@ int DspController::getFrequencyPswf()
     int frequency = 0;
 
 	int sum = 0;
-	int fr_sh = CalcShiftFreq(0,date_time[3],date_time[0],date_time[1],date_time[2]);
+	int fr_sh = CalcShiftFreq(ContentPSWF.RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
 
-	QM_ASSERT(fr_sh >= 0 && fr_sh <= 6670);
+	fr_sh += 1622;
+
+	//QM_ASSERT(fr_sh >= 0 && fr_sh <= 6671);
 
 	fr_sh = fr_sh * 1000; // Гц
+
 
 	bool find_fr = false;
 	int i = 0;
 
-	while(find_fr == false)
-	{
-		sum += (frequence_bandwidth[i+1] - frequence_bandwidth[i]);
-		if (fr_sh < sum)
-		{
-			fr_sh = fr_sh - (sum - (frequence_bandwidth[i+1] - frequence_bandwidth[i]));
-            frequency = (frequence_bandwidth[i] + fr_sh);
-			find_fr = true;
-		}
 
-		i++;
+	for(int i = 0; i<32;i+=2)
+	{
+		if((fr_sh >= frequence_bandwidth[i]) && (fr_sh <= frequence_bandwidth[i+1]))
+		{
+			break;
+		}else{
+			fr_sh += (frequence_bandwidth[i+2] - frequence_bandwidth[i+1]);
+		}
 	}
 
-    return frequency;
+//	while(find_fr == false)
+//	{
+//		sum += (frequence_bandwidth[i+1] - frequence_bandwidth[i]);
+//		if (fr_sh < sum)
+//		{
+//			fr_sh = fr_sh - (sum - (frequence_bandwidth[i+1] - frequence_bandwidth[i]));
+//            frequency = (frequence_bandwidth[i] + fr_sh);
+//			find_fr = true;
+//		}
+//
+//		i++;
+//	}
+
+	qmDebugMessage(QmDebug::Dump,"frequency:  %d ", fr_sh);
+
+    return fr_sh;
 }
 
 
 int DspController::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
 {
-    int TOT_W = 6670; // ширина разрешенных участков
+    int TOT_W = 6671; // ширина разрешенных участков
 
     int SEC_MLT = value_sec[SEC]; // SEC_MLT выбираем в массиве
 
     // RN_KEY - ключ подсети, аналогия с ip-сетью, поставим 0 по умолчанию
 
     int FR_SH = (RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY)% TOT_W;
+
+    qmDebugMessage(QmDebug::Dump, "Calc freq formula %d", FR_SH);
     return FR_SH;
 }
 
@@ -967,6 +1005,10 @@ void DspController::sendPswf(Module module) {
 	qmDebugMessage(QmDebug::Dump, "sendPswf(%d)", module);
 
     ContentPSWF.Frequency = getFrequencyPswf();
+    qmDebugMessage(QmDebug::Warning, "time:  %d, %d, %d,%d", date_time[3],date_time[2],date_time[1],date_time[0]);
+    //qmDebugMessage(QmDebug::Warning, "data:  %d, %d, %d,%d", date_time[3],date_time[2],date_time[1],date_time[0]);
+    qmDebugMessage(QmDebug::Warning, "freq:  %d", ContentPSWF.Frequency);
+    qmDebugMessage(QmDebug::Warning, "LCode:  %d", ContentPSWF.L_CODE);
 
     ContentPSWF.indicator = 20;
     ContentPSWF.TYPE = 0;
@@ -1395,6 +1437,7 @@ void DspController::generateSmsReceived()
 {
 	int count = 0;
 	int data[255];
+	uint8_t packed[100];
 
 	for(int j = 0;j<=recievedSmsBuffer.size()-1;j++){
 		for(int i = 0; i<7;i++)
@@ -1407,7 +1450,7 @@ void DspController::generateSmsReceived()
 	int temp=eras_dec_rs(data,rs_data_clear,&rs_255_93);
 
 	uint8_t crc_chk[87];
-	uint8_t packed[100];
+
 
 	for(int i = 0;i<100;i++) packed[i] = 0;
 
@@ -1423,7 +1466,7 @@ void DspController::generateSmsReceived()
 	uint32_t crc_packet = 0;
 	int k = 3;
 	while(k >=0){
-		crc_packet += (data[87+k] & 0xFF) << (8*k);
+		crc_packet += (packed[87+k] & 0xFF) << (8*k);
 		k--;
 	}
 
@@ -1434,7 +1477,7 @@ void DspController::generateSmsReceived()
 
 	else
 	{
-		for(int i = 0;i<93;i++) sms_content[i] = data[i];
+		for(int i = 0;i<93;i++) sms_content[i] = (char)packed[i];
 		recievedSmsBuffer.erase(recievedSmsBuffer.begin(),recievedSmsBuffer.end());
 		sms_content[99] = '\0';
 		qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
