@@ -28,7 +28,7 @@ void FS::init() {
 
 bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
 	Multiradio::voice_channel_entry_t ch_entry;
-	ch_entry.speed = Multiradio::voicespeed4800;
+	ch_entry.speed = Multiradio::voicespeed1200;
 
 	ch_entry.type = Multiradio::channelOpen;
 	ch_entry.frequency = 1500000;
@@ -59,6 +59,7 @@ bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
 	data.push_back(ch_entry);
 	ch_entry.type = Multiradio::channelClose;
 	ch_entry.frequency = 30000000;
+	ch_entry.speed = Multiradio::voicespeed4800;
 	data.push_back(ch_entry);
 	ch_entry.type = Multiradio::channelOpen;
 	ch_entry.frequency = 31000000;

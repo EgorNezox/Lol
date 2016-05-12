@@ -223,9 +223,14 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 		case 1: chan_type = Multiradio::channelClose; break;
 		}
 		switch ((ch_mask & 0x1C) >> 2) {
-		case 5: break;
-		default: qmDebugMessage(QmDebug::Dump, "headset channel speed is not match local");
+		case 1:
+		case 3:
+		case 4:
+		case 5:
+			break;
+		default: qmDebugMessage(QmDebug::Dump, "headset channel speed is not match local, %d", (ch_mask & 0x1C) >> 2);
 		}
+		qmDebugMessage(QmDebug::Dump, "headset channel speed = %d", ((ch_mask & 0x1C) >> 2));
 		if (ch_number != chan_number || ch_type != chan_type) {
 			ch_number = chan_number;
 			ch_type = chan_type;
@@ -272,9 +277,14 @@ void Controller::processReceivedStatusAsync(uint8_t* data, int data_len) {
 		case 1: chan_type = Multiradio::channelClose; break;
 		}
 		switch ((ch_mask & 0x1C) >> 2) {
-		case 5: break;
-		default: qmDebugMessage(QmDebug::Dump, "headset channel speed is not match local");
+		case 1:
+		case 3:
+		case 4:
+		case 5:
+			break;
+		default: qmDebugMessage(QmDebug::Dump, "headset channel speed is not match local, %d", (ch_mask & 0x1C) >> 2);
 		}
+		qmDebugMessage(QmDebug::Dump, "headset channel speed = %d", ((ch_mask & 0x1C) >> 2));
 		if (ch_number != chan_number || ch_type != chan_type) {
 			ch_number = chan_number;
 			ch_type = chan_type;
@@ -383,14 +393,15 @@ void Controller::synchronizeHSState() {
 	uint8_t data[16];
 	data[0] = 0xAB;
 	data[1] = 0xBA;
+	data[2] = 0x01;
 	switch (ch_table->at(ch_number - 1).speed) {
-	case Multiradio::voicespeed600: data[2] = 0x02; break;
-	case Multiradio::voicespeed1200: data[2] = 0x06; break;
-	case Multiradio::voicespeed2400: data[2] = 0x08; break;
-	case Multiradio::voicespeed4800: data[2] = 0x0B; break;
-	default: data[2] = 0x02; break;
+	case Multiradio::voicespeed600: data[2] |= 0x02; break;
+	case Multiradio::voicespeed1200: data[2] |= 0x06; break;
+	case Multiradio::voicespeed2400: data[2] |= 0x08; break;
+	case Multiradio::voicespeed4800: data[2] |= 0x0B; break;
+	default: data[2] |= 0x02; break;
 	}
-	data[2] |= (uint8_t)((squelch_enable ? 0 : 1) << 5); // mode mask
+//	data[2] |= (uint8_t)((squelch_enable ? 0 : 1) << 5); // mode mask
 	data[3] = ch_number; // channel number
 	data[4] = 0xFF; // reserved
 	data[5] = 0x01 | (uint8_t)((indication_enable ? 0 : 1) << 2);
