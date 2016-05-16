@@ -149,6 +149,11 @@ void VoiceServiceInterface::SmsFailStage(int stage)
     smsFailed(stage);
 }
 
+void VoiceServiceInterface::TurnGuc(int r_adr, int speed_tx, char *command)
+{
+    //
+}
+
 char* VoiceServiceInterface::getSmsContent()
 {
 	return dispatcher->dsp_controller->getSmsContent();

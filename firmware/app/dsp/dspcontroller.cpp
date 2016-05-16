@@ -99,10 +99,10 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 	initResetState();
 
-    //#if defined(PORT__TARGET_DEVICE_REV1)
+    #if defined(PORT__TARGET_DEVICE_REV1)
 	this->navigator = navigator;
 	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
-    //#endif
+    #endif
 
 
 	sync_pulse_delay_timer = new QmTimer(true, this);
@@ -441,7 +441,7 @@ void DspController::transmitPswf()
     ++command_tx30;
     sendPswf(PSWFTransmitter);
 }
-
+//TODO
 void DspController::addSeconds(int *date_time) {
 	date_time[3] += 2;
 	if (date_time[3] >= 60) {
@@ -1041,7 +1041,38 @@ void DspController::sendPswf(Module module) {
 	pending_command->module = module;
 //	pending_command->code = code;
 //	pending_command->value = value;
-	transport->transmitFrame(tx_address, tx_data, tx_data_len);
+    transport->transmitFrame(tx_address, tx_data, tx_data_len);
+}
+
+void DspController::sendGuc(DspController::Module module)
+{
+    qmDebugMessage(QmDebug::Dump, "sendGuc(%d)", module);
+
+    uint8_t tx_address = 0x7A;
+    uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
+    int tx_data_len = 0;
+
+    qmToBigEndian((uint8_t)ContentGuc.indicator, tx_data + tx_data_len);
+    ++tx_data_len;
+    qmToBigEndian((uint8_t)ContentGuc.type, tx_data + tx_data_len);
+    ++tx_data_len;
+    qmToBigEndian((uint8_t)ContentGuc.chip_time, tx_data + tx_data_len);
+    ++tx_data_len;
+    qmToBigEndian((uint8_t)ContentGuc.WIDTH_SIGNAL, tx_data + tx_data_len);
+    ++tx_data_len;
+    qmToBigEndian((uint8_t)ContentGuc.S_ADR, tx_data + tx_data_len);
+    ++tx_data_len;
+    qmToBigEndian((uint8_t)ContentGuc.R_ADR, tx_data + tx_data_len);
+    ++tx_data_len;
+
+
+
+    QM_ASSERT(pending_command->in_progress == false);
+    pending_command->in_progress = true;
+    pending_command->sync_next = true;
+    pending_command->module = module;
+
+    transport->transmitFrame(tx_address, tx_data, tx_data_len);
 }
 
 void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len) {
@@ -1649,6 +1680,22 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     smsTxStateSync = 0;
     radio_state = radiostateSmsTxPrepare;
     ContentSms.stage = stage;
+}
+
+void DspController::startGucTransmitting(int r_adr, int speed_tx, char *command)
+{
+    qmDebugMessage(QmDebug::Dump, "startSmsReceiving");
+    QM_ASSERT(is_ready);
+    
+    getDataTime();
+    
+    
+    ContentGuc.indicator = 20;
+    ContentGuc.type = 1;
+    ContentGuc.R_ADR = r_adr;
+    ContentGuc.chip_time = speed_tx;
+     
+
 }
 
 void DspController::startSMSCmdTransmitting(SmsStage stage)

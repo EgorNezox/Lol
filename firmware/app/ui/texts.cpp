@@ -1,11 +1,3 @@
-/*
- * texts.cpp
- *
- *  Created on: 14 дек. 2015 г.
- *      Author: user
- */
-
-
 #include "texts.h"
 
 const char *test_Pass = {"Тестирование пройдено"};
@@ -32,6 +24,8 @@ char * missing_ch_table_txt[LANG_COUNT]={(char *)"Отсутствует таблица речевых ка
 char * missing_open_ch_txt[LANG_COUNT]={(char *)"Отсутствуют открытые речевые каналы"};
 char * ch_table_mismatch_txt[LANG_COUNT]={(char *)"Несоответствие таблицы речевых каналов списку каналов гарнитуры"};
 
+const char* receiveStr = "Принять\0";
+const char* continueStr = "Продолжить\0";
 
 const char *mainMenu[] = {"ГЛАВНОЕ МЕНЮ\0", "\tВызов\0", "\tПрием\0", "\tДанные\0", "\tНастройки\0"};
 
@@ -43,7 +37,7 @@ const char *callSubMenu[] = {" Условные команды\0", " SMS\0", " Голосовая почта\
     const char *groupCommandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
         const char *groupCommandsSimplSubMenu[] = {" Групповой вызов\0", " Индивидуальный\0"};
 
-const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " Сообщение(АУС)\0", " УК\0", " Группа усл.команд\0"};
+const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " Сообщение(АУС)\0", " УК\0", " Группа усл.команд\0", " Радиомолчание\0"};
 
 const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0", " GPS координаты\0"};
     const char *dataSubSubMenu[] = {" Условные команды\0", " СМС\0", " Головая почта\0", " Группа усл.команд\0"};
@@ -66,15 +60,17 @@ const char *sms_quit_fail1 = "Ошибка приема SMS\0";
 const char *sms_quit_fail2 = "Квитанция потеряна\0";
 const char *sms_crc_fail = "Пакет доставлен с ошибками\0";
 
-const char ch_key0[2] = { '0', '\ '};
-const char ch_key1[] = { '.', ',', '!', '?', '\"', ':' };
-const char ch_key2[] = { 'А', 'Б', 'В', 'Г' };
-const char ch_key3[] = { 'Д', 'Е', 'Ж', 'З' };
-const char ch_key4[] = { 'И', 'Й', 'К', 'Л' };
-const char ch_key5[] = { 'М', 'Н', 'О', 'П' };
-const char ch_key6[] = { 'Р', 'С', 'Т', 'У' };
-const char ch_key7[] = { 'Ф', 'Х', 'Ц', 'Ч' };
-const char ch_key8[] = { 'Ш', 'Щ', 'Ъ', 'Ы' };
-const char ch_key9[] = { 'Ь', 'Э', 'Ю', 'Я' };
+const char ch_key0[] = { '\ ', '0' };
+const char ch_key1[] = { '.', ',', '!', '?', '\"', ':', '1' };
+const char ch_key2[] = { 'А', 'Б', 'В', 'Г', '2' };
+const char ch_key3[] = { 'Д', 'Е', 'Ж', 'З', '3' };
+const char ch_key4[] = { 'И', 'Й', 'К', 'Л', '4' };
+const char ch_key5[] = { 'М', 'Н', 'О', 'П', '5' };
+const char ch_key6[] = { 'Р', 'С', 'Т', 'У', '6' };
+const char ch_key7[] = { 'Ф', 'Х', 'Ц', 'Ч', '7' };
+const char ch_key8[] = { 'Ш', 'Щ', 'Ъ', 'Ы', '8' };
+const char ch_key9[] = { 'Ь', 'Э', 'Ю', 'Я', '9' };
 
 const char *recvCondCommand = "Принята условная команда\0";
+
+const char* groupCondCommFreqStr = "Частота ";

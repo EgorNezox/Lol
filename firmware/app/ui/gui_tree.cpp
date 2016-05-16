@@ -17,7 +17,7 @@ void CGuiTree::init()
     // 1.5.1.1 - 1.5.1.2
     groupCondCommandSimplGroupCall.setName(groupCommandsSimplSubMenu[0]); groupCondCommandSimplIndivCall.setName(groupCommandsSimplSubMenu[1]);
     // 2.1 - 2.3
-    recvTlf.setName(reciveSubMenu[0]); recvSms.setName(reciveSubMenu[1]); recvAus.setName(reciveSubMenu[2]); recvCondCommand.setName(reciveSubMenu[3]); recvGroupCondCommsnds.setName(reciveSubMenu[4]); recvSilence.setName(reciveSubMenu[5]);
+    recvTlf.setName(reciveSubMenu[0]); recvSms.setName(reciveSubMenu[1]); recvCondCommand.setName(reciveSubMenu[3]); recvGroupCondCommsnds.setName(reciveSubMenu[4]); recvSilence.setName(reciveSubMenu[5]);
     // 3.1 - 3.3
     dataRecv.setName(dataSubMenu[0]), dataSend.setName(dataSubMenu[1]), dataGps.setName(dataSubMenu[3]);
     // 3.1.1 - 3.1.4
@@ -122,9 +122,6 @@ void CGuiTree::init()
     recvSms.subType = GuiWindowsSubType::recvSms;
     recvSms.prevState = &recv;
     recvSms.nextState.clear();
-    // 2.6 - Сообщение (АУС)
-    recvAus.prevState = &recv;
-    recvAus.nextState.clear();
     // 2.7 - Условные команды
     recvCondCommand.subType = GuiWindowsSubType::recvCondComm;
     recvCondCommand.prevState = &recv;

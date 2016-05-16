@@ -80,6 +80,8 @@ public:
     void startSMSRecieving(SmsStage stage = StageRx_call);
     void startSMSTransmitting(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call);
 
+    void startGucTransmitting(int r_adr, int speed_tx, char *command);
+
     void parsingData();
     void *getContentPSWF();
 
@@ -188,6 +190,21 @@ private:
 
     int *counterSms;
 
+    struct GucContent
+    {
+        uint8_t indicator;
+        uint8_t type;
+        uint8_t chip_time;
+        uint8_t WIDTH_SIGNAL;
+        uint8_t R_ADR;
+        uint8_t S_ADR;
+        uint8_t NUM_com;
+        uint8_t ckk;
+        uint8_t uin;
+        uint8_t Coord;
+
+    } ContentGuc;
+
 
     void initResetState();
     void processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version);
@@ -204,6 +221,7 @@ private:
     bool resyncPendingCommand();
     void sendCommand(Module module, int code, ParameterValue value);
     void sendPswf(Module module);
+    void sendGuc(Module module);
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
 
 

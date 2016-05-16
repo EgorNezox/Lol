@@ -29,7 +29,7 @@
 
 GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
 {
-	MoonsGeometry icon_geom;
+    MoonsGeometry icon_geom;
 
     icon_geom = GEOM_ICON(0);
     ind_multiradio = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
@@ -62,24 +62,24 @@ GUI_Indicator::~GUI_Indicator()
 //-----------------------------
 
 void GUI_Indicator::UpdateMultiradio(Multiradio::MainServiceInterface::Status status){
-	switch(status){
-		case Multiradio::MainServiceInterface::StatusIdle:
-		case Multiradio::MainServiceInterface::StatusNotReady:
+    switch(status){
+        case Multiradio::MainServiceInterface::StatusIdle:
+        case Multiradio::MainServiceInterface::StatusNotReady:
             ind_multiradio->icon = sym_blank;
-			break;
-		case Multiradio::MainServiceInterface::StatusVoiceRx:
+            break;
+        case Multiradio::MainServiceInterface::StatusVoiceRx:
             ind_multiradio->icon = sym_rx;
-			break;
-		case Multiradio::MainServiceInterface::StatusVoiceTx:
+            break;
+        case Multiradio::MainServiceInterface::StatusVoiceTx:
             ind_multiradio->icon = sym_tx;
-			break;
-		case Multiradio::MainServiceInterface::StatusTuningTx:
+            break;
+        case Multiradio::MainServiceInterface::StatusTuningTx:
             ind_multiradio->icon = sym_tx_tune;
-			break;
-		default:
-			QM_ASSERT(0);
-			break;
-	}
+            break;
+        default:
+            QM_ASSERT(0);
+            break;
+    }
 }
 
 void GUI_Indicator::UpdateBattery(int new_val){
@@ -101,22 +101,22 @@ void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
 
     switch(status)
     {
-		case Headset::Controller::StatusNone:
+        case Headset::Controller::StatusNone:
             ind_headset->icon = sym_headphones_none;
-			break;
-		case Headset::Controller::StatusAnalog:
+            break;
+        case Headset::Controller::StatusAnalog:
             ind_headset->icon = sym_headphones_analog;
-			break;
-		case Headset::Controller::StatusSmartOk:
+            break;
+        case Headset::Controller::StatusSmartOk:
             ind_headset->icon = sym_headphones_smart;
-			break;
-		case Headset::Controller::StatusSmartMalfunction:
+            break;
+        case Headset::Controller::StatusSmartMalfunction:
             ind_headset->icon = sym_headphones_broken;
-			break;
-		default:
-			QM_ASSERT(0);
-			break;
-	}
+            break;
+        default:
+            QM_ASSERT(0);
+            break;
+    }
 }
 
 
@@ -127,9 +127,9 @@ void GUI_Indicator::Draw( Multiradio::MainServiceInterface::Status multiradioSta
                           int                                      battaryStatus,
                           bool                                     gpsStatus
                          ){
-	gsetcolorb(GENERAL_BACK_COLOR);
-	gsetvp(0,0,GDISPW-1, GDISPH-1);
-	groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe,ui_indicator_area.ye,0,GFILL);
+    gsetcolorb(GENERAL_BACK_COLOR);
+    gsetvp(0,0,GDISPW-1, GDISPH-1);
+    groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe,ui_indicator_area.ye,0,GFILL);
 
     UpdateMultiradio(multiradioStatus /*service->pGetMultitradioService()->getStatus()*/);
     UpdateHeadset   (headsetStatus /*service->pGetHeadsetController()->getStatus()*/);

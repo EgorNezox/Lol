@@ -205,7 +205,4 @@ private:
 
 };
 
-
-
-
 #endif // GUI_STACK

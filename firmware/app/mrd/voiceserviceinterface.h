@@ -44,6 +44,8 @@ public:
     void TurnSMSMode();
     void SmsFailStage(int stage);
 
+    void TurnGuc(int r_adr,int speed_tx,char *command);
+
     char* getSmsContent();
 
 	sigc::signal<void> currentChannelChanged;
