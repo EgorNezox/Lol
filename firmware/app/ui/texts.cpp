@@ -27,7 +27,7 @@ char * ch_table_mismatch_txt[LANG_COUNT]={(char *)"Несоответствие таблицы речевы
 const char* receiveStr = "Принять\0";
 const char* continueStr = "Продолжить\0";
 
-const char *mainMenu[] = {"ГЛАВНОЕ МЕНЮ\0", "\tВызов\0", "\tПрием\0", "\tДанные\0", "\tНастройки\0"};
+const char *mainMenu[] = {"ГЛАВНОЕ МЕНЮ\0", " Вызов\0", " Прием\0", " Данные\0", " Настройки\0"};
 
 const char *callSubMenu[] = {" Условные команды\0", " SMS\0", " Голосовая почта\0", " Группа усл.команд\0"};
     const char *commandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};

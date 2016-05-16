@@ -752,16 +752,16 @@ void CGuiMenu::initTxSmsDialog(const char* titleStr, std::string addrStr, std::s
 
 void CGuiMenu::initRxSmsDialog()
 {
-        titleArea   = {  5,   5, 150,  20 };
-    MoonsGeometry button_geom = { 40, 110, 110, 125 };
+                  titleArea   = {  5,   5, 150,  20 };
+    MoonsGeometry button_geom = { 30, 80, 130, 120 };
 
     LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
-    param.element.align = {alignLeft, alignTop};
-    param.transparent = true;
+    param.element.align = {alignHCenter, alignVCenter};
+    param.transparent = false;
 
-    GUI_EL_Window   window    (&GUI_EL_TEMP_WindowGeneral, &windowArea,                       (GUI_Obj *)this);
-    GUI_EL_Label    title     ( &titleParams,              &titleArea,   (char*)titleStr.c_str(),     (GUI_Obj *)this);
-    GUI_EL_Label    ok_button (&param,                  &button_geom, (char*)trans,        (GUI_Obj *)this);
+    GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
+    GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
+    GUI_EL_Label    ok_button ( &param,                     &button_geom, (char*)receiveStr,       (GUI_Obj *)this);
 
     window.Draw();
     title.Draw();
@@ -829,8 +829,8 @@ void CGuiMenu::initGroupCondComm( CEndState state )
     case 1:
     {
         auto iter = state.listItem.begin();
-        *iter++;
-        *iter++;
+        (*iter)++;
+        (*iter)++;
         MoonsGeometry addressTitleArea, addressValueArea, commandTitleArea, commandValueArea;
                       titleArea        = {  5,   5, 150,  20 };
       if ( state.listItem.size() == 4 )
@@ -866,30 +866,42 @@ void CGuiMenu::initGroupCondComm( CEndState state )
         param[1].element.align = {alignLeft, alignVCenter};
         param[3].element.align = {alignLeft, alignVCenter};
 
-        GUI_EL_Window window       ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                                (GUI_Obj*)this );
-        GUI_EL_Label  title        ( &titleParams,               &titleArea,        (char*)titleStr.c_str(), (GUI_Obj*)this );
-
-        GUI_EL_Label  commandTitle ( &param[2],                  &commandTitleArea, (char*)reciveSubMenu[4], (GUI_Obj*)this );
-        GUI_EL_Label  commandValue ( &param[3],                  &commandValueArea, (char*)(*iter)->inputStr.c_str(),   (GUI_Obj*)this );
-        GUI_EL_Label  ok_button    ( &param[4],                  &buttonArea,       (char*)trans,            (GUI_Obj*)this );
-
-        window.Draw();
-        title.Draw();
-
-
         if ( state.listItem.size() == 4 )
         {
-            *iter++;
-
+            GUI_EL_Window window       ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                                (GUI_Obj*)this );
+            GUI_EL_Label  title        ( &titleParams,               &titleArea,        (char*)titleStr.c_str(), (GUI_Obj*)this );
             GUI_EL_Label  addressTitle ( &param[0],                  &addressTitleArea, (char*)callTitle[1],     (GUI_Obj*)this );
             GUI_EL_Label  addressValue ( &param[1],                  &addressValueArea, (char*)(*iter)->inputStr.c_str(),   (GUI_Obj*)this );
+            GUI_EL_Label  commandTitle ( &param[2],                  &commandTitleArea, (char*)reciveSubMenu[4], (GUI_Obj*)this );
+            (*iter)++;
+            GUI_EL_Label  commandValue ( &param[3],                  &commandValueArea, (char*)(*iter)->inputStr.c_str(),   (GUI_Obj*)this );
+            GUI_EL_Label  ok_button    ( &param[4],                  &buttonArea,       (char*)trans,            (GUI_Obj*)this );
+
+            window.Draw();
+            title.Draw();
             addressTitle.Draw();
             addressValue.Draw();
+            commandTitle.Draw();
+            commandValue.Draw();
+            ok_button.Draw();
         }
 
-        commandTitle.Draw();
-        commandValue.Draw();
-        ok_button.Draw();
+        if ( state.listItem.size() == 3 )
+        {
+            (*iter)++;
+
+            GUI_EL_Window window       ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                                (GUI_Obj*)this );
+            GUI_EL_Label  title        ( &titleParams,               &titleArea,        (char*)titleStr.c_str(), (GUI_Obj*)this );
+            GUI_EL_Label  commandTitle ( &param[2],                  &commandTitleArea, (char*)reciveSubMenu[4], (GUI_Obj*)this );
+            GUI_EL_Label  commandValue ( &param[3],                  &commandValueArea, (char*)(*iter)->inputStr.c_str(),   (GUI_Obj*)this );
+            GUI_EL_Label  ok_button    ( &param[4],                  &buttonArea,       (char*)trans,            (GUI_Obj*)this );
+
+            window.Draw();
+            title.Draw();
+            commandTitle.Draw();
+            commandValue.Draw();
+            ok_button.Draw();
+        }
         break;
     }
     default:

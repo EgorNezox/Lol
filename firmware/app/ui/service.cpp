@@ -614,15 +614,22 @@ void Service::keyPressed(UI_Key key)
             if ( menu->groupCondCommStage == 0 )
             {
                 if (menu->focus == 1)
-                    (*iter++);
+                    (*iter)++;
             }
-            else if ( menu->groupCondCommStage == 1 )
+            else if ( menu->groupCondCommStage == 1 && estate.listItem.size() == 4 )
             {
                 if ( menu->focus == 0 )
                 {
                     (*iter)++;(*iter)++;
                 }
                 if ( menu->focus == 1 )
+                {
+                    (*iter)++;(*iter)++;(*iter)++;
+                }
+            }
+            else if ( menu->groupCondCommStage == 1 && estate.listItem.size() == 3 )
+            {
+                if ( menu->focus == 0 )
                 {
                     (*iter)++;(*iter)++;(*iter)++;
                 }
@@ -640,6 +647,9 @@ void Service::keyPressed(UI_Key key)
                     }
                     else
                     {
+                        for (auto &k: estate.listItem)
+                            k->inputStr.clear();
+
                         guiTree.backvard();
                         menu->focus = 0;
                     }
@@ -706,6 +716,8 @@ void Service::keyPressed(UI_Key key)
                         /* check */
                         /* callback */
 #else
+                        for (auto &k: estate.listItem)
+                            k->inputStr.clear();
                         guiTree.resetCurrentState();
 #endif
                     }
@@ -887,6 +899,23 @@ void Service::keyPressed(UI_Key key)
                 }
                 else
                 {}
+                break;
+            }
+            break;
+        }
+        case GuiWindowsSubType::recvVoice:
+        {
+            switch ( key )
+            {
+            case keyBack:
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+                break;
+            }
+            case keyEnter:
+            {break;}
+            default:
                 break;
             }
             break;
@@ -1076,6 +1105,17 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::gpsSync:
         {
+            switch ( key )
+            {
+            case keyBack:
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+                break;
+            }
+            default:
+                break;
+            }
             break;
         }
         case GuiWindowsSubType::setDate:
@@ -1303,6 +1343,7 @@ void Service::drawMenu()
         case GuiWindowsSubType::message:
             menu->initTxSmsDialog( st.getName(), st.listItem.front()->inputStr, st.listItem.back()->inputStr );
             break;
+        case GuiWindowsSubType::recvVoice:
         case GuiWindowsSubType::recvCondComm:
         case GuiWindowsSubType::recvGroupCondComm:
         case GuiWindowsSubType::recvSms:
