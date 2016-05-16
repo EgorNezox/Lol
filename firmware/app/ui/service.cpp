@@ -609,32 +609,32 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::txGroupCondComm:
         {
-            auto iter = estate.listItem.begin();
+            std::list<SInputItemParameters*>::iterator iter = estate.listItem.begin();
 
-            switch (menu->focus)
+            if ( menu->groupCondCommStage == 0 )
             {
-            case 1:
-                (*iter++);
-                break;
-            case 2:
-                (*iter++);(*iter++);
-                break;
-            case 3:
-                (*iter++);(*iter++);(*iter++);
-                break;
-            default:
-                break;
+                if (menu->focus == 1)
+                    (*iter++);
             }
-
+            else if ( menu->groupCondCommStage == 1 )
+            {
+                if ( menu->focus == 0 )
+                {
+                    (*iter)++;(*iter)++;
+                }
+                if ( menu->focus == 1 )
+                {
+                    (*iter)++;(*iter)++;(*iter)++;
+                }
+            }
 
             switch ( key )
             {
             case keyBack:
             {
-
-                if ( menu->groupCondCommStage == 0 && (menu->focus == 0 || menu->focus == 1) )
+                if ( menu->groupCondCommStage == 0 && menu->focus < 2 )
                 {
-                    if ( (menu->focus == 0 || menu->focus == 1) && ( (*iter)->inputStr.size() > 0) )
+                    if ( (*iter)->inputStr.size() > 0 )
                     {
                         (*iter)->inputStr.pop_back();
                     }
@@ -644,15 +644,31 @@ void Service::keyPressed(UI_Key key)
                         menu->focus = 0;
                     }
                 }
-                else if ( menu->groupCondCommStage == 1 && (menu->focus == 0 || menu->focus == 1) )
+                else if ( menu->groupCondCommStage == 1 )
                 {
-                    if ( menu->focus == 0 && (*iter)->inputStr.size() > 0 && estate.listItem.size() == 4 )
+                    if ( estate.listItem.size() == 4 && menu->focus < 2 )
                     {
-                        (*iter)->inputStr.pop_back();
+                        if ( (*iter)->inputStr.size() > 0 )
+                        {
+                            (*iter)->inputStr.pop_back();
+                        }
+                        else
+                        {
+                            menu->groupCondCommStage = 0;
+                            menu->focus = 0;
+                        }
                     }
-                    else if ( ((menu->focus == 1  && estate.listItem.size() == 4) || (menu->focus == 0  && estate.listItem.size() == 3))&& (*iter)->inputStr.size() > 0)
+                    else if ( estate.listItem.size() == 3 && menu->focus < 2 )
                     {
-                        (*iter)->inputStr.pop_back();
+                        if ( (*iter)->inputStr.size() > 0 )
+                        {
+                            (*iter)->inputStr.pop_back();
+                        }
+                        else
+                        {
+                            menu->groupCondCommStage = 0;
+                            menu->focus = 0;
+                        }
                     }
                     else
                     {
@@ -719,16 +735,12 @@ void Service::keyPressed(UI_Key key)
                 if ( menu->groupCondCommStage == 0 && (menu->focus == 0 || menu->focus == 1) )
                 {
                     std::string* freq;
-                    auto iter = estate.listItem.begin();
 
                     if ( menu->focus == 0 )
                         freq = &(*iter)->inputStr;
 
                     if ( menu->focus == 1 )
-                    {
-                        *iter++;
                         freq = &(*iter)->inputStr;
-                    }
 
                     if (freq->size() < 8)
                     {
@@ -753,9 +765,6 @@ void Service::keyPressed(UI_Key key)
                         if ( menu->groupCondCommStage == 1 && menu->focus == 0 )
                         {
                             std::string* commands;
-                            auto iter = estate.listItem.begin();
-                            (*iter++);(*iter++);
-
                             commands = &(*iter)->inputStr;
 
                             if ( key > 5 && key < 17 && commands->size() < 20 )
@@ -770,9 +779,6 @@ void Service::keyPressed(UI_Key key)
                         if ( menu->focus == 0 )
                         {
                             std::string* address;
-                            auto iter = estate.listItem.begin();
-                            (*iter++);(*iter++);
-
                             address = &(*iter)->inputStr;
 
                             if ( key > 5 && key < 17)
@@ -786,9 +792,6 @@ void Service::keyPressed(UI_Key key)
                         if ( menu->focus == 1 )
                         {
                             std::string* commands;
-                            auto iter = estate.listItem.begin();
-                            (*iter++);(*iter++);(*iter++);
-
                             commands = &(*iter)->inputStr;
 
                             if ( key > 5 && key < 17 && commands->size() < 20 )
