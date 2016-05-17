@@ -65,6 +65,7 @@ const char *smsText[] = {"Адрес: \0", "Сообщение:\n\0"};
 const char *sms_quit_fail1 = "Ошибка приема SMS\0";
 const char *sms_quit_fail2 = "Квитанция потеряна\0";
 const char *sms_crc_fail = "Пакет доставлен с ошибками\0";
+const char *sms_sucsess = "SMS принята\0";
 
 const char ch_key0[2] = { '0', '\ '};
 const char ch_key1[] = { '.', ',', '!', '?', '\"', ':' };

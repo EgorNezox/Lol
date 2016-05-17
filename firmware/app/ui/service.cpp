@@ -155,6 +155,12 @@ void Service::FailedSms(int stage)
     	 guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
     	 msgBox( "Failed Sms", sms_crc_fail);
     }
+
+    if (stage == -1)
+    {
+    	 guiTree.append(messangeWindow, "Failed Sms", sms_sucsess);
+    	 msgBox( "Sucsess Sms", sms_sucsess);
+    }
 }
 
 Service::~Service() {

@@ -93,7 +93,7 @@ public:
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void,int> firstPacket;
     sigc::signal<void> smsReceived;
-    sigc::signal<void,int> smsFailed;
+    sigc::signal<void,int> smsCheckFailed;
     sigc::signal<void> smsPacketMessage;
 
     float swf_res = 2; // надо изменить значение на нижнее предельное
@@ -231,7 +231,7 @@ private:
 
     int check_rx_call();
 
-    int calc_ack_code(int ack);
+    uint8_t calc_ack_code(uint8_t ack);
 
     Navigation::Navigator *navigator;
 
@@ -306,6 +306,9 @@ private:
     int rs_data_clear[255];
 
     char sms_content[100];
+
+    uint8_t ack;
+    int ok_quit = 0;
 };
 
 
