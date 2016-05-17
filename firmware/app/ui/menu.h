@@ -70,6 +70,7 @@ public:
 
     // group cond comm stage
     int groupCondCommStage = 0;
+    void inputGroupCondCmd( CEndState, UI_Key );
 
     // message ( SMS )
     void initTxSmsDialog(const char *, std::string, std::string);

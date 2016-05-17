@@ -20,7 +20,7 @@ using namespace MessagesPSWF;
 
 namespace Ui {
 
-bool Service::single_instance = false; // пїЅ В·пїЅ В°пїЅ � � пїЅ С‘� Ў� ѓпїЅ С‘пїЅ С�пїЅ С•� Ў� ѓ� ЎвЂљ� Ў� Љ пїЅ С•� ЎвЂљ пїЅ ВµпїЅ Т‘пїЅ С‘пїЅ � …� Ў� ѓ� ЎвЂљпїЅ � � пїЅ ВµпїЅ � …пїЅ � …пїЅ С•пїЅ С–пїЅ С• пїЅ Т‘пїЅ С‘� Ў� ѓпїЅ С—пїЅ В»пїЅ Вµ� Ў� Џ пїЅ � �  � Ў� ѓпїЅ С‘� Ў� ѓ� ЎвЂљпїЅ ВµпїЅ С�пїЅ Вµ
+bool Service::single_instance = false;
 
 Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   aux_keyboard_t                     auxkb_desc,
@@ -56,7 +56,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     menu = nullptr;
     msg_box = nullptr;
 
-    // пїЅ С‘� Ў� ѓпїЅ С—� Ў� ‚пїЅ В°пїЅ � � пїЅ С‘� ЎвЂљ� Ў� Љ пїЅ � …пїЅ В° � Ў� ѓпїЅ Вµ� Ў� ‚пїЅ � � пїЅ С‘� Ў� ѓ
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
@@ -70,6 +69,14 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
     voice_service->smsMess.connect(sigc::mem_fun(this,&Service::smsMessage));
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
+
+#ifndef PORT__PCSIMULATOR
+    QmTimer *systemTimeTimer;
+    systemTimeTimer = new QmTimer(true, this);
+    systemTimeTimer->setInterval(1000);
+    systemTimeTimer->start();
+    systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
+#endif
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -291,7 +298,6 @@ void Service::keyPressed(UI_Key key)
 
     switch( state.getType() )
     {
-    // � “� »� °� І� ЅС‹� № СЌ� єСЂ� °� Ѕ
     case mainWindow:
     {
         if (main_scr->isEditing())
@@ -305,7 +311,6 @@ void Service::keyPressed(UI_Key key)
                 main_scr->setFreq(main_scr->oFreq.c_str());
                 break;
             case keyEnter:
-                // С„� ё� єСЃ� °С� � ёСЏ � ё� ·� ј� µ� Ѕ� µ� Ѕ� ё� №
                 if (main_scr->mwFocus == 0)
                 {
                     main_scr->oFreq.clear();
@@ -781,7 +786,8 @@ void Service::keyPressed(UI_Key key)
 
                             if ( key > 5 && key < 17 && commands->size() < 20 )
                             {
-                                commands->push_back( (char)(42 + key) );
+                                menu->inputGroupCondCmd(estate, key);
+                                //commands->push_back( (char)(42 + key) );
                             }
                         }
                     }
@@ -808,7 +814,10 @@ void Service::keyPressed(UI_Key key)
 
                             if ( key > 5 && key < 17 && commands->size() < 20 )
                             {
-                                commands->push_back( (char)(42 + key) );
+                                if ( key != key0 )
+                                    commands->push_back( (char)(42 + key) );
+                                else
+                                    menu->inputGroupCondCmd(estate, key);
                             }
                         }
                     }
@@ -881,6 +890,7 @@ void Service::keyPressed(UI_Key key)
 #ifndef PORT__PCSIMULATOR
                         voice_service->TurnSMSMode(r_adr, mes);
 #endif
+                        menu->keyPressCount = 0;
                     }
                 }
                 break;
@@ -1358,13 +1368,19 @@ void Service::drawMenu()
             break;
         }
         case GuiWindowsSubType::gpsCoord:
+        {
 #if !defined(PORT__PCSIMULATOR)
             setCoordDate(navigator->getCoordDate());
 #endif
             menu->initGpsCoordinateDialog( coord_lat, coord_log );
             break;
+        }
         case GuiWindowsSubType::gpsSync:
+        {
+            menu->inclStatus = menu->scanStatus;
+            menu->initIncludeDialog();
             break;
+        }
         case GuiWindowsSubType::setDate:
         {
             std::string str; str.append(st.listItem.front()->inputStr);// str.append(freq_hz);
@@ -1390,21 +1406,29 @@ void Service::drawMenu()
             break;
         }
         case GuiWindowsSubType::twoState:
-            menu->initTwoStateDialog();
+        {    menu->initTwoStateDialog();}
         case GuiWindowsSubType::scan:
+        {
             menu->inclStatus = menu->scanStatus;
             menu->initIncludeDialog();
             break;
+        }
         case GuiWindowsSubType::suppress:
+        {
             menu->inclStatus = menu->supressStatus;
             menu->initIncludeDialog();
             break;
+        }
         case GuiWindowsSubType::aruarmaus:
+        {
             menu->initAruarmDialog();
             break;
+        }
         case GuiWindowsSubType::volume:
+        {
             menu->initVolumeDialog();
             break;
+        }
         default:
             break;
         }

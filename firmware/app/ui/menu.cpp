@@ -622,6 +622,25 @@ void CGuiMenu::initSetParametersDialog(std::string text)
     volume.Draw();
 }
 
+void CGuiMenu::inputGroupCondCmd( CEndState state, UI_Key key )
+{
+    auto elem = state.listItem.back();
+    auto newTime = std::chrono::steady_clock::now();
+
+    if ( ( newTime - ct ).count() < 800*(1000000) )
+    {
+        keyPressCount++;
+        if ( keyPressCount > 1 )
+            keyPressCount = 0;
+
+        elem->inputStr.pop_back();
+    }
+
+    elem->inputStr.push_back(ch_key0[keyPressCount]);
+
+    ct = std::chrono::steady_clock::now();
+}
+
 void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)
 {
     auto newTime = std::chrono::steady_clock::now();
