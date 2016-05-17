@@ -676,8 +676,8 @@ void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)
         }
 
         auto elem = state.listItem.back();
-        if ( (elem->inputStr.size() > 0) && (elem->inputStr.size()%16 == 0) )
-        { elem->inputStr.push_back('\n'); }
+//        if ( (elem->inputStr.size() > 0) && (elem->inputStr.size()%16 == 0) )
+//        { elem->inputStr.push_back('\n'); }
         switch (key)
         {
         case key0:
@@ -754,7 +754,21 @@ void CGuiMenu::initTxSmsDialog(const char* titleStr, std::string addrStr, std::s
     if ( focus == 0 ){ str1.append("->"); }else{ /*if (focus != 2)*/str1.append("  "); }
     if ( focus == 1 ){ str2.append("->"); }else{ /*if (focus != 2)*/str2.append("  "); }
     str1.append(smsText[0]); str1.append(addrStr);
-    str2.append(smsText[1]); str2.append(msgStr);
+    str2.append(smsText[1]);/* str2.append(msgStr);*/
+
+    int b;
+    if ( msgStr.size() < 65 )
+        b = 0;
+    else
+        b = msgStr.size()-65;
+
+    for (int i = b; i < msgStr.size(); i++)
+    {
+        if ( (i-b)%16 == 0 && (i-b) != 0 )
+            str2.push_back('\n');
+        else
+            str2.push_back( msgStr[i] );
+    }
 
     GUI_EL_Window   window    (&GUI_EL_TEMP_WindowGeneral, &windowArea,                       (GUI_Obj *)this);
     GUI_EL_Label    title     ( &titleParams,              &titleArea,   (char*)titleStr,     (GUI_Obj *)this);
@@ -892,9 +906,14 @@ void CGuiMenu::initGroupCondComm( CEndState state )
             GUI_EL_Label  addressTitle ( &param[0],                  &addressTitleArea, (char*)callTitle[1],     (GUI_Obj*)this );
             GUI_EL_Label  addressValue ( &param[1],                  &addressValueArea, (char*)(*iter)->inputStr.c_str(),   (GUI_Obj*)this );
             GUI_EL_Label  commandTitle ( &param[2],                  &commandTitleArea, (char*)reciveSubMenu[4], (GUI_Obj*)this );
-            (*iter)++;
-            GUI_EL_Label  commandValue ( &param[3],                  &commandValueArea, (char*)(*iter)->inputStr.c_str(),   (GUI_Obj*)this );
-            GUI_EL_Label  ok_button    ( &param[4],                  &buttonArea,       (char*)trans,            (GUI_Obj*)this );
+            (*iter)++; std::string str;
+            if ((*iter)->inputStr.size() < 20)
+                str.append((*iter)->inputStr);
+            else
+                str.append((*iter)->inputStr.substr( (*iter)->inputStr.size()-20, 20));
+
+            GUI_EL_Label  commandValue ( &param[3],                  &commandValueArea, (char*)str.c_str(),   (GUI_Obj*)this );
+            GUI_EL_Label  ok_button    ( &param[4],                  &buttonArea,       (char*)trans,         (GUI_Obj*)this );
 
             window.Draw();
             title.Draw();
@@ -912,8 +931,13 @@ void CGuiMenu::initGroupCondComm( CEndState state )
             GUI_EL_Window window       ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                                (GUI_Obj*)this );
             GUI_EL_Label  title        ( &titleParams,               &titleArea,        (char*)titleStr.c_str(), (GUI_Obj*)this );
             GUI_EL_Label  commandTitle ( &param[2],                  &commandTitleArea, (char*)reciveSubMenu[4], (GUI_Obj*)this );
-            GUI_EL_Label  commandValue ( &param[3],                  &commandValueArea, (char*)(*iter)->inputStr.c_str(),   (GUI_Obj*)this );
-            GUI_EL_Label  ok_button    ( &param[4],                  &buttonArea,       (char*)trans,            (GUI_Obj*)this );
+            std::string str;
+            if ((*iter)->inputStr.size() < 20)
+                str.append((*iter)->inputStr);
+            else
+                str.append((*iter)->inputStr.substr( (*iter)->inputStr.size()-20, 20));
+            GUI_EL_Label  commandValue ( &param[3],                  &commandValueArea, (char*)str.c_str(),   (GUI_Obj*)this );
+            GUI_EL_Label  ok_button    ( &param[4],                  &buttonArea,       (char*)trans,         (GUI_Obj*)this );
 
             window.Draw();
             title.Draw();

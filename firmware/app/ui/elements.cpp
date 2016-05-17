@@ -127,6 +127,10 @@ void GUI_EL_Label::SetText(char *text){
         memset(this->text, 0, MAX_LABEL_LENGTH);
 		strcpy(this->text, text);
 	}
+    else
+    {
+        memset(this->text, 0, MAX_LABEL_LENGTH);
+    }
 }
 
 //-----------------------------

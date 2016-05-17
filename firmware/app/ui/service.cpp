@@ -705,7 +705,8 @@ void Service::keyPressed(UI_Key key)
             {
                 if ( menu->groupCondCommStage == 0 )
                 {
-                    if ( menu->focus == 2 ){
+                    if ( menu->focus == 2 )
+                    {
                         menu->focus = 0;
                         menu->groupCondCommStage = 1;
                     }
@@ -786,8 +787,10 @@ void Service::keyPressed(UI_Key key)
 
                             if ( key > 5 && key < 17 && commands->size() < 20 )
                             {
-                                menu->inputGroupCondCmd(estate, key);
-                                //commands->push_back( (char)(42 + key) );
+                                if ( key != key0 )
+                                    commands->push_back( (char)(42 + key) );
+                                else
+                                    menu->inputGroupCondCmd(estate, key);
                             }
                         }
                     }
@@ -812,7 +815,7 @@ void Service::keyPressed(UI_Key key)
                             std::string* commands;
                             commands = &(*iter)->inputStr;
 
-                            if ( key > 5 && key < 17 && commands->size() < 20 )
+                            if ( key > 5 && key < 17 && commands->size() < 100 )
                             {
                                 if ( key != key0 )
                                     commands->push_back( (char)(42 + key) );
@@ -904,7 +907,7 @@ void Service::keyPressed(UI_Key key)
                 }
                 else if ( menu->focus == 1 )
                 {
-                    if ( elem.listItem.back()->inputStr.size() < 74 )
+                    if ( elem.listItem.back()->inputStr.size() < 100 )
                         menu->inputSmsMessage( (CEndState&)guiTree.getCurrentState(), key );
                 }
                 else
@@ -1343,16 +1346,20 @@ void Service::drawMenu()
         {
         case GuiWindowsSubType::simpleCondComm:
         case GuiWindowsSubType::duplCondComm:
+        {
             menu->initCondCommDialog(st);
             break;
+        }
         case GuiWindowsSubType::txGroupCondComm:
         {
             menu->initGroupCondComm( st );
             break;
         }
         case GuiWindowsSubType::message:
+        {
             menu->initTxSmsDialog( st.getName(), st.listItem.front()->inputStr, st.listItem.back()->inputStr );
             break;
+        }
         case GuiWindowsSubType::recvVoice:
         case GuiWindowsSubType::recvCondComm:
         case GuiWindowsSubType::recvGroupCondComm:
