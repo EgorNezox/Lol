@@ -37,6 +37,9 @@
   *   being executed: slave transmitter mode, immediately(!) followed by slave receiver mode without enough clock stretching.
   *   After that, controller cannot generate START condition until software issues SWRST.
   *   Workaround is to insert 1ms delay in slave transfer between getting ADDR=1 and clearing ADDR, forcing controller to stretch SCL low.
+  * - Tricky scenarios were discovered during testing. Bus error may happen even in START/STOP generation phases due to
+  *   spikes, incorrect timings due to bad capacities on bus, misbehavior of other masters, or whatever.
+  *   For transfer finishing scenario I'm not even sure that bus error doesn't happen in last byte transfer phase and RXNE bit being set just before BERR.
   * Features, limitations and strange behavior in this implementation are result of many compromises and hard work.
   * (Say thanks to STMicroelectronics for their wonderful controller!)
   *
@@ -730,22 +733,21 @@ static void i2c_irq_handler_master(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1
 	switch (i2cbus->state) {
 	case stateMasterFinishing: { // must be placed before stateIdle and fall-through to it for post-processing
 		SYS_ASSERT(i2cbus->active_mt); // aborted transfers cannot reach this state
-		if ((i2c_SR1 & I2C_SR1_BUS_ERROR_FLAGS) == 0) {
-			if ((i2c_SR1 & I2C_SR1_SB) == 0)
-				break; // everything ok, just wait SB flag...
-			i2c_reset_master_mode(i2cbus);
-		} else {
-			i2cbus->active_mt_result = hi2cErrorBus;
-			if ((i2c_SR1 & I2C_SR1_SB) != 0)
-				i2c_reset_master_mode(i2cbus);
+		if ((i2c_SR1 & I2C_SR1_BUS_ERROR_FLAGS) != 0) {
+			i2cbus->active_mt_result = hi2cErrorBus; // because we cannot determine whether last byte transferred correctly or not (see design notes in source header)
 			/* No need to reset error flags, it's already done in i2c_irq_handler(). */
 		}
+		if ((i2c_SR1 & I2C_SR1_SB) == 0)
+			break; // just wait SB flag...
+		i2c_reset_master_mode(i2cbus);
 		i2cbus->state = stateIdle;
 		i2c_close_active_master_transfer(i2cbus, pxHigherPriorityTaskWoken);
 		i2c_SR1 = i2cbus->i2c->SR1; // update for correct fall-through
 	}
 	/* no break */
 	case stateIdle: { // this state is universal entry for processing pending (queued) master transfers (either start next one or drop all of them) and other requests
+		if ((i2c_SR1 & I2C_SR1_SB) != 0) // yes, everything may happen with this shitty I2C peripheral ! (see design notes in source header)
+			i2c_reset_master_mode(i2cbus);
 		if (i2cbus->mode == hi2cModeOff) {
 			/* Disable interrupts, flush all pending master transfers as aborted (one per interrupt invocation) and quit. */
 			i2cbus->i2c->CR2 &= ~(I2C_CR2_ITEVTEN | I2C_CR2_ITERREN); // otherwise possible requests may hold interrupt pending
