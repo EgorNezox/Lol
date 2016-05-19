@@ -804,6 +804,8 @@ void DspController::syncNextRadioState() {
 		break;
 	}
 	case radiostateCmdTxFreq:
+		radio_state = radiostateCmdTxOff;
+		break;
 	case radiostateCmdRxOff:
 	case radiostateCmdTxOff: {
 		switch (current_radio_operation) {

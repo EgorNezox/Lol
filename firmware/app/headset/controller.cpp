@@ -401,7 +401,7 @@ void Controller::synchronizeHSState() {
 	case Multiradio::voicespeed4800: data[2] |= 0x0B; break;
 	default: data[2] |= 0x02; break;
 	}
-//	data[2] |= (uint8_t)((squelch_enable ? 0 : 1) << 5); // mode mask
+	data[2] |= (uint8_t)((squelch_enable ? 0 : 1) << 5); // mode mask
 	data[3] = ch_number; // channel number
 	data[4] = 0xFF; // reserved
 	data[5] = 0x01 | (uint8_t)((indication_enable ? 0 : 1) << 2);
