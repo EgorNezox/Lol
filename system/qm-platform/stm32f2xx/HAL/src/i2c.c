@@ -10,7 +10,7 @@
   * - Don't set NOSTRETCH bit because otherwise we cannot handle slave mode transfer properly
   *   (not only because of data can't be ready in time, but also because of avoiding of possible races
   *   between writing CR1 register and losing STOPF flag).
-  * - I2C bus must be enabled on persistent basis (rather than for master transfer duration only),
+  * - Even with disabled smbus host (no slave role) I2C bus must still be enabled on persistent basis (rather than for master transfer duration only),
   *   because there are no way to get "STOP finished"/"bus not busy" event required to disable bus properly.
   * - After stopping master transfer, a dummy START-STOP transaction executed.
   *   It's a workaround for "shitty" STM32F2 I2C peripheral limitation (there are no "STOP finished"/"bus not busy" event).
@@ -181,7 +181,7 @@ void hal_i2c_set_bus_mode(int instance, hal_i2c_mode_t mode) {
 		halinternal_get_rcc_clocks(&rcc_clocks);
 		freqrange = rcc_clocks.pclk1_frequency/1000000;
 		i2cbus->i2c->CR2 |= freqrange & I2C_CR2_FREQ;
-		i2cbus->i2c->CR2 |= (I2C_CR2_ITEVTEN | I2C_CR2_ITERREN);
+		i2cbus->i2c->CR2 |= I2C_CR2_ITEVTEN;
 		i2cbus->i2c->TRISE = (freqrange + 1) & I2C_TRISE_TRISE; // using standard speed mode
 		ccr_value = rcc_clocks.pclk1_frequency/(I2C_MASTER_SPEED_CLOCK << 1);
 		i2cbus->i2c->CCR = (((ccr_value & I2C_CCR_CCR) < 4)? 4 : (ccr_value)) & I2C_CCR_CCR; // using standard speed mode (also for SMBus mode)
@@ -392,7 +392,7 @@ static void i2c_stop_master_transfer(struct s_i2cbus_pcb *i2cbus) {
 }
 
 static void i2c_reset_master_mode(struct s_i2cbus_pcb *i2cbus) {
-	i2cbus->i2c->CR2 &= ~I2C_CR2_ITBUFEN;
+	i2cbus->i2c->CR2 &= ~(I2C_CR2_ITBUFEN | I2C_CR2_ITERREN);
 	/* Following operations must be executed exactly in specified sequence in order to
 	 * avoid resetting/breaking/missing slave communication which may happen after STOP in multi-master bus.
 	 */
@@ -408,6 +408,7 @@ static void i2c_reset_master_mode_to_idle(struct s_i2cbus_pcb *i2cbus) {
 }
 
 static void i2c_restore_bus_after_error(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1, uint32_t i2c_SR1_stop_flags) {
+	i2cbus->i2c->CR2 &= ~I2C_CR2_ITERREN;
 	if ((i2c_SR1 & i2c_SR1_stop_flags) != 0) // we should stop transfer ourselves ?..
 		i2c_request_stop_condition(i2cbus);
 	else  // ... or peripheral already did it ?
@@ -452,7 +453,7 @@ static void i2c_close_active_master_transfer(struct s_i2cbus_pcb *i2cbus, signed
 static bool i2c_process_master_rx_error_condition(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	if ((i2c_SR1 & I2C_SR1_BUS_ERROR_FLAGS) == 0) // don't handle AF (it cannot occur in master rx states)
 		return false;
-	i2cbus->i2c->CR2 &= ~I2C_CR2_ITBUFEN;
+	i2cbus->i2c->CR2 &= ~(I2C_CR2_ITBUFEN | I2C_CR2_ITERREN);
 	switch (i2cbus->state) {
 	case stateMasterRxSingleByte:
 	case stateMasterRxFirstN2Bytes:
@@ -474,7 +475,7 @@ static bool i2c_process_master_rx_error_condition(struct s_i2cbus_pcb *i2cbus, u
 static bool i2c_process_master_tx_error_condition(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	if ((i2c_SR1 & (I2C_SR1_AF | I2C_SR1_BUS_ERROR_FLAGS)) == 0)
 		return false;
-	i2cbus->i2c->CR2 &= ~I2C_CR2_ITBUFEN;
+	i2cbus->i2c->CR2 &= ~(I2C_CR2_ITBUFEN | I2C_CR2_ITERREN);
 	switch (i2cbus->state) {
 	case stateMasterTxData:
 	case stateMasterTxPEC:
@@ -582,7 +583,7 @@ static void i2c_irq_handler(struct s_i2cbus_pcb *i2cbus) {
 		}
 		/* Process very specific error conditions before mode handlers. */
 		if (((i2cbus->state == stateIdle) || (i2cbus->state == stateStartingMaster) || (i2cbus->state == stateMasterFinishing))
-				&& ((i2c_SR1 & (I2C_SR1_AF | I2C_SR1_BUS_ERROR_FLAGS)) != 0)) { // errors left from previous aborted transfer and/or finishing procedure ?
+				&& ((i2c_SR1 & (I2C_SR1_AF | I2C_SR1_BUS_ERROR_FLAGS)) != 0)) { // error detected on idle bus or errors left from previous aborted transfer and/or finishing procedure ?
 			/* Just ignore and reset them before we may enter master/slave transaction (current state either hasn't error handling, or state will be changed). */
 			i2cbus->i2c->SR1 = ~(I2C_SR1_AF | I2C_SR1_BUS_ERROR_FLAGS);
 		}
@@ -634,6 +635,7 @@ static void i2c_irq_handler_smbus_host(struct s_i2cbus_pcb *i2cbus, uint16_t i2c
 		/* Instead of immediately starting transfer (by clearing ADDR) we have to implement workaround for hardware bug (see design notes in source header) */
 		i2cbus->state = stateSlaveAddressed;
 		hal_timer_start(i2cbus->slave_addr_delay_timer, 1, pxHigherPriorityTaskWoken);
+		i2cbus->i2c->CR2 |= I2C_CR2_ITERREN;
 		i2cbus->i2c->CR2 &= ~I2C_CR2_ITEVTEN; // otherwise ADDR flag will hold interrupt pending
 		break;
 	}
@@ -718,7 +720,7 @@ static void i2c_irq_handler_smbus_host(struct s_i2cbus_pcb *i2cbus, uint16_t i2c
 		}
 		if ((i2c_SR1 & I2C_SR1_AF) != 0) // it's not error actually (flag is being left after transmission finished)
 			i2cbus->i2c->SR1 = ~I2C_SR1_AF;
-		i2cbus->i2c->CR2 &= ~I2C_CR2_ITBUFEN;
+		i2cbus->i2c->CR2 &= ~(I2C_CR2_ITBUFEN | I2C_CR2_ITERREN);
 		i2cbus->state = i2cbus->last_state; // restore source state
 		if (i2cbus->smbus_host_enabled && i2cbus->smbushost_transfer_ready)
 			i2cbus->smbus_host_params.isrcallbackMessageReceived((hal_i2c_smbus_handle_t)i2cbus, i2cbus->smbushost_address, i2cbus->smbushost_status, pxHigherPriorityTaskWoken);
@@ -765,7 +767,7 @@ static void i2c_irq_handler_master(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1
 		i2c_request_start_condition(i2cbus);
 		break;
 	}
-	case stateStartingMaster: { // this state also used for Repeated START and enabling/disabling smbus host
+	case stateStartingMaster: { // this state also used for Repeated START, enabling/disabling smbus host and aborting
 		/* don't handle BERR, AF, ARLO because they either cannot occur in this state, or already handled in i2c_irq_handler() earlier */
 		if ((i2c_SR1 & I2C_SR1_SB) == 0)
 			break;
@@ -795,6 +797,7 @@ static void i2c_irq_handler_master(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1
 		 */
 		i2cbus->i2c->CR1 &= ~(I2C_CR1_ACK | I2C_CR1_POS | I2C_CR1_ENPEC);
 		/* Starting addressing */
+		i2cbus->i2c->CR2 |= I2C_CR2_ITERREN;
 		i2cbus->i2c->DR = address; // also clears RxNE flag from previous transfer
 		i2cbus->state = stateMasterAddressing;
 		i2cbus->active_mt_pec = i2c_calc_pec(i2cbus->active_mt_pec, address);
