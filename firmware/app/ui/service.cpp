@@ -1,12 +1,3 @@
-/**
- ******************************************************************************
- * @file    service.cpp
- * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
- * @date    30.10.2015
- *
- ******************************************************************************
- */
-
 #include <stdlib.h>
 #include "qm.h"
 #include "qmdebug.h"
@@ -25,15 +16,11 @@ MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
 
-
-
 using namespace MessagesPSWF;
 
 namespace Ui {
 
-
-
-bool Service::single_instance = false; // пїЅ В·пїЅ В°пїЅ Р†пїЅ С‘РЎРѓпїЅ С‘пїЅ С�пїЅ С•РЎРѓРЎвЂљРЎРЉ пїЅ С•РЎвЂљ пїЅ ВµпїЅ Т‘пїЅ С‘пїЅ Р…РЎРѓРЎвЂљпїЅ Р†пїЅ ВµпїЅ Р…пїЅ Р…пїЅ С•пїЅ С–пїЅ С• пїЅ Т‘пїЅ С‘РЎРѓпїЅ С—пїЅ В»пїЅ ВµРЎРЏ пїЅ Р† РЎРѓпїЅ С‘РЎРѓРЎвЂљпїЅ ВµпїЅ С�пїЅ Вµ
+bool Service::single_instance = false;
 
 Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   aux_keyboard_t                     auxkb_desc,
@@ -56,7 +43,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     ginit();
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
 
-    keyboard= new QmMatrixKeyboard(matrix_kb.resource);
+    keyboard = new QmMatrixKeyboard(matrix_kb.resource);
     keyboard->keyAction.connect(sigc::mem_fun(this, &Service::keyHandler));
     chnext_bt = new QmPushButtonKey(aux_kb.key_iopin_resource[auxkbkeyChNext]);
     chprev_bt = new QmPushButtonKey(aux_kb.key_iopin_resource[auxkbkeyChPrev]);
@@ -69,7 +56,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     menu = nullptr;
     msg_box = nullptr;
 
-    // пїЅ С‘РЎРѓпїЅ С—РЎР‚пїЅ В°пїЅ Р†пїЅ С‘РЎвЂљРЎРЉ пїЅ Р…пїЅ В° РЎРѓпїЅ ВµРЎР‚пїЅ Р†пїЅ С‘РЎРѓ
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
@@ -83,6 +69,14 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
     voice_service->smsMess.connect(sigc::mem_fun(this,&Service::smsMessage));
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
+
+#ifndef PORT__PCSIMULATOR
+    QmTimer *systemTimeTimer;
+    systemTimeTimer = new QmTimer(true, this);
+    systemTimeTimer->setInterval(1000);
+    systemTimeTimer->start();
+    systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
+#endif
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -138,22 +132,29 @@ void Service::drawIndicator()
 
 void Service::FailedSms(int stage)
 {
-    char sym[64];
-
-    if (stage == 0){
+    switch(stage)
+    {
+    case 0:
+    {
         guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail1);
         msgBox( "Recieved packet ", sms_quit_fail1 );
+        break;
     }
-
-    if (stage == 1){
+    case 1:
+    {
         guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
         msgBox( "Recieved packet ", sms_quit_fail2);
+        break;
     }
-
-    if (stage == 3)
+    case 3:
     {
-    	 guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
-    	 msgBox( "Failed Sms", sms_crc_fail);
+        guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
+        msgBox( "Failed Sms", sms_crc_fail);
+        break;
+    }
+    default:
+        //qmDebugMessage(QmDebug::Dump, "Sms error message: stage = %s", stage);
+        break;
     }
 }
 
@@ -297,7 +298,6 @@ void Service::keyPressed(UI_Key key)
 
     switch( state.getType() )
     {
-    // Р“Р»Р°РІРЅС‹Р№ СЌРєСЂР°РЅ
     case mainWindow:
     {
         if (main_scr->isEditing())
@@ -311,7 +311,6 @@ void Service::keyPressed(UI_Key key)
                 main_scr->setFreq(main_scr->oFreq.c_str());
                 break;
             case keyEnter:
-                // С„РёРєСЃР°С†РёСЏ РёР·РјРµРЅРµРЅРёР№
                 if (main_scr->mwFocus == 0)
                 {
                     main_scr->oFreq.clear();
@@ -319,7 +318,7 @@ void Service::keyPressed(UI_Key key)
                     int freq = atoi(main_scr->nFreq.c_str());
                     voice_service->TuneFrequency(freq);
                 }
-                // Речь
+                // � ечь
                 switch ( main_scr->mainWindowModeId )
                 {
                 case 0:
@@ -422,7 +421,7 @@ void Service::keyPressed(UI_Key key)
             msg_box->keyPressed(key);
         break;
     }
-        // РІ РјРµРЅСЋ
+        // � І � ј� µ� ЅСЋ
     case menuWindow:
     {
         if ( key == keyEnter)
@@ -455,18 +454,9 @@ void Service::keyPressed(UI_Key key)
     {
         CEndState estate = (CEndState&)guiTree.getCurrentState();
 
-        //        if ( key == keyEnter)
-        //        {
-        //            if (menu->focus == estate.listItem.size())
-        //            {
-        //                guiTree.resetCurrentState();
-        //            }
-        //            menu->focus = 0;
-        //        }
-
         switch(estate.subType)
         {
-        case GuiWindowsSubType::simpleCondComm:  // СѓСЃР»РѕРІРЅС‹Рµ РєРѕРјР°РЅРґС‹
+        case GuiWindowsSubType::simpleCondComm:
         {
             switch (key)
             {
@@ -506,7 +496,16 @@ void Service::keyPressed(UI_Key key)
                         param[i] = atoi(k->inputStr.c_str());
                         i++;
                     }
-                    voice_service->TurnPSWFMode(1,param[0],param[1]);
+#ifndef PORT__PCSIMULATOR
+                    if (estate.listItem.size() == 1)
+                        voice_service->TurnPSWFMode(1, 0, param[0]);
+                    else if (estate.listItem.size() == 2)
+                        voice_service->TurnPSWFMode(1, param[0], param[1]);
+                    else
+                        qmDebugMessage( QmDebug::Error, "estate.listItem.size() == %d", estate.listItem.size() );
+#else
+                    //qmDebugMessage( QmDebug::Error, "estate.listItem.size() == %d", estate.listItem.size() );
+#endif
                 }
                 break;
             }
@@ -572,7 +571,15 @@ void Service::keyPressed(UI_Key key)
                         param[i] = atoi(k->inputStr.c_str());
                         i++;
                     }
-                    voice_service->TurnPSWFMode(0,param[0],param[1]);
+                    if (estate.listItem.size() == 1)
+                        voice_service->TurnPSWFMode(1, 0, param[0]);
+                    else if (estate.listItem.size() == 2)
+                        voice_service->TurnPSWFMode(1, param[0], param[1]);
+                    else
+                    {
+                        //qmDebugMessage( QmDebug::Error, "estate.listItem.size() == %d", estate.listItem.size() );
+                    }
+
                 }
                 break;
             default:
@@ -602,6 +609,225 @@ void Service::keyPressed(UI_Key key)
                     }
                 }
                 break;
+            }
+            break;
+        }
+        case GuiWindowsSubType::txGroupCondComm:
+        {
+            std::list<SInputItemParameters*>::iterator iter = estate.listItem.begin();
+
+            if ( menu->groupCondCommStage == 0 )
+            {
+                if (menu->focus == 1)
+                    (*iter)++;
+            }
+            else if ( menu->groupCondCommStage == 1 && estate.listItem.size() == 4 )
+            {
+                if ( menu->focus == 0 )
+                {
+                    (*iter)++;(*iter)++;
+                }
+                if ( menu->focus == 1 )
+                {
+                    (*iter)++;(*iter)++;(*iter)++;
+                }
+            }
+            else if ( menu->groupCondCommStage == 1 && estate.listItem.size() == 3 )
+            {
+                if ( menu->focus == 0 )
+                {
+                    (*iter)++;(*iter)++;(*iter)++;
+                }
+            }
+
+            switch ( key )
+            {
+            case keyBack:
+            {
+                if ( menu->groupCondCommStage == 0 && menu->focus < 2 )
+                {
+                    if ( (*iter)->inputStr.size() > 0 )
+                    {
+                        (*iter)->inputStr.pop_back();
+                    }
+                    else
+                    {
+                        for (auto &k: estate.listItem)
+                            k->inputStr.clear();
+
+                        guiTree.backvard();
+                        menu->focus = 0;
+                    }
+                }
+                else if ( menu->groupCondCommStage == 1 )
+                {
+                    if ( estate.listItem.size() == 4 && menu->focus < 2 )
+                    {
+                        if ( (*iter)->inputStr.size() > 0 )
+                        {
+                            (*iter)->inputStr.pop_back();
+                        }
+                        else
+                        {
+                            menu->groupCondCommStage = 0;
+                            menu->focus = 0;
+                        }
+                    }
+                    else if ( estate.listItem.size() == 3 && menu->focus < 2 )
+                    {
+                        if ( (*iter)->inputStr.size() > 0 )
+                        {
+                            (*iter)->inputStr.pop_back();
+                        }
+                        else
+                        {
+                            menu->groupCondCommStage = 0;
+                            menu->focus = 0;
+                        }
+                    }
+                    else
+                    {
+                        menu->groupCondCommStage = 0;
+                        menu->focus = 0;
+                    }
+                }
+                else
+                {
+                    if ( menu->groupCondCommStage == 1 )
+                    {
+                        menu->groupCondCommStage = 0;
+                    }
+
+                }
+                break;
+            }
+            case keyEnter:
+            {
+                if ( menu->groupCondCommStage == 0 )
+                {
+                    if ( menu->focus == 2 )
+                    {
+                        menu->focus = 0;
+                        menu->groupCondCommStage = 1;
+                    }
+                    break;
+                }
+                if ( menu->groupCondCommStage == 1 )
+                {
+                    if ( menu->focus == 2 )
+                    {
+                        menu->focus == 0;
+                        menu->groupCondCommStage = 0;
+#ifndef PORT__PCSIMULATOR
+                        /* check */
+                        /* callback */
+#else
+                        for (auto &k: estate.listItem)
+                            k->inputStr.clear();
+                        guiTree.resetCurrentState();
+#endif
+                    }
+                }
+                break;
+            }
+            case keyUp:
+            {
+                if ( menu->focus > 0 )
+                    menu->focus--;
+                break;
+            }
+            case keyDown:
+            {
+                if ( estate.listItem.size() == 3 && menu->groupCondCommStage == 1 ){
+                    if (menu->focus < 1)
+                        menu->focus++;
+
+                }else
+                    if ( menu->focus < 2 )
+                        menu->focus++;
+                break;
+            }
+            default:
+            {
+                // set freq
+                if ( menu->groupCondCommStage == 0 && (menu->focus == 0 || menu->focus == 1) )
+                {
+                    std::string* freq;
+
+                    if ( menu->focus == 0 )
+                        freq = &(*iter)->inputStr;
+
+                    if ( menu->focus == 1 )
+                        freq = &(*iter)->inputStr;
+
+                    if (freq->size() < 8)
+                    {
+                        if ( key > 5 && key < 17)
+                        {
+                            if ( freq->size() > 0 || (freq->size() == 0 && key != key0) )
+                            {
+                                freq->push_back( (char)(42 + key) );
+// check
+                                if ( atoi( freq->c_str() ) > 25E6 )
+                                    freq->clear();
+                            }
+                        }
+                    }
+                }
+
+                if ( menu->groupCondCommStage == 1 )
+                {
+                    if ( estate.listItem.size() == 3 )
+                    {
+                        // set commands
+                        if ( menu->groupCondCommStage == 1 && menu->focus == 0 )
+                        {
+                            std::string* commands;
+                            commands = &(*iter)->inputStr;
+
+                            if ( key > 5 && key < 17 && commands->size() < 20 )
+                            {
+                                if ( key != key0 )
+                                    commands->push_back( (char)(42 + key) );
+                                else
+                                    menu->inputGroupCondCmd(estate, key);
+                            }
+                        }
+                    }
+                    else if ( estate.listItem.size() == 4 )
+                    {
+                        // set address
+                        if ( menu->focus == 0 )
+                        {
+                            std::string* address;
+                            address = &(*iter)->inputStr;
+
+                            if ( key > 5 && key < 17)
+                            {
+                                address->push_back( (char)(42 + key) );
+                                if ( atoi(address->c_str()) > 31) address->clear();
+                            }
+                        }
+
+                        // set commands
+                        if ( menu->focus == 1 )
+                        {
+                            std::string* commands;
+                            commands = &(*iter)->inputStr;
+
+                            if ( key > 5 && key < 17 && commands->size() < 100 )
+                            {
+                                if ( key != key0 )
+                                    commands->push_back( (char)(42 + key) );
+                                else
+                                    menu->inputGroupCondCmd(estate, key);
+                            }
+                        }
+                    }
+                }
+
+                break;
+            }
             }
             break;
         }
@@ -657,13 +883,17 @@ void Service::keyPressed(UI_Key key)
                         guiTree.resetCurrentState();
                         for ( auto &k: elem.listItem)
                         {
-                            if (cnt == 0) r_adr = atoi(k->inputStr.c_str());
-                            else strcpy(mes,k->inputStr.c_str());
+                            if (cnt == 0)
+                                r_adr = atoi(k->inputStr.c_str());
+                            else
+                                strcpy(mes,k->inputStr.c_str());
                             k->inputStr.clear();
                             cnt++;
                         }
-
-                        voice_service->TurnSMSMode(r_adr,mes);
+#ifndef PORT__PCSIMULATOR
+                        voice_service->TurnSMSMode(r_adr, mes);
+#endif
+                        menu->keyPressCount = 0;
                     }
                 }
                 break;
@@ -677,11 +907,28 @@ void Service::keyPressed(UI_Key key)
                 }
                 else if ( menu->focus == 1 )
                 {
-                    if ( elem.listItem.back()->inputStr.size() < 74 )
+                    if ( elem.listItem.back()->inputStr.size() < 100 )
                         menu->inputSmsMessage( (CEndState&)guiTree.getCurrentState(), key );
                 }
                 else
                 {}
+                break;
+            }
+            break;
+        }
+        case GuiWindowsSubType::recvVoice:
+        {
+            switch ( key )
+            {
+            case keyBack:
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+                break;
+            }
+            case keyEnter:
+            {break;}
+            default:
                 break;
             }
             break;
@@ -697,7 +944,9 @@ void Service::keyPressed(UI_Key key)
             {
                 /* call */
                 guiTree.resetCurrentState();
+#ifndef PORT__PCSIMULATOR
                 voice_service->TurnPSWFMode(0,0,0);
+#endif
             }
             break;
         }
@@ -712,7 +961,26 @@ void Service::keyPressed(UI_Key key)
             {
                 /* call */
                 guiTree.resetCurrentState();
+#ifndef PORT__PCSIMULATOR
                 voice_service->TurnSMSMode();
+#endif
+            }
+            break;
+        }
+        case GuiWindowsSubType::recvGroupCondComm:
+        {
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+            if ( key == keyEnter)
+            {
+#ifndef PORT__PCSIMULATOR
+                voice_service->TurnPSWFMode(0,0,0);
+#else
+                guiTree.resetCurrentState();
+#endif
             }
             break;
         }
@@ -803,7 +1071,9 @@ void Service::keyPressed(UI_Key key)
                     menu->decrAruArmAsu(estate.subType);
                 }
                 uint8_t vol = menu->getAruArmAsu();
+#ifndef PORT__PCSIMULATOR
                 voice_service->TurnAGCMode(vol, menu->focus);
+#endif
             }
             if ( key == keyRight )
             {
@@ -837,10 +1107,28 @@ void Service::keyPressed(UI_Key key)
                 guiTree.backvard();
                 menu->focus = 0;
             }
+            else
+            {
+#if !defined(PORT__PCSIMULATOR)
+            setCoordDate(navigator->getCoordDate());
+#endif
+
+            }
             break;
         }
         case GuiWindowsSubType::gpsSync:
         {
+            switch ( key )
+            {
+            case keyBack:
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+                break;
+            }
+            default:
+                break;
+            }
             break;
         }
         case GuiWindowsSubType::setDate:
@@ -998,13 +1286,13 @@ void Service::drawMainWindow()
 
     bool gpsStatus = false;
 
-#ifndef PORT_PCSIMULATOR
+#ifdef PORT_PCSIMULATOR
     Navigation::Coord_Date date = navigator->getCoordDate();
     char ch[10];
     memcpy(&ch,&date.data,10);
     if (atoi((const char*)ch) != 0)
     {
-    	gpsStatus = true;
+        gpsStatus = true;
     }
 #endif
 
@@ -1058,27 +1346,48 @@ void Service::drawMenu()
         {
         case GuiWindowsSubType::simpleCondComm:
         case GuiWindowsSubType::duplCondComm:
+        {
             menu->initCondCommDialog(st);
             break;
+        }
+        case GuiWindowsSubType::txGroupCondComm:
+        {
+            menu->initGroupCondComm( st );
+            break;
+        }
         case GuiWindowsSubType::message:
+        {
             menu->initTxSmsDialog( st.getName(), st.listItem.front()->inputStr, st.listItem.back()->inputStr );
             break;
+        }
+        case GuiWindowsSubType::recvVoice:
+        case GuiWindowsSubType::recvCondComm:
+        case GuiWindowsSubType::recvGroupCondComm:
         case GuiWindowsSubType::recvSms:
+        {
             menu->initRxSmsDialog();
             break;
-        case GuiWindowsSubType::recvCondComm:
+        }
+        case GuiWindowsSubType::recvSilence:
         {
-        	menu->initRxSmsDialog();
-        	break;
+            guiTree.resetCurrentState();
+            drawMainWindow();
+            break;
         }
         case GuiWindowsSubType::gpsCoord:
+        {
 #if !defined(PORT__PCSIMULATOR)
             setCoordDate(navigator->getCoordDate());
 #endif
-            menu->initGpsCoordinateDialog();
+            menu->initGpsCoordinateDialog( coord_lat, coord_log );
             break;
+        }
         case GuiWindowsSubType::gpsSync:
+        {
+            menu->inclStatus = menu->scanStatus;
+            menu->initIncludeDialog();
             break;
+        }
         case GuiWindowsSubType::setDate:
         {
             std::string str; str.append(st.listItem.front()->inputStr);// str.append(freq_hz);
@@ -1104,21 +1413,29 @@ void Service::drawMenu()
             break;
         }
         case GuiWindowsSubType::twoState:
-            menu->initTwoStateDialog();
+        {    menu->initTwoStateDialog();}
         case GuiWindowsSubType::scan:
+        {
             menu->inclStatus = menu->scanStatus;
             menu->initIncludeDialog();
             break;
+        }
         case GuiWindowsSubType::suppress:
+        {
             menu->inclStatus = menu->supressStatus;
             menu->initIncludeDialog();
             break;
+        }
         case GuiWindowsSubType::aruarmaus:
+        {
             menu->initAruarmDialog();
             break;
+        }
         case GuiWindowsSubType::volume:
+        {
             menu->initVolumeDialog();
             break;
+        }
         default:
             break;
         }
@@ -1138,11 +1455,11 @@ void Service::draw()
     }
     case messangeWindow:
     {
-    	int cmd = atoi(currentState.getText());
-    	if ( cmd >= 0 && cmd < 100)
-    		msgBox( currentState.getName(), cmd );
-    	else
-    		msgBox( currentState.getName(), currentState.getText() );
+        int cmd = atoi(currentState.getText());
+        if ( cmd >= 0 && cmd < 100)
+            msgBox( currentState.getName(), cmd );
+        else
+            msgBox( currentState.getName(), currentState.getText() );
     break;
     }
     case menuWindow:
@@ -1238,14 +1555,14 @@ void Service::updateSystemTime()
 
 void Service::smsMessage()
 {
-	char sym[50];//TODO:
-	for(int i = 0; i<50;++i) sym[i] = '0';
+    char sym[50];//TODO:
+    for(int i = 0; i<50;++i) sym[i] = '0';
 
-	memcpy(sym, voice_service->getSmsContent(), 50);
-	sym[49] = '\0';
+    memcpy(sym, voice_service->getSmsContent(), 50);
+    sym[49] = '\0';
 
-	guiTree.append(messangeWindow, "Recieved SMS ", sym);
-	msgBox( "Recieved SMS", sym );
+    guiTree.append(messangeWindow, "Recieved SMS ", sym);
+    msgBox( "Recieved SMS", sym );
 }
 
 }/* namespace Ui */

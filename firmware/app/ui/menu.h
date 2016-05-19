@@ -16,8 +16,6 @@
 #include <chrono>
 #include <ctime>
 
-//#include <QDebug>
-
 #define MARGIN			4
 #define BUTTON_HEIGHT	13
 #define BUTTON_WIDTH	30
@@ -50,13 +48,14 @@ public:
     void initItems(std::list<std::string>, const char*, int);
     void initDialog(CEndState);
     void initCondCommDialog(CEndState);
+    void initGroupCondComm(CEndState);
     void initVolumeDialog();
     void initScanDialog();
     void initAruarmDialog();
     void initIncludeDialog();
     void initSuppressDialog();
     void initTwoStateDialog();
-    void initGpsCoordinateDialog();
+    void initGpsCoordinateDialog(std::string, std::string);
     void initSetParametersDialog(std::string);
 
     void setTitle(const char*);
@@ -68,6 +67,10 @@ public:
 
     // call
     void setCondCommParam(CEndState, UI_Key);
+
+    // group cond comm stage
+    int groupCondCommStage = 0;
+    void inputGroupCondCmd( CEndState, UI_Key );
 
     // message ( SMS )
     void initTxSmsDialog(const char *, std::string, std::string);
@@ -107,7 +110,6 @@ public:
 
     // date, time, speed
     std::string localDate, localTime, speed;
-
     void setSttParam(CEndState, UI_Key);
 
 private:

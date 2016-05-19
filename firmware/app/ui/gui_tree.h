@@ -28,6 +28,7 @@ enum GuiWindowsSubType
     txGroupCondComm,\
     message,
     recv,\
+    recvVoice,\
     recvSms,\
     recvCondComm,\
     recvGroupCondComm,\
@@ -176,7 +177,7 @@ private:
     CEndState groupCondCommandSimplGroupCall, groupCondCommandSimplIndivCall;
     SInputItemParameters groupCondCommandSimplCallParameters[4];
     // 2.1 - 2.3
-    CEndState recvTlf, recvSms, recvAus, recvCondCommand, recvGroupCondCommsnds, recvSilence;
+    CEndState recvVoice, recvSms, recvAus, recvCondCommand, recvGroupCondCommsnds, recvSilence;
     SInputItemParameters recvTlfParameters, recvSmsParameters, recvGroupCondCommsndsParameters;
     SInputItemParameters gpsSynchronization;
     // 3.1 - 3.3
@@ -204,8 +205,5 @@ private:
     void init();
 
 };
-
-
-
 
 #endif // GUI_STACK

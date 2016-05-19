@@ -17,7 +17,7 @@ void CGuiTree::init()
     // 1.5.1.1 - 1.5.1.2
     groupCondCommandSimplGroupCall.setName(groupCommandsSimplSubMenu[0]); groupCondCommandSimplIndivCall.setName(groupCommandsSimplSubMenu[1]);
     // 2.1 - 2.3
-    recvTlf.setName(reciveSubMenu[0]); recvSms.setName(reciveSubMenu[1]); recvAus.setName(reciveSubMenu[2]); recvCondCommand.setName(reciveSubMenu[3]); recvGroupCondCommsnds.setName(reciveSubMenu[4]); recvSilence.setName(reciveSubMenu[5]);
+    recvVoice.setName(reciveSubMenu[0]); recvSms.setName(reciveSubMenu[1]); recvCondCommand.setName(reciveSubMenu[3]); recvGroupCondCommsnds.setName(reciveSubMenu[4]); recvSilence.setName(reciveSubMenu[5]);
     // 3.1 - 3.3
     dataRecv.setName(dataSubMenu[0]), dataSend.setName(dataSubMenu[1]), dataGps.setName(dataSubMenu[3]);
     // 3.1.1 - 3.1.4
@@ -83,48 +83,38 @@ void CGuiTree::init()
     post.nextState.clear();
     // 1.4 - Группа условных команд
     groupCondCommand.prevState = &call;
-    groupCondCommand.nextState.push_back(&groupCondCommandSimpl);
-    groupCondCommand.nextState.push_back(&groupCondCommandDupl);
-    // 1.4.1 - Односторонняя связь
-    groupCondCommandSimpl.prevState = &groupCondCommand;
-    groupCondCommandSimpl.nextState.push_back(&groupCondCommandSimplGroupCall);
-    groupCondCommandSimpl.nextState.push_back(&groupCondCommandSimplIndivCall);
+    groupCondCommand.nextState.push_back(&groupCondCommandSimplGroupCall);
+    groupCondCommand.nextState.push_back(&groupCondCommandSimplIndivCall);
     // 1.4.1.1 - Групповой вызов
     groupCondCommandSimplGroupCall.subType = GuiWindowsSubType::txGroupCondComm;
-    groupCondCommandSimplGroupCall.prevState = &groupCondCommandSimpl;
+    groupCondCommandSimplGroupCall.prevState = &groupCondCommand;
     groupCondCommandSimplGroupCall.nextState.clear();
     groupCondCommandSimplGroupCall.listItem.push_back(&groupCondCommandSimplCallParameters[0]);
     groupCondCommandSimplGroupCall.listItem.push_back(&groupCondCommandSimplCallParameters[1]);
     groupCondCommandSimplGroupCall.listItem.push_back(&groupCondCommandSimplCallParameters[2]);
     // 1.4.1.2 - Индивидуальный
     groupCondCommandSimplIndivCall.subType = GuiWindowsSubType::txGroupCondComm;
-    groupCondCommandSimplIndivCall.prevState = &groupCondCommandSimpl;
+    groupCondCommandSimplIndivCall.prevState = &groupCondCommand;
     groupCondCommandSimplIndivCall.nextState.clear();
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[0]);
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[1]);
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[2]);
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[3]);
-    // 1.4.2 - двухсторонняя связь
-    groupCondCommandDupl.prevState = &groupCondCommand;
-    groupCondCommandDupl.nextState.clear();
     // 2 - Прием
     recv.prevState = &main;
-    recv.nextState.push_back(&recvTlf);
+    recv.nextState.push_back(&recvVoice);
     recv.nextState.push_back(&recvSms);
-    recv.nextState.push_back(&recvAus);
     recv.nextState.push_back(&recvCondCommand);
     recv.nextState.push_back(&recvGroupCondCommsnds);
     recv.nextState.push_back(&recvSilence);
     // 2.3 - Речь
-    recvTlf.prevState = &recv;
-    recvTlf.nextState.clear();
+    recvVoice.subType = GuiWindowsSubType::recvVoice;
+    recvVoice.prevState = &recv;
+    recvVoice.nextState.clear();
     // 2.5 - Сообщение (СМС)
     recvSms.subType = GuiWindowsSubType::recvSms;
     recvSms.prevState = &recv;
     recvSms.nextState.clear();
-    // 2.6 - Сообщение (АУС)
-    recvAus.prevState = &recv;
-    recvAus.nextState.clear();
     // 2.7 - Условные команды
     recvCondCommand.subType = GuiWindowsSubType::recvCondComm;
     recvCondCommand.prevState = &recv;
