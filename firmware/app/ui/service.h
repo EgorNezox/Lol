@@ -134,7 +134,7 @@ private:
     int isFreq = 0;
     int command_rx_30 = 0;
     std::list<int *> BasePswfCadr;
-    bool gpsSynchronization;
+    bool gpsSynchronization = true;
 };
 
 } /* namespace Ui */

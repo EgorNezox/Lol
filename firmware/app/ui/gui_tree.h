@@ -196,7 +196,8 @@ private:
     CEndState sttConnParamGPS;
     // 4.1.2.1 - 4.1.2.2
     CEndState sttSetDate, sttSetTime;
-    SInputItemParameters dateParameters, timeParameters;
+    SInputItemParameters dateParameters{(char*)dataAndTime[0], "", 0, 0, 0},
+                         timeParameters{(char*)dataAndTime[1], "", 0, 0, 0};
     // 4.2.1 - 4.2.2
     CEndState sttSetFreq, sttSetSpeed;
     SInputItemParameters freqParameters {(char*)setConnParam[0], "1", 2, 0, 31} ,

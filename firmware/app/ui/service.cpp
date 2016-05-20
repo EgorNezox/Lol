@@ -73,7 +73,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 #ifndef PORT__PCSIMULATOR
     QmTimer *systemTimeTimer;
     systemTimeTimer = new QmTimer(true, this);
-    systemTimeTimer->setInterval(1000);
+    systemTimeTimer->setInterval(15000);
     systemTimeTimer->start();
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
 #endif
@@ -716,7 +716,7 @@ void Service::keyPressed(UI_Key key)
                 {
                     if ( menu->focus == 2 )
                     {
-                        menu->focus == 0;
+                        menu->focus = 0;
                         menu->groupCondCommStage = 0;
 #ifndef PORT__PCSIMULATOR
                         /* check */
@@ -959,11 +959,20 @@ void Service::keyPressed(UI_Key key)
             }
             if ( key == keyEnter)
             {
-                /* call */
-                guiTree.resetCurrentState();
+                if (menu->recvStage == 0)
+                {
+                    menu->recvStage = 1;
 #ifndef PORT__PCSIMULATOR
                 voice_service->TurnSMSMode();
 #endif
+                break;
+                }
+                if (menu->recvStage == 1)
+                {
+                    menu->recvStage = 0;
+                    guiTree.resetCurrentState();
+                }
+
             }
             break;
         }
@@ -1010,13 +1019,8 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyRight || key == keyUp )
             {
-                menu->scanStatus = true;
-                menu->inclStatus = true;
-            }
-            if ( key == keyLeft  || key == keyDown )
-            {
-                menu->scanStatus = false;
-                menu->inclStatus = false;
+                menu->scanStatus = menu->scanStatus ? false : true;
+                menu->inclStatus = menu->inclStatus ? false : true;
             }
             if ( key == keyBack)
             {
@@ -1027,15 +1031,10 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::suppress:
         {
-            if ( key == keyRight || key == keyUp )
+            if ( key == keyRight || key == keyLeft )
             {
-                menu->supressStatus = true;
-                menu->inclStatus = true;
-            }
-            if ( key == keyLeft  || key == keyDown )
-            {
-                menu->supressStatus = false;
-                menu->inclStatus = false;
+                menu->supressStatus = menu->supressStatus ? false : true;
+                menu->inclStatus = menu->inclStatus ? false : true;
             }
             if ( key == keyBack)
             {
@@ -1056,41 +1055,16 @@ void Service::keyPressed(UI_Key key)
                 if ( menu->focus < 2 )
                     menu->focus++;
             }
-            if ( key == keyLeft )
+            if ( key == keyLeft || key == keyRight )
             {
-                if ( menu->focus == 0 )
+                if ( menu->focus >= 0 && menu->focus < 3)
                 {
-                    menu->decrAruArmAsu(estate.subType);
-                }
-                else if ( menu->focus == 1)
-                {
-                    menu->decrAruArmAsu(estate.subType);
-                }
-                else
-                {
-                    menu->decrAruArmAsu(estate.subType);
-                }
-                uint8_t vol = menu->getAruArmAsu();
+                    menu->aruArmAsuStatus[menu->focus] = menu->aruArmAsuStatus[menu->focus] ? false : true;
+                }              
 #ifndef PORT__PCSIMULATOR
+                uint8_t vol = menu->getAruArmAsu();
                 voice_service->TurnAGCMode(vol, menu->focus);
 #endif
-            }
-            if ( key == keyRight )
-            {
-                if ( menu->focus == 0 )
-                {
-                    menu->incrAruArmAsu(estate.subType);
-                }
-                else if ( menu->focus == 1 )
-                {
-                    menu->incrAruArmAsu(estate.subType);
-                }
-                else
-                {
-                    menu->incrAruArmAsu(estate.subType);
-                }
-                uint8_t vol = menu->getAruArmAsu();
-                voice_service->TurnAGCMode(vol, menu->focus);
             }
 
             if ( key == keyBack)
@@ -1126,13 +1100,94 @@ void Service::keyPressed(UI_Key key)
                 menu->focus = 0;
                 break;
             }
+            case keyRight:
+            case keyLeft:
+            {
+                gpsSynchronization = gpsSynchronization ? false : true;
+                break;
+            }
             default:
                 break;
             }
             break;
         }
         case GuiWindowsSubType::setDate:
+        {
+            if ( key == keyBack )
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }else if ( key >= key0 && key <= key9 )
+            {
+                auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
+                if ( st.size() < 8 )
+                    st.push_back(key+42);
+
+                if (st.size() > 1 && st.size() < 3 )
+                {
+                    // 1 <= הה <= 31
+                }
+                if (st.size() > 3 && st.size() < 5 )
+                {
+                    // 1 <= לל <= 12
+                }
+                if (st.size() > 6 )
+                {
+                    // 16 <= דד <= 99
+                }
+
+                if ( st.size() == 2  || st.size() == 5)
+                {
+                    st.push_back('.');
+                }
+            }
+            break;
+        }
         case GuiWindowsSubType::setTime:
+        {
+            if ( key == keyBack )
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }else if ( key >= key0 && key <= key9 )
+            {
+                auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
+                if ( st.size() < 8 )
+                    st.push_back(key+42);
+
+                if (st.size() > 1 && st.size() < 3 )
+                {
+                    // 0 <= קק <= 23
+                    auto hh = st.substr(0, 2);
+                    if ( atoi(hh.c_str()) > 23 )
+                        st.clear();
+                }
+                if (st.size() > 3 && st.size() < 5 )
+                {
+                    // 0 <= לל <= 59
+                    auto mm = st.substr(3, 2);
+                    if ( atoi(mm.c_str()) > 59 )
+                    {
+                        st.pop_back(); st.pop_back();
+                    }
+                }
+                if (st.size() > 6 )
+                {
+                    // 0 <= סס <= 59
+                    auto cc = st.substr(6, 2);
+                    if ( atoi(cc.c_str()) > 59 )
+                    {
+                        st.pop_back(); st.pop_back();
+                    }
+                }
+
+                if ( st.size() == 2  || st.size() == 5)
+                {
+                    st.push_back(':');
+                }
+            }
+            break;
+        }
         case GuiWindowsSubType::setFreq:
         case GuiWindowsSubType::setSpeed:
         {
@@ -1384,20 +1439,22 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::gpsSync:
         {
-            menu->inclStatus = menu->scanStatus;
+            menu->inclStatus =  gpsSynchronization;
             menu->initIncludeDialog();
             break;
         }
         case GuiWindowsSubType::setDate:
         {
-            std::string str; str.append(st.listItem.front()->inputStr);// str.append(freq_hz);
-            menu->initSetParametersDialog( str );
+            menu->setTitle(dataAndTime[0]);
+            std::string str; str.append(st.listItem.front()->inputStr); //str.append("00.00.00");
+            menu->initSetDateOrTimeDialog( str );
             break;
         }
         case GuiWindowsSubType::setTime:
         {
-            std::string str; str.append(st.listItem.front()->inputStr);// str.append(freq_hz);
-            menu->initSetParametersDialog( str );
+            menu->setTitle(dataAndTime[1]);
+            std::string str; str.append(st.listItem.front()->inputStr); //str.append("00:00:00");
+            menu->initSetDateOrTimeDialog( str );
             break;
         }
         case GuiWindowsSubType::setFreq:
@@ -1526,7 +1583,7 @@ void Service::getPSWF()
 
 void Service::updateSystemTime()
 {
-    if ( true/*gpsSynchronization*/ )
+    if ( gpsSynchronization )
     {
         setCoordDate(navigator->getCoordDate());
     }

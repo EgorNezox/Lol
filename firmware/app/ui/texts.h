@@ -54,6 +54,7 @@ extern const char *dateAndTimeSubMenu[];
 extern const char *setDateOrTime[];
 extern const char *setConnParam[];
 extern const char *useScanMenu[];
+extern const char *dataAndTime[];
 
 extern const char *aruStr;
 extern const char *armStr;
@@ -69,6 +70,7 @@ extern const char *sms_quit_fail2;
 extern const char *sms_crc_fail;
 
 extern const char* receiveStr;
+extern const char* receiveStatusStr[];
 extern const char* continueStr;
 
 extern const char ch_key0[2];

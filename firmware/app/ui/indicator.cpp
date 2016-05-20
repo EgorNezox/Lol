@@ -1,14 +1,4 @@
-﻿/**
-  ******************************************************************************
-  * @file    indicator.cpp
-  * @author  Egor Dudyak, PMR dept. software team, ONIIP, PJSC
-  * @date    11 окт. 2013 г.
-  * @brief   Реализация класса Indicator
-  *
-  ******************************************************************************
-  */
-
-#include "dialogs.h"
+﻿#include "dialogs.h"
 #include "all_sym_indicators.h"
 #include "qmdebug.h"
 #include "../headset/controller.h"
@@ -37,11 +27,12 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
     icon_geom = GEOM_ICON(1);
     ind_headset = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
 
-    MoonsGeometry date_time_geom = {2*ICON_SIZE+3, 0, 4*ICON_SIZE+24, ICON_SIZE-1};
-    date_time = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &date_time_geom, (char*)"04.04 10:40", (GUI_Obj *)this);
+    icon_geom = {2*ICON_SIZE+3, 0, 4*ICON_SIZE+24, ICON_SIZE-1};
+    date_time = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &icon_geom, (char*)"00.00 00:00", (GUI_Obj *)this);
 
-    MoonsGeometry gpsLabelArea = {4*ICON_SIZE+25, 0, ICON_SIZE*6, ICON_SIZE-1};
-    gpsLabel = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &gpsLabelArea, (char*)"X", (GUI_Obj*)this);
+    icon_geom = {4*ICON_SIZE+25, 0, ICON_SIZE*6, ICON_SIZE-1};
+    //gpsLabel = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &icon_geom, (char*)"X", (GUI_Obj*)this);
+    gpsLabel = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
 
     icon_geom = {ICON_SIZE*6,0,ICON_SIZE*6+BATTERY_SIZE-1, ICON_SIZE-1};	//геометрия батарейки
 
@@ -89,9 +80,9 @@ void GUI_Indicator::UpdateBattery(int new_val){
 
 void GUI_Indicator::UpdateGpsStatus(bool status){
     if ( status )
-        gpsLabel->SetText("G");
+        gpsLabel->icon = sym_gps;
     else
-        gpsLabel->SetText("X");
+        gpsLabel->icon = sym_blank;
 }
 
 //-----------------------------
