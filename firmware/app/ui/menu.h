@@ -16,8 +16,6 @@
 #include <chrono>
 #include <ctime>
 
-//#include <QDebug>
-
 #define MARGIN			4
 #define BUTTON_HEIGHT	13
 #define BUTTON_WIDTH	30
@@ -50,14 +48,16 @@ public:
     void initItems(std::list<std::string>, const char*, int);
     void initDialog(CEndState);
     void initCondCommDialog(CEndState);
+    void initGroupCondComm(CEndState);
     void initVolumeDialog();
     void initScanDialog();
     void initAruarmDialog();
     void initIncludeDialog();
     void initSuppressDialog();
     void initTwoStateDialog();
-    void initGpsCoordinateDialog();
+    void initGpsCoordinateDialog(std::string, std::string);
     void initSetParametersDialog(std::string);
+    void initSetDateOrTimeDialog(std::string);
 
     void setTitle(const char*);
     void keyPressed(UI_Key);
@@ -69,6 +69,10 @@ public:
     // call
     void setCondCommParam(CEndState, UI_Key);
 
+    // group cond comm stage
+    int groupCondCommStage = 0;
+    void inputGroupCondCmd( CEndState, UI_Key );
+
     // message ( SMS )
     void initTxSmsDialog(const char *, std::string, std::string);
     void inputSmsMessage( CEndState, UI_Key );
@@ -77,6 +81,10 @@ public:
     char ch = ' ';
     int keyPressCount = 0;
     std::chrono::time_point<std::chrono::steady_clock> ct = std::chrono::steady_clock::now();
+
+    // recv
+    bool recvStatus = false;
+    uint8_t recvStage = 0;
 
     // recv sms
     void initRxSmsDialog();
@@ -87,10 +95,8 @@ public:
     uint8_t  getVolume(){ return vol;}
 
     // aru arm
-    void    incrAruArmAsu(GuiWindowsSubType);
-    void    decrAruArmAsu(GuiWindowsSubType);
     uint8_t getAruArmAsu() { return aruArmAsuStatus[focus]; }
-    uint8_t aruArmAsuStatus[3] = {1, 1, 1};
+    bool aruArmAsuStatus[3] = {true, true, true};
     uint8_t inclStatus = 1;
 
     // gps coordinate
@@ -107,7 +113,6 @@ public:
 
     // date, time, speed
     std::string localDate, localTime, speed;
-
     void setSttParam(CEndState, UI_Key);
 
 private:

@@ -99,7 +99,7 @@ private:
         GUI_EL_Battery *ind_battery;
 public:
         GUI_EL_Label *date_time;
-        GUI_EL_Label *gpsLabel;
+        GUI_EL_Icon  *gpsLabel;
 };
 
 

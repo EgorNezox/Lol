@@ -23,7 +23,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 {
     dispatcher->dsp_controller->firstPacket.connect(sigc::mem_fun(this,&VoiceServiceInterface::fistPacketRecieve));
     dispatcher->dsp_controller->smsPacketMessage.connect(sigc::mem_fun(this,&VoiceServiceInterface::smsMessage));
-    dispatcher->dsp_controller->smsCheckFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::SmsFailStage));
+    dispatcher->dsp_controller->smsFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::SmsFailStage));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()

@@ -54,6 +54,7 @@ extern const char *dateAndTimeSubMenu[];
 extern const char *setDateOrTime[];
 extern const char *setConnParam[];
 extern const char *useScanMenu[];
+extern const char *dataAndTime[];
 
 extern const char *aruStr;
 extern const char *armStr;
@@ -67,18 +68,22 @@ extern const char *smsText[];
 extern const char *sms_quit_fail1;
 extern const char *sms_quit_fail2;
 extern const char *sms_crc_fail;
-extern const char *sms_sucsess;
+
+extern const char* receiveStr;
+extern const char* receiveStatusStr[];
+extern const char* continueStr;
 
 extern const char ch_key0[2];
-extern const char ch_key1[6];
-extern const char ch_key2[4];
-extern const char ch_key3[4];
-extern const char ch_key4[4];
-extern const char ch_key5[4];
-extern const char ch_key6[4];
-extern const char ch_key7[4];
-extern const char ch_key8[4];
-extern const char ch_key9[4];
+extern const char ch_key1[7];
+extern const char ch_key2[5];
+extern const char ch_key3[5];
+extern const char ch_key4[5];
+extern const char ch_key5[5];
+extern const char ch_key6[5];
+extern const char ch_key7[5];
+extern const char ch_key8[5];
+extern const char ch_key9[5];
 
 extern const char *recvCondCommandStr;
+extern const char* groupCondCommFreqStr;
 #endif /* TEXTS_H_ */

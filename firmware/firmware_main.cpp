@@ -94,7 +94,7 @@ void qmMain() {
                             mr_dispatcher.getMainServiceInterface(),
                             mr_dispatcher.getVoiceServiceInterface(),
                            &power_battery,
-                           &navigator\
+                           &navigator
                           );
 #else
     Ui::Service ui_service(

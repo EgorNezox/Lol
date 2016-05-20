@@ -20,6 +20,7 @@
 #include "../headset/controller.h"
 #include "../power/battery.h"
 #include "../navigation/navigator.h"
+#include <qmtimer.h>
 
 
 #include "gui_obj.h"
@@ -38,7 +39,7 @@ namespace Headset {
     class Controller;
 }
 namespace Multiradio {
-	class MainServiceInterface;
+    class MainServiceInterface;
     class VoiceServiceInterface;
 }
 namespace Power {
@@ -48,23 +49,25 @@ namespace Power {
 namespace Ui {
 
 enum NotificationType {
-	NotificationMissingVoiceChannelsTable,
-	NotificationMissingOpenVoiceChannels,
-	NotificationMismatchVoiceChannelsTable
+    NotificationMissingVoiceChannelsTable,
+    NotificationMissingOpenVoiceChannels,
+    NotificationMismatchVoiceChannelsTable
 };
 
 
-class Service : public sigc::trackable {
+class Service : public QmObject //sigc::trackable
+{
 public:
     Service(matrix_keyboard_t matrixkb_desc,
             aux_keyboard_t auxkb_desc,
-			Headset::Controller *headset_controller,
+            Headset::Controller *headset_controller,
             Multiradio::MainServiceInterface *mr_main_service,
             Multiradio::VoiceServiceInterface *mr_voice_service,
             Power::Battery *power_battery,
-            Navigation::Navigator *navigator);
-	~Service();
-	void setNotification(NotificationType type);
+            Navigation::Navigator *navigator
+			);
+    ~Service();
+    void setNotification(NotificationType type);
     // ������ �����������
     void updateHeadset(Headset::Controller::Status);
     void updateMultiradio(Multiradio::MainServiceInterface::Status);
@@ -81,29 +84,31 @@ private:
     void msgBox(const char* title, const char *text);
     void msgBox(const char* title, const int condCmd );
 
-	matrix_keyboard_t matrix_kb;
-	aux_keyboard_t aux_kb;
-	Headset::Controller *headset_controller;
-	Multiradio::MainServiceInterface *multiradio_service;
+    matrix_keyboard_t matrix_kb;
+    aux_keyboard_t aux_kb;
+    Headset::Controller *headset_controller;
+    Multiradio::MainServiceInterface *multiradio_service;
     Multiradio::VoiceServiceInterface *voice_service;
-	Power::Battery *power_battery;
-	QmMatrixKeyboard *keyboard;
-	QmPushButtonKey *chnext_bt;
-	QmPushButtonKey *chprev_bt;
-	static bool single_instance;
+    Power::Battery *power_battery;
+    QmMatrixKeyboard *keyboard;
+    QmPushButtonKey *chnext_bt;
+    QmPushButtonKey *chprev_bt;
+    static bool single_instance;
     Navigation::Navigator *navigator;
     GUI_Dialog_MainScr  *main_scr;
     GUI_Indicator       *indicator;
     GUI_Dialog_MsgBox   *msg_box;
 
+    QmTimer *systemTimeTimer;
+
     CGuiMenu *menu;
     CGuiTree  guiTree;
 
-	void voiceChannelChanged();
-	void chNextHandler();
-	void chPrevHandler();
-	void keyPressed(UI_Key key);
-	void keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type);
+    void voiceChannelChanged();
+    void chNextHandler();
+    void chPrevHandler();
+    void keyPressed(UI_Key key);
+    void keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type);
     Headset::Controller *pGetHeadsetController();
     Multiradio::MainServiceInterface* pGetMultitradioService();
     Multiradio::VoiceServiceInterface* pGetVoiceService();
@@ -122,13 +127,19 @@ private:
 
     void FailedSms(int stage);
 
+    // gps coordinate
+    std::string coord_lat;
+    std::string coord_log;
+    std::string date;
+    std::string time;
+
     int RN_KEY = 1;
     int mainWindowModeId;
 
     int isFreq = 0;
     int command_rx_30 = 0;
     std::list<int *> BasePswfCadr;
-
+    bool gpsSynchronization = true;
 };
 
 } /* namespace Ui */

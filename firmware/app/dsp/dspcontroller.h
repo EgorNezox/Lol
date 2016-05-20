@@ -64,6 +64,15 @@ public:
 		StageRx_quit = 7
 	};
 
+    enum GucStage
+    {
+        GucNone = 0,
+        GucTx = 1,
+        GucRx = 2,
+        GucTxQuit = 3,
+        GucRxQuit = 4
+    };
+
     DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, QmObject *parent);
     ~DspController();
     bool isReady();
@@ -80,6 +89,11 @@ public:
     void startSMSRecieving(SmsStage stage = StageRx_call);
     void startSMSTransmitting(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call);
 
+    void startGucTransmitting(int r_adr, int speed_tx, uint8_t *command);
+    void startGucTransmitting();
+    void startGucRecieving();
+    void checkGucQuit();
+
     void parsingData();
     void *getContentPSWF();
 
@@ -93,7 +107,7 @@ public:
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void,int> firstPacket;
     sigc::signal<void> smsReceived;
-    sigc::signal<void,int> smsCheckFailed;
+    sigc::signal<void,int> smsFailed;
     sigc::signal<void> smsPacketMessage;
 
     float swf_res = 2; // надо изменить значение на нижнее предельное
@@ -105,12 +119,14 @@ public:
 private:
     friend struct DspCommand;
 
-    enum Module {
+    enum  Module {
         RxRadiopath,
         TxRadiopath,
         Audiopath,
         PSWFReceiver,		//0x60
-        PSWFTransmitter		//0x72
+        PSWFTransmitter,    //0x72
+        RadioLineNotPswf,   // 0x68
+        GucPath             // 0x7A
     };
     enum RxParameterCode {
         RxFrequency = 1,
@@ -155,6 +171,7 @@ private:
         uint8_t pswf_indicator;
         uint8_t pswf_r_adr;
         uint8_t swf_mode;
+        uint8_t guc_mode;
     };
 
     struct PswfContent{
@@ -188,6 +205,23 @@ private:
 
     int *counterSms;
 
+    struct GucContent
+    {
+        uint8_t indicator;
+        uint8_t type;
+        uint8_t chip_time;
+        uint8_t WIDTH_SIGNAL;
+        uint8_t R_ADR;
+        uint8_t S_ADR;
+        uint8_t NUM_com;
+        uint8_t ckk;
+        uint8_t uin;
+        uint8_t Coord;
+        uint8_t stage;
+        uint8_t command[100];
+
+    } ContentGuc;
+
 
     void initResetState();
     void processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version);
@@ -204,6 +238,8 @@ private:
     bool resyncPendingCommand();
     void sendCommand(Module module, int code, ParameterValue value);
     void sendPswf(Module module);
+    void sendGuc(Module module);
+    void recGuc();
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
 
 
@@ -241,7 +277,7 @@ private:
     QmTimer *startup_timer, *command_timer;
     QmTimer *quit_timer;
     QmTimer *sync_pulse_delay_timer; //delay is needed for Navigator NMEA processing after sync pulse
-
+    QmTimer *guc_timer;
 
     enum {
         radiostateSync,
@@ -264,7 +300,12 @@ private:
         radiostateSmsRxPrepare,
         radiostateSmsTxPrepare,
 		radiostateSmsTxRxSwitch,
-		radiostateSmsRxTxSwitch
+        radiostateSmsRxTxSwitch,
+        radiostateGucTxPrepare,
+        radiostateGucRxPrepare,
+        radiostateGucSwitch,
+        radiostateGucTx,
+        radiostateGucRx
     } radio_state;
     RadioMode current_radio_mode;
     RadioOperation  current_radio_operation;
@@ -285,6 +326,9 @@ private:
     int smsRxStateSync;
     int smsTxStateSync;
 
+    int gucRxStateSync;
+    int gucTxStateSync;
+
     int success_pswf;
     bool pswf_first_packet_received;
     bool pswf_ack;
@@ -301,12 +345,17 @@ private:
     std::vector<int> syncro_recieve;
     std::vector<int> tx_call_ask_vector;
     std::vector<int> quit_vector;
+    std::vector<std::vector<uint8_t>> guc_vector;
 
 
     int rs_data_clear[255];
 
-    char sms_content[100];
+    char guc_adr[50];
+    uint8_t rec_uin_guc;
+    uint8_t rec_s_adr;
+    int guc_tx_num;
 
+    char sms_content[100];
     uint8_t ack;
     int ok_quit = 0;
 };
