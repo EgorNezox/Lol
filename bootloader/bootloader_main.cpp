@@ -11,10 +11,15 @@
 #include "../system/platform_hw_map.h"
 #include "system/hardware_boot.h"
 
+#include "qmconsolescreen.h"
+
 void qmMain() {
+	QmConsoleScreen::init(2, 2, 2, 2);
+
 	hwboot_test_result_t test_result = hwboot_test_board();
 	if (test_result != hwboottestOk)
 		while(1); // test failed, cannot safely continue !
+
 	hwboot_jump_firmware(); // управление передается прошивке
 	/* (выполнение никогда не доходит до этого места) */
 }

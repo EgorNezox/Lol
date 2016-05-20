@@ -12,7 +12,7 @@ makepp_percent_subdirs=1
 include misc/target_build_subproject_header.mk
 
 # функциональные опции сборки системы
-# <отсутствуют>
+DEFINES_system += BUILD_OPTION_ENABLE_DISPLAY_BUFFER=0
 
 # подключение сборки платформы и порта
 load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/qm-platform/stm32f2xx
@@ -20,7 +20,7 @@ load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/port__$(BUILD_
 LDSCRIPTS += ../system/port__$(BUILD_PORT)/stm32_memory.ld
 
 # подключение сборки модулей Qm
-load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." PLATFORM=stm32f2xx KEYSINPUT=1 ../Qm
+load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." PLATFORM=stm32f2xx CONSOLE=1 ../Qm
 
 # подключение сборки сторонних компонентов
 load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/3rdparty/$( FreeRTOS STM32Cube_FW_F2 Ramtex_Graphic_Lib libsigc++ )
