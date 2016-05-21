@@ -57,6 +57,7 @@ public:
     void initTwoStateDialog();
     void initGpsCoordinateDialog(std::string, std::string);
     void initSetParametersDialog(std::string);
+    void initSetDateOrTimeDialog(std::string);
 
     void setTitle(const char*);
     void keyPressed(UI_Key);
@@ -81,6 +82,10 @@ public:
     int keyPressCount = 0;
     std::chrono::time_point<std::chrono::steady_clock> ct = std::chrono::steady_clock::now();
 
+    // recv
+    bool recvStatus = false;
+    uint8_t recvStage = 0;
+
     // recv sms
     void initRxSmsDialog();
 
@@ -90,10 +95,8 @@ public:
     uint8_t  getVolume(){ return vol;}
 
     // aru arm
-    void    incrAruArmAsu(GuiWindowsSubType);
-    void    decrAruArmAsu(GuiWindowsSubType);
     uint8_t getAruArmAsu() { return aruArmAsuStatus[focus]; }
-    uint8_t aruArmAsuStatus[3] = {1, 1, 1};
+    bool aruArmAsuStatus[3] = {true, true, true};
     uint8_t inclStatus = 1;
 
     // gps coordinate

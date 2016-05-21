@@ -20,6 +20,7 @@
 #include "../headset/controller.h"
 #include "../power/battery.h"
 #include "../navigation/navigator.h"
+#include <qmtimer.h>
 
 
 #include "gui_obj.h"
@@ -54,7 +55,8 @@ enum NotificationType {
 };
 
 
-class Service : public sigc::trackable {
+class Service : public QmObject //sigc::trackable
+{
 public:
     Service(matrix_keyboard_t matrixkb_desc,
             aux_keyboard_t auxkb_desc,
@@ -62,7 +64,8 @@ public:
             Multiradio::MainServiceInterface *mr_main_service,
             Multiradio::VoiceServiceInterface *mr_voice_service,
             Power::Battery *power_battery,
-            Navigation::Navigator *navigator);
+            Navigation::Navigator *navigator
+			);
     ~Service();
     void setNotification(NotificationType type);
     // ������ �����������
@@ -95,6 +98,8 @@ private:
     GUI_Dialog_MainScr  *main_scr;
     GUI_Indicator       *indicator;
     GUI_Dialog_MsgBox   *msg_box;
+
+    QmTimer *systemTimeTimer;
 
     CGuiMenu *menu;
     CGuiTree  guiTree;
@@ -134,7 +139,7 @@ private:
     int isFreq = 0;
     int command_rx_30 = 0;
     std::list<int *> BasePswfCadr;
-    bool gpsSynchronization;
+    bool gpsSynchronization = true;
 };
 
 } /* namespace Ui */

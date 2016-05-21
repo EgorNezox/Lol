@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "qm.h"
+#define QMDEBUGDOMAIN	service
 #include "qmdebug.h"
 #include "dialogs.h"
 #include "service.h"
@@ -10,6 +11,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+
+
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
@@ -28,7 +31,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   Multiradio::MainServiceInterface  *mr_main_service,
                   Multiradio::VoiceServiceInterface *mr_voice_service,
                   Power::Battery                    *power_battery,
-                  Navigation::Navigator             *navigator )
+                  Navigation::Navigator             *navigator
+)
 {
     QM_ASSERT(single_instance == false);
     single_instance = true;
@@ -56,10 +60,16 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     menu = nullptr;
     msg_box = nullptr;
 
+	if( menu == nullptr )
+	{
+		menu = new CGuiMenu(&ui_menu_msg_box_area, mainMenu[0], {alignHCenter,alignTop});
+	}
+
+
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
-
+ //   this->navigator->CoordinateUpdated.connect(sigc::mem_fun(this, &GUI_Indicator::UpdateGpsStatus()));
     guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
     msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
 
@@ -71,8 +81,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
 
 #ifndef PORT__PCSIMULATOR
-    QmTimer *systemTimeTimer;
-    systemTimeTimer = new QmTimer(true, this);
+    systemTimeTimer = new QmTimer(true); //TODO:
     systemTimeTimer->setInterval(1000);
     systemTimeTimer->start();
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
@@ -318,15 +327,15 @@ void Service::keyPressed(UI_Key key)
                     int freq = atoi(main_scr->nFreq.c_str());
                     voice_service->TuneFrequency(freq);
                 }
-                // Ð ÐµÑ‡ÑŒ
+                // ? å÷ü
                 switch ( main_scr->mainWindowModeId )
                 {
                 case 0:
                 {}
-                    // ÐÐ£Ð¡
+                    // ÀÓÑ
                 case 1:
                 {}
-                    // Ð“Ð£Ðš
+                    // ÃÓÊ
                 case 2:
                 {}
                 default:
@@ -421,7 +430,7 @@ void Service::keyPressed(UI_Key key)
             msg_box->keyPressed(key);
         break;
     }
-        // Ð Ð† Ð Ñ˜Ð ÂµÐ Ð…Ð¡Ð‹
+        // ? ² ? ¼? µ? ½ÑŽ
     case menuWindow:
     {
         if ( key == keyEnter)
@@ -488,7 +497,8 @@ void Service::keyPressed(UI_Key key)
                 if ( menu->focus == estate.listItem.size() && flag )
                 {
                     /* callback */
-                    int param[2]; // 0 -R_ADR, 1 - COM_N
+                    int param[2]; // if estate.listItem.size() == 2, 0 -R_ADR, 1 - COM_N
+                                  // if estate.listItem.size() == 1, 0 -COM_N
                     int i = 0;
 
                     for (auto &k: estate.listItem)
@@ -496,16 +506,19 @@ void Service::keyPressed(UI_Key key)
                         param[i] = atoi(k->inputStr.c_str());
                         i++;
                     }
-#ifndef PORT__PCSIMULATOR
-                    if (estate.listItem.size() == 1)
-                        voice_service->TurnPSWFMode(1, 0, param[0]);
-                    else if (estate.listItem.size() == 2)
-                        voice_service->TurnPSWFMode(1, param[0], param[1]);
+//#ifndef PORT__PCSIMULATOR
+                    if (navigator != 0){
+                    	if (estate.listItem.size() == 1)
+                    		voice_service->TurnPSWFMode(1, 0, param[0]);
+                    	else if (estate.listItem.size() == 2)
+                    		voice_service->TurnPSWFMode(1, param[0], param[1]);
+                    }
                     else
-                        qmDebugMessage( QmDebug::Error, "estate.listItem.size() == %d", estate.listItem.size() );
-#else
-                    //qmDebugMessage( QmDebug::Error, "estate.listItem.size() == %d", estate.listItem.size() );
-#endif
+                    {
+                    	//msg íåò êîîðäèíàò
+                    }
+
+//#endif
                 }
                 break;
             }
@@ -564,6 +577,7 @@ void Service::keyPressed(UI_Key key)
                     //TODO: temp fix))
 
                     int param[2]; // 0 -R_ADR, 1 - COM_N
+
                     int i = 0;
 
                     for (auto &k: estate.listItem)
@@ -716,11 +730,9 @@ void Service::keyPressed(UI_Key key)
                 {
                     if ( menu->focus == 2 )
                     {
-                        menu->focus == 0;
-                        menu->groupCondCommStage = 0;
 #ifndef PORT__PCSIMULATOR
-                        /* check */
-                        /* callback */
+                        menu->focus = 0;
+                        menu->groupCondCommStage = 0;
 #else
                         for (auto &k: estate.listItem)
                             k->inputStr.clear();
@@ -890,9 +902,18 @@ void Service::keyPressed(UI_Key key)
                             k->inputStr.clear();
                             cnt++;
                         }
-#ifndef PORT__PCSIMULATOR
-                        voice_service->TurnSMSMode(r_adr, mes);
-#endif
+                        if (navigator != 0){
+                        	Navigation::Coord_Date date = navigator->getCoordDate();
+
+                        	char ch[4]; memcpy(ch,date.data, 4);
+                        	if (atoi(ch) > 0)
+                        		voice_service->TurnSMSMode(r_adr, mes);
+                        }
+                        else
+                        {
+                        	//msg Íåò gps
+                        }
+
                         menu->keyPressCount = 0;
                     }
                 }
@@ -959,11 +980,20 @@ void Service::keyPressed(UI_Key key)
             }
             if ( key == keyEnter)
             {
-                /* call */
-                guiTree.resetCurrentState();
+                if (menu->recvStage == 0)
+                {
+                    menu->recvStage = 1;
 #ifndef PORT__PCSIMULATOR
                 voice_service->TurnSMSMode();
 #endif
+                break;
+                }
+                if (menu->recvStage == 1)
+                {
+                    menu->recvStage = 0;
+                    guiTree.resetCurrentState();
+                }
+
             }
             break;
         }
@@ -1010,13 +1040,8 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyRight || key == keyUp )
             {
-                menu->scanStatus = true;
-                menu->inclStatus = true;
-            }
-            if ( key == keyLeft  || key == keyDown )
-            {
-                menu->scanStatus = false;
-                menu->inclStatus = false;
+                menu->scanStatus = menu->scanStatus ? false : true;
+                menu->inclStatus = menu->inclStatus ? false : true;
             }
             if ( key == keyBack)
             {
@@ -1027,15 +1052,10 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::suppress:
         {
-            if ( key == keyRight || key == keyUp )
+            if ( key == keyRight || key == keyLeft )
             {
-                menu->supressStatus = true;
-                menu->inclStatus = true;
-            }
-            if ( key == keyLeft  || key == keyDown )
-            {
-                menu->supressStatus = false;
-                menu->inclStatus = false;
+                menu->supressStatus = menu->supressStatus ? false : true;
+                menu->inclStatus = menu->inclStatus ? false : true;
             }
             if ( key == keyBack)
             {
@@ -1056,41 +1076,16 @@ void Service::keyPressed(UI_Key key)
                 if ( menu->focus < 2 )
                     menu->focus++;
             }
-            if ( key == keyLeft )
+            if ( key == keyLeft || key == keyRight )
             {
-                if ( menu->focus == 0 )
+                if ( menu->focus >= 0 && menu->focus < 3)
                 {
-                    menu->decrAruArmAsu(estate.subType);
-                }
-                else if ( menu->focus == 1)
-                {
-                    menu->decrAruArmAsu(estate.subType);
-                }
-                else
-                {
-                    menu->decrAruArmAsu(estate.subType);
-                }
-                uint8_t vol = menu->getAruArmAsu();
+                    menu->aruArmAsuStatus[menu->focus] = menu->aruArmAsuStatus[menu->focus] ? false : true;
+                }              
 #ifndef PORT__PCSIMULATOR
+                uint8_t vol = menu->getAruArmAsu();
                 voice_service->TurnAGCMode(vol, menu->focus);
 #endif
-            }
-            if ( key == keyRight )
-            {
-                if ( menu->focus == 0 )
-                {
-                    menu->incrAruArmAsu(estate.subType);
-                }
-                else if ( menu->focus == 1 )
-                {
-                    menu->incrAruArmAsu(estate.subType);
-                }
-                else
-                {
-                    menu->incrAruArmAsu(estate.subType);
-                }
-                uint8_t vol = menu->getAruArmAsu();
-                voice_service->TurnAGCMode(vol, menu->focus);
             }
 
             if ( key == keyBack)
@@ -1112,7 +1107,6 @@ void Service::keyPressed(UI_Key key)
 #if !defined(PORT__PCSIMULATOR)
             setCoordDate(navigator->getCoordDate());
 #endif
-
             }
             break;
         }
@@ -1126,13 +1120,94 @@ void Service::keyPressed(UI_Key key)
                 menu->focus = 0;
                 break;
             }
+            case keyRight:
+            case keyLeft:
+            {
+                gpsSynchronization = gpsSynchronization ? false : true;
+                break;
+            }
             default:
                 break;
             }
             break;
         }
         case GuiWindowsSubType::setDate:
+        {
+            if ( key == keyBack )
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }else if ( key >= key0 && key <= key9 )
+            {
+                auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
+                if ( st.size() < 8 )
+                    st.push_back(key+42);
+
+                if (st.size() > 1 && st.size() < 3 )
+                {
+                    // 1 <= ?? <= 31
+                }
+                if (st.size() > 3 && st.size() < 5 )
+                {
+                    // 1 <= ?? <= 12
+                }
+                if (st.size() > 6 )
+                {
+                    // 16 <= ?? <= 99
+                }
+
+                if ( st.size() == 2  || st.size() == 5)
+                {
+                    st.push_back('.');
+                }
+            }
+            break;
+        }
         case GuiWindowsSubType::setTime:
+        {
+            if ( key == keyBack )
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }else if ( key >= key0 && key <= key9 )
+            {
+                auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
+                if ( st.size() < 8 )
+                    st.push_back(key+42);
+
+                if (st.size() > 1 && st.size() < 3 )
+                {
+                    // 0 <= ?? <= 23
+                    auto hh = st.substr(0, 2);
+                    if ( atoi(hh.c_str()) > 23 )
+                        st.clear();
+                }
+                if (st.size() > 3 && st.size() < 5 )
+                {
+                    // 0 <= ?? <= 59
+                    auto mm = st.substr(3, 2);
+                    if ( atoi(mm.c_str()) > 59 )
+                    {
+                        st.pop_back(); st.pop_back();
+                    }
+                }
+                if (st.size() > 6 )
+                {
+                    // 0 <= ?? <= 59
+                    auto cc = st.substr(6, 2);
+                    if ( atoi(cc.c_str()) > 59 )
+                    {
+                        st.pop_back(); st.pop_back();
+                    }
+                }
+
+                if ( st.size() == 2  || st.size() == 5)
+                {
+                    st.push_back(':');
+                }
+            }
+            break;
+        }
         case GuiWindowsSubType::setFreq:
         case GuiWindowsSubType::setSpeed:
         {
@@ -1286,15 +1361,18 @@ void Service::drawMainWindow()
 
     bool gpsStatus = false;
 
-#ifdef PORT_PCSIMULATOR
-    Navigation::Coord_Date date = navigator->getCoordDate();
-    char ch[10];
-    memcpy(&ch,&date.data,10);
-    if (atoi((const char*)ch) != 0)
-    {
-        gpsStatus = true;
+//#ifdef PORT_PCSIMULATOR
+    if (navigator != 0){
+    	Navigation::Coord_Date date = navigator->getCoordDate();
+    	char ch[10];
+    	memcpy(&ch,&date.data,10);
+    	if (atoi((const char*)ch) != 0)
+    	{
+    		gpsStatus = true;
+    	}
     }
-#endif
+//#endif
+
 
     indicator->Draw(pGetMultitradioService()->getStatus(),
                     pGetHeadsetController()->getStatus(),
@@ -1325,7 +1403,7 @@ void Service::drawMenu()
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
         //
-        // Ð¿Ñ—Ð…Ð¿Ñ—Ð…Ð¿Ñ—Ð…Ð¿Ñ—Ð…Ð¿Ñ—Ð…Ð¿Ñ—Ð…Ð¿Ñ—Ð…Ð¿Ñ—Ð…Ð¿Ñ—Ð…
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         //        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
 
         for (auto &k: st.nextState)
@@ -1379,25 +1457,27 @@ void Service::drawMenu()
 #if !defined(PORT__PCSIMULATOR)
             setCoordDate(navigator->getCoordDate());
 #endif
-            menu->initGpsCoordinateDialog( coord_lat, coord_log );
+            menu->initGpsCoordinateDialog( menu->coord_lat, menu->coord_log );
             break;
         }
         case GuiWindowsSubType::gpsSync:
         {
-            menu->inclStatus = menu->scanStatus;
+            menu->inclStatus =  gpsSynchronization;
             menu->initIncludeDialog();
             break;
         }
         case GuiWindowsSubType::setDate:
         {
-            std::string str; str.append(st.listItem.front()->inputStr);// str.append(freq_hz);
-            menu->initSetParametersDialog( str );
+            menu->setTitle(dataAndTime[0]);
+            std::string str; str.append(st.listItem.front()->inputStr); //str.append("00.00.00");
+            menu->initSetDateOrTimeDialog( str );
             break;
         }
         case GuiWindowsSubType::setTime:
         {
-            std::string str; str.append(st.listItem.front()->inputStr);// str.append(freq_hz);
-            menu->initSetParametersDialog( str );
+            menu->setTitle(dataAndTime[1]);
+            std::string str; str.append(st.listItem.front()->inputStr); //str.append("00:00:00");
+            menu->initSetDateOrTimeDialog( str );
             break;
         }
         case GuiWindowsSubType::setFreq:
@@ -1491,7 +1571,12 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     menu->time.clear();
 
     menu->coord_lat.append((char *)date.latitude);
-    menu->coord_log.append((char *)date.longitude);
+
+    date.longitude[11] = '\0';
+
+    uint8_t *abc;
+    if (date.longitude[0] == '0') abc = &(date.longitude[1]);
+    menu->coord_log.append((char *)abc);
 
     std::string str;
     str.push_back((char)date.data[0]);
@@ -1507,7 +1592,10 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     str.push_back((char)date.time[2]);
     str.push_back((char)date.time[3]);
 
+
+
     indicator->date_time->SetText((char *)str.c_str());
+    drawIndicator();
     str.clear();
 }
 
@@ -1546,8 +1634,10 @@ void Service::updateSystemTime()
         data.time[2] = 1;
         data.time[3] = 1;
 
-        setCoordDate( data );
+        setCoordDate(data );
     }
+
+    systemTimeTimer->start();
 }
 
 
@@ -1566,3 +1656,7 @@ void Service::smsMessage()
 }
 
 }/* namespace Ui */
+
+#include "qmdebug_domains_start.h"
+QMDEBUG_DEFINE_DOMAIN(service, LevelVerbose)
+#include "qmdebug_domains_end.h"

@@ -26,6 +26,7 @@ char * ch_table_mismatch_txt[LANG_COUNT]={(char *)"Несоответствие таблицы речевы
 
 const char* receiveStr = "Принять\0";
 const char* continueStr = "Продолжить\0";
+const char* receiveStatusStr[] = {"Начать прием\0", "Идет прием\0"};
 
 const char *mainMenu[] = {"ГЛАВНОЕ МЕНЮ\0", " Вызов\0", " Прием\0", " Данные\0", " Настройки\0"};
 
@@ -71,6 +72,7 @@ const char ch_key7[] = { 'Ф', 'Х', 'Ц', 'Ч', '7' };
 const char ch_key8[] = { 'Ш', 'Щ', 'Ъ', 'Ы', '8' };
 const char ch_key9[] = { 'Ь', 'Э', 'Ю', 'Я', '9' };
 
-const char *recvCondCommand = "Принята условная команда\0";
+const char* recvCondCommand = "Принята условная команда\0";
 
 const char* groupCondCommFreqStr = "Частота ";
+const char* dataAndTime[] = {"Дата\0", "Время\0"};

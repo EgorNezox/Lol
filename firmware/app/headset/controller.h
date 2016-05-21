@@ -13,6 +13,7 @@
 
 #include "qmobject.h"
 #include "multiradio.h"
+#include <qmtimer.h>
 
 class QmPushButtonKey;
 class QmTimer;

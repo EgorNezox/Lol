@@ -8,6 +8,8 @@
 
 TEMPLATE = lib
 CONFIG += staticlib
+CONFIG -= qt
+CONFIG += c++11
 
 include(../misc/qt_build_utils.pri)
 

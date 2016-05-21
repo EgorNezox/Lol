@@ -12,6 +12,8 @@
 #include <string.h>
 #include <string>
 #include <list>
+#include <cstring>
+#include <vector>
 #include <math.h>
 #include "navigator.h"
 
@@ -45,6 +47,19 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 //	QM_UNUSED(uart_resource);
 //	QM_UNUSED(reset_iopin_resource);
 //#endif /* PORT__TARGET_DEVICE_REV1 */
+
+    for(int i = 0;i<11;i++){
+      CoordDate.longitude[i] = 0;
+      CoordDate.latitude[i] = 0;
+    }
+
+    CoordDate.longitude[11] = 0;
+
+    for(int i = 0;i<10;i++){
+        CoordDate.data[i] = 0;
+        CoordDate.time[i] = 0;
+    }
+
 }
 
 Navigator::~Navigator() {
@@ -70,10 +85,11 @@ void Navigator::processUartReceivedData() {
 	int64_t data_read = 0;
 	while ((data_read = uart->readData(data, 1024 - 1))) {
 		data[data_read] = '\0';
-		qmDebugMessage(QmDebug::Dump, (char*)data);
+        // fixed
+		qmDebugMessage(QmDebug::Dump, "uart dump %d", (char*)data);
 	}
 
-	parsingData(data);
+	 parsingData(data);
 
 	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 }
@@ -88,95 +104,73 @@ void Navigator::processUartReceivedErrors(bool data_errors, bool overflow) {
 
 void Navigator::parsingData(uint8_t data[])
 {
-    // вид строки
     // $GPRMC,hhmmss.sss,A,GGMM.MM,P,gggmm.mm,J,v.v,b.b,ddmmyy,x.x,n,m*hh<CR><LF>
 
-    int index = 0;
-    char *search = "$GPRMC";
-    //char *res;
+        char* rmc = (char*)data;
+        char* rmc_dubl = nullptr;
 
-
-    std::list<std::string> str;
-
-    std::string res((const char *)data);
-
-    int index_end = 0;
-
-    while(index <= index_end)
-    {
-        int probel = res.find('\r\n');
-        int index = res.find(',');
-
-        if (probel < index)
-            res = res.substr(probel+1,res.length());
-        else
-        {
-            index_end = res.find_last_of(',');
-            str.push_back(res.substr(0,index));
-            res = res.substr(index+1,res.length());
+        while (rmc != NULL){
+            rmc = strstr((const char*)rmc,(const char*)"$GPRMC");
+            if (rmc != NULL){
+                rmc_dubl = rmc;
+                *rmc++;
+            }
         }
 
-    }
+        if (rmc_dubl == nullptr)
+        	return;
 
-    int counter = 0;
-    bool rmc = false;
+        char *param_start = rmc_dubl;
+        char *param_end    = rmc_dubl;
 
+        std::vector<std::string> parse_elem;
+        std::string str;
 
-    std::string s;
+        while (param_start != NULL){
+            param_start = strstr((const char*)param_start,(const char*)",");
+            if (param_start != NULL) {
+                *param_start++;
+                param_end =   strstr((const char*)param_start,(const char*)",");
+                if (param_end != NULL){
+                   str.clear();
+                   str.append(param_start);
+                   int ind1 = strlen((const char*)param_start);
+                   int ind2 = strlen((const char*)param_end);
+                   ind1 = ind1 - ind2;
+                   str = str.substr(0, ind1);
+                   if (strstr(str.c_str(),"\r\n") != 0) break;
+                   else
+                   parse_elem.push_back(str);
 
-    for( auto iter = str.begin(); iter != str.end(); iter++)
-    {
-        if (*iter == "$GPRMC")
-            rmc = true;
+                } else{
+                    str.clear();
+                    if (strstr(str.c_str(),"\r\n") == 0)
+                        str.append(param_start);
+                    parse_elem.push_back(str);
+                    break;
+                }
 
-        if (rmc)
-         counter++;
-
-        if (counter == 2)
-        {
-            s = *iter;
-            memcpy(CoordDate.time,s.c_str(),10);
-            s.clear();
-        }
-
-        if (counter == 4)
-        {
-            s.append(*iter);
-            memcpy(&CoordDate.latitude[1],s.c_str(),11);
+            }
 
         }
 
-        if (counter == 5)
-        {
-            s = *iter;
-            memcpy(&CoordDate.latitude[0],s.c_str(),1);
-            s.clear();
+        if (parse_elem.size() > 0)
+            memcpy(&CoordDate.time,parse_elem.at(0).c_str(),parse_elem.at(0).size());
+
+        if ((parse_elem.size() > 2) /*&& (parse_elem.at(1).compare("V") != 0)*/)
+        { // проверка по статусу gps
+            if (parse_elem.size() > 3){
+                memcpy(&CoordDate.latitude,parse_elem.at(2).c_str(),parse_elem.at(2).size());
+                memcpy(&CoordDate.latitude[parse_elem.at(2).size()],parse_elem.at(3).c_str(),parse_elem.at(3).size());
+            }
+            if (parse_elem.size() > 5){
+                memcpy(&CoordDate.longitude,parse_elem.at(4).c_str(),parse_elem.at(4).size());
+                memcpy(&CoordDate.longitude[parse_elem.at(4).size()],parse_elem.at(5).c_str(),parse_elem.at(5).size());
+            }
+            if (parse_elem.size() > 8)
+                memcpy(&CoordDate.data,parse_elem.at(8).c_str(),parse_elem.at(8).size());
         }
 
-        if (counter == 6)
-        {
-            s.append(*iter);
-            memcpy(CoordDate.longitude,s.c_str(),11);
-            s.clear();
-        }
-
-
-        if (counter == 7)
-        {
-            s = *iter;
-            memcpy(CoordDate.longitude,s.c_str(),1);
-            s.clear();
-        }
-
-        if (counter == 10)
-        {
-            s = *iter;
-            memcpy(CoordDate.data,s.c_str(),10);
-            s.clear();
-        }
-
-
-    }
 }
 
 void Navigator::processSyncPulse() {
