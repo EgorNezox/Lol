@@ -85,12 +85,9 @@ void Navigator::processUartReceivedData() {
 	int64_t data_read = 0;
 	while ((data_read = uart->readData(data, 1024 - 1))) {
 		data[data_read] = '\0';
-        // fixed
-		qmDebugMessage(QmDebug::Dump, "uart dump %d", (char*)data);
+		parsingData(data);
+//		qmDebugMessage(QmDebug::Dump, "uart dump %s", (char*)data);
 	}
-
-	 parsingData(data);
-
 	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 }
 
@@ -157,7 +154,7 @@ void Navigator::parsingData(uint8_t data[])
         if (parse_elem.size() > 0)
             memcpy(&CoordDate.time,parse_elem.at(0).c_str(),parse_elem.at(0).size());
 
-        if ((parse_elem.size() > 2) /*&& (parse_elem.at(1).compare("V") != 0)*/)
+        if ((parse_elem.size() > 2) && (parse_elem.at(1).compare("V") != 0))
         { // проверка по статусу gps
             if (parse_elem.size() > 3){
                 memcpy(&CoordDate.latitude,parse_elem.at(2).c_str(),parse_elem.at(2).size());
@@ -170,6 +167,7 @@ void Navigator::parsingData(uint8_t data[])
             if (parse_elem.size() > 8)
                 memcpy(&CoordDate.data,parse_elem.at(8).c_str(),parse_elem.at(8).size());
         }
+        qmDebugMessage(QmDebug::Dump, "parsing result:  %s %s %s %s", (char*)CoordDate.time,(char*)CoordDate.data,(char*)CoordDate.latitude,(char*)CoordDate.longitude);
 
 }
 
@@ -181,5 +179,5 @@ void Navigator::processSyncPulse() {
 } /* namespace Navigation */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(navigation, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(navigation, LevelVerbose)
 #include "qmdebug_domains_end.h"

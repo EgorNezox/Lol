@@ -238,7 +238,7 @@ private:
     bool resyncPendingCommand();
     void sendCommand(Module module, int code, ParameterValue value);
     void sendPswf(Module module);
-    void sendGuc(Module module);
+    void sendGuc();
     void recGuc();
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);
 
@@ -258,6 +258,7 @@ private:
     void transmitSMS();
     void sendSms(Module module);
     void recSms();
+    void sendGucQuit();
 
     void changeSmsRxFrequency();
 
@@ -278,6 +279,7 @@ private:
     QmTimer *quit_timer;
     QmTimer *sync_pulse_delay_timer; //delay is needed for Navigator NMEA processing after sync pulse
     QmTimer *guc_timer;
+    QmTimer *guc_rx_quit_timer;
 
     enum {
         radiostateSync,

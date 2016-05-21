@@ -143,6 +143,12 @@ void Service::FailedSms(int stage)
 {
     switch(stage)
     {
+    case -1:
+    {
+    	guiTree.append(messangeWindow, "Sucsess Sms", "Sms Sucsess");
+    	msgBox( "Recieved packet ", "Sms Sucsess" );
+    	break;
+    }
     case 0:
     {
         guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail1);
@@ -327,15 +333,15 @@ void Service::keyPressed(UI_Key key)
                     int freq = atoi(main_scr->nFreq.c_str());
                     voice_service->TuneFrequency(freq);
                 }
-                // ? å÷ü
+                // ? ï¿½ï¿½ï¿½
                 switch ( main_scr->mainWindowModeId )
                 {
                 case 0:
                 {}
-                    // ÀÓÑ
+                    // ï¿½ï¿½ï¿½
                 case 1:
                 {}
-                    // ÃÓÊ
+                    // ï¿½ï¿½ï¿½
                 case 2:
                 {}
                 default:
@@ -430,7 +436,7 @@ void Service::keyPressed(UI_Key key)
             msg_box->keyPressed(key);
         break;
     }
-        // ? ² ? ¼? µ? ½Ñ
+        // ? ï¿½ ? ï¿½? ï¿½? ï¿½Ñ
     case menuWindow:
     {
         if ( key == keyEnter)
@@ -515,7 +521,7 @@ void Service::keyPressed(UI_Key key)
                     }
                     else
                     {
-                    	//msg íåò êîîğäèíàò
+                    	//msg ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     }
 
 //#endif
@@ -911,7 +917,7 @@ void Service::keyPressed(UI_Key key)
                         }
                         else
                         {
-                        	//msg Íåò gps
+                        	//msg ï¿½ï¿½ï¿½ gps
                         }
 
                         menu->keyPressCount = 0;
@@ -1575,8 +1581,13 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     date.longitude[11] = '\0';
 
     uint8_t *abc;
-    if (date.longitude[0] == '0') abc = &(date.longitude[1]);
-    menu->coord_log.append((char *)abc);
+    if (date.longitude[0] == '0') {
+    	abc = &(date.longitude[1]);
+    	menu->coord_log.append((char*)abc);
+    } else {
+    	menu->coord_log.append((char*)date.longitude);
+    }
+
 
     std::string str;
     str.push_back((char)date.data[0]);

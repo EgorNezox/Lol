@@ -104,7 +104,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     }
 
 	sync_pulse_delay_timer = new QmTimer(true, this);
-	sync_pulse_delay_timer->setInterval(1);
+	sync_pulse_delay_timer->setInterval(500);
 	sync_pulse_delay_timer->timeout.connect(sigc::mem_fun(this, &DspController::processSyncPulse));
 
     cmd_queue = new std::list<DspCommand>();
@@ -148,6 +148,9 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     guc_timer = new QmTimer(true,this);
     guc_timer->setInterval(180000);
     guc_timer->timeout.connect(sigc::mem_fun(this,&DspController::checkGucQuit));
+
+    guc_rx_quit_timer = new QmTimer(true,this);
+    guc_timer->timeout.connect(sigc::mem_fun(this,&DspController::sendGucQuit));
 
     for(int i = 0;i<50;i++) guc_adr[i] = '\0';
     guc_tx_num = 2;
@@ -281,6 +284,7 @@ void DspController::getSwr()
 
 
 void DspController::syncPulseDetected() {
+	qmDebugMessage(QmDebug::Dump, "syncPulseDetected()");
 	sync_pulse_delay_timer->start();
 }
 
@@ -290,43 +294,42 @@ void DspController::processSyncPulse(){
 		return;
 	switch (radio_state) {
 	case radiostatePswfRx : {
-        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostatePswfRx");
+        qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostatePswfRx");
         changePswfRxFrequency();
         break;
 	}
 	case radiostatePswfTx : {
-        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostatePswfTx");
+        qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostatePswfTx");
         transmitPswf();
         break;
 	}
     case radiostateSmsRx:{
-        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateSmsRx");
+        qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostateSmsRx");
         changeSmsRxFrequency();
         break;
     }
     case radiostateSmsTx:{
-        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateSmsTx");
+        qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostateSmsTx");
         transmitSMS();
         break;
     }
     case radiostateSmsTxRxSwitch: {
-    	qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateSmsTxRxSwitch");
+    	qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostateSmsTxRxSwitch");
     	radio_state = radiostateSmsRxPrepare;
     	startSMSRecieving(ContentSms.stage);
     	break;
     }
     case radiostateGucTx:{
-        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateGuc Tx");
-        sendGuc(GucPath);
+        //qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostateGuc Tx");
+        //sendGuc(GucPath);
         break;
     }
     case radiostateGucRx:{
-        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateGuc Rx");
-        recGuc();
+        //qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostateGuc Rx");
         break;
     }
     case radiostateGucSwitch:{
-        qmDebugMessage(QmDebug::Dump, "syncPulseDetected() radiostateGucTxRxSwitch");
+        qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostateGucTxRxSwitch");
         radio_state = radiostateGucRxPrepare;
         startGucRecieving();
         break;
@@ -349,7 +352,7 @@ void DspController::getDataTime()
     memcpy(mn_ch,&date.time[2],2);
     memcpy(sec_ch,&date.time[4],2);
 
-    int day = atoi(day_ch); // TODO:
+    int day = atoi(day_ch);
     int hrs = atoi(hr_ch);
     int min = atoi(mn_ch);
     int sec = atoi(sec_ch);
@@ -358,6 +361,8 @@ void DspController::getDataTime()
     date_time[1] = hrs;
     date_time[2] = min;
     date_time[3] = sec;
+
+    qmDebugMessage(QmDebug::Dump, "getDataTime(): %d %d %d %d", day, hrs, min, sec);
 }
 
 void DspController::transmitSMS()
@@ -466,7 +471,7 @@ void DspController::transmitPswf()
 }
 //TODO
 void DspController::addSeconds(int *date_time) {
-    date_time[3] += 2;
+    date_time[3] += 1;
     if (date_time[3] >= 60) {
         date_time[3] %= 60;
         date_time[2]++;
@@ -1034,10 +1039,10 @@ void DspController::sendPswf(Module module) {
 	qmDebugMessage(QmDebug::Dump, "sendPswf(%d)", module);
 
     ContentPSWF.Frequency = getFrequencyPswf();
-    qmDebugMessage(QmDebug::Warning, "time:  %d, %d, %d,%d", date_time[3],date_time[2],date_time[1],date_time[0]);
-    //qmDebugMessage(QmDebug::Warning, "data:  %d, %d, %d,%d", date_time[3],date_time[2],date_time[1],date_time[0]);
-    qmDebugMessage(QmDebug::Warning, "freq:  %d", ContentPSWF.Frequency);
-    qmDebugMessage(QmDebug::Warning, "LCode:  %d", ContentPSWF.L_CODE);
+    qmDebugMessage(QmDebug::Dump, "time:  %d, %d, %d,%d", date_time[3],date_time[2],date_time[1],date_time[0]);
+    //qmDebugMessage(QmDebug::Dump, "data:  %d, %d, %d,%d", date_time[3],date_time[2],date_time[1],date_time[0]);
+    qmDebugMessage(QmDebug::Dump, "freq:  %d", ContentPSWF.Frequency);
+    qmDebugMessage(QmDebug::Dump, "LCode:  %d", ContentPSWF.L_CODE);
 
     ContentPSWF.indicator = 20;
     ContentPSWF.TYPE = 0;
@@ -1073,9 +1078,9 @@ void DspController::sendPswf(Module module) {
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
 }
 
-void DspController::sendGuc(DspController::Module module)
+void DspController::sendGuc()
 {
-    qmDebugMessage(QmDebug::Dump, "sendGuc(%d)", module);
+    qmDebugMessage(QmDebug::Dump, "sendGuc");
 
     uint8_t tx_address = 0x7A;
     uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
@@ -1142,8 +1147,8 @@ void DspController::sendGuc(DspController::Module module)
             coord[3] = atoi(lat.substr(6,4).c_str());
 
             for(int i = 0;i<4;i++){
-                qmToBigEndian((uint8_t)(coord[i] >> (16*i)), tx_data + tx_data_len);
-                ++tx_data_len;
+                qmToBigEndian((uint16_t)(coord[i]), tx_data + tx_data_len);
+                tx_data_len += 2;
             }
             uint8_t quadrant = 0;
 
@@ -1163,23 +1168,22 @@ void DspController::sendGuc(DspController::Module module)
             data_crc = &tx_data[tx_data_len - 9];
             uint32_t crc = pack_manager->CRC32(data_crc,9);
 
-            for(int i = 0;i<4;i++)
-                qmToBigEndian((uint8_t)crc >> (8*i), tx_data + tx_data_len);
-            ++tx_data_len;
+            qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
+            tx_data_len+=4;
 
         }
     }
     else
     {
         guc_tx_num = 2;
+        num = 0;
         ContentGuc.stage = GucRx;
-        radio_state == radiostateGucSwitch;
+        radio_state == radiostateGucRxPrepare;
     }
 
     QM_ASSERT(pending_command->in_progress == false);
     pending_command->in_progress = true;
     pending_command->sync_next = true;
-    pending_command->module = module;
 
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
 
@@ -1189,15 +1193,16 @@ void DspController::sendGuc(DspController::Module module)
 void DspController::recGuc()
 {
     // todo
+	srand(time(0));
 
     if (ContentGuc.stage == GucTxQuit)
     {
         guc_timer->start();
     }
-
     if (ContentGuc.stage == GucRxQuit)
     {
-        startGucRecieving();
+    	uint32_t time = 3 - ((uint32_t)rand() % 3);
+    	guc_rx_quit_timer->start(time);
     }
 }
 
@@ -1253,6 +1258,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         if (gucTxStateSync == 2) {
             radio_state = radiostateGucTx;
             qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radio_state = radiostateGucTx");
+            sendGuc();
+            sendGuc();
+            sendGuc();
         }
     }
    //---------------------------------------------------------------------
@@ -1390,10 +1398,14 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 
         break;
     }
+    //TODO 7B : 6B ?
     case 0x7B:
     {
         if (ContentGuc.stage > GucNone){
-            if (indicator == 22) ContentGuc.stage = GucTxQuit;
+            if (indicator == 22) {
+            	ContentGuc.stage = GucTxQuit;
+            	recGuc();
+            }
             uint32_t crc;
             if (indicator == 30)
             {
@@ -1531,7 +1543,6 @@ void DspController::sendSms(Module module)
     	++tx_data_len;
     	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len);
     	++tx_data_len;
-    	uint8_t ack = 0;
     	qmToBigEndian((uint8_t)ack, tx_data+tx_data_len);
     	++tx_data_len;
 
@@ -1579,6 +1590,10 @@ void DspController::recSms()
             if (quit_vector.size() >= 2/*recievedSmsBuffer.size() == 18 + 6*/) {
                 qmDebugMessage(QmDebug::Dump, "recSms() SMS transmitting successfully finished");
                 //TODO: sms tx finished
+                if (ok_quit >= 2) smsFailed(-1);
+                else
+                	smsFailed(0);
+
             } else {
                 qmDebugMessage(QmDebug::Dump, "recSms() smsFailed, radio_state = radiostateSync");
                 smsFailed(1);
@@ -1865,7 +1880,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
 void DspController::startGucTransmitting(int r_adr, int speed_tx, uint8_t *command)
 {
-    qmDebugMessage(QmDebug::Dump, "startSmsReceiving");
+    qmDebugMessage(QmDebug::Dump, "startGucReceiving");
     QM_ASSERT(is_ready);
 
     ContentGuc.indicator = 20;
@@ -1882,7 +1897,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, uint8_t *comma
     sendCommand(RxRadiopath, RxRadioMode, comandValue);
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
     sendCommand(TxRadiopath, TxRadioMode, comandValue);
-    radio_state = radiostatePswfTxPrepare;
+    radio_state = radiostateGucTxPrepare;
     gucTxStateSync = 0;
     ContentGuc.stage =  GucTx;
 
@@ -1901,6 +1916,35 @@ void DspController::startGucTransmitting()
     radio_state = radiostateGucTxPrepare;
     gucTxStateSync = 0;
     ContentGuc.stage =  GucTx;
+}
+
+void DspController::sendGucQuit()
+{
+	qmDebugMessage(QmDebug::Dump, "sendGucQuit");
+
+	uint8_t tx_address = 0x7A;
+	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
+	int tx_data_len = 0;
+
+	qmToBigEndian((uint8_t)ContentGuc.indicator, tx_data + tx_data_len);
+	++tx_data_len;
+	qmToBigEndian((uint8_t)ContentGuc.type, tx_data + tx_data_len);
+	++tx_data_len;
+	qmToBigEndian((uint8_t)ContentGuc.S_ADR, tx_data + tx_data_len);
+	++tx_data_len;
+	qmToBigEndian((uint8_t)ContentGuc.R_ADR, tx_data + tx_data_len);
+	++tx_data_len;
+	qmToBigEndian((uint8_t)ContentGuc.uin, tx_data + tx_data_len);
+	++tx_data_len;
+
+	QM_ASSERT(pending_command->in_progress == false);
+	pending_command->in_progress = true;
+	pending_command->sync_next = true;
+
+	transport->transmitFrame(tx_address, tx_data, tx_data_len);
+
+
+
 }
 
 void DspController::startGucRecieving()
@@ -1922,9 +1966,21 @@ void DspController::startGucRecieving()
 
 void DspController::checkGucQuit()
 {
-    for(int i = 0; i< guc_vector.size();i++)
+	int size = 0;
+	if (guc_vector.size() > 50)
+		size = 50;
+	else
+		size  = guc_vector.size();
+
+	qmDebugMessage(QmDebug::Dump, "number of recieved response %d", size);
+
+    for(int i = 0; i< size;i++)
         guc_adr[i] = guc_vector.at(i).at(3);
-    guc_vector.erase(guc_vector.begin(),guc_vector.end());
+    guc_vector.clear();
+
+    guc_adr[size-1] = '\0';
+    radio_state = radiostateSync;
+    // TODO string guc_adr to GUI
 }
 
 
