@@ -327,15 +327,15 @@ void Service::keyPressed(UI_Key key)
                     int freq = atoi(main_scr->nFreq.c_str());
                     voice_service->TuneFrequency(freq);
                 }
-                // � ечь
+                // ? ���
                 switch ( main_scr->mainWindowModeId )
                 {
                 case 0:
                 {}
-                    // АУС
+                    // ���
                 case 1:
                 {}
-                    // ГУК
+                    // ���
                 case 2:
                 {}
                 default:
@@ -430,7 +430,7 @@ void Service::keyPressed(UI_Key key)
             msg_box->keyPressed(key);
         break;
     }
-        // � І � ј� µ� ЅСЋ
+        // ? � ? �? �? �ю
     case menuWindow:
     {
         if ( key == keyEnter)
@@ -515,7 +515,7 @@ void Service::keyPressed(UI_Key key)
                     }
                     else
                     {
-                    	//msg нет координат
+                    	//msg ��� ���������
                     }
 
 //#endif
@@ -911,7 +911,7 @@ void Service::keyPressed(UI_Key key)
                         }
                         else
                         {
-                        	//msg Нет gps
+                        	//msg ��� gps
                         }
 
                         menu->keyPressCount = 0;
@@ -1145,15 +1145,15 @@ void Service::keyPressed(UI_Key key)
 
                 if (st.size() > 1 && st.size() < 3 )
                 {
-                    // 1 <= �� <= 31
+                    // 1 <= ?? <= 31
                 }
                 if (st.size() > 3 && st.size() < 5 )
                 {
-                    // 1 <= �� <= 12
+                    // 1 <= ?? <= 12
                 }
                 if (st.size() > 6 )
                 {
-                    // 16 <= �� <= 99
+                    // 16 <= ?? <= 99
                 }
 
                 if ( st.size() == 2  || st.size() == 5)
@@ -1177,14 +1177,14 @@ void Service::keyPressed(UI_Key key)
 
                 if (st.size() > 1 && st.size() < 3 )
                 {
-                    // 0 <= �� <= 23
+                    // 0 <= ?? <= 23
                     auto hh = st.substr(0, 2);
                     if ( atoi(hh.c_str()) > 23 )
                         st.clear();
                 }
                 if (st.size() > 3 && st.size() < 5 )
                 {
-                    // 0 <= �� <= 59
+                    // 0 <= ?? <= 59
                     auto mm = st.substr(3, 2);
                     if ( atoi(mm.c_str()) > 59 )
                     {
@@ -1193,7 +1193,7 @@ void Service::keyPressed(UI_Key key)
                 }
                 if (st.size() > 6 )
                 {
-                    // 0 <= �� <= 59
+                    // 0 <= ?? <= 59
                     auto cc = st.substr(6, 2);
                     if ( atoi(cc.c_str()) > 59 )
                     {
@@ -1403,7 +1403,7 @@ void Service::drawMenu()
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
         //
-        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        // ���������
         //        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
 
         for (auto &k: st.nextState)

@@ -71,4 +71,5 @@ HEADERS += \
     app/headset/smarttransport.h \
     app/navigation/navigator.h \
     app/messages/sms.h \
-    app/messages/rs_tms.h
+    app/messages/rs_tms.h \
+    app/dsp/packagemanager.h

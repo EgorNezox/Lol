@@ -1,12 +1,3 @@
-/**
- ******************************************************************************
- * @file    fs.h
- * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
- * @date    29.10.2015
- *
- ******************************************************************************
- */
-
 #ifndef FIRMWARE_APP_DATASTORAGE_FS_H_
 #define FIRMWARE_APP_DATASTORAGE_FS_H_
 
