@@ -94,7 +94,6 @@ public:
     void startGucRecieving();
     void checkGucQuit();
 
-    void parsingData();
     void *getContentPSWF();
 
     char* getSmsContent();
@@ -316,8 +315,6 @@ private:
 
     std::list<DspCommand> *cmd_queue;
 
-    uint32_t fwd_wave;
-    uint32_t ref_wave;
 
     int command_tx30;
     int command_rx30;
@@ -336,9 +333,7 @@ private:
     bool pswf_ack;
 
     char rec_sms[37];
-
     int date_time[4];
-
     char private_lcode;
 
     std::vector< std::vector<char> > recievedPswfBuffer;

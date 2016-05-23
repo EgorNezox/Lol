@@ -37,7 +37,12 @@ VoiceServiceInterface::ChannelStatus VoiceServiceInterface::getCurrentChannelSta
 
 int VoiceServiceInterface::getCurrentChannelNumber()
 {
-	return (dispatcher->voice_channel - dispatcher->voice_channels_table.begin() + 1);
+    return (dispatcher->voice_channel - dispatcher->voice_channels_table.begin() + 1);
+}
+
+int VoiceServiceInterface::getCurrentChannelFrequency()
+{
+    return dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).frequency;
 }
 
 voice_channel_t VoiceServiceInterface::getCurrentChannelType() {
@@ -117,11 +122,7 @@ void VoiceServiceInterface::TurnPSWFMode(uint8_t mode,int R_ADR,int COM_N)
     }
 }
 
-int *VoiceServiceInterface::ReturnDataPSWF()
-{
-//    return dispatcher->dsp_controller->getContentPSWF();
-	return NULL;
-}
+
 
 const char* VoiceServiceInterface::ReturnSwfStatus()
 {

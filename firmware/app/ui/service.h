@@ -75,9 +75,7 @@ public:
     int  getFreq();
     void setFreq(int isFreq);
 
-
     void setCoordDate(Navigation::Coord_Date);
-    void getPSWF();
 
 private:
     void msgBox(const char *text);
@@ -138,7 +136,6 @@ private:
 
     int isFreq = 0;
     int command_rx_30 = 0;
-    std::list<int *> BasePswfCadr;
     bool gpsSynchronization = true;
 };
 

@@ -68,11 +68,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
- //   this->navigator->CoordinateUpdated.connect(sigc::mem_fun(this, &GUI_Indicator::UpdateGpsStatus()));
     guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
     msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
 
-    voice_service->PswfRead.connect(sigc::mem_fun(this,&Service::getPSWF));
     command_rx_30 = 0;
 
     voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
@@ -81,7 +79,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
 #ifndef PORT__PCSIMULATOR
     systemTimeTimer = new QmTimer(true); //TODO:
-    systemTimeTimer->setInterval(1000);
+    systemTimeTimer->setInterval(10000);
     systemTimeTimer->start();
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
 #endif
@@ -1067,6 +1065,12 @@ void Service::keyPressed(UI_Key key)
                 guiTree.backvard();
                 menu->focus = 0;
             }
+            if (key == keyEnter)
+            {
+                int value = 0;
+                if (menu->supressStatus == 1) value =  6;
+                voice_service->tuneSquelch(value);
+            }
             break;
         }
         case GuiWindowsSubType::aruarmaus:
@@ -1609,17 +1613,6 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     str.clear();
 }
 
-void Service::getPSWF()
-{
-    if (command_rx_30 < 30)
-    {
-        int *pointer = voice_service->ReturnDataPSWF();
-        BasePswfCadr.push_back(pointer);
-        int freq = pointer[1];
-        voice_service->TuneFrequency(freq);
-        command_rx_30++;
-    }
-}
 
 
 void Service::updateSystemTime()
