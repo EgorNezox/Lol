@@ -42,7 +42,7 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 	main_service = new MainServiceInterface(this);
 	voice_service = new VoiceServiceInterface(this);
 
-    voice_service->PswfRead.connect(sigc::mem_fun(this->dsp_controller,&DspController::parsingData));
+
 }
 
 Dispatcher::~Dispatcher()

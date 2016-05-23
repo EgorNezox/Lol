@@ -109,9 +109,6 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     cmd_queue = new std::list<DspCommand>();
 
-    fwd_wave = 0;
-    ref_wave = 0;
-
     command_tx30 = 0;
     command_rx30 = 0;
 
@@ -130,7 +127,6 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     counterSms = new int[8]{18,18,37,6,18,18,37,6};
 
     ContentSms.stage = StageNone;
-
 
     initrs(rs_255_93);
     GenerateGaloisField(&rs_255_93);
@@ -1292,16 +1288,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 				module = RxRadiopath;
 			else
 				module = TxRadiopath;
-            if (code == 5)
-                fwd_wave = qmFromBigEndian<uint32_t>(value_ptr+0);
-            if (code == 6)
-            {
-                ref_wave = qmFromBigEndian<uint32_t>(value_ptr+0);
-                if (fwd_wave > 0)
-                {
-                    swf_res = (fwd_wave+ref_wave)/(fwd_wave-ref_wave);
-                }
-            }
 			processCommandResponse((indicator == 3), module, code, value);
 		}
 		break;
@@ -1444,11 +1430,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	}
 }
 
-// maybe two sides of pswf
-// заглушка для сообещения о заполнении структуры
-void DspController::parsingData()
-{
-}
+
 
 void *DspController::getContentPSWF()
 {
