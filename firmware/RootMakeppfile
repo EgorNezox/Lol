@@ -51,7 +51,6 @@ $(sources_to_objects $(SOURCES)): IDIR += \
 
 SOURCES_system += \
 	boot.cpp \
-	system_stm32f2/hardware_startup.c \
 	system_stm32f2/system_stm32f2xx__$(BUILD_PORT).c
 INCLUDEPATH_system += system_stm32f2
 LDSCRIPTS += system_stm32f2/stm32_flash_and_extsram.ld
