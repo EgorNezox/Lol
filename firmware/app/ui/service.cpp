@@ -10,6 +10,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <string>
 
 
 
@@ -1367,6 +1368,13 @@ void Service::drawMainWindow()
                    voice_service->getCurrentChannelNumber(),
                    voice_service->getCurrentChannelType());
 
+
+    main_scr->oFreq.clear();
+    char mas[11];
+    sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
+    std::string freq(mas);
+    main_scr->oFreq.append(freq);
+    main_scr->setFreq(freq.c_str());
 
     bool gpsStatus = false;
 
