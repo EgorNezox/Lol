@@ -8,12 +8,14 @@
  */
 
 #include "stm32f2xx_hal.h"
+#include "stm32f2xx.h"
 
 extern char stm32f2cube_hal_active;
 
 void init_stm32f2cube_hal() {
 	stm32f2cube_hal_active = 1;
 	HAL_Init();
+	__enable_irq();
 }
 
 void deinit_stm32f2cube_hal() {
