@@ -41,18 +41,18 @@ void __attribute__ ((naked)) xPortPendSVHandler( void ) {
 	/* Double-right-shifted (tabbed) lines are those from native (port provided) xPortPendSVHandler */
 	__asm volatile
 	(
-		"	ldr r1, _dbgPendSVHookState		\n" /* Check hook installed */
+		"	ldr r1, .L_dbgPendSVHookState		\n" /* Check hook installed */
 		"	ldr r0, [r1]						\n"
 		"	cmp r0, #0							\n"
 		"	beq xPortPendSVHandler_jumper		\n" /* if no hook instaled then jump to native handler, else proceed... */
 		"	cmp r0, #1							\n" /* check whether hook triggered for the first time...  */
-		"	bne dbg_switch_to_pending_task		\n" /* if not so, then jump to switching right now, otherwise current task context must be saved first...  */
+		"	bne .L_dbg_switch_to_pending_task	\n" /* if not so, then jump to switching right now, otherwise current task context must be saved first...  */
 		"	mov r0, #2							\n" /* mark hook after triggered for the first time */
 		"	str r0, [r1]						\n"
 				"	mrs r0, psp							\n"
 				"	isb									\n"
 				"										\n"
-				"	ldr	r3, pxCurrentTCBConst			\n" /* Get the location of the current TCB. */
+				"	ldr	r3, .L_pxCurrentTCBConst		\n" /* Get the location of the current TCB. */
 				"	ldr	r2, [r3]						\n"
 				"										\n"
 				"	stmdb r0!, {r4-r11}					\n" /* Save the remaining registers. */
@@ -67,8 +67,8 @@ void __attribute__ ((naked)) xPortPendSVHandler( void ) {
 				"	msr basepri, r0						\n"
 				"	ldmia sp!, {r3, r14}				\n"
 #else
-		"dbg_switch_to_pending_task:		\n"
-		"	ldr r3, _dbgPendingTaskHandle	\n" /* --> Load task handle going to switch to <-- */
+		".L_dbg_switch_to_pending_task:		\n"
+		"	ldr r3, .L_dbgPendingTaskHandle	\n" /* --> Load task handle going to switch to <-- */
 #endif
 				"										\n"	/* Restore the context. */
 				"	ldr r1, [r3]						\n"
@@ -82,11 +82,11 @@ void __attribute__ ((naked)) xPortPendSVHandler( void ) {
 				"	bx r14								\n"
 				"										\n"
 				"	.align 2							\n"
-				"pxCurrentTCBConst: .word pxCurrentTCB	\n"
-		"_dbgPendSVHookState: .word dbgPendSVHookState		\n"
-		"_dbgPendingTaskHandle: .word dbgPendingTaskHandle	\n"
-		".word dbgFreeRTOSConfig_suspend_value						\n" /* force keep these symbols from cutting away by garbage collector */
-		".word dbgFreeRTOSConfig_delete_value						\n"
+				".L_pxCurrentTCBConst: .word pxCurrentTCB	\n"
+		".L_dbgPendSVHookState: .word dbgPendSVHookState		\n"
+		".L_dbgPendingTaskHandle: .word dbgPendingTaskHandle	\n"
+		".word dbgFreeRTOSConfig_suspend_value					\n" /* force keep these symbols from cutting away by garbage collector */
+		".word dbgFreeRTOSConfig_delete_value					\n"
 				::"i"(configMAX_SYSCALL_INTERRUPT_PRIORITY)
 	);
 }

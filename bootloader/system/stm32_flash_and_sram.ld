@@ -1,14 +1,14 @@
 /**
   ******************************************************************************
-  * @file    stm32_flash_and_extsram.ld
+  * @file    stm32_flash_and_sram.ld
   * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
-  * @date    12.08.2015
+  * @date    19.05.2016
   * @brief   Main linker script for STM32F207IG Device, bare-metal, GCC ARM Embedded toolchain
   *
   ******************************************************************************
  */
 
-ENTRY(System_Startup_Entry)
+ENTRY(Reset_Handler)
 
 SECTIONS
 {
@@ -23,12 +23,9 @@ SECTIONS
 
 	.text :
 	{
-		FILL(0xFFFFFFFF)
-
-		. += 4; /* magic word placeholder (FLASH_FIRMWARE_PROGRAM_MAGIC_OFFSET) */
-		*(.text.System_Startup_Entry) /* must be first (to match FLASH_FIRMWARE_PROGRAM_ENTRY_OFFSET) */
-		*(.text*)
 		KEEP(*(.isr_vector))
+
+		*(.text*)
 
 		KEEP(*(.init))
 		KEEP(*(.fini))
@@ -52,18 +49,18 @@ SECTIONS
 		KEEP(*(.eh_frame*))
 
 		. = ALIGN(4);
-	} > FLASH_firmware
+	} > FLASH_bootloader
 
 	.ARM.extab : 
 	{
 		*(.ARM.extab* .gnu.linkonce.armextab.*)
-	} > FLASH_firmware
+	} > FLASH_bootloader
 
 	__exidx_start = .;
 	.ARM.exidx :
 	{
 		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
-	} > FLASH_firmware
+	} > FLASH_bootloader
 	__exidx_end = .;
 
 	__etext = .;
@@ -100,7 +97,7 @@ SECTIONS
 		/* All data end */
 		__data_end__ = .;
 
-	} > MEMORY_B1_SRAM2
+	} > RAM
 
 	.bss :
 	{
@@ -110,7 +107,7 @@ SECTIONS
 		*(COMMON)
 		. = ALIGN(4);
 		__bss_end__ = .;
-	} > MEMORY_B1_SRAM2
+	} > RAM
 	
 	.heap (COPY):
 	{

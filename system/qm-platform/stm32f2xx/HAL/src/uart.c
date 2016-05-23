@@ -72,6 +72,7 @@
 
 #include "sys_internal.h"
 #include "hal_timer.h"
+#include "hal_rcc.h"
 #include "hal_uart.h"
 
 #define UART_INSTANCES_COUNT 6
@@ -151,6 +152,13 @@ static void uart_usart_irq_handler_tx(struct s_uart_pcb *uart, uint16_t usart_SR
 static void uart_dma_rx_irq_handler(struct s_uart_pcb *uart);
 
 void halinternal_uart_init(void) {
+	RCC->APB1RSTR |= (RCC_APB1RSTR_USART2RST | RCC_APB1RSTR_USART3RST | RCC_APB1RSTR_UART4RST | RCC_APB1RSTR_UART5RST);
+	RCC->APB1RSTR &= ~(RCC_APB1RSTR_USART2RST | RCC_APB1RSTR_USART3RST | RCC_APB1RSTR_UART4RST | RCC_APB1RSTR_UART5RST);
+	RCC->APB1ENR &= ~(RCC_APB1ENR_USART2EN | RCC_APB1ENR_USART3EN | RCC_APB1ENR_UART4EN | RCC_APB1ENR_UART5EN);
+	RCC->APB2RSTR |= (RCC_APB2RSTR_USART1RST | RCC_APB2RSTR_USART6RST);
+	RCC->APB2RSTR &= ~(RCC_APB2RSTR_USART1RST | RCC_APB2RSTR_USART6RST);
+	RCC->APB2ENR &= ~(RCC_APB2ENR_USART1EN | RCC_APB2ENR_USART6EN);
+	__DSB();
 	for (int i = 0; i < sizeof(uart_pcbs)/sizeof(uart_pcbs[0]); i++) {
 		struct s_uart_pcb *uart = &(uart_pcbs[i]);
 		/* Init hal timer for defered rx data indication */
@@ -168,9 +176,24 @@ void halinternal_uart_init(void) {
 		uart->dma_rx_stream->CR |= DMA_SxCR_CIRC;
 		uart->dma_rx_stream->FCR = 0;
 		uart->dma_rx_stream->PAR = (uint32_t)&(uart->usart->DR);
+	}
+	DMA1->LIFCR |= 0
+			| (DMA_LIFCR_CFEIF0 | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTCIF0)
+			| (DMA_LIFCR_CFEIF1 | DMA_LIFCR_CDMEIF1 | DMA_LIFCR_CTEIF1 | DMA_LIFCR_CHTIF1 | DMA_LIFCR_CTCIF1)
+			| (DMA_LIFCR_CFEIF2 | DMA_LIFCR_CDMEIF2 | DMA_LIFCR_CTEIF2 | DMA_LIFCR_CHTIF2 | DMA_LIFCR_CTCIF2);
+	DMA1->HIFCR |= (DMA_HIFCR_CFEIF5 | DMA_HIFCR_CDMEIF5 | DMA_HIFCR_CTEIF5 | DMA_HIFCR_CHTIF5 | DMA_HIFCR_CTCIF5);
+	DMA2->LIFCR |= 0
+			| (DMA_LIFCR_CFEIF1 | DMA_LIFCR_CDMEIF1 | DMA_LIFCR_CTEIF1 | DMA_LIFCR_CHTIF1 | DMA_LIFCR_CTCIF1)
+			| (DMA_LIFCR_CFEIF2 | DMA_LIFCR_CDMEIF2 | DMA_LIFCR_CTEIF2 | DMA_LIFCR_CHTIF2 | DMA_LIFCR_CTCIF2);
+	for (int i = 0; i < sizeof(uart_pcbs)/sizeof(uart_pcbs[0]); i++) {
+		struct s_uart_pcb *uart = &(uart_pcbs[i]);
 		/* Init NVIC interrupts of USART and rx DMA stream */
 		halinternal_set_nvic_priority(uart->usart_irq_n);
+		NVIC_DisableIRQ(uart->usart_irq_n);
+		NVIC_ClearPendingIRQ(uart->usart_irq_n);
 		halinternal_set_nvic_priority(uart->dma_rx_stream_irq_n);
+		NVIC_DisableIRQ(uart->dma_rx_stream_irq_n);
+		NVIC_ClearPendingIRQ(uart->dma_rx_stream_irq_n);
 	}
 }
 
@@ -226,7 +249,7 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 		uint32_t integerdivider;
 		uint32_t fractionaldivider;
 	} usart_init_struct = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-	halinternal_rcc_clocks_t rcc_clocks;
+	hal_rcc_clocks_t rcc_clocks;
 	SYS_ASSERT((params->baud_rate > 0) && (params->baud_rate < 7500001));
 	if (params->hw_flow_control != huartHwFlowControl_None)
 		SYS_ASSERT(IS_UART_HWFLOW_INSTANCE(uart->usart));
@@ -253,7 +276,7 @@ hal_uart_handle_t hal_uart_open(int instance, hal_uart_params_t *params, hal_rin
 	case huartHwFlowControl_Rx_Tx: usart_init_struct.CR3 |= USART_CR3_RTSE | USART_CR3_CTSE; break;
 	default: SYS_ASSERT(0); break;
 	}
-	halinternal_get_rcc_clocks(&rcc_clocks);
+	hal_rcc_get_clocks(&rcc_clocks);
 	if ((instance == 1) || (instance == 6))
 		usart_init_struct.apbclock = rcc_clocks.pclk2_frequency;
 	else

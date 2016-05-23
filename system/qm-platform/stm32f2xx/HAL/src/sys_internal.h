@@ -16,6 +16,10 @@
 #include "stm32f2xx.h"
 #include "system_hardware_config.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef NDEBUG
 #define SYS_ASSERT(e)	do { if (!(e)) __BKPT(0); } while (0)
 #else
@@ -33,16 +37,10 @@
 #define min(a,b)	(((a) < (b)) ? (a) : (b))
 #endif
 
-typedef struct {
-	uint32_t sysclk_frequency;	/*!< SYSCLK clock frequency expressed in Hz */
-	uint32_t hclk_frequency;	/*!< HCLK clock frequency expressed in Hz */
-	uint32_t pclk1_frequency;	/*!< PCLK1 clock frequency expressed in Hz */
-	uint32_t pclk2_frequency;	/*!< PCLK2 clock frequency expressed in Hz */
-} halinternal_rcc_clocks_t;
-
+void halinternal_timer_init(void);
+void halinternal_rcc_init(void);
 void halinternal_gpio_init(void);
 void halinternal_exti_init(void);
-void halinternal_timer_init(void);
 void halinternal_uart_init(void);
 void halinternal_i2c_init(void);
 void halinternal_spi_init(void);
@@ -50,7 +48,10 @@ void halinternal_spi_init(void);
 void halinternal_system_fault_handler(void);
 
 void halinternal_set_nvic_priority(IRQn_Type irqn);
-void halinternal_get_rcc_clocks(halinternal_rcc_clocks_t* clocks);
 bool halinternal_is_isr_active(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SYS_INTERNAL_H_ */

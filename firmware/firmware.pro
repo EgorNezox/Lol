@@ -28,9 +28,7 @@ SOURCES += \
     $$wildcardSources(app/power, *.cpp) \
     $$wildcardSources(app/ui, *.cpp) \
     app/ui/menu.cpp \
-    app/ui/gui_tree.cpp \
-    app/messages/messagepswf.cpp \
-    app/messages/sms.cpp
+    app/ui/gui_tree.cpp
 
 #!!! Временный хак для реализации прямого доступа к Ramtex из модуля UI
 #!!! Убрать, когда модуль будет переработан на использование средств Qm
@@ -67,9 +65,7 @@ HEADERS += \
     app/ui/texts.h \
     app/ui/ui_keys.h \
     app/multiradio.h \
-    app/messages/messagepswf.h \
     app/headset/smarttransport.h \
     app/navigation/navigator.h \
-    app/messages/sms.h \
     app/messages/rs_tms.h \
     app/dsp/packagemanager.h

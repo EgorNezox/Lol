@@ -51,6 +51,7 @@
 
 #include "sys_internal.h"
 #include "hal_timer.h"
+#include "hal_rcc.h"
 #include "hal_i2c.h"
 
 #define I2C_MASTER_SPEED_CLOCK	88000 // using 88kHz clock to workaround p2.3.3 of Errata sheet Rev 5
@@ -140,6 +141,10 @@ static void i2c_irq_handler_smbus_host(struct s_i2cbus_pcb *i2cbus, uint16_t i2c
 static void i2c_irq_handler_master(struct s_i2cbus_pcb *i2cbus, uint16_t i2c_SR1, signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 
 void halinternal_i2c_init(void) {
+	RCC->APB1RSTR |= (RCC_APB1RSTR_I2C1RST | RCC_APB1RSTR_I2C2RST | RCC_APB1RSTR_I2C3RST);
+	RCC->APB1RSTR &= ~(RCC_APB1RSTR_I2C1RST | RCC_APB1RSTR_I2C2RST | RCC_APB1RSTR_I2C3RST);
+	RCC->APB1ENR &= ~(RCC_APB1ENR_I2C1EN | RCC_APB1ENR_I2C2EN | RCC_APB1ENR_I2C3EN);
+	__DSB();
 	for (int i = 0; i < sizeof(i2cbus_pcbs)/sizeof(i2cbus_pcbs[0]); i++) {
 		struct s_i2cbus_pcb *i2cbus = &(i2cbus_pcbs[i]);
 		hal_timer_params_t slave_addr_delay_timer_params;
@@ -147,8 +152,10 @@ void halinternal_i2c_init(void) {
 		slave_addr_delay_timer_params.callbackTimeout = i2c_timer_slave_addr_delay_callback;
 		i2cbus->slave_addr_delay_timer = hal_timer_create(&slave_addr_delay_timer_params);
 		halinternal_set_nvic_priority(i2cbus->ev_irq_n);
+		NVIC_ClearPendingIRQ(i2cbus->ev_irq_n);
 		NVIC_EnableIRQ(i2cbus->ev_irq_n);
 		halinternal_set_nvic_priority(i2cbus->er_irq_n);
+		NVIC_ClearPendingIRQ(i2cbus->er_irq_n);
 		NVIC_EnableIRQ(i2cbus->er_irq_n);
 	}
 	for (uint32_t i = 0; i < sizeof(i2c_pec_precalc_table)/sizeof(i2c_pec_precalc_table[0]); i++) {
@@ -169,7 +176,7 @@ void hal_i2c_set_bus_mode(int instance, hal_i2c_mode_t mode) {
 	case hi2cModeStandard:
 	case hi2cModeSMBus: {
 		uint32_t freqrange;
-		halinternal_rcc_clocks_t rcc_clocks;
+		hal_rcc_clocks_t rcc_clocks;
 		uint32_t ccr_value;
 		portDISABLE_INTERRUPTS();
 		SYS_ASSERT(i2cbus->mode == hi2cModeOff);
@@ -178,7 +185,7 @@ void hal_i2c_set_bus_mode(int instance, hal_i2c_mode_t mode) {
 		__DSB();
 		i2cbus->i2c->CR1 |= I2C_CR1_SWRST;
 		i2cbus->i2c->CR1 &= ~I2C_CR1_SWRST;
-		halinternal_get_rcc_clocks(&rcc_clocks);
+		hal_rcc_get_clocks(&rcc_clocks);
 		freqrange = rcc_clocks.pclk1_frequency/1000000;
 		i2cbus->i2c->CR2 |= freqrange & I2C_CR2_FREQ;
 		i2cbus->i2c->CR2 |= I2C_CR2_ITEVTEN;

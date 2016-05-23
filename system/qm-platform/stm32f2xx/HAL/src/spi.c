@@ -15,6 +15,7 @@
 #include "semphr.h"
 
 #include "sys_internal.h"
+#include "hal_rcc.h"
 #include "hal_spi.h"
 
 #define SPI_INSTANCES_COUNT 3
@@ -41,11 +42,19 @@ static inline void spi_irq_handler(struct s_spibus_pcb *spibus) __attribute__((o
 
 void halinternal_spi_init(void) {
 	spi_max_baud_rate_value = SPI_CR1_BR >> POSITION_VAL(SPI_CR1_BR);
+	RCC->APB2RSTR |= RCC_APB2RSTR_SPI1RST;
+	RCC->APB2RSTR &= ~RCC_APB2RSTR_SPI1RST;
+	RCC->APB2ENR &= ~RCC_APB2ENR_SPI1EN;
+	RCC->APB1RSTR |= (RCC_APB1RSTR_SPI2RST | RCC_APB1RSTR_SPI3RST);
+	RCC->APB1RSTR &= ~(RCC_APB1RSTR_SPI2RST | RCC_APB1RSTR_SPI3RST);
+	RCC->APB1ENR &= ~(RCC_APB1ENR_SPI2EN | RCC_APB1ENR_SPI3EN);
+	__DSB();
 	for (int i = 0; i < sizeof(spibus_pcbs)/sizeof(spibus_pcbs[0]); i++) {
 		struct s_spibus_pcb *spibus = &(spibus_pcbs[i]);
 		spibus->mutex = xSemaphoreCreateMutex();
 		spibus->smphr_transfer_sync = xSemaphoreCreateBinary();
 		halinternal_set_nvic_priority(spibus->irq_n);
+		NVIC_ClearPendingIRQ(spibus->irq_n);
 		NVIC_EnableIRQ(spibus->irq_n);
 	}
 }
@@ -112,10 +121,10 @@ bool hal_spi_master_fd_transfer(int bus_instance, struct hal_spi_master_transfer
 	default: SYS_ASSERT(0);
 	}
 	if (t->max_baud_rate != 0) {
-		halinternal_rcc_clocks_t rcc_clocks;
+		hal_rcc_clocks_t rcc_clocks;
 		uint32_t *pclk_frequency;
 		uint32_t doubled_max_baud_rate, divider;
-		halinternal_get_rcc_clocks(&rcc_clocks);
+		hal_rcc_get_clocks(&rcc_clocks);
 		if (bus_instance == 1)
 			pclk_frequency = &rcc_clocks.pclk2_frequency;
 		else

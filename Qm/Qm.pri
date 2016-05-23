@@ -12,7 +12,8 @@
 INCLUDEPATH += \
 	$$PWD/qmcore/include \
 	$$PWD/qmhardwareio/include \
-        $$PWD/qmstorage/include \
+	$$PWD/qmconsole/include \
+	$$PWD/qmstorage/include \
 	$$PWD/qmkeysinput/include
 DEFINES += QM_PLATFORM_QT
 
@@ -69,4 +70,9 @@ contains(QM_BUILD_MODULES,keysinput) {
         $$PWD/qmkeysinput/src/qmpushbuttonkey_qt.cpp \
         $$PWD/qmkeysinput/src/qmmatrixkeyboard.cpp \
         $$PWD/qmkeysinput/src/qmmatrixkeyboard_qt.cpp
+}
+
+contains(QM_BUILD_MODULES,console) {
+    SOURCES += \
+        $$PWD/qmconsole/src/qmconsolescreen.cpp
 }

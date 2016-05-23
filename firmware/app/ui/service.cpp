@@ -5,7 +5,6 @@
 #include "dialogs.h"
 #include "service.h"
 #include "texts.h"
-#include "messages/messagepswf.h"
 #include <thread>
 #include <navigation/navigator.h>
 #include <math.h>
@@ -19,7 +18,7 @@ MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
 
-using namespace MessagesPSWF;
+
 
 namespace Ui {
 

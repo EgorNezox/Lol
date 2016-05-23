@@ -3,6 +3,7 @@
   * @file    rcc.c
   * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
   * @date    19.11.2015
+  * @brief   Реализация доступа к внутренней периферии RCC на STM32F2xx
   *
   ******************************************************************************
   */
@@ -10,10 +11,17 @@
 #include "stm32f2xx.h"
 
 #include "sys_internal.h"
+#include "hal_timer.h"
+#include "hal_rcc.h"
 
+static hal_timer_handle_t rcc_timer;
 static __I uint8_t rcc_apb_ahb_presc_table[16] = {0, 0, 0, 0, 1, 2, 3, 4, 1, 2, 3, 4, 6, 7, 8, 9};
 
-void halinternal_get_rcc_clocks(halinternal_rcc_clocks_t* clocks) {
+void halinternal_rcc_init(void) {
+	rcc_timer = hal_timer_create(0);
+}
+
+void hal_rcc_get_clocks(hal_rcc_clocks_t* clocks) {
 	uint32_t tmp = 0, pllvco = 0, pllp = 2, pllsource = 0, pllm = 2;
 
 	/* Get SYSCLK source -------------------------------------------------------*/
@@ -65,4 +73,24 @@ void halinternal_get_rcc_clocks(halinternal_rcc_clocks_t* clocks) {
 	tmp = (RCC->CFGR & RCC_CFGR_PPRE2) >> POSITION_VAL(RCC_CFGR_PPRE2);
 	/* PCLK2 clock frequency */
 	clocks->pclk2_frequency = clocks->hclk_frequency >> rcc_apb_ahb_presc_table[tmp];
+}
+
+bool hal_rcc_enable_hse(bool bypass_oscillator, unsigned int startup_timeout_ms) {
+	uint32_t status;
+	if ((RCC->CR & RCC_CR_HSEON) != 0)
+		hal_rcc_disable_hse();
+	if (bypass_oscillator)
+		RCC->CR |= RCC_CR_HSEBYP;
+	RCC->CR |= RCC_CR_HSEON;
+	hal_timer_start(rcc_timer, startup_timeout_ms, 0);
+	do {
+		status = RCC->CR & RCC_CR_HSERDY;
+	} while((status == 0) && (!hal_timer_check_timeout(rcc_timer)));
+	hal_timer_stop(rcc_timer);
+	return (status != 0);
+}
+
+void hal_rcc_disable_hse() {
+	RCC->CR &= ~(RCC_CR_HSEON | RCC_CR_HSEBYP);
+	while ((RCC->CR & RCC_CR_HSERDY) != 0);
 }

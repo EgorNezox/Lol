@@ -11,8 +11,9 @@
 MEMORY
 {
   /* Internal FLASH */
-  FLASH_firmware (rx)		: ORIGIN = 0x08000000, LENGTH = (4*16K+64K+6*128K)	/* Sectors 0-10: firmware ISR vectors, program code and constants */
-  																				/* RESERVED sector 11: hardware info (flashed by factory setup) */
+  FLASH_bootloader (rx)		: ORIGIN = 0x08000000, LENGTH = (4*16K+64K+128K-4K)	/* Sectors 0-5: bootloader program code and constants, RESERVED 4KB AREA (see below) */
+  																				/* 0x0803F000 (4KB) area: hardware info (flashed by factory setup) */
+  FLASH_firmware (rx)		: ORIGIN = 0x08040000, LENGTH = (6*128K)			/* Sectors 6-11: firmware program code and constants */
 
   /* Internal SRAM */
   RAM (rwx)					: ORIGIN = 0x20000000, LENGTH = (128K-10K)			/* firmware program data */

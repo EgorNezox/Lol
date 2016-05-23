@@ -18,6 +18,7 @@ SOURCES_system += \
 INCLUDEPATH_system += \
 	port_freertos_gcc_arm_cm3 \
 	port_qmcore_bmfreertos
+$(sources_to_objects port_freertos_gcc_arm_cm3/port.c): CFLAGS += -fno-lto # fix for FreeRTOS code not supporting Link-time optimization
 
 # SPI Flash File System port
 INCLUDEPATH_system += \
@@ -26,11 +27,14 @@ INCLUDEPATH_system += \
 # newlib system integration
 SOURCES_system += \
 	$(wildcard port_newlib_freertos/*.c)
-LDFLAGS_system += --specs=nosys.specs # линковать с CRT, дефолтными библиотеками и дефолтной newlib без системы
+LDFLAGS_system += --specs=nosys.specs --specs=nano.specs -u _printf_float -u _scanf_float # линковать с CRT, дефолтными библиотеками и newlib-nano (с поддержкой float в stdio) без системы
+CFLAGS += --specs=nano.specs
+CXXFLAGS += --specs=nano.specs
 
 # HAL, system and hardware drivers
 SOURCES_system += \
 	$(wildcard HAL/src/*.c) \
+	HAL/src/cpp_exceptions.cpp \
 	startup_stm32f2xx_freertos.s
 INCLUDEPATH_system += \
 	../config \

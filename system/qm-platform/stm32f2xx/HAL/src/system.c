@@ -8,6 +8,8 @@
   ******************************************************************************
  */
 
+#pragma GCC optimize ("-O0")
+
 #include <stdio.h>
 #include "FreeRTOS.h"
 #include "task.h"
@@ -33,10 +35,13 @@ void  __attribute__((constructor)) hal_system_init(void) {
 	NVIC_SetPriorityGrouping(max(7 - __NVIC_PRIO_BITS, 0));
 	/* Инициализация поддержки отладочного вывода SWO в МК */
 	DBGMCU->CR |= DBGMCU_CR_TRACE_IOEN;
-	/* Инициализация всех субмодулей */
+	/* Инициализация всех субмодулей.
+	 * Должен соблюдаться порядок, т.к. субмодули используют друг друга.
+	 */
+	halinternal_timer_init();
+	halinternal_rcc_init();
 	halinternal_gpio_init();
 	halinternal_exti_init();
-	halinternal_timer_init();
 	halinternal_uart_init();
 	halinternal_i2c_init();
 	halinternal_spi_init();
@@ -76,11 +81,11 @@ void halinternal_system_fault_handler(void) {
 			" push {lr}													\n"	\
 			" push {r4-r11}												\n" \
 			" mov r3, sp												\n"	\
-			" ldr r4, " #exc_type "_addr_const							\n"	\
+			" ldr r4, .L_" #exc_type "_addr_const						\n"	\
 			" blx r4													\n"	\
 			" pop {r4-r11}												\n" \
 			" pop {pc}													\n"	\
-			" " #exc_type "_addr_const: .word CPUExceptionHandler	\n"	\
+			" .L_" #exc_type "_addr_const: .word CPUExceptionHandler	\n"	\
 			:: [exc]"i" (exc_type)	\
 		);
 typedef enum {excMemManage, excBusFault, excUsageFault, excHardFault} exc_type;

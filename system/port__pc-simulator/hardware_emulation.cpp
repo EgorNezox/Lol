@@ -57,8 +57,8 @@ void deinit() {
 	SPIBus::closeInstance(data_flash_spibus);
 }
 
-void show_message(const QString &text) {
-	QMessageBox::warning(0, "", text);
+void show_message(const char* text) {
+	QMessageBox::warning(0, "", QString(text));
 }
 
 } /* namespace QtHwEmu */

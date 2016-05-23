@@ -79,6 +79,7 @@ struct s_timer_pcb *timer_current_pending = 0;
 struct s_timer_pcb *timer_current_active = 0;
 
 void halinternal_timer_init(void) {
+	SysTick->CTRL = 0;
 	SYS_ASSERT((SysTick->CTRL & SysTick_CTRL_CLKSOURCE_Msk) == 0);
 	SYS_ASSERT(configTICK_RATE_HZ <= 1000);
 	xTaskCreate(timer_task_function, "hal_timer", sysconfigTIMER_TASK_STACK_SIZE, 0, sysconfigTIMER_TASK_PRIORITY, 0);
