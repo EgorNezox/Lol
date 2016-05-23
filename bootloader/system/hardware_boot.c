@@ -35,6 +35,17 @@ hwboot_test_result_t hwboot_test_board(void) {
 	return hwboottestOk;
 }
 
+bool hwboot_check_firmware(void) {
+#ifdef NDEBUG
+	if (*((uint32_t *)(FLASH_FIRMWARE_PROGRAM_START_ADDRESS + FLASH_FIRMWARE_PROGRAM_MAGIC_OFFSET)) != FLASH_FIRMWARE_PROGRAM_MAGIC_VALUE)
+		return false;
+#else
+	if (*((uint16_t *)(FLASH_FIRMWARE_PROGRAM_START_ADDRESS + FLASH_FIRMWARE_PROGRAM_ENTRY_OFFSET)) == 0xFFFF)
+		return false;
+#endif
+	return true;
+}
+
 void hwboot_jump_firmware(void) {
 	/* Interrupts must be disabled to safely proceed
 	 * (before firmware switches to its isr vectors table and initializes interrupts).
