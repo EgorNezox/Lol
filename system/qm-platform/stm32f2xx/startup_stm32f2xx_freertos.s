@@ -191,6 +191,12 @@ __isr_vector:
 	.globl	System_Startup_Entry
 	.type	System_Startup_Entry, %function
 System_Startup_Entry:
+/* Init processor state as expected from reset handler (except interrupts) */
+	ldr sp, =__StackTop
+	mov r0, 0
+	msr control, r0
+	isb 0xF
+
 /* Call the clock system intitialization function.*/
 	bl	SystemInit
 
