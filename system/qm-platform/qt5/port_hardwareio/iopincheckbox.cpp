@@ -79,13 +79,21 @@ void IopinCheckBox::synchronizeInterface() {
 
 void IopinCheckBox::processCBStateChanged(int state) {
 	IopinInterface::Level level;
+	bool emu_trigger_ovf = false;
 	switch (state) {
-	case Qt::Unchecked: level = IopinInterface::Level_Low; break;
-	case Qt::PartiallyChecked: level = IopinInterface::Level_HiZ; break;
-	case Qt::Checked: level = IopinInterface::Level_High; break;
+	case Qt::Unchecked:
+		level = IopinInterface::Level_Low;
+		break;
+	case Qt::PartiallyChecked:
+		level = IopinInterface::Level_HiZ;
+		emu_trigger_ovf = true;
+		break;
+	case Qt::Checked:
+		level = IopinInterface::Level_High;
+		break;
 	default:
 		Q_ASSERT(0);
 		return;
 	}
-	pin_interface->setInputLevel(level);
+	pin_interface->setInputLevel(level, emu_trigger_ovf);
 }

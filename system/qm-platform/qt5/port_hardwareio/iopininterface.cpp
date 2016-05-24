@@ -44,9 +44,9 @@ IopinInterface::Level IopinInterface::getOutputLevel() {
 	return output_level;
 }
 
-void IopinInterface::setInputLevel(Level level) {
+void IopinInterface::setInputLevel(Level level, bool emu_trigger_ovf) {
 	input_level = level;
-	Q_EMIT inputLevelAssigned(level);
+	Q_EMIT inputLevelAssigned(level, emu_trigger_ovf);
 }
 
 IopinInterface::Level IopinInterface::getInputLevel() {

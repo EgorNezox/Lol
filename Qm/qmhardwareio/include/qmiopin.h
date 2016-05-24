@@ -24,6 +24,10 @@ public:
 		InputTrigger_Falling,
 		InputTrigger_Both
 	};
+	enum TriggerProcessingType {
+		TriggerMultiple,
+		TriggerOnce
+	};
 	enum Level {
 		Level_Low,
 		Level_High
@@ -38,13 +42,14 @@ public:
 	/*! Destroys the iopin. */
 	virtual ~QmIopin();
 
-	bool setInputTriggerMode(LevelTriggerMode mode);
+	bool setInputTriggerMode(LevelTriggerMode mode, TriggerProcessingType type = TriggerMultiple);
 
 	Level readInput();
 
 	void writeOutput(Level level);
 
 	sigc::signal<void> inputTrigger;
+	sigc::signal<void, bool/*overflow*/> inputTriggerOnce;
 
 protected:
 	virtual bool event(QmEvent *event);
