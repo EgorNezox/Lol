@@ -410,6 +410,29 @@ void Controller::synchronizeHSState() {
 	transmitCmd(HS_CMD_SET_MODE, data, 16);
 }
 
+void Controller::startSmartPlay(uint8_t channel) {
+	QM_UNUSED(channel);
+	//...
+}
+
+void Controller::stopSmartPlay() {
+	//...
+}
+
+void Controller::startSmartRecord(uint8_t channel) {
+	QM_UNUSED(channel);
+	//...
+}
+
+void Controller::stopSmartRecord() {
+	//...
+}
+
+Controller::SmartHSState Controller::getSmartHSState() {
+	//...
+	return SmartHSState_SMART_READY;
+}
+
 } /* namespace Headset */
 
 #include "qmdebug_domains_start.h"

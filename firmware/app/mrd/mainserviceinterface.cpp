@@ -33,4 +33,28 @@ void MainServiceInterface::setStatus(Status value) {
 	}
 }
 
+void MainServiceInterface::startAleRx() {
+	//...
+}
+
+void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
+	QM_UNUSED(address);
+	//...
+}
+
+MainServiceInterface::AleResult MainServiceInterface::stopAle() {
+	//...
+	return AleResultNone;
+}
+
+MainServiceInterface::AleState MainServiceInterface::getAleState() {
+	//...
+	return AleState_IDLE;
+}
+
+uint8_t MainServiceInterface::getAleRxAddress() {
+	//...
+	return 0;
+}
+
 } /* namespace Multiradio */

@@ -33,6 +33,18 @@ public:
 	struct SmartStatusDescription {
 		bool channels_mismatch;
 	};
+	enum SmartHSState {
+		SmartHSState_SMART_EMPTY_MESSAGE,
+		SmartHSState_SMART_NOT_CONNECTED,
+		SmartHSState_SMART_ERROR,
+		SmartHSState_SMART_BAD_CHANNEL,
+		SmartHSState_SMART_PREPARING_PLAY,
+		SmartHSState_SMART_PLAYING,
+		SmartHSState_SMART_PREPARING_RECORD,
+		SmartHSState_SMART_RECORDING,
+		SmartHSState_SMART_RECORD_TIMEOUT,
+		SmartHSState_SMART_READY
+	};
 
 	Controller(int rs232_uart_resource, int ptt_iopin_resource);
 	~Controller();
@@ -43,9 +55,16 @@ public:
 	bool getPTTState(bool &state);
 	bool getSmartCurrentChannel(int &number, Multiradio::voice_channel_t &type);
 
+	void startSmartPlay(uint8_t channel);
+	void stopSmartPlay();
+	void startSmartRecord(uint8_t channel);
+	void stopSmartRecord();
+	SmartHSState getSmartHSState();
+
 	sigc::signal<void, Status/*new_status*/> statusChanged;
 	sigc::signal<bool/*accepted*/, bool/*new_state*/> pttStateChanged; // single connection (returns value)
 	sigc::signal<void, int/*new_channel_number*/, Multiradio::voice_channel_t/*new_channel_type*/> smartCurrentChannelChanged;
+	sigc::signal<void, SmartHSState/*new_state*/> smartHSStateChanged;
 
 private:
 	enum State {
