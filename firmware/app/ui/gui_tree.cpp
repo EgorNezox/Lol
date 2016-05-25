@@ -7,7 +7,7 @@ void CGuiTree::init()
     // 0 - 4
     main.setName(mainMenu[0]); call.setName(mainMenu[1]); recv.setName(mainMenu[2]); data.setName(mainMenu[3]); settings.setName(mainMenu[4]);
     // 1.1 - 1.4
-    condCmd.setName(callSubMenu[0]); sms.setName(callSubMenu[1]); post.setName(callSubMenu[2]); groupCondCommand.setName(callSubMenu[3]);
+    condCmd.setName(callSubMenu[0]); sms.setName(callSubMenu[1]); txPutOffVoice.setName(callSubMenu[2]); groupCondCommand.setName(callSubMenu[3]);
     // 1.2.1 - 1.2.2
     condCmdSimpl.setName(commandsSubMenu[0]); condCmdDupl.setName(commandsSubMenu[1]);
     // 1.2.1.1 - 1.2.1.2
@@ -17,7 +17,7 @@ void CGuiTree::init()
     // 1.5.1.1 - 1.5.1.2
     groupCondCommandSimplGroupCall.setName(groupCommandsSimplSubMenu[0]); groupCondCommandSimplIndivCall.setName(groupCommandsSimplSubMenu[1]);
     // 2.1 - 2.3
-    recvVoice.setName(reciveSubMenu[0]); recvSms.setName(reciveSubMenu[1]); recvAus.setName(reciveSubMenu[2]); recvCondCommand.setName(reciveSubMenu[3]); recvGroupCondCommsnds.setName(reciveSubMenu[4]); recvSilence.setName(reciveSubMenu[5]);
+    recvVoice.setName(reciveSubMenu[0]); recvSms.setName(reciveSubMenu[1]); rxPutOffVoice.setName(reciveSubMenu[2]); recvCondCommand.setName(reciveSubMenu[3]); recvGroupCondCommsnds.setName(reciveSubMenu[4]); recvSilence.setName(reciveSubMenu[5]);
     // 3.1 - 3.3
     dataRecv.setName(dataSubMenu[0]), dataSend.setName(dataSubMenu[1]), dataGps.setName(dataSubMenu[3]);
     // 3.1.1 - 3.1.4
@@ -45,7 +45,7 @@ void CGuiTree::init()
     call.prevState = &main;
     call.nextState.push_back(&condCmd);
     call.nextState.push_back(&sms);
-    call.nextState.push_back(&post);
+    call.nextState.push_back(&txPutOffVoice);
     call.nextState.push_back(&groupCondCommand);
     // 1.1 - Условные команды
     condCmd.prevState = &call;
@@ -79,8 +79,9 @@ void CGuiTree::init()
     sms.listItem.push_back(&smsParameters1);
     sms.listItem.push_back(&smsParameters2);
     // 1.3 - Голосовая почта
-    post.prevState = &call;
-    post.nextState.clear();
+    txPutOffVoice.subType = GuiWindowsSubType::txPutOffVoice;
+    txPutOffVoice.prevState = &call;
+    txPutOffVoice.nextState.clear();
     // 1.4 - Группа условных команд
     groupCondCommand.prevState = &call;
     groupCondCommand.nextState.push_back(&groupCondCommandSimpl);
@@ -111,9 +112,9 @@ void CGuiTree::init()
     recv.prevState = &main;
     recv.nextState.push_back(&recvVoice);
     recv.nextState.push_back(&recvSms);
-    recv.nextState.push_back(&recvAus);
     recv.nextState.push_back(&recvCondCommand);
     recv.nextState.push_back(&recvGroupCondCommsnds);
+    recv.nextState.push_back(&rxPutOffVoice);
     recv.nextState.push_back(&recvSilence);
     // 2.3 - Речь
     recvVoice.prevState = &recv;
@@ -123,8 +124,9 @@ void CGuiTree::init()
     recvSms.prevState = &recv;
     recvSms.nextState.clear();
     // 2.6 - Сообщение (АУС)
-    recvAus.prevState = &recv;
-    recvAus.nextState.clear();
+    rxPutOffVoice.subType = GuiWindowsSubType::rxPutOffVoice;
+    rxPutOffVoice.prevState = &recv;
+    rxPutOffVoice.nextState.clear();
     // 2.7 - Условные команды
     recvCondCommand.subType = GuiWindowsSubType::recvCondComm;
     recvCondCommand.prevState = &recv;

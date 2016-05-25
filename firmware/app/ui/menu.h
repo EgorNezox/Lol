@@ -73,6 +73,12 @@ public:
     int groupCondCommStage = 0;
     void inputGroupCondCmd( CEndState, UI_Key );
 
+    // put off voice
+    bool putOffVoiceStatus = false;
+    void initTxPutOffVoice(CEndState);
+    //
+    void initTxGroupCondComm(CEndState);
+
     // message ( SMS )
     void initTxSmsDialog(const char *, std::string, std::string);
     void inputSmsMessage( CEndState, UI_Key );

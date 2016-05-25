@@ -1446,9 +1446,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 
 // maybe two sides of pswf
 // заглушка для сообещения о заполнении структуры
-void DspController::parsingData()
-{
-}
+//void DspController::parsingData(){}
 
 void *DspController::getContentPSWF()
 {

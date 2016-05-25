@@ -847,6 +847,19 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::txPutOffVoice:
+        {
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+            if (key == keyEnter)
+            {
+                menu->putOffVoiceStatus = menu->putOffVoiceStatus ? false : true;
+            }
+            break;
+        }
         case GuiWindowsSubType::message:
         {
             switch ( key )
@@ -1018,6 +1031,23 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::rxPutOffVoice:
+        {
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+            if ( key == keyEnter)
+            {
+#ifndef PORT__PCSIMULATOR
+                // call
+#else
+                guiTree.resetCurrentState();
+#endif
+            }
+            break;
+        }
         case GuiWindowsSubType::volume:
         {
             if ( key == keyRight || key == keyUp )
@@ -1145,9 +1175,18 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyBack )
             {
-                guiTree.backvard();
-                menu->focus = 0;
-            }else if ( key >= key0 && key <= key9 )
+                auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
+                if (st.size() > 0)
+                {
+                    st.pop_back();
+                }
+                else
+                {
+                    guiTree.backvard();
+                    menu->focus = 0;
+                }
+            }
+            else if ( key >= key0 && key <= key9 )
             {
                 auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
                 if ( st.size() < 8 )
@@ -1177,9 +1216,18 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyBack )
             {
-                guiTree.backvard();
-                menu->focus = 0;
-            }else if ( key >= key0 && key <= key9 )
+                auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
+                if (st.size() > 0)
+                {
+                    st.pop_back();
+                }
+                else
+                {
+                    guiTree.backvard();
+                    menu->focus = 0;
+                }
+            }
+            else if ( key >= key0 && key <= key9 )
             {
                 auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
                 if ( st.size() < 8 )
@@ -1371,7 +1419,7 @@ void Service::drawMainWindow()
 
     main_scr->oFreq.clear();
     char mas[11];
-    sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
+    sprintf(mas,"%d",/*voice_service->getCurrentChannelFrequency()*/1);
     std::string freq(mas);
     main_scr->oFreq.append(freq);
     main_scr->setFreq(freq.c_str());
@@ -1447,7 +1495,12 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::txGroupCondComm:
         {
-            menu->initGroupCondComm( st );
+            menu->initTxGroupCondComm(st);
+            break;
+        }
+        case GuiWindowsSubType::txPutOffVoice:
+        {
+            menu->initTxPutOffVoice(st);
             break;
         }
         case GuiWindowsSubType::message:
@@ -1459,6 +1512,7 @@ void Service::drawMenu()
         case GuiWindowsSubType::recvCondComm:
         case GuiWindowsSubType::recvGroupCondComm:
         case GuiWindowsSubType::recvSms:
+        case GuiWindowsSubType::rxPutOffVoice:
         {
             menu->initRxSmsDialog();
             break;

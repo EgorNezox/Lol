@@ -38,7 +38,7 @@ const char *callSubMenu[] = {" Условные команды\0", " СМС\0", " Голосовая почта\
     const char *groupCommandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
         const char *groupCommandsSimplSubMenu[] = {" Групповой вызов\0", " Индивидуальный\0"};
 
-const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " Сообщение(АУС)\0", " УК\0", " Группа усл.команд\0", " Радиомолчание\0"};
+const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " Голосовая почта\0", " УК\0", " Группа усл.команд\0", " Радиомолчание\0"};
 
 const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0", " GPS координаты\0"};
     const char *dataSubSubMenu[] = {" Условные команды\0", " СМС\0", " Головая почта\0", " Группа усл.команд\0"};
@@ -76,3 +76,6 @@ const char* recvCondCommand = "Принята условная команда\0";
 
 const char* groupCondCommFreqStr = "Частота ";
 const char* dataAndTime[] = {"Дата\0", "Время\0"};
+
+const char* putOffVoiceStageOneStr[] = {"Нажмите ввод для записи", "Ожидание записи"};
+const char* putOffVoiceStageTwoStr[] = {"Нажмите ввод для завершения", "Запись речи"};

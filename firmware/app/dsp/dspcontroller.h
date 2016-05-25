@@ -315,6 +315,8 @@ private:
 
     std::list<DspCommand> *cmd_queue;
 
+    int fwd_wave;
+    int ref_wave;
 
     int command_tx30;
     int command_rx30;

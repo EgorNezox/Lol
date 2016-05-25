@@ -86,4 +86,8 @@ extern const char ch_key9[5];
 
 extern const char *recvCondCommandStr;
 extern const char* groupCondCommFreqStr;
+
+extern const char* putOffVoiceStageOneStr[];
+extern const char* putOffVoiceStageTwoStr[];
+
 #endif /* TEXTS_H_ */
