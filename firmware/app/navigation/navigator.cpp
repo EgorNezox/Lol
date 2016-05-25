@@ -9,6 +9,7 @@
 #include "qmdebug.h"
 #include "qmiopin.h"
 #include "qmuart.h"
+#include "qmthread.h"
 #include <string.h>
 #include <string>
 #include <list>
@@ -31,7 +32,7 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 	uart_config.parity = QmUart::Parity_None;
 	uart_config.flow_control = QmUart::FlowControl_None;
 	uart_config.rx_buffer_size = 1024 * 8;
-	uart_config.tx_buffer_size = 0;
+	uart_config.tx_buffer_size = 1024;
 	uart_config.io_pending_interval = 300;
 	uart = new QmUart(uart_resource, &uart_config, this);
 	uart->dataReceived.connect(sigc::mem_fun(this, &Navigator::processUartReceivedData));
@@ -60,6 +61,9 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
         CoordDate.time[i] = 0;
     }
 
+    QmThread::msleep(500);
+    const char * const config_sentences = "$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n";
+    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
 }
 
 Navigator::~Navigator() {
