@@ -11,6 +11,12 @@ TARGET_NAME = $(PROJECT_NAME)_firmware
 makepp_percent_subdirs=1
 include misc/target_build_subproject_header.mk
 
+# оптимизация компиляции отключена для беспрепятственной и быстрой сборки
+# (уровень Og не годится и LTO недоступен для O0 - проверено на "GNU Tools for ARM Embedded Processors 4.9")
+COMPILE_OPT_FLAGS = -O0
+C_EXTRA_FLAGS += $(COMPILE_OPT_FLAGS)
+CXX_EXTRA_FLAGS += $(COMPILE_OPT_FLAGS)
+
 # функциональные опции сборки системы
 DEFINES_system += BUILD_OPTION_ENABLE_DISPLAY_BUFFER=1
 DEFINES_system += GCS_DARK=1 

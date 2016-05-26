@@ -13,6 +13,8 @@
 # - прикладная;
 # - системная.
 # Сборка описывается следующими переменными:
+# - C_EXTRA_FLAGS (доп. опции компиляции исходников C всего субпроекта, размещаются перед общими опциями)
+# - CXX_EXTRA_FLAGS (доп. опции компиляции исходников C++ всего субпроекта, размещаются перед общими опциями)
 # - INCLUDEPATH (include-пути C/C++ для исходников прикладной части);
 # - INCLUDEPATH_system (include-пути C/C++ для исходников системной части);
 # - DEPENDENCIES (нестандартные файлы-зависимости выходного файла, т.е. отсутствующие в правилах сборки и используемые косвенно);
@@ -36,6 +38,7 @@ BUILD_OBJ_REL_DIR ?= $(SUBPROJECT_PATH) # см. выше, переменная �
 BUILD_OBJ_REL_PATH = $(BUILD_ROOT_DIR)/$(relative_to ., $(BUILD_OBJ_REL_DIR)) # спец. трюк для указания объектных файлов в директории сборки независимо от текущей директории и уровня вложенности makefile-ов, используется при определении правил
 no_implicit_load * # в связи с нестандартным подходом к сборке (out-of-tree), все makefile'ы подгружаются явно
 
+global C_EXTRA_FLAGS CXX_EXTRA_FLAGS
 global DEFINES INCDIR OBJECTS LDDEPS
 global DEFINES_system INCDIR_system OBJECTS_system LDFLAGS_system
 
@@ -83,12 +86,12 @@ sub f_sources_to_objects {
 define COMPILE_C_SOURCE
 	@&echo "*** Compile C source: $(relative_to $(input), $(SUBPROJECT_PATH)) ***"
 	@&mkdir -p $(dir_noslash $(output))
-	$(CC) -c $(CFLAGS) $(foreach define,$(DDEF),-D$(define)) $(foreach dir,$(IDIR),-I$(nicepath $(dir))) $(nicepath $(abspath $(input))) -o $(output)
+	$(CC) -c $(C_EXTRA_FLAGS) $(CFLAGS) $(foreach define,$(DDEF),-D$(define)) $(foreach dir,$(IDIR),-I$(nicepath $(dir))) $(nicepath $(abspath $(input))) -o $(output)
 endef
 define COMPILE_CPP_SOURCE
 	@&echo "*** Compile C++ source: $(relative_to $(input), $(SUBPROJECT_PATH)) ***"
 	@&mkdir -p $(dir_noslash $(output))
-	$(CXX) -c $(CXXFLAGS) $(foreach define,$(DDEF),-D$(define)) $(foreach dir,$(IDIR),-I$(nicepath $(dir))) $(nicepath $(abspath $(input))) -o $(output)
+	$(CXX) -c $(CXX_EXTRA_FLAGS) $(CXXFLAGS) $(foreach define,$(DDEF),-D$(define)) $(foreach dir,$(IDIR),-I$(nicepath $(dir))) $(nicepath $(abspath $(input))) -o $(output)
 endef
 define COMPILE_ASSEMBLER_SOURCE
 	@&echo "*** Compile assembler source: $(relative_to $(input), $(SUBPROJECT_PATH)) ***"
