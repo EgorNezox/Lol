@@ -52,10 +52,10 @@ void qmMain() {
     Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin,
     		platformhwNavigatorAntFlagIopin, platformhwNavigator1PPSIopin);
 	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
-            &headset_controller, &navigator);
+            &headset_controller, &navigator, &data_storage_fs);
 #else
     Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
-            &headset_controller, 0);
+            &headset_controller, 0, 0);
 #endif
 
 	Power::Battery power_battery(platformhwBatterySmbusI2c);

@@ -85,4 +85,37 @@ bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
 	return true;
 }
 
+bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data) {
+	QM_UNUSED(data);
+	//...
+	return false;
+}
+
+bool FS::getAleStationAddress(uint8_t& data) {
+	QM_UNUSED(data);
+	//...
+	return false;
+}
+
+bool FS::getFhssKey(uint8_t& data) {
+	QM_UNUSED(data);
+	//...
+	return false;
+}
+
+void FS::setFhssKey(uint8_t data) {
+	QM_UNUSED(data);
+	//...
+}
+
+void FS::getTimeSyncMode(Multiradio::time_sync_mode_t& data) {
+	QM_UNUSED(data);
+	//...
+}
+
+void FS::setTimeSyncMode(Multiradio::time_sync_mode_t data) {
+	QM_UNUSED(data);
+	//...
+}
+
 } /* namespace DataStorage */

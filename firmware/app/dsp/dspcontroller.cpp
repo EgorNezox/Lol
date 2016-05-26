@@ -1996,6 +1996,59 @@ void DspController::startSMSCmdTransmitting(SmsStage stage)
 }
 
 
+void DspController::enableModemReceiver() {
+	//...
+}
+
+void DspController::disableModemReceiver() {
+	//...
+}
+
+void DspController::setModemReceiverBandwidth(ModemBandwidth value) {
+	QM_UNUSED(value);
+	//...
+}
+
+void DspController::setModemReceiverTimeSyncMode(ModemTimeSyncMode value) {
+	QM_UNUSED(value);
+	//...
+}
+
+void DspController::setModemReceiverPhase(ModemPhase value) {
+	QM_UNUSED(value);
+	//...
+}
+
+void DspController::setModemReceiverRole(ModemRole value) {
+	QM_UNUSED(value);
+	//...
+}
+
+void DspController::enableModemTransmitter() {
+	//...
+}
+
+void DspController::disableModemTransmitter() {
+	//...
+}
+
+void DspController::sendModemPacket(ModemPacketType type,
+		ModemBandwidth bandwidth, const std::vector<uint8_t>& data) {
+	QM_UNUSED(type);
+	QM_UNUSED(bandwidth);
+	QM_UNUSED(data);
+	//...
+}
+
+void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
+		uint8_t param_signForm, uint8_t param_packCode,
+		const std::vector<uint8_t>& data) {
+	QM_UNUSED(bandwidth);
+	QM_UNUSED(param_signForm);
+	QM_UNUSED(param_packCode);
+	QM_UNUSED(data);
+	//...
+}
 
 
 } /* namespace Multiradio */

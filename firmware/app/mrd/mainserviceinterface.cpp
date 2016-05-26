@@ -57,4 +57,9 @@ uint8_t MainServiceInterface::getAleRxAddress() {
 	return 0;
 }
 
+voice_message_t MainServiceInterface::getAleRxVmMessage() {
+	//...
+	return voice_message_t();
+}
+
 } /* namespace Multiradio */

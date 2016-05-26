@@ -433,6 +433,16 @@ Controller::SmartHSState Controller::getSmartHSState() {
 	return SmartHSState_SMART_READY;
 }
 
+Multiradio::voice_message_t Controller::getRecordedSmartMessage() {
+	//...
+	return Multiradio::voice_message_t();
+}
+
+void Controller::setSmartMessageToPlay(Multiradio::voice_message_t data) {
+	QM_UNUSED(data);
+	//...
+}
+
 } /* namespace Headset */
 
 #include "qmdebug_domains_start.h"

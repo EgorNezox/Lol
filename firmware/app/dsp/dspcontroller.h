@@ -73,6 +73,35 @@ public:
         GucRxQuit = 4
     };
 
+    enum ModemTimeSyncMode {
+    	modemtimesyncManual = 0,
+		modemtimesyncGPS = 1
+    };
+    enum ModemPhase {
+    	modemphaseWaitingCall = 0,
+		modemphaseALE = 1,
+		modemphaseLinkEstablished = 2
+    };
+    enum ModemRole {
+    	modemroleResponder = 0,
+		modemroleCaller = 1
+    };
+    enum ModemBandwidth {
+    	modempacketbw3100Hz = 1,
+		modempacketbw20kHz = 2,
+		modempacketbwAll = 3
+    };
+    enum ModemPacketType {
+    	modempacket_Call = 1,
+		modempacket_HshakeReceiv = 2,
+		modempacket_HshakeTrans = 3,
+		modempacket_HshakeTransMode = 4,
+		modempacket_RespCallQual = 5,
+		modempacket_LinkRelease = 6,
+		modempacket_msgHead = 21,
+		modempacket_RespPackQual = 23
+    };
+
     DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, QmObject *parent);
     ~DspController();
     bool isReady();
@@ -100,7 +129,16 @@ public:
 
     void processSyncPulse();
 
-
+    void enableModemReceiver();
+    void disableModemReceiver();
+    void setModemReceiverBandwidth(ModemBandwidth value);
+    void setModemReceiverTimeSyncMode(ModemTimeSyncMode value);
+    void setModemReceiverPhase(ModemPhase value);
+    void setModemReceiverRole(ModemRole value);
+    void enableModemTransmitter();
+    void disableModemTransmitter();
+    void sendModemPacket(ModemPacketType type, ModemBandwidth bandwidth, const std::vector<uint8_t> &data);
+    void sendModemPacket_packHead(ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, const std::vector<uint8_t> &data);
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -108,6 +146,12 @@ public:
     sigc::signal<void> smsReceived;
     sigc::signal<void,int> smsFailed;
     sigc::signal<void> smsPacketMessage;
+    sigc::signal<void, ModemPacketType/*type*/> transmittedModemPacket;
+    sigc::signal<void> failedTxModemPacket;
+    sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, std::vector<uint8_t>/*data*/> receivedModemPacket;
+    sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, std::vector<uint8_t>/*data*/> startedRxModemPacket;
+    sigc::signal<void, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, std::vector<uint8_t>/*data*/> startedRxModemPacket_packHead;
+    sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
 
     float swf_res = 2; // надо изменить значение на нижнее предельное
 
