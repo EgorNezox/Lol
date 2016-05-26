@@ -62,11 +62,13 @@ public:
 	void startAleTxVoiceMail(uint8_t address);
 	AleResult stopAle();
 	AleState getAleState();
+	uint8_t getAleVmProgress();
 	uint8_t getAleRxAddress();
 	voice_message_t getAleRxVmMessage();
 
 	sigc::signal<void, Status/*new_status*/> statusChanged;
 	sigc::signal<void, AleState/*new_state*/> aleStateChanged;
+	sigc::signal<void, uint8_t/*new_value*/> aleVmProgressUpdated;
 
 private:
 	friend class Dispatcher;
