@@ -847,6 +847,69 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::txPutOffVoice:
+        {
+            switch(menu->putOffVoiceStatus)
+            {
+            case 1:
+            {// выбрать канал записи
+                if ( key > 5 && key < 16 && menu->channalNum.size() < 2 )
+                {
+                    menu->channalNum.push_back((char)(42+key));
+                    // check
+                    int rc = atoi(menu->channalNum.c_str());
+
+                    if ( rc < 1 || rc > 98 )
+                    { menu->channalNum.clear(); }
+                }
+                break;
+            }
+            case 2:
+            {// запись речи
+                break;
+            }
+            case 3:
+            {// ввод адреса олучатель
+                if ( key > 5 && key < 16 && menu->voiceAddr.size() < 2 )
+                {
+                    menu->voiceAddr.push_back((char)(42+key));
+                    // check
+                    int rc = atoi(menu->voiceAddr.c_str());
+
+                    if ( rc < 1 || rc > 31 )
+                    { menu->voiceAddr.clear(); }
+                }
+                break;
+            }
+            case 4:
+            {// подтверждение
+                break;
+            }
+            case 5:
+            {// статус
+                break;
+            }
+            default:
+            {
+                break;
+            }
+            }
+            if ( key == keyBack)
+            {
+                if (menu->putOffVoiceStatus > 1)
+                    menu->putOffVoiceStatus--;
+                else
+                {
+                    guiTree.backvard();
+                    menu->focus = 0;
+                }
+            }
+            if (key == keyEnter)
+            {
+                menu->putOffVoiceStatus++;
+            }
+            break;
+        }
         case GuiWindowsSubType::message:
         {
             switch ( key )
@@ -1018,6 +1081,23 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::rxPutOffVoice:
+        {
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+            if ( key == keyEnter)
+            {
+#ifndef PORT__PCSIMULATOR
+                // call
+#else
+                guiTree.resetCurrentState();
+#endif
+            }
+            break;
+        }
         case GuiWindowsSubType::volume:
         {
             if ( key == keyRight || key == keyUp )
@@ -1145,9 +1225,18 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyBack )
             {
-                guiTree.backvard();
-                menu->focus = 0;
-            }else if ( key >= key0 && key <= key9 )
+                auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
+                if (st.size() > 0)
+                {
+                    st.pop_back();
+                }
+                else
+                {
+                    guiTree.backvard();
+                    menu->focus = 0;
+                }
+            }
+            else if ( key >= key0 && key <= key9 )
             {
                 auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
                 if ( st.size() < 8 )
@@ -1177,9 +1266,18 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyBack )
             {
-                guiTree.backvard();
-                menu->focus = 0;
-            }else if ( key >= key0 && key <= key9 )
+                auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
+                if (st.size() > 0)
+                {
+                    st.pop_back();
+                }
+                else
+                {
+                    guiTree.backvard();
+                    menu->focus = 0;
+                }
+            }
+            else if ( key >= key0 && key <= key9 )
             {
                 auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
                 if ( st.size() < 8 )
@@ -1371,7 +1469,7 @@ void Service::drawMainWindow()
 
     main_scr->oFreq.clear();
     char mas[11];
-    sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
+    sprintf(mas,"%d",/*voice_service->getCurrentChannelFrequency()*/1);
     std::string freq(mas);
     main_scr->oFreq.append(freq);
     main_scr->setFreq(freq.c_str());
@@ -1447,7 +1545,12 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::txGroupCondComm:
         {
-            menu->initGroupCondComm( st );
+            menu->initTxGroupCondComm(st);
+            break;
+        }
+        case GuiWindowsSubType::txPutOffVoice:
+        {
+            menu->initTxPutOffVoice(st, 0);
             break;
         }
         case GuiWindowsSubType::message:
@@ -1461,6 +1564,11 @@ void Service::drawMenu()
         case GuiWindowsSubType::recvSms:
         {
             menu->initRxSmsDialog();
+            break;
+        }
+        case GuiWindowsSubType::rxPutOffVoice:
+        {
+            menu->initRxPutOffVoiceDialog();
             break;
         }
         case GuiWindowsSubType::recvSilence:

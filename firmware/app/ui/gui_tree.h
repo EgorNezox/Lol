@@ -26,12 +26,14 @@ enum GuiWindowsSubType
     simpleCondComm,\
     duplCondComm,\
     txGroupCondComm,\
+    txPutOffVoice,\
     message,
     recv,\
     recvVoice,\
     recvSms,\
     recvCondComm,\
     recvGroupCondComm,\
+    rxPutOffVoice,\
     recvSilence,\
     data,\
     settings,\
@@ -155,8 +157,8 @@ private:
     // 0 - 4
     CState main, call, recv, data, settings;
     // 1.1 - 1.5
-    CState condCmd, post, groupCondCommand;
-    CEndState sms;
+    CState condCmd, groupCondCommand;
+    CEndState sms, txPutOffVoice;
     SInputItemParameters smsParameters1{(char*)smsText[0], "", 2, 0, 31},\
                          smsParameters2{(char*)smsText[1], "", 2, 0, 31};
     // 1.1.1 - 1.1.2
@@ -177,7 +179,7 @@ private:
     CEndState groupCondCommandSimplGroupCall, groupCondCommandSimplIndivCall;
     SInputItemParameters groupCondCommandSimplCallParameters[4];
     // 2.1 - 2.3
-    CEndState recvVoice, recvSms, recvAus, recvCondCommand, recvGroupCondCommsnds, recvSilence;
+    CEndState recvVoice, recvSms, rxPutOffVoice, recvCondCommand, recvGroupCondCommsnds, recvSilence;
     SInputItemParameters recvTlfParameters, recvSmsParameters, recvGroupCondCommsndsParameters;
     SInputItemParameters gpsSynchronization;
     // 3.1 - 3.3

@@ -109,6 +109,9 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     cmd_queue = new std::list<DspCommand>();
 
+    fwd_wave = 0;
+    ref_wave = 0;
+
     command_tx30 = 0;
     command_rx30 = 0;
 
@@ -127,6 +130,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     counterSms = new int[8]{18,18,37,6,18,18,37,6};
 
     ContentSms.stage = StageNone;
+
 
     initrs(rs_255_93);
     GenerateGaloisField(&rs_255_93);
@@ -154,8 +158,17 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
 DspController::~DspController()
 {
+    delete reset_iopin;
+    delete transport;
 	delete pending_command;
     delete counterSms;
+    delete startup_timer;
+    delete command_timer;
+    delete quit_timer;
+    delete sync_pulse_delay_timer;
+    delete guc_timer;
+    delete guc_rx_quit_timer;
+    delete cmd_queue;
 }
 
 
@@ -1288,6 +1301,16 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 				module = RxRadiopath;
 			else
 				module = TxRadiopath;
+            if (code == 5)
+                fwd_wave = qmFromBigEndian<uint32_t>(value_ptr+0);
+            if (code == 6)
+            {
+                ref_wave = qmFromBigEndian<uint32_t>(value_ptr+0);
+                if (fwd_wave > 0)
+                {
+                    swf_res = (fwd_wave+ref_wave)/(fwd_wave-ref_wave);
+                }
+            }
 			processCommandResponse((indicator == 3), module, code, value);
 		}
 		break;
@@ -1430,7 +1453,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	}
 }
 
-
+// maybe two sides of pswf
+// заглушка для сообещения о заполнении структуры
+//void DspController::parsingData(){}
 
 void *DspController::getContentPSWF()
 {
@@ -1487,7 +1512,7 @@ void DspController::sendSms(Module module)
     {
     	int FST_N = 0;
     	static int cntChvc = 7;
-    	if (cntChvc > 259) cntChvc = 7;
+        if (cntChvc > 255) cntChvc = 7;
     	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
     	++tx_data_len;
     	qmToBigEndian((uint8_t)FST_N, tx_data+tx_data_len);
@@ -1837,7 +1862,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
         for(int i = 0;i<4;i++) ContentSms.message[89+i] = abc >> (8*i);
     	for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
-    	for(int i = 0; i<259;i++) data_sms[i] = (int)ContentSms.message[i];
+        for(int i = 0; i<255;i++) data_sms[i] = (int)ContentSms.message[i];
 
     	int temp=encode_rs(data_sms,&data_sms[93],&rs_255_93);
     	for(int i = 0; i<255;i++)ContentSms.message[i]  = data_sms[i];
