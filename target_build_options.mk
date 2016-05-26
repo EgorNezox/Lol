@@ -21,8 +21,8 @@ BUILD_MODE ?= release # по умолчанию релизная сборка (�
 ARCH_FLAGS = -mthumb -mcpu=cortex-m3
 # Debugging options
 DEBUG_FLAGS = -g3
-# Compiler optimization options
-C_OPT_FLAGS = -Og -flto -fno-fat-lto-objects -ffunction-sections -fdata-sections
+# Common compiler optimization options
+C_OPT_FLAGS = -ffunction-sections -fdata-sections
 
 # общие опции компиляции для всех исходников на языке C
 CFLAGS = $(ARCH_FLAGS) $(DEBUG_FLAGS) $(C_OPT_FLAGS) -c -fmessage-length=0 -Wall -std=gnu99
@@ -30,5 +30,5 @@ CFLAGS = $(ARCH_FLAGS) $(DEBUG_FLAGS) $(C_OPT_FLAGS) -c -fmessage-length=0 -Wall
 CXXFLAGS = $(ARCH_FLAGS) $(DEBUG_FLAGS) $(C_OPT_FLAGS) -c -fmessage-length=0 -Wall -std=gnu++11 -fno-exceptions -fno-rtti
 # общие опции компиляции для всех исходников на языке Assembler
 ASFLAGS = $(ARCH_FLAGS) $(DEBUG_FLAGS) -c -fmessage-length=0 -Wall
-# опции линковщика
+# опции линковщика (используется LTO, но результат зависит от того, включен ли LTO в опциях компиляции индивидуально для субпроекта)
 LDFLAGS = $(ARCH_FLAGS) $(DEBUG_FLAGS) -flto -fuse-linker-plugin -Xlinker --gc-sections -Xlinker --fatal-warnings -Xlinker --warn-common
