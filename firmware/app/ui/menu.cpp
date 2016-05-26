@@ -630,40 +630,130 @@ void CGuiMenu::inputGroupCondCmd( CEndState state, UI_Key key )
     ct = std::chrono::steady_clock::now();
 }
 
-void CGuiMenu::initTxPutOffVoice(CEndState)
+void CGuiMenu::initTxPutOffVoice(CEndState state, int status)
 {
-                  titleArea   = {  5,   5, 150,  20 };
-    MoonsGeometry addrArea    = {  7,  40, 147,  80 };
-    MoonsGeometry volume_geom = {  7,  85, 147, 125 };
+    // выбрать канал записи
+    // запись речи
+    // ввод адреса олучатель
+    // подтверждение
+    // статус
 
-    LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT};
-    param[0].element.align = {alignHCenter, alignTop};
-    param[1].element.align = {alignHCenter, alignTop};
-
-    for (int i = 0; i < 2; i++)
-        param[i].transparent = true;
-
-    std::string str1, str2;
-    if (putOffVoiceStatus)
+    switch (putOffVoiceStatus)
     {
-        str1.append(putOffVoiceStageTwoStr[0]);
-        str2.append(putOffVoiceStageTwoStr[1]);
-    }
-    else
+    case 1:
     {
-        str1.append(putOffVoiceStageOneStr[0]);
-        str2.append(putOffVoiceStageOneStr[1]);
+                      titleArea   = { 5,  5, 150, 20 };
+        MoonsGeometry addrArea    = { 7, 40, 147, 80 };
+
+        LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
+        param.element.align = {alignHCenter, alignVCenter};
+        param.transparent = true;
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                            (GUI_Obj *)this);
+        GUI_EL_Label    title     ( &titleParams,               &titleArea,  (char*)titleStr.c_str(),   (GUI_Obj *)this);
+        GUI_EL_TextArea addr      ( &param,                     &addrArea,   (char*)channalNum.c_str(), (GUI_Obj *)this);
+
+        window.Draw();
+        title.Draw();
+        addr.Draw();
+        break;
     }
+    case 2:
+    {
+                      titleArea   = { 5,  5, 150,  20 };
+        MoonsGeometry addrArea    = { 7, 40, 147,  80 };
+        MoonsGeometry volume_geom = { 7, 85, 147, 125 };
 
-    GUI_EL_Window   window    (&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
-    GUI_EL_Label    title     ( &titleParams,              &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
-    GUI_EL_TextArea addr      (&param[0],                  &addrArea,    (char*)str1.c_str(),     (GUI_Obj *)this);
-    GUI_EL_TextArea volume    (&param[1],                  &volume_geom, (char*)str2.c_str(),     (GUI_Obj *)this);
+        LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT};
+        param[0].element.align = {alignHCenter, alignTop};
+        param[1].element.align = {alignHCenter, alignTop};
 
-    window.Draw();
-    title.Draw();
-    addr.Draw();
-    volume.Draw();
+        for (int i = 0; i < 2; i++)
+            param[i].transparent = true;
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                                    (GUI_Obj *)this);
+        GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)titleStr.c_str(),          (GUI_Obj *)this);
+        GUI_EL_TextArea text1     ( &param[0],                  &addrArea,    (char*)smatrHSStateStr[status],   (GUI_Obj *)this);
+        GUI_EL_TextArea text2     ( &param[1],                  &volume_geom, (char*)smatrHSStateStr[status+1], (GUI_Obj *)this);
+
+        window.Draw();
+        title.Draw();
+        text1.Draw();
+        text2.Draw();
+        break;
+    }
+    case 3:
+    {
+                      titleArea   = { 5,  5, 150, 20 };
+        MoonsGeometry addrArea    = { 7, 40, 147, 80 };
+
+        LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
+        param.element.align = {alignHCenter, alignVCenter};
+        param.transparent = true;
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
+        GUI_EL_Label    title     ( &titleParams,               &titleArea,  (char*)titleStr.c_str(),  (GUI_Obj *)this);
+        GUI_EL_TextArea addr      ( &param,                     &addrArea,   (char*)voiceAddr.c_str(), (GUI_Obj *)this);
+
+        window.Draw();
+        title.Draw();
+        addr.Draw();
+        break;
+    }
+    case 4:
+    {
+                      titleArea   = { 5,  5, 150, 20 };
+        MoonsGeometry addrArea    = { 7, 40, 147, 80 };
+
+        LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
+        param.element.align = {alignHCenter, alignVCenter};
+        param.transparent = true;
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                                (GUI_Obj *)this);
+        GUI_EL_Label    title     ( &titleParams,               &titleArea,  (char*)titleStr.c_str(),       (GUI_Obj *)this);
+        GUI_EL_TextArea text      ( &param,                     &addrArea,   (char*)startAleTxVoiceMailStr, (GUI_Obj *)this);
+
+        window.Draw();
+        title.Draw();
+        text.Draw();
+        break;
+    }
+    case 5:
+    {
+                      titleArea   = { 5,  5, 150,  20 };
+        MoonsGeometry addrArea    = { 7, 40, 147,  80 };
+        MoonsGeometry volume_geom = { 7, 85, 147, 125 };
+
+        LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT};
+        param[0].element.align = {alignHCenter, alignTop};
+        param[1].element.align = {alignHCenter, alignTop};
+
+        for (int i = 0; i < 2; i++)
+            param[i].transparent = true;
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                                (GUI_Obj *)this);
+        GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)titleStr.c_str(),      (GUI_Obj *)this);
+        GUI_EL_TextArea text1     ( &param[0],                  &addrArea,    (char*)aleStateStr[status],   (GUI_Obj *)this);
+        GUI_EL_TextArea text2     ( &param[1],                  &volume_geom, (char*)aleStateStr[status+1], (GUI_Obj *)this);
+
+        window.Draw();
+        title.Draw();
+        text1.Draw();
+        text2.Draw();
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void CGuiMenu::initRxPutOffVoiceDialog(CEndState, int)
+{
+    switch()
+    {
+    case 1:
+    {break;}
+    }
 }
 
 void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)

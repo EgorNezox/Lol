@@ -122,8 +122,6 @@ void VoiceServiceInterface::TurnPSWFMode(uint8_t mode,int R_ADR,int COM_N)
     }
 }
 
-
-
 const char* VoiceServiceInterface::ReturnSwfStatus()
 {
     const char *text;

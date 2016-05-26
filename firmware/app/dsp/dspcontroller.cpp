@@ -158,8 +158,17 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
 DspController::~DspController()
 {
+    delete reset_iopin;
+    delete transport;
 	delete pending_command;
     delete counterSms;
+    delete startup_timer;
+    delete command_timer;
+    delete quit_timer;
+    delete sync_pulse_delay_timer;
+    delete guc_timer;
+    delete guc_rx_quit_timer;
+    delete cmd_queue;
 }
 
 
@@ -1503,7 +1512,7 @@ void DspController::sendSms(Module module)
     {
     	int FST_N = 0;
     	static int cntChvc = 7;
-    	if (cntChvc > 259) cntChvc = 7;
+        if (cntChvc > 255) cntChvc = 7;
     	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
     	++tx_data_len;
     	qmToBigEndian((uint8_t)FST_N, tx_data+tx_data_len);
@@ -1853,7 +1862,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
         for(int i = 0;i<4;i++) ContentSms.message[89+i] = abc >> (8*i);
     	for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
-    	for(int i = 0; i<259;i++) data_sms[i] = (int)ContentSms.message[i];
+        for(int i = 0; i<255;i++) data_sms[i] = (int)ContentSms.message[i];
 
     	int temp=encode_rs(data_sms,&data_sms[93],&rs_255_93);
     	for(int i = 0; i<255;i++)ContentSms.message[i]  = data_sms[i];

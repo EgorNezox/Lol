@@ -74,8 +74,10 @@ public:
     void inputGroupCondCmd( CEndState, UI_Key );
 
     // put off voice
-    bool putOffVoiceStatus = false;
-    void initTxPutOffVoice(CEndState);
+    std::string  channalNum;
+    std::string  voiceAddr;
+    int  putOffVoiceStatus = 0;
+    void initTxPutOffVoice(CEndState, int);
     //
     void initTxGroupCondComm(CEndState);
 

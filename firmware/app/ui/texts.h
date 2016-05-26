@@ -90,4 +90,7 @@ extern const char* groupCondCommFreqStr;
 extern const char* putOffVoiceStageOneStr[];
 extern const char* putOffVoiceStageTwoStr[];
 
+extern const char* startAleTxVoiceMailStr;
+extern const char* smatrHSStateStr[];
+extern const char* aleStateStr[];
 #endif /* TEXTS_H_ */
