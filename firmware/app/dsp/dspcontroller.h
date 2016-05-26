@@ -100,6 +100,7 @@ public:
 		modempacket_RespCallQual = 5,
 		modempacket_LinkRelease = 6,
 		modempacket_msgHead = 21,
+		modempacket_packHead = 22,
 		modempacket_RespPackQual = 23
     };
 
@@ -170,7 +171,8 @@ private:
         PSWFReceiver,		//0x60
         PSWFTransmitter,    //0x72
         RadioLineNotPswf,   // 0x68
-        GucPath             // 0x7A
+        GucPath,            // 0x7A
+		ModemReceiver
     };
     enum RxParameterCode {
         RxFrequency = 1,
@@ -203,6 +205,20 @@ private:
 		PswfRxMode = 4
     };
 
+    enum ModemRxParameterCode {
+    	ModemRxState = 0,
+		ModemRxBandwidth = 1,
+		ModemRxTimeSyncMode = 2,
+		ModemRxPhase = 3,
+		ModemRxRole = 4
+    };
+
+    enum ModemState {
+    	ModemRxOff = 0,
+		ModemRxDetectingStart = 3,
+		ModemRxReceiving = 5
+    };
+
     union ParameterValue {
         uint32_t frequency;
         uint8_t power;
@@ -216,6 +232,11 @@ private:
         uint8_t pswf_r_adr;
         uint8_t swf_mode;
         uint8_t guc_mode;
+        ModemState modem_rx_state;
+        ModemBandwidth modem_rx_bandwidth;
+        ModemTimeSyncMode modem_rx_time_sync_mode;
+        ModemPhase modem_rx_phase;
+        ModemRole modem_rx_role;
     };
 
     struct PswfContent{
@@ -400,6 +421,8 @@ private:
     char sms_content[100];
     uint8_t ack;
     int ok_quit = 0;
+
+    bool modem_rx_on, modem_tx_on;
 };
 
 
