@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file    dispatcher.cpp
  * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
+ * @author  неизвестные
  * @date    30.10.2015
  *
  * TODO: синхронизировать обновления статусов с завершением операций DspController/AtuController
