@@ -38,7 +38,7 @@ QmIopin::Level QmIopinPrivateAdapter::convertInputLevelToQm(IopinInterface::Leve
 	return result;
 }
 
-void QmIopinPrivateAdapter::processInputLevelAssigned(IopinInterface::Level level) {
+void QmIopinPrivateAdapter::processInputLevelAssigned(IopinInterface::Level level, bool overflow_trigger) {
 	QmIopin * const q = qmiopinprivate->q_func();
 	QmIopin::Level new_level = convertInputLevelToQm(level);
 	bool do_trigger;
@@ -57,14 +57,22 @@ void QmIopinPrivateAdapter::processInputLevelAssigned(IopinInterface::Level leve
 		break;
 	}
 	qmiopinprivate->input_level = new_level;
-	if (do_trigger)
-		q->inputTrigger.emit();
+	if (do_trigger) {
+		switch (qmiopinprivate->input_trigger_type) {
+		case QmIopin::TriggerMultiple:
+			q->inputTrigger.emit();
+			break;
+		case QmIopin::TriggerOnce:
+			q->inputTriggerOnce.emit(overflow_trigger);
+			break;
+		}
+	}
 }
 
 QmIopinPrivate::QmIopinPrivate(QmIopin *q) :
 	QmObjectPrivate(q),
 	hw_resource(-1), input_trigger_mode(QmIopin::InputTrigger_Disabled),
-	iopin_adapter(0), input_level(QmIopin::Level_Low)
+	iopin_adapter(0), input_trigger_type(QmIopin::TriggerMultiple), input_level(QmIopin::Level_Low)
 {
 }
 
@@ -81,9 +89,10 @@ void QmIopinPrivate::deinit()
 	delete iopin_adapter;
 }
 
-bool QmIopin::setInputTriggerMode(LevelTriggerMode mode) {
+bool QmIopin::setInputTriggerMode(LevelTriggerMode mode, TriggerProcessingType type) {
 	QM_D(QmIopin);
 	d->input_trigger_mode = mode;
+	d->input_trigger_type = type;
 	return true;
 }
 

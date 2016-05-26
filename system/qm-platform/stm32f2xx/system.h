@@ -14,7 +14,10 @@
 extern "C" {
 #endif
 
-void stm32f2_enter_bootloader();
+void stm32f2_enable_interrupts(void);
+void stm32f2_disable_interrupts(void);
+
+void stm32f2_enter_bootloader(void);
 
 #ifdef __cplusplus
 }

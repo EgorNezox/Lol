@@ -136,7 +136,15 @@ void vApplicationMallocFailedHook(void) {
 	halinternal_system_fault_handler();
 }
 
-void stm32f2_enter_bootloader() {
+void stm32f2_enable_interrupts(void) {
+	portENABLE_INTERRUPTS();
+}
+
+void stm32f2_disable_interrupts(void) {
+	portDISABLE_INTERRUPTS();
+}
+
+void stm32f2_enter_bootloader(void) {
 	/* Firstly, disable and clear pending interrupts from all mcu peripherals */
 	for (int i = 0; i <= 80; i++) {
 		NVIC_DisableIRQ((IRQn_Type)i);

@@ -28,8 +28,9 @@ INCLUDEPATH_system += \
 SOURCES_system += \
 	$(wildcard port_newlib_freertos/*.c)
 LDFLAGS_system += --specs=nosys.specs --specs=nano.specs -u _printf_float -u _scanf_float # линковать с CRT, дефолтными библиотеками и newlib-nano (с поддержкой float в stdio) без системы
-CFLAGS += --specs=nano.specs
-CXXFLAGS += --specs=nano.specs
+COMPILE_OPT_FLAGS = --specs=nano.specs
+C_EXTRA_FLAGS += $(COMPILE_OPT_FLAGS)
+CXX_EXTRA_FLAGS += $(COMPILE_OPT_FLAGS)
 
 # HAL, system and hardware drivers
 SOURCES_system += \

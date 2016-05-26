@@ -31,6 +31,8 @@ public:
 private:
 	QmIopin *o;
 	void process();
+public:
+	bool active, overflow, limit_once;
 };
 #endif /* QM_PLATFORM_STM32F2XX */
 #ifdef QM_PLATFORM_QT
@@ -45,7 +47,7 @@ public:
 	QmIopinPrivate *qmiopinprivate;
 	IopinInterface *interface;
 public Q_SLOTS:
-	void processInputLevelAssigned(IopinInterface::Level level);
+	void processInputLevelAssigned(IopinInterface::Level level, bool overflow_trigger);
 Q_SIGNALS:
 	void writeOutputLevel(IopinInterface::Level level);
 };
@@ -70,6 +72,7 @@ private:
 #ifdef QM_PLATFORM_QT
 	friend class QmIopinPrivateAdapter;
 	QmIopinPrivateAdapter *iopin_adapter;
+	QmIopin::TriggerProcessingType input_trigger_type;
 	QmIopin::Level input_level;
 #endif /* QM_PLATFORM_QT */
 };
