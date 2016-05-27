@@ -88,9 +88,9 @@ public:
 		modemroleCaller = 1
     };
     enum ModemBandwidth {
-    	modempacketbw3100Hz = 1,
-		modempacketbw20kHz = 2,
-		modempacketbwAll = 3
+    	modembw3100Hz = 1,
+		modembw20kHz = 2,
+		modembwAll = 3
     };
     enum ModemPacketType {
     	modempacket_Call = 1,
