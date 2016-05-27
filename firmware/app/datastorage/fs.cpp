@@ -107,14 +107,4 @@ void FS::setFhssKey(uint8_t data) {
     RnKey = data;
 }
 
-void FS::getTimeSyncMode(Multiradio::time_sync_mode_t& data) {
-	QM_UNUSED(data);
-	//...
-}
-
-void FS::setTimeSyncMode(Multiradio::time_sync_mode_t data) {
-	QM_UNUSED(data);
-	//...
-}
-
 } /* namespace DataStorage */

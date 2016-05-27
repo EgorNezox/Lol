@@ -60,6 +60,7 @@ private:
 	VoiceServiceInterface *voice_service;
 	voice_channels_table_t voice_channels_table;
 	voice_channels_table_t::iterator voice_channel;
+	DataStorage::FS *data_storage_fs;
 
     sigc::signal<void> getPSWF();
 };
