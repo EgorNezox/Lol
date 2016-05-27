@@ -30,7 +30,7 @@ public:
 
 public Q_SLOTS:
 	Level getOutputLevel();
-	void setInputLevel(Level level);
+	void setInputLevel(Level level, bool emu_trigger_ovf = false);
 
 Q_SIGNALS:
 	void outputLevelChanged(Level level);
@@ -49,7 +49,7 @@ private:
 #else
 Q_SIGNALS:
 #endif
-	void inputLevelAssigned(Level level);
+	void inputLevelAssigned(Level level, bool overflow_trigger);
 private Q_SLOTS:
 	Level getInputLevel();
 	void assignOutputLevel(Level level);

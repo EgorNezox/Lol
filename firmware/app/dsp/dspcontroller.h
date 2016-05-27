@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file    dspcontroller.h
  * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
+ * @author  неизвестные
  * @date    22.12.2015
  *
  ******************************************************************************
@@ -73,6 +74,36 @@ public:
         GucRxQuit = 4
     };
 
+    enum ModemTimeSyncMode {
+    	modemtimesyncManual = 0,
+		modemtimesyncGPS = 1
+    };
+    enum ModemPhase {
+    	modemphaseWaitingCall = 0,
+		modemphaseALE = 1,
+		modemphaseLinkEstablished = 2
+    };
+    enum ModemRole {
+    	modemroleResponder = 0,
+		modemroleCaller = 1
+    };
+    enum ModemBandwidth {
+    	modempacketbw3100Hz = 1,
+		modempacketbw20kHz = 2,
+		modempacketbwAll = 3
+    };
+    enum ModemPacketType {
+    	modempacket_Call = 1,
+		modempacket_HshakeReceiv = 2,
+		modempacket_HshakeTrans = 3,
+		modempacket_HshakeTransMode = 4,
+		modempacket_RespCallQual = 5,
+		modempacket_LinkRelease = 6,
+		modempacket_msgHead = 21,
+		modempacket_packHead = 22,
+		modempacket_RespPackQual = 23
+    };
+
     DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, QmObject *parent);
     ~DspController();
     bool isReady();
@@ -100,7 +131,16 @@ public:
 
     void processSyncPulse();
 
-
+    void enableModemReceiver();
+    void disableModemReceiver();
+    void setModemReceiverBandwidth(ModemBandwidth value);
+    void setModemReceiverTimeSyncMode(ModemTimeSyncMode value);
+    void setModemReceiverPhase(ModemPhase value);
+    void setModemReceiverRole(ModemRole value);
+    void enableModemTransmitter();
+    void disableModemTransmitter();
+    void sendModemPacket(ModemPacketType type, ModemBandwidth bandwidth, const std::vector<uint8_t> &data);
+    void sendModemPacket_packHead(ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, const std::vector<uint8_t> &data);
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -108,6 +148,12 @@ public:
     sigc::signal<void> smsReceived;
     sigc::signal<void,int> smsFailed;
     sigc::signal<void> smsPacketMessage;
+    sigc::signal<void, ModemPacketType/*type*/> transmittedModemPacket;
+    sigc::signal<void> failedTxModemPacket;
+    sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, std::vector<uint8_t>/*data*/> receivedModemPacket;
+    sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, std::vector<uint8_t>/*data*/> startedRxModemPacket;
+    sigc::signal<void, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, std::vector<uint8_t>/*data*/> startedRxModemPacket_packHead;
+    sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
 
     float swf_res = 2; // надо изменить значение на нижнее предельное
 
@@ -125,7 +171,8 @@ private:
         PSWFReceiver,		//0x60
         PSWFTransmitter,    //0x72
         RadioLineNotPswf,   // 0x68
-        GucPath             // 0x7A
+        GucPath,            // 0x7A
+		ModemReceiver
     };
     enum RxParameterCode {
         RxFrequency = 1,
@@ -158,6 +205,20 @@ private:
 		PswfRxMode = 4
     };
 
+    enum ModemRxParameterCode {
+    	ModemRxState = 0,
+		ModemRxBandwidth = 1,
+		ModemRxTimeSyncMode = 2,
+		ModemRxPhase = 3,
+		ModemRxRole = 4
+    };
+
+    enum ModemState {
+    	ModemRxOff = 0,
+		ModemRxDetectingStart = 3,
+		ModemRxReceiving = 5
+    };
+
     union ParameterValue {
         uint32_t frequency;
         uint8_t power;
@@ -171,6 +232,11 @@ private:
         uint8_t pswf_r_adr;
         uint8_t swf_mode;
         uint8_t guc_mode;
+        ModemState modem_rx_state;
+        ModemBandwidth modem_rx_bandwidth;
+        ModemTimeSyncMode modem_rx_time_sync_mode;
+        ModemPhase modem_rx_phase;
+        ModemRole modem_rx_role;
     };
 
     struct PswfContent{
@@ -357,6 +423,8 @@ private:
     char sms_content[100];
     uint8_t ack;
     int ok_quit = 0;
+
+    bool modem_rx_on, modem_tx_on;
 };
 
 

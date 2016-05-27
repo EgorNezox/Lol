@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file    dspcontroller.cpp
  * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
+ * @author  неизвестные
  * @date    22.12.2015
  *
  ******************************************************************************
@@ -154,6 +155,9 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     for(int i = 0;i<50;i++) guc_adr[i] = '\0';
     guc_tx_num = 2;
+
+    modem_rx_on = false;
+    modem_tx_on = false;
 }
 
 DspController::~DspController()
@@ -1029,6 +1033,34 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
             tx_address = 0x68;
             break;
         }
+        case ModemReceiver:
+        {
+       		tx_address = 0x6C;
+        	switch (code) {
+        	case ModemRxState:
+        		qmToBigEndian((uint8_t)value.modem_rx_state, tx_data+tx_data_len);
+        		tx_data_len += 1;
+        		break;
+        	case ModemRxBandwidth:
+        		qmToBigEndian((uint8_t)value.modem_rx_bandwidth, tx_data+tx_data_len);
+        		tx_data_len += 1;
+        		break;
+        	case ModemRxTimeSyncMode:
+        		qmToBigEndian((uint8_t)value.modem_rx_time_sync_mode, tx_data+tx_data_len);
+        		tx_data_len += 1;
+        		break;
+        	case ModemRxPhase:
+        		qmToBigEndian((uint8_t)value.modem_rx_phase, tx_data+tx_data_len);
+        		tx_data_len += 1;
+        		break;
+        	case ModemRxRole:
+        		qmToBigEndian((uint8_t)value.modem_rx_role, tx_data+tx_data_len);
+        		tx_data_len += 1;
+        		break;
+        	default: QM_ASSERT(0);
+        	}
+        	break;
+        }
 
 		default: QM_ASSERT(0);
 		}
@@ -1441,6 +1473,68 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 guc.push_back(data[i]); // по N едениц данных
             guc_vector.push_back(guc);
         }
+    }
+    case 0x7F:
+    {
+    	value_ptr -= 1; // костылное превращение в нестандартный формат кадра
+    	value_len += 1; // костылное превращение в нестандартный формат кадра
+    	switch (indicator) {
+    	case 22: {
+    		if (!(value_len >= 1))
+    			break;
+    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+0);
+    		transmittedModemPacket.emit(type);
+    		break;
+    	}
+    	case 23: {
+    		if (!(value_len >= 1))
+    			break;
+    		failedTxModemPacket.emit();
+    		break;
+    	}
+    	case 30: {
+    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
+    		int data_offset;
+    		if (type == modempacket_packHead)
+    			data_offset = 6;
+    		else
+    			data_offset = 4;
+    		uint8_t snr = qmFromBigEndian<uint8_t>(value_ptr+2);
+    		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
+    		std::vector<uint8_t> data(value_ptr + data_offset, value_ptr + value_len);
+    		receivedModemPacket.emit(type, snr, bandwidth, data);
+    		break;
+    	}
+    	case 31: {
+    		if (!(value_len >= 1))
+    			break;
+    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+0);
+    		failedRxModemPacket.emit(type);
+    		break;
+    	}
+    	case 32: {
+    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
+    		int data_offset;
+    		if (type == modempacket_packHead)
+    			data_offset = 6;
+    		else
+    			data_offset = 4;
+    		uint8_t snr = qmFromBigEndian<uint8_t>(value_ptr+2);
+    		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
+    		std::vector<uint8_t> data(value_ptr + data_offset, value_ptr + value_len);
+    		if (type == modempacket_packHead) {
+    			uint8_t param_signForm = qmFromBigEndian<uint8_t>(value_ptr+3);
+    			uint8_t param_packCode = qmFromBigEndian<uint8_t>(value_ptr+4);
+        		startedRxModemPacket_packHead.emit(snr, bandwidth, param_signForm, param_packCode, data);
+    		} else {
+        		startedRxModemPacket.emit(type, snr, bandwidth, data);
+    		}
+    		break;
+    	}
+    	default:
+    		break;
+    	}
+    	break;
     }
 
 	default: break;
@@ -2021,6 +2115,89 @@ void DspController::startSMSCmdTransmitting(SmsStage stage)
 }
 
 
+void DspController::enableModemReceiver() {
+	disableModemTransmitter();
+	current_radio_mode = RadioModeSazhenData;
+    setRadioOperation(RadioOperationRxMode);
+	ParameterValue comandValue;
+	comandValue.modem_rx_state = ModemRxDetectingStart;
+	sendCommand(ModemReceiver, ModemRxState, comandValue);
+	modem_rx_on = true;
+}
+
+void DspController::disableModemReceiver() {
+	if (!modem_rx_on)
+		return;
+	modem_rx_on = false;
+	ParameterValue comandValue;
+	comandValue.modem_rx_state = ModemRxOff;
+	sendCommand(ModemReceiver, ModemRxState, comandValue);
+	setRadioOperation(RadioOperationOff);
+}
+
+void DspController::setModemReceiverBandwidth(ModemBandwidth value) {
+	ParameterValue comandValue;
+	comandValue.modem_rx_bandwidth = value;
+	sendCommand(ModemReceiver, ModemRxBandwidth, comandValue);
+}
+
+void DspController::setModemReceiverTimeSyncMode(ModemTimeSyncMode value) {
+	ParameterValue comandValue;
+	comandValue.modem_rx_time_sync_mode = value;
+	sendCommand(ModemReceiver, ModemRxTimeSyncMode, comandValue);
+}
+
+void DspController::setModemReceiverPhase(ModemPhase value) {
+	ParameterValue comandValue;
+	comandValue.modem_rx_phase = value;
+	sendCommand(ModemReceiver, ModemRxPhase, comandValue);
+}
+
+void DspController::setModemReceiverRole(ModemRole value) {
+	ParameterValue comandValue;
+	comandValue.modem_rx_role = value;
+	sendCommand(ModemReceiver, ModemRxRole, comandValue);
+}
+
+void DspController::enableModemTransmitter() {
+	disableModemReceiver();
+	current_radio_mode = RadioModeSazhenData;
+	setRadioOperation(RadioOperationTxMode);
+	modem_tx_on = true;
+}
+
+void DspController::disableModemTransmitter() {
+	if (!modem_tx_on)
+		return;
+	modem_tx_on = false;
+	setRadioOperation(RadioOperationOff);
+}
+
+void DspController::sendModemPacket(ModemPacketType type,
+		ModemBandwidth bandwidth, const std::vector<uint8_t>& data) {
+	QM_ASSERT(type != modempacket_packHead);
+	std::vector<uint8_t> payload(4);
+	payload[0] = 20;
+	payload[1] = bandwidth;
+	payload[2] = type;
+	payload[3] = 0;
+	payload.insert(std::end(payload), std::begin(data), std::end(data));
+	transport->transmitFrame(0x6F, &payload[0], payload.size());
+}
+
+void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
+		uint8_t param_signForm, uint8_t param_packCode,
+		const std::vector<uint8_t>& data) {
+	std::vector<uint8_t> payload(6);
+	payload[0] = 20;
+	payload[1] = bandwidth;
+	payload[2] = 22;
+	payload[3] = 0;
+	payload[4] = param_signForm;
+	payload[5] = param_packCode;
+	payload.insert(std::end(payload), std::begin(data), std::end(data));
+	transport->transmitFrame(0x6F, &payload[0], payload.size());
+}
 
 
 } /* namespace Multiradio */

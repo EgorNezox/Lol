@@ -15,6 +15,7 @@
 #include "../headset/controller.h"
 #include "../dsp/dspcontroller.h"
 #include "../atu/atucontroller.h"
+#include "../datastorage/fs.h"
 
 namespace Multiradio {
 
@@ -25,7 +26,7 @@ class Dispatcher : public QmObject
 {
 public:
 	Dispatcher(int dsp_uart_resource, int dspreset_iopin_resource, int atu_uart_resource,
-			Headset::Controller *headset_controller, Navigation::Navigator *navigator);
+			Headset::Controller *headset_controller, Navigation::Navigator *navigator, DataStorage::FS *data_storage_fs);
 	~Dispatcher();
 	void startServicing(const Multiradio::voice_channels_table_t &voice_channels_table);
 	MainServiceInterface* getMainServiceInterface();

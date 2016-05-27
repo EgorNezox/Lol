@@ -2,6 +2,7 @@
  ******************************************************************************
  * @file    dispatcher.cpp
  * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
+ * @author  неизвестные
  * @date    30.10.2015
  *
  * TODO: синхронизировать обновления статусов с завершением операций DspController/AtuController
@@ -24,7 +25,8 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
                         int dspreset_iopin_resource,
                         int atu_uart_resource,
                         Headset::Controller *headset_controller,
-                        Navigation::Navigator *navigator
+                        Navigation::Navigator *navigator,
+						DataStorage::FS *data_storage_fs
                         ) :
                         QmObject(0),
                         headset_controller(headset_controller),
@@ -42,6 +44,7 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 	main_service = new MainServiceInterface(this);
 	voice_service = new VoiceServiceInterface(this);
 
+	QM_UNUSED(data_storage_fs);
 
 }
 

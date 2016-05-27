@@ -7,6 +7,7 @@
   ******************************************************************************
   */
 
+#include "system.h"
 #include "system_hw_io.h"
 
 #include "qmdebug.h"
@@ -17,11 +18,16 @@
 static void qmiopinExtiTriggerIsrCallback(hal_exti_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	QM_UNUSED(handle);
 	QmIoPinTriggerEvent *system_event = static_cast<QmIoPinTriggerEvent *>(hal_exti_get_userid(handle));
+	if (system_event->active && system_event->limit_once) {
+		system_event->overflow = true;
+		return;
+	}
+	system_event->active = true;
 	system_event->setPendingFromISR(pxHigherPriorityTaskWoken);
 }
 
 QmIoPinTriggerEvent::QmIoPinTriggerEvent(QmIopin *o) :
-	o(o)
+	o(o), active(false), overflow(false), limit_once(false)
 {
 }
 
@@ -52,12 +58,15 @@ void QmIopinPrivate::deinit() {
 	stm32f2_ext_pins_deinit(hw_resource);
 }
 
-bool QmIopin::setInputTriggerMode(LevelTriggerMode mode) {
+bool QmIopin::setInputTriggerMode(LevelTriggerMode mode, TriggerProcessingType type) {
 	QM_D(QmIopin);
 	if (d->exti_line == -1)
 		return false;
 	d->input_trigger_mode = mode;
 	if (mode != InputTrigger_Disabled) {
+		d->trigger_event.active = false;
+		d->trigger_event.overflow = false;
+		d->trigger_event.limit_once = (type == TriggerOnce)?true:false;
 		hal_exti_params_t exti_params;
 		switch (mode) {
 		case InputTrigger_Disabled: QM_ASSERT(0); break;
@@ -88,8 +97,17 @@ void QmIopin::writeOutput(Level level) {
 }
 
 bool QmIopin::event(QmEvent* event) {
+	QM_D(QmIopin);
 	if (event->type() == QmEvent::HardwareIO) {
-		inputTrigger();
+		stm32f2_disable_interrupts();
+		bool f_overflow = d->trigger_event.overflow;
+		d->trigger_event.active = false;
+		d->trigger_event.overflow = false;
+		stm32f2_enable_interrupts();
+		if (!d->trigger_event.limit_once)
+			inputTrigger();
+		else
+			inputTriggerOnce(f_overflow);
 		return true;
 	}
 	return QmObject::event(event);

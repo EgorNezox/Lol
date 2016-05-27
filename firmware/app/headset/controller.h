@@ -60,6 +60,8 @@ public:
 	void startSmartRecord(uint8_t channel);
 	void stopSmartRecord();
 	SmartHSState getSmartHSState();
+	Multiradio::voice_message_t getRecordedSmartMessage();
+	void setSmartMessageToPlay(Multiradio::voice_message_t data);
 
 	sigc::signal<void, Status/*new_status*/> statusChanged;
 	sigc::signal<bool/*accepted*/, bool/*new_state*/> pttStateChanged; // single connection (returns value)

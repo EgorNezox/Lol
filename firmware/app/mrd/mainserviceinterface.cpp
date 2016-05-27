@@ -52,9 +52,19 @@ MainServiceInterface::AleState MainServiceInterface::getAleState() {
 	return AleState_IDLE;
 }
 
+uint8_t Multiradio::MainServiceInterface::getAleVmProgress() {
+	//...
+	return 0;
+}
+
 uint8_t MainServiceInterface::getAleRxAddress() {
 	//...
 	return 0;
+}
+
+voice_message_t MainServiceInterface::getAleRxVmMessage() {
+	//...
+	return voice_message_t();
 }
 
 } /* namespace Multiradio */
