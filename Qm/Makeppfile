@@ -28,6 +28,9 @@ QMCORE_SOURCES += \
 	qmcore/src/qmeventloop.cpp \
 	qmcore/src/qmtimer.cpp \
 	qmcore/src/qmtimer_$(PLATFORM).cpp \
+	qmcore/src/qmtimestamp_$(PLATFORM).cpp \
+	qmcore/src/qmabstimer.cpp \
+	qmcore/src/qmabstimer_$(PLATFORM).cpp \
 	qmcore/src/qmelapsedtimer_$(PLATFORM).cpp \
 	qmcore/src/qmapplication.cpp \
 	qmcore/src/qmapplication_$(PLATFORM).cpp

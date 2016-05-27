@@ -27,6 +27,9 @@ contains(QM_BUILD_MODULES,core) {
         $$PWD/qmcore/src/qmmutexlocker.cpp \
         $$PWD/qmcore/src/qmtimer.cpp \
         $$PWD/qmcore/src/qmtimer_qt.cpp \
+        $$PWD/qmcore/src/qmtimestamp_qt.cpp \
+        $$PWD/qmcore/src/qmabstimer.cpp \
+        $$PWD/qmcore/src/qmabstimer_qt.cpp \
         $$PWD/qmcore/src/qmelapsedtimer_qt.cpp \
         $$PWD/qmcore/src/qmapplication.cpp \
         $$PWD/qmcore/src/qmapplication_qt.cpp
