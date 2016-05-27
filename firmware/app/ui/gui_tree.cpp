@@ -25,7 +25,15 @@ void CGuiTree::init()
     // 3.2.1 - 3.2.4
     dataSendCondCmd.setName(dataSubSubMenu[0]); dataSendSms.setName(dataSubSubMenu[1]); dataSendPost.setName(dataSubSubMenu[2]); dataSendGroupCondCmd.setName(dataSubSubMenu[3]);
     // 4.1 - 4.2
-    sttDateTime.setName(settingsSubMenu[0]); sttConnParam.setName(settingsSubMenu[1]); sttScan.setName(settingsSubMenu[2]); swAruArm.setName(settingsSubMenu[3]); sttSound.setName(settingsSubMenu[4]); sttSuppress.setName(settingsSubMenu[5]); sttWaitGuk.setName(settingsSubMenu[6]);
+    sttDateTime.setName(settingsSubMenu[0]);
+    sttConnParam.setName(settingsSubMenu[1]);
+    sttScan.setName(settingsSubMenu[2]);
+    swAruArm.setName(settingsSubMenu[3]);
+    sttSound.setName(settingsSubMenu[4]);
+    sttSuppress.setName(settingsSubMenu[5]);
+    sttWaitGuk.setName(settingsSubMenu[6]);
+    sttEditRnKey.setName(settingsSubMenu[7]);
+
     // 4.1.1 - 4.1.2
     sttConnParamGPS.setName(dateAndTimeSubMenu[0]); sttConnParamHand.setName(dateAndTimeSubMenu[1]);
     // 4.1.2.1 - 4.1.2.2
@@ -220,6 +228,7 @@ void CGuiTree::init()
     sttConnParam.nextState.push_back(&sttSetSpeed);
     sttConnParam.nextState.push_back(&swAruArm);
     sttConnParam.nextState.push_back(&sttWaitGuk);
+    sttConnParam.nextState.push_back(&sttEditRnKey);
     // 4.2.1 - Частота
     sttSetFreq.subType = GuiWindowsSubType::setFreq;
     sttSetFreq.prevState = &sttConnParam;
@@ -238,6 +247,10 @@ void CGuiTree::init()
     sttWaitGuk.subType = GuiWindowsSubType::waitGuk;
     sttWaitGuk.prevState = &sttConnParam;
     sttWaitGuk.nextState.clear();
+    // 4.2.5 - Edit RN_KEY
+    sttEditRnKey.subType = GuiWindowsSubType::editRnKey;
+    sttEditRnKey.prevState = &sttConnParam;
+    sttEditRnKey.nextState.clear();
     // 4.3 - Сканирование
     sttScan.subType = GuiWindowsSubType::scan;
     sttScan.prevState = &settings;

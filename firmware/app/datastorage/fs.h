@@ -17,6 +17,8 @@ public:
 	void setFhssKey(uint8_t data);
 	void getTimeSyncMode(Multiradio::time_sync_mode_t &data);
 	void setTimeSyncMode(Multiradio::time_sync_mode_t data);
+private:
+    uint8_t RnKey;
 };
 
 } /* namespace DataStorage */

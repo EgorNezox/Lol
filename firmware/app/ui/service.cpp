@@ -31,7 +31,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   Multiradio::MainServiceInterface  *mr_main_service,
                   Multiradio::VoiceServiceInterface *mr_voice_service,
                   Power::Battery                    *power_battery,
-                  Navigation::Navigator             *navigator
+                  Navigation::Navigator             *navigator,
+                  DataStorage::FS                   *fs
 )
 {
     QM_ASSERT(single_instance == false);
@@ -43,6 +44,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->voice_service      = mr_voice_service;
     this->power_battery      = power_battery;
     this->headset_controller = headset_controller;
+    this->storageFs          = fs;
 
     ginit();
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
@@ -1558,6 +1560,40 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::editRnKey:
+        {
+            // выбрать канал воспроизведения
+            if ( key > 5 && key < 16 && menu->RN_KEY.size() < 2 )
+            {
+                menu->RN_KEY.push_back((char)(42+key));
+                // check
+                int rc = atoi(menu->RN_KEY.c_str());
+
+                if ( rc < 1 || rc > 98 )
+                { menu->RN_KEY.clear(); }
+            }
+            if (key == keyBack)
+            {
+                if (menu->RN_KEY.size() > 0)
+                    menu->RN_KEY.pop_back();
+                else
+                {
+                    uint8_t t; storageFs->getFhssKey(t);
+                    char ch[3]; sprintf(ch, "%d", t); ch[2] = '\0';
+                    menu->RN_KEY.append(ch);
+                    menu->focus = 4;
+                    guiTree.backvard();
+                }
+            }
+            if (key == keyEnter)
+            {
+                storageFs->setFhssKey((uint8_t)atoi(menu->RN_KEY.c_str()));
+                menu->focus = 4;
+                guiTree.backvard();
+
+            }
+            break;
+        }
         default:
             break;
         }
@@ -1818,6 +1854,11 @@ void Service::drawMenu()
         case GuiWindowsSubType::volume:
         {
             menu->initVolumeDialog();
+            break;
+        }
+        case GuiWindowsSubType::editRnKey:
+        {
+            menu->initEditRnKeyDialog();
             break;
         }
         default:

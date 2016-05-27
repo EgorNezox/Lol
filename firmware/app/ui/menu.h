@@ -125,6 +125,10 @@ public:
     std::string localDate, localTime, speed;
     void setSttParam(CEndState, UI_Key);
 
+    // RN_KEY
+    std::string RN_KEY;
+    void initEditRnKeyDialog();
+
 private:
     GUI_Obj obj;
     MoonsGeometry menuArea;

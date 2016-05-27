@@ -15,6 +15,7 @@
 #include "qmpushbuttonkey.h"
 #include "keyboard.h"
 #include "ui_keys.h"
+#include "datastorage/fs.h"
 #include "../mrd/voiceserviceinterface.h"
 #include "../mrd/mainserviceinterface.h"
 #include "../headset/controller.h"
@@ -64,7 +65,8 @@ public:
             Multiradio::MainServiceInterface *mr_main_service,
             Multiradio::VoiceServiceInterface *mr_voice_service,
             Power::Battery *power_battery,
-            Navigation::Navigator *navigator
+            Navigation::Navigator *navigator,
+            DataStorage::FS *Fs
 			);
     ~Service();
     void setNotification(NotificationType type);
@@ -96,6 +98,8 @@ private:
     GUI_Dialog_MainScr  *main_scr;
     GUI_Indicator       *indicator;
     GUI_Dialog_MsgBox   *msg_box;
+
+    DataStorage::FS *storageFs;
 
     QmTimer *systemTimeTimer;
 

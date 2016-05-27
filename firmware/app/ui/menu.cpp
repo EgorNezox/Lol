@@ -903,6 +903,37 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
     }
 }
 
+void CGuiMenu::initEditRnKeyDialog()
+{
+    MoonsGeometry labelArea   = { 7, 10, 147, 30 };
+    MoonsGeometry addrArea    = { 7, 40, 147, 80 };
+
+    LabelParams param = GUI_EL_TEMP_LabelChannel;
+    param.element.align = {alignHCenter, alignVCenter};
+    param.transparent = true;
+
+    std::string str;
+    if (RN_KEY.size() == 0)
+        str.append("00");
+    else if (RN_KEY.size() == 1)
+    {
+        str.push_back('0');
+        str.append(RN_KEY);
+    }
+    else
+        str.append(RN_KEY);
+
+    str.push_back('\0');
+
+    GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                              (GUI_Obj *)this);
+    GUI_EL_Label    label     ( &titleParams,               &labelArea,  (char*)voiceRxTxLabelStr[1], (GUI_Obj *)this);
+    GUI_EL_TextArea addr      ( &param,                     &addrArea,   (char*)str.c_str(),          (GUI_Obj *)this);
+
+    window.Draw();
+    label.Draw();
+    addr.Draw();
+}
+
 void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)
 {
     auto newTime = std::chrono::steady_clock::now();

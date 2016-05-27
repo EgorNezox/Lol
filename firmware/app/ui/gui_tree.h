@@ -48,7 +48,8 @@ enum GuiWindowsSubType
     suppress,\
     waitGuk,\
     twoState,\
-    volume
+    volume,\
+    editRnKey
 };
 
 enum modeCall
@@ -192,7 +193,7 @@ private:
     CEndState dataSendCondCmd, dataSendSms, dataSendPost, dataSendGroupCondCmd;
     // 4.1 - 4.3
     CState sttDateTime, sttConnParam;
-    CEndState sttScan, swAruArm, sttSound, sttSuppress, sttWaitGuk;
+    CEndState sttScan, swAruArm, sttSound, sttSuppress, sttWaitGuk, sttEditRnKey;
     // 4.1.1 - 4.1.2
     CState sttConnParamHand;
     CEndState sttConnParamGPS;
