@@ -70,6 +70,8 @@ static uint32_t timer_systick_get_maximum_delay_ms(void);
 static void timer_systick_start(unsigned int ms);
 static void timer_systick_stop(void);
 static bool timer_systick_check_expired(void);
+static void timer_freertos_start(struct s_timer_pcb *timer, TickType_t timestamp_start, unsigned int ms);
+static void timer_freertos_sync_task(signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 static bool timer_freertos_check_expired(struct s_timer_pcb *timer, TickType_t current_timestamp);
 
 static DLLIST_LIST_TYPE(active) timer_active_list;
@@ -144,30 +146,28 @@ void hal_timer_start(hal_timer_handle_t handle, unsigned int ms, signed portBASE
 	portDISABLE_INTERRUPTS();
 	timer_reset(timer, scheduler_state);
 	if (scheduler_state == taskSCHEDULER_NOT_STARTED) {
-		SYS_ASSERT(ms <= timer_systick_get_maximum_delay_ms());
 		if (ms > 0) {
+			SYS_ASSERT(ms <= timer_systick_get_maximum_delay_ms());
 			timer->state = stateActiveSystick;
 			timer_systick_start(ms);
 		}
 	} else {
-		SYS_ASSERT(ms/portTICK_PERIOD_MS < portMAX_DELAY);
-		timer->state = stateActiveFreertos;
-		timer->timestamp_start = current_timestamp;
-		timer->timestamp_end = timer->timestamp_start + ms/portTICK_PERIOD_MS;
-		timer->timestamp_overflow = (timer->timestamp_start > timer->timestamp_end);
-		DLLIST_ADD_TO_LIST_BACK(pending, &timer_pending_list, timer);
+		timer_freertos_start(timer, current_timestamp, ms);
 	}
 	portENABLE_INTERRUPTS();
-	if (scheduler_state != taskSCHEDULER_NOT_STARTED) {
-		SYS_ASSERT(timer_task_semphr);
-		if (halinternal_is_isr_active()) {
-			SYS_ASSERT(pxHigherPriorityTaskWoken != 0);
-			xSemaphoreGiveFromISR(timer_task_semphr, pxHigherPriorityTaskWoken);
-		} else {
-			SYS_ASSERT(pxHigherPriorityTaskWoken == 0);
-			xSemaphoreGive(timer_task_semphr);
-		}
-	}
+	if (scheduler_state != taskSCHEDULER_NOT_STARTED)
+		timer_freertos_sync_task(pxHigherPriorityTaskWoken);
+}
+
+void hal_timer_start_from(hal_timer_handle_t handle, TickType_t timestamp, unsigned int ms, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
+	DEFINE_PCB_FROM_HANDLE(timer, handle)
+	BaseType_t scheduler_state = xTaskGetSchedulerState();
+	SYS_ASSERT(scheduler_state != taskSCHEDULER_NOT_STARTED);
+	portDISABLE_INTERRUPTS();
+	timer_reset(timer, scheduler_state);
+	timer_freertos_start(timer, timestamp, ms);
+	portENABLE_INTERRUPTS();
+	timer_freertos_sync_task(pxHigherPriorityTaskWoken);
 }
 
 void hal_timer_stop(hal_timer_handle_t handle) {
@@ -192,8 +192,10 @@ bool hal_timer_check_timeout(hal_timer_handle_t handle) {
 	case stateActiveSystick: {
 		SYS_ASSERT(scheduler_state == taskSCHEDULER_NOT_STARTED);
 		expired = timer_systick_check_expired();
-		if (expired)
+		if (expired) {
+			timer->state = stateIdle;
 			timer_systick_stop();
+		}
 		break;
 	}
 	case stateActiveFreertos: {
@@ -202,8 +204,6 @@ bool hal_timer_check_timeout(hal_timer_handle_t handle) {
 		break;
 	}
 	}
-	if (expired)
-		timer->state = stateIdle;
 	portENABLE_INTERRUPTS();
 	return expired;
 }
@@ -344,6 +344,26 @@ static void timer_systick_stop(void) {
 
 static bool timer_systick_check_expired(void) {
 	return ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) != 0);
+}
+
+static void timer_freertos_start(struct s_timer_pcb *timer, TickType_t timestamp_start, unsigned int ms) {
+	SYS_ASSERT(ms/portTICK_PERIOD_MS < portMAX_DELAY);
+	timer->state = stateActiveFreertos;
+	timer->timestamp_start = timestamp_start;
+	timer->timestamp_end = timer->timestamp_start + ms/portTICK_PERIOD_MS;
+	timer->timestamp_overflow = (timer->timestamp_start > timer->timestamp_end);
+	DLLIST_ADD_TO_LIST_BACK(pending, &timer_pending_list, timer);
+}
+
+static void timer_freertos_sync_task(signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
+	SYS_ASSERT(timer_task_semphr);
+	if (halinternal_is_isr_active()) {
+		SYS_ASSERT(pxHigherPriorityTaskWoken != 0);
+		xSemaphoreGiveFromISR(timer_task_semphr, pxHigherPriorityTaskWoken);
+	} else {
+		SYS_ASSERT(pxHigherPriorityTaskWoken == 0);
+		xSemaphoreGive(timer_task_semphr);
+	}
 }
 
 static bool timer_freertos_check_expired(struct s_timer_pcb *timer, TickType_t current_timestamp) {
