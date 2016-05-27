@@ -76,8 +76,10 @@ public:
     // put off voice
     std::string  channalNum;
     std::string  voiceAddr;
-    int  putOffVoiceStatus = 0;
-    void initTxPutOffVoice(CEndState, int);
+    int  putOffVoiceStatus = 1;
+    void initTxPutOffVoiceDialog(int);
+    void initRxPutOffVoiceDialog(int);
+
     //
     void initTxGroupCondComm(CEndState);
 

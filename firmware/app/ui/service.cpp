@@ -862,10 +862,50 @@ void Service::keyPressed(UI_Key key)
                     if ( rc < 1 || rc > 98 )
                     { menu->channalNum.clear(); }
                 }
+                if (key == keyBack)
+                {
+                    if (menu->channalNum.size() > 0)
+                        menu->channalNum.pop_back();
+                    else
+                    {
+                        guiTree.backvard();
+                        menu->focus = 0;
+                    }
+                }
+#ifdef _DEBUG_
+                if (key == keyEnter)
+                {
+                    if (menu->channalNum.size() < 1)
+                        menu->channalNum.append("12\0");
+                    menu->putOffVoiceStatus++;
+                }
+#else
+                if (key == keyEnter && menu->channalNum.size() > 0)
+                {
+                    headset_controller->startSmartRecord((uint8_t)atoi( menu->channalNum.c_str()));
+                    menu->putOffVoiceStatus++;
+                }
+#endif
                 break;
             }
             case 2:
             {// запись речи
+                if (key == keyBack)
+                {
+                    menu->putOffVoiceStatus--;
+                }
+#ifdef _DEBUG_
+                if (key == keyEnter && menu->channalNum.size() > 0)
+                {
+                    headset_controller->stopSmartRecord();
+                    menu->putOffVoiceStatus++;
+                }
+#else
+                if (key == keyEnter)
+                {
+                    menu->putOffVoiceStatus++;
+                }
+#endif
                 break;
             }
             case 3:
@@ -879,34 +919,78 @@ void Service::keyPressed(UI_Key key)
                     if ( rc < 1 || rc > 31 )
                     { menu->voiceAddr.clear(); }
                 }
+                if (key == keyBack)
+                {
+                    if (menu->voiceAddr.size() > 0)
+                        menu->voiceAddr.pop_back();
+                    else
+                    {
+                        menu->putOffVoiceStatus--;
+                    }
+                }
+
+#ifdef _DEBUG_
+                if (key == keyEnter)
+                {
+                    if (menu->voiceAddr.size() < 1)
+                        menu->voiceAddr.append("23\0");
+                    menu->putOffVoiceStatus++;
+                }
+#else
+                if (key == keyEnter)
+                {
+                    menu->putOffVoiceStatus++;
+                }
+#endif
                 break;
             }
             case 4:
             {// подтверждение
+                if (key == keyBack)
+                {
+                    menu->putOffVoiceStatus--;
+                }
+#ifdef _DEBUG_
+                if (key == keyEnter)
+                {
+                    if (menu->voiceAddr.size() < 1)
+                        menu->voiceAddr.append("23\0");
+                    menu->putOffVoiceStatus++;
+                }
+#else
+                if (key == keyEnter)
+                {
+                    multiradio_service->startAleTxVoiceMail((uint8_t)atoi(menu->voiceAddr.c_str()));
+                    menu->putOffVoiceStatus++;
+                }
+#endif
                 break;
             }
             case 5:
             {// статус
+                if (key == keyBack)
+                {
+                    menu->putOffVoiceStatus--;
+                }
+                if (key == keyEnter)
+                {
+#ifndef _DEBUG_
+                    multiradio_service->stopAle();
+#endif
+                    menu->putOffVoiceStatus = 1;
+                    menu->voiceAddr.clear();
+                    menu->channalNum.clear();
+#ifndef _DEBUG_
+                    menu->focus = 0;
+                    guiTree.resetCurrentState();
+#endif
+                }
                 break;
             }
             default:
             {
                 break;
             }
-            }
-            if ( key == keyBack)
-            {
-                if (menu->putOffVoiceStatus > 1)
-                    menu->putOffVoiceStatus--;
-                else
-                {
-                    guiTree.backvard();
-                    menu->focus = 0;
-                }
-            }
-            if (key == keyEnter)
-            {
-                menu->putOffVoiceStatus++;
             }
             break;
         }
@@ -1083,18 +1167,110 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::rxPutOffVoice:
         {
-            if ( key == keyBack)
+            switch(menu->putOffVoiceStatus)
             {
-                guiTree.backvard();
-                menu->focus = 0;
-            }
-            if ( key == keyEnter)
+            case 1:
             {
-#ifndef PORT__PCSIMULATOR
-                // call
-#else
-                guiTree.resetCurrentState();
+                if (key == keyBack)
+                {
+                    menu->focus = 0;
+                    guiTree.backvard();
+                }
+                if (key == keyEnter)
+                {
+#ifndef _DEBUG_
+                    multiradio_service->startAleRx();
 #endif
+                    menu->putOffVoiceStatus++;
+                }
+                break;
+            }
+            case 2:
+            {
+                if (key == keyBack)
+                {
+#ifndef _DEBUG_
+                    multiradio_service->stopAle();
+#endif
+                    menu->putOffVoiceStatus--;
+                }
+                if (key == keyEnter)
+                {
+                    // multiradio_service->getStatus();
+                    menu->putOffVoiceStatus++;
+                }
+                break;
+            }
+            case 3:
+            {
+                if (key == keyBack)
+                {
+                    menu->putOffVoiceStatus--;
+                }
+                if (key == keyEnter)
+                {
+                    menu->putOffVoiceStatus++;
+                }
+                break;
+            }
+            case 4:
+            {
+                // выбрать канал воспроизведения
+                if ( key > 5 && key < 16 && menu->channalNum.size() < 2 )
+                {
+                    menu->channalNum.push_back((char)(42+key));
+                    // check
+                    int rc = atoi(menu->channalNum.c_str());
+
+                    if ( rc < 1 || rc > 98 )
+                    { menu->channalNum.clear(); }
+                }
+                if (key == keyBack)
+                {
+                    if (menu->channalNum.size() > 0)
+                        menu->channalNum.pop_back();
+                    else
+                        menu->putOffVoiceStatus--;
+                }
+                if (key == keyEnter)
+                {
+                    if (menu->channalNum.size()>0)
+                    {
+#ifndef _DEBUG_
+                        headset_controller->startSmartPlay((uint8_t)atoi(menu->channalNum.c_str()));
+#endif
+                        menu->putOffVoiceStatus++;
+                    }
+                }
+                break;
+            }
+            case 5:
+            {
+                if (key == keyBack)
+                {
+#ifndef _DEBUG_
+                    headset_controller->stopSmartPlay();
+#endif
+                    menu->putOffVoiceStatus--;
+                }
+                if (key == keyEnter)
+                {
+#ifndef _DEBUG_
+                    headset_controller->stopSmartPlay();
+#endif
+                    menu->putOffVoiceStatus = 1;
+                    menu->voiceAddr.clear();
+                    menu->channalNum.clear();
+#ifndef _DEBUG_
+                    menu->focus = 0;
+                    guiTree.resetCurrentState();
+#endif
+
+                }
+                break;
+            }
+            default:
+            {break;}
             }
             break;
         }
@@ -1550,7 +1726,7 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::txPutOffVoice:
         {
-            menu->initTxPutOffVoice(st, 0);
+            menu->initTxPutOffVoiceDialog(voiceStatusTest);
             break;
         }
         case GuiWindowsSubType::message:
@@ -1568,7 +1744,7 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::rxPutOffVoice:
         {
-            menu->initRxPutOffVoiceDialog();
+            menu->initRxPutOffVoiceDialog(voiceStatusTest);
             break;
         }
         case GuiWindowsSubType::recvSilence:
@@ -1618,7 +1794,10 @@ void Service::drawMenu()
             break;
         }
         case GuiWindowsSubType::twoState:
-        {    menu->initTwoStateDialog();}
+        {
+            menu->initTwoStateDialog();
+            break;
+        }
         case GuiWindowsSubType::scan:
         {
             menu->inclStatus = menu->scanStatus;
@@ -1729,8 +1908,6 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     str.clear();
 }
 
-
-
 void Service::updateSystemTime()
 {
     if ( true/*gpsSynchronization*/ )
@@ -1758,9 +1935,6 @@ void Service::updateSystemTime()
 
     systemTimeTimer->start();
 }
-
-
-
 
 void Service::smsMessage()
 {

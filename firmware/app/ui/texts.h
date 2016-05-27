@@ -93,4 +93,6 @@ extern const char* putOffVoiceStageTwoStr[];
 extern const char* startAleTxVoiceMailStr;
 extern const char* smatrHSStateStr[];
 extern const char* aleStateStr[];
+extern const char* voiceRxStr[];
+extern const char* voiceRxTxLabelStr[];
 #endif /* TEXTS_H_ */

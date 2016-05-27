@@ -69,3 +69,5 @@ HEADERS += \
     app/navigation/navigator.h \
     app/messages/rs_tms.h \
     app/dsp/packagemanager.h
+
+CONFIG(debug, release|debug):DEFINES += _DEBUG_
