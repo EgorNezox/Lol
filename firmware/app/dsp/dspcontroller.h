@@ -355,6 +355,8 @@ private:
     char sms_content[100];
     uint8_t ack;
     int ok_quit = 0;
+
+    bool sms_call_received;
 };
 
 
