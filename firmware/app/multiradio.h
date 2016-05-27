@@ -34,11 +34,6 @@ struct voice_channel_entry_t {
 	voice_channel_speed_t speed;
 };
 
-enum time_sync_mode_t {
-	timesyncGNSS,
-	timesyncManual
-};
-
 typedef std::vector<voice_channel_entry_t> voice_channels_table_t;
 
 typedef std::vector<uint8_t> voice_message_t;
