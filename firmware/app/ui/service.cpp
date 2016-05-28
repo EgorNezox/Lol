@@ -77,6 +77,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
     voice_service->smsMess.connect(sigc::mem_fun(this,&Service::smsMessage));
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
+    voice_service->respGuc.connect(sigc::mem_fun(this,&Service::gucFrame));
 
 #ifndef PORT__PCSIMULATOR
     systemTimeTimer = new QmTimer(true); //TODO:
@@ -84,6 +85,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     systemTimeTimer->start();
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
 #endif
+
+    for(int i = 0;i<50;i++) parse_command[i] = 0;
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -745,7 +748,8 @@ void Service::keyPressed(UI_Key key)
                         }
                         int r_adr = 0;//atoi(mas[0]);
                         int speed = 0;atoi(mas[1]);
-                        voice_service->TurnGuc(r_adr,speed,(char*)mas[2]);
+                        parsingGucCommand((uint8_t*)mas[2])
+                        voice_service->TurnGuc(r_adr,speed,parse_command);
 #else
                         for (auto &k: estate.listItem)
                             k->inputStr.clear();
@@ -1590,6 +1594,31 @@ void Service::setFreq(int isFreq)
     Service::isFreq = isFreq;
 }
 
+int *Service::parsingGucCommand(uint8_t *str)
+{
+    int index = 0;
+    char number[3] = {'\0','\0','\0'};
+    int cnt = 0;
+
+    int len = strlen((const char*)str);
+    for(int i = 0; i<=len;i++){
+        if ((str[i] == ' ') || (len == i))
+        {
+            if (i - index == 2)
+                number[2] = '\0';
+            if (i - index == 1)
+                number[1] = '\0';
+
+            memcpy(number,&str[index],i - index);
+            parse_command[cnt] = atoi(number);
+            ++cnt;
+            for(int j = 0; j<3;j++) number[j] = '\0';
+            index = i+1;
+        }
+    }
+    return parse_command;
+}
+
 void Service::setCoordDate(Navigation::Coord_Date date)
 {
     menu->coord_lat.clear();
@@ -1629,6 +1658,13 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     indicator->date_time->SetText((char *)str.c_str());
     drawIndicator();
     str.clear();
+}
+
+void Service::gucFrame()
+{
+    const char *sym = "Recieved packet for station";
+    guiTree.append(messangeWindow, "Recieved Guc", sym);
+    msgBox( "Recieved Guc", sym );
 }
 
 

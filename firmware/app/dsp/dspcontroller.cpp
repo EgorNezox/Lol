@@ -1863,7 +1863,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     ContentSms.stage = stage;
 }
 
-void DspController::startGucTransmitting(int r_adr, int speed_tx, uint8_t *command)
+void DspController::startGucTransmitting(int r_adr, int speed_tx, int *command)
 {
     qmDebugMessage(QmDebug::Dump, "startGucTransmitting(%d, %d, 0x%X)", r_adr, speed_tx, command);
     QM_ASSERT(is_ready);
@@ -1878,7 +1878,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, uint8_t *comma
 //    int num_cmd = strlen((const char*) command);
     ContentGuc.NUM_com = 5;
 
-    for(int i = 0;i<100;i++) ContentGuc.command[i] = -1;
+    for(int i = 0;i<100;i++) ContentGuc.command[i] = 0;
 //    for(int i = 0; i<num_cmd;i++) ContentGuc.command[i] = command[i];
 
     ContentGuc.ckk = 0;
@@ -1996,6 +1996,10 @@ void DspController::checkGucQuit()
 		size  = guc_vector.size();
 
 	qmDebugMessage(QmDebug::Dump, "checkGucQuit() number of recieved responses %d", guc_vector.size());
+
+    if (size > 0){
+        recievedGucResp();
+    }
 
 //    for(int i = 0; i< size;i++)
 //        guc_adr[i] = guc_vector.at(i).at(3);

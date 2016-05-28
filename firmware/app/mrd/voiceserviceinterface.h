@@ -44,7 +44,7 @@ public:
     void TurnSMSMode();
     void SmsFailStage(int stage);
 
-    void TurnGuc(int r_adr,int speed_tx,char *command);
+    void TurnGuc(int r_adr, int speed_tx, int *command);
     void TurnGuc();
 
     char* getSmsContent();
@@ -54,6 +54,7 @@ public:
     sigc::signal<void,int> firstPacket;
     sigc::signal<void,int> smsFailed;
     sigc::signal<void> smsMess;
+    sigc::signal<void> respGuc;
 
 private:
 	friend class Dispatcher;
@@ -63,6 +64,7 @@ private:
 	void setCurrentChannel(ChannelStatus status);
 
     void fistPacketRecieve(int packet);
+    void responseGuc();
     void smsMessage();
 
 	Dispatcher *dispatcher;

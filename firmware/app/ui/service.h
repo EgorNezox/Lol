@@ -74,8 +74,9 @@ public:
     void updateBattery(int);
     int  getFreq();
     void setFreq(int isFreq);
-
+    int *parsingGucCommand(uint8_t *str);
     void setCoordDate(Navigation::Coord_Date);
+    void gucFrame();
 
 private:
     void msgBox(const char *text);
@@ -137,6 +138,7 @@ private:
     int isFreq = 0;
     int command_rx_30 = 0;
     bool gpsSynchronization = true;
+    int parse_command[50];
 };
 
 } /* namespace Ui */

@@ -24,6 +24,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     dispatcher->dsp_controller->firstPacket.connect(sigc::mem_fun(this,&VoiceServiceInterface::fistPacketRecieve));
     dispatcher->dsp_controller->smsPacketMessage.connect(sigc::mem_fun(this,&VoiceServiceInterface::smsMessage));
     dispatcher->dsp_controller->smsFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::SmsFailStage));
+    dispatcher->dsp_controller->recievedGucResp.connect(sigc::mem_fun(this,&VoiceServiceInterface::responseGuc));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
@@ -150,9 +151,9 @@ void VoiceServiceInterface::SmsFailStage(int stage)
     smsFailed(stage);
 }
 
-void VoiceServiceInterface::TurnGuc(int r_adr, int speed_tx, char *command)
+void VoiceServiceInterface::TurnGuc(int r_adr, int speed_tx, int *command)
 {
-    dispatcher->dsp_controller->startGucTransmitting(r_adr,speed_tx,(uint8_t*)command);
+    dispatcher->dsp_controller->startGucTransmitting(r_adr,speed_tx,command);
 }
 
 void VoiceServiceInterface::TurnGuc()
@@ -172,7 +173,12 @@ void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
 
 void VoiceServiceInterface::fistPacketRecieve(int packet)
 {
-	firstPacket(packet);
+    firstPacket(packet);
+}
+
+void VoiceServiceInterface::responseGuc()
+{
+    respGuc();
 }
 
 void VoiceServiceInterface::smsMessage()

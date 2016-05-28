@@ -89,7 +89,7 @@ public:
     void startSMSRecieving(SmsStage stage = StageRx_call);
     void startSMSTransmitting(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call);
 
-    void startGucTransmitting(int r_adr, int speed_tx, uint8_t *command);
+    void startGucTransmitting(int r_adr, int speed_tx, int *command);
     void startGucTransmitting();
     void startGucRecieving();
     void checkGucQuit();
@@ -108,6 +108,7 @@ public:
     sigc::signal<void> smsReceived;
     sigc::signal<void,int> smsFailed;
     sigc::signal<void> smsPacketMessage;
+    sigc::signal<void> recievedGucResp;
 
     float swf_res = 2; // надо изменить значение на нижнее предельное
 
