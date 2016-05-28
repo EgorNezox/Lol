@@ -737,6 +737,15 @@ void Service::keyPressed(UI_Key key)
 #ifndef PORT__PCSIMULATOR
                         menu->focus = 0;
                         menu->groupCondCommStage = 0;
+                        const char* mas[3];
+                        int i = 0;
+                        for (auto &k: estate.listItem)
+                        {   i++;
+                        	mas[i] = k->inputStr.c_str();
+                        }
+                        int r_adr = 0;//atoi(mas[0]);
+                        int speed = 0;atoi(mas[1]);
+                        voice_service->TurnGuc(r_adr,speed,(char*)mas[2]);
 #else
                         for (auto &k: estate.listItem)
                             k->inputStr.clear();
@@ -913,10 +922,10 @@ void Service::keyPressed(UI_Key key)
                         	if (atoi(ch) > 0)
                         		voice_service->TurnSMSMode(r_adr, mes);
                         }
-                        else
-                        {
+                        //else
+                        //{
                         	//msg ��� gps
-                        }
+                        //}
 
                         menu->keyPressCount = 0;
                     }
@@ -1011,7 +1020,8 @@ void Service::keyPressed(UI_Key key)
             if ( key == keyEnter)
             {
 #ifndef PORT__PCSIMULATOR
-                voice_service->TurnPSWFMode(0,0,0);
+            	voice_service->TurnGuc();
+               // voice_service->TurnPSWFMode(0,0,0);
 #else
                 guiTree.resetCurrentState();
 #endif
@@ -1369,12 +1379,12 @@ void Service::drawMainWindow()
                    voice_service->getCurrentChannelType());
 
 
-    main_scr->oFreq.clear();
+  /*  main_scr->oFreq.clear();
     char mas[11];
     sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
     std::string freq(mas);
     main_scr->oFreq.append(freq);
-    main_scr->setFreq(freq.c_str());
+    main_scr->setFreq(freq.c_str());*/
 
     bool gpsStatus = false;
 

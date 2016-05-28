@@ -152,7 +152,12 @@ void VoiceServiceInterface::SmsFailStage(int stage)
 
 void VoiceServiceInterface::TurnGuc(int r_adr, int speed_tx, char *command)
 {
-    //
+    dispatcher->dsp_controller->startGucTransmitting(r_adr,speed_tx,(uint8_t*)command);
+}
+
+void VoiceServiceInterface::TurnGuc()
+{
+	dispatcher->dsp_controller->startGucRecieving();
 }
 
 char* VoiceServiceInterface::getSmsContent()

@@ -115,26 +115,27 @@ void Navigator::parsingData(uint8_t data[])
 
         while (rmc != NULL){
             rmc = strstr((const char*)rmc,(const char*)"$GPRMC");
-            zda = strstr((const char*)rmc,(const char*)"$GPZDA");
+            if (zda != NULL)
+            zda = strstr((const char*)zda,(const char*)"$GPZDA");
             if (rmc != NULL){
                 rmc_dubl = rmc;
                 *rmc++;
             }
             if (zda != NULL){
-                zda_dubl = zda;
-                *zda++;
+            	zda_dubl = zda;
+            	*zda++;
             }
         }
 
         if (zda_dubl == nullptr)
-            return;
+        	return;
 
-        char zda_time[6];
-        for(int i = 0;i<6;i++)
-            zda_time[i] = zda_dubl[i+8];
-        memcpy(&CoordDate.time,&zda_time,6);
+        char zda_text[6];
+        for(int i = 0;i<6;i++){
+        	zda_text[i] = zda_dubl[i+7];
+        }
 
-
+        memcpy(&CoordDate.time,&zda_text,6);
 
         if (rmc_dubl == nullptr)
         	return;
@@ -201,5 +202,5 @@ void Navigator::processSyncPulse() {
 } /* namespace Navigation */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(navigation, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(navigation, LevelDefault)
 #include "qmdebug_domains_end.h"

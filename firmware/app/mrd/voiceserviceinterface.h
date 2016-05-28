@@ -45,6 +45,7 @@ public:
     void SmsFailStage(int stage);
 
     void TurnGuc(int r_adr,int speed_tx,char *command);
+    void TurnGuc();
 
     char* getSmsContent();
 

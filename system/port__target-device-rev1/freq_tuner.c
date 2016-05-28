@@ -29,6 +29,7 @@ void tune_frequency_generator(void) {
 	DAC_HandleTypeDef    DacHandle;
 	DAC_ChannelConfTypeDef sConfig;
 	DacHandle.Instance = DACx;
+	DacHandle.State = HAL_DAC_STATE_RESET;
 	HAL_DAC_Init(&DacHandle);
 	sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
 	sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;

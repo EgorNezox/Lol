@@ -142,14 +142,18 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     ContentGuc.stage = GucNone;
 
     guc_timer = new QmTimer(true,this);
-    guc_timer->setInterval(180000);
+//    guc_timer->setInterval(180000);
+    guc_timer->setInterval(10000);
     guc_timer->timeout.connect(sigc::mem_fun(this,&DspController::checkGucQuit));
 
     guc_rx_quit_timer = new QmTimer(true,this);
-    guc_timer->timeout.connect(sigc::mem_fun(this,&DspController::sendGucQuit));
+    guc_rx_quit_timer->timeout.connect(sigc::mem_fun(this,&DspController::sendGucQuit));
 
     for(int i = 0;i<50;i++) guc_adr[i] = '\0';
     guc_tx_num = 2;
+
+    sms_call_received = false;
+    for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
 }
 
 DspController::~DspController()
@@ -443,7 +447,7 @@ void DspController::transmitSMS()
 void DspController::transmitPswf()
 {
     getDataTime();
-    addSeconds(date_time);
+   // addSeconds(date_time);
     ContentPSWF.L_CODE = navigator->Calc_LCODE(
     		ContentPSWF.R_ADR /*ContentPSWF.R_ADR*/, ContentPSWF.S_ADR /*ContentPSWF.S_ADR*/,
     		ContentPSWF.COM_N, ContentPSWF.RN_KEY,
@@ -1014,6 +1018,8 @@ void DspController::sendCommand(Module module, int code, ParameterValue value) {
         case RadioLineNotPswf:
         {
             tx_address = 0x68;
+            qmToBigEndian(value.guc_mode, tx_data + tx_data_len);
+            ++tx_data_len;
             break;
         }
 
@@ -1076,7 +1082,7 @@ void DspController::sendPswf(Module module) {
 
 void DspController::sendGuc()
 {
-    qmDebugMessage(QmDebug::Dump, "sendGuc");
+    qmDebugMessage(QmDebug::Dump, "sendGuc()");
 
     uint8_t tx_address = 0x7A;
     uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
@@ -1087,103 +1093,73 @@ void DspController::sendGuc()
     qmToBigEndian((uint8_t)ContentGuc.type, tx_data + tx_data_len);
     ++tx_data_len;
 
-    if (date_time[0] != 0) guc_tx_num = 3;
-    else guc_tx_num = 2;
-    static int num = 0;
-    ++num;
-    if (num <= guc_tx_num){
-        if (num == 1){
+    uint8_t pack[5] = {0, 0, 0, 0, 0};
+    pack[4] = (ContentGuc.S_ADR & 0x1F) << 3;
+    pack[4] |= (ContentGuc.R_ADR & 0x1F) >> 2;
+    pack[3] = (ContentGuc.R_ADR & 0x03) << 6;
+    pack[3] |= (ContentGuc.NUM_com & 0x7F) >> 1;
+    pack[2] = (ContentGuc.NUM_com & 0x01) << 7;
+    pack[2] |= (ContentGuc.ckk & 0x3F) << 1;
+    pack[2] |= ContentGuc.uin >> 7;
+    pack[1] = (ContentGuc.uin & 0x7F) << 1;
+    pack[1] |= ContentGuc.Coord & 0x01;
 
-            qmToBigEndian((uint8_t)ContentGuc.chip_time, tx_data + tx_data_len);
-            ++tx_data_len;
-            qmToBigEndian((uint8_t)ContentGuc.WIDTH_SIGNAL, tx_data + tx_data_len);
-            ++tx_data_len;
-            qmToBigEndian((uint8_t)ContentGuc.S_ADR, tx_data + tx_data_len);
-            ++tx_data_len;
-            qmToBigEndian((uint8_t)ContentGuc.R_ADR, tx_data + tx_data_len);
-            ++tx_data_len;
-        }
-
-        if (num == 2)
-        {
-            int number = ContentGuc.NUM_com;
-
-            uint32_t crc;
-
-            for(int i = 0;i<number;i++)
-            {
-                qmToBigEndian((uint8_t)ContentGuc.uin, tx_data + tx_data_len);
-                ++tx_data_len;
-                qmToBigEndian((uint8_t)ContentGuc.command[i], tx_data + tx_data_len);
-                ++tx_data_len;
-            }
-
-            if (guc_tx_num == 2){
-                crc = pack_manager->CRC32(ContentGuc.command,number);
-                for(int i = 0;i<4;i++){
-                    qmToBigEndian((uint8_t)(ContentGuc.command[i] >> (8*i)), tx_data + tx_data_len);
-                    ++tx_data_len;
-                }
-            }
-        }
-        if (num == 3)
-        {
-            qmToBigEndian((uint8_t)ContentGuc.uin, tx_data + tx_data_len);
-            ++tx_data_len;
-
-            Navigation::Coord_Date date = navigator->getCoordDate();
-
-            std::string lon((const char*)date.longitude);
-            std::string lat((const char*)date.latitude);
-
-            uint16_t coord[4];
-            coord[0] = atoi(lon.substr(0,4).c_str());
-            coord[1] = atoi(lon.substr(0,5).c_str());
-            coord[2] = atoi(lat.substr(7,4).c_str());
-            coord[3] = atoi(lat.substr(6,4).c_str());
-
-            for(int i = 0;i<4;i++){
-                qmToBigEndian((uint16_t)(coord[i]), tx_data + tx_data_len);
-                tx_data_len += 2;
-            }
-            uint8_t quadrant = 0;
-
-            if ((strstr((const char*)date.longitude[0],"N") !=0) && strstr((const char*)date.latitude[0],"E") !=0)
-                quadrant = 0;
-            if ((strstr((const char*)date.longitude[0],"S") !=0) && strstr((const char*)date.latitude[0],"E") !=0)
-                quadrant = 1;
-            if ((strstr((const char*)date.longitude,"S") !=0) && strstr((const char*)date.latitude[0],"W") !=0)
-                quadrant = 2;
-            if ((strstr((const char*)date.longitude,"N") !=0) && strstr((const char*)date.latitude[0],"W") !=0)
-                quadrant = 3;
-
-            qmToBigEndian((uint8_t)quadrant, tx_data + tx_data_len);
-            ++tx_data_len;
-
-            uint8_t *data_crc;
-            data_crc = &tx_data[tx_data_len - 9];
-            uint32_t crc = pack_manager->CRC32(data_crc,9);
-
-            qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
-            tx_data_len+=4;
-
-        }
+    for(int i = 4; i >= 0; --i) {
+    	qmToBigEndian((uint8_t)pack[i], tx_data + tx_data_len);
+    	++tx_data_len;
     }
-    else
-    {
-        guc_tx_num = 2;
-        num = 0;
-        ContentGuc.stage = GucRx;
-        radio_state == radiostateGucRxPrepare;
+    for(int i = 0; i < ContentGuc.NUM_com; ++i) {
+        qmToBigEndian((uint8_t)ContentGuc.command[i], tx_data + tx_data_len);
+        ++tx_data_len;
     }
+    uint32_t crc = pack_manager->CRC32(ContentGuc.command, ContentGuc.NUM_com);
+    qmToBigEndian(crc, tx_data + tx_data_len);
+    tx_data_len += 4;
+
+//            qmToBigEndian((uint8_t)ContentGuc.uin, tx_data + tx_data_len);
+//            ++tx_data_len;
+//
+//            Navigation::Coord_Date date = navigator->getCoordDate();
+//
+//            std::string lon((const char*)date.longitude);
+//            std::string lat((const char*)date.latitude);
+//
+//            uint16_t coord[4];
+//            coord[0] = atoi(lon.substr(0,4).c_str());
+//            coord[1] = atoi(lon.substr(0,5).c_str());
+//            coord[2] = atoi(lat.substr(7,4).c_str());
+//            coord[3] = atoi(lat.substr(6,4).c_str());
+//
+//            for(int i = 0;i<4;i++){
+//                qmToBigEndian((uint16_t)(coord[i]), tx_data + tx_data_len);
+//                tx_data_len += 2;
+//            }
+//            uint8_t quadrant = 0;
+//
+//            if ((strstr((const char*)date.longitude[0],"N") !=0) && strstr((const char*)date.latitude[0],"E") !=0)
+//                quadrant = 0;
+//            if ((strstr((const char*)date.longitude[0],"S") !=0) && strstr((const char*)date.latitude[0],"E") !=0)
+//                quadrant = 1;
+//            if ((strstr((const char*)date.longitude,"S") !=0) && strstr((const char*)date.latitude[0],"W") !=0)
+//                quadrant = 2;
+//            if ((strstr((const char*)date.longitude,"N") !=0) && strstr((const char*)date.latitude[0],"W") !=0)
+//                quadrant = 3;
+//
+//            qmToBigEndian((uint8_t)quadrant, tx_data + tx_data_len);
+//            ++tx_data_len;
+//
+//            uint8_t *data_crc;
+//            data_crc = &tx_data[tx_data_len - 9];
+//            uint32_t crc = pack_manager->CRC32(data_crc,9);
+//
+//            qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
+//            tx_data_len+=4;
 
     QM_ASSERT(pending_command->in_progress == false);
     pending_command->in_progress = true;
     pending_command->sync_next = true;
 
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
-
-
 }
 
 void DspController::recGuc()
@@ -1194,9 +1170,11 @@ void DspController::recGuc()
     if (ContentGuc.stage == GucTxQuit)
     {
         guc_timer->start();
+        startGucRecieving();
     }
     if (ContentGuc.stage == GucRxQuit)
     {
+    	startGucTransmitting();
     	uint32_t time = 3 - ((uint32_t)rand() % 3);
     	guc_rx_quit_timer->start(time);
     }
@@ -1243,7 +1221,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     if (radio_state == radiostateGucRxPrepare) {
         ++gucRxStateSync;
         qmDebugMessage(QmDebug::Dump, "processReceivedFrame() GucRxSync = %d", gucRxStateSync);
-        if (gucRxStateSync == 3) {
+        if (gucRxStateSync == 2) {
             radio_state = radiostateGucRx;
             qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radio_state = radiostateGucRx");
         }
@@ -1251,11 +1229,10 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     if (radio_state == radiostateGucTxPrepare) {
         ++gucTxStateSync;
         qmDebugMessage(QmDebug::Dump, "processReceivedFrame() gucTxStateSync = %d", gucTxStateSync);
-        if (gucTxStateSync == 2) {
+        if (gucTxStateSync == 4) {
             radio_state = radiostateGucTx;
             qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radio_state = radiostateGucTx");
-            sendGuc();
-            sendGuc();
+            pending_command->in_progress = false;
             sendGuc();
         }
     }
@@ -1304,15 +1281,19 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     case 0x63: {
     	qmDebugMessage(QmDebug::Dump, "0x63 received");
         if (indicator == 31) {
-            qmDebugMessage(QmDebug::Dump, "0x63 cadr not recieved");
-
+            qmDebugMessage(QmDebug::Dump, "0x63 indicator 31");
             if (ContentSms.stage == StageRx_call)
             {
                 syncro_recieve.erase(syncro_recieve.begin());
                 syncro_recieve.push_back(0);
-            }
 
+                if (check_rx_call()) {
+                	sms_call_received = true;
+                	qmDebugMessage(QmDebug::Dump, "sms call received");
+                }
+            }
         } else if (indicator == 30) {
+        	qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");
             if (ContentSms.stage > -1)
             {
                 qmDebugMessage(QmDebug::Dump, "processReceivedFrame() data_len = %d", data_len);
@@ -1336,6 +1317,19 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 {
                     syncro_recieve.erase(syncro_recieve.begin());
                     syncro_recieve.push_back(data[9]); // CYC_N
+                    qmDebugMessage(QmDebug::Dump, "recieve frame() count = %d", syncro_recieve.size());
+
+                    if (check_rx_call())
+                    {
+                    	sms_call_received = true;
+                    	qmDebugMessage(QmDebug::Dump, "sms call received");
+//                    	startSMSCmdTransmitting(StageRx_call_ack);
+//                    	pswf_first_packet_received = false;
+//                    	counterSms[StageRx_call] = 18;
+                    	syncro_recieve.clear();
+                    	for(int i = 0; i<18;i++)
+                    		syncro_recieve.push_back(0);
+                    }
                 }
 
                 if (ContentSms.stage == StageTx_quit)
@@ -1348,7 +1342,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 }
                 pswf_first_packet_received = true;
             }
-
             else
             {
                 std::vector<char> pswf_data;
@@ -1384,40 +1377,53 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 
         break;
     }
-    //TODO 7B : 6B ?
-    case 0x7B:
+    case 0x6B:
     {
-        if (ContentGuc.stage > GucNone){
+    	qmDebugMessage(QmDebug::Dump, "processReceivedFrame() 0x6B received, intdicator = %d", indicator);
+        if (ContentGuc.stage != GucNone){
+        	if (indicator == 21) {
+        		break;
+        	}
             if (indicator == 22) {
             	ContentGuc.stage = GucTxQuit;
             	recGuc();
             }
-            uint32_t crc;
-            if (indicator == 30)
-            {
-                for(int i = data_len; i>data_len-4;i--){
-                    crc += (data[i] >> (8*i));
+            if (indicator == 30) {
+            	qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , indicator %d", indicator);
 
-                    uint32_t crc32 = pack_manager->CRC32(data,10);
-                    if (crc32 == crc) {
-                        rec_s_adr = data[7];    // s_adr
-                        rec_uin_guc = data[11]; // uin
-                        ContentGuc.stage = GucRxQuit;
-                        recGuc();
-                    }
+//            	uint32_t crc;
+//                for(int i = data_len; i>data_len-4;i--){
+//                    crc += (data[i] >> (8*i));
+//
+//                    uint32_t crc32 = pack_manager->CRC32(data,10);
+//                    if (crc32 == crc) {
+//                        rec_s_adr = data[7];    // s_adr
+//                        rec_uin_guc = data[11]; // uin
+//                        ContentGuc.stage = GucRxQuit;
+//                        recGuc();
+//                    }
+//
+//                    else{
+//                        // generate failed guc
+//                    }
+//                }
+            	if (radio_state != radiostateGucRx) break;
 
-                    else{
-                        // generate failed guc
-                    }
+                std::vector<uint8_t> guc;
+                for(int i = 2;i<data_len;i++){qmDebugMessage(QmDebug::Dump, "0x7B recieved frame: %d , num %d", data[i],i);
+                	guc.push_back(data[i]); // по N едениц данных
 
-                }
+                	}
+				if (guc_vector.size() < 50) {
+					guc_vector.push_back(guc);
+				}
+
+				if (ContentGuc.stage != GucTxQuit)
+					ContentGuc.stage = GucRxQuit;
+				recGuc();
             }
-
-            std::vector<uint8_t> guc;
-            for(int i = 2;i<data_len;i++)
-                guc.push_back(data[i]); // по N едениц данных
-            guc_vector.push_back(guc);
         }
+        break;
     }
 
 	default: break;
@@ -1496,7 +1502,9 @@ void DspController::sendSms(Module module)
     	{
     		qmToBigEndian(ContentSms.message[i], tx_data+tx_data_len);
     		++tx_data_len;
+    		qmDebugMessage(QmDebug::Dump, "MESSG: %d",ContentSms.message[i]);
     	}
+
     	cntChvc = cntChvc + 7;
     }
     //rx
@@ -1593,20 +1601,15 @@ void DspController::recSms()
 
     if (ContentSms.stage == StageRx_call)
     {
-    	static int c = 0;
-    	++c;
-    	qmDebugMessage(QmDebug::Dump, "StageRx_call test, %d" ,c);
-
-    	if (check_rx_call())
-    	{
-    		qmDebugMessage(QmDebug::Dump, "StageRx_call ack");
+    	if (sms_call_received) {
+    		syncro_recieve.clear();
+    		for(int i = 0; i < 18; i++)
+    		syncro_recieve.push_back(0);
+    		sms_call_received = false;
+    		qmDebugMessage(QmDebug::Dump, "recSms() sms call received");
     		startSMSCmdTransmitting(StageRx_call_ack);
     		pswf_first_packet_received = false;
     		counterSms[StageRx_call] = 18;
-    		syncro_recieve.erase(syncro_recieve.begin(),syncro_recieve.end());
-    		for(int i = 0; i<18;i++)
-    			syncro_recieve.push_back(0);
-
     	}
     }
 
@@ -1639,13 +1642,16 @@ void DspController::generateSmsReceived()
 {
 	int count = 0;
 	int data[255];
+	for(int i = 0;i<255;i++) data[i] = 0;
 	uint8_t packed[100];
 
 	for(int j = 0;j<=recievedSmsBuffer.size()-1;j++){
 		for(int i = 0; i<7;i++)
 		{
-			data[count] = recievedSmsBuffer.at(j).at(i);
-			++count;
+			if (count < 255){
+				data[count] = recievedSmsBuffer.at(j).at(i);
+				++count;
+			}
 		}
 	}
 
@@ -1677,7 +1683,6 @@ void DspController::generateSmsReceived()
 		smsFailed(3);
 		ack = 99;
 	}
-
 	else
 	{
 
@@ -1697,10 +1702,8 @@ int DspController::check_rx_call()
     {
        if (syncro_recieve.at(i) == (i+1))
            ++cnt_index;
-       qmDebugMessage(QmDebug::Dump, "syncro_recieve = %d, i = %d", cnt_index,i);
+       qmDebugMessage(QmDebug::Dump, "syncro_recieve value = %d", syncro_recieve.at(i));
     }
-
-
 
     qmDebugMessage(QmDebug::Dump, "check rx call = %d", cnt_index);
 
@@ -1829,15 +1832,15 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
     	pack_manager->compressMass(ContentSms.message,87,7); //test
 
-        ContentSms.message[87] = ContentSms.message[87] | 0xF;
+        ContentSms.message[87] = ContentSms.message[87] & 0x0F; //set 4 most significant bits to 0
         ContentSms.message[88] = 0;
 
         uint32_t abc = pack_manager->CRC32(ContentSms.message,88);
 
 
-        for(int i = 0;i<4;i++) ContentSms.message[89+i] = abc >> (8*i);
+        for(int i = 0;i<4;i++) ContentSms.message[89+i] = (uint8_t)((abc >> (8*i)) & 0xFF);
     	for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
-    	for(int i = 0; i<259;i++) data_sms[i] = (int)ContentSms.message[i];
+    	for(int i = 0; i<255;i++) data_sms[i] = (int)ContentSms.message[i];
 
     	int temp=encode_rs(data_sms,&data_sms[93],&rs_255_93);
     	for(int i = 0; i<255;i++)ContentSms.message[i]  = data_sms[i];
@@ -1862,42 +1865,60 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
 void DspController::startGucTransmitting(int r_adr, int speed_tx, uint8_t *command)
 {
-    qmDebugMessage(QmDebug::Dump, "startGucReceiving");
+    qmDebugMessage(QmDebug::Dump, "startGucTransmitting(%d, %d, 0x%X)", r_adr, speed_tx, command);
     QM_ASSERT(is_ready);
 
     ContentGuc.indicator = 20;
     ContentGuc.type = 1;
-    ContentGuc.chip_time = speed_tx;
-    ContentGuc.R_ADR = r_adr;
-    int num_cmd = strlen((const char*) command);
+    ContentGuc.chip_time = 2;
+    ContentGuc.WIDTH_SIGNAL = 1;
+    ContentGuc.S_ADR = 0;
+    ContentGuc.R_ADR = 1;
+
+//    int num_cmd = strlen((const char*) command);
+    ContentGuc.NUM_com = 5;
 
     for(int i = 0;i<100;i++) ContentGuc.command[i] = -1;
-    for(int i = 0; i<num_cmd;i++) ContentGuc.command[i] = command[i];
+//    for(int i = 0; i<num_cmd;i++) ContentGuc.command[i] = command[i];
+
+    ContentGuc.ckk = 0;
+    ContentGuc.ckk |= (1 & 0x01);
+    ContentGuc.ckk |= (ContentGuc.WIDTH_SIGNAL & 0x01) << 1;
+    ContentGuc.ckk |= (1 & 0x03) << 2;
+    ContentGuc.ckk |= (ContentGuc.chip_time & 0x03) << 4;
+
+    ContentGuc.uin = 0;
+    ContentGuc.Coord = 0;
 
     ParameterValue comandValue;
     comandValue.radio_mode = RadioModeOff;// отключили прием
     sendCommand(RxRadiopath, RxRadioMode, comandValue);
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
     sendCommand(TxRadiopath, TxRadioMode, comandValue);
+    comandValue.frequency = 3000000;
+    sendCommand(RxRadiopath, RxFrequency, comandValue);
+    sendCommand(TxRadiopath, TxFrequency, comandValue);
     radio_state = radiostateGucTxPrepare;
     gucTxStateSync = 0;
     ContentGuc.stage =  GucTx;
-
 }
 
 void DspController::startGucTransmitting()
 {
-    qmDebugMessage(QmDebug::Dump, "startSmsReceiving");
+    qmDebugMessage(QmDebug::Dump, "startGucTransmitting");
     QM_ASSERT(is_ready);
 
     ParameterValue comandValue;
-    comandValue.radio_mode = RadioModeOff;// отключили радиорежим
-    sendCommand(RxRadiopath, RxRadioMode, comandValue);
+//    comandValue.radio_mode = RadioModeOff;// отключили прием
+//    sendCommand(RxRadiopath, RxRadioMode, comandValue);
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
     sendCommand(TxRadiopath, TxRadioMode, comandValue);
+    comandValue.frequency = 3000000;
+    sendCommand(RxRadiopath, RxFrequency, comandValue);
+    sendCommand(TxRadiopath, TxFrequency, comandValue);
     radio_state = radiostateGucTxPrepare;
     gucTxStateSync = 0;
-    ContentGuc.stage =  GucTx;
+    ContentGuc.stage =  GucRxQuit;
 }
 
 void DspController::sendGucQuit()
@@ -1908,42 +1929,62 @@ void DspController::sendGucQuit()
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 	int tx_data_len = 0;
 
+	ContentGuc.indicator = 20;
+	ContentGuc.type = 4;
+	ContentGuc.chip_time = 2;
+	ContentGuc.WIDTH_SIGNAL = 1;
+	ContentGuc.S_ADR = 0;
+	ContentGuc.R_ADR = 1;
+
+	ContentGuc.ckk = 0;
+	ContentGuc.ckk |= (1 & 0x01);
+	ContentGuc.ckk |= (ContentGuc.WIDTH_SIGNAL & 0x01) << 1;
+	ContentGuc.ckk |= (1 & 0x03) << 2;
+	ContentGuc.ckk |= (ContentGuc.chip_time & 0x03) << 4;
+
+	ContentGuc.uin = 0;
+
 	qmToBigEndian((uint8_t)ContentGuc.indicator, tx_data + tx_data_len);
 	++tx_data_len;
 	qmToBigEndian((uint8_t)ContentGuc.type, tx_data + tx_data_len);
 	++tx_data_len;
-	qmToBigEndian((uint8_t)ContentGuc.S_ADR, tx_data + tx_data_len);
-	++tx_data_len;
-	qmToBigEndian((uint8_t)ContentGuc.R_ADR, tx_data + tx_data_len);
-	++tx_data_len;
-	qmToBigEndian((uint8_t)ContentGuc.uin, tx_data + tx_data_len);
-	++tx_data_len;
 
-	QM_ASSERT(pending_command->in_progress == false);
+
+	uint8_t pack[3] = {0, 0, 0};
+	pack[2] = (ContentGuc.S_ADR & 0x1F) << 3;
+	pack[2] |= (ContentGuc.R_ADR & 0x1F) >> 2;
+	pack[1] |= (ContentGuc.ckk & 0x3F);
+	pack[0] = ContentGuc.uin;
+
+    for(int i = 2; i >= 0; --i) {
+    	qmToBigEndian((uint8_t)pack[i], tx_data + tx_data_len);
+    	++tx_data_len;
+    }
+
+//	QM_ASSERT(pending_command->in_progress == false);
 	pending_command->in_progress = true;
 	pending_command->sync_next = true;
 
 	transport->transmitFrame(tx_address, tx_data, tx_data_len);
-
-
-
 }
 
 void DspController::startGucRecieving()
 {
-    qmDebugMessage(QmDebug::Dump, "startSmsReceiving");
+    qmDebugMessage(QmDebug::Dump, "startGucRecieving");
     QM_ASSERT(is_ready);
 
     ParameterValue comandValue;
     comandValue.radio_mode = RadioModeOff;// отключили радиорежим
-    sendCommand(RxRadiopath, RxRadioMode, comandValue);
+    sendCommand(TxRadiopath, TxRadioMode, comandValue);
     comandValue.guc_mode = 3;
-    sendCommand(RadioLineNotPswf,0,comandValue); // отключить низкоскоростной модем
+    sendCommand(RadioLineNotPswf, 0 ,comandValue); // отключить низкоскоростной модем
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
-    sendCommand(RxRadiopath, TxRadioMode, comandValue);
+    sendCommand(RxRadiopath, RxRadioMode, comandValue);
+
     radio_state = radiostateGucRxPrepare;
     gucRxStateSync = 0;
-    ContentGuc.stage =  GucRx;
+    if (ContentGuc.stage != GucTxQuit)
+    	ContentGuc.stage =  GucRx;
 }
 
 void DspController::checkGucQuit()
@@ -1954,13 +1995,13 @@ void DspController::checkGucQuit()
 	else
 		size  = guc_vector.size();
 
-	qmDebugMessage(QmDebug::Dump, "number of recieved response %d", size);
+	qmDebugMessage(QmDebug::Dump, "checkGucQuit() number of recieved responses %d", guc_vector.size());
 
-    for(int i = 0; i< size;i++)
-        guc_adr[i] = guc_vector.at(i).at(3);
+//    for(int i = 0; i< size;i++)
+//        guc_adr[i] = guc_vector.at(i).at(3);
     guc_vector.clear();
 
-    guc_adr[size-1] = '\0';
+//    guc_adr[size-1] = '\0';
     radio_state = radiostateSync;
     // TODO string guc_adr to GUI
 }
