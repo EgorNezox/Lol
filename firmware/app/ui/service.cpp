@@ -743,8 +743,8 @@ void Service::keyPressed(UI_Key key)
                         {   i++;
                         	mas[i] = k->inputStr.c_str();
                         }
-                        int r_adr = atoi(mas[0]);
-                        int speed = atoi(mas[1]);
+                        int r_adr = 0;//atoi(mas[0]);
+                        int speed = 0;atoi(mas[1]);
                         voice_service->TurnGuc(r_adr,speed,(char*)mas[2]);
 #else
                         for (auto &k: estate.listItem)

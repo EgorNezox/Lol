@@ -210,8 +210,8 @@ private:
         uint8_t type;
         uint8_t chip_time;
         uint8_t WIDTH_SIGNAL;
-        uint8_t R_ADR;
         uint8_t S_ADR;
+        uint8_t R_ADR;
         uint8_t NUM_com;
         uint8_t ckk;
         uint8_t uin;

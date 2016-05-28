@@ -202,5 +202,5 @@ void Navigator::processSyncPulse() {
 } /* namespace Navigation */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(navigation, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(navigation, LevelDefault)
 #include "qmdebug_domains_end.h"
