@@ -43,7 +43,7 @@ private:
 	void processUartReceivedData();
 	void processUartReceivedErrors(bool data_errors, bool overflow);
     void parsingData(uint8_t data[]);
-    void processSyncPulse();
+    void processSyncPulse(bool overflow);
 
 
     Coord_Date CoordDate;

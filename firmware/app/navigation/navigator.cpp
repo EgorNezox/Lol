@@ -42,8 +42,8 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 	ant_flag_iopin = new QmIopin(ant_flag_iopin_resource, this);
 	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 	sync_pulse_iopin = new QmIopin(sync_pulse_iopin_resource, this);
-	sync_pulse_iopin->setInputTriggerMode(QmIopin::InputTrigger_Rising);
-	sync_pulse_iopin->inputTrigger.connect(sigc::mem_fun(this, &Navigator::processSyncPulse));
+	sync_pulse_iopin->setInputTriggerMode(QmIopin::InputTrigger_Rising, QmIopin::TriggerOnce);
+	sync_pulse_iopin->inputTriggerOnce.connect(sigc::mem_fun(this, &Navigator::processSyncPulse));
 //#else
 //	QM_UNUSED(uart_resource);
 //	QM_UNUSED(reset_iopin_resource);
@@ -175,7 +175,9 @@ void Navigator::parsingData(uint8_t data[])
 
 }
 
-void Navigator::processSyncPulse() {
+void Navigator::processSyncPulse(bool overflow) {
+	if (overflow)
+		qmDebugMessage(QmDebug::Warning, "sync pulse overflow detected !!!");
 	syncPulse();
 }
 //#endif /* PORT__TARGET_DEVICE_REV1 */

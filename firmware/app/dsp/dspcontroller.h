@@ -139,8 +139,8 @@ public:
     void setModemReceiverRole(ModemRole value);
     void enableModemTransmitter();
     void disableModemTransmitter();
-    void sendModemPacket(ModemPacketType type, ModemBandwidth bandwidth, const std::vector<uint8_t> &data);
-    void sendModemPacket_packHead(ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, const std::vector<uint8_t> &data);
+    void sendModemPacket(ModemPacketType type, ModemBandwidth bandwidth, const uint8_t *data, int data_len);
+    void sendModemPacket_packHead(ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, const uint8_t *data, int data_len);
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -150,9 +150,9 @@ public:
     sigc::signal<void> smsPacketMessage;
     sigc::signal<void, ModemPacketType/*type*/> transmittedModemPacket;
     sigc::signal<void> failedTxModemPacket;
-    sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, std::vector<uint8_t>/*data*/> receivedModemPacket;
-    sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, std::vector<uint8_t>/*data*/> startedRxModemPacket;
-    sigc::signal<void, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, std::vector<uint8_t>/*data*/> startedRxModemPacket_packHead;
+    sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> receivedModemPacket;
+    sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket;
+    sigc::signal<void, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket_packHead;
     sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
 
     float swf_res = 2; // надо изменить значение на нижнее предельное

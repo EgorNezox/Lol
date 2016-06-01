@@ -1478,8 +1478,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     			data_offset = 4;
     		uint8_t snr = qmFromBigEndian<uint8_t>(value_ptr+2);
     		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
-    		std::vector<uint8_t> data(value_ptr + data_offset, value_ptr + value_len);
-    		receivedModemPacket.emit(type, snr, bandwidth, data);
+    		receivedModemPacket.emit(type, snr, bandwidth, value_ptr + data_offset, value_len - data_offset);
     		break;
     	}
     	case 31: {
@@ -1498,13 +1497,12 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     			data_offset = 4;
     		uint8_t snr = qmFromBigEndian<uint8_t>(value_ptr+2);
     		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
-    		std::vector<uint8_t> data(value_ptr + data_offset, value_ptr + value_len);
     		if (type == modempacket_packHead) {
     			uint8_t param_signForm = qmFromBigEndian<uint8_t>(value_ptr+3);
     			uint8_t param_packCode = qmFromBigEndian<uint8_t>(value_ptr+4);
-        		startedRxModemPacket_packHead.emit(snr, bandwidth, param_signForm, param_packCode, data);
+        		startedRxModemPacket_packHead.emit(snr, bandwidth, param_signForm, param_packCode, value_ptr + data_offset, value_len - data_offset);
     		} else {
-        		startedRxModemPacket.emit(type, snr, bandwidth, data);
+        		startedRxModemPacket.emit(type, snr, bandwidth, value_ptr + data_offset, value_len - data_offset);
     		}
     		break;
     	}
@@ -2149,20 +2147,23 @@ void DspController::disableModemTransmitter() {
 }
 
 void DspController::sendModemPacket(ModemPacketType type,
-		ModemBandwidth bandwidth, const std::vector<uint8_t>& data) {
+		ModemBandwidth bandwidth, const uint8_t *data, int data_len) {
 	QM_ASSERT(type != modempacket_packHead);
 	std::vector<uint8_t> payload(4);
 	payload[0] = 20;
 	payload[1] = bandwidth;
 	payload[2] = type;
 	payload[3] = 0;
-	payload.insert(std::end(payload), std::begin(data), std::end(data));
+	if (data_len > 0) {
+		QM_ASSERT(data);
+		payload.insert(std::end(payload), data, data + data_len);
+	}
 	transport->transmitFrame(0x6F, &payload[0], payload.size());
 }
 
 void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 		uint8_t param_signForm, uint8_t param_packCode,
-		const std::vector<uint8_t>& data) {
+		const uint8_t *data, int data_len) {
 	std::vector<uint8_t> payload(6);
 	payload[0] = 20;
 	payload[1] = bandwidth;
@@ -2170,7 +2171,9 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 	payload[3] = 0;
 	payload[4] = param_signForm;
 	payload[5] = param_packCode;
-	payload.insert(std::end(payload), std::begin(data), std::end(data));
+	QM_ASSERT(data);
+	QM_ASSERT(data_len > 0);
+	payload.insert(std::end(payload), data, data + data_len);
 	transport->transmitFrame(0x6F, &payload[0], payload.size());
 }
 
