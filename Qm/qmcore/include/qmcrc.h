@@ -97,7 +97,7 @@ private:
 			}
 			if (reflected)
 				value = reflect(value, width);
-			precalc_table[i] = value & ((((1L<<(width-1))-1L)<<1)|1L);
+			precalc_table[i] = value & ((((1UL<<(width-1))-1)<<1)|1UL);
 		}
 		precalc_initialized = true;
 	}
