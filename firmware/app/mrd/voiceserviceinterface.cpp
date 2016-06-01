@@ -151,9 +151,14 @@ void VoiceServiceInterface::SmsFailStage(int stage)
     smsFailed(stage);
 }
 
-void VoiceServiceInterface::TurnGuc(int r_adr, int speed_tx, int *command)
+void VoiceServiceInterface::TurnGuc(int r_adr, int speed_tx, std::vector<int> command)
 {
     dispatcher->dsp_controller->startGucTransmitting(r_adr,speed_tx,command);
+}
+
+uint8_t* VoiceServiceInterface::getGucCommand()
+{
+	return dispatcher->dsp_controller->get_guc_vector();
 }
 
 void VoiceServiceInterface::TurnGuc()

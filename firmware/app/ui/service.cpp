@@ -86,7 +86,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
 #endif
 
-    for(int i = 0;i<50;i++) parse_command[i] = 0;
+
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -432,6 +432,20 @@ void Service::keyPressed(UI_Key key)
                 delete msg_box;
                 msg_box = nullptr;
             }
+
+            guc_command_vector.clear();
+            position = 0;
+        }
+        else if( guc_command_vector.size() > 0)
+        {
+        	if (key == keyUp && position > 0)
+        	{
+        		position--;
+        	}
+        	if (key == keyDown && position < guc_command_vector.size()-1)
+        	{
+        		position++;
+        	}
         }
         else
             msg_box->keyPressed(key);
@@ -740,16 +754,19 @@ void Service::keyPressed(UI_Key key)
 #ifndef PORT__PCSIMULATOR
                         menu->focus = 0;
                         menu->groupCondCommStage = 0;
-                        const char* mas[3];
+                        int mas[4];
                         int i = 0;
+                        const char * str;
                         for (auto &k: estate.listItem)
-                        {   i++;
-                        	mas[i] = k->inputStr.c_str();
+                        {
+                        	mas[i] = atoi(k->inputStr.c_str());
+                        	if (i == 3) str = k->inputStr.c_str();
+                        	i++;
                         }
                         int r_adr = 0;//atoi(mas[0]);
-                        int speed = 0;atoi(mas[1]);
-                        parsingGucCommand((uint8_t*)mas[2])
-                        voice_service->TurnGuc(r_adr,speed,parse_command);
+                        int speed = 0;//atoi(mas[1]);
+                        parsingGucCommand((uint8_t*)str);
+                        voice_service->TurnGuc(r_adr,speed,guc_command_vector);
 #else
                         for (auto &k: estate.listItem)
                             k->inputStr.clear();
@@ -1372,6 +1389,30 @@ void Service::msgBox(const char *title, const int condCmd)
     msg_box->Draw();
 }
 
+
+void Service::msgBox(const char *title, const int condCmd, const int size, const int pos)
+{
+    Alignment align007 = {alignHCenter,alignTop};
+    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+
+    if(msg_box == nullptr)
+    {
+        msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, (int) size, (int) pos, align007);
+    }
+    else
+    {
+    	msg_box->setCmd(condCmd);
+    	msg_box->position = pos;
+
+    }
+    msg_box->Draws();
+
+}
+
+
+
+
+
 void Service::drawMainWindow()
 {
     main_scr->setModeText(mode_txt[main_scr->mainWindowModeId]);
@@ -1567,10 +1608,13 @@ void Service::draw()
     case messangeWindow:
     {
         int cmd = atoi(currentState.getText());
+        if (guc_command_vector.size() > 0)
+                		msgBox(currentState.getName(), guc_command_vector.at(position), guc_command_vector.size(), position);
+        else
         if ( cmd >= 0 && cmd < 100)
             msgBox( currentState.getName(), cmd );
-        else
-            msgBox( currentState.getName(), currentState.getText() );
+        	else
+        		msgBox( currentState.getName(), currentState.getText() );
     break;
     }
     case menuWindow:
@@ -1594,7 +1638,7 @@ void Service::setFreq(int isFreq)
     Service::isFreq = isFreq;
 }
 
-int *Service::parsingGucCommand(uint8_t *str)
+void Service::parsingGucCommand(uint8_t *str)
 {
     int index = 0;
     char number[3] = {'\0','\0','\0'};
@@ -1610,13 +1654,12 @@ int *Service::parsingGucCommand(uint8_t *str)
                 number[1] = '\0';
 
             memcpy(number,&str[index],i - index);
-            parse_command[cnt] = atoi(number);
+            guc_command_vector.push_back(atoi(number));
             ++cnt;
             for(int j = 0; j<3;j++) number[j] = '\0';
             index = i+1;
         }
     }
-    return parse_command;
 }
 
 void Service::setCoordDate(Navigation::Coord_Date date)
@@ -1662,9 +1705,12 @@ void Service::setCoordDate(Navigation::Coord_Date date)
 
 void Service::gucFrame()
 {
-    const char *sym = "Recieved packet for station";
-    guiTree.append(messangeWindow, "Recieved Guc", sym);
-    msgBox( "Recieved Guc", sym );
+    const char *sym = "Recieved packet for station\0";
+    uint8_t* vect = voice_service->getGucCommand();
+    int num = vect[0];
+    char ch[3]; sprintf(ch, "%d", vect[position]);
+    guiTree.append(messangeWindow, sym, ch);
+    msgBox( "Recieved Guc\0", vect[position], vect[0], position);
 }
 
 

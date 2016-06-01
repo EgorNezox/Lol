@@ -21,6 +21,7 @@
 #include "../power/battery.h"
 #include "../navigation/navigator.h"
 #include <qmtimer.h>
+#include <string.h>
 
 
 #include "gui_obj.h"
@@ -74,14 +75,17 @@ public:
     void updateBattery(int);
     int  getFreq();
     void setFreq(int isFreq);
-    int *parsingGucCommand(uint8_t *str);
+    void parsingGucCommand(uint8_t *str);
     void setCoordDate(Navigation::Coord_Date);
     void gucFrame();
+
 
 private:
     void msgBox(const char *text);
     void msgBox(const char* title, const char *text);
     void msgBox(const char* title, const int condCmd );
+    void msgBox(const char *title, const int condCmd, const int size, const int pos);
+
 
     matrix_keyboard_t matrix_kb;
     aux_keyboard_t aux_kb;
@@ -138,7 +142,10 @@ private:
     int isFreq = 0;
     int command_rx_30 = 0;
     bool gpsSynchronization = true;
-    int parse_command[50];
+
+
+    std::vector<int> guc_command_vector;
+    int position = 0;
 };
 
 } /* namespace Ui */

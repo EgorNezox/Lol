@@ -44,10 +44,11 @@ public:
     void TurnSMSMode();
     void SmsFailStage(int stage);
 
-    void TurnGuc(int r_adr, int speed_tx, int *command);
+    void TurnGuc(int r_adr, int speed_tx, std::vector<int> command);
     void TurnGuc();
 
     char* getSmsContent();
+    uint8_t* getGucCommand();
 
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
@@ -62,6 +63,7 @@ private:
 	VoiceServiceInterface(Dispatcher *dispatcher);
 	~VoiceServiceInterface();
 	void setCurrentChannel(ChannelStatus status);
+
 
     void fistPacketRecieve(int packet);
     void responseGuc();
