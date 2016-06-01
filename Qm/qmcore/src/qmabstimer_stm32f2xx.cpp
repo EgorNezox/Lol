@@ -52,12 +52,12 @@ void QmAbsTimerPrivate::postTimeoutEvent() {
 
 bool QmAbsTimer::start(QmTimestamp *timestamp, unsigned int msec) {
 	QM_D(QmAbsTimer);
-	if (!timestamp->impl->valid)
+	if (!timestamp->impl->isValid())
 		return false;
 	if (isActive())
 		stop();
 	d->is_active = true;
-	hal_timer_start_from(d->timerhandle, timestamp->impl->value, msec, 0);
+	hal_timer_start_from(d->timerhandle, timestamp->impl->getValue(), msec, 0);
 	return true;
 }
 

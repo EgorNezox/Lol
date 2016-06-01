@@ -12,20 +12,27 @@
 
 #ifdef QM_PLATFORM_STM32F2XX
 #include "FreeRTOS.h"
+typedef TickType_t TimestampValueType;
 #endif /* QM_PLATFORM_STM32F2XX */
 
 #ifdef QM_PLATFORM_QT
 #include <qelapsedtimer.h>
+typedef qint64 TimestampValueType;
 #endif /* QM_PLATFORM_QT */
 
 class QmTimestampPrivate {
 public:
+	bool isValid();
+	TimestampValueType getValue();
+private:
+	friend class QmTimestamp;
 #ifdef QM_PLATFORM_STM32F2XX
 	bool valid;
 	TickType_t value;
 #endif /* QM_PLATFORM_STM32F2XX */
 #ifdef QM_PLATFORM_QT
 	QElapsedTimer reftimer;
+	qint64 offset;
 #endif /* QM_PLATFORM_QT */
 };
 

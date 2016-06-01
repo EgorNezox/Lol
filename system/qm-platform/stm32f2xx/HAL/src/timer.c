@@ -70,7 +70,7 @@ static uint32_t timer_systick_get_maximum_delay_ms(void);
 static void timer_systick_start(unsigned int ms);
 static void timer_systick_stop(void);
 static bool timer_systick_check_expired(void);
-static void timer_freertos_start(struct s_timer_pcb *timer, TickType_t timestamp_start, unsigned int ms);
+static void timer_freertos_start(struct s_timer_pcb *timer, TickType_t timestamp_current, TickType_t timestamp_from, unsigned int ms);
 static void timer_freertos_sync_task(signed portBASE_TYPE *pxHigherPriorityTaskWoken);
 static bool timer_freertos_check_expired(struct s_timer_pcb *timer, TickType_t current_timestamp);
 
@@ -152,7 +152,7 @@ void hal_timer_start(hal_timer_handle_t handle, unsigned int ms, signed portBASE
 			timer_systick_start(ms);
 		}
 	} else {
-		timer_freertos_start(timer, current_timestamp, ms);
+		timer_freertos_start(timer, current_timestamp, current_timestamp, ms);
 	}
 	portENABLE_INTERRUPTS();
 	if (scheduler_state != taskSCHEDULER_NOT_STARTED)
@@ -162,10 +162,11 @@ void hal_timer_start(hal_timer_handle_t handle, unsigned int ms, signed portBASE
 void hal_timer_start_from(hal_timer_handle_t handle, TickType_t timestamp, unsigned int ms, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	DEFINE_PCB_FROM_HANDLE(timer, handle)
 	BaseType_t scheduler_state = xTaskGetSchedulerState();
+	TickType_t current_timestamp = xTaskGetTickCount();
 	SYS_ASSERT(scheduler_state != taskSCHEDULER_NOT_STARTED);
 	portDISABLE_INTERRUPTS();
 	timer_reset(timer, scheduler_state);
-	timer_freertos_start(timer, timestamp, ms);
+	timer_freertos_start(timer, current_timestamp, timestamp, ms);
 	portENABLE_INTERRUPTS();
 	timer_freertos_sync_task(pxHigherPriorityTaskWoken);
 }
@@ -346,11 +347,20 @@ static bool timer_systick_check_expired(void) {
 	return ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) != 0);
 }
 
-static void timer_freertos_start(struct s_timer_pcb *timer, TickType_t timestamp_start, unsigned int ms) {
-	SYS_ASSERT(ms/portTICK_PERIOD_MS < portMAX_DELAY);
+static void timer_freertos_start(struct s_timer_pcb *timer, TickType_t timestamp_current, TickType_t timestamp_from, unsigned int ms) {
+	TickType_t ms_ticks = ms/portTICK_PERIOD_MS;
+	TickType_t timestamp_to = timestamp_from + ms_ticks;
+	bool tf_earlier = (
+			((timestamp_current - timestamp_from) > (timestamp_to - timestamp_from))
+			&& ((timestamp_current - timestamp_from) < portMAX_DELAY/2)
+			);
+	SYS_ASSERT(ms_ticks < portMAX_DELAY);
 	timer->state = stateActiveFreertos;
-	timer->timestamp_start = timestamp_start;
-	timer->timestamp_end = timer->timestamp_start + ms/portTICK_PERIOD_MS;
+	timer->timestamp_start = timestamp_current;
+	if (!tf_earlier)
+		timer->timestamp_end = timestamp_to;
+	else
+		timer->timestamp_end = timestamp_current;
 	timer->timestamp_overflow = (timer->timestamp_start > timer->timestamp_end);
 	DLLIST_ADD_TO_LIST_BACK(pending, &timer_pending_list, timer);
 }

@@ -12,6 +12,14 @@
 #include "qmtimestamp.h"
 #include "qmtimestamp_p.h"
 
+bool QmTimestampPrivate::isValid() {
+	return reftimer.isValid();
+}
+
+TimestampValueType QmTimestampPrivate::getValue() {
+	return (reftimer.elapsed() - offset);
+}
+
 QmTimestamp::QmTimestamp() :
 	impl(new QmTimestampPrivate())
 {
@@ -24,8 +32,13 @@ QmTimestamp::~QmTimestamp() {
 
 void QmTimestamp::set() {
 	impl->reftimer.start();
+	impl->offset = 0;
 }
 
 void QmTimestamp::invalidate() {
 	impl->reftimer.invalidate();
+}
+
+void QmTimestamp::shift(long int msec) {
+	impl->offset += msec;
 }

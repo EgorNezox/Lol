@@ -13,6 +13,14 @@
 #include "qmtimestamp.h"
 #include "qmtimestamp_p.h"
 
+bool QmTimestampPrivate::isValid() {
+	return valid;
+}
+
+TimestampValueType QmTimestampPrivate::getValue() {
+	return value;
+}
+
 QmTimestamp::QmTimestamp() :
 	impl(new QmTimestampPrivate())
 {
@@ -30,4 +38,8 @@ void QmTimestamp::set() {
 
 void QmTimestamp::invalidate() {
 	impl->valid = false;
+}
+
+void QmTimestamp::shift(long int msec) {
+	impl->value += (TickType_t)(msec/portTICK_PERIOD_MS);
 }
