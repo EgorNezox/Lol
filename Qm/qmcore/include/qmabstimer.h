@@ -48,7 +48,7 @@ public:
 	 *
 	 * \sa stop()
 	 */
-	bool start(QmTimestamp *timestamp, unsigned int msec);
+	bool start(const QmTimestamp &timestamp, unsigned int msec);
 
 	/*! Stops the timer.
 	 *

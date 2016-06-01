@@ -50,14 +50,14 @@ void QmAbsTimerPrivate::postTimeoutEvent() {
 	QmApplication::postEvent(q, new QmEvent(QmEvent::Timer));
 }
 
-bool QmAbsTimer::start(QmTimestamp *timestamp, unsigned int msec) {
+bool QmAbsTimer::start(const QmTimestamp &timestamp, unsigned int msec) {
 	QM_D(QmAbsTimer);
-	if (!timestamp->impl->isValid())
+	if (!timestamp.impl->isValid())
 		return false;
 	if (isActive())
 		stop();
 	d->is_active = true;
-	hal_timer_start_from(d->timerhandle, timestamp->impl->getValue(), msec, 0);
+	hal_timer_start_from(d->timerhandle, timestamp.impl->getValue(), msec, 0);
 	return true;
 }
 
