@@ -15,6 +15,8 @@ public:
 	bool getAleStationAddress(uint8_t &data);
 	bool getFhssKey(uint8_t &data);
 	void setFhssKey(uint8_t data);
+private:
+    uint8_t RnKey;
 };
 
 } /* namespace DataStorage */

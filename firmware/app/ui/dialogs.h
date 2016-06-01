@@ -110,16 +110,26 @@ public:
     GUI_Dialog_MsgBox(MoonsGeometry* area, const char *title, Alignment align);
     GUI_Dialog_MsgBox(MoonsGeometry* area, const char *title, const char *text, Alignment align);
     GUI_Dialog_MsgBox(MoonsGeometry*, const char*, const int, Alignment);
+    GUI_Dialog_MsgBox(MoonsGeometry*, const char*, const int, const int, const int, Alignment);
     virtual ~GUI_Dialog_MsgBox();
     virtual void Draw();
+    void Draws();
     void keyPressed(UI_Key);
+    void setCmd(int cmd);
+
 protected:
     MoonsGeometry window_geom;
     TextAreaParams title_area_params;
     TextAreaParams text_area_params;
     std::string title;
 //    std::string text;
-    char* text;
+    char text[3];
+
+    // slider
+public:
+    uint32_t list_size;
+    uint32_t position;
+
 private:
     MoonsGeometry title_area_geom;
     MoonsGeometry text_area_geom;

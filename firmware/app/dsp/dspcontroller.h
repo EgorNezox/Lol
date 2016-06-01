@@ -120,7 +120,7 @@ public:
     void startSMSRecieving(SmsStage stage = StageRx_call);
     void startSMSTransmitting(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call);
 
-    void startGucTransmitting(int r_adr, int speed_tx, uint8_t *command);
+    void startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command);
     void startGucTransmitting();
     void startGucRecieving();
     void checkGucQuit();
@@ -131,6 +131,7 @@ public:
 
     void processSyncPulse();
 
+uint8_t* get_guc_vector();
     void enableModemReceiver();
     void disableModemReceiver();
     void setModemReceiverBandwidth(ModemBandwidth value);
@@ -154,6 +155,7 @@ public:
     sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket;
     sigc::signal<void, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket_packHead;
     sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
+sigc::signal<void> recievedGucResp;
 
     float swf_res = 2; // надо изменить значение на нижнее предельное
 
@@ -232,6 +234,7 @@ private:
         uint8_t pswf_r_adr;
         uint8_t swf_mode;
         uint8_t guc_mode;
+ 		uint8_t guc_adr;
         ModemState modem_rx_state;
         ModemBandwidth modem_rx_bandwidth;
         ModemTimeSyncMode modem_rx_time_sync_mode;
@@ -276,8 +279,8 @@ private:
         uint8_t type;
         uint8_t chip_time;
         uint8_t WIDTH_SIGNAL;
-        uint8_t R_ADR;
         uint8_t S_ADR;
+        uint8_t R_ADR;
         uint8_t NUM_com;
         uint8_t ckk;
         uint8_t uin;
@@ -301,7 +304,8 @@ private:
     void processCommandResponse(bool success, Module module, int code, ParameterValue value);
     void syncPendingCommand();
     bool resyncPendingCommand();
-    void sendCommand(Module module, int code, ParameterValue value);
+    void sendCommand(Module module, int code, ParameterValue value,bool state = 0);
+    void sendCommandEasy(Module module, int code, ParameterValue value);
     void sendPswf(Module module);
     void sendGuc();
     void recGuc();
@@ -381,6 +385,8 @@ private:
 
     std::list<DspCommand> *cmd_queue;
 
+    int fwd_wave;
+    int ref_wave;
 
     int command_tx30;
     int command_rx30;
@@ -413,7 +419,7 @@ private:
 
     int rs_data_clear[255];
 
-    char guc_adr[50];
+    uint8_t guc_text[50];
     uint8_t rec_uin_guc;
     uint8_t rec_s_adr;
     int guc_tx_num;
@@ -421,8 +427,12 @@ private:
     char sms_content[100];
     uint8_t ack;
     int ok_quit = 0;
+    bool guc_trans;
+bool modem_rx_on, modem_tx_on;
+    int clear_que;
+    int trans_guc;
 
-    bool modem_rx_on, modem_tx_on;
+    bool sms_call_received;
 };
 
 

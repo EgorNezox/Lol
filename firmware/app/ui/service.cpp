@@ -12,8 +12,6 @@
 #include <string.h>
 #include <string>
 
-
-
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
@@ -31,7 +29,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   Multiradio::MainServiceInterface  *mr_main_service,
                   Multiradio::VoiceServiceInterface *mr_voice_service,
                   Power::Battery                    *power_battery,
-                  Navigation::Navigator             *navigator
+                  Navigation::Navigator             *navigator,
+                  DataStorage::FS                   *fs
 )
 {
     QM_ASSERT(single_instance == false);
@@ -43,6 +42,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->voice_service      = mr_voice_service;
     this->power_battery      = power_battery;
     this->headset_controller = headset_controller;
+    this->storageFs          = fs;
 
     ginit();
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
@@ -65,18 +65,23 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 		menu = new CGuiMenu(&ui_menu_msg_box_area, mainMenu[0], {alignHCenter,alignTop});
 	}
 
-
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
-    guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
-    msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
+//    guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
+//    msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
 
+    guc_command_vector.push_back(2);
+    guc_command_vector.push_back(15);
+    guc_command_vector.push_back(54);
+    msgBox( guiTree.getCurrentState().getName(), guc_command_vector.at(position), guc_command_vector.size(), position );
+    guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
     command_rx_30 = 0;
 
     voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
     voice_service->smsMess.connect(sigc::mem_fun(this,&Service::smsMessage));
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
+    voice_service->respGuc.connect(sigc::mem_fun(this,&Service::gucFrame));
 
 #ifndef PORT__PCSIMULATOR
     systemTimeTimer = new QmTimer(true); //TODO:
@@ -84,6 +89,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     systemTimeTimer->start();
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
 #endif
+
+
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -331,15 +338,15 @@ void Service::keyPressed(UI_Key key)
                     int freq = atoi(main_scr->nFreq.c_str());
                     voice_service->TuneFrequency(freq);
                 }
-                // ? ���
+                // ? пїЅпїЅпїЅ
                 switch ( main_scr->mainWindowModeId )
                 {
                 case 0:
                 {}
-                    // ���
+                    // пїЅпїЅпїЅ
                 case 1:
                 {}
-                    // ���
+                    // пїЅпїЅпїЅ
                 case 2:
                 {}
                 default:
@@ -429,12 +436,26 @@ void Service::keyPressed(UI_Key key)
                 delete msg_box;
                 msg_box = nullptr;
             }
+
+            guc_command_vector.clear();
+            position = 0;
         }
         else
-            msg_box->keyPressed(key);
+        {
+            if (guc_command_vector.size() > 0)
+            {
+                if (key == keyUp && position > 0)
+                { position--; }
+                if (key == keyDown && position < guc_command_vector.size()-1)
+                { position++; }
+                //msg_box->setCmd(msg_box_vector.at(position));
+            }
+            else
+                msg_box->keyPressed(key);
+        }
         break;
     }
-        // ? � ? �? �? �ю
+        // ? пїЅ ? пїЅ? пїЅ? пїЅСЋ
     case menuWindow:
     {
         if ( key == keyEnter)
@@ -519,7 +540,7 @@ void Service::keyPressed(UI_Key key)
                     }
                     else
                     {
-                    	//msg ��� ���������
+                    	//msg пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     }
 
 //#endif
@@ -737,6 +758,19 @@ void Service::keyPressed(UI_Key key)
 #ifndef PORT__PCSIMULATOR
                         menu->focus = 0;
                         menu->groupCondCommStage = 0;
+                        int mas[4];
+                        int i = 0;
+                        const char * str;
+                        for (auto &k: estate.listItem)
+                        {
+                        	mas[i] = atoi(k->inputStr.c_str());
+                        	if (i == 3) str = k->inputStr.c_str();
+                        	i++;
+                        }
+                        int r_adr = 0;//atoi(mas[0]);
+                        int speed = 0;//atoi(mas[1]);
+                        parsingGucCommand((uint8_t*)str);
+                        voice_service->TurnGuc(r_adr,speed,guc_command_vector);
 #else
                         for (auto &k: estate.listItem)
                             k->inputStr.clear();
@@ -847,6 +881,153 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::txPutOffVoice:
+        {
+            switch(menu->putOffVoiceStatus)
+            {
+            case 1:
+            {// выбрать канал записи
+                if ( key > 5 && key < 16 && menu->channalNum.size() < 2 )
+                {
+                    menu->channalNum.push_back((char)(42+key));
+                    // check
+                    int rc = atoi(menu->channalNum.c_str());
+
+                    if ( rc < 1 || rc > 98 )
+                    { menu->channalNum.clear(); }
+                }
+                if (key == keyBack)
+                {
+                    if (menu->channalNum.size() > 0)
+                        menu->channalNum.pop_back();
+                    else
+                    {
+                        guiTree.backvard();
+                        menu->focus = 0;
+                    }
+                }
+#ifdef _DEBUG_
+                if (key == keyEnter)
+                {
+                    if (menu->channalNum.size() < 1)
+                        menu->channalNum.append("12\0");
+                    menu->putOffVoiceStatus++;
+                }
+#else
+                if (key == keyEnter && menu->channalNum.size() > 0)
+                {
+                    headset_controller->startSmartRecord((uint8_t)atoi( menu->channalNum.c_str()));
+                    menu->putOffVoiceStatus++;
+                }
+#endif
+                break;
+            }
+            case 2:
+            {// запись речи
+                if (key == keyBack)
+                {
+                    menu->putOffVoiceStatus--;
+                }
+#ifdef _DEBUG_
+                if (key == keyEnter && menu->channalNum.size() > 0)
+                {
+                    headset_controller->stopSmartRecord();
+                    menu->putOffVoiceStatus++;
+                }
+#else
+                if (key == keyEnter)
+                {
+                    menu->putOffVoiceStatus++;
+                }
+#endif
+                break;
+            }
+            case 3:
+            {// ввод адреса олучатель
+                if ( key > 5 && key < 16 && menu->voiceAddr.size() < 2 )
+                {
+                    menu->voiceAddr.push_back((char)(42+key));
+                    // check
+                    int rc = atoi(menu->voiceAddr.c_str());
+
+                    if ( rc < 1 || rc > 31 )
+                    { menu->voiceAddr.clear(); }
+                }
+                if (key == keyBack)
+                {
+                    if (menu->voiceAddr.size() > 0)
+                        menu->voiceAddr.pop_back();
+                    else
+                    {
+                        menu->putOffVoiceStatus--;
+                    }
+                }
+
+#ifdef _DEBUG_
+                if (key == keyEnter)
+                {
+                    if (menu->voiceAddr.size() < 1)
+                        menu->voiceAddr.append("23\0");
+                    menu->putOffVoiceStatus++;
+                }
+#else
+                if (key == keyEnter)
+                {
+                    menu->putOffVoiceStatus++;
+                }
+#endif
+                break;
+            }
+            case 4:
+            {// подтверждение
+                if (key == keyBack)
+                {
+                    menu->putOffVoiceStatus--;
+                }
+#ifdef _DEBUG_
+                if (key == keyEnter)
+                {
+                    if (menu->voiceAddr.size() < 1)
+                        menu->voiceAddr.append("23\0");
+                    menu->putOffVoiceStatus++;
+                }
+#else
+                if (key == keyEnter)
+                {
+                    multiradio_service->startAleTxVoiceMail((uint8_t)atoi(menu->voiceAddr.c_str()));
+                    menu->putOffVoiceStatus++;
+                }
+#endif
+                break;
+            }
+            case 5:
+            {// статус
+                if (key == keyBack)
+                {
+                    menu->putOffVoiceStatus--;
+                }
+                if (key == keyEnter)
+                {
+#ifndef _DEBUG_
+                    multiradio_service->stopAle();
+#endif
+                    menu->putOffVoiceStatus = 1;
+                    menu->voiceAddr.clear();
+                    menu->channalNum.clear();
+#ifndef _DEBUG_
+                    menu->focus = 0;
+                    guiTree.resetCurrentState();
+#endif
+                }
+                break;
+            }
+            default:
+            {
+                break;
+            }
+            }
+            break;
+        }
         case GuiWindowsSubType::message:
         {
             switch ( key )
@@ -913,10 +1094,10 @@ void Service::keyPressed(UI_Key key)
                         	if (atoi(ch) > 0)
                         		voice_service->TurnSMSMode(r_adr, mes);
                         }
-                        else
-                        {
-                        	//msg ��� gps
-                        }
+                        //else
+                        //{
+                        	//msg пїЅпїЅпїЅ gps
+                        //}
 
                         menu->keyPressCount = 0;
                     }
@@ -924,6 +1105,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             default:
+            {
                 CEndState elem = (CEndState&)guiTree.getCurrentState();
                 if ( menu->focus == 0)
                 {
@@ -938,6 +1120,7 @@ void Service::keyPressed(UI_Key key)
                 else
                 {}
                 break;
+            }
             }
             break;
         }
@@ -1011,10 +1194,120 @@ void Service::keyPressed(UI_Key key)
             if ( key == keyEnter)
             {
 #ifndef PORT__PCSIMULATOR
-                voice_service->TurnPSWFMode(0,0,0);
+            	voice_service->TurnGuc();
+               // voice_service->TurnPSWFMode(0,0,0);
 #else
                 guiTree.resetCurrentState();
 #endif
+            }
+            break;
+        }
+        case GuiWindowsSubType::rxPutOffVoice:
+        {
+            switch(menu->putOffVoiceStatus)
+            {
+            case 1:
+            {
+                if (key == keyBack)
+                {
+                    menu->focus = 0;
+                    guiTree.backvard();
+                }
+                if (key == keyEnter)
+                {
+#ifndef _DEBUG_
+                    multiradio_service->startAleRx();
+#endif
+                    menu->putOffVoiceStatus++;
+                }
+                break;
+            }
+            case 2:
+            {
+                if (key == keyBack)
+                {
+#ifndef _DEBUG_
+                    multiradio_service->stopAle();
+#endif
+                    menu->putOffVoiceStatus--;
+                }
+                if (key == keyEnter)
+                {
+                    // multiradio_service->getStatus();
+                    menu->putOffVoiceStatus++;
+                }
+                break;
+            }
+            case 3:
+            {
+                if (key == keyBack)
+                {
+                    menu->putOffVoiceStatus--;
+                }
+                if (key == keyEnter)
+                {
+                    menu->putOffVoiceStatus++;
+                }
+                break;
+            }
+            case 4:
+            {
+                // выбрать канал воспроизведения
+                if ( key > 5 && key < 16 && menu->channalNum.size() < 2 )
+                {
+                    menu->channalNum.push_back((char)(42+key));
+                    // check
+                    int rc = atoi(menu->channalNum.c_str());
+
+                    if ( rc < 1 || rc > 98 )
+                    { menu->channalNum.clear(); }
+                }
+                if (key == keyBack)
+                {
+                    if (menu->channalNum.size() > 0)
+                        menu->channalNum.pop_back();
+                    else
+                        menu->putOffVoiceStatus--;
+                }
+                if (key == keyEnter)
+                {
+                    if (menu->channalNum.size()>0)
+                    {
+#ifndef _DEBUG_
+                        headset_controller->startSmartPlay((uint8_t)atoi(menu->channalNum.c_str()));
+#endif
+                        menu->putOffVoiceStatus++;
+                    }
+                }
+                break;
+            }
+            case 5:
+            {
+                if (key == keyBack)
+                {
+#ifndef _DEBUG_
+                    headset_controller->stopSmartPlay();
+#endif
+                    menu->putOffVoiceStatus--;
+                }
+                if (key == keyEnter)
+                {
+#ifndef _DEBUG_
+                    headset_controller->stopSmartPlay();
+#endif
+                    menu->putOffVoiceStatus = 1;
+                    menu->voiceAddr.clear();
+                    menu->channalNum.clear();
+#ifndef _DEBUG_
+                    menu->focus = 0;
+                    guiTree.resetCurrentState();
+#endif
+
+                }
+                break;
+            }
+            default:
+            {break;}
             }
             break;
         }
@@ -1145,9 +1438,18 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyBack )
             {
-                guiTree.backvard();
-                menu->focus = 0;
-            }else if ( key >= key0 && key <= key9 )
+                auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
+                if (st.size() > 0)
+                {
+                    st.pop_back();
+                }
+                else
+                {
+                    guiTree.backvard();
+                    menu->focus = 0;
+                }
+            }
+            else if ( key >= key0 && key <= key9 )
             {
                 auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
                 if ( st.size() < 8 )
@@ -1177,9 +1479,18 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyBack )
             {
-                guiTree.backvard();
-                menu->focus = 0;
-            }else if ( key >= key0 && key <= key9 )
+                auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
+                if (st.size() > 0)
+                {
+                    st.pop_back();
+                }
+                else
+                {
+                    guiTree.backvard();
+                    menu->focus = 0;
+                }
+            }
+            else if ( key >= key0 && key <= key9 )
             {
                 auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
                 if ( st.size() < 8 )
@@ -1284,6 +1595,40 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::editRnKey:
+        {
+            // выбрать канал воспроизведения
+            if ( key > 5 && key < 16 && menu->RN_KEY.size() < 2 )
+            {
+                menu->RN_KEY.push_back((char)(42+key));
+                // check
+                int rc = atoi(menu->RN_KEY.c_str());
+
+                if ( rc < 1 || rc > 98 )
+                { menu->RN_KEY.clear(); }
+            }
+            if (key == keyBack)
+            {
+                if (menu->RN_KEY.size() > 0)
+                    menu->RN_KEY.pop_back();
+                else
+                {
+                    uint8_t t; storageFs->getFhssKey(t);
+                    char ch[3]; sprintf(ch, "%d", t); ch[2] = '\0';
+                    menu->RN_KEY.append(ch);
+                    menu->focus = 4;
+                    guiTree.backvard();
+                }
+            }
+            if (key == keyEnter)
+            {
+                storageFs->setFhssKey((uint8_t)atoi(menu->RN_KEY.c_str()));
+                menu->focus = 4;
+                guiTree.backvard();
+
+            }
+            break;
+        }
         default:
             break;
         }
@@ -1358,6 +1703,24 @@ void Service::msgBox(const char *title, const int condCmd)
     msg_box->Draw();
 }
 
+
+void Service::msgBox(const char *title, const int condCmd, const int size, const int pos)
+{
+    Alignment align007 = {alignHCenter,alignTop};
+    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+
+    if(msg_box == nullptr)
+    {
+        msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, (int) size, (int) pos, align007);
+    }
+    else
+    {
+    	msg_box->setCmd(condCmd);
+    	msg_box->position = pos;
+    }
+    msg_box->Draws();
+}
+
 void Service::drawMainWindow()
 {
     main_scr->setModeText(mode_txt[main_scr->mainWindowModeId]);
@@ -1371,7 +1734,7 @@ void Service::drawMainWindow()
 
     main_scr->oFreq.clear();
     char mas[11];
-    sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
+    sprintf(mas,"%d",/*voice_service->getCurrentChannelFrequency()*/1);
     std::string freq(mas);
     main_scr->oFreq.append(freq);
     main_scr->setFreq(freq.c_str());
@@ -1420,7 +1783,7 @@ void Service::drawMenu()
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
         //
-        // ���������
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         //        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
 
         for (auto &k: st.nextState)
@@ -1447,7 +1810,12 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::txGroupCondComm:
         {
-            menu->initGroupCondComm( st );
+            menu->/*initTxGroupCondComm*/initGroupCondComm(st);
+            break;
+        }
+        case GuiWindowsSubType::txPutOffVoice:
+        {
+            menu->initTxPutOffVoiceDialog(voiceStatusTest);
             break;
         }
         case GuiWindowsSubType::message:
@@ -1461,6 +1829,11 @@ void Service::drawMenu()
         case GuiWindowsSubType::recvSms:
         {
             menu->initRxSmsDialog();
+            break;
+        }
+        case GuiWindowsSubType::rxPutOffVoice:
+        {
+            menu->initRxPutOffVoiceDialog(voiceStatusTest);
             break;
         }
         case GuiWindowsSubType::recvSilence:
@@ -1510,7 +1883,10 @@ void Service::drawMenu()
             break;
         }
         case GuiWindowsSubType::twoState:
-        {    menu->initTwoStateDialog();}
+        {
+            menu->initTwoStateDialog();
+            break;
+        }
         case GuiWindowsSubType::scan:
         {
             menu->inclStatus = menu->scanStatus;
@@ -1533,6 +1909,11 @@ void Service::drawMenu()
             menu->initVolumeDialog();
             break;
         }
+        case GuiWindowsSubType::editRnKey:
+        {
+            menu->initEditRnKeyDialog();
+            break;
+        }
         default:
             break;
         }
@@ -1553,10 +1934,16 @@ void Service::draw()
     case messangeWindow:
     {
         int cmd = atoi(currentState.getText());
-        if ( cmd >= 0 && cmd < 100)
-            msgBox( currentState.getName(), cmd );
+        if (guc_command_vector.size() > 0)
+                		msgBox(currentState.getName(), guc_command_vector.at(position), guc_command_vector.size(), position);
         else
-            msgBox( currentState.getName(), currentState.getText() );
+        if ( cmd >= 0 && cmd < 100)
+            if (guc_command_vector.size() > 0)
+                msgBox(currentState.getName(), guc_command_vector.at(position), guc_command_vector.size(), position);
+            else
+                msgBox( currentState.getName(), cmd );
+        	else
+        		msgBox( currentState.getName(), currentState.getText() );
     break;
     }
     case menuWindow:
@@ -1578,6 +1965,30 @@ int Service::getFreq()
 void Service::setFreq(int isFreq)
 {
     Service::isFreq = isFreq;
+}
+
+void Service::parsingGucCommand(uint8_t *str)
+{
+    int index = 0;
+    char number[3] = {'\0','\0','\0'};
+    int cnt = 0;
+
+    int len = strlen((const char*)str);
+    for(int i = 0; i<=len;i++){
+        if ((str[i] == ' ') || (len == i))
+        {
+            if (i - index == 2)
+                number[2] = '\0';
+            if (i - index == 1)
+                number[1] = '\0';
+
+            memcpy(number,&str[index],i - index);
+            guc_command_vector.push_back(atoi(number));
+            ++cnt;
+            for(int j = 0; j<3;j++) number[j] = '\0';
+            index = i+1;
+        }
+    }
 }
 
 void Service::setCoordDate(Navigation::Coord_Date date)
@@ -1621,6 +2032,16 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     str.clear();
 }
 
+void Service::gucFrame()
+{
+    const char *sym = "Recieved packet for station\0";
+    uint8_t* vect = voice_service->getGucCommand();
+    int num = vect[0];
+    char ch[3]; sprintf(ch, "%d", vect[position]);
+    guiTree.append(messangeWindow, sym, ch);
+    msgBox( "Recieved Guc\0", vect[position], vect[0], position);
+}
+
 
 
 void Service::updateSystemTime()
@@ -1650,9 +2071,6 @@ void Service::updateSystemTime()
 
     systemTimeTimer->start();
 }
-
-
-
 
 void Service::smsMessage()
 {

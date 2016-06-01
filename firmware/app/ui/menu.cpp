@@ -203,7 +203,6 @@ void CGuiMenu::initCondCommDialog(CEndState state)
      delete okItem;
 }
 
-
 void CGuiMenu::initTwoStateDialog()
 {
     int i = 0;
@@ -270,7 +269,6 @@ void CGuiMenu::initVolumeDialog()
     delete volume;
 }
 
-
 void CGuiMenu::initAruarmDialog()
 {
     MoonsGeometry volume_geom[6];
@@ -330,7 +328,6 @@ void CGuiMenu::initAruarmDialog()
         delete volume[i];
 }
 
-
 void CGuiMenu::initIncludeDialog()
 {
     MoonsGeometry volume_geom  = {  35,  40,  105,  70 };
@@ -357,7 +354,6 @@ void CGuiMenu::initIncludeDialog()
 
     delete volume;
 }
-
 
 void CGuiMenu::initGpsCoordinateDialog(std::string coord_lat, std::string coord_log)
 {
@@ -404,7 +400,6 @@ void CGuiMenu::initGpsCoordinateDialog(std::string coord_lat, std::string coord_
     delete volume[0];
     delete volume[1];
 }
-
 
 void CGuiMenu::setTitle(const char* title)
 {
@@ -541,14 +536,6 @@ void CGuiMenu::setSttParam(CEndState state, UI_Key key)
 
     switch ( type )
     {
-    case setDate:
-    {
-        break;
-    }
-    case setTime:
-    {
-        break;
-    }
     case setFreq:
     case setSpeed:
     {
@@ -637,10 +624,316 @@ void CGuiMenu::inputGroupCondCmd( CEndState state, UI_Key key )
 
         elem->inputStr.pop_back();
     }
+    else
+        keyPressCount = 0;
 
     elem->inputStr.push_back(ch_key0[keyPressCount]);
 
     ct = std::chrono::steady_clock::now();
+}
+
+void CGuiMenu::initTxPutOffVoiceDialog(int status)
+{
+    switch (putOffVoiceStatus)
+    {
+    case 1:
+    {
+        MoonsGeometry labelArea  = { 7, 10, 147, 30 };
+        MoonsGeometry addrArea   = { 7, 35, 147, 80 };
+
+        LabelParams param = GUI_EL_TEMP_LabelChannel;
+        param.element.align = {alignHCenter, alignVCenter};
+        param.transparent = true;
+
+        std::string str;
+        if (channalNum.size() == 0)
+            str.append("__");
+        else if (channalNum.size() == 1)
+        {
+            str.push_back('_');
+            str.append(channalNum);
+        }
+        else
+            str.append(channalNum);
+
+        str.push_back('\0');
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                              (GUI_Obj *)this);
+        GUI_EL_Label    label     ( &titleParams,               &labelArea,  (char*)voiceRxTxLabelStr[0], (GUI_Obj *)this);
+        GUI_EL_TextArea addr      ( &param,                     &addrArea,   (char*)str.c_str(),          (GUI_Obj *)this);
+
+        window.Draw();
+        label.Draw();
+        addr.Draw();
+        break;
+    }
+    case 2:
+    {
+        MoonsGeometry labelArea  = { 7,  6, 147,  20 };
+        MoonsGeometry stateArea  = { 7, 25, 147,  60 };
+        MoonsGeometry promptArea = { 7, 65, 147, 125 };
+
+        LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT};
+        param[0].element.align = {alignHCenter, alignTop};
+        param[1].element.align = {alignHCenter, alignTop};
+
+        for (int i = 0; i < 2; i++)
+            param[i].transparent = true;
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                                   (GUI_Obj *)this);
+        GUI_EL_Label    label     ( &titleParams,               &labelArea,  (char*)voiceRxTxLabelStr[2],      (GUI_Obj *)this);
+        GUI_EL_TextArea state     ( &param[0],                  &stateArea,  (char*)smatrHSStateStr[status],   (GUI_Obj *)this);
+        GUI_EL_TextArea prompt    ( &param[1],                  &promptArea, (char*)smatrHSStateStr[status+1], (GUI_Obj *)this);
+
+        window.Draw();
+        label.Draw();
+        state.Draw();
+        prompt.Draw();
+        break;
+    }
+    case 3:
+    {
+        MoonsGeometry labelArea  = { 7, 10, 147, 30 };
+        MoonsGeometry addrArea   = { 7, 40, 147, 80 };
+
+        LabelParams param = GUI_EL_TEMP_LabelChannel;
+        param.element.align = {alignHCenter, alignVCenter};
+        param.transparent = true;
+
+        std::string str;
+        if (voiceAddr.size() == 0)
+            str.append("__");
+        else if (voiceAddr.size() == 1)
+        {
+            str.push_back('_');
+            str.append(voiceAddr);
+        }
+        else
+            str.append(voiceAddr);
+
+        str.push_back('\0');
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                              (GUI_Obj *)this);
+        GUI_EL_Label    label     ( &titleParams,               &labelArea,  (char*)voiceRxTxLabelStr[4], (GUI_Obj *)this);
+        GUI_EL_TextArea addr      ( &param,                     &addrArea,   (char*)str.c_str(),          (GUI_Obj *)this);
+
+        window.Draw();
+        label.Draw();
+        addr.Draw();
+        break;
+    }
+    case 4:
+    {
+        MoonsGeometry addrArea    = { 7, 40, 147, 80 };
+
+        LabelParams param   = GUI_EL_TEMP_CommonTextAreaLT;
+        param.element.align = {alignHCenter, alignVCenter};
+        param.transparent   = true;
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                                (GUI_Obj *)this);
+        GUI_EL_TextArea text      ( &param,                     &addrArea,   (char*)startAleTxVoiceMailStr, (GUI_Obj *)this);
+
+        window.Draw();
+        text.Draw();
+        break;
+    }
+    case 5:
+    {
+        MoonsGeometry stateArea   = { 7, 40, 147,  80 };
+        MoonsGeometry promptArea  = { 7, 85, 147, 125 };
+
+        LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT};
+        param[0].element.align = {alignHCenter, alignTop};
+        param[1].element.align = {alignHCenter, alignTop};
+
+        for (int i = 0; i < 2; i++)
+            param[i].transparent = true;
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                               (GUI_Obj *)this);
+        GUI_EL_TextArea state     ( &param[0],                  &stateArea,  (char*)aleStateStr[status],   (GUI_Obj *)this);
+        GUI_EL_TextArea prompt    ( &param[1],                  &promptArea, (char*)aleStateStr[status+1], (GUI_Obj *)this);
+
+        window.Draw();
+        state.Draw();
+        prompt.Draw();
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void CGuiMenu::initRxPutOffVoiceDialog(int status)
+{
+    switch(putOffVoiceStatus)
+    {
+    case 1:
+    {
+                      titleArea   = { 5,  5, 150, 20 };
+        MoonsGeometry promptArea  = { 7, 30, 147, 90 };
+
+        LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
+        param.element.align = {alignHCenter, alignVCenter};
+        param.transparent = true;
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
+        GUI_EL_Label    title     ( &titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
+        GUI_EL_TextArea prompt    ( &param,                     &promptArea, (char*)voiceRxStr[0],    (GUI_Obj *)this);
+
+        window.Draw();
+        title.Draw();
+        prompt.Draw();
+        break;
+    }
+    case 2:
+    {
+        MoonsGeometry stateArea  = { 7, 10, 147,  50 };
+        MoonsGeometry promptArea = { 7, 55, 147, 125 };
+
+        LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT};
+        param[0].element.align = {alignHCenter, alignTop};
+        param[1].element.align = {alignHCenter, alignTop};
+
+        for (int i = 0; i < 2; i++)
+            param[i].transparent = true;
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                                (GUI_Obj *)this);
+        GUI_EL_TextArea state     ( &param[0],                  &stateArea,  (char*)aleStateStr[status],   (GUI_Obj *)this);
+        GUI_EL_TextArea prompt    ( &param[1],                  &promptArea, (char*)aleStateStr[status+1], (GUI_Obj *)this);
+
+        window.Draw();
+        state.Draw();
+        prompt.Draw();
+        break;
+    }
+    case 3:
+    {
+        MoonsGeometry labelArea   = {  7, 10, 147,  30 };
+        MoonsGeometry textArea    = { 35, 45,  55,  60 };
+        MoonsGeometry addrArea    = { 59, 20, 147,  50 };
+        MoonsGeometry volume_geom = {  7, 85, 147, 125 };
+
+        LabelParams param[3] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelChannel, GUI_EL_TEMP_CommonTextAreaLT};
+        param[0].element.align = {alignRight,   alignTop};
+        param[1].element.align = {alignLeft,    alignTop};
+        param[2].element.align = {alignHCenter, alignTop};
+
+        for (int i = 0; i < 3; i++)
+        param[i].transparent = true;
+
+#ifdef _DEBUG_
+        voiceAddr.append("88");
+#endif
+
+        std::string str;
+        if (voiceAddr.size() < 1)
+            str.append("--\0");
+        else
+            str.append(voiceAddr);
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                               (GUI_Obj *)this);
+        GUI_EL_Label    label     ( &titleParams,               &labelArea,   (char*)voiceRxTxLabelStr[5], (GUI_Obj *)this);
+        GUI_EL_TextArea text      ( &param[0],                  &textArea,    (char*)voiceRxStr[1],        (GUI_Obj *)this);
+        GUI_EL_TextArea addr      ( &param[1],                  &addrArea,    (char*)str.c_str(),          (GUI_Obj *)this);
+        GUI_EL_TextArea prompt    ( &param[2],                  &volume_geom, (char*)voiceRxStr[2],        (GUI_Obj *)this);
+
+        window.Draw();
+        label.Draw();
+        text.Draw();
+        addr.Draw();
+        prompt.Draw();
+        break;
+    }
+    case 4:
+    {
+        MoonsGeometry labelArea   = { 7, 10, 147, 30 };
+        MoonsGeometry addrArea    = { 7, 40, 147, 80 };
+
+        LabelParams param = GUI_EL_TEMP_LabelChannel;
+        param.element.align = {alignHCenter, alignVCenter};
+        param.transparent = true;
+
+        std::string str;
+        if (channalNum.size() == 0)
+            str.append("__");
+        else if (channalNum.size() == 1)
+        {
+            str.push_back('_');
+            str.append(channalNum);
+        }
+        else
+            str.append(channalNum);
+
+        str.push_back('\0');
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                              (GUI_Obj *)this);
+        GUI_EL_Label    label     ( &titleParams,               &labelArea,  (char*)voiceRxTxLabelStr[1], (GUI_Obj *)this);
+        GUI_EL_TextArea addr      ( &param,                     &addrArea,   (char*)str.c_str(),          (GUI_Obj *)this);
+
+        window.Draw();
+        label.Draw();
+        addr.Draw();
+        break;
+    }
+    case 5:
+    {
+        MoonsGeometry labelArea  = { 7,  6, 147,  20 };
+        MoonsGeometry stateArea  = { 7, 25, 147,  80 };
+        MoonsGeometry promptArea = { 7, 85, 147, 125 };
+
+        LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT};
+        param[0].element.align = {alignHCenter, alignTop};
+        param[1].element.align = {alignHCenter, alignTop};
+
+        for (int i = 0; i < 2; i++)
+            param[i].transparent = true;
+
+        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                                   (GUI_Obj *)this);
+        GUI_EL_Label    label     ( &titleParams,               &labelArea,  (char*)voiceRxTxLabelStr[3],      (GUI_Obj *)this);
+        GUI_EL_TextArea state     ( &param[0],                  &stateArea,  (char*)smatrHSStateStr[status],   (GUI_Obj *)this);
+        GUI_EL_TextArea prompt    ( &param[1],                  &promptArea, (char*)smatrHSStateStr[status+1], (GUI_Obj *)this);
+
+        window.Draw();
+        label.Draw();
+        state.Draw();
+        prompt.Draw();
+        break;
+    }
+    default:
+    {
+        break;
+    }
+    }
+}
+
+void CGuiMenu::initEditRnKeyDialog()
+{
+    MoonsGeometry labelArea   = { 7, 10, 147, 30 };
+    MoonsGeometry addrArea    = { 7, 40, 147, 80 };
+
+    LabelParams param = GUI_EL_TEMP_LabelChannel;
+    param.element.align = {alignHCenter, alignVCenter};
+    param.transparent = true;
+
+    std::string str;
+    if (RN_KEY.size() == 0)
+        str.append("00");
+    else if (RN_KEY.size() == 1)
+    {
+        str.push_back('0');
+        str.append(RN_KEY);
+    }
+    else
+        str.append(RN_KEY);
+
+    str.push_back('\0');
+
+    GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                              (GUI_Obj *)this);
+    GUI_EL_Label    label     ( &titleParams,               &labelArea,  (char*)voiceRxTxLabelStr[1], (GUI_Obj *)this);
+    GUI_EL_TextArea addr      ( &param,                     &addrArea,   (char*)str.c_str(),          (GUI_Obj *)this);
+
+    window.Draw();
+    label.Draw();
+    addr.Draw();
 }
 
 void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)
@@ -783,6 +1076,39 @@ void CGuiMenu::initTxSmsDialog(const char* titleStr, std::string addrStr, std::s
     addr.Draw();
     volume.Draw();
     ok_button.Draw();
+}
+
+void CGuiMenu::initTxGroupCondComm(CEndState state)
+{
+                  titleArea   = { 5,  5, 150,  20 };
+    MoonsGeometry addrArea    = { 7, 20, 147,  40 };
+    MoonsGeometry volume_geom = { 7, 35, 147, 100 };
+
+    LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT};
+    param[0].element.align = {alignLeft, alignTop};
+    param[1].element.align = {alignLeft, alignTop};
+
+    for (int i = 0; i < 2; i++)
+        param[i].transparent = true;
+
+    if ( focus == 2 ) param[2].transparent = false;
+
+    std::string str1, str2;
+
+    if ( focus == 0 ){ str1.append("->"); }else{ /*if (focus != 2)*/str1.append("  "); }
+    if ( focus == 1 ){ str2.append("->"); }else{ /*if (focus != 2)*/str2.append("  "); }
+    str1.append(smsText[0]);
+    str2.append(smsText[1]);
+
+    GUI_EL_Window   window    (&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
+    GUI_EL_Label    title     ( &titleParams,              &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
+    GUI_EL_TextArea addr      (&param[0],                  &addrArea,    (char*)str1.c_str(),     (GUI_Obj *)this);
+    GUI_EL_TextArea volume    (&param[1],                  &volume_geom, (char*)str2.c_str(),     (GUI_Obj *)this);
+
+    window.Draw();
+    title.Draw();
+    addr.Draw();
+    volume.Draw();
 }
 
 void CGuiMenu::initRxSmsDialog()

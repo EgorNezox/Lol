@@ -73,6 +73,16 @@ public:
     int groupCondCommStage = 0;
     void inputGroupCondCmd( CEndState, UI_Key );
 
+    // put off voice
+    std::string  channalNum;
+    std::string  voiceAddr;
+    int  putOffVoiceStatus = 1;
+    void initTxPutOffVoiceDialog(int);
+    void initRxPutOffVoiceDialog(int);
+
+    //
+    void initTxGroupCondComm(CEndState);
+
     // message ( SMS )
     void initTxSmsDialog(const char *, std::string, std::string);
     void inputSmsMessage( CEndState, UI_Key );
@@ -114,6 +124,10 @@ public:
     // date, time, speed
     std::string localDate, localTime, speed;
     void setSttParam(CEndState, UI_Key);
+
+    // RN_KEY
+    std::string RN_KEY;
+    void initEditRnKeyDialog();
 
 private:
     GUI_Obj obj;

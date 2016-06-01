@@ -95,18 +95,20 @@ void qmMain() {
                             mr_dispatcher.getMainServiceInterface(),
                             mr_dispatcher.getVoiceServiceInterface(),
                            &power_battery,
-                           &navigator
+                           &navigator,
+                           &data_storage_fs
                           );
 #else
     Ui::Service ui_service(
-                            ui_matrixkb_desc,
-                            ui_auxkb_desc,
+                             ui_matrixkb_desc,
+                             ui_auxkb_desc,
                             &headset_controller,
                              mr_dispatcher.getMainServiceInterface(),
                              mr_dispatcher.getVoiceServiceInterface(),
                             &power_battery,
-                            0
-                );
+                             0,
+                            &data_storage_fs
+                          );
 #endif
 
 

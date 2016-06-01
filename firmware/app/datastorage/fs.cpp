@@ -15,6 +15,7 @@ FS::~FS() {
 
 void FS::init() {
 	//...
+    RnKey = 0;
 }
 
 bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
@@ -98,14 +99,12 @@ bool FS::getAleStationAddress(uint8_t& data) {
 }
 
 bool FS::getFhssKey(uint8_t& data) {
-	QM_UNUSED(data);
-	//...
+    data = RnKey;
 	return false;
 }
 
 void FS::setFhssKey(uint8_t data) {
-	QM_UNUSED(data);
-	//...
+    RnKey = data;
 }
 
 } /* namespace DataStorage */

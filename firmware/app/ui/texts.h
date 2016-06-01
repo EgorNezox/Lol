@@ -86,4 +86,13 @@ extern const char ch_key9[5];
 
 extern const char *recvCondCommandStr;
 extern const char* groupCondCommFreqStr;
+
+extern const char* putOffVoiceStageOneStr[];
+extern const char* putOffVoiceStageTwoStr[];
+
+extern const char* startAleTxVoiceMailStr;
+extern const char* smatrHSStateStr[];
+extern const char* aleStateStr[];
+extern const char* voiceRxStr[];
+extern const char* voiceRxTxLabelStr[];
 #endif /* TEXTS_H_ */

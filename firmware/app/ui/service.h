@@ -15,12 +15,14 @@
 #include "qmpushbuttonkey.h"
 #include "keyboard.h"
 #include "ui_keys.h"
+#include "datastorage/fs.h"
 #include "../mrd/voiceserviceinterface.h"
 #include "../mrd/mainserviceinterface.h"
 #include "../headset/controller.h"
 #include "../power/battery.h"
 #include "../navigation/navigator.h"
 #include <qmtimer.h>
+#include <string.h>
 
 
 #include "gui_obj.h"
@@ -64,7 +66,8 @@ public:
             Multiradio::MainServiceInterface *mr_main_service,
             Multiradio::VoiceServiceInterface *mr_voice_service,
             Power::Battery *power_battery,
-            Navigation::Navigator *navigator
+            Navigation::Navigator *navigator,
+            DataStorage::FS *Fs
 			);
     ~Service();
     void setNotification(NotificationType type);
@@ -74,13 +77,16 @@ public:
     void updateBattery(int);
     int  getFreq();
     void setFreq(int isFreq);
-
+    void parsingGucCommand(uint8_t *str);
     void setCoordDate(Navigation::Coord_Date);
+    void gucFrame();
+
 
 private:
-    void msgBox(const char *text);
-    void msgBox(const char* title, const char *text);
-    void msgBox(const char* title, const int condCmd );
+    void msgBox(const char*);
+    void msgBox(const char*, const char*);
+    void msgBox(const char*, const int);
+    void msgBox(const char*, const int, const int, const int);
 
     matrix_keyboard_t matrix_kb;
     aux_keyboard_t aux_kb;
@@ -96,6 +102,8 @@ private:
     GUI_Dialog_MainScr  *main_scr;
     GUI_Indicator       *indicator;
     GUI_Dialog_MsgBox   *msg_box;
+
+    DataStorage::FS *storageFs;
 
     QmTimer *systemTimeTimer;
 
@@ -137,6 +145,14 @@ private:
     int isFreq = 0;
     int command_rx_30 = 0;
     bool gpsSynchronization = true;
+
+#ifdef _DEBUG_
+    int voiceStatusTest = 10;
+#endif
+
+    //
+    std::vector<int> guc_command_vector;
+    int position = 0;
 };
 
 } /* namespace Ui */
