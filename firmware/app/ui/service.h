@@ -80,9 +80,10 @@ public:
     void setCoordDate(Navigation::Coord_Date);
 
 private:
-    void msgBox(const char *text);
-    void msgBox(const char* title, const char *text);
-    void msgBox(const char* title, const int condCmd );
+    void msgBox(const char*);
+    void msgBox(const char*, const char*);
+    void msgBox(const char*, const int);
+    void msgBox(const char*, const int, const int, const int);
 
     matrix_keyboard_t matrix_kb;
     aux_keyboard_t aux_kb;
@@ -145,6 +146,10 @@ private:
 #ifdef _DEBUG_
     int voiceStatusTest = 10;
 #endif
+
+    //
+    std::vector<int> msg_box_vector;
+    int position = 0;
 };
 
 } /* namespace Ui */

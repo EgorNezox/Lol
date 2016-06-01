@@ -12,8 +12,6 @@
 #include <string.h>
 #include <string>
 
-
-
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
@@ -67,12 +65,16 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 		menu = new CGuiMenu(&ui_menu_msg_box_area, mainMenu[0], {alignHCenter,alignTop});
 	}
 
-
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
     msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
+
+//    msg_box_vector.push_back(2);
+//    msg_box_vector.push_back(15);
+//    msg_box_vector.push_back(54);
+//    msgBox( guiTree.getCurrentState().getName(), msg_box_vector.at(position), msg_box_vector.size(), position );
 
     command_rx_30 = 0;
 
@@ -431,9 +433,22 @@ void Service::keyPressed(UI_Key key)
                 delete msg_box;
                 msg_box = nullptr;
             }
+            msg_box_vector.clear();
+            position = 1;
         }
         else
-            msg_box->keyPressed(key);
+        {
+            if (msg_box_vector.size() > 0)
+            {
+                if (key == keyUp && position > 0)
+                { position--; }
+                if (key == keyDown && position < msg_box_vector.size()-1)
+                { position++; }
+                //msg_box->setCmd(msg_box_vector.at(position));
+            }
+            else
+                msg_box->keyPressed(key);
+        }
         break;
     }
         // ? � ? �? �? �ю
@@ -1073,6 +1088,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             default:
+            {
                 CEndState elem = (CEndState&)guiTree.getCurrentState();
                 if ( menu->focus == 0)
                 {
@@ -1087,6 +1103,7 @@ void Service::keyPressed(UI_Key key)
                 else
                 {}
                 break;
+            }
             }
             break;
         }
@@ -1668,6 +1685,23 @@ void Service::msgBox(const char *title, const int condCmd)
     msg_box->Draw();
 }
 
+void Service::msgBox(const char *title, const int condCmd, const int size, const int pos)
+{
+    Alignment align007 = {alignHCenter,alignTop};
+    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+
+    if(msg_box == nullptr)
+    {
+        msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, size, pos, align007);
+    }
+    else
+    {
+        msg_box->setCmd(condCmd);
+        msg_box->position = pos;
+    }
+    msg_box->Draws();
+}
+
 void Service::drawMainWindow()
 {
     main_scr->setModeText(mode_txt[main_scr->mainWindowModeId]);
@@ -1757,7 +1791,7 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::txGroupCondComm:
         {
-            menu->initTxGroupCondComm(st);
+            menu->/*initTxGroupCondComm*/initGroupCondComm(st);
             break;
         }
         case GuiWindowsSubType::txPutOffVoice:
@@ -1882,7 +1916,10 @@ void Service::draw()
     {
         int cmd = atoi(currentState.getText());
         if ( cmd >= 0 && cmd < 100)
-            msgBox( currentState.getName(), cmd );
+            if (msg_box_vector.size() > 0)
+                msgBox(currentState.getName(), msg_box_vector.at(position), msg_box_vector.size(), position);
+            else
+                msgBox( currentState.getName(), cmd );
         else
             msgBox( currentState.getName(), currentState.getText() );
     break;

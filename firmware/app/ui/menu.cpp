@@ -624,6 +624,8 @@ void CGuiMenu::inputGroupCondCmd( CEndState state, UI_Key key )
 
         elem->inputStr.pop_back();
     }
+    else
+        keyPressCount = 0;
 
     elem->inputStr.push_back(ch_key0[keyPressCount]);
 
