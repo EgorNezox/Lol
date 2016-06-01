@@ -146,9 +146,7 @@ private:
     int command_rx_30 = 0;
     bool gpsSynchronization = true;
 
-#ifdef _DEBUG_
     int voiceStatusTest = 10;
-#endif
 
     //
     std::vector<int> guc_command_vector;
