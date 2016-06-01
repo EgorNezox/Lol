@@ -21,8 +21,8 @@ BUILD_MODE ?= release # по умолчанию релизная сборка (�
 ARCH_FLAGS = -mthumb -mcpu=cortex-m3
 # Debugging options
 DEBUG_FLAGS = -g3
-# Common compiler optimization options
-C_OPT_FLAGS = -ffunction-sections -fdata-sections
+# Compiler optimization options
+C_OPT_FLAGS = -O0 -ffunction-sections -fdata-sections
 
 # общие опции компиляции для всех исходников на языке C
 CFLAGS = $(ARCH_FLAGS) $(DEBUG_FLAGS) $(C_OPT_FLAGS) -c -fmessage-length=0 -Wall -std=gnu99

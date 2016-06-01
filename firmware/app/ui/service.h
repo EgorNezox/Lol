@@ -22,6 +22,7 @@
 #include "../power/battery.h"
 #include "../navigation/navigator.h"
 #include <qmtimer.h>
+#include <string.h>
 
 
 #include "gui_obj.h"
@@ -76,8 +77,10 @@ public:
     void updateBattery(int);
     int  getFreq();
     void setFreq(int isFreq);
-
+    void parsingGucCommand(uint8_t *str);
     void setCoordDate(Navigation::Coord_Date);
+    void gucFrame();
+
 
 private:
     void msgBox(const char*);
@@ -148,7 +151,7 @@ private:
 #endif
 
     //
-    std::vector<int> msg_box_vector;
+    std::vector<int> guc_command_vector;
     int position = 0;
 };
 

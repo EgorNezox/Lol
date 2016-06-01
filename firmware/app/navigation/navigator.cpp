@@ -106,17 +106,36 @@ void Navigator::processUartReceivedErrors(bool data_errors, bool overflow) {
 void Navigator::parsingData(uint8_t data[])
 {
     // $GPRMC,hhmmss.sss,A,GGMM.MM,P,gggmm.mm,J,v.v,b.b,ddmmyy,x.x,n,m*hh<CR><LF>
+    // $GPZDA,172809.456,12,07,1996,00,00*45
 
         char* rmc = (char*)data;
         char* rmc_dubl = nullptr;
+        char* zda = (char*)data;
+        char* zda_dubl = nullptr;
 
         while (rmc != NULL){
             rmc = strstr((const char*)rmc,(const char*)"$GPRMC");
+            if (zda != NULL)
+            zda = strstr((const char*)zda,(const char*)"$GPZDA");
             if (rmc != NULL){
                 rmc_dubl = rmc;
                 *rmc++;
             }
+            if (zda != NULL){
+            	zda_dubl = zda;
+            	*zda++;
+            }
         }
+
+        if (zda_dubl == nullptr)
+        	return;
+
+        char zda_text[6];
+        for(int i = 0;i<6;i++){
+        	zda_text[i] = zda_dubl[i+7];
+        }
+
+        memcpy(&CoordDate.time,&zda_text,6);
 
         if (rmc_dubl == nullptr)
         	return;
@@ -155,8 +174,8 @@ void Navigator::parsingData(uint8_t data[])
 
         }
 
-        if (parse_elem.size() > 0)
-            memcpy(&CoordDate.time,parse_elem.at(0).c_str(),parse_elem.at(0).size());
+//        if (parse_elem.size() > 0)
+//            memcpy(&CoordDate.time,parse_elem.at(0).c_str(),parse_elem.at(0).size());
 
         if ((parse_elem.size() > 2) && (parse_elem.at(1).compare("V") != 0))
         { // проверка по статусу gps
@@ -183,5 +202,5 @@ void Navigator::processSyncPulse() {
 } /* namespace Navigation */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(navigation, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(navigation, LevelDefault)
 #include "qmdebug_domains_end.h"

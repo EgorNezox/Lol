@@ -115,8 +115,8 @@ public:
     virtual void Draw();
     void Draws();
     void keyPressed(UI_Key);
+    void setCmd(int cmd);
 
-    void setCmd(int);
 protected:
     MoonsGeometry window_geom;
     TextAreaParams title_area_params;
