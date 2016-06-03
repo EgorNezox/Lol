@@ -1735,7 +1735,13 @@ void Service::drawMainWindow()
 
     main_scr->oFreq.clear();
     char mas[11];
-    sprintf(mas,"%d",/*voice_service->getCurrentChannelFrequency()*/1);
+
+#ifdef _DEBUG_
+    sprintf(mas,"%d",1);
+#else
+    sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
+#endif
+
     std::string freq(mas);
     main_scr->oFreq.append(freq);
     main_scr->setFreq(freq.c_str());
@@ -2010,7 +2016,6 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     } else {
     	menu->coord_log.append((char*)date.longitude);
     }
-
 
     std::string str;
     str.push_back((char)date.data[0]);

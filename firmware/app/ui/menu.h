@@ -80,7 +80,8 @@ public:
     void initTxPutOffVoiceDialog(int);
     void initRxPutOffVoiceDialog(int);
 
-    //
+    // tx group condition commands
+    int txGroupCondCommStatus = 1;
     void initTxGroupCondComm(CEndState);
 
     // message ( SMS )
