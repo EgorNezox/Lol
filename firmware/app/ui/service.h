@@ -147,10 +147,8 @@ private:
     bool gpsSynchronization = true;
     uint8_t* vect = nullptr;
 
-//#ifdef _DEBUG_
-    int voiceStatusTest = 10;
-//#endif
-
+#ifdef _DEBUG_    int voiceStatusTest = 10;
+#endif
     //
     std::vector<int> guc_command_vector;
     int position = 0;

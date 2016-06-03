@@ -15,7 +15,10 @@ class QmTimestampPrivate;
 /*! The QmTimestamp class is used in conjunction with QmAbsTimer.
  *
  * Object stores current timestamp on set() call.
- * Timestamps are taken from monotonic clock (timer or system timer specific to platform).
+ * Timestamps are taken from monotonic clock (timer or system timer specific to platform)
+ * with millisecond resulution.
+ * After QmAbsTimer is being started with valid QmTimestamp object,
+ * it will timeout relative to time stored in the object.
  *
  * \sa QmAbsTimer
  */
@@ -29,8 +32,8 @@ public:
 
 	/*! Captures current time and stores it in the object.
 	 *
-	 * Object becomes valid and after QmAbsTimer is being started with this object,
-	 * it will timeout relative to current time.
+	 * Object becomes valid.
+	 * Captured time replaces previous value.
 	 *
 	 * \sa invalidate()
 	 */
@@ -41,6 +44,15 @@ public:
 	 * \sa set()
 	 */
 	void invalidate();
+
+	/* Shifts time stored in the object by \a msec milliseconds.
+	 *
+	 * Positive value increments time into future and negative value decrements time into past.
+	 * Applying operation to invalid object causes undefined behavior.
+	 *
+	 * \sa set()
+	 */
+	void shift(long int msec);
 
 private:
 	friend class QmTimestampPrivateAdapter;
