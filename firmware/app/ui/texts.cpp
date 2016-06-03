@@ -1,6 +1,6 @@
 #include "texts.h"
 
-const char *test_Pass = {"Тестирование пройдено\0"};
+const char *test_Pass = {"Тестирование\0"};
 
 char *mode_txt[] = {(char *)"Речь\0", (char*)"АУС\0", (char*)"ГрупУК\0"};
 char *disabled_ch_txt = (char *)"--";
@@ -121,3 +121,5 @@ const char* aleStateStr[] = {
 
 const char* voiceRxStr[] = {"Нажмите Ввод для запуска приема\0", "От: \0", "Нажмите ввод\0"};
 const char* voiceRxTxLabelStr[] = {"Канал записи\0", "Канал воспр.\0", "Запись речи\0", "Воспр. речи\0", "Получатель\0", "Получена гол.поч.\0"};
+
+const char* condCommStr[] = {"Адрес получателя\0", "Адрес ретранслятора\0", "Команда\0", "Ретранслятор\0"};

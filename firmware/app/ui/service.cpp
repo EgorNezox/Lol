@@ -495,96 +495,151 @@ void Service::keyPressed(UI_Key key)
         {
         case GuiWindowsSubType::simpleCondComm:
         {
-            switch (key)
+            //[0] - CMD, [1] - R_ADDR, [2] - retrans
+            switch (menu->txCondCommStatus)
             {
-            case keyUp:
-                if ( menu->focus > 0 )
-                    menu->focus--;
+            case 1:
+            { // с ретранслятором/ без ретранстятора
+                if (key == keyUp || key == keyDown)
+                { menu->useRetrans = menu->useRetrans ? false : true; }
                 break;
-            case keyDown:
-            {
-                if ( menu->focus < estate.listItem.size() )
-                    menu->focus++;
             }
+            case 2:
+            { // ввод адреса получателя
+                if ( key > 5 && key < 16)
+                {
+                    auto iter = estate.listItem.begin();
+                    (*iter)++;
+                    if ( (*iter)->inputStr.size() < 2 )
+                    {
+                        (*iter)->inputStr.push_back((char)(42+key));
+                        // check
+                        int rc = atoi((*iter)->inputStr.c_str());
+                        if ( rc > 31 )
+                        { (*iter)->inputStr.clear(); }
+                    }
+                }
                 break;
-            case keyEnter:
-            {
-                bool flag = false;
-                if ( estate.listItem.size() == 2 )
+            }
+            case 3:
+            { // ввод адреса ретранслятора
+                if ( key > 5 && key < 16)
                 {
-                    if (estate.listItem.front()->inputStr.size() != 0 &&
-                            estate.listItem.back()->inputStr.size() != 0 )
-                    { flag = true; }
-                }
-                else
-                {
-                    if ( estate.listItem.front()->inputStr.size() != 0 )
-                    { flag = true; }
-                }
-
-                if ( menu->focus == estate.listItem.size() && flag )
-                {
-                    /* callback */
-                    int param[2]; // if estate.listItem.size() == 2, 0 -R_ADR, 1 - COM_N
-                                  // if estate.listItem.size() == 1, 0 -COM_N
-                    int i = 0;
-
-                    for (auto &k: estate.listItem)
+                    auto iter = estate.listItem.begin();
+                    (*iter)++;(*iter)++;
+                    if ( (*iter)->inputStr.size() < 2 )
                     {
-                        param[i] = atoi(k->inputStr.c_str());
-                        i++;
+                        (*iter)->inputStr.push_back((char)(42+key));
+                        // check
+                        int rc = atoi((*iter)->inputStr.c_str());
+                        if ( rc > 31 )
+                        { (*iter)->inputStr.clear(); }
                     }
-//#ifndef PORT__PCSIMULATOR
-                    if (navigator != 0){
-                    	if (estate.listItem.size() == 1)
-                    		voice_service->TurnPSWFMode(1, 0, param[0]);
-                    	else if (estate.listItem.size() == 2)
-                    		voice_service->TurnPSWFMode(1, param[0], param[1]);
-                    }
-                    else
-                    {
-                    	//msg РїС—Р…РїС—Р…РїС—Р… РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…
-                    }
+                }
+                break;
+            }
+            case 4:
+            { // ввод условной команды
+                if ( key > 5 && key < 16)
+                {
+                    auto iter = estate.listItem.begin();
 
-//#endif
+                    if ( (*iter)->inputStr.size() < 2 )
+                    {
+                        (*iter)->inputStr.push_back((char)(42+key));
+                        // check
+                        int rc = atoi((*iter)->inputStr.c_str());
+                        if ( rc > 31 )
+                        { (*iter)->inputStr.clear(); }
+                    }
                 }
                 break;
             }
             default:
-                if ( key > 5 && key < 16)
+            {break;}
+            }
+
+            switch (key)
+            {
+            case keyEnter:
+            {
+                int size = 5;
+
+                // next field
+                if (menu->txCondCommStatus < size )
                 {
-                    menu->setCondCommParam(estate, key);
-                }
-                else if ( key == keyBack)
-                {
-                    int i = 0;
-                    for (auto &k: estate.listItem)
+                    menu->txCondCommStatus++;
+                    if (menu->txCondCommStatus == 1 && estate.listItem.size() == 2)
                     {
-                        if (menu->focus == i)
+                        menu->txCondCommStatus++;
+                        if (menu->useRetrans == false)
+                            menu->txCondCommStatus++;
+                    }
+                    if (menu->txCondCommStatus == 2 && menu->useRetrans == false)
+                    {
+                        menu->txCondCommStatus++;
+                    }
+
+                }
+
+                // send
+                if ( menu->txCondCommStatus == size )
+                {
+#ifndef _DEBUG_
+                    	if (estate.listItem.size() == 1)
+                    		voice_service->TurnPSWFMode(1, 0, param[0]);
+                    	else if (estate.listItem.size() == 2)
+                    		voice_service->TurnPSWFMode(1, param[0], param[1]);
+
+                        for(auto &k: estate.listItem)
                         {
-                            if (k->inputStr.size() > 0)
-                            {
-                                k->inputStr.pop_back();
-                            }
-                            else
-                            {
-                                guiTree.backvard();
-                                menu->focus = 0;
-                                break;
-                            }
+                            k.inputStr.clear();
                         }
-                        i++;
-                    }
-                    if ( menu->focus == estate.listItem.size() )
-                    {
-                        guiTree.backvard();
-                        menu->focus = 0;
-                    }
+#else
+                    menu->txCondCommStatus = 1;
+                    guiTree.resetCurrentState();
+#endif
                 }
+                break;
+            }
+            case keyBack:
+            {
+                auto iter = estate.listItem.begin();
+
+                if (menu->txCondCommStatus == 2)
+                {
+                    if ((*iter)->inputStr.size() > 0)
+                        (*iter)->inputStr.pop_back();
+                    else
+                        menu->txCondCommStatus--;
+                }
+                else if(menu->txCondCommStatus == 3)
+                {
+                    (*iter)++;
+                    if ((*iter)->inputStr.size() > 0)
+                        (*iter)->inputStr.pop_back();
+                    else
+                        menu->txCondCommStatus--;
+                }
+                else if(menu->txCondCommStatus == 4)
+                {
+                    (*iter)++;(*iter)++;
+                    if ((*iter)->inputStr.size() > 0)
+                        (*iter)->inputStr.pop_back();
+                    else
+                        menu->txCondCommStatus--;
+                }
+                else
+                {
+                    menu->txCondCommStatus--;
+                }
+            }
+            default:
                 break;
             }
             break;
         }
+
         case GuiWindowsSubType::duplCondComm:
         {
             switch (key)
@@ -613,6 +668,7 @@ void Service::keyPressed(UI_Key key)
                         param[i] = atoi(k->inputStr.c_str());
                         i++;
                     }
+#ifndef _DEBUG_
                     if (estate.listItem.size() == 1)
                         voice_service->TurnPSWFMode(1, 0, param[0]);
                     else if (estate.listItem.size() == 2)
@@ -621,6 +677,7 @@ void Service::keyPressed(UI_Key key)
                     {
                         //qmDebugMessage( QmDebug::Error, "estate.listItem.size() == %d", estate.listItem.size() );
                     }
+#endif
 
                 }
                 break;

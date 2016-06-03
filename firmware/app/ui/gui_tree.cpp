@@ -67,13 +67,15 @@ void CGuiTree::init()
     condCmdSimplGroupCall.subType = GuiWindowsSubType::simpleCondComm;
     condCmdSimplGroupCall.prevState = &condCmdSimpl;
     condCmdSimplGroupCall.nextState.clear();
-    condCmdSimplGroupCall.listItem.push_back(&condCmdSimplGroupCallParameters );
+    condCmdSimplGroupCall.listItem.push_back(&condCmdSimplGroupCallParameters1 );
+    condCmdSimplGroupCall.listItem.push_back(&condCmdSimplGroupCallParameters2 );
     // 1.1.1.2 - Индивидуальный
     condCmdSimplIndivCall.subType = GuiWindowsSubType::simpleCondComm;
     condCmdSimplIndivCall.prevState = &condCmdSimpl;
     condCmdSimplIndivCall.nextState.clear();
     condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters1 );
     condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters2 );
+    condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters3 );
     // 1.1.2 - Двухст.связь | только индивидуально
     condCmdDupl.subType = GuiWindowsSubType::duplCondComm;
     condCmdDupl.prevState = &condCmd;

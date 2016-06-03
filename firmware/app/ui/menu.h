@@ -44,7 +44,7 @@ public:
     virtual ~CGuiMenu();
     void Draw();
 
-    int focus;
+    uint8_t focus;
     void initItems(std::list<std::string>, const char*, int);
     void initDialog(CEndState);
     void initCondCommDialog(CEndState);
@@ -67,6 +67,8 @@ public:
     std::string message, newMessage;
 
     // call
+    bool useRetrans = false;
+    int txCondCommStatus = 1;
     void setCondCommParam(CEndState, UI_Key);
 
     // group cond comm stage
