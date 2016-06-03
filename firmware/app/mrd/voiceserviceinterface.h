@@ -37,7 +37,7 @@ public:
     void tuneSquelch(uint8_t value);
     void TuneAudioLevel(uint8_t volume_level);
     void TurnAGCMode(uint8_t mode, int radio_path);
-    void TurnPSWFMode(uint8_t mode,int R_ADR,int COM_N);
+    void TurnPSWFMode(uint8_t mode,int R_ADR,int COM_N,int retr);
     const char* ReturnSwfStatus();
 
     void TurnSMSMode(int r_adr,char *message);
