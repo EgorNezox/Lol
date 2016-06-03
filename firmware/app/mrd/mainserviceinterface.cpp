@@ -52,33 +52,29 @@
 #define TIMER_VALUE_tDataRoffHshakeTDelay(sform) (TIMER_VALUE_tDataTxHshakeTDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx)
 #define TIMER_VALUE_tDataCycle(sform) (TIMER_VALUE_tDataRoffHshakeTDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_dTSynPacket(sform) + ALE_TIME_DTMistiming)
 
-struct __attribute__ ((__packed__)) call_packet_t {
-	unsigned int lineType : 1;
-	unsigned int cycleNum : 4;
-	unsigned int respAddr : 5;
-	unsigned int reserved : 2;
+struct call_packet_t {
+	unsigned int lineType;
+	unsigned int cycleNum;
+	unsigned int respAddr;
 };
-struct __attribute__ ((__packed__)) respcallqual_packet_t {
-	unsigned int errSignal : 5;
-	unsigned int SNR : 6;
-	unsigned int reserved : 1;
+struct respcallqual_packet_t {
+	unsigned int errSignal;
+	unsigned int SNR;
 };
-struct __attribute__ ((__packed__)) hshaketransmode_packet_t {
-	unsigned int soundType : 2;
-	unsigned int workMode : 4;
-	unsigned int paramMode : 6;
-	unsigned int schedule : 1;
-	unsigned int callAddr : 5;
-	unsigned int reserved : 6;
+struct hshaketransmode_packet_t {
+	unsigned int soundType;
+	unsigned int workMode;
+	unsigned int paramMode;
+	unsigned int schedule;
+	unsigned int callAddr;
 };
-struct __attribute__ ((__packed__)) msghead_packet_t {
-	unsigned int msgSize : 11;
-	unsigned int symCode : 1;
+struct msghead_packet_t {
+	unsigned int msgSize;
+	unsigned int symCode;
 };
-struct __attribute__ ((__packed__)) resppackqual_packet_t {
-	unsigned int packResult : 1;
-	unsigned int SNR : 6;
-	unsigned int reserved : 5;
+struct resppackqual_packet_t {
+	unsigned int packResult;
+	unsigned int SNR;
 };
 
 typedef QmCrc<uint32_t, 32, 0x04c11db7, 0xffffffff, true, 0xffffffff> CRC32;
@@ -249,7 +245,7 @@ void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
 	ale.vm_f_count = ceil(message_bits_size/490);
 	ale.vm_fragments.resize(ale.vm_f_count);
 	for (unsigned int i = 0; i < ale.vm_fragments.size(); i++) {
-		ale.vm_fragments[i].num_data[0] = i;
+		ale.vm_fragments[i].num_data[0] = (i & 0x3F) << 2;
 		for (unsigned int j = 1; j < sizeof(ale.vm_fragments[0].num_data); j++)
 			ale.vm_fragments[i].num_data[j] = 0;
 	}
@@ -257,7 +253,7 @@ void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
 		int f_i = m_bit_i / 490;
 		int f_bit_i = 6 + (m_bit_i % 490);
 		int f_byte_i = f_bit_i / 8;
-		int f_byte_bit = f_bit_i % 8;
+		int f_byte_bit = (f_bit_i - 6) % 8;
 		if ((message[m_bit_i/8] & (1 << (m_bit_i % 8))) != 0)
 			ale.vm_fragments[f_i].num_data[f_byte_i] |= (1 << f_byte_bit);
 	}
@@ -301,7 +297,7 @@ voice_message_t MainServiceInterface::getAleRxVmMessage() {
 		int message_bits_offset = f_i*490;
 		for (int f_bit_i = 6; f_bit_i < (6 + f_bits_size); f_bit_i++) {
 			int f_byte_i = f_bit_i / 8;
-			int f_byte_bit = f_bit_i % 8;
+			int f_byte_bit = (f_bit_i - 6) % 8;
 			int m_byte_i = (message_bits_offset + f_bit_i) / 8;
 			int m_byte_bit = (message_bits_offset + f_bit_i) % 8;
 			if ((ale.vm_fragments[f_i].num_data[f_byte_i] & (1 << f_byte_bit)) != 0)
@@ -756,8 +752,10 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 		case ALE_TX_VM_RX_PACK_RESP: {
 			if (!(data_len >= 2))
 				break;
-			resppackqual_packet_t *resppackqual_packet = (resppackqual_packet_t *)data;
-			processPacketTxResponse(resppackqual_packet->packResult, resppackqual_packet->SNR);
+			resppackqual_packet_t resppackqual_packet;
+			resppackqual_packet.packResult = (data[0] >> 7) & 0x01;
+			resppackqual_packet.SNR = (data[0] >> 1) & 0x3F;
+			processPacketTxResponse(resppackqual_packet.packResult, resppackqual_packet.SNR);
 			break;
 		}
 		default:
@@ -779,13 +777,16 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 		if (ale.phase != ALE_RX_CALL)
 			break;
 		ale.timerRoffCall->stop();
-		call_packet_t *call_packet = (call_packet_t *)data;
-		if (!((call_packet->lineType == 1) && (call_packet->respAddr == ale.station_address))) {
+		call_packet_t call_packet;
+		call_packet.lineType = (data[0] >> 7) & 0x01;
+		call_packet.cycleNum = (data[0] >> 3) & 0x0F;
+		call_packet.respAddr = ((data[0] & 0x07) << 2) | ((data[1] >> 6) & 0x03);
+		if (!((call_packet.lineType == 1) && (call_packet.respAddr == ale.station_address))) {
 			dsp_controller->disableModemReceiver();
 			proceedRxScanning();
 			break;
 		}
-		ale.supercycle = call_packet->cycleNum;
+		ale.supercycle = call_packet.cycleNum;
 		if (!evaluatePacketSNR(snr)) {
 			dsp_controller->disableModemReceiver();
 			proceedRxScanning();
@@ -834,14 +835,19 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 		if (ale.phase != ALE_RX_NEG_RX_MODE)
 			break;
 		ale.timerNegRoffHshakeTransMode[ale.rcount]->stop();
-		hshaketransmode_packet_t *hshaketransmode_packet = (hshaketransmode_packet_t *)data;
-		if (!((hshaketransmode_packet->soundType == 0) && (hshaketransmode_packet->schedule == 1)
-				&& (hshaketransmode_packet->workMode == 3) && (hshaketransmode_packet->paramMode == 1))) {
+		hshaketransmode_packet_t hshaketransmode_packet;
+		hshaketransmode_packet.soundType = (data[0] >> 6) & 0x03;
+		hshaketransmode_packet.workMode = (data[0] >> 2) & 0x0F;
+		hshaketransmode_packet.paramMode = ((data[0] & 0x03) << 4) | ((data[1] >> 4) & 0x0F);
+		hshaketransmode_packet.schedule = (data[1] >> 3) & 0x01;
+		hshaketransmode_packet.callAddr = ((data[1] & 0x07) << 2) | ((data[2] >> 6) & 0x03);
+		if (!((hshaketransmode_packet.soundType == 0) && (hshaketransmode_packet.schedule == 1)
+				&& (hshaketransmode_packet.workMode == 3) && (hshaketransmode_packet.paramMode == 1))) {
 			setAleState(AleState_RX_CALL_FAIL_UNSUPPORTED);
 			stopAleSession();
 			break;
 		}
-		ale.address = hshaketransmode_packet->callAddr;
+		ale.address = hshaketransmode_packet.callAddr;
 		setAlePhase(ALE_RX_NEG_TX_HSHAKE);
 		dsp_controller->enableModemTransmitter();
 		break;
@@ -851,13 +857,15 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 			break;
 		if (ale.phase != ALE_RX_VM_RX_MSGHEAD)
 			break;
-		msghead_packet_t *msghead_packet = (msghead_packet_t *)data;
-		if (!((msghead_packet->msgSize >= 1) && (msghead_packet->msgSize <= 250) && (msghead_packet->symCode == 0))) {
+		msghead_packet_t msghead_packet;
+		msghead_packet.msgSize = ((data[0] & 0xFF) << 3) | ((data[1] >> 5) & 0x07);
+		msghead_packet.symCode = (data[1] >> 4) & 0x01;
+		if (!((msghead_packet.msgSize >= 1) && (msghead_packet.msgSize <= 250) && (msghead_packet.symCode == 0))) {
 			setAleState(AleState_RX_VM_FAIL_UNSUPPORTED);
 			stopAleSession();
 			break;
 		}
-		ale.vm_size = msghead_packet->msgSize;
+		ale.vm_size = msghead_packet.msgSize;
 		ale.vm_f_count = ceil(ale.vm_size*72/490);
 		ale.vm_fragments.resize(ale.vm_f_count);
 		ale.timerMsgRoffHead[ale.vm_msg_cycle]->stop();
@@ -997,8 +1005,12 @@ void MainServiceInterface::aleprocessTimerTxCallExpired() {
 	call_packet.lineType = 1;
 	call_packet.cycleNum = ale.supercycle;
 	call_packet.respAddr = ale.address;
-	call_packet.reserved = 0;
-	dsp_controller->sendModemPacket(DspController::modempacket_Call, DspController::modembw20kHz, (uint8_t *)&call_packet, sizeof(call_packet));
+	uint8_t data[2] = {0, 0};
+	data[0] |= (call_packet.lineType & 0x01) << 7;
+	data[0] |= (call_packet.cycleNum & 0x0F) << 3;
+	data[0] |= (call_packet.respAddr & 0x1F) >> 2;
+	data[1] |= (call_packet.respAddr & 0x1F) << 6;
+	dsp_controller->sendModemPacket(DspController::modempacket_Call, DspController::modembw20kHz, data, sizeof(data));
 }
 
 void MainServiceInterface::aleprocessTimerCallRonHshakeRExpired() {
@@ -1045,8 +1057,15 @@ void MainServiceInterface::aleprocessTimerNegTxHshakeTransModeExpired() {
 	hshaketransmode_packet.paramMode = 1;
 	hshaketransmode_packet.schedule = 1;
 	hshaketransmode_packet.callAddr = ale.station_address;
-	hshaketransmode_packet.reserved = 0;
-	dsp_controller->sendModemPacket(DspController::modempacket_HshakeTransMode, DspController::modembw20kHz, (uint8_t *)&hshaketransmode_packet, sizeof(hshaketransmode_packet));
+	uint8_t data[3] = {0, 0, 0};
+	data[0] |= (hshaketransmode_packet.soundType & 0x03) << 6;
+	data[0] |= (hshaketransmode_packet.workMode & 0x0F) << 2;
+	data[0] |= (hshaketransmode_packet.paramMode & 0x3F) >> 4;
+	data[1] |= (hshaketransmode_packet.paramMode & 0x3F) << 4;
+	data[1] |= (hshaketransmode_packet.schedule & 0x01) << 3;
+	data[1] |= (hshaketransmode_packet.callAddr & 0x1F) >> 2;
+	data[2] |= (hshaketransmode_packet.callAddr & 0x1F) << 6;
+	dsp_controller->sendModemPacket(DspController::modempacket_HshakeTransMode, DspController::modembw20kHz, data, sizeof(data));
 }
 
 void MainServiceInterface::aleprocessTimerNegRonHshakeReceivExpired() {
@@ -1097,7 +1116,11 @@ void MainServiceInterface::aleprocessTimerMsgTxHeadExpired() {
 	msghead_packet_t msghead_packet;
 	msghead_packet.msgSize = ale.vm_size;
 	msghead_packet.symCode = 0;
-	dsp_controller->sendModemPacket(DspController::modempacket_msgHead, DspController::modembw20kHz, (uint8_t *)&msghead_packet, sizeof(msghead_packet));
+	uint8_t data[2] = {0, 0};
+	data[0] |= (msghead_packet.msgSize & 0x7FF) >> 3;
+	data[1] |= (msghead_packet.msgSize & 0x7FF) << 5;
+	data[1] |= (msghead_packet.symCode & 0x1) << 4;
+	dsp_controller->sendModemPacket(DspController::modempacket_msgHead, DspController::modembw20kHz, data, sizeof(data));
 }
 
 void MainServiceInterface::aleprocessTimerMsgRonRespPackQualExpired() {
@@ -1272,8 +1295,11 @@ void MainServiceInterface::aleprocessTimerNegTxRespCallQualExpired() {
 	respcallqual_packet_t respcallqual_packet;
 	respcallqual_packet.errSignal = 0;
 	respcallqual_packet.SNR = ale.call_snr;
-	respcallqual_packet.reserved = 0;
-	dsp_controller->sendModemPacket(DspController::modempacket_RespCallQual, ale.call_bw, (uint8_t *)&respcallqual_packet, sizeof(respcallqual_packet));
+	uint8_t data[2] = {0, 0};
+	data[0] |= (respcallqual_packet.errSignal & 0x1F) << 3;
+	data[0] |= (respcallqual_packet.SNR & 0x3F) >> 3;
+	data[1] |= (respcallqual_packet.SNR & 0x3F) << 5;
+	dsp_controller->sendModemPacket(DspController::modempacket_RespCallQual, ale.call_bw, data, sizeof(data));
 }
 
 void MainServiceInterface::aleprocessTimerNegRonHshakeTransModeExpired() {
@@ -1322,8 +1348,10 @@ void MainServiceInterface::aleprocessTimerMsgTxRespPackQualExpired() {
 	resppackqual_packet_t resppackqual_packet;
 	resppackqual_packet.packResult = 1;
 	resppackqual_packet.SNR = 0;
-	resppackqual_packet.reserved = 0;
-	dsp_controller->sendModemPacket(DspController::modempacket_RespPackQual, ale.call_bw, (uint8_t *)&resppackqual_packet, sizeof(resppackqual_packet));
+	uint8_t data[2] = {0, 0};
+	data[0] |= (resppackqual_packet.packResult & 0x1) << 7;
+	data[0] |= (resppackqual_packet.SNR & 0x3F) << 1;
+	dsp_controller->sendModemPacket(DspController::modempacket_RespPackQual, ale.call_bw, data, sizeof(data));
 }
 
 void MainServiceInterface::aleprocessTimerMsgRonHshakeTExpired() {
@@ -1367,7 +1395,7 @@ bool MainServiceInterface::processPacketReceivedPacket(uint8_t *data) {
 	crc.update(packet->num_data, sizeof(packet->num_data));
 	if (!(crc.result() == packet->crc))
 		return false;
-	uint8_t num = packet->num_data[0] & 0x3F;
+	uint8_t num = (packet->num_data[0] >> 2) & 0x3F;
 	if(!(num == ale.vm_f_idx)) {
 		if (num == (ale.vm_f_idx - 1))
 			return true;
@@ -1422,8 +1450,10 @@ void MainServiceInterface::aleprocessPacketTxRespPackQualExpired() {
 	resppackqual_packet_t resppackqual_packet;
 	resppackqual_packet.packResult = ale.vm_packet_result;
 	resppackqual_packet.SNR = ale.vm_packet_snr;
-	resppackqual_packet.reserved = 0;
-	dsp_controller->sendModemPacket(DspController::modempacket_RespPackQual, ale.call_bw, (uint8_t *)&resppackqual_packet, sizeof(resppackqual_packet));
+	uint8_t data[2] = {0, 0};
+	data[0] |= (resppackqual_packet.packResult & 0x1) << 7;
+	data[0] |= (resppackqual_packet.SNR & 0x3F) << 1;
+	dsp_controller->sendModemPacket(DspController::modempacket_RespPackQual, ale.call_bw, data, sizeof(data));
 }
 
 void MainServiceInterface::aleprocessTimerRxPacketTxLinkReleaseExpired() {
