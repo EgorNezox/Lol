@@ -79,6 +79,11 @@ public:
 private:
 	friend class Dispatcher;
 
+	enum AleFunctionalState {
+		alefunctionIdle,
+		alefunctionRx,
+		alefunctionTx
+	};
 	enum AlePhase {
 		ALE_STOPPED,
 		ALE_TX_SETUP,
@@ -97,7 +102,24 @@ private:
 		ALE_TX_VM_TX_PACKET,
 		ALE_TX_VM_RX_PACK_RESP,
 		ALE_TX_VM_TX_PACK_HSHAKE,
-		ALE_TX_VM_TX_LINK_RELEASE
+		ALE_TX_VM_TX_LINK_RELEASE,
+		ALE_RX_SETUP,
+		ALE_RX_SCAN,
+		ALE_RX_CALL,
+		ALE_RX_CALL_TX_HSHAKE,
+		ALE_RX_CALL_RX_HSHAKE,
+		ALE_RX_NEG_TX_QUAL,
+		ALE_RX_NEG_RX_MODE,
+		ALE_RX_NEG_TX_HSHAKE,
+		ALE_RX_NEG_RX_HSHAKE,
+		ALE_RX_VM_START,
+		ALE_RX_VM_RX_MSGHEAD,
+		ALE_RX_VM_TX_MSG_RESP,
+		ALE_RX_VM_RX_MSG_HSHAKE,
+		ALE_RX_VM_RX_PACKET,
+		ALE_RX_VM_TX_PACK_RESP,
+		ALE_RX_VM_TX_LINK_RELEASE,
+		ALE_RX_VM_RX_PACK_HSHAKE
 	};
 	struct __attribute__ ((__packed__)) AleVmPacket {
 		uint8_t num_data[62];
@@ -117,26 +139,32 @@ private:
 	void setAleVmProgress(uint8_t value);
 	bool startAleSession();
 	void stopAleSession();
-	void stopAleTimers();
-	void stopVmMsgTimers();
-	void stopAllTimers();
+	void stopAleRxTimers();
+	void stopAleTxTimers();
+	void stopVmMsgRxTimers();
+	void stopVmMsgTxTimers();
+	void stopAllRxTimers();
+	void stopAllTxTimers();
+	void startVmRx();
 	void startVmTx();
+	bool checkDwellStart(int &freq_idx);
 	int convertSnrFromPacket(uint8_t value);
+	uint8_t convertSnrToPacket(int value);
+	void proceedRxScanning();
 	void proceedTxCalling();
-	bool evaluatePacketSNR(uint8_t snr);
+	bool evaluatePacketSNR(int8_t snr);
 	void aleprocessRadioReady();
 	void aleprocessModemPacketTransmitted(DspController::ModemPacketType type);
 	void aleprocessModemPacketFailedTx();
-	void aleprocessModemPacketReceived(DspController::ModemPacketType type, uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len);
-	void aleprocessModemPacketStartedRx(DspController::ModemPacketType type, uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len);
-	void aleprocessModemPacketStartedRxPackHead(uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len);
+	void aleprocessModemPacketReceived(DspController::ModemPacketType type, int8_t snr, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len);
+	void aleprocessModemPacketStartedRxPackHead(int8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len);
 	void aleprocessModemPacketFailedRx(DspController::ModemPacketType type);
 	void aleprocess1PPS();
 	void aleprocessTimerGnssSyncExpired();
 	void aleprocessTimerTxCallExpired();
 	void aleprocessTimerCallRonHshakeRExpired();
 	void aleprocessTimerCallRoffHshakeRExpired();
-	void aleprocessTimerNegStartExpired();
+	void aleprocessTimerTxNegStartExpired();
 	void aleprocessTimerNegRoffExpired();
 	void aleprocessTimerNegTxHshakeTransModeExpired();
 	void aleprocessTimerNegRonHshakeReceivExpired();
@@ -146,8 +174,8 @@ private:
 	void aleprocessTimerMsgRonRespPackQualExpired();
 	void aleprocessTimerMsgRoffRespPackQualExpired();
 	void aleprocessTimerMsgTxHshakeTExpired();
-	void aleprocessTimerMsgCycleExpired();
-	void aleprocessPacketSync();
+	void aleprocessTimerTxMsgCycleExpired();
+	void aleprocessTxPacketSync();
 	void processPacketTxResponse(bool p_result, uint8_t p_snr);
 	void processFailedPacketTxCycle();
 	void startNextPacketTxCycle();
@@ -157,7 +185,36 @@ private:
 	void aleprocessTimerPacketRonRespPackQualExpired();
 	void aleprocessTimerPacketRoffRespPackQualExpired();
 	void aleprocessTimerPacketTxHshakeTExpired();
-	void aleprocessTimerPacketTxLinkReleaseExpired();
+	void aleprocessTimerTxPacketTxLinkReleaseExpired();
+	void aleprocessTimerRoffCallExpired();
+	void aleprocessTimerCallTxHshakeRExpired();
+	void aleprocessTimerCallRonHshakeTExpired();
+	void aleprocessTimerCallRoffHshakeTExpired();
+	void aleprocessTimerRxNegStartExpired();
+	void aleprocessTimerNegTxRespCallQualExpired();
+	void aleprocessTimerNegRonHshakeTransModeExpired();
+	void aleprocessTimerNegRoffHshakeTransModeExpired();
+	void aleprocessTimerNegTxHshakeReceivExpired();
+	void aleprocessTimerNegRonHshakeTransExpired();
+	void aleprocessTimerNegRoffHshakeTransExpired();
+	void aleprocessTimerMsgRoffHeadExpired();
+	void aleprocessTimerMsgTxRespPackQualExpired();
+	void aleprocessTimerMsgRonHshakeTExpired();
+	void aleprocessTimerMsgRoffHshakeTExpired();
+	void aleprocessTimerRxMsgCycleExpired();
+	void setPacketRxPhase();
+	bool processPacketReceivedPacket(uint8_t *data);
+	void processPacketMissedPacket();
+	void startRxPacketResponse();
+	void startRxPacketLinkRelease();
+	void processPacketReceivedAck();
+	void processPacketMissedAck();
+	void aleprocessRxPacketSync();
+	void aleprocessPacketRoffHeadExpired();
+	void aleprocessPacketTxRespPackQualExpired();
+	void aleprocessTimerRxPacketTxLinkReleaseExpired();
+	void aleprocessPacketRonHshakeTExpired();
+	void aleprocessPacketRoffHshakeTExpired();
 
 	Status current_status;
 	DataStorage::FS *data_storage_fs;
@@ -165,12 +222,16 @@ private:
 	Navigation::Navigator *navigator;
 	Headset::Controller *headset_controller;
 	struct {
+		AleFunctionalState f_state;
 		AleState state;
 		AlePhase phase;
+		AleResult result;
 		uint8_t vm_progress;
 		ale_call_freqs_t call_freqs;
 		uint8_t station_address, address;
 		int supercycle, cycle;
+		DspController::ModemBandwidth call_bw;
+		uint8_t call_snr;
 		int rcount;
 		int vm_size;
 		int vm_f_count;
@@ -179,36 +240,62 @@ private:
 		int vm_msg_cycle;
 		int vm_sform_c;
 		int vm_sform_p;
+		int vm_sform_n;
 		int vm_ack_count;
 		int vm_nack_count;
 		int vm_snr_ack[3];
 		int vm_snr_nack[3];
 		AleVmAdaptationType vm_adaptation;
+		bool vm_packet_result;
+		bool vm_last_result;
+		uint8_t vm_packet_snr;
 		QmTimer *timerRadioReady;
 		QmTimer *timerGnssSync;
 		QmTimer *timerTxCall;
+		QmTimer *timerRoffCall;
 		QmTimer *timerCallRonHshakeR;
+		QmTimer *timerCallTxHshakeR;
 		QmTimer *timerCallRoffHshakeR;
+		QmTimer *timerCallRonHshakeT;
 		QmTimer *timerCallTxHshakeT;
-		QmTimer *timerNegStart[3];
+		QmTimer *timerCallRoffHshakeT;
+		QmTimer *timerRxNegStart[3];
+		QmTimer *timerTxNegStart[3];
+		QmTimer *timerNegTxRespCallQual[3];
 		QmTimer *timerNegRoffRespCallQual[3];
+		QmTimer *timerNegRonHshakeTransMode[3];
 		QmTimer *timerNegTxHshakeTransMode[3];
+		QmTimer *timerNegRoffHshakeTransMode[3];
 		QmTimer *timerNegRonHshakeReceiv[3];
+		QmTimer *timerNegTxHshakeReceiv[3];
 		QmTimer *timerNegRoffHshakeReceiv[3];
+		QmTimer *timerNegRonHshakeTrans[3];
 		QmTimer *timerNegTxHshakeTrans[3];
+		QmTimer *timerNegRoffHshakeTrans[3];
 		QmTimer *timerDataStart;
 		QmTimestamp tPacketSync;
 		QmTimer *timerMsgTxHead[3];
+		QmTimer *timerMsgRoffHead[3];
 		QmTimer *timerMsgRonRespPackQual[3];
+		QmTimer *timerMsgTxRespPackQual[3];
 		QmTimer *timerMsgRoffRespPackQual[3];
+		QmTimer *timerMsgRonHshakeT[3];
 		QmTimer *timerMsgTxHshakeT[3];
-		QmTimer *timerMsgCycle[3];
-		QmAbsTimer *timerPacketSync;
+		QmTimer *timerMsgRoffHshakeT[3];
+		QmTimer *timerRxMsgCycle[3];
+		QmTimer *timerTxMsgCycle[3];
+		QmAbsTimer *timerTxPacketSync;
 		QmAbsTimer *timerPacketTxHeadData;
 		QmAbsTimer *timerPacketRonRespPackQual;
 		QmAbsTimer *timerPacketRoffRespPackQual;
 		QmAbsTimer *timerPacketTxHshakeT;
-		QmAbsTimer *timerPacketTxLinkRelease;
+		QmAbsTimer *timerTxPacketTxLinkRelease;
+		QmAbsTimer *timerRxPacketSync;
+		QmAbsTimer *timerPacketRoffHead;
+		QmAbsTimer *timerPacketTxRespPackQual;
+		QmAbsTimer *timerPacketRonHshakeT;
+		QmAbsTimer *timerPacketRoffHshakeT;
+		QmAbsTimer *timerRxPacketTxLinkRelease;
 	} ale;
 };
 
