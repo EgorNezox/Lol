@@ -52,14 +52,14 @@ void QmAbsTimerPrivate::deinit()
 {
 }
 
-bool QmAbsTimer::start(QmTimestamp *timestamp, unsigned int msec) {
+bool QmAbsTimer::start(const QmTimestamp &timestamp, unsigned int msec) {
 	QM_D(QmAbsTimer);
-	if (!timestamp->impl->reftimer.isValid())
+	if (!timestamp.impl->isValid())
 		return false;
 	if (isActive())
 		stop();
 	d->is_active = true;
-	d->qt_adapter->start(qMax((qint64)0, (qint64)msec - timestamp->impl->reftimer.elapsed()));
+	d->qt_adapter->start(qMax((qint64)0, (qint64)msec - timestamp.impl->getValue()));
 	return true;
 }
 

@@ -42,7 +42,7 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 	atu_controller = new AtuController(atu_uart_resource, this);
 	atu_controller->modeChanged.connect(sigc::mem_fun(this, &Dispatcher::processAtuModeChange));
 	atu_controller->requestTx.connect(sigc::mem_fun(this, &Dispatcher::processAtuRequestTx));
-	main_service = new MainServiceInterface(this);
+	main_service = new MainServiceInterface(this, navigator);
 	voice_service = new VoiceServiceInterface(this);
 
 }
