@@ -515,7 +515,7 @@ void DspController::changePswfRxFrequency()
 			success_pswf = 30;
 			command_rx30 = 0;
 			if (pswf_ack) {
-				startPSWFTransmitting(false, ContentPSWF.R_ADR, ContentPSWF.COM_N);
+                startPSWFTransmitting(false, ContentPSWF.R_ADR, ContentPSWF.COM_N,0); //TODO:
 			} else {
 				qmDebugMessage(QmDebug::Dump, "radio_state = radiostateSync");
 				radio_state = radiostateSync;
@@ -536,7 +536,7 @@ void DspController::changePswfRxFrequency()
 void DspController::changeSmsRxFrequency()
 {
 	getDataTime();
-	ContentSms.Frequency = getFrequencyPswf();
+    ContentSms.Frequency =  getFrequencySms();//getFrequencyPswf();
 
 	ParameterValue param;
 	param.frequency = ContentSms.Frequency;
@@ -610,6 +610,30 @@ int DspController::getFrequencyPswf()
     return fr_sh;
 }
 
+int DspController::getFrequencySms()
+{
+    int fr_sh = CalcSmsTransmitFreq(ContentPSWF.RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
+    fr_sh += 1622;
+
+    fr_sh = fr_sh * 1000; // Гц
+
+    for(int i = 0; i<32;i+=2)
+    {
+        if((fr_sh >= frequence_bandwidth[i]) && (fr_sh <= frequence_bandwidth[i+1]))
+        {
+            break;
+        }else{
+            fr_sh += (frequence_bandwidth[i+2] - frequence_bandwidth[i+1]);
+        }
+    }
+
+    qmDebugMessage(QmDebug::Dump,"frequency:  %d ", fr_sh);
+
+    return fr_sh;
+}
+
+
+
 
 int DspController::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
 {
@@ -642,11 +666,16 @@ int DspController::CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, in
     else wzn  = 0;
     int SEC_MLT = wz_base + (SEC % 6);
 
-    if ((ContentSms.stage != StageTx_quit) && (ContentSms.stage !=StageRx_quit)){
+    if ((ContentSms.stage == StageTx_call) || (ContentSms.stage == StageRx_call) ||
+            (ContentSms.stage == StageTx_call_ack) || (ContentSms.stage == StageRx_call_ack)) {
+        FR_SH = (RN_KEY + 73 + 230*SEC_MLT + 17*MIN + 29*HRS + 43*DAY)% TOT_W;
+        qmDebugMessage(QmDebug::Dump, "Calc freq sms tx formula %d", FR_SH);
+    }
+    if ((ContentSms.stage == StageTx_data) || (ContentSms.stage == StageRx_data) ){
         FR_SH = (RN_KEY + 3*SEC + 230*SEC_MLT + 17*MIN + 29*HRS + 43*DAY)% TOT_W;
         qmDebugMessage(QmDebug::Dump, "Calc freq sms quit formula %d", FR_SH);
     }
-    else{
+    if ((ContentSms.stage == StageTx_quit) || (ContentSms.stage == StageRx_quit)){
         FR_SH = (RN_KEY + 5*SEC + 230*SEC_MLT + 17*MIN + 29*HRS + 43*DAY)% TOT_W;
         qmDebugMessage(QmDebug::Dump, "Calc freq sms formula %d", FR_SH);
     }
@@ -1692,7 +1721,7 @@ void *DspController::getContentPSWF()
 
 void DspController::sendSms(Module module)
 {
-    ContentSms.Frequency = getFrequencyPswf();
+    ContentSms.Frequency =  getFrequencySms();//getFrequencyPswf();
     ContentSms.indicator = 20;
     ContentSms.SNR =  7;
 
@@ -1994,11 +2023,13 @@ void DspController::startPSWFReceiving(bool ack) {
 	radio_state = radiostatePswfRxPrepare;
 }
 
-void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd) {
+void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,int retr) {
 	qmDebugMessage(QmDebug::Dump, "startPSWFTransmitting(%d, %d, %d)", ack, r_adr, cmd);
     QM_ASSERT(is_ready);
     if (!resyncPendingCommand())
         return;
+
+     pswf_retranslator = retr;
 
     pswf_ack = ack;
     getDataTime();
@@ -2028,7 +2059,7 @@ void DspController::startSMSRecieving(SmsStage stage)
 //        return;
 
     getDataTime();
-    ContentSms.Frequency = getFrequencyPswf();
+    ContentSms.Frequency =   getFrequencySms();//getFrequencyPswf();
 
 //    if (ContentSms.stage == StageNone)
 //    recievedSmsBuffer.erase(recievedSmsBuffer.begin(),recievedSmsBuffer.end());
@@ -2058,7 +2089,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     QM_ASSERT(is_ready);
 
     getDataTime();
-    ContentSms.Frequency = getFrequencyPswf();
+    ContentSms.Frequency =  getFrequencySms(); //getFrequencyPswf();
 
     ContentSms.indicator = 20;
     ContentSms.TYPE = 0;

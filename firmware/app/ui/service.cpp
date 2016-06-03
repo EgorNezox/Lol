@@ -582,10 +582,12 @@ void Service::keyPressed(UI_Key key)
                 if ( menu->txCondCommStatus > size )
                 {
 #ifndef _DEBUG_
+                    // [0] - cmd, [1] - raddr, [2] - retrans
+                    // bool menu->useRETRANS
                     	if (estate.listItem.size() == 1)
                     		voice_service->TurnPSWFMode(1, 0, param[0]);
                     	else if (estate.listItem.size() == 2)
-                    		voice_service->TurnPSWFMode(1, param[0], param[1]);
+                            voice_service->TurnPSWFMode(1, param[0], param[1],(int)menu->useRetrans);
 
                         for(auto &k: estate.listItem)
                         {
