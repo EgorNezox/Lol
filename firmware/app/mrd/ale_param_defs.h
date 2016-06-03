@@ -40,10 +40,10 @@
 #define ALE_TIME_TMaxOpenTuneX	qmMax(ALE_TIME_TOpenTx, ALE_TIME_TTuneRx)
 
 /* Из таблицы констант, зависящих от режима синхронизации времени */
-#define ALE_TIME_dTSyn		250
-#define ALE_TIME_Tdwell		5000
-#define ALE_TIME_dTdwell	551
-#define ALE_TIME_TCall		2128
+#define ALE_TIME_dTSyn			250
+#define ALE_TIME_Tdwell			5000
+#define ALE_TIME_dTDwellLeft	266
+#define ALE_TIME_TCall			2128
 
 /* Из перечня констант для цикла передачи данных сеанса голосовой почты */
 #define ALE_TIME_dTSynPacket(sform)	((sform == -1)?(100):(0))
