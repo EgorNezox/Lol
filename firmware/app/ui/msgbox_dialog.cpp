@@ -3,7 +3,6 @@
 #include "dialogs.h"
 #include "texts.h"
 #include "qmdebug.h"
-//#include <string.h>
 #include <stdio.h>
 
 //----------DEFINES------------
@@ -66,9 +65,10 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
     text_area_params.element.align = align;
     this->title = p_title;
 
-    char sym[3]; sym[2] = '\0';
+    char sym[3];
     sprintf(sym,"%d",p_text);
-    memcpy(&this->text, &sym, 2);
+    sym[2] = '\0';
+    memcpy(&this->text, &sym, 3);
 }
 
 GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
@@ -97,8 +97,8 @@ void GUI_Dialog_MsgBox::setCmd(int cmd)
 {
     char sym[3];
     sprintf(sym,"%d", cmd);
-    memcpy(&text[0], &sym, 2);
     sym[2] = '\0';
+    memcpy(&this->text, &sym, 3);
 }
 
 GUI_Dialog_MsgBox::~GUI_Dialog_MsgBox()
@@ -145,7 +145,7 @@ void GUI_Dialog_MsgBox::Draws(){
   GUI_EL_Button   ok_button( &GUI_EL_TEMP_LabelButton, &button_geom, ok_texts[/*service->getLanguage()*/0], bs_unselected, (GUI_Obj *)this);
 
   MoonsGeometry sliderArea  = { window_geom.xe - 4*MARGIN, title_area_geom.ye, window_geom.xe - 2*MARGIN, button_geom.ys-5};
-  SliderParams sliderParams = {(int32_t)list_size, (int32_t)list_size-1, (int32_t)position};
+  SliderParams sliderParams = {(int32_t)list_size, (int32_t)1, (int32_t)position};
   GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
 
   window.Draw();

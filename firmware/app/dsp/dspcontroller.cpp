@@ -1212,25 +1212,45 @@ void DspController::sendPswf(Module module) {
     ContentPSWF.TYPE = 0;
     ContentPSWF.SNR =  9;
 
-	uint8_t tx_address = 0x72;
-	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
-	int tx_data_len = 0;
-	qmToBigEndian((uint8_t)ContentPSWF.indicator, tx_data + tx_data_len);
-	++tx_data_len;
-	qmToBigEndian((uint8_t)ContentPSWF.TYPE, tx_data + tx_data_len);
-	++tx_data_len;
-	qmToBigEndian((uint32_t)ContentPSWF.Frequency, tx_data + tx_data_len);
-	tx_data_len += 4;
-	qmToBigEndian((uint8_t)ContentPSWF.SNR, tx_data+tx_data_len);
-	++tx_data_len;
-	qmToBigEndian((uint8_t)ContentPSWF.R_ADR, tx_data+tx_data_len);
-	++tx_data_len;
-	qmToBigEndian((uint8_t)ContentPSWF.S_ADR, tx_data+tx_data_len);
-	++tx_data_len;
-	qmToBigEndian((uint8_t)ContentPSWF.COM_N, tx_data+tx_data_len);
+    uint8_t tx_address = 0x72;
+    uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
+    int tx_data_len = 0;
+    qmToBigEndian((uint8_t)ContentPSWF.indicator, tx_data + tx_data_len);
     ++tx_data_len;
-	qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data+tx_data_len);
-	++tx_data_len;
+    qmToBigEndian((uint8_t)ContentPSWF.TYPE, tx_data + tx_data_len);
+    ++tx_data_len;
+    qmToBigEndian((uint32_t)ContentPSWF.Frequency, tx_data + tx_data_len);
+    tx_data_len += 4;
+    qmToBigEndian((uint8_t)ContentPSWF.SNR, tx_data+tx_data_len);
+    ++tx_data_len;
+
+    if (pswf_retranslator == 0)
+    {
+    	qmToBigEndian((uint8_t)ContentPSWF.R_ADR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentPSWF.S_ADR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentPSWF.COM_N, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data+tx_data_len);
+    	++tx_data_len;
+    }
+
+    else
+    {
+    	ContentPSWF.S_ADR = ContentPSWF.R_ADR + 32;
+    	ContentPSWF.L_CODE = (ContentPSWF.L_CODE + ContentPSWF.RET_end_adr) % 100;
+    	pswf_retranslator = 0;
+
+    	qmToBigEndian((uint8_t)ContentPSWF.RET_end_adr, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentPSWF.S_ADR, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentPSWF.COM_N, tx_data+tx_data_len);
+    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data+tx_data_len);
+    	++tx_data_len;
+    }
 
 
 	QM_ASSERT(pending_command->in_progress == false);
@@ -2093,10 +2113,15 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     ContentGuc.chip_time = 2;
     ContentGuc.WIDTH_SIGNAL = 1;
     ContentGuc.S_ADR = 1;
-    ContentGuc.R_ADR = 1;
+    ContentGuc.R_ADR = r_adr;
 
-    int num_cmd = command.size(); //strlen((const char*) command);
-    ContentGuc.NUM_com = 5;
+//    command.clear();
+//    for(int i = 0; i < 100; i++){
+//    	command.push_back(i+1);
+//    }
+
+    uint8_t num_cmd = command.size(); //strlen((const char*) command);
+    ContentGuc.NUM_com = num_cmd;
 
 
     for(int i = 0;i<100;i++) ContentGuc.command[i] = 0;
@@ -2124,7 +2149,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     gucTxStateSync = 0;
     ContentGuc.stage =  GucTx;
 
-    for(int i = 0; i<num_cmd;i++) command[i] = 0;
+    command.clear();
 }
 
 void DspController::startGucTransmitting()
@@ -2251,7 +2276,7 @@ uint8_t* DspController::get_guc_vector()
 		 guc_text[i+1] = guc_vector.at(0).at(7+i);
 	}
 
-	//guc_vector.clear();
+	guc_vector.clear();
 
 	return guc_text;
 }

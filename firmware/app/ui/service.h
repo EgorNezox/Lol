@@ -145,9 +145,10 @@ private:
     int isFreq = 0;
     int command_rx_30 = 0;
     bool gpsSynchronization = true;
+    uint8_t* vect = nullptr;
 
-    int voiceStatusTest = 10;
-
+#ifdef _DEBUG_    int voiceStatusTest = 10;
+#endif
     //
     std::vector<int> guc_command_vector;
     int position = 0;
