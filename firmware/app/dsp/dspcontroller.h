@@ -314,10 +314,12 @@ private:
 
 
     int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
+    int CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int prevSecond(int second);
 
     void RecievedPswf();
     int getFrequencyPswf();
+
 
     void getSwr();
     void transmitPswf();

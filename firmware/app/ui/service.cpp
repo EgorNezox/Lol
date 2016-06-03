@@ -2042,7 +2042,6 @@ void Service::gucFrame()
 {
     const char *sym = "Recieved packet for station\0";
     vect = voice_service->getGucCommand();
-    int num = vect[0];
     char ch[3]; sprintf(ch, "%d", vect[position]); ch[2] = '\0';
     guiTree.append(messangeWindow, sym, ch);
     msgBox( "Recieved Guc\0", vect[position], vect[0], position);
