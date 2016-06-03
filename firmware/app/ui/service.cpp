@@ -496,13 +496,13 @@ void Service::keyPressed(UI_Key key)
             switch (menu->txCondCommStatus)
             {
             case 1:
-            { // с ретранслятором/ без ретранстятора
+            { // пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ/ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (key == keyUp || key == keyDown)
                 { menu->useRetrans = menu->useRetrans ? false : true; }
                 break;
             }
             case 2:
-            { // ввод адреса получателя
+            { // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if ( key > 5 && key < 16)
                 {
                     auto iter = estate.listItem.begin();
@@ -519,7 +519,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 3:
-            { // ввод адреса ретранслятора
+            { // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if ( key > 5 && key < 16)
                 {
                     auto iter = estate.listItem.begin();
@@ -536,7 +536,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 4:
-            { // ввод условной команды
+            { // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if ( key > 5 && key < 16)
                 {
                     auto iter = estate.listItem.begin();
@@ -585,7 +585,7 @@ void Service::keyPressed(UI_Key key)
                     // [0] - cmd, [1] - raddr, [2] - retrans
                     // bool menu->useRETRANS
                     	if (estate.listItem.size() == 1)
-                    		voice_service->TurnPSWFMode(1, 0, param[0]);
+                    		voice_service->TurnPSWFMode(1, 0, param[0],0);
                     	else if (estate.listItem.size() == 2)
                             voice_service->TurnPSWFMode(1, param[0], param[1],(int)menu->useRetrans);
 
