@@ -947,8 +947,9 @@ void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)
         else
         {
             keyPressCount = 0;
-            prevKey = key;
         }
+
+        prevKey = key;
 
         auto elem = state.listItem.back();
 //        if ( (elem->inputStr.size() > 0) && (elem->inputStr.size()%16 == 0) )

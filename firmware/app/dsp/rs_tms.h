@@ -11,7 +11,7 @@ namespace Galua
 {
 
 #define MAX_GALUA_FIELD_SIZE	12
-#define	MAX_CODE_LENGTH			1<<MAX_GALUA_FIELD_SIZE
+#define	MAX_CODE_LENGTH			(1<<MAX_GALUA_FIELD_SIZE)
 //#define	MIN_INFO_SYMBOLS_NUM	64
 
 #define B0					1

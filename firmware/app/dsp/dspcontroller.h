@@ -151,9 +151,9 @@ uint8_t* get_guc_vector();
     sigc::signal<void> smsPacketMessage;
     sigc::signal<void, ModemPacketType/*type*/> transmittedModemPacket;
     sigc::signal<void> failedTxModemPacket;
-    sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> receivedModemPacket;
-    sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket;
-    sigc::signal<void, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket_packHead;
+    sigc::signal<void, ModemPacketType/*type*/, int8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> receivedModemPacket;
+    sigc::signal<void, ModemPacketType/*type*/, int8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket;
+    sigc::signal<void, int8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket_packHead;
     sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
 sigc::signal<void> recievedGucResp;
 
@@ -253,6 +253,7 @@ private:
         uint8_t L_CODE;
         uint8_t RN_KEY;
         uint8_t Conditional_Command;
+        uint8_t RET_end_adr;
     } ContentPSWF;
 
 
@@ -313,10 +314,12 @@ private:
 
 
     int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
+    int CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int prevSecond(int second);
 
     void RecievedPswf();
     int getFrequencyPswf();
+
 
     void getSwr();
     void transmitPswf();
@@ -408,6 +411,9 @@ private:
     int date_time[4];
     char private_lcode;
 
+
+    int pswf_retranslator = 0;
+
     std::vector< std::vector<char> > recievedPswfBuffer;
     std::vector< std::vector<uint8_t> > recievedSmsBuffer;
 
@@ -419,7 +425,7 @@ private:
 
     int rs_data_clear[255];
 
-    uint8_t guc_text[50];
+    uint8_t guc_text[100];
     uint8_t rec_uin_guc;
     uint8_t rec_s_adr;
     int guc_tx_num;
