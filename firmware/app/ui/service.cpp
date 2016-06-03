@@ -506,7 +506,7 @@ void Service::keyPressed(UI_Key key)
                 if ( key > 5 && key < 16)
                 {
                     auto iter = estate.listItem.begin();
-                    (*iter)++;
+                    (*iter)++;(*iter)++;
                     if ( (*iter)->inputStr.size() < 2 )
                     {
                         (*iter)->inputStr.push_back((char)(42+key));
@@ -523,7 +523,7 @@ void Service::keyPressed(UI_Key key)
                 if ( key > 5 && key < 16)
                 {
                     auto iter = estate.listItem.begin();
-                    (*iter)++;(*iter)++;
+                    (*iter)++;
                     if ( (*iter)->inputStr.size() < 2 )
                     {
                         (*iter)->inputStr.push_back((char)(42+key));
@@ -584,6 +584,12 @@ void Service::keyPressed(UI_Key key)
 #ifndef _DEBUG_
                     // [0] - cmd, [1] - raddr, [2] - retrans
                     // bool menu->useRETRANS
+					int param[3], i = 0;
+                    for(auto &k: estate.listItem)
+                    {
+                        param[i] = atoi(k->.c_str());
+                        i++;
+                    }
                     	if (estate.listItem.size() == 1)
                     		voice_service->TurnPSWFMode(1, 0, param[0],0);
                     	else if (estate.listItem.size() == 2)
@@ -596,6 +602,8 @@ void Service::keyPressed(UI_Key key)
 #else
                     menu->txCondCommStatus = 1;
                     guiTree.resetCurrentState();
+                    for(auto &k: estate.listItem)
+                        k->inputStr.clear();
 #endif
                 }
                 break;
@@ -607,7 +615,7 @@ void Service::keyPressed(UI_Key key)
                 if (menu->txCondCommStatus == 2)
                 {
                     // R_ADR
-                    (*iter)++;
+                    (*iter)++;(*iter)++;
                     if ((*iter)->inputStr.size() > 0)
                         (*iter)->inputStr.pop_back();
                     else
@@ -616,7 +624,7 @@ void Service::keyPressed(UI_Key key)
                 else if(menu->txCondCommStatus == 3)
                 {
                     // Retrans
-                    (*iter)++;(*iter)++;
+                    (*iter)++;
                     if ((*iter)->inputStr.size() > 0)
                         (*iter)->inputStr.pop_back();
                     else
@@ -650,6 +658,8 @@ void Service::keyPressed(UI_Key key)
                     {
                         menu->txCondCommStatus = 1;
                         guiTree.backvard();
+                        for(auto &k: estate.listItem)
+                            k->inputStr.clear();
                     }
                 }
             }

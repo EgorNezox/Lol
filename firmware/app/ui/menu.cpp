@@ -140,7 +140,7 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     }
     case 2:
     { // ввод адреса получателя
-        (*iter)++;
+        (*iter)++;(*iter)++;
         if ((*iter)->inputStr.size() == 0)
             str.append("--");
         else if ((*iter)->inputStr.size() == 1)
@@ -152,7 +152,6 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     }
     case 3:
     { // ввод адреса ретранслятора
-        (*iter)++;
         (*iter)++;
         if ((*iter)->inputStr.size() == 0)
             str.append("--");
