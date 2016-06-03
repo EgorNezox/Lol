@@ -74,6 +74,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     guc_command_vector.push_back(2);
     guc_command_vector.push_back(15);
     guc_command_vector.push_back(54);
+    guc_command_vector.push_back(4);
+    guc_command_vector.push_back(5);
+    guc_command_vector.push_back(14);
     msgBox( guiTree.getCurrentState().getName(), guc_command_vector.at(position), guc_command_vector.size(), position );
     guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
     command_rx_30 = 0;
@@ -1734,7 +1737,13 @@ void Service::drawMainWindow()
 
     main_scr->oFreq.clear();
     char mas[11];
-    sprintf(mas,"%d",/*voice_service->getCurrentChannelFrequency()*/1);
+
+#ifdef _DEBUG_
+    sprintf(mas,"%d",1);
+#else
+    sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
+#endif
+
     std::string freq(mas);
     main_scr->oFreq.append(freq);
     main_scr->setFreq(freq.c_str());
@@ -2009,7 +2018,6 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     } else {
     	menu->coord_log.append((char*)date.longitude);
     }
-
 
     std::string str;
     str.push_back((char)date.data[0]);

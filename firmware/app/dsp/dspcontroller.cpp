@@ -2126,7 +2126,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     gucTxStateSync = 0;
     ContentGuc.stage =  GucTx;
 
-    for(int i = 0; i<num_cmd;i++) command[i] = 0;
+    //for(int i = 0; i<num_cmd;i++) command[i] = 0;
 }
 
 void DspController::startGucTransmitting()

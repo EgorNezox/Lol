@@ -1080,6 +1080,50 @@ void CGuiMenu::initTxSmsDialog(const char* titleStr, std::string addrStr, std::s
 
 void CGuiMenu::initTxGroupCondComm(CEndState state)
 {
+    std::string str, buttonStr;
+    auto iter = state.listItem.begin();
+
+
+
+    switch (txGroupCondCommStatus)
+    {
+    case 1:
+    { // ввод частоты передачи
+        str = (*iter)->inputStr; str.append(" ")\
+                                    .append(freq_hz);
+        buttonStr.append("next");
+        break;
+    }
+    case 2:
+    { // ввод частоты приема
+        (*iter)++;
+        str = (*iter)->inputStr;  str.append(" ")\
+                                     .append(freq_hz);
+        buttonStr.append("next");
+        break;
+    }
+    case 3:
+    { // ввод адреса получателя
+        (*iter)++;
+        (*iter)++;
+        str = (*iter)->inputStr;
+        buttonStr.append("next");
+        break;
+    }
+    case 4:
+    { // ввод сообщения
+        (*iter)++;
+        (*iter)++;
+        (*iter)++;
+        str = (*iter)->inputStr;
+        buttonStr.append("send");
+        break;
+    }
+    default:
+    {
+        break;
+    }
+    }
                   titleArea   = { 5,  5, 150,  20 };
     MoonsGeometry addrArea    = { 7, 20, 147,  40 };
     MoonsGeometry volume_geom = { 7, 35, 147, 100 };
@@ -1093,22 +1137,15 @@ void CGuiMenu::initTxGroupCondComm(CEndState state)
 
     if ( focus == 2 ) param[2].transparent = false;
 
-    std::string str1, str2;
-
-    if ( focus == 0 ){ str1.append("->"); }else{ /*if (focus != 2)*/str1.append("  "); }
-    if ( focus == 1 ){ str2.append("->"); }else{ /*if (focus != 2)*/str2.append("  "); }
-    str1.append(smsText[0]);
-    str2.append(smsText[1]);
-
-    GUI_EL_Window   window    (&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
-    GUI_EL_Label    title     ( &titleParams,              &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
-    GUI_EL_TextArea addr      (&param[0],                  &addrArea,    (char*)str1.c_str(),     (GUI_Obj *)this);
-    GUI_EL_TextArea volume    (&param[1],                  &volume_geom, (char*)str2.c_str(),     (GUI_Obj *)this);
+    GUI_EL_Window   window    (&GUI_EL_TEMP_WindowGeneral, &windowArea,                            (GUI_Obj *)this);
+    GUI_EL_Label    title     (&titleParams,               &titleArea,   (char*)titleStr.c_str(),  (GUI_Obj *)this);
+    GUI_EL_TextArea field     (&param[0],                  &addrArea,    (char*)str.c_str(),       (GUI_Obj *)this);
+    GUI_EL_Label    ok_button (&param[1],                  &volume_geom, (char*)buttonStr.c_str(), (GUI_Obj *)this);
 
     window.Draw();
     title.Draw();
-    addr.Draw();
-    volume.Draw();
+    field.Draw();
+    ok_button.Draw();
 }
 
 void CGuiMenu::initRxSmsDialog()
