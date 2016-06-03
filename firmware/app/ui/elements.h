@@ -74,7 +74,7 @@ class GUI_EL_Label: public GUI_Element{
 		ColorScheme color_sch;
 	protected:
 		void CalcContentGeom();
-		char text[MAX_LABEL_LENGTH];
+        char text[MAX_LABEL_LENGTH+5];
 };
 
 struct IconParams{

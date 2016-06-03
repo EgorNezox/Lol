@@ -141,7 +141,12 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     case 2:
     { // ввод адреса получателя
         (*iter)++;
-        str = (*iter)->inputStr;
+        if ((*iter)->inputStr.size() == 0)
+            str.append("--");
+        else if ((*iter)->inputStr.size() == 1)
+        { str.append("-"); }
+
+        str.append((*iter)->inputStr);
         labelStr.append(condCommStr[0]);
         break;
     }
@@ -149,34 +154,45 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     { // ввод адреса ретранслятора
         (*iter)++;
         (*iter)++;
-        str = (*iter)->inputStr;
+        if ((*iter)->inputStr.size() == 0)
+            str.append("--");
+        else if ((*iter)->inputStr.size() == 1)
+        { str.append("-"); }
+
+        str.append((*iter)->inputStr);
         labelStr.append(condCommStr[1]);
         break;
     }
     case 4:
     { // ввод условной команды
-        str = (*iter)->inputStr;
+        if ((*iter)->inputStr.size() == 0)
+            str.append("--");
+        else if ((*iter)->inputStr.size() == 1)
+        { str.append("-"); }
+
+        str.append((*iter)->inputStr);
         labelStr.append(condCommStr[2]);
         break;
     }
     case 5:
     { // send
-        labelStr.append(startAleTxVoiceMailStr);
+        labelStr.append(condCommSendStr);
         break;
     }
     default:
     {break;}
     }
 
-    titleParams = GUI_EL_TEMP_LabelTitle;
-    //titleParams.element.align = {alignHCenter, alignVCenter};
+    LabelParams params = GUI_EL_TEMP_LabelMode;
+    params.element.align = {alignHCenter, alignVCenter};
+    params.transparent = true;
 
     MoonsGeometry localLabelArea = { 7, 25, 150,  55 };
     MoonsGeometry localFieldArea = { 7, 60, 150, 125 };
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                               (GUI_Obj *)this);
     GUI_EL_Label  label (&GUI_EL_TEMP_LabelTitle,    &localLabelArea,  (char*)labelStr.c_str(), (GUI_Obj *)this);
-    GUI_EL_Label  field (&titleParams,               &localFieldArea,  (char*)str.c_str(),      (GUI_Obj *)this);
+    GUI_EL_Label  field (&params,                    &localFieldArea,  (char*)str.c_str(),      (GUI_Obj *)this);
 
     window.Draw();
     label.Draw();

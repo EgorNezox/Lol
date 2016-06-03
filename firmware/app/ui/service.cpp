@@ -546,7 +546,7 @@ void Service::keyPressed(UI_Key key)
                         (*iter)->inputStr.push_back((char)(42+key));
                         // check
                         int rc = atoi((*iter)->inputStr.c_str());
-                        if ( rc > 31 )
+                        if ( rc > 99 )
                         { (*iter)->inputStr.clear(); }
                     }
                 }
@@ -563,9 +563,8 @@ void Service::keyPressed(UI_Key key)
                 int size = 5;
 
                 // next field
-                if (menu->txCondCommStatus < size )
+                if (menu->txCondCommStatus <= size )
                 {
-                    menu->txCondCommStatus++;
                     if (menu->txCondCommStatus == 1 && estate.listItem.size() == 2)
                     {
                         menu->txCondCommStatus++;
@@ -576,11 +575,11 @@ void Service::keyPressed(UI_Key key)
                     {
                         menu->txCondCommStatus++;
                     }
-
+                    menu->txCondCommStatus++;
                 }
 
                 // send
-                if ( menu->txCondCommStatus == size )
+                if ( menu->txCondCommStatus > size )
                 {
 #ifndef _DEBUG_
                     	if (estate.listItem.size() == 1)
@@ -605,6 +604,8 @@ void Service::keyPressed(UI_Key key)
 
                 if (menu->txCondCommStatus == 2)
                 {
+                    // R_ADR
+                    (*iter)++;
                     if ((*iter)->inputStr.size() > 0)
                         (*iter)->inputStr.pop_back();
                     else
@@ -612,23 +613,42 @@ void Service::keyPressed(UI_Key key)
                 }
                 else if(menu->txCondCommStatus == 3)
                 {
-                    (*iter)++;
-                    if ((*iter)->inputStr.size() > 0)
-                        (*iter)->inputStr.pop_back();
-                    else
-                        menu->txCondCommStatus--;
-                }
-                else if(menu->txCondCommStatus == 4)
-                {
+                    // Retrans
                     (*iter)++;(*iter)++;
                     if ((*iter)->inputStr.size() > 0)
                         (*iter)->inputStr.pop_back();
                     else
+                    {
                         menu->txCondCommStatus--;
+                        if (estate.listItem.size() == 2)
+                            menu->txCondCommStatus--;
+                    }
+                }
+                else if(menu->txCondCommStatus == 4)
+                {
+                    // CMD
+                    if ((*iter)->inputStr.size() > 0)
+                        (*iter)->inputStr.pop_back();
+                    else
+                    {
+                        menu->txCondCommStatus--;
+                        if (!menu->useRetrans)
+                        {
+                            menu->txCondCommStatus--;
+                            if (estate.listItem.size() == 2)
+                                menu->txCondCommStatus--;
+                        }
+                    }
                 }
                 else
                 {
-                    menu->txCondCommStatus--;
+                    if (menu->txCondCommStatus > 1)
+                        menu->txCondCommStatus--;
+                    else
+                    {
+                        menu->txCondCommStatus = 1;
+                        guiTree.backvard();
+                    }
                 }
             }
             default:
@@ -656,7 +676,7 @@ void Service::keyPressed(UI_Key key)
                 {
                     //TODO: temp fix))
 
-                    int param[2]; // 0 -R_ADR, 1 - COM_N
+                    int param[2]; // 0 - R_ADR, 1 - COM_N
 
                     int i = 0;
 
