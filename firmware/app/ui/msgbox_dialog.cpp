@@ -3,7 +3,6 @@
 #include "dialogs.h"
 #include "texts.h"
 #include "qmdebug.h"
-//#include <string.h>
 #include <stdio.h>
 
 //----------DEFINES------------
@@ -66,9 +65,10 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
     text_area_params.element.align = align;
     this->title = p_title;
 
-    char sym[3]; sym[2] = '\0';
+    char sym[3];
     sprintf(sym,"%d",p_text);
-    memcpy(&this->text, &sym, 2);
+    sym[2] = '\0';
+    memcpy(&this->text, &sym, 3);
 }
 
 GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
@@ -97,8 +97,8 @@ void GUI_Dialog_MsgBox::setCmd(int cmd)
 {
     char sym[3];
     sprintf(sym,"%d", cmd);
-    memcpy(&text[0], &sym, 2);
     sym[2] = '\0';
+    memcpy(&this->text, &sym, 3);
 }
 
 GUI_Dialog_MsgBox::~GUI_Dialog_MsgBox()

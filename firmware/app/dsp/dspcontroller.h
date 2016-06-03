@@ -253,6 +253,7 @@ private:
         uint8_t L_CODE;
         uint8_t RN_KEY;
         uint8_t Conditional_Command;
+        uint8_t RET_end_adr;
     } ContentPSWF;
 
 
@@ -408,6 +409,9 @@ private:
     int date_time[4];
     char private_lcode;
 
+
+    int pswf_retranslator = 0;
+
     std::vector< std::vector<char> > recievedPswfBuffer;
     std::vector< std::vector<uint8_t> > recievedSmsBuffer;
 
@@ -419,7 +423,7 @@ private:
 
     int rs_data_clear[255];
 
-    uint8_t guc_text[50];
+    uint8_t guc_text[100];
     uint8_t rec_uin_guc;
     uint8_t rec_s_adr;
     int guc_tx_num;

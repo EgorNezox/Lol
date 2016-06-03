@@ -68,14 +68,14 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
-//    guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
-//    msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
-
-    guc_command_vector.push_back(2);
-    guc_command_vector.push_back(15);
-    guc_command_vector.push_back(54);
-    msgBox( guiTree.getCurrentState().getName(), guc_command_vector.at(position), guc_command_vector.size(), position );
     guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
+    msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
+
+//    guc_command_vector.push_back(2);
+//    guc_command_vector.push_back(15);
+//    guc_command_vector.push_back(54);
+//    msgBox( guiTree.getCurrentState().getName(), guc_command_vector.at(position), guc_command_vector.size(), position );
+//    guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
     command_rx_30 = 0;
 
     voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
@@ -437,16 +437,16 @@ void Service::keyPressed(UI_Key key)
                 msg_box = nullptr;
             }
 
-            guc_command_vector.clear();
-            position = 0;
+            vect = nullptr;
+            position = 1;
         }
         else
         {
-            if (guc_command_vector.size() > 0)
+            if (vect != nullptr)
             {
-                if (key == keyUp && position > 0)
+                if (key == keyUp && position > 1)
                 { position--; }
-                if (key == keyDown && position < guc_command_vector.size()-1)
+                if (key == keyDown && position < vect[0])
                 { position++; }
                 //msg_box->setCmd(msg_box_vector.at(position));
             }
@@ -769,6 +769,7 @@ void Service::keyPressed(UI_Key key)
                         }
                         int r_adr = 0;//atoi(mas[0]);
                         int speed = 0;//atoi(mas[1]);
+                        guc_command_vector.clear();
                         parsingGucCommand((uint8_t*)str);
                         voice_service->TurnGuc(r_adr,speed,guc_command_vector);
 #else
@@ -1934,12 +1935,12 @@ void Service::draw()
     case messangeWindow:
     {
         int cmd = atoi(currentState.getText());
-        if (guc_command_vector.size() > 0)
-                		msgBox(currentState.getName(), guc_command_vector.at(position), guc_command_vector.size(), position);
+        if (vect != nullptr)
+                		msgBox(currentState.getName(), vect[position], vect[0], position);
         else
         if ( cmd >= 0 && cmd < 100)
-            if (guc_command_vector.size() > 0)
-                msgBox(currentState.getName(), guc_command_vector.at(position), guc_command_vector.size(), position);
+            if (vect != nullptr)
+                msgBox(currentState.getName(), vect[position], vect[0], position);
             else
                 msgBox( currentState.getName(), cmd );
         	else
@@ -2035,9 +2036,9 @@ void Service::setCoordDate(Navigation::Coord_Date date)
 void Service::gucFrame()
 {
     const char *sym = "Recieved packet for station\0";
-    uint8_t* vect = voice_service->getGucCommand();
+    vect = voice_service->getGucCommand();
     int num = vect[0];
-    char ch[3]; sprintf(ch, "%d", vect[position]);
+    char ch[3]; sprintf(ch, "%d", vect[position]); ch[2] = '\0';
     guiTree.append(messangeWindow, sym, ch);
     msgBox( "Recieved Guc\0", vect[position], vect[0], position);
 }
