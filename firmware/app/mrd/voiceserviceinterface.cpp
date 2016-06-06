@@ -114,13 +114,13 @@ void VoiceServiceInterface::TurnAGCMode(uint8_t mode, int radio_path)
     dispatcher->dsp_controller->setAGCParameters(mode, radio_path);
 }
 
-void VoiceServiceInterface::TurnPSWFMode(uint8_t mode,int R_ADR,int COM_N)
+void VoiceServiceInterface::TurnPSWFMode(uint8_t mode, int R_ADR, int COM_N, int retr)
 {
     // нам важны только дата и время, с GUI и GPS решает service
     if (mode == 0) {
     	dispatcher->dsp_controller->startPSWFReceiving(false);
     } else {
-    	dispatcher->dsp_controller->startPSWFTransmitting(false, R_ADR, COM_N);
+        dispatcher->dsp_controller->startPSWFTransmitting(false, R_ADR, COM_N,retr);
     }
 }
 

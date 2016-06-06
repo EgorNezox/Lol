@@ -44,11 +44,11 @@ public:
     virtual ~CGuiMenu();
     void Draw();
 
-    int focus;
+    uint8_t focus;
     void initItems(std::list<std::string>, const char*, int);
     void initDialog(CEndState);
     void initCondCommDialog(CEndState);
-    void initGroupCondComm(CEndState);
+    void initGroupCondCmd(CEndState);
     void initVolumeDialog();
     void initScanDialog();
     void initAruarmDialog();
@@ -66,8 +66,14 @@ public:
     std::string dstAddr, newDstAddr;
     std::string message, newMessage;
 
-    // call
+    // tx cond cmd
+    bool useRetrans = false;
+    int txCondCmdStatus = 1;
     void setCondCommParam(CEndState, UI_Key);
+    // rx cond cmd
+    void initRxCondCmdDialog();
+    int rxCondCmdStatus = 1;
+    bool useTicket = false;
 
     // group cond comm stage
     int groupCondCommStage = 0;
