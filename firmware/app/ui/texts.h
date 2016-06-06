@@ -97,4 +97,5 @@ extern const char* voiceRxStr[];
 extern const char* voiceRxTxLabelStr[];
 extern const char* condCommStr[];
 extern const char* condCommSendStr;
+extern const char* ticketStr;
 #endif /* TEXTS_H_ */

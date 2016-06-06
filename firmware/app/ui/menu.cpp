@@ -126,7 +126,7 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     auto iter = state.listItem.begin();
 
     //[0] - CMD, [1] - R_ADDR, [2] - retrans
-    switch (txCondCommStatus)
+    switch (txCondCmdStatus)
     {
     case 1:
     { // с ретранслятором/ без ретранстятора
@@ -1174,7 +1174,38 @@ void CGuiMenu::initRxSmsDialog()
 
 }
 
-void CGuiMenu::initGroupCondComm( CEndState state )
+void CGuiMenu::initRxCondCmdDialog()
+{
+                  titleArea   = {  5,  5, 150, 20 };
+    MoonsGeometry button_geom = { 30, 40, 130, 80 };
+    LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
+    param.element.align = {alignHCenter, alignVCenter};
+    param.transparent = false;
+
+    GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                    (GUI_Obj *)this);
+    GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)ticketStr, (GUI_Obj *)this);
+
+    window.Draw();
+    title.Draw();
+
+    if (rxCondCmdStatus == 1)
+    {
+        GUI_EL_Label    ok_button ( &param, &button_geom, (char*)useScanMenu[useTicket], (GUI_Obj *)this);
+        ok_button.Draw();
+    }
+    else{
+        if (recvStage == 0)
+            param.transparent = false;
+        else
+            param.transparent = true;
+
+        GUI_EL_Label    ok_button ( &param, &button_geom, (char*)receiveStatusStr[recvStage], (GUI_Obj *)this);
+        ok_button.Draw();
+    }
+
+}
+
+void CGuiMenu::initGroupCondCmd( CEndState state )
 {
     switch( groupCondCommStage )
     {
