@@ -43,3 +43,9 @@ void QmTimestamp::invalidate() {
 void QmTimestamp::shift(long int msec) {
 	impl->value += (TickType_t)(msec/portTICK_PERIOD_MS);
 }
+
+QmTimestamp& QmTimestamp::operator =(const QmTimestamp& other) {
+	impl->valid = other.impl->valid;
+	impl->value = other.impl->value;
+	return *this;
+}
