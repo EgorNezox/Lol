@@ -596,7 +596,7 @@ void CGuiMenu::initSetDateOrTimeDialog(std::string text)
     GUI_EL_Label    title (&label_param[0],            &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
     GUI_EL_TextArea volume(&label_param[1],            &volume_geom, (char*)text.c_str(),     (GUI_Obj *)this);
 
-    if ( text.size() == 8)
+    if ( text.size() == 8 )
     {
         // нажмите enter для подтверждения
     }
@@ -611,18 +611,20 @@ void CGuiMenu::inputGroupCondCmd( CEndState state, UI_Key key )
     auto elem = state.listItem.back();
     auto newTime = std::chrono::steady_clock::now();
 
-    if ( ( newTime - ct ).count() < 800*(1000000) )
+    if ( ( newTime - ct ).count() < 900*(1000000) )
     {
         keyPressCount++;
         if ( keyPressCount > 1 )
             keyPressCount = 0;
 
         elem->inputStr.pop_back();
+        elem->inputStr.push_back(ch_key0[keyPressCount]);
     }
     else
+    {
         keyPressCount = 0;
-
-    elem->inputStr.push_back(ch_key0[keyPressCount]);
+        elem->inputStr.push_back(ch_key0[keyPressCount]);
+    }
 
     ct = std::chrono::steady_clock::now();
 }
