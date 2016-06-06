@@ -562,8 +562,10 @@ void DspController::RecievedPswf()
 //    private_lcode = navigator->Calc_LCODE(0,0,recievedPswfBuffer.at(command_rx30).at(0),1,
 //            date_time[0],date_time[1], date_time[2],prevSecond(date_time[3]));
 
-    private_lcode = navigator->Calc_LCODE(0,0,recievedPswfBuffer.at(command_rx30).at(0),1,
+    private_lcode = navigator->Calc_LCODE(ContentPSWF.R_ADR,ContentPSWF.S_ADR,recievedPswfBuffer.at(command_rx30).at(0),1,
     		date_time[0],date_time[1], date_time[2], date_time[3]); //TODO: fix receiving
+
+    // TODO: make to 32 to pswf masters
 
     qmDebugMessage(QmDebug::Dump, "private_lcode = %d,lcode = %d", private_lcode,recievedPswfBuffer.at(command_rx30).at(1));
 
@@ -1273,13 +1275,14 @@ void DspController::sendPswf(Module module) {
 
     else
     {
-    	ContentPSWF.S_ADR = ContentPSWF.R_ADR + 32;
+    	//ContentPSWF.S_ADR = ContentPSWF.R_ADR + 32;
     	ContentPSWF.L_CODE = (ContentPSWF.L_CODE + ContentPSWF.RET_end_adr) % 100;
     	pswf_retranslator = 0;
+    	ContentPSWF.RET_end_adr += 32;
 
-    	qmToBigEndian((uint8_t)ContentPSWF.RET_end_adr, tx_data+tx_data_len);
+    	qmToBigEndian((uint8_t)ContentPSWF.R_ADR, tx_data+tx_data_len);
     	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentPSWF.S_ADR, tx_data+tx_data_len);
+    	qmToBigEndian((uint8_t)ContentPSWF.RET_end_adr, tx_data+tx_data_len);
     	++tx_data_len;
     	qmToBigEndian((uint8_t)ContentPSWF.COM_N, tx_data+tx_data_len);
     	++tx_data_len;
@@ -1321,20 +1324,40 @@ void DspController::sendGuc()
     pack[1] = (ContentGuc.uin & 0x7F) << 1;
     pack[1] |= ContentGuc.Coord & 0x01;
 
+
+    for(int i = 0; i<ContentGuc.NUM_com;i++)
+    {
+    	int sdvig  = (i+1) % 8;
+    	if (sdvig != 0)
+    	ContentGuc.command[i] = (ContentGuc.command[i] << sdvig) + (ContentGuc.command[i+1] >> (7 -  sdvig));
+    }
+
+
     for(int i = 4; i >= 0; --i) {
     	qmToBigEndian((uint8_t)pack[i], tx_data + tx_data_len);
     	++tx_data_len;
     }
-    for(int i = 0; i < ContentGuc.NUM_com; ++i) {
+
+
+
+    if (ContentGuc.NUM_com <= 5) ContentGuc.NUM_com = 5;
+    if ((ContentGuc.NUM_com > 5) && (ContentGuc.NUM_com <= 11))  ContentGuc.NUM_com = 11;
+    if ((ContentGuc.NUM_com > 11) && (ContentGuc.NUM_com <= 25)) 	ContentGuc.NUM_com = 25;
+    if ((ContentGuc.NUM_com > 25) && (ContentGuc.NUM_com <= 100))  ContentGuc.NUM_com = 100;
+
+
+    for(int i = 0; i < ContentGuc.NUM_com; i++) {
+    	//ContentGuc.command[i] = ContentGuc.command[i] << ((i+1) % 8);
         qmToBigEndian((uint8_t)ContentGuc.command[i], tx_data + tx_data_len);
         ++tx_data_len;
     }
+
+
     uint32_t crc = pack_manager->CRC32(ContentGuc.command, ContentGuc.NUM_com);
-    qmToBigEndian(crc, tx_data + tx_data_len);
+    qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
     tx_data_len += 4;
 
 //            qmToBigEndian((uint8_t)ContentGuc.uin, tx_data + tx_data_len);
-//            ++tx_data_len;
 //
 //            Navigation::Coord_Date date = navigator->getCoordDate();
 //
@@ -1630,6 +1653,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 
                 	}
 				if (guc_vector.size() < 50) {
+
 					guc_vector.push_back(guc);
 				}
 
@@ -2007,7 +2031,7 @@ void DspController::startPSWFReceiving(bool ack) {
 
 	pswf_ack = ack;
 	getDataTime();
-	ContentPSWF.RN_KEY = 1;
+	ContentPSWF.RN_KEY = 0;
     ContentPSWF.Frequency = getFrequencyPswf();
 
 	ParameterValue param;
@@ -2023,13 +2047,14 @@ void DspController::startPSWFReceiving(bool ack) {
 	radio_state = radiostatePswfRxPrepare;
 }
 
-void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,int retr) {
+void DspController::startPSWFTransmitting(bool ack, uint8_t cmd, uint8_t r_adr,int retr) {
 	qmDebugMessage(QmDebug::Dump, "startPSWFTransmitting(%d, %d, %d)", ack, r_adr, cmd);
     QM_ASSERT(is_ready);
     if (!resyncPendingCommand())
         return;
 
-     pswf_retranslator = retr;
+    pswf_retranslator = retr;
+    ContentPSWF.RET_end_adr = retr;
 
     pswf_ack = ack;
     getDataTime();
@@ -2038,7 +2063,7 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
     ContentPSWF.indicator = 20;
     ContentPSWF.TYPE = 0;
     ContentPSWF.COM_N = cmd;
-    ContentPSWF.RN_KEY = 1;
+    ContentPSWF.RN_KEY = 0;
     ContentPSWF.R_ADR = r_adr;
     ContentPSWF.S_ADR = PSWF_SELF_ADR;
 
@@ -2304,6 +2329,40 @@ uint8_t* DspController::get_guc_vector()
 		 guc_text[i+1] = guc_vector.at(0).at(7+i);
 	}
 
+	uint8_t out[100];
+	for(int i = 0; i<100;i++) out[i] = 0;
+
+	int j = 0;int k = 6;
+	uint8_t byte = 0;
+	for(int i = 1;i<=num;i++)
+	{
+		for(int ind1 = 7; ind1>=0;ind1--){
+			byte = (guc_text[i] >> ind1) & 1;
+			out[j] = out[j] | (byte << k);
+			--k;
+			if (k < 0) {j++; k = 6;}
+		}
+	}
+
+
+	int m = 3;
+	uint32_t crc_packet = 0;
+	int l = 0;
+	while(m >=0){
+		uint8_t sum = guc_vector.at(0).at(7+num+l);
+		crc_packet += sum << (8*m);
+		l++;
+		m--;
+	}
+
+	if (pack_manager->CRC32(out,num) != crc_packet) //TODO: crc check pro
+	{
+		qmDebugMessage(QmDebug::Dump, "Crc failded for guc vector");
+	}
+
+
+	for(int i = 0; i<99;i++) guc_text[i+1] = out[i];
+
 	guc_vector.clear();
 
 	return guc_text;
@@ -2322,7 +2381,7 @@ void DspController::startSMSCmdTransmitting(SmsStage stage)
 
     ContentSms.indicator = 20;
     ContentSms.TYPE = 0;
-    ContentSms.RN_KEY = 1;
+    ContentSms.RN_KEY = 0;
     ContentSms.R_ADR = 0;
     ContentSms.S_ADR = PSWF_SELF_ADR;
 
