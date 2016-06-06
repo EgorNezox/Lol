@@ -1209,7 +1209,8 @@ void MainServiceInterface::processFailedPacketTxCycle() {
 }
 
 void MainServiceInterface::startNextPacketTxCycle() {
-	int sform = (ale.vm_sform_p > ale.vm_sform_c)?ale.vm_sform_p:ale.vm_sform_c;
+//	int sform = (ale.vm_sform_p > ale.vm_sform_c)?ale.vm_sform_p:ale.vm_sform_c;
+	int sform = ale.vm_sform_c;
 	ale.timerTxPacketSync->start(ale.tPacketSync, TIMER_VALUE_tDataCycle(sform));
 	ale.tPacketSync.shift(TIMER_VALUE_tDataCycle(sform));
 }
@@ -1385,11 +1386,24 @@ void MainServiceInterface::aleprocessTimerRxMsgCycleExpired() {
 void MainServiceInterface::setPacketRxPhase() {
 	ale.tPacketSync.shift((ale.vm_msg_cycle + 1)*TIMER_VALUE_tDataCycle(-1));
 	ale.vm_sform_c = ALE_VM_INITIAL_SFORM;
+	ale.vm_sform_p = ale.vm_sform_c;
 	ale.vm_f_idx = 0;
 	ale.vm_last_result = true;
+	ale.vm_ack_count = 0;
+	ale.vm_nack_count = 0;
 	setAlePhase(ALE_RX_VM_RX_PACKET);
 	ale.result = AleResultVoiceMail;
 	stopVmMsgRxTimers();
+}
+
+void MainServiceInterface::processFailedPacketRxCycle() {
+	ale.rcount++;
+	if (ale.rcount < 3) {
+		ale.vm_ack_count = 0;
+	} else {
+		setAleState(AleState_RX_VM_COMPLETE_PARTIAL);
+		stopAleSession();
+	}
 }
 
 bool MainServiceInterface::processPacketReceivedPacket(uint8_t *data) {
@@ -1412,8 +1426,13 @@ bool MainServiceInterface::processPacketReceivedPacket(uint8_t *data) {
 }
 
 void MainServiceInterface::processPacketMissedPacket() {
-	qmDebugMessage(QmDebug::Warning, "ale vm packHead missed (oh shit... SESSION HAS BEEN BROKEN !!!)");
-	//...
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	ale.timerRxPacketSync->start(ale.tPacketSync, TIMER_VALUE_tDataCycle(ale.vm_sform_c));
+	ale.tPacketSync.shift(TIMER_VALUE_tDataCycle(ale.vm_sform_c));
+
+	ale.vm_last_result = false;
+	processFailedPacketRxCycle();
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 void MainServiceInterface::startRxPacketResponse() {
@@ -1433,11 +1452,45 @@ void MainServiceInterface::processPacketReceivedAck() {
 	ale.vm_sform_c = ale.vm_sform_n;
 	ale.timerRxPacketSync->start(ale.tPacketSync, TIMER_VALUE_tDataCycle(ale.vm_sform_c));
 	ale.tPacketSync.shift(TIMER_VALUE_tDataCycle(ale.vm_sform_c));
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	ale.vm_adaptation = alevmadaptationNone;
+	int snr = convertSnrFromPacket(ale.vm_packet_snr);
+	if (ale.vm_packet_result) {
+		ale.vm_snr_ack[ale.vm_ack_count] = snr;
+		ale.vm_nack_count = 0;
+		ale.vm_ack_count++;
+		if (ale.vm_ack_count == 3)
+			ale.vm_adaptation = alevmadaptationUp;
+	} else {
+		ale.vm_snr_nack[ale.vm_nack_count] = snr;
+		ale.vm_ack_count = 0;
+		ale.vm_nack_count++;
+		if (ale.vm_nack_count == 2)
+			ale.vm_adaptation = alevmadaptationDown;
+	}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	ale.vm_sform_p = ale.vm_sform_c;
+	AleVmAdaptationType adaptation_required = ale.vm_adaptation;
+	if (adaptation_required == alevmadaptationDown) {
+		if (!adaptPacketTxDown()) {
+			processFailedPacketRxCycle();
+			return;
+		}
+	}
+	if (adaptation_required == alevmadaptationUp)
+		adaptPacketTxUp();
+	ale.rcount = 0;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 void MainServiceInterface::processPacketMissedAck() {
-	qmDebugMessage(QmDebug::Warning, "ale vm HshakeTrans missed (oh shit... SESSION HAS BEEN BROKEN !!!)");
-	//...
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	ale.timerRxPacketSync->start(ale.tPacketSync, TIMER_VALUE_tDataCycle(ale.vm_sform_c));
+	ale.tPacketSync.shift(TIMER_VALUE_tDataCycle(ale.vm_sform_c));
+
+	processFailedPacketRxCycle();
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 void MainServiceInterface::aleprocessRxPacketSync() {

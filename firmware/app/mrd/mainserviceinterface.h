@@ -203,6 +203,7 @@ private:
 	void aleprocessTimerMsgRoffHshakeTExpired();
 	void aleprocessTimerRxMsgCycleExpired();
 	void setPacketRxPhase();
+	void processFailedPacketRxCycle();
 	bool processPacketReceivedPacket(uint8_t *data);
 	void processPacketMissedPacket();
 	void startRxPacketResponse();
