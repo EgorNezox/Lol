@@ -858,7 +858,9 @@ void Service::keyPressed(UI_Key key)
                             if ( key > 5 && key < 17 && commands->size() < 20 )
                             {
                                 if ( key != key0 )
+                                {
                                     commands->push_back( (char)(42 + key) );
+                                }
                                 else
                                     menu->inputGroupCondCmd(estate, key);
                             }
@@ -906,7 +908,7 @@ void Service::keyPressed(UI_Key key)
             switch(menu->putOffVoiceStatus)
             {
             case 1:
-            {// выбрать канал записи
+            {
                 if ( key > 5 && key < 16 && menu->channalNum.size() < 2 )
                 {
                     menu->channalNum.push_back((char)(42+key));
@@ -943,7 +945,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 2:
-            {// запись речи
+            {
                 if (key == keyBack)
                 {
                     menu->putOffVoiceStatus--;
@@ -1767,18 +1769,15 @@ void Service::drawMainWindow()
 
     bool gpsStatus = false;
 
-//#ifdef PORT_PCSIMULATOR
     if (navigator != 0){
-    	Navigation::Coord_Date date = navigator->getCoordDate();
-    	char ch[10];
-    	memcpy(&ch,&date.data,10);
-    	if (atoi((const char*)ch) != 0)
-    	{
-    		gpsStatus = true;
-    	}
+        Navigation::Coord_Date date = navigator->getCoordDate();
+        char ch[10];
+        memcpy(&ch,&date.data,10);
+        if (atoi((const char*)ch) != 0)
+        {
+            gpsStatus = true;
+        }
     }
-//#endif
-
 
     indicator->Draw(pGetMultitradioService()->getStatus(),
                     pGetHeadsetController()->getStatus(),
@@ -1841,7 +1840,17 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::txPutOffVoice:
         {
-            menu->initTxPutOffVoiceDialog(voiceStatusTest);
+            int status = 0;
+            if (menu->putOffVoiceStatus == 2)
+            {
+                status = headset_controller->getSmartHSState();
+            }
+            else if (menu->putOffVoiceStatus == 5)
+            {
+                status = multiradio_service->getAleState();
+            }
+
+            menu->initTxPutOffVoiceDialog(status);
             break;
         }
         case GuiWindowsSubType::message:
@@ -1859,7 +1868,17 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::rxPutOffVoice:
         {
-            menu->initRxPutOffVoiceDialog(voiceStatusTest);
+            int status = 0;
+            if (menu->putOffVoiceStatus == 5)
+            {
+                status = headset_controller->getSmartHSState();
+            }
+            else if (menu->putOffVoiceStatus == 2)
+            {
+                status = multiradio_service->getAleState();
+            }
+
+            menu->initRxPutOffVoiceDialog(status);
             break;
         }
         case GuiWindowsSubType::recvSilence:
