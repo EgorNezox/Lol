@@ -668,9 +668,6 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
-
-
-
         case GuiWindowsSubType::txGroupCondCmd:
         {
             std::list<SInputItemParameters*>::iterator iter = estate.listItem.begin();
@@ -1173,8 +1170,10 @@ void Service::keyPressed(UI_Key key)
 
             if ( key == keyBack)
             {
-                guiTree.backvard();
-                menu->focus = 0;
+                if (menu->rxCondCmdStatus == 2)
+                    menu->rxCondCmdStatus--;
+                else
+                    guiTree.backvard();
             }
             if ( key == keyEnter)
             {
