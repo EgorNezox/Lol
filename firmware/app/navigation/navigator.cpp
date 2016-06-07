@@ -83,6 +83,13 @@ int Navigator::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, 
     return L_CODE;
 }
 
+
+int Navigator::Calc_LCODE_RETR(int RP_ADR,int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
+{
+    int L_CODE = (RP_ADR + R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY) % 100;
+    return L_CODE;
+}
+
 //#if defined(PORT__TARGET_DEVICE_REV1)
 void Navigator::processUartReceivedData() {
 	uint8_t data[1024];
