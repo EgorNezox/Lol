@@ -77,7 +77,7 @@ void CGuiTree::init()
     condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters2 );
     condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters3 );
     // 1.1.2 - Двухст.связь | только индивидуально
-    condCmdDupl.subType = GuiWindowsSubType::duplCondComm;
+    condCmdDupl.subType = GuiWindowsSubType::duplCondCmd;
     condCmdDupl.prevState = &condCmd;
     condCmdDupl.nextState.clear();
     condCmdDupl.listItem.push_back( &condCmdDuplParameters1 );
@@ -101,14 +101,14 @@ void CGuiTree::init()
     groupCondCommandSimpl.nextState.push_back(&groupCondCommandSimplGroupCall);
     groupCondCommandSimpl.nextState.push_back(&groupCondCommandSimplIndivCall);
     // 1.4.1.1 - Групповой вызов
-    groupCondCommandSimplGroupCall.subType = GuiWindowsSubType::txGroupCondComm;
+    groupCondCommandSimplGroupCall.subType = GuiWindowsSubType::txGroupCondCmd;
     groupCondCommandSimplGroupCall.prevState = &groupCondCommandSimpl;
     groupCondCommandSimplGroupCall.nextState.clear();
     groupCondCommandSimplGroupCall.listItem.push_back(&groupCondCommandSimplCallParameters[0]);
     groupCondCommandSimplGroupCall.listItem.push_back(&groupCondCommandSimplCallParameters[1]);
     groupCondCommandSimplGroupCall.listItem.push_back(&groupCondCommandSimplCallParameters[2]);
     // 1.4.1.2 - Индивидуальный
-    groupCondCommandSimplIndivCall.subType = GuiWindowsSubType::txGroupCondComm;
+    groupCondCommandSimplIndivCall.subType = GuiWindowsSubType::txGroupCondCmd;
     groupCondCommandSimplIndivCall.prevState = &groupCondCommandSimpl;
     groupCondCommandSimplIndivCall.nextState.clear();
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[0]);
@@ -138,11 +138,11 @@ void CGuiTree::init()
     rxPutOffVoice.prevState = &recv;
     rxPutOffVoice.nextState.clear();
     // 2.7 - Условные команды
-    recvCondCommand.subType = GuiWindowsSubType::recvCondComm;
+    recvCondCommand.subType = GuiWindowsSubType::recvCondCmd;
     recvCondCommand.prevState = &recv;
     recvCondCommand.nextState.clear();
     // 2.8 - Группа условных команд
-    recvGroupCondCommsnds.subType = GuiWindowsSubType::recvGroupCondComm;
+    recvGroupCondCommsnds.subType = GuiWindowsSubType::recvGroupCondCmd;
     recvGroupCondCommsnds.prevState = &recv;
     recvGroupCondCommsnds.nextState.clear();
     // 2.9 - Режим радиомолчания

@@ -493,7 +493,7 @@ void Service::keyPressed(UI_Key key)
         case GuiWindowsSubType::simpleCondComm:
         {
             //[0] - CMD, [1] - R_ADDR, [2] - retrans
-            switch (menu->txCondCommStatus)
+            switch (menu->txCondCmdStatus)
             {
             case 1:
             { // � ��������������/ ��� �������������
@@ -563,23 +563,23 @@ void Service::keyPressed(UI_Key key)
                 int size = 5;
 
                 // next field
-                if (menu->txCondCommStatus <= size )
+                if (menu->txCondCmdStatus <= size )
                 {
-                    if (menu->txCondCommStatus == 1 && estate.listItem.size() == 2)
+                    if (menu->txCondCmdStatus == 1 && estate.listItem.size() == 2)
                     {
-                        menu->txCondCommStatus++;
+                        menu->txCondCmdStatus++;
                         if (menu->useRetrans == false)
-                            menu->txCondCommStatus++;
+                            menu->txCondCmdStatus++;
                     }
-                    if (menu->txCondCommStatus == 2 && menu->useRetrans == false)
+                    if (menu->txCondCmdStatus == 2 && menu->useRetrans == false)
                     {
-                        menu->txCondCommStatus++;
+                        menu->txCondCmdStatus++;
                     }
-                    menu->txCondCommStatus++;
+                    menu->txCondCmdStatus++;
                 }
 
                 // send
-                if ( menu->txCondCommStatus > size )
+                if ( menu->txCondCmdStatus > size )
                 {
 #ifndef _DEBUG_
                     // [0] - cmd, [1] - raddr, [2] - retrans
@@ -600,7 +600,7 @@ void Service::keyPressed(UI_Key key)
 //                            k->inputStr.clear();
 //                        }
 #else
-                    menu->txCondCommStatus = 1;
+                    menu->txCondCmdStatus = 1;
                     guiTree.resetCurrentState();
                     for(auto &k: estate.listItem)
                         k->inputStr.clear();
@@ -612,16 +612,16 @@ void Service::keyPressed(UI_Key key)
             {
                 auto iter = estate.listItem.begin();
 
-                if (menu->txCondCommStatus == 2)
+                if (menu->txCondCmdStatus == 2)
                 {
                     // R_ADR
                     (*iter)++;(*iter)++;
                     if ((*iter)->inputStr.size() > 0)
                         (*iter)->inputStr.pop_back();
                     else
-                        menu->txCondCommStatus--;
+                        menu->txCondCmdStatus--;
                 }
-                else if(menu->txCondCommStatus == 3)
+                else if(menu->txCondCmdStatus == 3)
                 {
                     // Retrans
                     (*iter)++;
@@ -629,34 +629,34 @@ void Service::keyPressed(UI_Key key)
                         (*iter)->inputStr.pop_back();
                     else
                     {
-                        menu->txCondCommStatus--;
+                        menu->txCondCmdStatus--;
                         if (estate.listItem.size() == 2)
-                            menu->txCondCommStatus--;
+                            menu->txCondCmdStatus--;
                     }
                 }
-                else if(menu->txCondCommStatus == 4)
+                else if(menu->txCondCmdStatus == 4)
                 {
                     // CMD
                     if ((*iter)->inputStr.size() > 0)
                         (*iter)->inputStr.pop_back();
                     else
                     {
-                        menu->txCondCommStatus--;
+                        menu->txCondCmdStatus--;
                         if (!menu->useRetrans)
                         {
-                            menu->txCondCommStatus--;
+                            menu->txCondCmdStatus--;
                             if (estate.listItem.size() == 2)
-                                menu->txCondCommStatus--;
+                                menu->txCondCmdStatus--;
                         }
                     }
                 }
                 else
                 {
-                    if (menu->txCondCommStatus > 1)
-                        menu->txCondCommStatus--;
+                    if (menu->txCondCmdStatus > 1)
+                        menu->txCondCmdStatus--;
                     else
                     {
-                        menu->txCondCommStatus = 1;
+                        menu->txCondCmdStatus = 1;
                         guiTree.backvard();
                         for(auto &k: estate.listItem)
                             k->inputStr.clear();
@@ -668,9 +668,7 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
-
-
-        case GuiWindowsSubType::txGroupCondComm:
+        case GuiWindowsSubType::txGroupCondCmd:
         {
             std::list<SInputItemParameters*>::iterator iter = estate.listItem.begin();
 
@@ -1163,20 +1161,40 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
-        case GuiWindowsSubType::recvCondComm:
+        case GuiWindowsSubType::recvCondCmd:
         {
+            if ( menu->rxCondCmdStatus == 1 && (key == keyUp || key == keyDown))
+            {
+                menu->useTicket = menu->useTicket ? false : true;
+            }
+
             if ( key == keyBack)
             {
-                guiTree.backvard();
-                menu->focus = 0;
+                if (menu->rxCondCmdStatus == 2)
+                    menu->rxCondCmdStatus--;
+                else
+                    guiTree.backvard();
             }
             if ( key == keyEnter)
             {
-                /* call */
-                guiTree.resetCurrentState();
-#ifndef PORT__PCSIMULATOR
-                voice_service->TurnPSWFMode(0,0,0,0);
+                if (menu->rxCondCmdStatus == 1)
+                {
+                    menu->rxCondCmdStatus++;
+                }
+                else if( menu->rxCondCmdStatus == 2 )
+                {
+#ifdef _DEBUG_
+                    guiTree.resetCurrentState();
+#else
+                    if (menu->useTicket)
+                        voice_service->TurnPSWFMode(0,0,0,0);
+                    else
+                        voice_service->TurnPSWFMode(0,0,0,0);
 #endif
+                    menu->rxCondCmdStatus = 1;
+                }
+                else
+                {}
             }
             break;
         }
@@ -1206,7 +1224,7 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
-        case GuiWindowsSubType::recvGroupCondComm:
+        case GuiWindowsSubType::recvGroupCondCmd:
         {
             if ( key == keyBack)
             {
@@ -1828,14 +1846,14 @@ void Service::drawMenu()
         switch( st.subType )
         {
         case GuiWindowsSubType::simpleCondComm:
-        case GuiWindowsSubType::duplCondComm:
+        case GuiWindowsSubType::duplCondCmd:
         {
             menu->initCondCommDialog(st);
             break;
         }
-        case GuiWindowsSubType::txGroupCondComm:
+        case GuiWindowsSubType::txGroupCondCmd:
         {
-            menu->/*initTxGroupCondComm*/initGroupCondComm(st);
+            menu->/*initTxGroupCondComm*/initGroupCondCmd(st);
             break;
         }
         case GuiWindowsSubType::txPutOffVoice:
@@ -1858,9 +1876,13 @@ void Service::drawMenu()
             menu->initTxSmsDialog( st.getName(), st.listItem.front()->inputStr, st.listItem.back()->inputStr );
             break;
         }
+        case GuiWindowsSubType::recvCondCmd:
+        {
+            menu->initRxCondCmdDialog();
+            break;
+        }
+        case GuiWindowsSubType::recvGroupCondCmd:
         case GuiWindowsSubType::recvVoice:
-        case GuiWindowsSubType::recvCondComm:
-        case GuiWindowsSubType::recvGroupCondComm:
         case GuiWindowsSubType::recvSms:
         {
             menu->initRxSmsDialog();

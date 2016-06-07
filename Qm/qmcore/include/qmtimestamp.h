@@ -54,9 +54,12 @@ public:
 	 */
 	void shift(long int msec);
 
+	QmTimestamp &operator=(const QmTimestamp &);
+
 private:
 	friend class QmTimestampPrivateAdapter;
 	friend class QmAbsTimer;
+	QmTimestamp(const QmTimestamp &) = delete;
 	QmTimestampPrivate *impl;
 };
 

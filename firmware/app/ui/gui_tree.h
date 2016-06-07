@@ -24,15 +24,15 @@ enum GuiWindowsSubType
 {
     //call,
     simpleCondComm,\
-    duplCondComm,\
-    txGroupCondComm,\
+    duplCondCmd,\
+    txGroupCondCmd,\
     txPutOffVoice,\
     message,
     recv,\
     recvVoice,\
     recvSms,\
-    recvCondComm,\
-    recvGroupCondComm,\
+    recvCondCmd,\
+    recvGroupCondCmd,\
     rxPutOffVoice,\
     recvSilence,\
     data,\
