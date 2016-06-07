@@ -593,7 +593,7 @@ void Service::keyPressed(UI_Key key)
                     	if (estate.listItem.size() == 2)
                     		voice_service->TurnPSWFMode(1, 0, param[0],0);
                     	else if (estate.listItem.size() == 3)
-                            voice_service->TurnPSWFMode(1, param[0], param[1],param[2]);
+                            voice_service->TurnPSWFMode(1, param[0], param[2],param[1]);
 
 //                        for(auto &k: estate.listItem)
 //                        {
@@ -1866,6 +1866,7 @@ void Service::drawMenu()
             else if (menu->putOffVoiceStatus == 5)
             {
                 status = multiradio_service->getAleState();
+                menu->vmProgress = multiradio_service->getAleVmProgress();
             }
 
             menu->initTxPutOffVoiceDialog(status);
@@ -1897,7 +1898,8 @@ void Service::drawMenu()
             }
             else if (menu->putOffVoiceStatus == 2)
             {
-                status = multiradio_service->getAleState();
+                status   = multiradio_service->getAleState();
+                menu->vmProgress = multiradio_service->getAleVmProgress();
             }
 
             menu->initRxPutOffVoiceDialog(status);
