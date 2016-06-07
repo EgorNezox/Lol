@@ -37,6 +37,7 @@ public:
      Coord_Date getCoordDate();
 
      int Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
+     int Calc_LCODE_RETR(int RP_ADR,int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC);
 
 private:
 //#if defined(PORT__TARGET_DEVICE_REV1)
