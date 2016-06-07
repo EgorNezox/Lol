@@ -1187,9 +1187,9 @@ void Service::keyPressed(UI_Key key)
                     guiTree.resetCurrentState();
 #else
                     if (menu->useTicket)
-                        voice_service->TurnPSWFMode(0,0,0);
+                        voice_service->TurnPSWFMode(0,0,0,0);
                     else
-                        voice_service->TurnPSWFMode(0,0,0);
+                        voice_service->TurnPSWFMode(0,0,0,0);
 #endif
                     menu->rxCondCmdStatus = 1;
                 }
