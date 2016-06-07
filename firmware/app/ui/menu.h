@@ -75,6 +75,8 @@ public:
     int rxCondCmdStatus = 1;
     bool useTicket = false;
 
+    uint8_t vmProgress;
+
     // group cond comm stage
     int groupCondCommStage = 0;
     void inputGroupCondCmd( CEndState, UI_Key );
