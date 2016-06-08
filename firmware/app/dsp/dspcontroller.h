@@ -143,6 +143,8 @@ uint8_t* get_guc_vector();
     void sendModemPacket(ModemPacketType type, ModemBandwidth bandwidth, const uint8_t *data, int data_len);
     void sendModemPacket_packHead(ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, const uint8_t *data, int data_len);
 
+    void clearPswfBufer();
+
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void,int> firstPacket;

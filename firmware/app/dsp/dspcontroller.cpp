@@ -2025,6 +2025,11 @@ char* DspController::getSmsContent()
 	return sms_content;
 }
 
+void DspController::clearPswfBufer()
+{
+	recievedPswfBuffer.erase(recievedPswfBuffer.begin());
+}
+
 void DspController::startPSWFReceiving(bool ack) {
 	qmDebugMessage(QmDebug::Dump, "startPSWFReceiving(%d)", ack);
 	QM_ASSERT(is_ready);
