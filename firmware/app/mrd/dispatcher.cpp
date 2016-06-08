@@ -150,7 +150,6 @@ void Dispatcher::setVoiceChannel() {
 	} else {
 		mode = DspController::RadioModeOff;
 	}
-	mode = DspController::RadioModeFM;
 	if ((main_service->current_status == MainServiceInterface::StatusVoiceTx) && atu_controller->isDeviceOperational())
 		prepareTuningTx();
 	if ((main_service->current_status == MainServiceInterface::StatusVoiceRx) && atu_controller->isDeviceOperational())

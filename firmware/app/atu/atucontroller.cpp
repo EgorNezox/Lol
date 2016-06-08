@@ -393,5 +393,5 @@ void AtuController::setAntenna(uint32_t frequency) {
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(atucontroller, LevelInfo)
+QMDEBUG_DEFINE_DOMAIN(atucontroller, LevelDefault)
 #include "qmdebug_domains_end.h"
