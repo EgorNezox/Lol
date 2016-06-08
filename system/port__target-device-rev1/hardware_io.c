@@ -373,6 +373,10 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		hal_gpio_init((hal_gpio_pin_t){hgpioPA, 2}, &params);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPA, 3}, &params);
 		break;
+	case platformhwAtuIopin:
+		params.mode = hgpioMode_Out;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPA, 8}, &params);
+		break;
 	case platformhwBatterySmbusI2c:
 		params.mode = hgpioMode_AF;
 		params.type = hgpioType_OD;
@@ -475,6 +479,9 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPA, 2});
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPA, 3});
 		break;
+	case platformhwAtuIopin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPA, 8});
+		break;
 	case platformhwBatterySmbusI2c:
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 8});
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 9});
@@ -526,6 +533,8 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 		return (hal_gpio_pin_t){hgpioPB, 12};
 	case platformhwDspResetIopin:
 		return (hal_gpio_pin_t){hgpioPH, 13};
+	case platformhwAtuIopin:
+		return (hal_gpio_pin_t){hgpioPA, 8};
 	case platformhwNavigatorResetIopin:
 		return (hal_gpio_pin_t){hgpioPG, 8};
 	case platformhwNavigatorAntFlagIopin:
