@@ -46,7 +46,6 @@ public:
 
     void TurnGuc(int r_adr, int speed_tx, std::vector<int> command);
     void TurnGuc();
-    void clearBuff();
 
     char* getSmsContent();
     uint8_t* getGucCommand();

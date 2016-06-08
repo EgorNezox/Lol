@@ -143,8 +143,6 @@ uint8_t* get_guc_vector();
     void sendModemPacket(ModemPacketType type, ModemBandwidth bandwidth, const uint8_t *data, int data_len);
     void sendModemPacket_packHead(ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, const uint8_t *data, int data_len);
 
-    void clearPswfBufer();
-
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void,int> firstPacket;
@@ -425,6 +423,7 @@ private:
     std::vector<int> quit_vector;
     std::vector<std::vector<uint8_t>> guc_vector;
 
+    int cadrPswfTrueLcode = 0;
 
     int rs_data_clear[255];
 
