@@ -134,6 +134,7 @@ private:
 	MainServiceInterface(Dispatcher *dispatcher, Navigation::Navigator *navigator);
 	~MainServiceInterface();
 	void setStatus(Status value);
+	void printDebugAleTimings();
 	void setAleState(AleState value);
 	void setAlePhase(AlePhase value);
 	void setAleVmProgress(uint8_t value);

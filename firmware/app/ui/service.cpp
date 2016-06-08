@@ -1868,6 +1868,7 @@ void Service::drawMenu()
             else if (menu->putOffVoiceStatus == 5)
             {
                 status = multiradio_service->getAleState();
+                menu->vmProgress = multiradio_service->getAleVmProgress();
             }
 
             menu->initTxPutOffVoiceDialog(status);
@@ -1899,7 +1900,8 @@ void Service::drawMenu()
             }
             else if (menu->putOffVoiceStatus == 2)
             {
-                status = multiradio_service->getAleState();
+                status   = multiradio_service->getAleState();
+                menu->vmProgress = multiradio_service->getAleVmProgress();
             }
 
             menu->initRxPutOffVoiceDialog(status);
