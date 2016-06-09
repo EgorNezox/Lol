@@ -2461,7 +2461,7 @@ void DspController::setModemReceiverRole(ModemRole value) {
 }
 
 void DspController::enableModemTransmitter() {
-	disableModemReceiver();
+//	disableModemReceiver();
 	current_radio_mode = RadioModeSazhenData;
 	setRadioOperation(RadioOperationTxMode);
 	modem_tx_on = true;

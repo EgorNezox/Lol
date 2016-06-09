@@ -501,7 +501,7 @@ void MainServiceInterface::stopAleSession() {
 		stopAllTxTimers();
 		break;
 	default:
-		QM_ASSERT(0);
+		break;
 	}
 	if (ale.phase == ALE_STOPPED) {
 		setAleState(AleState_IDLE);
@@ -903,7 +903,7 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 		switch (ale.phase) {
 		case ALE_RX_CALL_RX_HSHAKE: {
 			ale.timerCallRoffHshakeT->stop();
-			dsp_controller->disableModemReceiver();
+//			dsp_controller->disableModemReceiver();
 			setAleState(AleState_RX_CALL_NEGOTIATING);
 			ale.rcount = 0;
 			break;
