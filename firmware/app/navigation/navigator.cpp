@@ -10,6 +10,7 @@
 #include "qmiopin.h"
 #include "qmuart.h"
 #include "qmthread.h"
+#include "qmtimer.h"
 #include <string.h>
 #include <string>
 #include <list>
@@ -61,9 +62,9 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
         CoordDate.time[i] = 0;
     }
 
-    QmThread::msleep(500);
-    const char * const config_sentences = "$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n";
-    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
+    config_timer = new QmTimer(true, this);
+    config_timer->timeout.connect(sigc::mem_fun(this, &Navigator::processConfig));
+    config_timer->start(3000); //tested on receivers versions 3.1, 4.1
 }
 
 Navigator::~Navigator() {
@@ -81,6 +82,12 @@ int Navigator::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, 
 {
     int L_CODE = (R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY) % 100;
     return L_CODE;
+}
+
+void Navigator::processConfig() {
+	const char * const config_sentences = "$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n";
+	qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
+	uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
 }
 
 //#if defined(PORT__TARGET_DEVICE_REV1)
