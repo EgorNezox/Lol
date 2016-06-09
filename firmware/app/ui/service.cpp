@@ -590,10 +590,12 @@ void Service::keyPressed(UI_Key key)
                         param[i] = atoi(k->inputStr.c_str());
                         i++;
                     }
-                    	if (estate.listItem.size() == 2)
-                    		voice_service->TurnPSWFMode(1, 0, param[0],0);
+                    	if (estate.listItem.size() == 2){
+                    		//voice_service->clearBuff();
+                            voice_service->TurnPSWFMode(0, 0, param[0],0);
+                    	}
                     	else if (estate.listItem.size() == 3)
-                            voice_service->TurnPSWFMode(1, param[0], param[2],param[1]);
+                            voice_service->TurnPSWFMode(0, param[0], param[2],param[1]);
 
 //                        for(auto &k: estate.listItem)
 //                        {
@@ -1187,9 +1189,9 @@ void Service::keyPressed(UI_Key key)
                     guiTree.resetCurrentState();
 #else
                     if (menu->useTicket)
-                        voice_service->TurnPSWFMode(0,0,0,0);
+                        voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
                     else
-                        voice_service->TurnPSWFMode(0,0,0,0);
+                        voice_service->TurnPSWFMode(1,0,0,0);
 #endif
                     menu->rxCondCmdStatus = 1;
                 }

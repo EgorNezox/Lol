@@ -116,11 +116,16 @@ void VoiceServiceInterface::TurnAGCMode(uint8_t mode, int radio_path)
 
 void VoiceServiceInterface::TurnPSWFMode(uint8_t mode, int R_ADR, int COM_N, int retr)
 {
-    // нам важны только дата и время, с GUI и GPS решает service
-    if (mode == 0) {
-    	dispatcher->dsp_controller->startPSWFReceiving(false);
+    if ((R_ADR == 0) && (COM_N ==0)) {
+    	if (mode == 0)
+    		dispatcher->dsp_controller->startPSWFReceiving(false);
+    	else
+    		dispatcher->dsp_controller->startPSWFReceiving(true);
     } else {
-        dispatcher->dsp_controller->startPSWFTransmitting(false, R_ADR, COM_N,retr);
+    	if (mode == 0)
+    		dispatcher->dsp_controller->startPSWFTransmitting(false, R_ADR, COM_N,retr);
+    	else
+    		dispatcher->dsp_controller->startPSWFTransmitting(true, R_ADR, COM_N,retr);
     }
 }
 
@@ -149,6 +154,7 @@ void VoiceServiceInterface::SmsFailStage(int stage)
 {
     smsFailed(stage);
 }
+
 
 void VoiceServiceInterface::TurnGuc(int r_adr, int speed_tx, std::vector<int> command)
 {

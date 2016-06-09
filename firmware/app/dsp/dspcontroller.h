@@ -423,6 +423,7 @@ private:
     std::vector<int> quit_vector;
     std::vector<std::vector<uint8_t>> guc_vector;
 
+    int cadrPswfTrueLcode = 0;
 
     int rs_data_clear[255];
 
