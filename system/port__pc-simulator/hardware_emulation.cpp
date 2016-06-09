@@ -47,6 +47,7 @@ void init() {
 	IopinInterface::createInstance(platformhwEnRxRs232Iopin); // TODO: emulate EnRxRs232Iopin
 	IopinInterface::createInstance(platformhwEnTxRs232Iopin); // TODO: emulate EnTxRs232Iopin
 	UartInterface::createInstance(platformhwHeadsetUart); //TODO: emulate HeadsetUart
+	IopinInterface::createInstance(platformhwAtuIopin); // TODO: emulate AtuIopin
 }
 
 void deinit() {
