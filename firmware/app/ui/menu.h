@@ -156,7 +156,7 @@ private:
     GUI_EL_MenuItem *(item[6]);
     GUI_EL_Label *label[6];
     char *tx;
-    bool editing;
+    bool editing = false;
 
     uint8_t vol = 100;
 };
