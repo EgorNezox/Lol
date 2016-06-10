@@ -24,7 +24,7 @@
 #define ALE_TIME_TEthTx				50
 #define ALE_TIME_TEthRx				50
 #define ALE_TIME_TRChan				16
-#define ALE_TIME_DTMistiming		((ALE_TIME_TEthRx + ALE_TIME_TRChan)/2)
+#define ALE_TIME_DTMistiming		((ALE_TIME_TEthTx + ALE_TIME_TRChan + ALE_TIME_TEthRx)/2)
 #define ALE_TIME_THshakeTransMode	3024
 #define ALE_TIME_TRespCallQual		2128
 #define ALE_TIME_THshakeReceiv		448
@@ -41,8 +41,6 @@
 
 /* Из таблицы констант, зависящих от режима синхронизации времени */
 #define ALE_TIME_dTSyn			250
-#define ALE_TIME_Tdwell			5000
-#define ALE_TIME_dTDwellLeft	266
 #define ALE_TIME_TCall			2128
 
 /* Из перечня констант для цикла передачи данных сеанса голосовой почты */
