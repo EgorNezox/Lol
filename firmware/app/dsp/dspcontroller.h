@@ -147,6 +147,9 @@ uint8_t* get_guc_vector();
     void clearPswfBufer();
     void defaultSMSTransmit();
 
+    void setSmsRetranslation(uint8_t retr);
+    uint8_t getSmsRetranslation();
+
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void,int> firstPacket;
@@ -336,6 +339,7 @@ private:
     void recSms();
     void sendGucQuit();
 
+
     void changeSmsRxFrequency();
 
     void startSMSCmdTransmitting(SmsStage stage);
@@ -447,7 +451,7 @@ bool modem_rx_on, modem_tx_on;
     int trans_guc;
 
     int wzn_value;
-
+    uint8_t sms_retranslation;
     bool sms_call_received;
 };
 

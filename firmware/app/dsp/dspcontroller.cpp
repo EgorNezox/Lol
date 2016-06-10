@@ -30,7 +30,7 @@
 
 #define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
 
-
+#define DefkeyValue 0
 
 namespace Multiradio {
 
@@ -163,6 +163,9 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     ContentSms.S_ADR = PSWF_SELF_ADR;
     ContentPSWF.S_ADR = PSWF_SELF_ADR;
     QNB = 0;
+
+    ContentPSWF.RN_KEY = DefkeyValue;
+    ContentSms.RN_KEY = DefkeyValue;
 
 }
 DspController::~DspController()
@@ -303,7 +306,6 @@ void DspController::getSwr()
 
 
 void DspController::syncPulseDetected() {
-	//qmDebugMessage(QmDebug::Dump, "syncPulseDetected()");
 	sync_pulse_delay_timer->start();
 }
 
@@ -395,7 +397,7 @@ void DspController::transmitSMS()
     ContentSms.CYC_N += 1;
 
     ContentSms.L_CODE = navigator->Calc_LCODE(
-                ContentSms.R_ADR, ContentSms.S_ADR,
+                ContentPSWF.R_ADR, ContentPSWF.S_ADR,
                 ContentSms.CYC_N, ContentSms.RN_KEY,
                 date_time[0], date_time[1], date_time[2], date_time[3]);
 
@@ -1576,7 +1578,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                         qmDebugMessage(QmDebug::Dump, "data[%d] = %d", i, data[i]);
                     }
                     recievedSmsBuffer.push_back(sms_data);
-
                 }
 
                 if (ContentSms.stage == StageTx_call_ack)
@@ -1879,6 +1880,7 @@ void DspController::recSms()
             if (tx_call_ask_vector.size() >= 3) {
                 wzn_value = wzn_change(tx_call_ask_vector);
                 startSMSTransmitting(ContentSms.R_ADR, ContentSms.message, StageTx_data);
+                qmDebugMessage(QmDebug::Dump, "start stage Data TX");
             } else {
                 qmDebugMessage(QmDebug::Dump, "recSms() smsFailed, radio_state = radiostateSync");
                 smsFailed(0);
@@ -1900,12 +1902,11 @@ void DspController::recSms()
         if (counterSms[StageTx_quit] == 0)
         {
             qmDebugMessage(QmDebug::Dump, "recSms() recievedSmsBuffer.size() =  %d", recievedSmsBuffer.size());
-            if (quit_vector.size() >= 2/*recievedSmsBuffer.size() == 18 + 6*/) {
+            if (quit_vector.size() >= 2) {
                 qmDebugMessage(QmDebug::Dump, "recSms() SMS transmitting successfully finished");
-                //TODO: sms tx finished
                 if (ok_quit >= 2) smsFailed(-1);
                 else
-                	smsFailed(0);
+                    smsFailed(0);
 
             } else {
                 qmDebugMessage(QmDebug::Dump, "recSms() smsFailed, radio_state = radiostateSync");
@@ -2012,7 +2013,6 @@ void DspController::generateSmsReceived()
 	{
 		ack = 73;
 		for(int i = 0;i<90;i++) sms_content[i] = (char)packed[i];
-		//recievedSmsBuffer.erase(recievedSmsBuffer.begin(),recievedSmsBuffer.end());
 		sms_content[99] = '\0';
         qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
 		smsPacketMessage();
@@ -2069,20 +2069,17 @@ char* DspController::getSmsContent()
 	return sms_content;
 }
 
-void DspController::clearPswfBufer()
-{
-	recievedPswfBuffer.erase(recievedPswfBuffer.begin());
-}
-
 void DspController::startPSWFReceiving(bool ack) {
 	qmDebugMessage(QmDebug::Dump, "startPSWFReceiving(%d)", ack);
 	QM_ASSERT(is_ready);
 	if (!resyncPendingCommand())
 		return;
 
+    if (recievedPswfBuffer.size() > 0)
+    recievedPswfBuffer.erase(recievedPswfBuffer.begin()); // TODO : test this
+
 	pswf_ack = ack;
 	getDataTime();
-	ContentPSWF.RN_KEY = 0;
     ContentPSWF.Frequency = getFrequencyPswf();
 
 	ParameterValue param;
@@ -2115,7 +2112,6 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t cmd, uint8_t r_adr,i
     ContentPSWF.indicator = 20;
     ContentPSWF.TYPE = 0;
     ContentPSWF.COM_N = cmd;
-    ContentPSWF.RN_KEY = 0;
     ContentPSWF.R_ADR = r_adr;
     if (pswf_retranslator > 0) ContentPSWF.R_ADR += 32;
     ContentPSWF.S_ADR = PSWF_SELF_ADR;
@@ -2189,10 +2185,16 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     	pack_manager->compressMass(ContentSms.message,87,7); //test
 
         ContentSms.message[87] = ContentSms.message[87] & 0x0F; //set 4 most significant bits to 0
+
         ContentSms.message[88] = 0;
 
-        uint32_t abc = pack_manager->CRC32(ContentSms.message,88);
+        uint8_t ret = getSmsRetranslation();
+        if (ret != 0){
+            ContentSms.message[87] = ContentSms.message[87] | (ret >> 2);
+            ContentSms.message[88] = ContentSms.message[88] | ((ret >> 3) & 0xFF);
+        }
 
+        uint32_t abc = pack_manager->CRC32(ContentSms.message,88);
 
         for(int i = 0;i<4;i++) ContentSms.message[89+i] = (uint8_t)((abc >> (8*i)) & 0xFF);
     	for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
@@ -2320,7 +2322,17 @@ void DspController::sendGucQuit()
     	++tx_data_len;
     }
 
-	transport->transmitFrame(tx_address, tx_data, tx_data_len);
+    transport->transmitFrame(tx_address, tx_data, tx_data_len);
+}
+
+void DspController::setSmsRetranslation(uint8_t retr)
+{
+    sms_retranslation = retr;
+}
+
+uint8_t DspController::getSmsRetranslation()
+{
+    return sms_retranslation;
 }
 
 void DspController::startGucRecieving()
@@ -2353,10 +2365,8 @@ void DspController::checkGucQuit()
     if (size > 0){
         recievedGucResp();
     }
-
     guc_vector.clear();
     radio_state = radiostateSync;
-    // TODO string guc_adr to GUI
 }
 
 uint8_t* DspController::get_guc_vector()
@@ -2391,6 +2401,16 @@ uint8_t* DspController::get_guc_vector()
         m--;
     }
 
+	for(int i = 0;  i< num;i++)
+	{
+		int sdvig  = (i+1) % 8;
+		if (sdvig != 0)
+			out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
+		else
+			out[i] = guc_text[i+1];
+	}
+
+
     int count = 0;
     if (num <= 5) count = 5;
     if ((num > 5) && (num <= 11))   count = 11;
@@ -2418,10 +2438,8 @@ void DspController::startSMSCmdTransmitting(SmsStage stage)
 
     getDataTime();
     ContentSms.Frequency =   getFrequencySms();
-
     ContentSms.indicator = 20;
     ContentSms.TYPE = 0;
-
 
     ParameterValue comandValue;
     comandValue.radio_mode = RadioModeOff;
@@ -2481,7 +2499,7 @@ void DspController::setModemReceiverRole(ModemRole value) {
 }
 
 void DspController::enableModemTransmitter() {
-	disableModemReceiver();
+//	disableModemReceiver();
 	current_radio_mode = RadioModeSazhenData;
 	setRadioOperation(RadioOperationTxMode);
 	modem_tx_on = true;
@@ -2529,5 +2547,5 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
 #include "qmdebug_domains_end.h"

@@ -116,7 +116,6 @@ void VoiceServiceInterface::TurnAGCMode(uint8_t mode, int radio_path)
 
 void VoiceServiceInterface::TurnPSWFMode(uint8_t mode, int R_ADR, int COM_N, int retr)
 {
-    // нам важны только дата и время, с GUI и GPS решает service
     if ((R_ADR == 0) && (COM_N ==0)) {
     	if (mode == 0)
     		dispatcher->dsp_controller->startPSWFReceiving(false);
@@ -147,8 +146,9 @@ void VoiceServiceInterface::defaultSMSTrans()
 	dispatcher->dsp_controller->defaultSMSTransmit();
 }
 
-void VoiceServiceInterface::TurnSMSMode(int r_adr, char *message)
+void VoiceServiceInterface::TurnSMSMode(int r_adr, char *message, uint8_t retr)
 {
+   dispatcher->dsp_controller->setSmsRetranslation(retr);
    dispatcher->dsp_controller->startSMSTransmitting(r_adr,(uint8_t*)message);
 }
 
@@ -167,10 +167,6 @@ void VoiceServiceInterface::setRnKey(int value)
    dispatcher->dsp_controller->setRnKey(value);
 }
 
-void VoiceServiceInterface::clearBuff()
-{
-	dispatcher->dsp_controller->clearPswfBufer();
-}
 
 void VoiceServiceInterface::TurnGuc(int r_adr, int speed_tx, std::vector<int> command)
 {

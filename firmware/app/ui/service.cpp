@@ -609,6 +609,15 @@ void Service::keyPressed(UI_Key key)
                         }
                         i++;
                     }
+<<<<<<< HEAD
+=======
+                    	if (estate.listItem.size() == 2){
+                    		//voice_service->clearBuff();
+                            voice_service->TurnPSWFMode(0, 0, param[0],0);
+                    	}
+                    	else if (estate.listItem.size() == 3)
+                            voice_service->TurnPSWFMode(0, param[0], param[2],param[1]);
+>>>>>>> ale_vm
 
                     if (estate.listItem.size() == 2){
                         else if (estate.listItem.size() == 3)
@@ -1127,7 +1136,7 @@ void Service::keyPressed(UI_Key key)
                         	voice_service->defaultSMSTrans();
                         	char ch[4]; memcpy(ch,date.data, 4);
                         	if (atoi(ch) > 0)
-                        		voice_service->TurnSMSMode(r_adr, mes);
+                                voice_service->TurnSMSMode(r_adr, mes,0);
                         }
                         //else
                         //{
@@ -1202,9 +1211,9 @@ void Service::keyPressed(UI_Key key)
                     guiTree.resetCurrentState();
 #else
                     if (menu->useTicket)
-                        voice_service->TurnPSWFMode(1,0,0,0);
+                        voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
                     else
-                        voice_service->TurnPSWFMode(0,0,0,0);
+                        voice_service->TurnPSWFMode(1,0,0,0);
 #endif
                     menu->rxCondCmdStatus = 1;
                 }
@@ -1882,6 +1891,7 @@ void Service::drawMenu()
             else if (menu->putOffVoiceStatus == 5)
             {
                 status = multiradio_service->getAleState();
+                menu->vmProgress = multiradio_service->getAleVmProgress();
             }
 
             menu->initTxPutOffVoiceDialog(status);
@@ -1913,7 +1923,8 @@ void Service::drawMenu()
             }
             else if (menu->putOffVoiceStatus == 2)
             {
-                status = multiradio_service->getAleState();
+                status   = multiradio_service->getAleState();
+                menu->vmProgress = multiradio_service->getAleVmProgress();
             }
 
             menu->initRxPutOffVoiceDialog(status);
@@ -2171,5 +2182,5 @@ void Service::smsMessage()
 }/* namespace Ui */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(service, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(service, LevelDefault)
 #include "qmdebug_domains_end.h"
