@@ -432,7 +432,13 @@ private:
     std::vector<int> quit_vector;
     std::vector<std::vector<uint8_t>> guc_vector;
 
+<<<<<<< .mine
     int QNB = 0;
+
+=======
+    int cadrPswfTrueLcode = 0;
+
+>>>>>>> .theirs
     int rs_data_clear[255];
 
     int cntChvc = 7;

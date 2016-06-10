@@ -397,9 +397,10 @@ void DspController::transmitSMS()
     ContentSms.CYC_N += 1;
 
     ContentSms.L_CODE = navigator->Calc_LCODE(
-                ContentPSWF.R_ADR, ContentPSWF.S_ADR,
+                ContentSms.R_ADR, ContentSms.S_ADR,
                 ContentSms.CYC_N, ContentSms.RN_KEY,
-                date_time[0], date_time[1], date_time[2], date_time[3]);
+                ContentSms.R_ADR, ContentSms.S_ADR,
+                 date_time[0], date_time[1], date_time[2], date_time[3]);
 
 
     if (ContentSms.stage == StageTx_call)
@@ -592,8 +593,7 @@ void DspController::RecievedPswf()
     			ContentPSWF.COM_N = recievedPswfBuffer.at(command_rx30).at(0);
     			ContentPSWF.R_ADR = ContentPSWF.S_ADR;
     			ContentPSWF.S_ADR = PSWF_SELF_ADR;
-    			if (private_lcode == (recievedPswfBuffer.at(command_rx30).at(1) - 1)) // TODO: prev sec prevSecond(recievedPswfBuffer.at(command_rx30).at(1));
-    				firstPacket(ContentPSWF.COM_N); // COM_N
+
     		}
     }
     ++command_rx30;
