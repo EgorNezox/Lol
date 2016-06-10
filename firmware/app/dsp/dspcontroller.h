@@ -144,6 +144,7 @@ uint8_t* get_guc_vector();
     void sendModemPacket_packHead(ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, const uint8_t *data, int data_len);
 
     void clearPswfBufer();
+    void defaultSMSTransmit();
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -427,6 +428,8 @@ private:
 
 
     int rs_data_clear[255];
+
+    int cntChvc = 7;
 
     uint8_t guc_text[100];
     uint8_t rec_uin_guc;

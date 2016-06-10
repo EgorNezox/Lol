@@ -1111,7 +1111,7 @@ void Service::keyPressed(UI_Key key)
                         }
                         if (navigator != 0){
                         	Navigation::Coord_Date date = navigator->getCoordDate();
-
+                        	voice_service->defaultSMSTrans();
                         	char ch[4]; memcpy(ch,date.data, 4);
                         	if (atoi(ch) > 0)
                         		voice_service->TurnSMSMode(r_adr, mes);

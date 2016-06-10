@@ -51,6 +51,8 @@ public:
     char* getSmsContent();
     uint8_t* getGucCommand();
 
+    void defaultSMSTrans();
+
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
     sigc::signal<void,int> firstPacket;

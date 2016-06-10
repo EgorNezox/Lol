@@ -387,8 +387,10 @@ void DspController::transmitSMS()
 {
     getDataTime();
 
+    ContentSms.COM_N += 1;
+
     ContentSms.L_CODE = navigator->Calc_LCODE(
-                0 /*ContentPSWF.R_ADR*/, 0 /*ContentPSWF.S_ADR*/,
+                ContentSms.R_ADR, ContentSms.S_ADR,
                 ContentSms.COM_N, ContentSms.RN_KEY,
                 date_time[0], date_time[1], date_time[2], date_time[3]);
 
@@ -569,7 +571,7 @@ void DspController::RecievedPswf()
     }
 
 
-    private_lcode = navigator->Calc_LCODE(ContentPSWF.R_ADR,ContentPSWF.S_ADR,recievedPswfBuffer.at(command_rx30).at(0),ContentPSWF.RN_KEY,
+    private_lcode = (char)navigator->Calc_LCODE(ContentPSWF.R_ADR,ContentPSWF.S_ADR,recievedPswfBuffer.at(command_rx30).at(0),ContentPSWF.RN_KEY,
     		date_time[0],date_time[1], date_time[2], prevSecond(date_time[3])); //TODO: fix receiving
 
     // TODO: make to 32 to pswf masters
@@ -583,7 +585,7 @@ void DspController::RecievedPswf()
     			ContentPSWF.COM_N = recievedPswfBuffer.at(command_rx30).at(0);
     			ContentPSWF.R_ADR = ContentPSWF.S_ADR;
     			ContentPSWF.S_ADR = PSWF_SELF_ADR;
-    			if (private_lcode == (recievedPswfBuffer.at(command_rx30).at(1) - 1))
+    			if (private_lcode == (recievedPswfBuffer.at(command_rx30).at(1) - 1)) // TODO: prev sec prevSecond(recievedPswfBuffer.at(command_rx30).at(1));
     				firstPacket(ContentPSWF.COM_N); // COM_N
     		}
     }
@@ -665,15 +667,27 @@ int DspController::CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, in
     int TOT_W = 6671;
     int wz_base = 0;
 
-    if  (SEC >=0   && SEC <6 ) wzn = 0;
-    if  (SEC > 5   && SEC <12) wzn = 1;
-    if  (SEC >= 12 && SEC <18) wzn = 2;
-    if  (SEC >=18  && SEC <24) wzn = 3;
-    if  (SEC >= 24 && SEC <30) wzn = 4;
 
-    if (wzn > 0) wz_base = 6*wzn;
-    else wzn  = 0;
-    int SEC_MLT = wz_base + (SEC % 6);
+
+    int SEC_MLT = value_sec[SEC];//(SEC % 6);
+
+    if (ContentSms.stage == StageTx_data ||(ContentSms.stage == StageRx_data) ||
+       (ContentSms.stage == StageTx_quit)||(ContentSms.stage == StageRx_quit))
+    {
+    	if  (SEC_MLT >=0   && SEC_MLT <6 ) wzn = 0;
+    	if  (SEC_MLT > 5   && SEC_MLT <12) wzn = 1;
+    	if  (SEC_MLT >= 12 && SEC_MLT <18) wzn = 2;
+    	if  (SEC_MLT >=18  && SEC_MLT <24) wzn = 3;
+    	if  (SEC_MLT >= 24 && SEC_MLT <30) wzn = 4;
+
+    	if (wzn > 0) wz_base = 6*wzn;
+    	else wzn  = 0;
+
+    	int wz_shift = SEC % 6;
+    	SEC_MLT = wz_shift + wz_base;
+    }
+
+    qmDebugMessage(QmDebug::Dump, "Sec mlt: %d", SEC_MLT);
 
     if ((ContentSms.stage == StageTx_call) || (ContentSms.stage == StageRx_call) ||
             (ContentSms.stage == StageTx_call_ack) || (ContentSms.stage == StageRx_call_ack)) {
@@ -1327,8 +1341,6 @@ void DspController::sendGuc()
     pack[1] |= ContentGuc.Coord & 0x01;
 
 
-
-
     for(int i = 4; i >= 0; --i) {
     	qmToBigEndian((uint8_t)pack[i], tx_data + tx_data_len);
     	++tx_data_len;
@@ -1350,7 +1362,6 @@ void DspController::sendGuc()
     	if (sdvig != 0)
     	ContentGuc.command[i] = (ContentGuc.command[i] << sdvig) + (ContentGuc.command[i+1] >> (7 -  sdvig));
     }
-
 
 
     uint32_t crc = pack_manager->CRC32(ContentGuc.command, ContentGuc.NUM_com);
@@ -1586,7 +1597,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 if (ContentSms.stage == StageTx_quit)
                 {
                 	getDataTime();
-                	if (calc_ack_code(data[9]) == (data[10]-2))
+                	uint8_t ack_code_calc = calc_ack_code(data[9]);
+                	if (ack_code_calc == (data[10] + 2))
                 		 ++ok_quit;
                     quit_vector.push_back(data[9]);  // ack
                     quit_vector.push_back(data[10]); // ack code
@@ -1601,6 +1613,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 pswf_data.push_back(data[9]);
                 pswf_data.push_back(data[10]);
                 recievedPswfBuffer.push_back(pswf_data);
+                getDataTime();
                 RecievedPswf();
             }
         }
@@ -1794,7 +1807,6 @@ void DspController::sendSms(Module module)
     if (ContentSms.stage == StageTx_data)
     {
     	int FST_N = 0;
-    	static int cntChvc = 7;
         if (cntChvc > 255) cntChvc = 7;
     	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
     	++tx_data_len;
@@ -1804,7 +1816,7 @@ void DspController::sendSms(Module module)
     	{
     		qmToBigEndian(ContentSms.message[i], tx_data+tx_data_len);
     		++tx_data_len;
-    		qmDebugMessage(QmDebug::Dump, "MESSG: %d",ContentSms.message[i]);
+    		//qmDebugMessage(QmDebug::Dump, "MESSG: %d",ContentSms.message[i]);
     	}
 
     	cntChvc = cntChvc + 7;
@@ -1973,6 +1985,8 @@ void DspController::generateSmsReceived()
 	uint32_t crc_calc = pack_manager->CRC32(crc_chk,88);
 
 
+	recievedSmsBuffer.clear();
+
 	uint32_t crc_packet = 0;
 	int k = 3;
 	while(k >=0){
@@ -1989,7 +2003,7 @@ void DspController::generateSmsReceived()
 	{
 		ack = 73;
 		for(int i = 0;i<90;i++) sms_content[i] = (char)packed[i];
-		recievedSmsBuffer.erase(recievedSmsBuffer.begin(),recievedSmsBuffer.end());
+		//recievedSmsBuffer.erase(recievedSmsBuffer.begin(),recievedSmsBuffer.end());
 		sms_content[99] = '\0';
         qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
 		smsPacketMessage();
@@ -2117,6 +2131,13 @@ void DspController::startSMSRecieving(SmsStage stage)
     //for(int i = 0;i<100;i++) sms_content[i] = '0';
 }
 
+
+void DspController::defaultSMSTransmit()
+{
+	for(int i = 0; i<255;i++)  ContentSms.message[i] = 0;
+	ContentSms.stage = StageNone;
+}
+
 void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStage stage)
 {
     qmDebugMessage(QmDebug::Dump, "SMS tranmit (%d, %s)",r_adr, message);
@@ -2124,6 +2145,12 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
     getDataTime();
     ContentSms.Frequency =  getFrequencySms(); //getFrequencyPswf();
+    ContentSms.R_ADR = r_adr;
+    ContentSms.S_ADR = 1;
+
+    ContentSms.COM_N = 0;
+
+    cntChvc = 7;
 
     ContentSms.indicator = 20;
     ContentSms.TYPE = 0;
@@ -2155,7 +2182,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     }
 
 
-    ContentSms.RN_KEY = 1;
+    ContentSms.RN_KEY = 0;
     ContentSms.R_ADR = r_adr;
     ContentSms.S_ADR = PSWF_SELF_ADR;
 
@@ -2399,7 +2426,7 @@ void DspController::startSMSCmdTransmitting(SmsStage stage)
 //        return;
 
     getDataTime();
-    ContentSms.Frequency = getFrequencyPswf();
+    ContentSms.Frequency =   getFrequencySms();//getFrequencyPswf();
 
     ContentSms.indicator = 20;
     ContentSms.TYPE = 0;

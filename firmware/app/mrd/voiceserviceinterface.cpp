@@ -141,6 +141,12 @@ const char* VoiceServiceInterface::ReturnSwfStatus()
     return text;
 }
 
+
+void VoiceServiceInterface::defaultSMSTrans()
+{
+	dispatcher->dsp_controller->defaultSMSTransmit();
+}
+
 void VoiceServiceInterface::TurnSMSMode(int r_adr, char *message)
 {
    dispatcher->dsp_controller->startSMSTransmitting(r_adr,(uint8_t*)message);
