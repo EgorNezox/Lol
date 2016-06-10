@@ -162,6 +162,11 @@ void VoiceServiceInterface::SmsFailStage(int stage)
     smsFailed(stage);
 }
 
+void VoiceServiceInterface::setRnKey(int value)
+{
+   dispatcher->dsp_controller->setRnKey(value);
+}
+
 void VoiceServiceInterface::clearBuff()
 {
 	dispatcher->dsp_controller->clearPswfBufer();

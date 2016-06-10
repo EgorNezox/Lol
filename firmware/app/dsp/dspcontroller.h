@@ -128,6 +128,7 @@ public:
     void *getContentPSWF();
 
     char* getSmsContent();
+    void setRnKey(int keyValue);
 
     void processSyncPulse();
 
@@ -268,7 +269,7 @@ private:
         uint8_t SNR;
         uint8_t R_ADR;
         uint8_t S_ADR;
-        uint8_t COM_N;
+        uint8_t CYC_N;
         uint8_t L_CODE;
         uint8_t RN_KEY;
         SmsStage stage;
@@ -324,7 +325,6 @@ private:
     int getFrequencyPswf();
     int getFrequencySms();
 
-
     void getSwr();
     void transmitPswf();
     void addSeconds(int *date_time);
@@ -341,6 +341,8 @@ private:
     void startSMSCmdTransmitting(SmsStage stage);
 
     void generateSmsReceived();
+    int wzn_change(std::vector<int> &vect);
+    int calcFstn(int R_ADR, int S_ADR, int RN_KEY, int SEC, int MIN, int HRS, int DAY, int QNB);
 
     int check_rx_call();
 
@@ -426,7 +428,7 @@ private:
     std::vector<int> quit_vector;
     std::vector<std::vector<uint8_t>> guc_vector;
 
-
+    int QNB = 0;
     int rs_data_clear[255];
 
     int cntChvc = 7;
@@ -443,6 +445,8 @@ private:
 bool modem_rx_on, modem_tx_on;
     int clear_que;
     int trans_guc;
+
+    int wzn_value;
 
     bool sms_call_received;
 };

@@ -44,6 +44,8 @@ public:
     void TurnSMSMode();
     void SmsFailStage(int stage);
 
+    void setRnKey(int value);
+
     void TurnGuc(int r_adr, int speed_tx, std::vector<int> command);
     void TurnGuc();
     void clearBuff();

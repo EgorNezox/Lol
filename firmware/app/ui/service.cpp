@@ -491,6 +491,7 @@ void Service::keyPressed(UI_Key key)
         switch(estate.subType)
         {
         case GuiWindowsSubType::simpleCondComm:
+        case GuiWindowsSubType::duplCondCmd:
         {
             //[0] - CMD, [1] - R_ADDR, [2] - retrans
             switch (menu->txCondCmdStatus)
@@ -582,25 +583,37 @@ void Service::keyPressed(UI_Key key)
                 if ( menu->txCondCmdStatus > size )
                 {
 #ifndef _DEBUG_
-                    // [0] - cmd, [1] - raddr, [2] - retrans
-                    // bool menu->useRETRANS
-					int param[3] = {0,0,0}, i = 0;
-                    for(auto &k: estate.listItem)
-                    {
-                        param[i] = atoi(k->inputStr.c_str());
-                        i++;
-                    }
-                    	if (estate.listItem.size() == 2){
-                    		//voice_service->clearBuff();
-                    		voice_service->TurnPSWFMode(1, 0, param[0],0);
-                    	}
-                    	else if (estate.listItem.size() == 3)
+                    if(GuiWindowsSubType != duplCondCmd){
+                        // [0] - cmd, [1] - raddr, [2] - retrans
+                        // bool menu->useRETRANS
+                        int param[3] = {0,0,0}, i = 0;
+                        for(auto &k: estate.listItem)
+                        {
+                            param[i] = atoi(k->inputStr.c_str());
+                            i++;
+                        }
+                        if (estate.listItem.size() == 2){
+                            voice_service->TurnPSWFMode(1, 0, param[0],0); //TODO:
+                        }
+                        else if (estate.listItem.size() == 3)
                             voice_service->TurnPSWFMode(1, param[0], param[2],param[1]);
 
-//                        for(auto &k: estate.listItem)
-//                        {
-//                            k->inputStr.clear();
-//                        }
+                    }
+                    else
+                    {
+                        int param[3] = {0,0,0}, i = 0;
+                        for(auto &k: estate.listItem)
+                        {
+                            param[i] = atoi(k->inputStr.c_str());
+                            voice_service->TurnPSWFMode(1, param[0], param[1],0);
+                        }
+                        i++;
+                    }
+
+                    if (estate.listItem.size() == 2){
+                        else if (estate.listItem.size() == 3)
+                            voice_service->TurnPSWFMode(1, param[0], param[2],0);
+                    }
 #else
                     menu->txCondCmdStatus = 1;
                     guiTree.resetCurrentState();
@@ -1665,6 +1678,7 @@ void Service::keyPressed(UI_Key key)
             if (key == keyEnter)
             {
                 storageFs->setFhssKey((uint8_t)atoi(menu->RN_KEY.c_str()));
+                voice_service->setRnKey(atoi(menu->RN_KEY.c_str()));
                 menu->focus = 4;
                 guiTree.backvard();
 
