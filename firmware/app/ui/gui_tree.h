@@ -161,7 +161,8 @@ private:
     CState condCmd, groupCondCommand;
     CEndState sms, txPutOffVoice;
     SInputItemParameters smsParameters1{(char*)smsText[0], "", 2, 0, 31},\
-                         smsParameters2{(char*)smsText[1], "", 2, 0, 31};
+                         smsParameters2{(char*)smsText[1], "", 2, 0, 31},\
+                         smsParameters3{(char*)smsText[1], "", 2, 0, 31};
     // 1.1.1 - 1.1.2
     CState condCmdSimpl;
     CEndState condCmdDupl;

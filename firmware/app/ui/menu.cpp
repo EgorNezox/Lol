@@ -126,12 +126,12 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     auto iter = state.listItem.begin();
 
     //[0] - CMD, [1] - R_ADDR, [2] - retrans
-    switch (txCondCmdStatus)
+    switch (txCondCmdStage)
     {
     case 1:
     { // с ретранслятором/ без ретранстятора
         labelStr.append(condCommStr[3]);
-        if (useRetrans)
+        if (useCmdRetrans)
             str.append(useScanMenu[0]);
         else
             str.append(useScanMenu[1]);
@@ -606,7 +606,7 @@ void CGuiMenu::initSetDateOrTimeDialog(std::string text)
     volume.Draw();
 }
 
-void CGuiMenu::inputGroupCondCmd( CEndState state, UI_Key key )
+void CGuiMenu::inputGroupCondCmd( CEndState state )
 {
     auto elem = state.listItem.back();
     auto newTime = std::chrono::steady_clock::now();
@@ -764,6 +764,8 @@ void CGuiMenu::initTxPutOffVoiceDialog(int status)
 
 void CGuiMenu::initRxPutOffVoiceDialog(int status)
 {
+
+
     switch(putOffVoiceStatus)
     {
     case 1:
@@ -804,10 +806,10 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
             str.append(ch);
         }
 
-        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                     (GUI_Obj *)this);
+
         GUI_EL_TextArea state     ( &param[0],                  &stateArea,  (char*)str.c_str(), (GUI_Obj *)this);
 
-        window.Draw();
+
         state.Draw();
         break;
     }
@@ -831,13 +833,13 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
             str.append("--\0");
         else
             str.append(voiceAddr);
-        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                               (GUI_Obj *)this);
+
         GUI_EL_Label    label     ( &titleParams,               &labelArea,   (char*)voiceRxTxLabelStr[5], (GUI_Obj *)this);
         GUI_EL_TextArea text      ( &param[0],                  &textArea,    (char*)voiceRxStr[1],        (GUI_Obj *)this);
         GUI_EL_TextArea addr      ( &param[1],                  &addrArea,    (char*)str.c_str(),          (GUI_Obj *)this);
         GUI_EL_TextArea prompt    ( &param[2],                  &volume_geom, (char*)voiceRxStr[2],        (GUI_Obj *)this);
 
-        window.Draw();
+
         label.Draw();
         text.Draw();
         addr.Draw();
@@ -866,11 +868,11 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
 
         str.push_back('\0');
 
-        GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                              (GUI_Obj *)this);
+
         GUI_EL_Label    label     ( &titleParams,               &labelArea,  (char*)voiceRxTxLabelStr[1], (GUI_Obj *)this);
         GUI_EL_TextArea addr      ( &param,                     &addrArea,   (char*)str.c_str(),          (GUI_Obj *)this);
 
-        window.Draw();
+
         label.Draw();
         addr.Draw();
         break;
@@ -891,7 +893,7 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
         GUI_EL_Label    label     ( &titleParams,               &labelArea,  (char*)voiceRxTxLabelStr[3],      (GUI_Obj *)this);
         GUI_EL_TextArea state     ( &param[0],                  &stateArea,  (char*)smatrHSStateStr[status],   (GUI_Obj *)this);
 
-        window.Draw();
+
         label.Draw();
         state.Draw();
         break;
@@ -934,7 +936,7 @@ void CGuiMenu::initEditRnKeyDialog()
     addr.Draw();
 }
 
-void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)
+void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
 {
     auto newTime = std::chrono::steady_clock::now();
 
@@ -958,8 +960,7 @@ void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)
                     break;
                 }
 
-                auto elem = state.listItem.back();
-                elem->inputStr.pop_back();
+                field->pop_back();
             }
         }
         else
@@ -969,40 +970,39 @@ void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)
 
         prevKey = key;
 
-        auto elem = state.listItem.back();
-//        if ( (elem->inputStr.size() > 0) && (elem->inputStr.size()%16 == 0) )
-//        { elem->inputStr.push_back('\n'); }
+//        if ( (field.size() > 0) && (field.size()%16 == 0) )
+//        { field.push_back('\n'); }
         switch (key)
         {
         case key0:
-            elem->inputStr.push_back(ch_key0[keyPressCount]);
+            field->push_back(ch_key0[keyPressCount]);
             break;
         case key1:
-            elem->inputStr.push_back(ch_key1[keyPressCount]);
+            field->push_back(ch_key1[keyPressCount]);
             break;
         case key2:
-            elem->inputStr.push_back(ch_key2[keyPressCount]);
+            field->push_back(ch_key2[keyPressCount]);
             break;
         case key3:
-            elem->inputStr.push_back(ch_key3[keyPressCount]);
+            field->push_back(ch_key3[keyPressCount]);
             break;
         case key4:
-            elem->inputStr.push_back(ch_key4[keyPressCount]);
+            field->push_back(ch_key4[keyPressCount]);
             break;
         case key5:
-            elem->inputStr.push_back(ch_key5[keyPressCount]);
+            field->push_back(ch_key5[keyPressCount]);
             break;
         case key6:
-            elem->inputStr.push_back(ch_key6[keyPressCount]);
+            field->push_back(ch_key6[keyPressCount]);
             break;
         case key7:
-            elem->inputStr.push_back(ch_key7[keyPressCount]);
+            field->push_back(ch_key7[keyPressCount]);
             break;
         case key8:
-            elem->inputStr.push_back(ch_key8[keyPressCount]);
+            field->push_back(ch_key8[keyPressCount]);
             break;
         case key9:
-            elem->inputStr.push_back(ch_key9[keyPressCount]);
+            field->push_back(ch_key9[keyPressCount]);
             break;
         default:
             //
@@ -1013,68 +1013,131 @@ void CGuiMenu::inputSmsMessage( CEndState state, UI_Key key)
 
 }
 
-void CGuiMenu::inputSmsAddr(CEndState state, UI_Key key)
+void CGuiMenu::inputSmsAddr(std::string *field, UI_Key key)
 {
-    auto k = state.listItem.front();
-    if ( key > 5 && key < 16 && k->inputStr.size() < 2 )
+    if ( key > 5 && key < 16 && field->size() < 2 )
     {
-        k->inputStr.push_back((char)(42+key));
+        field->push_back((char)(42+key));
         // check
-        int rc = atoi(k->inputStr.c_str());
+        int rc = atoi(field->c_str());
 
         if ( rc > 31 )
-        { k->inputStr.clear(); }
+        { field->clear(); }
     }
 }
 
-void CGuiMenu::initTxSmsDialog(const char* titleStr, std::string addrStr, std::string msgStr )
+void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 {
-                  titleArea   = {  5,   5, 150,  20 };
-    MoonsGeometry addrArea    = {  7,  20, 147,  40 };
-    MoonsGeometry volume_geom = {  7,  35, 147, 100 };
-    MoonsGeometry button_geom = { 40, 110, 110, 125 };
 
-    LabelParams param[3] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelButton};
-    param[0].element.align = {alignLeft, alignTop};
-    param[1].element.align = {alignLeft, alignTop};
+    MoonsGeometry title_geom = {  5,   5, 150,  20 };
+    MoonsGeometry field_geom  = {  7,  40, 147,  60 };
 
-    for (int i = 0; i < 3; i++)
-        param[i].transparent = true;
+    LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT};
+    param[0].element.align = {alignHCenter, alignTop};
+    param[1].element.align = {alignHCenter, alignVCenter};
 
-    if ( focus == 2 ) param[2].transparent = false;
-
-    std::string str1, str2;
-
-    if ( focus == 0 ){ str1.append("->"); }else{ /*if (focus != 2)*/str1.append("  "); }
-    if ( focus == 1 ){ str2.append("->"); }else{ /*if (focus != 2)*/str2.append("  "); }
-    str1.append(smsText[0]); str1.append(addrStr);
-    str2.append(smsText[1]);/* str2.append(msgStr);*/
-
-    int b;
-    if ( msgStr.size() < 65 )
-        b = 0;
-    else
-        b = msgStr.size()-65;
-
-    for (int i = b; i < msgStr.size(); i++)
+    switch(smsTxStage)
     {
-        if ( (i-b)%16 == 0 && (i-b) != 0 )
-            str2.push_back('\n');
-        else
-            str2.push_back( msgStr[i] );
+    case 1:
+    {
+        GUI_EL_Window   window (&GUI_EL_TEMP_WindowGeneral, &windowArea,         (GUI_Obj *)this);
+        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
+        param[1] = GUI_EL_TEMP_LabelMode;
+        param[1].element.align = {alignHCenter, alignVCenter};
+        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
+        window.Draw();
+        title.Draw();
+        field.Draw();
+        break;
     }
+    case 2:
+    {
+        GUI_EL_Window   window (&GUI_EL_TEMP_WindowGeneral, &windowArea,         (GUI_Obj *)this);
+        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
+        param[1] = GUI_EL_TEMP_LabelMode;
+        param[1].element.align = {alignHCenter, alignVCenter};
 
-    GUI_EL_Window   window    (&GUI_EL_TEMP_WindowGeneral, &windowArea,                       (GUI_Obj *)this);
-    GUI_EL_Label    title     ( &titleParams,              &titleArea,   (char*)titleStr,     (GUI_Obj *)this);
-    GUI_EL_TextArea addr      (&param[0],                  &addrArea,    (char*)str1.c_str(), (GUI_Obj *)this);
-    GUI_EL_TextArea volume    (&param[1],                  &volume_geom, (char*)str2.c_str(), (GUI_Obj *)this);
-    GUI_EL_Label    ok_button (&param[2],                  &button_geom, (char*)trans,        (GUI_Obj *)this);
+        std::string str;
+        if (fieldStr.size() == 0)
+            str.append("00");
+        else if (fieldStr.size() == 1)
+        {
+            str.push_back('0');
+            str.append(fieldStr);
+        }
+        else
+            str.append(fieldStr);
 
-    window.Draw();
-    title.Draw();
-    addr.Draw();
-    volume.Draw();
-    ok_button.Draw();
+        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)str.c_str(), (GUI_Obj *)this);
+        window.Draw();
+        title.Draw();
+        field.Draw();
+        break;
+    }
+    case 3:
+    {
+        GUI_EL_Window   window (&GUI_EL_TEMP_WindowGeneral, &windowArea,         (GUI_Obj *)this);
+        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
+        param[1] = GUI_EL_TEMP_LabelMode;
+        param[1].element.align = {alignHCenter, alignVCenter};
+
+        std::string str;
+        if (fieldStr.size() == 0)
+            str.append("00");
+        else if (fieldStr.size() == 1)
+        {
+            str.push_back('0');
+            str.append(fieldStr);
+        }
+        else
+            str.append(fieldStr);
+
+        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)str.c_str(), (GUI_Obj *)this);
+        window.Draw();
+        title.Draw();
+        field.Draw();
+        break;
+    }
+    case 4:
+    {
+        std::string str;
+        int b = 0;
+//        if ( fieldStr.size() < 60 )
+//            b = 0;
+//        else
+//            b = fieldStr.size()-60;
+
+        for (uint8_t i = 0; i < fieldStr.size(); i++)
+        {
+            if ( (i%15 == 0) && (i != 0) )
+                str.push_back('\n');
+
+            str.push_back( fieldStr[i] );
+        }
+
+        GUI_EL_Window   window (&GUI_EL_TEMP_WindowGeneral, &windowArea,         (GUI_Obj *)this);
+        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
+        field_geom  = {  7,  20, 158,  120 };
+        param[1] = GUI_EL_TEMP_CommonTextAreaLT;
+        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)str.c_str(), (GUI_Obj *)this);
+        window.Draw();
+        title.Draw();
+        field.Draw();
+        break;
+    }
+    case 5:
+    {
+        GUI_EL_Window   window (&GUI_EL_TEMP_WindowGeneral, &windowArea,         (GUI_Obj *)this);
+        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
+        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
+        window.Draw();
+        title.Draw();
+        field.Draw();
+        break;
+    }
+    default:
+    {break;}
+    }
 }
 
 void CGuiMenu::initTxGroupCondComm(CEndState state)
@@ -1184,7 +1247,7 @@ void CGuiMenu::initRxCondCmdDialog()
     param.transparent = false;
 
     GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                    (GUI_Obj *)this);
-    GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)ticketStr, (GUI_Obj *)this);
+    GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)ticketStr[0], (GUI_Obj *)this);
 
     window.Draw();
 

@@ -88,6 +88,7 @@ void CGuiTree::init()
     sms.nextState.clear();
     sms.listItem.push_back(&smsParameters1);
     sms.listItem.push_back(&smsParameters2);
+    sms.listItem.push_back(&smsParameters3);
     // 1.3 - Голосовая почта
     txPutOffVoice.subType = GuiWindowsSubType::txPutOffVoice;
     txPutOffVoice.prevState = &call;
@@ -120,7 +121,6 @@ void CGuiTree::init()
     groupCondCommandDupl.nextState.clear();
     // 2 - Прием
     recv.prevState = &main;
-    recv.nextState.push_back(&recvVoice);
     recv.nextState.push_back(&recvSms);
     recv.nextState.push_back(&recvCondCommand);
     recv.nextState.push_back(&recvGroupCondCommsnds);
