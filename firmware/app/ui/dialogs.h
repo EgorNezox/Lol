@@ -67,8 +67,8 @@ private:
     void prepChString(char *str, int ch_num, Multiradio::voice_channel_t type );
 public:
     // фокус элементов главного экрана
-    int mwFocus = -1;
-    int mainWindowModeId = 0;
+    int mwFocus;
+    int mainWindowModeId;
 };
 
 //--------------------------
