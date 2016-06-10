@@ -11,6 +11,7 @@
 #ifndef FIRMWARE_APP_HEADSET_CONTROLLER_H_
 #define FIRMWARE_APP_HEADSET_CONTROLLER_H_
 
+#include <vector>
 #include "qmobject.h"
 #include "multiradio.h"
 #include <qmtimer.h>
@@ -40,8 +41,10 @@ public:
 		SmartHSState_SMART_BAD_CHANNEL,
 		SmartHSState_SMART_PREPARING_PLAY,
 		SmartHSState_SMART_PLAYING,
-		SmartHSState_SMART_PREPARING_RECORD,
+		SmartHSState_SMART_PREPARING_RECORD1,
+		SmartHSState_SMART_PREPARING_RECORD2,
 		SmartHSState_SMART_RECORDING,
+		SmartHSState_SMART_RECORD_UPLOADING,
 		SmartHSState_SMART_RECORD_TIMEOUT,
 		SmartHSState_SMART_READY
 	};
@@ -82,6 +85,7 @@ private:
 	void processPttDebounceTimeout();
 	void processPttResponseTimeout();
 	void transmitCmd(uint8_t cmd, uint8_t *data, int data_len);
+	void transmitResponceCmd(uint8_t cmd, uint8_t *data, int data_len);
 	void processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len);
 	void processReceivedStatus(uint8_t* data, int data_len);
 	void processReceivedStatusAsync(uint8_t* data, int data_len);
@@ -93,6 +97,13 @@ private:
 	void resetState();
 	bool verifyHSChannels(uint8_t* data, int data_len);
 	void synchronizeHSState();
+
+	void setSmartHSState(SmartHSState state);
+
+	void startRecord();
+	void messagePacketReceived(uint8_t* data, int data_len);
+	void messagePacketResponce(int packet_number);
+	uint16_t calcPacketCrc(uint8_t* data, int data_len);
 
 	State state;
 	Status status;
@@ -110,6 +121,10 @@ private:
 	Multiradio::voice_channel_t ch_type;
 	bool indication_enable;
 	bool squelch_enable;
+
+	SmartHSState hs_state;
+	Multiradio::voice_message_t message_data;
+	bool message_data_ready;
 };
 
 } /* namespace Headset */

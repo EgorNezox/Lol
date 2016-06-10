@@ -16,6 +16,7 @@
 #include "qmpushbuttonkey.h"
 #include "qmtimer.h"
 
+#include "headsetcrc.h"
 #include "controller.h"
 #include "smarttransport.h"
 
@@ -25,10 +26,12 @@ namespace Headset {
 #define HS_CMD_SET_MODE				0xB1
 #define HS_CMD_CH_LIST				0xB3
 #define HS_CMD_PTT_STATE			0x4A
+#define HS_CMD_MESSAGE_RECORD		0x2A
 
 #define HS_CMD_STATUS_RESP_LEN		32
 #define HS_CMD_CH_LIST_RESP_LEN		25
 #define HS_CMD_PTT_STATE_RESP_LEN	0
+#define HS_CMD_MESSAGE_LEN			208
 
 #define HS_CHANNELS_COUNT			98
 
@@ -39,7 +42,9 @@ namespace Headset {
 Controller::Controller(int rs232_uart_resource, int ptt_iopin_resource) :
 	state(StateNone), status(StatusNone), ptt_pressed(false),
 	ch_number(1), ch_type(Multiradio::channelInvalid),
-	indication_enable(true), squelch_enable(false)
+	indication_enable(true), squelch_enable(false),
+	hs_state(SmartHSState_SMART_NOT_CONNECTED),
+	message_data_ready(false)
 {
 	ptt_key = new QmPushButtonKey(ptt_iopin_resource);
 	ptt_debounce_timer = new QmTimer(true, this);
@@ -125,6 +130,10 @@ void Controller::transmitCmd(uint8_t cmd, uint8_t *data, int data_len) {
 	qmDebugMessage(QmDebug::Dump, "cmd_resp_timer started");
 }
 
+void Controller::transmitResponceCmd(uint8_t cmd, uint8_t *data, int data_len) {
+	transport->transmitCmd(cmd, data, data_len);
+}
+
 void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len) {
 	switch (cmd) {
 	case HS_CMD_STATUS: {
@@ -185,12 +194,28 @@ void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len) {
 		}
 		break;
 	}
+	case HS_CMD_MESSAGE_RECORD: {
+		cmd_resp_timer->stop();
+		if (hs_state == SmartHSState_SMART_RECORDING) {
+			setSmartHSState(SmartHSState_SMART_RECORD_UPLOADING);
+		} else if (hs_state != SmartHSState_SMART_RECORD_UPLOADING) {
+			break;
+		}
+		qmDebugMessage(QmDebug::Dump, "message packet received");
+		if (data_len != HS_CMD_MESSAGE_LEN) {
+			qmDebugMessage(QmDebug::Dump, "wrong data length of cmd HS_CMD_MESSAGE_RECORD");
+			break;
+		}
+		messagePacketReceived(data, data_len);
+		break;
+	}
 	default:
 		qmDebugMessage(QmDebug::Dump, "receved unknown cmd 0x%02X", cmd);
 	}
 }
 
 void Controller::processReceivedStatus(uint8_t* data, int data_len) {
+	qmDebugMessage(QmDebug::Dump, "processReceivedStatus()");
 	switch (state) {
 	case StateNone: {
 		poll_timer->stop();
@@ -200,7 +225,7 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 	}
 	case StateSmartInitHSModeSetting: {
 //		poll_timer->start();
-//		break;
+//		no break;
 	}
 	case StateSmartOk: {
 		uint16_t chan_number = qmFromLittleEndian<uint16_t>(data + 4);
@@ -236,12 +261,28 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 			ch_type = chan_type;
 			updateState(StateSmartOk);
 			smartCurrentChannelChanged(ch_number, ch_type);
-			//TODO: transmit 0xB1
 		} else {
 			updateState(StateSmartOk);
 		}
 		indication_enable = (mode_mask_add & 0x01) == 0;
 		squelch_enable = ((mode_mask_add >> 1) & 0x01) == 0;
+
+		switch (hs_state) {
+		case SmartHSState_SMART_PREPARING_RECORD1: {
+			startRecord();
+			break;
+		}
+		case SmartHSState_SMART_PREPARING_RECORD2: {
+			cmd_resp_timer->setInterval(HS_RESPONCE_TIMEOUT); //TODO: fix it
+			if (mode_mask & 0x10) {
+				setSmartHSState(SmartHSState_SMART_RECORDING);
+			} else {
+				setSmartHSState(SmartHSState_SMART_ERROR);
+			}
+			break;
+		}
+		default: break;
+		}
 		break;
 	}
 	case StateSmartInitChList: {
@@ -255,6 +296,7 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 }
 
 void Controller::processReceivedStatusAsync(uint8_t* data, int data_len) {
+	qmDebugMessage(QmDebug::Dump, "processReceivedStatusAsync()");
 	switch (state) {
 	case StateSmartOk: {
 		uint16_t chan_number = qmFromLittleEndian<uint16_t>(data + 4);
@@ -290,7 +332,6 @@ void Controller::processReceivedStatusAsync(uint8_t* data, int data_len) {
 			ch_type = chan_type;
 			updateState(StateSmartOk);
 			smartCurrentChannelChanged(ch_number, ch_type);
-			//TODO: transmit 0xB1
 			synchronizeHSState();
 		} else {
 			updateState(StateSmartOk);
@@ -322,8 +363,14 @@ void Controller::updateState(State new_state) {
 		case StateAnalog: updateStatus(StatusAnalog); break;
 		case StateSmartInitChList: break;
 		case StateSmartInitHSModeSetting: break;
-		case StateSmartOk: updateStatus(StatusSmartOk); break;
-		case StateSmartMalfunction: updateStatus(StatusSmartMalfunction); break;
+		case StateSmartOk:
+			updateStatus(StatusSmartOk);
+			setSmartHSState(SmartHSState_SMART_READY);
+			break;
+		case StateSmartMalfunction:
+			updateStatus(StatusSmartMalfunction);
+			setSmartHSState(SmartHSState_SMART_ERROR);
+			break;
 		default: QM_ASSERT(0);
 		}
 	}
@@ -390,7 +437,8 @@ bool Controller::verifyHSChannels(uint8_t* data, int data_len) {
 void Controller::synchronizeHSState() {
 	qmDebugMessage(QmDebug::Dump, "synchronizeHSState()");
 	qmDebugMessage(QmDebug::Dump, "channel number: %d", ch_number);
-	uint8_t data[16];
+	const int data_size = 16;
+	uint8_t data[data_size];
 	data[0] = 0xAB;
 	data[1] = 0xBA;
 	data[2] = 0x01;
@@ -405,9 +453,9 @@ void Controller::synchronizeHSState() {
 	data[3] = ch_number; // channel number
 	data[4] = 0xFF; // reserved
 	data[5] = 0x01 | (uint8_t)((indication_enable ? 0 : 1) << 2);
-	for (int i = 6; i < 16; ++i)
+	for (int i = 6; i < data_size; ++i)
 		data[i] = 0;
-	transmitCmd(HS_CMD_SET_MODE, data, 16);
+	transmitCmd(HS_CMD_SET_MODE, data, data_size);
 }
 
 void Controller::startSmartPlay(uint8_t channel) {
@@ -420,8 +468,38 @@ void Controller::stopSmartPlay() {
 }
 
 void Controller::startSmartRecord(uint8_t channel) {
-	QM_UNUSED(channel);
-	//...
+	QM_ASSERT(channel > 0 || channel < 99);
+	if (ch_table->at(channel - 1).type != Multiradio::channelClose) {
+		qmDebugMessage(QmDebug::Warning, "startSmartRecord() channel %d is not close", channel);
+		setSmartHSState(SmartHSState_SMART_BAD_CHANNEL);
+		return;
+	}
+	qmDebugMessage(QmDebug::Dump, "startSmartRecord() channel %d", channel);
+	message_data_ready = false;
+	message_data.clear();
+	setSmartHSState(SmartHSState_SMART_PREPARING_RECORD1);
+	ch_number = channel;
+
+	synchronizeHSState();
+}
+
+void Controller::startRecord() {
+	qmDebugMessage(QmDebug::Dump, "startRecord()");
+	cmd_resp_timer->setInterval(3000); //TODO: fix it
+	setSmartHSState(SmartHSState_SMART_PREPARING_RECORD2);
+	const int data_size = 16;
+	uint8_t data[data_size];
+	data[0] = 0xAB;
+	data[1] = 0xBA;
+	data[2] = 0x01;
+	data[2] |= 0x10;
+	data[2] |= (uint8_t)((squelch_enable ? 0 : 1) << 5); // mode mask
+	data[3] = 0x00; // channel number
+	data[4] = 0xFF; // reserved
+	data[5] = 0x01 | (uint8_t)((indication_enable ? 0 : 1) << 2);
+	for (int i = 6; i < data_size; ++i)
+		data[i] = 0;
+	transmitCmd(HS_CMD_SET_MODE, data, data_size);
 }
 
 void Controller::stopSmartRecord() {
@@ -430,11 +508,13 @@ void Controller::stopSmartRecord() {
 
 Controller::SmartHSState Controller::getSmartHSState() {
 	//...
-	return SmartHSState_SMART_READY;
+	return hs_state;
 }
 
 Multiradio::voice_message_t Controller::getRecordedSmartMessage() {
-	//...
+	if (message_data_ready) {
+		return message_data;
+	}
 	return Multiradio::voice_message_t();
 }
 
@@ -443,8 +523,66 @@ void Controller::setSmartMessageToPlay(Multiradio::voice_message_t data) {
 	//...
 }
 
+void Controller::setSmartHSState(SmartHSState state) {
+	qmDebugMessage(QmDebug::Dump, "setSmartHSState() state = %d", state);
+	hs_state = state;
+	smartHSStateChanged(hs_state);
+}
+
+void Controller::messagePacketReceived(uint8_t* data, int data_len) {
+	qmDebugMessage(QmDebug::Dump, "messagePacketReceived()");
+	for (int i = 0; i < data_len; ++i) {
+		qmDebugMessage(QmDebug::Dump, "data[%d] = %2X", i, data[i]);
+	}
+	if (data[0] != 0xAA && data[1] != 0xCD) {
+		qmDebugMessage(QmDebug::Dump, "messagePacketReceived() data header is not valid");
+		return;
+	}
+	uint16_t data_crc = calcPacketCrc(&data[2], 204);
+	uint16_t crc = qmFromLittleEndian<uint16_t>(data + 206);
+	if (data_crc != crc) {
+		qmDebugMessage(QmDebug::Dump, "messagePacketReceived() crc is not valid");
+		return;
+	}
+	uint16_t packet_number = qmFromLittleEndian<uint16_t>(data + 2);
+	uint16_t data_size = qmFromLittleEndian<uint16_t>(data + 4);
+	if (data_size > 200) {
+		qmDebugMessage(QmDebug::Dump, "messagePacketReceived() data size %d is not valid", data_size);
+		return;
+	} else if (data_size == 0) {
+		qmDebugMessage(QmDebug::Dump, "total message data size = %d", message_data.size());
+		message_data_ready = true;
+		setSmartHSState(SmartHSState_SMART_READY);
+	}
+	for (int i = 6; i < data_size + 6; ++i) {
+		message_data.push_back(data[i]);
+	}
+	messagePacketResponce(packet_number);
+}
+
+void Controller::messagePacketResponce(int packet_number) {
+	qmDebugMessage(QmDebug::Dump, "messagePacketResponce() packet_number %d", packet_number);
+	const int data_size = 4;
+	uint8_t data[data_size];
+	for (int i = 0; i < data_size; ++i) {
+		data[i] = 0;
+	}
+	data[2] = (uint8_t)packet_number;
+	transmitResponceCmd(HS_CMD_MESSAGE_RECORD, data, data_size);
+}
+
+uint16_t Controller::calcPacketCrc(uint8_t* data, int data_len) {
+	HeadsetCRC crc;
+	crc.update(data, (uint16_t)data_len);
+	uint16_t result = ~crc.result();
+	uint16_t least = (result & 0x00FF);
+	result = (result >> 8) & 0x00FF;
+	result |= (least << 8) & 0xFF00;
+	return result;
+}
+
 } /* namespace Headset */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(hscontroller, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(hscontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"
