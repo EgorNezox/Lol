@@ -595,7 +595,7 @@ void Service::keyPressed(UI_Key key)
                             voice_service->TurnPSWFMode(0, 0, param[0],0);
                     	}
                     	else if (estate.listItem.size() == 3)
-                            voice_service->TurnPSWFMode(0, param[0], param[2],param[1]);
+                            voice_service->TurnPSWFMode(1, param[0], param[2],param[1]);
 
 //                        for(auto &k: estate.listItem)
 //                        {
@@ -1267,7 +1267,7 @@ void Service::keyPressed(UI_Key key)
                     if (menu->useTicket)
                         voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
                     else
-                        voice_service->TurnPSWFMode(1,0,0,0);
+                        voice_service->TurnPSWFMode(0,0,0,0);
 #endif
                     menu->rxCondCmdStatus = 1;
                 }
@@ -2285,5 +2285,5 @@ void Service::smsMessage()
 }/* namespace Ui */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(service, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(service, LevelVerbose)
 #include "qmdebug_domains_end.h"

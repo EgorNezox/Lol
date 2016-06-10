@@ -92,7 +92,7 @@ int Navigator::Calc_LCODE_SMS_call(int R_ADR, int S_ADR, int CYC_N, int RN_KEY, 
 
 int Navigator::Calc_LCODE_RETR(int RP_ADR,int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
 {
-    int L_CODE = (RP_ADR + R_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY) % 100;
+    int L_CODE = (RP_ADR + R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY) % 100;
     return L_CODE;
 }
 
