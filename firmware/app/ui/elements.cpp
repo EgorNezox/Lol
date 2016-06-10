@@ -147,7 +147,8 @@ void GUI_EL_Label::Draw(){
             groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,GLINE);
 		}
 		else {
-			gsetmode(COMMON_ELEMENT_VP_MODE | GTRANSPERANT);
+            gsetmode(COMMON_ELEMENT_VP_MODE | GTRANSPERANT);
+            groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,GFILL);
 		}
 		gsetpos(content.x, CONTENT_YE(content));
 		gputs(text);
