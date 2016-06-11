@@ -583,46 +583,36 @@ void Service::keyPressed(UI_Key key)
                 if ( menu->txCondCmdStage > size )
                 {
 #ifndef _DEBUG_
-                    if(GuiWindowsSubType != duplCondCmd){
-                        // [0] - cmd, [1] - raddr, [2] - retrans
-                        // bool menu->useRETRANS
-                        int param[3] = {0,0,0}, i = 0;
-                        for(auto &k: estate.listItem)
-                        {
-                            param[i] = atoi(k->inputStr.c_str());
-                            i++;
-                        }
-                        if (estate.listItem.size() == 2){
-                            voice_service->TurnPSWFMode(1, 0, param[0],0); //TODO:
-                        }
-                        else if (estate.listItem.size() == 3)
-                            voice_service->TurnPSWFMode(1, param[0], param[2],param[1]);
+                	if(estate.subType != duplCondCmd)
+                	{
+                		// [0] - cmd, [1] - raddr, [2] - retrans
+                		// bool menu->useRETRANS
+                		int param[3] = {0,0,0}, i = 0;
+                		for(auto &k: estate.listItem)
+                		{
+                			param[i] = atoi(k->inputStr.c_str());
+                			i++;
+                		}
+                		if (estate.listItem.size() == 2)
+                			voice_service->TurnPSWFMode(1, 0, param[0],0); //TODO:
+                		else
+                			voice_service->TurnPSWFMode(1, param[0], param[2],param[1]);
 
-                    }
-                    else
-                    {
-                        int param[3] = {0,0,0}, i = 0;
-                        for(auto &k: estate.listItem)
-                        {
-                            param[i] = atoi(k->inputStr.c_str());
-                            voice_service->TurnPSWFMode(1, param[0], param[1],0);
-                        }
-                        i++;
-                    }
-<<<<<<< HEAD
-=======
-                    	if (estate.listItem.size() == 2){
-                    		//voice_service->clearBuff();
-                            voice_service->TurnPSWFMode(0, 0, param[0],0);
-                    	}
-                    	else if (estate.listItem.size() == 3)
-                            voice_service->TurnPSWFMode(0, param[0], param[2],param[1]);
->>>>>>> ale_vm
+                	 }
 
-                    if (estate.listItem.size() == 2){
-                        else if (estate.listItem.size() == 3)
-                            voice_service->TurnPSWFMode(1, param[0], param[2],0);
-                    }
+                	else
+                	{
+                		int param[3] = {0,0,0}, i = 0;
+                		for(auto &k: estate.listItem)
+                		{
+                			param[i] = atoi(k->inputStr.c_str());
+                			i++;
+                		}
+
+                		voice_service->TurnPSWFMode(1,param[0],param[1],0);
+                	}
+
+
 #else
                     menu->txCondCmdStage = 1;
                     guiTree.resetCurrentState();

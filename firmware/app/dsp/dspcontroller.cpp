@@ -573,7 +573,7 @@ void DspController::changeSmsRxFrequency()
 	else
 		sendCommand(PSWFReceiver, PswfRxFrequency, param);
 
-	if (pswf_first_packet_received)
+	//if (pswf_first_packet_received)
 		recSms();
 }
 
@@ -639,7 +639,7 @@ int DspController::getFrequencyPswf()
 
 int DspController::getFrequencySms()
 {
-    int fr_sh = CalcSmsTransmitFreq(ContentPSWF.RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
+    int fr_sh = CalcSmsTransmitFreq(ContentSms.RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
     fr_sh += 1622;
 
     fr_sh = fr_sh * 1000; // Гц
@@ -704,12 +704,15 @@ int DspController::CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, in
 
     	int wz_shift = SEC % 6;
     	SEC_MLT = wz_shift + wz_base;
+
+    	qmDebugMessage(QmDebug::Dump, "wzn_base %d" ,wz_base);
+    	qmDebugMessage(QmDebug::Dump, "wzn_shift %d" ,wz_shift);
     }
 
-    qmDebugMessage(QmDebug::Dump, "Sec mlt: %d", SEC_MLT);
+    qmDebugMessage(QmDebug::Dump, "SEC_MLT %d" ,SEC_MLT);
 
     if ((ContentSms.stage == StageTx_call) || (ContentSms.stage == StageRx_call) ||
-            (ContentSms.stage == StageTx_call_ack) || (ContentSms.stage == StageRx_call_ack)) {
+            (ContentSms.stage == StageTx_call_ack) || (ContentSms.stage == StageRx_call_ack) || (ContentSms.stage == StageNone)) {
         FR_SH = (RN_KEY + 73 + 230*SEC_MLT + 17*MIN + 29*HRS + 43*DAY)% TOT_W;
         qmDebugMessage(QmDebug::Dump, "Calc freq sms tx formula %d", FR_SH);
     }
@@ -1592,6 +1595,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 if (ContentSms.stage == StageTx_call_ack)
                 {
                     tx_call_ask_vector.push_back(data[9]); // wzn response
+
                 }
                 if (ContentSms.stage == StageRx_call)
                 {
@@ -1823,8 +1827,9 @@ void DspController::sendSms(Module module)
     if (ContentSms.stage == StageTx_data)
     {
         if (QNB > 36) QNB = 0;
-        int FST_N = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],QNB);
         ++QNB;
+        int FST_N = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],QNB);
+        qmDebugMessage(QmDebug::Dump, "FSTN: %d", FST_N);
         if (cntChvc > 255) cntChvc = 7;
     	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
     	++tx_data_len;
@@ -1888,6 +1893,7 @@ void DspController::recSms()
             qmDebugMessage(QmDebug::Dump, "recSms() recievedSmsBuffer.size() =  %d", recievedSmsBuffer.size());
             if (tx_call_ask_vector.size() >= 3) {
                 wzn_value = wzn_change(tx_call_ask_vector);
+                qmDebugMessage(QmDebug::Dump, "wzn_value" ,wzn_value);
                 startSMSTransmitting(ContentSms.R_ADR, ContentSms.message, StageTx_data);
                 qmDebugMessage(QmDebug::Dump, "start stage Data TX");
             } else {
@@ -2164,7 +2170,7 @@ void DspController::startSMSRecieving(SmsStage stage)
 void DspController::defaultSMSTransmit()
 {
 	for(int i = 0; i<255;i++)  ContentSms.message[i] = 0;
-	ContentSms.stage = StageNone;
+	//ContentSms.stage = StageNone;
 }
 
 void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStage stage)
@@ -2556,5 +2562,5 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"
