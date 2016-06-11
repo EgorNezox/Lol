@@ -67,8 +67,8 @@ public:
     std::string message, newMessage;
 
     // tx cond cmd
-    bool useRetrans = false;
-    int txCondCmdStatus = 1;
+    bool useCmdRetrans = false;
+    int txCondCmdStage = 1;
     void setCondCommParam(CEndState, UI_Key);
     // rx cond cmd
     void initRxCondCmdDialog();
@@ -79,7 +79,7 @@ public:
 
     // group cond comm stage
     int groupCondCommStage = 0;
-    void inputGroupCondCmd( CEndState, UI_Key );
+    void inputGroupCondCmd(CEndState);
 
     // put off voice
     std::string  channalNum;
@@ -93,9 +93,11 @@ public:
     void initTxGroupCondComm(CEndState);
 
     // message ( SMS )
-    void initTxSmsDialog(const char *, std::string, std::string);
-    void inputSmsMessage( CEndState, UI_Key );
-    void inputSmsAddr( CEndState, UI_Key );
+    uint8_t smsTxStage = 1;
+    bool useSmsRetrans = false;
+    void initTxSmsDialog(std::string, std::string);
+    void inputSmsMessage(std::string*, UI_Key );
+    void inputSmsAddr( std::string*, UI_Key );
     UI_Key prevKey = keyBack;
     char ch = ' ';
     int keyPressCount = 0;
@@ -154,7 +156,7 @@ private:
     GUI_EL_MenuItem *(item[6]);
     GUI_EL_Label *label[6];
     char *tx;
-    bool editing = false;
+    bool editing;
 
     uint8_t vol = 100;
 };

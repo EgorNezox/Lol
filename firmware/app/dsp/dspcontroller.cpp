@@ -1079,6 +1079,34 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 		++tx_data_len;
 		break;
 	}
+    case ModemReceiver:
+    {
+   		tx_address = 0x6C;
+    	switch (code) {
+    	case ModemRxState:
+    		qmToBigEndian((uint8_t)value.modem_rx_state, tx_data+tx_data_len);
+    		tx_data_len += 1;
+    		break;
+    	case ModemRxBandwidth:
+    		qmToBigEndian((uint8_t)value.modem_rx_bandwidth, tx_data+tx_data_len);
+    		tx_data_len += 1;
+    		break;
+    	case ModemRxTimeSyncMode:
+    		qmToBigEndian((uint8_t)value.modem_rx_time_sync_mode, tx_data+tx_data_len);
+    		tx_data_len += 1;
+    		break;
+    	case ModemRxPhase:
+    		qmToBigEndian((uint8_t)value.modem_rx_phase, tx_data+tx_data_len);
+    		tx_data_len += 1;
+    		break;
+    	case ModemRxRole:
+    		qmToBigEndian((uint8_t)value.modem_rx_role, tx_data+tx_data_len);
+    		tx_data_len += 1;
+    		break;
+    	default: QM_ASSERT(0);
+    	}
+    	break;
+    }
 
 	default: QM_ASSERT(0);
 	}
@@ -1665,7 +1693,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         }
         break;
     }
-    case 0x7F:
+    case 0x6F:
     {
     	value_ptr -= 1; // костылное превращение в нестандартный формат кадра
     	value_len += 1; // костылное превращение в нестандартный формат кадра
@@ -1687,9 +1715,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
     		int data_offset;
     		if (type == modempacket_packHead)
-    			data_offset = 6;
+    			data_offset = 5;
     		else
-    			data_offset = 4;
+    			data_offset = 3;
     		int8_t snr = qmFromBigEndian<int8_t>(value_ptr+2);
     		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
     		receivedModemPacket.emit(type, snr, bandwidth, value_ptr + data_offset, value_len - data_offset);
@@ -1706,9 +1734,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
     		int data_offset;
     		if (type == modempacket_packHead)
-    			data_offset = 6;
+    			data_offset = 5;
     		else
-    			data_offset = 4;
+    			data_offset = 3;
     		int8_t snr = qmFromBigEndian<int8_t>(value_ptr+2);
     		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
     		if (type == modempacket_packHead) {
@@ -2400,14 +2428,26 @@ void DspController::startSMSCmdTransmitting(SmsStage stage)
     ContentSms.stage = stage;
 }
 
+void DspController::tuneModemFrequency(uint32_t value) {
+	ParameterValue comandValue;
+	if (value >= 30000000)
+		comandValue.power = 80;
+	else
+		comandValue.power = 100;
+	sendCommandEasy(TxRadiopath, TxPower, comandValue);
+	comandValue.frequency = value;
+	sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
+	sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
+}
 
 void DspController::enableModemReceiver() {
 	disableModemTransmitter();
 	current_radio_mode = RadioModeSazhenData;
-    setRadioOperation(RadioOperationRxMode);
 	ParameterValue comandValue;
+	comandValue.radio_mode = RadioModeSazhenData;
+	sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
 	comandValue.modem_rx_state = ModemRxDetectingStart;
-	sendCommand(ModemReceiver, ModemRxState, comandValue);
+	sendCommandEasy(ModemReceiver, ModemRxState, comandValue);
 	modem_rx_on = true;
 }
 
@@ -2417,38 +2457,42 @@ void DspController::disableModemReceiver() {
 	modem_rx_on = false;
 	ParameterValue comandValue;
 	comandValue.modem_rx_state = ModemRxOff;
-	sendCommand(ModemReceiver, ModemRxState, comandValue);
-	setRadioOperation(RadioOperationOff);
+	sendCommandEasy(ModemReceiver, ModemRxState, comandValue);
+	comandValue.radio_mode = RadioModeOff;
+	sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
+	current_radio_mode = RadioModeOff;
 }
 
 void DspController::setModemReceiverBandwidth(ModemBandwidth value) {
 	ParameterValue comandValue;
 	comandValue.modem_rx_bandwidth = value;
-	sendCommand(ModemReceiver, ModemRxBandwidth, comandValue);
+	sendCommandEasy(ModemReceiver, ModemRxBandwidth, comandValue);
 }
 
 void DspController::setModemReceiverTimeSyncMode(ModemTimeSyncMode value) {
 	ParameterValue comandValue;
 	comandValue.modem_rx_time_sync_mode = value;
-	sendCommand(ModemReceiver, ModemRxTimeSyncMode, comandValue);
+	sendCommandEasy(ModemReceiver, ModemRxTimeSyncMode, comandValue);
 }
 
 void DspController::setModemReceiverPhase(ModemPhase value) {
 	ParameterValue comandValue;
 	comandValue.modem_rx_phase = value;
-	sendCommand(ModemReceiver, ModemRxPhase, comandValue);
+	sendCommandEasy(ModemReceiver, ModemRxPhase, comandValue);
 }
 
 void DspController::setModemReceiverRole(ModemRole value) {
 	ParameterValue comandValue;
 	comandValue.modem_rx_role = value;
-	sendCommand(ModemReceiver, ModemRxRole, comandValue);
+	sendCommandEasy(ModemReceiver, ModemRxRole, comandValue);
 }
 
 void DspController::enableModemTransmitter() {
 //	disableModemReceiver();
 	current_radio_mode = RadioModeSazhenData;
-	setRadioOperation(RadioOperationTxMode);
+	ParameterValue comandValue;
+	comandValue.radio_mode = RadioModeSazhenData;
+	sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
 	modem_tx_on = true;
 }
 
@@ -2456,7 +2500,10 @@ void DspController::disableModemTransmitter() {
 	if (!modem_tx_on)
 		return;
 	modem_tx_on = false;
-	setRadioOperation(RadioOperationOff);
+	ParameterValue comandValue;
+	comandValue.radio_mode = RadioModeOff;
+	sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
+	current_radio_mode = RadioModeOff;
 }
 
 void DspController::sendModemPacket(ModemPacketType type,
@@ -2471,7 +2518,7 @@ void DspController::sendModemPacket(ModemPacketType type,
 		QM_ASSERT(data);
 		payload.insert(std::end(payload), data, data + data_len);
 	}
-	transport->transmitFrame(0x6F, &payload[0], payload.size());
+	transport->transmitFrame(0x7E, &payload[0], payload.size());
 }
 
 void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
@@ -2487,7 +2534,7 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 	QM_ASSERT(data);
 	QM_ASSERT(data_len > 0);
 	payload.insert(std::end(payload), data, data + data_len);
-	transport->transmitFrame(0x6F, &payload[0], payload.size());
+	transport->transmitFrame(0x7E, &payload[0], payload.size());
 }
 
 
