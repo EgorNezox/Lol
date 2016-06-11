@@ -370,8 +370,8 @@ void CGuiMenu::initGpsCoordinateDialog(std::string coord_lat, std::string coord_
 
     if (coord_lat.size() == 0)
     {
-        coord_lat.append("0123.4567,N");
-        coord_log.append("0123.4567,N");
+        coord_lat.append("0000.0000,N");
+        coord_log.append("0000.0000,N");
     }
 
     volume[0]->SetText((char *)coord_lat.c_str());

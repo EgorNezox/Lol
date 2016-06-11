@@ -102,12 +102,6 @@ int Navigator::Calc_LCODE_SMS(int R_ADR, int S_ADR, int WZN, int RN_KEY, int DAY
     return L_CODE;
 }
 
-int Navigator::Calc_LCODE_SMS(int R_ADR, int S_ADR, int WZN, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
-{
-    int L_CODE = (R_ADR + S_ADR + WZN + RN_KEY + SEC + MIN + HRS + DAY) % 100;
-    return L_CODE;
-}
-
 //#if defined(PORT__TARGET_DEVICE_REV1)
 void Navigator::processUartReceivedData() {
 	uint8_t data[1024];

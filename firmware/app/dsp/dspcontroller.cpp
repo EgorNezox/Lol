@@ -396,11 +396,20 @@ void DspController::transmitSMS()
 
     ContentSms.CYC_N += 1;
 
-    ContentSms.L_CODE = navigator->Calc_LCODE(
-                ContentSms.R_ADR, ContentSms.S_ADR,
-                ContentSms.CYC_N, ContentSms.RN_KEY,
-                ContentSms.R_ADR, ContentSms.S_ADR,
-                 date_time[0], date_time[1], date_time[2], date_time[3]);
+    if (ContentSms.stage == StageRx_call_ack){
+        ContentSms.L_CODE = navigator->Calc_LCODE_SMS(
+                    ContentSms.R_ADR, ContentSms.S_ADR,
+                    wzn_value, ContentSms.RN_KEY,
+                    date_time[0], date_time[1], date_time[2], date_time[3]);
+    }
+    else
+    {
+
+        ContentSms.L_CODE = navigator->Calc_LCODE(
+                    ContentSms.R_ADR, ContentSms.S_ADR,
+                    ContentSms.CYC_N, ContentSms.RN_KEY,
+                    date_time[0], date_time[1], date_time[2], date_time[3]);
+    }
 
 
     if (ContentSms.stage == StageTx_call)
