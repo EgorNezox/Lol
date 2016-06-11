@@ -97,6 +97,7 @@ MainServiceInterface::MainServiceInterface(Dispatcher *dispatcher, Navigation::N
 	ale.state = AleState_IDLE;
 	ale.phase = ALE_STOPPED;
 	ale.timerRadioReady = new QmTimer(true, this);
+	ale.timerRadioReady->setInterval(500);
 	ale.timerRadioReady->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessRadioReady));
 	ale.timerGnssSync = new QmTimer(true, this);
 	ale.timerGnssSync->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerGnssSyncExpired));
@@ -312,7 +313,7 @@ void MainServiceInterface::startAleRx() {
 	dsp_controller->setModemReceiverTimeSyncMode(DspController::modemtimesyncGPS);
 	dsp_controller->setModemReceiverPhase(DspController::modemphaseWaitingCall);
 	dsp_controller->setModemReceiverRole(DspController::modemroleResponder);
-	ale.timerRadioReady->start(100);
+	ale.timerRadioReady->start();
 }
 
 void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
@@ -353,7 +354,7 @@ void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
 	dsp_controller->setModemReceiverTimeSyncMode(DspController::modemtimesyncGPS);
 	dsp_controller->setModemReceiverPhase(DspController::modemphaseALE);
 	dsp_controller->setModemReceiverRole(DspController::modemroleCaller);
-	ale.timerRadioReady->start(100);
+	ale.timerRadioReady->start();
 }
 
 MainServiceInterface::AleResult MainServiceInterface::stopAle() {
@@ -670,7 +671,7 @@ void MainServiceInterface::proceedRxScanning() {
 	stopAleRxTimers();
 	dsp_controller->setModemReceiverBandwidth(DspController::modembwAll);
 	dsp_controller->setModemReceiverPhase(DspController::modemphaseWaitingCall);
-	ale.timerRadioReady->start(100);
+	ale.timerRadioReady->start();
 	setAlePhase(ALE_RX_SETUP);
 	setAleState(AleState_RX_SCANNING);
 }
@@ -1066,7 +1067,7 @@ void MainServiceInterface::aleprocess1PPS() {
 			ale.timerNegRoffHshakeReceiv[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegRoffHshakeReceiv_offset));
 			ale.timerNegTxHshakeTrans[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegTxHshakeTrans_offset));
 		}
-		dsp_controller->setRadioParameters(DspController::RadioModeSazhenData, ale.call_freqs[freq_idx]);
+		dsp_controller->tuneModemFrequency(ale.call_freqs[freq_idx]);
 		dsp_controller->enableModemTransmitter();
 		setAlePhase(ALE_TX_CALL);
 		ale.rcount = 0;
@@ -1078,7 +1079,7 @@ void MainServiceInterface::aleprocess1PPS() {
 			break;
 		qmDebugMessage(QmDebug::Info, "ale dwell start (rx scan)");
 		ale.timerRoffCall->start(ALE_TIME_dTSyn + TIMER_VALUE_tRoffSyncCall);
-		dsp_controller->setRadioParameters(DspController::RadioModeSazhenData, ale.call_freqs[freq_idx]);
+		dsp_controller->tuneModemFrequency(ale.call_freqs[freq_idx]);
 		dsp_controller->enableModemReceiver();
 		setAlePhase(ALE_RX_CALL);
 		break;
@@ -1097,7 +1098,7 @@ void MainServiceInterface::aleprocessTimerDataStartExpired() {
 			ale.timerMsgTxRespPackQual[i]->start(ale.tPacketSync, (cycle + TIMER_VALUE_tDataTxRespPackQualDelay(-1)));
 			ale.timerMsgRonHshakeT[i]->start(ale.tPacketSync, (cycle + TIMER_VALUE_tDataRonHshakeTDelay(-1)));
 			ale.timerMsgRoffHshakeT[i]->start(ale.tPacketSync, (cycle + TIMER_VALUE_tDataRoffHshakeTDelay(-1)));
-			ale.timerTxMsgCycle[i]->start(ale.tPacketSync, cycle);
+			ale.timerRxMsgCycle[i]->start(ale.tPacketSync, cycle);
 		}
 		dsp_controller->enableModemReceiver();
 		setAlePhase(ALE_RX_VM_RX_MSGHEAD);

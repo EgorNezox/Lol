@@ -132,6 +132,8 @@ public:
     void processSyncPulse();
 
 uint8_t* get_guc_vector();
+
+	void tuneModemFrequency(uint32_t value);
     void enableModemReceiver();
     void disableModemReceiver();
     void setModemReceiverBandwidth(ModemBandwidth value);
