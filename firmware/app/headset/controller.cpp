@@ -732,5 +732,5 @@ uint16_t Controller::calcPacketCrc(uint8_t* data, int data_len) {
 } /* namespace Headset */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(hscontroller, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(hscontroller, LevelDefault)
 #include "qmdebug_domains_end.h"

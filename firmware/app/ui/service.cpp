@@ -2285,5 +2285,5 @@ void Service::smsMessage()
 }/* namespace Ui */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(service, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(service, LevelDefault)
 #include "qmdebug_domains_end.h"
