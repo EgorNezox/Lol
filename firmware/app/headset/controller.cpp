@@ -578,7 +578,7 @@ void Controller::stopSmartRecord() {
 }
 
 Controller::SmartHSState Controller::getSmartHSState() {
-	return hs_state;
+    return hs_state;
 }
 
 Multiradio::voice_message_t Controller::getRecordedSmartMessage() {

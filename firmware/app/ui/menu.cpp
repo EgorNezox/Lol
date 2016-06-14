@@ -711,7 +711,10 @@ void CGuiMenu::initTxPutOffVoiceDialog(int status)
         param.element.align = {alignHCenter, alignTop};
         param.transparent   = true;
 
+        GUI_EL_Label label( &titleParams, &labelArea, (char*)"", (GUI_Obj *)this);
         GUI_EL_Label field( &param, &fieldArea, (char*)startAleTxVoiceMailStr, (GUI_Obj *)this);
+
+        label.Draw();
         field.Draw();
         break;
     }
@@ -730,7 +733,10 @@ void CGuiMenu::initTxPutOffVoiceDialog(int status)
             str.append(ch);
         }
 
+        GUI_EL_Label label( &titleParams, &labelArea, (char*)"", (GUI_Obj *)this);
         GUI_EL_Label field( &param, &fieldArea, (char*)str.c_str(), (GUI_Obj *)this);
+
+        label.Draw();
         field.Draw();
 
         break;
