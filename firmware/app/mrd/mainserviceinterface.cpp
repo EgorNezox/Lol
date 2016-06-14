@@ -910,7 +910,7 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 		switch (ale.phase) {
 		case ALE_RX_CALL_RX_HSHAKE: {
 			ale.timerCallRoffHshakeT->stop();
-//			dsp_controller->disableModemReceiver();
+			dsp_controller->disableModemReceiver();
 			setAleState(AleState_RX_CALL_NEGOTIATING);
 			ale.rcount = 0;
 			break;

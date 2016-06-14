@@ -2316,5 +2316,5 @@ void Service::updateAleState(Multiradio::MainServiceInterface::AleState state)
 }/* namespace Ui */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(service, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(service, LevelDefault)
 #include "qmdebug_domains_end.h"
