@@ -1698,19 +1698,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     	value_ptr -= 1; // костылное превращение в нестандартный формат кадра
     	value_len += 1; // костылное превращение в нестандартный формат кадра
     	switch (indicator) {
-    	case 22: {
-    		if (!(value_len >= 1))
-    			break;
-    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+0);
-    		transmittedModemPacket.emit(type);
-    		break;
-    	}
-    	case 23: {
-    		if (!(value_len >= 1))
-    			break;
-    		failedTxModemPacket.emit();
-    		break;
-    	}
     	case 30: {
     		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
     		int data_offset;
@@ -1746,6 +1733,29 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		} else {
         		startedRxModemPacket.emit(type, snr, bandwidth, value_ptr + data_offset, value_len - data_offset);
     		}
+    		break;
+    	}
+    	default:
+    		break;
+    	}
+    	break;
+    }
+    case 0x7F:
+    {
+    	value_ptr -= 1; // костылное превращение в нестандартный формат кадра
+    	value_len += 1; // костылное превращение в нестандартный формат кадра
+    	switch (indicator) {
+    	case 22: {
+    		if (!(value_len >= 1))
+    			break;
+    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+0);
+    		transmittedModemPacket.emit(type);
+    		break;
+    	}
+    	case 23: {
+    		if (!(value_len >= 1))
+    			break;
+    		failedTxModemPacket.emit();
     		break;
     	}
     	default:
@@ -2488,7 +2498,7 @@ void DspController::setModemReceiverRole(ModemRole value) {
 }
 
 void DspController::enableModemTransmitter() {
-//	disableModemReceiver();
+	disableModemReceiver();
 	current_radio_mode = RadioModeSazhenData;
 	ParameterValue comandValue;
 	comandValue.radio_mode = RadioModeSazhenData;
