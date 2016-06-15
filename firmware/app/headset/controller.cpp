@@ -399,7 +399,10 @@ void Controller::updateState(State new_state) {
 		qmDebugMessage(QmDebug::Dump, "state changed: %d", new_state);
 		state = new_state;
 		switch (state) {
-		case StateNone: updateStatus(StatusNone); break;
+		case StateNone:
+			updateStatus(StatusNone);
+			setSmartHSState(SmartHSState_SMART_NOT_CONNECTED);
+			break;
 		case StateAnalog: updateStatus(StatusAnalog); break;
 		case StateSmartInitChList: break;
 		case StateSmartInitHSModeSetting: break;
@@ -536,7 +539,7 @@ void Controller::startMessagePlay() {
 }
 
 void Controller::stopSmartPlay() {
-	//...
+	resetState();
 }
 
 void Controller::startSmartRecord(uint8_t channel) {
@@ -574,11 +577,11 @@ void Controller::startMessageRecord() {
 }
 
 void Controller::stopSmartRecord() {
-	//...
+	resetState();
 }
 
 Controller::SmartHSState Controller::getSmartHSState() {
-	return hs_state;
+    return hs_state;
 }
 
 Multiradio::voice_message_t Controller::getRecordedSmartMessage() {

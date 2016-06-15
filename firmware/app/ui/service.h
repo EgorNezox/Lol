@@ -75,6 +75,8 @@ public:
     void updateHeadset(Headset::Controller::Status);
     void updateMultiradio(Multiradio::MainServiceInterface::Status);
     void updateBattery(int);
+    void updateAleState(Multiradio::MainServiceInterface::AleState);
+    void updateAleVmProgress(uint8_t);
     int  getFreq();
     void setFreq(int isFreq);
     void parsingGucCommand(uint8_t *str);

@@ -68,6 +68,10 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
+
+    this->multiradio_service->aleStateChanged.connect(sigc::mem_fun(this, &Service::updateAleState));
+    this->multiradio_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &Service::updateAleVmProgress));
+
     guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
     msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
 
@@ -915,7 +919,7 @@ void Service::keyPressed(UI_Key key)
                     // check
                     int rc = atoi(menu->channalNum.c_str());
 
-                    if ( rc < 1 || rc > 98 )
+                    if ( (rc < 1 || rc > 98) && (menu->channalNum.size() > 1))
                     { menu->channalNum.clear(); }
                 }
                 if (key == keyBack)
@@ -948,9 +952,10 @@ void Service::keyPressed(UI_Key key)
             {
                 if (key == keyBack)
                 {
+                    headset_controller->stopSmartRecord();
                     menu->putOffVoiceStatus--;
                 }
-#ifdef _DEBUG_
+#ifndef _DEBUG_
                 if (key == keyEnter && menu->channalNum.size() > 0)
                 {
                     headset_controller->stopSmartRecord();
@@ -972,7 +977,7 @@ void Service::keyPressed(UI_Key key)
                     // check
                     int rc = atoi(menu->voiceAddr.c_str());
 
-                    if ( rc < 1 || rc > 31 )
+                    if ( (rc < 1 || rc > 31) && (menu->voiceAddr.size() > 1) )
                     { menu->voiceAddr.clear(); }
                 }
                 if (key == keyBack)
@@ -1027,6 +1032,9 @@ void Service::keyPressed(UI_Key key)
                 if (key == keyBack)
                 {
                     menu->putOffVoiceStatus--;
+#ifndef _DEBUG_
+                    multiradio_service->stopAle();
+#endif
                 }
                 if (key == keyEnter)
                 {
@@ -1330,6 +1338,9 @@ void Service::keyPressed(UI_Key key)
                 {
                     menu->focus = 0;
                     guiTree.backvard();
+#ifndef _DEBUG_
+                    multiradio_service->stopAle();
+#endif
                 }
                 if (key == keyEnter)
                 {
@@ -1377,7 +1388,7 @@ void Service::keyPressed(UI_Key key)
                     // check
                     int rc = atoi(menu->channalNum.c_str());
 
-                    if ( rc < 1 || rc > 98 )
+                    if ( (rc < 1 || rc > 98) && (menu->channalNum.size() > 1) )
                     { menu->channalNum.clear(); }
                 }
                 if (key == keyBack)
@@ -2280,6 +2291,26 @@ void Service::smsMessage()
 
     guiTree.append(messangeWindow, "Recieved SMS ", sym);
     msgBox( "Recieved SMS", sym );
+}
+
+void Service::updateAleVmProgress(uint8_t t)
+{
+    CState currentState;
+    guiTree.getLastElement(currentState);
+
+    if (currentState.getType() == endMenuWindow)
+        if (((CEndState&)guiTree.getCurrentState()).subType == txPutOffVoice)
+            drawMenu();
+}
+
+void Service::updateAleState(Multiradio::MainServiceInterface::AleState state)
+{
+    CState currentState;
+    guiTree.getLastElement(currentState);
+
+    if (currentState.getType() == endMenuWindow)
+        if (((CEndState&)guiTree.getCurrentState()).subType == rxPutOffVoice)
+            drawMenu();
 }
 
 }/* namespace Ui */
