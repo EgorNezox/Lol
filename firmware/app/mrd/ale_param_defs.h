@@ -44,10 +44,10 @@
 #define ALE_TIME_TCall			2128
 
 /* Из перечня констант для цикла передачи данных сеанса голосовой почты */
-#define ALE_TIME_dTSynPacket(sform)	((sform == -1)?(100):(0))
-#define ALE_TIME_THeadL(sform)	((sform == -1)?(ALE_TIME_TmsgHeadL):(ALE_TIME_TpackHeadL))
+#define ALE_TIME_dTSynPacket(sform)	(((sform) == -1)?(100):(0))
+#define ALE_TIME_THeadL(sform)	(((sform) == -1)?(ALE_TIME_TmsgHeadL):(ALE_TIME_TpackHeadL))
 //																0		1		2		3		4		5		6		7
-#define ALE_TIME_TDataL(sform)	((sform == -1)?(0):((int[]){	2640,	3960,	7920,	7920,	7392,	14784,	29568,	59136	}[sform]))
+#define ALE_TIME_TDataL(sform)	(((sform) == -1)?(0):((int[]){	2640,	3960,	7920,	7920,	7392,	14784,	29568,	59136	}[(sform)]))
 
 //								   0  1  2  3   4   5    6    7
 #define ALE_VM_SNR_TABLE_VALUES	{ 10, 8, 5, 5, -5, -8, -11, -14 }
