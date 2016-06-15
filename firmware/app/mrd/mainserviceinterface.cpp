@@ -380,16 +380,17 @@ voice_message_t MainServiceInterface::getAleRxVmMessage() {
 	if (ale.vm_size == 0)
 		return voice_message_t();
 	Multiradio::voice_message_t vm_rx_message(ale.vm_size*72/8, 0);
+	int message_bits_offset = 0;
 	for (int f_i = 0; f_i < ale.vm_f_idx; f_i++) {
 		int f_bits_size = (f_i == (ale.vm_f_idx - 1))?(ale.vm_size*72 - (ale.vm_f_idx - 1)*490):(490);
-		int message_bits_offset = f_i*490;
 		for (int f_bit_i = 6; f_bit_i < (6 + f_bits_size); f_bit_i++) {
 			int f_byte_i = f_bit_i / 8;
 			int f_byte_bit = 8 - (f_bit_i % 8);
-			int m_byte_i = (message_bits_offset + f_bit_i - 6) / 8;
-			int m_byte_bit = (message_bits_offset + f_bit_i - 6) % 8;
+			int m_byte_i = message_bits_offset / 8;
+			int m_byte_bit = message_bits_offset % 8;
 			if ((ale.vm_fragments[f_i].num_data[f_byte_i] & (1 << f_byte_bit)) != 0)
 				vm_rx_message[m_byte_i] |= (1 << m_byte_bit);
+			message_bits_offset++;
 		}
 	}
 	return vm_rx_message;
