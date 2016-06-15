@@ -71,6 +71,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     this->multiradio_service->aleStateChanged.connect(sigc::mem_fun(this, &Service::updateAleState));
     this->multiradio_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &Service::updateAleVmProgress));
+    //this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::));
+    this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
     guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
     msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
@@ -1907,7 +1909,7 @@ void Service::drawMenu()
         CState st = guiTree.getCurrentState();
         std::list<std::string> t;
 
-        int removal = 0;
+        int removal = 0; QM_UNUSED(removal);
         focusItem = menu->focus;
         if (menu->focus > MAIN_MENU_MAX_LIST_SIZE)
         {
@@ -2295,6 +2297,8 @@ void Service::smsMessage()
 
 void Service::updateAleVmProgress(uint8_t t)
 {
+    QM_UNUSED(t);
+
     CState currentState;
     guiTree.getLastElement(currentState);
 
@@ -2305,6 +2309,20 @@ void Service::updateAleVmProgress(uint8_t t)
 
 void Service::updateAleState(Multiradio::MainServiceInterface::AleState state)
 {
+    QM_UNUSED(state);
+
+    CState currentState;
+    guiTree.getLastElement(currentState);
+
+    if (currentState.getType() == endMenuWindow)
+        if (((CEndState&)guiTree.getCurrentState()).subType == rxPutOffVoice)
+            drawMenu();
+}
+
+void Service::updateHSState(Headset::Controller::SmartHSState state)
+{
+    QM_UNUSED(state);
+
     CState currentState;
     guiTree.getLastElement(currentState);
 

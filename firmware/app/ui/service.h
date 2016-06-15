@@ -77,6 +77,7 @@ public:
     void updateBattery(int);
     void updateAleState(Multiradio::MainServiceInterface::AleState);
     void updateAleVmProgress(uint8_t);
+    void updateHSState(Headset::Controller::SmartHSState);
     int  getFreq();
     void setFreq(int isFreq);
     void parsingGucCommand(uint8_t *str);
