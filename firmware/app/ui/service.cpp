@@ -2303,8 +2303,11 @@ void Service::updateAleVmProgress(uint8_t t)
     guiTree.getLastElement(currentState);
 
     if (currentState.getType() == endMenuWindow)
-        if (((CEndState&)guiTree.getCurrentState()).subType == txPutOffVoice)
+    {
+        GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
+        if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 5)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 2)))
             drawMenu();
+    }
 }
 
 void Service::updateAleState(Multiradio::MainServiceInterface::AleState state)
@@ -2315,8 +2318,11 @@ void Service::updateAleState(Multiradio::MainServiceInterface::AleState state)
     guiTree.getLastElement(currentState);
 
     if (currentState.getType() == endMenuWindow)
-        if (((CEndState&)guiTree.getCurrentState()).subType == rxPutOffVoice)
+    {
+        GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
+        if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 5)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 2)))
             drawMenu();
+    }
 }
 
 void Service::updateHSState(Headset::Controller::SmartHSState state)
@@ -2327,8 +2333,11 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
     guiTree.getLastElement(currentState);
 
     if (currentState.getType() == endMenuWindow)
-        if (((CEndState&)guiTree.getCurrentState()).subType == rxPutOffVoice)
+    {
+        GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
+        if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 2)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 5)))
             drawMenu();
+    }
 }
 
 }/* namespace Ui */
