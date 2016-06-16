@@ -84,7 +84,9 @@ struct resppackqual_packet_t {
 
 typedef QmCrc<uint32_t, 32, 0x04c11db7, 0xffffffff, true, 0xffffffff> CRC32;
 
+#ifndef ALE_OPTION_DISABLE_ADAPTATION
 static int ale_vm_snr_table[] = ALE_VM_SNR_TABLE_VALUES;
+#endif
 
 namespace Multiradio {
 
@@ -1310,6 +1312,7 @@ void MainServiceInterface::startNextPacketTxCycle() {
 }
 
 void MainServiceInterface::adaptPacketTxUp() {
+#ifndef ALE_OPTION_DISABLE_ADAPTATION
 	int snr_e = qmMin(qmMin(ale.vm_snr_ack[0], ale.vm_snr_ack[1]), ale.vm_snr_ack[2]);
 	if (!(snr_e <= ale_vm_snr_table[ale.vm_sform_c])) {
 		int sform = (ale.vm_sform_c < 4)?0:4;
@@ -1324,9 +1327,11 @@ void MainServiceInterface::adaptPacketTxUp() {
 	ale.vm_ack_count--;
 	ale.vm_snr_ack[0] = ale.vm_snr_ack[1];
 	ale.vm_snr_ack[1] = ale.vm_snr_ack[2];
+#endif
 }
 
 bool MainServiceInterface::adaptPacketTxDown() {
+#ifndef ALE_OPTION_DISABLE_ADAPTATION
 	if (ale.vm_sform_c == 7) {
 		ale.vm_nack_count--;
 		return false;
@@ -1339,6 +1344,7 @@ bool MainServiceInterface::adaptPacketTxDown() {
 		if (ale.vm_sform_c == 2)
 			ale.vm_sform_c = 3;
 	}
+#endif
 	return true;
 }
 
