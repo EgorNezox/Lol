@@ -12,8 +12,10 @@
 
 #include "qm.h"
 
+#define ALE_OPTION_DISABLE_ADAPTATION
+
 /* Конфигурируемые параметры алгоритма */
-#define ALE_VM_INITIAL_SFORM	0
+#define ALE_VM_INITIAL_SFORM	6
 #define ALE_CALL_SNR_HIGH		42
 #define ALE_CALL_SNR_LOW		-20
 

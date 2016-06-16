@@ -44,6 +44,8 @@ int VoiceServiceInterface::getCurrentChannelNumber()
 
 int VoiceServiceInterface::getCurrentChannelFrequency()
 {
+	if (current_channel_status == ChannelDisabled)
+		return 0;
     return dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).frequency;
 }
 

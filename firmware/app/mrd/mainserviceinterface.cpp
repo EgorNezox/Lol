@@ -84,7 +84,9 @@ struct resppackqual_packet_t {
 
 typedef QmCrc<uint32_t, 32, 0x04c11db7, 0xffffffff, true, 0xffffffff> CRC32;
 
+#ifndef ALE_OPTION_DISABLE_ADAPTATION
 static int ale_vm_snr_table[] = ALE_VM_SNR_TABLE_VALUES;
+#endif
 
 namespace Multiradio {
 
@@ -341,7 +343,7 @@ void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
 		int f_i = m_bit_i / 490;
 		int f_bit_i = 6 + (m_bit_i % 490);
 		int f_byte_i = f_bit_i / 8;
-		int f_byte_bit = 8 - (f_bit_i % 8);
+		int f_byte_bit = 7 - (f_bit_i % 8);
 		if ((message[m_bit_i/8] & (1 << (m_bit_i % 8))) != 0)
 			ale.vm_fragments[f_i].num_data[f_byte_i] |= (1 << f_byte_bit);
 	}
@@ -380,16 +382,17 @@ voice_message_t MainServiceInterface::getAleRxVmMessage() {
 	if (ale.vm_size == 0)
 		return voice_message_t();
 	Multiradio::voice_message_t vm_rx_message(ale.vm_size*72/8, 0);
+	int message_bits_offset = 0;
 	for (int f_i = 0; f_i < ale.vm_f_idx; f_i++) {
 		int f_bits_size = (f_i == (ale.vm_f_idx - 1))?(ale.vm_size*72 - (ale.vm_f_idx - 1)*490):(490);
-		int message_bits_offset = f_i*490;
 		for (int f_bit_i = 6; f_bit_i < (6 + f_bits_size); f_bit_i++) {
 			int f_byte_i = f_bit_i / 8;
-			int f_byte_bit = 8 - (f_bit_i % 8);
-			int m_byte_i = (message_bits_offset + f_bit_i - 6) / 8;
-			int m_byte_bit = (message_bits_offset + f_bit_i - 6) % 8;
+			int f_byte_bit = 7 - (f_bit_i % 8);
+			int m_byte_i = message_bits_offset / 8;
+			int m_byte_bit = message_bits_offset % 8;
 			if ((ale.vm_fragments[f_i].num_data[f_byte_i] & (1 << f_byte_bit)) != 0)
 				vm_rx_message[m_byte_i] |= (1 << m_byte_bit);
+			message_bits_offset++;
 		}
 	}
 	return vm_rx_message;
@@ -502,6 +505,8 @@ void MainServiceInterface::stopAleSession() {
 	switch (ale.f_state) {
 	case alefunctionRx: {
 		stopAllRxTimers();
+		voice_message_t msg = getAleRxVmMessage();
+		headset_controller->setSmartMessageToPlay(msg);
 		break;
 	}
 	case alefunctionTx: {
@@ -683,7 +688,7 @@ void MainServiceInterface::proceedRxScanning() {
 void MainServiceInterface::proceedTxCalling() {
 	stopAleTxTimers();
 	ale.cycle++;
-	if (!(ale.cycle <= 12)) {
+	if (!(ale.cycle <= (int)ale.call_freqs.size())) {
 		ale.supercycle++;
 		ale.cycle = 1;
 	}
@@ -891,7 +896,7 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 		call_packet.lineType = (data[0] >> 7) & 0x01;
 		call_packet.cycleNum = (data[0] >> 3) & 0x0F;
 		call_packet.respAddr = ((data[0] & 0x07) << 2) | ((data[1] >> 6) & 0x03);
-		if (!((call_packet.lineType == 1) && (call_packet.respAddr == ale.station_address))) {
+		if (!((call_packet.lineType == 1) && (call_packet.cycleNum >= 1) && (call_packet.cycleNum <= 3) && (call_packet.respAddr == ale.station_address))) {
 			dsp_controller->disableModemReceiver();
 			proceedRxScanning();
 			break;
@@ -1162,12 +1167,12 @@ void MainServiceInterface::aleprocessTimerNegRoffExpired() {
 	case ALE_TX_NEG_RX_QUAL:
 	case ALE_TX_NEG_RX_HSHAKE: {
 		dsp_controller->disableModemReceiver();
+		ale.rcount++;
 		if (ale.rcount < 3) {
-			ale.timerNegTxHshakeTransMode[ale.rcount]->stop();
-			ale.timerNegRonHshakeReceiv[ale.rcount]->stop();
-			ale.timerNegRoffHshakeReceiv[ale.rcount]->stop();
-			ale.timerNegTxHshakeTrans[ale.rcount]->stop();
-			ale.rcount++;
+			ale.timerNegTxHshakeTransMode[ale.rcount-1]->stop();
+			ale.timerNegRonHshakeReceiv[ale.rcount-1]->stop();
+			ale.timerNegRoffHshakeReceiv[ale.rcount-1]->stop();
+			ale.timerNegTxHshakeTrans[ale.rcount-1]->stop();
 		} else {
 			proceedTxCalling();
 		}
@@ -1307,6 +1312,7 @@ void MainServiceInterface::startNextPacketTxCycle() {
 }
 
 void MainServiceInterface::adaptPacketTxUp() {
+#ifndef ALE_OPTION_DISABLE_ADAPTATION
 	int snr_e = qmMin(qmMin(ale.vm_snr_ack[0], ale.vm_snr_ack[1]), ale.vm_snr_ack[2]);
 	if (!(snr_e <= ale_vm_snr_table[ale.vm_sform_c])) {
 		int sform = (ale.vm_sform_c < 4)?0:4;
@@ -1321,9 +1327,11 @@ void MainServiceInterface::adaptPacketTxUp() {
 	ale.vm_ack_count--;
 	ale.vm_snr_ack[0] = ale.vm_snr_ack[1];
 	ale.vm_snr_ack[1] = ale.vm_snr_ack[2];
+#endif
 }
 
 bool MainServiceInterface::adaptPacketTxDown() {
+#ifndef ALE_OPTION_DISABLE_ADAPTATION
 	if (ale.vm_sform_c == 7) {
 		ale.vm_nack_count--;
 		return false;
@@ -1336,6 +1344,7 @@ bool MainServiceInterface::adaptPacketTxDown() {
 		if (ale.vm_sform_c == 2)
 			ale.vm_sform_c = 3;
 	}
+#endif
 	return true;
 }
 
@@ -1404,11 +1413,11 @@ void MainServiceInterface::aleprocessTimerNegRonHshakeTransModeExpired() {
 
 void MainServiceInterface::aleprocessTimerNegRoffHshakeTransModeExpired() {
 	dsp_controller->disableModemReceiver();
+	ale.rcount++;
 	if (ale.rcount < 3) {
-		ale.timerNegTxHshakeReceiv[ale.rcount]->stop();
-		ale.timerNegRonHshakeTrans[ale.rcount]->stop();
-		ale.timerNegRoffHshakeTrans[ale.rcount]->stop();
-		ale.rcount++;
+		ale.timerNegTxHshakeReceiv[ale.rcount-1]->stop();
+		ale.timerNegRonHshakeTrans[ale.rcount-1]->stop();
+		ale.timerNegRoffHshakeTrans[ale.rcount-1]->stop();
 	} else {
 		proceedRxScanning();
 	}
@@ -1425,11 +1434,9 @@ void MainServiceInterface::aleprocessTimerNegRonHshakeTransExpired() {
 
 void MainServiceInterface::aleprocessTimerNegRoffHshakeTransExpired() {
 	dsp_controller->disableModemReceiver();
-	if (ale.rcount < 3) {
-		ale.rcount++;
-	} else {
+	ale.rcount++;
+	if (!(ale.rcount < 3))
 		proceedRxScanning();
-	}
 }
 
 void MainServiceInterface::aleprocessTimerMsgRoffHeadExpired() {
