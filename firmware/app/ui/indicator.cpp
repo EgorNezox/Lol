@@ -28,7 +28,7 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
     ind_headset = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
 
     icon_geom = {2*ICON_SIZE+3, 0, 4*ICON_SIZE+24, ICON_SIZE-1};
-    date_time = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &icon_geom, (char*)"00.00 00:00", (GUI_Obj *)this);
+    date_time = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &icon_geom, (char*)"15.06 10:59", (GUI_Obj *)this);
 
     icon_geom = {4*ICON_SIZE+25, 0, ICON_SIZE*6, ICON_SIZE-1};
     //gpsLabel = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &icon_geom, (char*)"X", (GUI_Obj*)this);
@@ -36,7 +36,7 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
 
     icon_geom = {ICON_SIZE*6,0,ICON_SIZE*6+BATTERY_SIZE-1, ICON_SIZE-1};	//геометрия батарейки
 
-    ind_battery = new GUI_EL_Battery(&GUI_EL_TEMP_BatteryIndicator, 0, &icon_geom, (GUI_Obj *)this);
+    ind_battery = new GUI_EL_Battery(&GUI_EL_TEMP_BatteryIndicator, 75, &icon_geom, (GUI_Obj *)this);
 }
 
 //-----------------------------
@@ -88,8 +88,6 @@ void GUI_Indicator::UpdateGpsStatus(bool status){
 //-----------------------------
 
 void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
-
-
     switch(status)
     {
         case Headset::Controller::StatusNone:

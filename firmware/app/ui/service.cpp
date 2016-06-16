@@ -74,7 +74,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     //this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::));
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
-    guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
+    guiTree.append(messangeWindow, (char*)test_Pass, (char*)error_SWF/*voice_service->ReturnSwfStatus()*/);
     msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
 
 //    guc_command_vector.push_back(2);
@@ -1863,18 +1863,18 @@ void Service::drawMainWindow()
                    voice_service->getCurrentChannelType());
 
 
-    main_scr->oFreq.clear();
+    //main_scr->oFreq.clear();
     char mas[11];
 
 #ifdef _DEBUG_
     sprintf(mas,"%d",1);
 #else
-    sprintf(mas,"%d",/*voice_service->getCurrentChannelFrequency()*/1123);
+    sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
 #endif
 
-    std::string freq(mas);
-    main_scr->oFreq.append(freq);
-    main_scr->setFreq(freq.c_str());
+    //std::string freq(mas);
+    //main_scr->oFreq.append(freq);
+    //main_scr->setFreq(freq.c_str());
 
     bool gpsStatus = false;
 

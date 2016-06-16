@@ -52,8 +52,8 @@ const char *useScanMenu[] = {"ВКЛ\0", "ВЫКЛ\0"};
 const char *aruStr = "АРУ\0";
 const char *armStr = "АРМ\0";
 const char *ausStr = "АУC\0";
-const char *error_SWF = "Ошибка АФУ\0";
-const char *true_SWF = "Нет ошибок\0";
+const char *error_SWF = "ТЕСТ ПРОЙДЕН\0";
+const char *true_SWF = "ТЕСТ ПРОЙДЕН\0";
 
 const char *smsText[] = {"Адрес: \0", "Сообщение:\n\0"};
 
@@ -129,3 +129,4 @@ const char* condCommStr[] = {"Адрес получателя\0", "Адрес ретранслятора\0", "Ком
 const char* condCommSendStr = "Нажмите Ввод для \nзапуска передачи\0";
 
 const char* ticketStr[] = {"Квитирование\0", "Ретрансляция\0"};
+const char* voicePostTitleStr[] = {"Передача гол. почты\0", "Прием гол. почты\0"};

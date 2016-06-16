@@ -153,8 +153,7 @@ private:
     bool draw_mark;
 
     int numItem;
-    GUI_EL_MenuItem *(item[6]);
-    GUI_EL_Label *label[6];
+    GUI_EL_MenuItem *item[6];
     char *tx;
     bool editing;
 

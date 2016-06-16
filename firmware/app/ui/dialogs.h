@@ -123,7 +123,7 @@ protected:
     TextAreaParams text_area_params;
     std::string title;
 //    std::string text;
-    char text[3];
+    char text[255];
 
     // slider
 public:
