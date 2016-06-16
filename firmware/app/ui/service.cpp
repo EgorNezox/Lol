@@ -1869,7 +1869,7 @@ void Service::drawMainWindow()
 #ifdef _DEBUG_
     sprintf(mas,"%d",1);
 #else
-    sprintf(mas,"%d",/*voice_service->getCurrentChannelFrequency()*/1123);
+    sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
 #endif
 
     std::string freq(mas);
