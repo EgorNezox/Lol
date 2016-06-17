@@ -16,6 +16,7 @@
 #include "qmpushbuttonkey.h"
 #include "qmtimer.h"
 
+#include "headsetcrc.h"
 #include "controller.h"
 #include "smarttransport.h"
 
@@ -25,21 +26,28 @@ namespace Headset {
 #define HS_CMD_SET_MODE				0xB1
 #define HS_CMD_CH_LIST				0xB3
 #define HS_CMD_PTT_STATE			0x4A
+#define HS_CMD_MESSAGE_UPLOAD		0x2A
+#define HS_CMD_MESSAGE_DOWNLOAD		0xC2
 
 #define HS_CMD_STATUS_RESP_LEN		32
 #define HS_CMD_CH_LIST_RESP_LEN		25
 #define HS_CMD_PTT_STATE_RESP_LEN	0
+#define HS_CMD_MESSAGE_LEN			208
 
 #define HS_CHANNELS_COUNT			98
 
 #define PTT_DEBOUNCE_TIMEOUT		50
 #define HS_UART_POLLING_INTERVAL	1000
-#define HS_RESPONCE_TIMEOUT			30
+#define HS_RESPONCE_TIMEOUT			100
 
 Controller::Controller(int rs232_uart_resource, int ptt_iopin_resource) :
 	state(StateNone), status(StatusNone), ptt_pressed(false),
 	ch_number(1), ch_type(Multiradio::channelInvalid),
-	indication_enable(true), squelch_enable(false)
+	indication_enable(true), squelch_enable(false),
+	hs_state(SmartHSState_SMART_NOT_CONNECTED),
+	message_record_data_ready(false),
+	message_to_play_data_packets_sent(0),
+	message_to_play_last_packet_data_size(0)
 {
 	ptt_key = new QmPushButtonKey(ptt_iopin_resource);
 	ptt_debounce_timer = new QmTimer(true, this);
@@ -125,7 +133,21 @@ void Controller::transmitCmd(uint8_t cmd, uint8_t *data, int data_len) {
 	qmDebugMessage(QmDebug::Dump, "cmd_resp_timer started");
 }
 
+void Controller::transmitResponceCmd(uint8_t cmd, uint8_t *data, int data_len) {
+	transport->transmitCmd(cmd, data, data_len);
+}
+
+void Controller::processCmdResponceTimeout() {
+	qmDebugMessage(QmDebug::Info, "cmd response timeout");
+	resetState();
+}
+
+void Controller::processHSUartPolling() {
+	transmitCmd(HS_CMD_STATUS, NULL, 0);
+}
+
 void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len) {
+	qmDebugMessage(QmDebug::Dump, "processReceivedCmd() cmd = 0x%2X, data_len = %d", cmd, data_len);
 	switch (cmd) {
 	case HS_CMD_STATUS: {
 		qmDebugMessage(QmDebug::Dump, "cmd_resp_timer(%p): %d", cmd_resp_timer, cmd_resp_timer->isActive());
@@ -185,12 +207,42 @@ void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len) {
 		}
 		break;
 	}
+	case HS_CMD_MESSAGE_DOWNLOAD: {
+		cmd_resp_timer->stop();
+		switch (hs_state) {
+		case SmartHSState_SMART_RECORD_DOWNLOADING:
+			if (message_to_play_data_packets_sent == message_to_play_data_packets.size()) {
+				setSmartHSState(SmartHSState_SMART_PLAYING);
+			} else {
+				sendHSMessageData();
+			}
+			break;
+		default: break;
+		}
+		break;
+	}
+	case HS_CMD_MESSAGE_UPLOAD: {
+		cmd_resp_timer->stop();
+		if (hs_state == SmartHSState_SMART_RECORDING) {
+			setSmartHSState(SmartHSState_SMART_RECORD_UPLOADING);
+		} else if (hs_state != SmartHSState_SMART_RECORD_UPLOADING) {
+			break;
+		}
+		qmDebugMessage(QmDebug::Dump, "message packet received");
+		if (data_len != HS_CMD_MESSAGE_LEN) {
+			qmDebugMessage(QmDebug::Dump, "wrong data length of cmd HS_CMD_MESSAGE_RECORD");
+			break;
+		}
+		messagePacketReceived(data, data_len);
+		break;
+	}
 	default:
 		qmDebugMessage(QmDebug::Dump, "receved unknown cmd 0x%02X", cmd);
 	}
 }
 
 void Controller::processReceivedStatus(uint8_t* data, int data_len) {
+	qmDebugMessage(QmDebug::Dump, "processReceivedStatus()");
 	switch (state) {
 	case StateNone: {
 		poll_timer->stop();
@@ -200,7 +252,7 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 	}
 	case StateSmartInitHSModeSetting: {
 //		poll_timer->start();
-//		break;
+//		no break;
 	}
 	case StateSmartOk: {
 		uint16_t chan_number = qmFromLittleEndian<uint16_t>(data + 4);
@@ -236,12 +288,41 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 			ch_type = chan_type;
 			updateState(StateSmartOk);
 			smartCurrentChannelChanged(ch_number, ch_type);
-			//TODO: transmit 0xB1
 		} else {
 			updateState(StateSmartOk);
 		}
 		indication_enable = (mode_mask_add & 0x01) == 0;
 		squelch_enable = ((mode_mask_add >> 1) & 0x01) == 0;
+
+		switch (hs_state) {
+		case SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL: {
+			startMessageRecord();
+			break;
+		}
+		case SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE: {
+			cmd_resp_timer->setInterval(HS_RESPONCE_TIMEOUT); //TODO: fix it
+			if (mode_mask & 0x10) {
+				setSmartHSState(SmartHSState_SMART_RECORDING);
+			} else {
+				setSmartHSState(SmartHSState_SMART_ERROR);
+			}
+			break;
+		}
+		case SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL: {
+			startMessagePlay();
+			break;
+		}
+		case SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE: {
+			if (mode_mask & 0x40) {
+				setSmartHSState(SmartHSState_SMART_RECORD_DOWNLOADING);
+				sendHSMessageData();
+			} else {
+				setSmartHSState(SmartHSState_SMART_ERROR);
+			}
+			break;
+		}
+		default: break;
+		}
 		break;
 	}
 	case StateSmartInitChList: {
@@ -255,6 +336,7 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 }
 
 void Controller::processReceivedStatusAsync(uint8_t* data, int data_len) {
+	qmDebugMessage(QmDebug::Dump, "processReceivedStatusAsync()");
 	switch (state) {
 	case StateSmartOk: {
 		uint16_t chan_number = qmFromLittleEndian<uint16_t>(data + 4);
@@ -290,13 +372,21 @@ void Controller::processReceivedStatusAsync(uint8_t* data, int data_len) {
 			ch_type = chan_type;
 			updateState(StateSmartOk);
 			smartCurrentChannelChanged(ch_number, ch_type);
-			//TODO: transmit 0xB1
 			synchronizeHSState();
 		} else {
 			updateState(StateSmartOk);
 		}
 		indication_enable = (mode_mask_add & 0x01) == 0;
 		squelch_enable = ((mode_mask_add >> 1) & 0x01) == 0;
+		switch (hs_state) {
+		case SmartHSState_SMART_PLAYING: {
+			if (!(mode_mask & 0x40)) {
+				setSmartHSState(SmartHSState_SMART_READY);
+			}
+			break;
+		}
+		default: break;
+		}
 		break;
 	}
 	default:
@@ -304,26 +394,26 @@ void Controller::processReceivedStatusAsync(uint8_t* data, int data_len) {
 	}
 }
 
-void Controller::processHSUartPolling() {
-	transmitCmd(HS_CMD_STATUS, NULL, 0);
-}
-
-void Controller::processCmdResponceTimeout() {
-	qmDebugMessage(QmDebug::Info, "cmd response timeout");
-	resetState();
-}
-
 void Controller::updateState(State new_state) {
 	if (state != new_state) {
 		qmDebugMessage(QmDebug::Dump, "state changed: %d", new_state);
 		state = new_state;
 		switch (state) {
-		case StateNone: updateStatus(StatusNone); break;
+		case StateNone:
+			updateStatus(StatusNone);
+			setSmartHSState(SmartHSState_SMART_NOT_CONNECTED);
+			break;
 		case StateAnalog: updateStatus(StatusAnalog); break;
 		case StateSmartInitChList: break;
 		case StateSmartInitHSModeSetting: break;
-		case StateSmartOk: updateStatus(StatusSmartOk); break;
-		case StateSmartMalfunction: updateStatus(StatusSmartMalfunction); break;
+		case StateSmartOk:
+			updateStatus(StatusSmartOk);
+			setSmartHSState(SmartHSState_SMART_READY);
+			break;
+		case StateSmartMalfunction:
+			updateStatus(StatusSmartMalfunction);
+			setSmartHSState(SmartHSState_SMART_ERROR);
+			break;
 		default: QM_ASSERT(0);
 		}
 	}
@@ -388,9 +478,9 @@ bool Controller::verifyHSChannels(uint8_t* data, int data_len) {
 }
 
 void Controller::synchronizeHSState() {
-	qmDebugMessage(QmDebug::Dump, "synchronizeHSState()");
-	qmDebugMessage(QmDebug::Dump, "channel number: %d", ch_number);
-	uint8_t data[16];
+	qmDebugMessage(QmDebug::Dump, "synchronizeHSState() channel number: %d", ch_number);
+	const int data_size = 16;
+	uint8_t data[data_size];
 	data[0] = 0xAB;
 	data[1] = 0xBA;
 	data[2] = 0x01;
@@ -405,42 +495,241 @@ void Controller::synchronizeHSState() {
 	data[3] = ch_number; // channel number
 	data[4] = 0xFF; // reserved
 	data[5] = 0x01 | (uint8_t)((indication_enable ? 0 : 1) << 2);
-	for (int i = 6; i < 16; ++i)
+	for (int i = 6; i < data_size; ++i)
 		data[i] = 0;
-	transmitCmd(HS_CMD_SET_MODE, data, 16);
+	transmitCmd(HS_CMD_SET_MODE, data, data_size);
 }
 
 void Controller::startSmartPlay(uint8_t channel) {
-	QM_UNUSED(channel);
-	//...
+	QM_ASSERT(channel > 0 || channel < 99);
+	if (ch_table->at(channel - 1).type != Multiradio::channelClose) {
+		qmDebugMessage(QmDebug::Warning, "startSmartPlay() channel %d is not close", channel);
+		setSmartHSState(SmartHSState_SMART_BAD_CHANNEL);
+		return;
+	}
+	qmDebugMessage(QmDebug::Dump, "startSmartPlay() channel %d", channel);
+	if (message_to_play_data.size() == 0) {
+		qmDebugMessage(QmDebug::Warning, "startSmartPlay() message is empty");
+		setSmartHSState(SmartHSState_SMART_EMPTY_MESSAGE);
+		return;
+	}
+	setSmartHSState(SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL);
+	messageToPlayDataPack();
+	ch_number = channel;
+	synchronizeHSState();
+}
+
+void Controller::startMessagePlay() {
+	qmDebugMessage(QmDebug::Warning, "startMessagePlay()");
+	setSmartHSState(SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE);
+	const int data_size = 16;
+	uint8_t data[data_size];
+	data[0] = 0xAB;
+	data[1] = 0xBA;
+	data[2] = 0x01;
+	data[2] |= 0x40;
+	data[2] |= (uint8_t)((squelch_enable ? 0 : 1) << 5); // mode mask
+	data[3] = 0;//ch_number; // channel number
+	data[4] = 0xFF; // reserved
+	data[5] = 0x01 | (uint8_t)((indication_enable ? 0 : 1) << 2);
+	for (int i = 6; i < data_size; ++i)
+		data[i] = 0;
+	cmd_resp_timer->setInterval(3000);
+	transmitCmd(HS_CMD_SET_MODE, data, data_size);
 }
 
 void Controller::stopSmartPlay() {
-	//...
+	resetState();
 }
 
 void Controller::startSmartRecord(uint8_t channel) {
-	QM_UNUSED(channel);
-	//...
+	QM_ASSERT(channel > 0 || channel < 99);
+	if (ch_table->at(channel - 1).type != Multiradio::channelClose) {
+		qmDebugMessage(QmDebug::Warning, "startSmartRecord() channel %d is not close", channel);
+		setSmartHSState(SmartHSState_SMART_BAD_CHANNEL);
+		return;
+	}
+	qmDebugMessage(QmDebug::Dump, "startSmartRecord() channel %d", channel);
+	message_record_data_ready = false;
+	message_record_data.clear();
+	setSmartHSState(SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL);
+	ch_number = channel;
+	synchronizeHSState();
+}
+
+void Controller::startMessageRecord() {
+	qmDebugMessage(QmDebug::Dump, "startMessageRecord()");
+	cmd_resp_timer->setInterval(3000); //TODO: fix it
+	setSmartHSState(SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE);
+	const int data_size = 16;
+	uint8_t data[data_size];
+	data[0] = 0xAB;
+	data[1] = 0xBA;
+	data[2] = 0x01;
+	data[2] |= 0x10;
+	data[2] |= (uint8_t)((squelch_enable ? 0 : 1) << 5); // mode mask
+	data[3] = 0x00; // channel number
+	data[4] = 0xFF; // reserved
+	data[5] = 0x01 | (uint8_t)((indication_enable ? 0 : 1) << 2);
+	for (int i = 6; i < data_size; ++i)
+		data[i] = 0;
+	transmitCmd(HS_CMD_SET_MODE, data, data_size);
 }
 
 void Controller::stopSmartRecord() {
-	//...
+	resetState();
 }
 
 Controller::SmartHSState Controller::getSmartHSState() {
-	//...
-	return SmartHSState_SMART_READY;
+    return hs_state;
 }
 
 Multiradio::voice_message_t Controller::getRecordedSmartMessage() {
-	//...
+	if (message_record_data_ready) {
+		return message_record_data;
+	}
 	return Multiradio::voice_message_t();
 }
 
 void Controller::setSmartMessageToPlay(Multiradio::voice_message_t data) {
-	QM_UNUSED(data);
-	//...
+	message_to_play_data = data;
+}
+
+void Controller::setSmartHSState(SmartHSState state) {
+	qmDebugMessage(QmDebug::Dump, "setSmartHSState() state = %d", state);
+	hs_state = state;
+	smartHSStateChanged(hs_state);
+}
+
+void Controller::sendHSMessageData() {
+	QM_ASSERT(message_to_play_data.size() != 0);
+	qmDebugMessage(QmDebug::Dump, "sendHSMessageData()");
+	const int data_size = 208;
+	uint8_t data[data_size];
+	data[0] = 0xAA;
+	data[1] = 0xCD;
+	qmToLittleEndian(message_to_play_data_packets_sent, &data[2]);
+	if (message_to_play_data_packets_sent == message_to_play_data_packets.size() - 1) {
+		qmToLittleEndian((uint16_t)0, &data[4]);
+	} else if (message_to_play_data_packets_sent == message_to_play_data_packets.size() - 2) {
+		qmToLittleEndian((uint16_t)message_to_play_last_packet_data_size, &data[4]);
+	} else {
+		qmToLittleEndian((uint16_t)message_to_play_data_packets.at(message_to_play_data_packets_sent).size(), &data[4]);
+	}
+	memcpy(&data[6], message_to_play_data_packets.at(message_to_play_data_packets_sent).data(),
+			message_to_play_data_packets.at(message_to_play_data_packets_sent).size());
+	qmToLittleEndian(calcPacketCrc(&data[2], 204), &data[206]);
+//	for (int i = 0; i < data_size; ++i) {
+//		qmDebugMessage(QmDebug::Dump, "data[%d] = %2X", i, data[i]);
+//	}
+	transmitCmd(HS_CMD_MESSAGE_DOWNLOAD, data, data_size);
+	++message_to_play_data_packets_sent;
+}
+
+void Controller::messageToPlayDataPack() {
+	QM_ASSERT(message_to_play_data.size() != 0);
+	message_to_play_last_packet_data_size = message_to_play_data.size() % 200;
+	if (message_to_play_data.size() <= 200) {
+		message_to_play_data_packets.push_back(message_to_play_data);
+		for (int i = message_to_play_data.size(); i < 200; ++i) {
+			message_to_play_data_packets.at(0).push_back(0);
+		}
+	} else {
+		const size_t data_size = message_to_play_data.size();
+		for (size_t i = 0; i < data_size; ++i) {
+			if (i % 200 == 0) {
+				message_to_play_data_packets.push_back(Multiradio::voice_message_t());
+			}
+			message_to_play_data_packets.at(i / 200).push_back(message_to_play_data.at(i));
+		}
+		if (message_to_play_data_packets.at(message_to_play_data_packets.size() - 1).size() != 200) {
+			const int last = message_to_play_data_packets.size() - 1;
+			for (int i = message_to_play_data_packets.at(message_to_play_data_packets.size() - 1).size(); i < 200; ++i) {
+				message_to_play_data_packets.at(last).push_back(0);
+			}
+		}
+	}
+	message_to_play_data_packets.push_back(Multiradio::voice_message_t());
+	const int last = message_to_play_data_packets.size() - 1;
+	for (int i = 0; i < 200; ++i) {
+		message_to_play_data_packets.at(last).push_back(0);
+	}
+	qmDebugMessage(QmDebug::Dump, "messageToPlayDataPack() packets number = %d", message_to_play_data_packets.size());
+}
+
+void Controller::sendHSMessageDataEnd() {
+	qmDebugMessage(QmDebug::Dump, "sendHSMessageDataEnd()");
+	setSmartHSState(SmartHSState_SMART_PLAYING);
+	const int data_size = 208;
+	uint8_t data[data_size];
+	data[0] = 0xAA;
+	data[1] = 0xCD;
+	data[2] = 1;
+	data[3] = 0;
+	data[4] = 0;
+	data[5] = 0;
+
+	uint32_t i = 6;
+	while (i < 206) {
+		data[i++] = 0;
+	}
+	qmToLittleEndian(calcPacketCrc(&data[2], 204), &data[206]);
+	for (int i = 0; i < data_size; ++i) {
+		qmDebugMessage(QmDebug::Dump, "data[%d] = %2X", i, data[i]);
+	}
+	transmitCmd(HS_CMD_MESSAGE_DOWNLOAD, data, data_size);
+}
+
+void Controller::messagePacketReceived(uint8_t* data, int data_len) {
+	qmDebugMessage(QmDebug::Dump, "messagePacketReceived()");
+	for (int i = 0; i < data_len; ++i) {
+		qmDebugMessage(QmDebug::Dump, "data[%d] = %2X", i, data[i]);
+	}
+	if (data[0] != 0xAA && data[1] != 0xCD) {
+		qmDebugMessage(QmDebug::Dump, "messagePacketReceived() data header is not valid");
+		return;
+	}
+	uint16_t data_crc = calcPacketCrc(&data[2], 204);
+	uint16_t crc = qmFromLittleEndian<uint16_t>(data + 206);
+	if (data_crc != crc) {
+		qmDebugMessage(QmDebug::Dump, "messagePacketReceived() crc is not valid");
+		return;
+	}
+	uint16_t packet_number = qmFromLittleEndian<uint16_t>(data + 2);
+	uint16_t data_size = qmFromLittleEndian<uint16_t>(data + 4);
+	if (data_size > 200) {
+		qmDebugMessage(QmDebug::Dump, "messagePacketReceived() data size %d is not valid", data_size);
+		return;
+	} else if (data_size == 0) {
+		qmDebugMessage(QmDebug::Dump, "total message data size = %d", message_record_data.size());
+		message_record_data_ready = true;
+		setSmartHSState(SmartHSState_SMART_READY);
+	}
+	for (int i = 6; i < data_size + 6; ++i) {
+		message_record_data.push_back(data[i]);
+	}
+	messagePacketResponce(packet_number);
+}
+
+void Controller::messagePacketResponce(int packet_number) {
+	qmDebugMessage(QmDebug::Dump, "messagePacketResponce() packet_number %d", packet_number);
+	const int data_size = 4;
+	uint8_t data[data_size];
+	for (int i = 0; i < data_size; ++i) {
+		data[i] = 0;
+	}
+	data[2] = (uint8_t)packet_number;
+	transmitResponceCmd(HS_CMD_MESSAGE_UPLOAD, data, data_size);
+}
+
+uint16_t Controller::calcPacketCrc(uint8_t* data, int data_len) {
+	HeadsetCRC crc;
+	crc.update(data, (uint16_t)data_len);
+	uint16_t result = ~crc.result();
+	uint16_t least = (result & 0x00FF);
+	result = (result >> 8) & 0x00FF;
+	result |= (least << 8) & 0xFF00;
+	return result;
 }
 
 } /* namespace Headset */

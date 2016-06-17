@@ -124,19 +124,19 @@ GUI_EL_Label::GUI_EL_Label(LabelParams *params, MoonsGeometry *geom, char *text,
 void GUI_EL_Label::SetText(char *text){
     if(text!=0)
     {
-        memset(this->text, 0, MAX_LABEL_LENGTH);
-		strcpy(this->text, text);
+    	this->text.clear();
+        this->text.append( text );//, sizeof(this->text));
 	}
     else
     {
-        memset(this->text, 0, MAX_LABEL_LENGTH);
+        this->text.clear();
     }
 }
 
 //-----------------------------
 
 void GUI_EL_Label::Draw(){
-	if(text!=0){
+	if(text.c_str()!=0){
 		PrepareContent();
 		PrepareViewport();
 		gselfont(font);
@@ -147,10 +147,11 @@ void GUI_EL_Label::Draw(){
             groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,GLINE);
 		}
 		else {
-			gsetmode(COMMON_ELEMENT_VP_MODE | GTRANSPERANT);
+            gsetmode(COMMON_ELEMENT_VP_MODE | GTRANSPERANT);
+            groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,GFILL);
 		}
 		gsetpos(content.x, CONTENT_YE(content));
-		gputs(text);
+		gputs(text.c_str());
 		if(transparent){
 			gsetmode(COMMON_ELEMENT_VP_MODE);
 		}
@@ -160,7 +161,7 @@ void GUI_EL_Label::Draw(){
 //-----------------------------
 
 void GUI_EL_Label::CalcContentGeom(){
-	int32_t i = 0, size=strlen(text);
+	int32_t i = 0, size=(text.size());
 	content.W=0;
 	content.H=0;
 	gselfont(font);

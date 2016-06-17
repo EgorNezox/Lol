@@ -125,7 +125,7 @@ void GUI_Dialog_MsgBox::Draw(){
   window.Draw();
   title_area.Draw();
   text_area.Draw();
-  ok_button.Draw();
+//  ok_button.Draw();
 }
 
 void GUI_Dialog_MsgBox::Draws(){
@@ -144,7 +144,7 @@ void GUI_Dialog_MsgBox::Draws(){
   GUI_EL_TextArea text_area ( &text_area_params,  &text_area_geom,  (char*)text,  (GUI_Obj *)this );
   GUI_EL_Button   ok_button( &GUI_EL_TEMP_LabelButton, &button_geom, ok_texts[/*service->getLanguage()*/0], bs_unselected, (GUI_Obj *)this);
 
-  MoonsGeometry sliderArea  = { window_geom.xe - 4*MARGIN, title_area_geom.ye, window_geom.xe - 2*MARGIN, button_geom.ys-5};
+  MoonsGeometry sliderArea  = { (uint8_t)(window_geom.xe - 4*MARGIN), title_area_geom.ye, (uint8_t)(window_geom.xe - 2*MARGIN), (uint8_t)(button_geom.ys-5)};
   SliderParams sliderParams = {(int32_t)list_size, (int32_t)1, (int32_t)position};
   GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
 
@@ -157,11 +157,8 @@ void GUI_Dialog_MsgBox::Draws(){
 
 void GUI_Dialog_MsgBox::keyPressed(UI_Key key)
 {
-//    if (1)
-//    {
-//        if (key == keyUp && position > 0)
-//        { position--; }
-//        if (key == keyDown && position < list_size)
-//        { position++;}
-//    }
+    if (key == keyUp && position > 0)
+    { position--; }
+    if (key == keyDown && position < list_size)
+    { position++;}
 }

@@ -44,11 +44,11 @@ public:
     virtual ~CGuiMenu();
     void Draw();
 
-    int focus;
+    uint8_t focus;
     void initItems(std::list<std::string>, const char*, int);
     void initDialog(CEndState);
     void initCondCommDialog(CEndState);
-    void initGroupCondComm(CEndState);
+    void initGroupCondCmd(CEndState);
     void initVolumeDialog();
     void initScanDialog();
     void initAruarmDialog();
@@ -66,12 +66,20 @@ public:
     std::string dstAddr, newDstAddr;
     std::string message, newMessage;
 
-    // call
+    // tx cond cmd
+    bool useCmdRetrans = false;
+    int txCondCmdStage = 1;
     void setCondCommParam(CEndState, UI_Key);
+    // rx cond cmd
+    void initRxCondCmdDialog();
+    int rxCondCmdStatus = 1;
+    bool useTicket = false;
+
+    uint8_t vmProgress;
 
     // group cond comm stage
     int groupCondCommStage = 0;
-    void inputGroupCondCmd( CEndState, UI_Key );
+    void inputGroupCondCmd(CEndState);
 
     // put off voice
     std::string  channalNum;
@@ -85,9 +93,11 @@ public:
     void initTxGroupCondComm(CEndState);
 
     // message ( SMS )
-    void initTxSmsDialog(const char *, std::string, std::string);
-    void inputSmsMessage( CEndState, UI_Key );
-    void inputSmsAddr( CEndState, UI_Key );
+    uint8_t smsTxStage = 1;
+    bool useSmsRetrans = false;
+    void initTxSmsDialog(std::string, std::string);
+    void inputSmsMessage(std::string*, UI_Key );
+    void inputSmsAddr( std::string*, UI_Key );
     UI_Key prevKey = keyBack;
     char ch = ' ';
     int keyPressCount = 0;
@@ -143,10 +153,9 @@ private:
     bool draw_mark;
 
     int numItem;
-    GUI_EL_MenuItem *(item[6]);
-    GUI_EL_Label *label[6];
+    GUI_EL_MenuItem *item[6];
     char *tx;
-    bool editing = false;
+    bool editing;
 
     uint8_t vol = 100;
 };

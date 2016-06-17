@@ -19,38 +19,43 @@
 #include "ale_param_defs.h"
 
 /* Расчет значений временных параметров */
-#define TIMER_VALUE_tTxCall (ceil(0.5*ALE_TIME_dTdwell) + ALE_TIME_TEthTx + ALE_TIME_TTuneTx + ALE_TIME_TEthRx + ALE_TIME_TTuneRx + ALE_TIME_dTSyn + ALE_TIME_DTMistiming + ALE_TIME_TEthTx + ALE_TIME_TOpenTx)
-#define TIMER_VALUE_tToffCall (TIMER_VALUE_tTxCall + ALE_TIME_TEthTx + ALE_TIME_TCall)
-#define TIMER_VALUE_tRoffCall (TIMER_VALUE_tToffCall + ALE_TIME_TRChan + ALE_TIME_TEthRx)
-#define TIMER_VALUE_tCallRonHshakeR (TIMER_VALUE_tRoffCall + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tCallTxHshakeR (TIMER_VALUE_tCallRonHshakeR + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tCallRoffHshakeR (TIMER_VALUE_tCallTxHshakeR + ALE_TIME_TEthTx + ALE_TIME_THshakeReceiv + ALE_TIME_TRChan + ALE_TIME_TEthRx)
-#define TIMER_VALUE_tCallRonHshakeT (TIMER_VALUE_tCallRoffHshakeR + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tCallTxHshakeT (TIMER_VALUE_tCallRonHshakeT + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tCallRoffHshakeT (TIMER_VALUE_tCallTxHshakeT + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx)
-#define TIMER_VALUE_tNegTxRespCallQual_offset (ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tNegRoffRespCallQual_offset (TIMER_VALUE_tNegTxRespCallQual_offset + ALE_TIME_TEthTx + ALE_TIME_TRespCallQual + ALE_TIME_TRChan + ALE_TIME_TEthRx)
+#define ALE_TIME_Tdwell0 (ALE_TIME_tTxCall_offset + ALE_TIME_tRoffCall_offset + TIMER_VALUE_tCallToffHshakeT_offset + ALE_TIME_dTSyn)
+#define ALE_TIME_Tdwell ((unsigned int)(ceilf((float)(ALE_TIME_Tdwell0)/1000)*1000))
+#define ALE_TIME_dTDwellLeft ((unsigned int)(ceilf((float)(ALE_TIME_Tdwell - ALE_TIME_Tdwell0)/2)))
+#define ALE_TIME_tTxCall_offset (ALE_TIME_TEthRx + ALE_TIME_TTuneRx + ALE_TIME_TEthTx + ALE_TIME_TTuneTx + ALE_TIME_TEthTx + ALE_TIME_TOpenTx + ALE_TIME_dTSyn)
+#define TIMER_VALUE_tTxCall (ALE_TIME_dTDwellLeft + ALE_TIME_tTxCall_offset)
+#define ALE_TIME_tRoffCall_offset (ALE_TIME_TEthTx + ALE_TIME_TCall + ALE_TIME_TRChan + ALE_TIME_TEthRx)
+#define TIMER_VALUE_tRoffSyncCall (TIMER_VALUE_tTxCall + ALE_TIME_tRoffCall_offset)
+#define TIMER_VALUE_tCallRonHshakeR_offset (ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
+#define TIMER_VALUE_tCallTxHshakeR_offset (TIMER_VALUE_tCallRonHshakeR_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tCallRoffHshakeR_offset (TIMER_VALUE_tCallTxHshakeR_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeReceiv + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tCallRonHshakeT_offset (TIMER_VALUE_tCallRoffHshakeR_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
+#define TIMER_VALUE_tCallTxHshakeT_offset (TIMER_VALUE_tCallRonHshakeT_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tCallRoffHshakeT_offset (TIMER_VALUE_tCallTxHshakeT_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tCallToffHshakeT_offset (TIMER_VALUE_tCallRoffHshakeT_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
+#define TIMER_VALUE_tNegTxRespCallQual_offset (ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tNegRoffRespCallQual_offset (TIMER_VALUE_tNegTxRespCallQual_offset + ALE_TIME_TEthTx + ALE_TIME_TRespCallQual + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tNegRonHshakeTransMode_offset (TIMER_VALUE_tNegRoffRespCallQual_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tNegTxHshakeTransMode_offset (TIMER_VALUE_tNegRonHshakeTransMode_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tNegRoffHshakeTransMode_offset (TIMER_VALUE_tNegTxHshakeTransMode_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeTransMode + ALE_TIME_TRChan + ALE_TIME_TEthRx)
+#define TIMER_VALUE_tNegTxHshakeTransMode_offset (TIMER_VALUE_tNegRonHshakeTransMode_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tNegRoffHshakeTransMode_offset (TIMER_VALUE_tNegTxHshakeTransMode_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeTransMode + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tNegRonHshakeReceiv_offset (TIMER_VALUE_tNegRoffHshakeTransMode_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tNegTxHshakeReceiv_offset (TIMER_VALUE_tNegRonHshakeReceiv_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tNegRoffHshakeReceiv_offset (TIMER_VALUE_tNegTxHshakeReceiv_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeReceiv + ALE_TIME_TRChan + ALE_TIME_TEthRx)
+#define TIMER_VALUE_tNegTxHshakeReceiv_offset (TIMER_VALUE_tNegRonHshakeReceiv_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tNegRoffHshakeReceiv_offset (TIMER_VALUE_tNegTxHshakeReceiv_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeReceiv + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tNegRonHshakeTrans_offset (TIMER_VALUE_tNegRoffHshakeReceiv_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tNegTxHshakeTrans_offset (TIMER_VALUE_tNegRonHshakeTrans_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tNegRoffHshakeTrans_offset (TIMER_VALUE_tNegTxHshakeTrans_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx)
-#define TIMER_VALUE_tNegCycle (TIMER_VALUE_tNegRoffHshakeTrans_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
-#define TIMER_VALUE_tNegStart(n) (TIMER_VALUE_tCallRoffHshakeT + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming + n*TIMER_VALUE_tNegCycle)
-#define TIMER_VALUE_tDataStart_offset (ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_dTInit)
-#define TIMER_VALUE_tDataTxHeadDelay(sform) (ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_dTSynPacket(sform) + ALE_TIME_DTMistiming)
-#define TIMER_VALUE_tDataRoffHeadDelay(sform) (TIMER_VALUE_tDataTxHeadDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_THeadL(sform) + ALE_TIME_TRChan + ALE_TIME_TEthRx)
-#define TIMER_VALUE_tDataRonRespPackQualDelay(sform) (TIMER_VALUE_tDataRoffHeadDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_TDataL(sform))
-#define TIMER_VALUE_tDataTxRespPackQualDelay(sform) (TIMER_VALUE_tDataRonRespPackQualDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tDataRoffRespPackQualDelay(sform) (TIMER_VALUE_tDataTxRespPackQualDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_TRespPackQualL + ALE_TIME_TRChan + ALE_TIME_TEthRx)
+#define TIMER_VALUE_tNegTxHshakeTrans_offset (TIMER_VALUE_tNegRonHshakeTrans_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tNegRoffHshakeTrans_offset (TIMER_VALUE_tNegTxHshakeTrans_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tNegCycle (TIMER_VALUE_tNegRoffHshakeTrans_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
+#define TIMER_VALUE_tNegStart(n) (TIMER_VALUE_tCallToffHshakeT_offset + (n)*TIMER_VALUE_tNegCycle)
+#define TIMER_VALUE_tDataStart_offset(n) (TIMER_VALUE_tNegStart(n+1) + ALE_TIME_dTInit)
+#define TIMER_VALUE_tDataTxHeadDelay(sform) (ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming + ALE_TIME_dTSynPacket(sform))
+#define TIMER_VALUE_tDataRoffSyncHeadDelay(sform) (TIMER_VALUE_tDataTxHeadDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_THeadL(sform) + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tDataRonRespPackQualDelay(sform) (TIMER_VALUE_tDataRoffSyncHeadDelay(sform) + ALE_TIME_TDataL(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
+#define TIMER_VALUE_tDataTxRespPackQualDelay(sform) (TIMER_VALUE_tDataRonRespPackQualDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tDataRoffRespPackQualDelay(sform) (TIMER_VALUE_tDataTxRespPackQualDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_TRespPackQualL + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tDataRonHshakeTDelay(sform) (TIMER_VALUE_tDataRoffRespPackQualDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tDataTxHshakeTDelay(sform) (TIMER_VALUE_tDataRonHshakeTDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
-#define TIMER_VALUE_tDataRoffHshakeTDelay(sform) (TIMER_VALUE_tDataTxHshakeTDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx)
-#define TIMER_VALUE_tDataCycle(sform) (TIMER_VALUE_tDataRoffHshakeTDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_dTSynPacket(sform) + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tDataTxHshakeTDelay(sform) (TIMER_VALUE_tDataRonHshakeTDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tDataRoffHshakeTDelay(sform) (TIMER_VALUE_tDataTxHshakeTDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tDataCycle(sform) (TIMER_VALUE_tDataRoffHshakeTDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_dTSynPacket(sform))
 
 struct call_packet_t {
 	unsigned int lineType;
@@ -79,7 +84,9 @@ struct resppackqual_packet_t {
 
 typedef QmCrc<uint32_t, 32, 0x04c11db7, 0xffffffff, true, 0xffffffff> CRC32;
 
+#ifndef ALE_OPTION_DISABLE_ADAPTATION
 static int ale_vm_snr_table[] = ALE_VM_SNR_TABLE_VALUES;
+#endif
 
 namespace Multiradio {
 
@@ -92,75 +99,76 @@ MainServiceInterface::MainServiceInterface(Dispatcher *dispatcher, Navigation::N
 	ale.state = AleState_IDLE;
 	ale.phase = ALE_STOPPED;
 	ale.timerRadioReady = new QmTimer(true, this);
+	ale.timerRadioReady->setInterval(500);
 	ale.timerRadioReady->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessRadioReady));
 	ale.timerGnssSync = new QmTimer(true, this);
 	ale.timerGnssSync->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerGnssSyncExpired));
-	ale.timerTxCall = new QmTimer(true, this);
+	ale.timerTxCall = new QmAbsTimer(this);
 	ale.timerTxCall->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerTxCallExpired));
 	ale.timerRoffCall = new QmTimer(true, this);
 	ale.timerRoffCall->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerRoffCallExpired));
-	ale.timerCallRonHshakeR = new QmTimer(true, this);
+	ale.timerCallRonHshakeR = new QmAbsTimer(this);
 	ale.timerCallRonHshakeR->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerCallRonHshakeRExpired));
-	ale.timerCallTxHshakeR = new QmTimer(true, this);
+	ale.timerCallTxHshakeR = new QmAbsTimer(this);
 	ale.timerCallTxHshakeR->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerCallTxHshakeRExpired));
-	ale.timerCallRoffHshakeR = new QmTimer(true, this);
+	ale.timerCallRoffHshakeR = new QmAbsTimer(this);
 	ale.timerCallRoffHshakeR->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerCallRoffHshakeRExpired));
-	ale.timerCallRonHshakeT = new QmTimer(true, this);
+	ale.timerCallRonHshakeT = new QmAbsTimer(this);
 	ale.timerCallRonHshakeT->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerCallRonHshakeTExpired));
-	ale.timerCallTxHshakeT = new QmTimer(true, this);
+	ale.timerCallTxHshakeT = new QmAbsTimer(this);
 	ale.timerCallTxHshakeT->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerTxHshakeTransExpired));
-	ale.timerCallRoffHshakeT = new QmTimer(true, this);
+	ale.timerCallRoffHshakeT = new QmAbsTimer(this);
 	ale.timerCallRoffHshakeT->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerCallRoffHshakeTExpired));
 	for (int i = 0; i < 3; i++) {
-		ale.timerRxNegStart[i] = new QmTimer(true, this);
+		ale.timerRxNegStart[i] = new QmAbsTimer(this);
 		ale.timerRxNegStart[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerRxNegStartExpired));
-		ale.timerTxNegStart[i] = new QmTimer(true, this);
+		ale.timerTxNegStart[i] = new QmAbsTimer(this);
 		ale.timerTxNegStart[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerTxNegStartExpired));
-		ale.timerNegTxRespCallQual[i] = new QmTimer(true, this);
+		ale.timerNegTxRespCallQual[i] = new QmAbsTimer(this);
 		ale.timerNegTxRespCallQual[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerNegTxRespCallQualExpired));
-		ale.timerNegRoffRespCallQual[i] = new QmTimer(true, this);
+		ale.timerNegRoffRespCallQual[i] = new QmAbsTimer(this);
 		ale.timerNegRoffRespCallQual[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerNegRoffExpired));
-		ale.timerNegRonHshakeTransMode[i] = new QmTimer(true, this);
+		ale.timerNegRonHshakeTransMode[i] = new QmAbsTimer(this);
 		ale.timerNegRonHshakeTransMode[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerNegRonHshakeTransModeExpired));
-		ale.timerNegTxHshakeTransMode[i] = new QmTimer(true, this);
+		ale.timerNegTxHshakeTransMode[i] = new QmAbsTimer(this);
 		ale.timerNegTxHshakeTransMode[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerNegTxHshakeTransModeExpired));
-		ale.timerNegRoffHshakeTransMode[i] = new QmTimer(true, this);
+		ale.timerNegRoffHshakeTransMode[i] = new QmAbsTimer(this);
 		ale.timerNegRoffHshakeTransMode[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerNegRoffHshakeTransModeExpired));
-		ale.timerNegRonHshakeReceiv[i] = new QmTimer(true, this);
+		ale.timerNegRonHshakeReceiv[i] = new QmAbsTimer(this);
 		ale.timerNegRonHshakeReceiv[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerNegRonHshakeReceivExpired));
-		ale.timerNegTxHshakeReceiv[i] = new QmTimer(true, this);
+		ale.timerNegTxHshakeReceiv[i] = new QmAbsTimer(this);
 		ale.timerNegTxHshakeReceiv[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerNegTxHshakeReceivExpired));
-		ale.timerNegRoffHshakeReceiv[i] = new QmTimer(true, this);
+		ale.timerNegRoffHshakeReceiv[i] = new QmAbsTimer(this);
 		ale.timerNegRoffHshakeReceiv[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerNegRoffExpired));
-		ale.timerNegRonHshakeTrans[i] = new QmTimer(true, this);
+		ale.timerNegRonHshakeTrans[i] = new QmAbsTimer(this);
 		ale.timerNegRonHshakeTrans[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerNegRonHshakeTransExpired));
-		ale.timerNegTxHshakeTrans[i] = new QmTimer(true, this);
+		ale.timerNegTxHshakeTrans[i] = new QmAbsTimer(this);
 		ale.timerNegTxHshakeTrans[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerTxHshakeTransExpired));
-		ale.timerNegRoffHshakeTrans[i] = new QmTimer(true, this);
+		ale.timerNegRoffHshakeTrans[i] = new QmAbsTimer(this);
 		ale.timerNegRoffHshakeTrans[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerNegRoffHshakeTransExpired));
 	}
-	ale.timerDataStart = new QmTimer(true, this);
+	ale.timerDataStart = new QmAbsTimer(this);
 	ale.timerDataStart->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerDataStartExpired));
 	for (int i = 0; i < 3; i++) {
-		ale.timerMsgTxHead[i] = new QmTimer(true, this);
+		ale.timerMsgTxHead[i] = new QmAbsTimer(this);
 		ale.timerMsgTxHead[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerMsgTxHeadExpired));
-		ale.timerMsgRoffHead[i] = new QmTimer(true, this);
+		ale.timerMsgRoffHead[i] = new QmAbsTimer(this);
 		ale.timerMsgRoffHead[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerMsgRoffHeadExpired));
-		ale.timerMsgRonRespPackQual[i] = new QmTimer(true, this);
+		ale.timerMsgRonRespPackQual[i] = new QmAbsTimer(this);
 		ale.timerMsgRonRespPackQual[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerMsgRonRespPackQualExpired));
-		ale.timerMsgTxRespPackQual[i] = new QmTimer(true, this);
+		ale.timerMsgTxRespPackQual[i] = new QmAbsTimer(this);
 		ale.timerMsgTxRespPackQual[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerMsgTxRespPackQualExpired));
-		ale.timerMsgRoffRespPackQual[i] = new QmTimer(true, this);
+		ale.timerMsgRoffRespPackQual[i] = new QmAbsTimer(this);
 		ale.timerMsgRoffRespPackQual[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerMsgRoffRespPackQualExpired));
-		ale.timerMsgRonHshakeT[i] = new QmTimer(true, this);
+		ale.timerMsgRonHshakeT[i] = new QmAbsTimer(this);
 		ale.timerMsgRonHshakeT[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerMsgRonHshakeTExpired));
-		ale.timerMsgTxHshakeT[i] = new QmTimer(true, this);
+		ale.timerMsgTxHshakeT[i] = new QmAbsTimer(this);
 		ale.timerMsgTxHshakeT[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerMsgTxHshakeTExpired));
-		ale.timerMsgRoffHshakeT[i] = new QmTimer(true, this);
+		ale.timerMsgRoffHshakeT[i] = new QmAbsTimer(this);
 		ale.timerMsgRoffHshakeT[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerMsgRoffHshakeTExpired));
-		ale.timerRxMsgCycle[i] = new QmTimer(true, this);
+		ale.timerRxMsgCycle[i] = new QmAbsTimer(this);
 		ale.timerRxMsgCycle[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerRxMsgCycleExpired));
-		ale.timerTxMsgCycle[i] = new QmTimer(true, this);
+		ale.timerTxMsgCycle[i] = new QmAbsTimer(this);
 		ale.timerTxMsgCycle[i]->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessTimerTxMsgCycleExpired));
 	}
 	ale.timerTxPacketSync = new QmAbsTimer(this);
@@ -194,6 +202,8 @@ MainServiceInterface::MainServiceInterface(Dispatcher *dispatcher, Navigation::N
 	dsp_controller->receivedModemPacket.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessModemPacketReceived));
 	dsp_controller->startedRxModemPacket_packHead.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessModemPacketStartedRxPackHead));
 	dsp_controller->failedRxModemPacket.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessModemPacketFailedRx));
+
+	printDebugAleTimings();
 }
 
 MainServiceInterface::~MainServiceInterface()
@@ -211,6 +221,86 @@ void MainServiceInterface::setStatus(Status value) {
 	}
 }
 
+void MainServiceInterface::printDebugAleTimings() {
+	qmDebugMessage(QmDebug::Dump, "ALE Session timings (parameters):");
+	qmDebugMessage(QmDebug::Dump, " TTuneTx = %u", ALE_TIME_TTuneTx);
+	qmDebugMessage(QmDebug::Dump, " TOpenTx = %u", ALE_TIME_TOpenTx);
+	qmDebugMessage(QmDebug::Dump, " TTuneRx = %u", ALE_TIME_TTuneRx);
+	qmDebugMessage(QmDebug::Dump, " TEthTx = %u", ALE_TIME_TEthTx);
+	qmDebugMessage(QmDebug::Dump, " TEthRx = %u", ALE_TIME_TEthRx);
+	qmDebugMessage(QmDebug::Dump, " TRChan = %u", ALE_TIME_TRChan);
+	qmDebugMessage(QmDebug::Dump, " DTMistiming = %u", ALE_TIME_DTMistiming);
+	qmDebugMessage(QmDebug::Dump, " THshakeTransMode = %u", ALE_TIME_THshakeTransMode);
+	qmDebugMessage(QmDebug::Dump, " TRespCallQual = %u", ALE_TIME_TRespCallQual);
+	qmDebugMessage(QmDebug::Dump, " THshakeReceiv = %u", ALE_TIME_THshakeReceiv);
+	qmDebugMessage(QmDebug::Dump, " THshakeTrans = %u", ALE_TIME_THshakeTrans);
+	qmDebugMessage(QmDebug::Dump, " TmsgHeadL = %u", ALE_TIME_TmsgHeadL);
+	qmDebugMessage(QmDebug::Dump, " TpackHeadL = %u", ALE_TIME_TpackHeadL);
+	qmDebugMessage(QmDebug::Dump, " TRespPackQualL = %u", ALE_TIME_TRespPackQualL);
+	qmDebugMessage(QmDebug::Dump, " TLinkReleaseL = %u", ALE_TIME_TLinkReleaseL);
+	qmDebugMessage(QmDebug::Dump, " dTInit = %u", ALE_TIME_dTInit);
+	qmDebugMessage(QmDebug::Dump, "ALE Session timings (aux constants):");
+	qmDebugMessage(QmDebug::Dump, " TMaxEthX = %u", ALE_TIME_TMaxEthX);
+	qmDebugMessage(QmDebug::Dump, " TMaxOpenTuneX = %u", ALE_TIME_TMaxOpenTuneX);
+	qmDebugMessage(QmDebug::Dump, "ALE Session timings (sync-dependent constants):");
+	qmDebugMessage(QmDebug::Dump, " dTSyn = %u", ALE_TIME_dTSyn);
+	qmDebugMessage(QmDebug::Dump, " Tdwell = %u", ALE_TIME_Tdwell);
+	qmDebugMessage(QmDebug::Dump, " dTDwellLeft = %u", ALE_TIME_dTDwellLeft);
+	qmDebugMessage(QmDebug::Dump, " TCall = %u", ALE_TIME_TCall);
+	qmDebugMessage(QmDebug::Dump, "ALE Session timings (VM packet constants):");
+	qmDebugMessage(QmDebug::Dump, " dTSynPacket = %u/%u", ALE_TIME_dTSynPacket(-1), ALE_TIME_dTSynPacket(0));
+	qmDebugMessage(QmDebug::Dump, " THeadL = %u/%u", ALE_TIME_THeadL(-1), ALE_TIME_THeadL(0));
+	for (int i = 0; i < 8; i++)
+		qmDebugMessage(QmDebug::Dump, " TDataL (sform %u) = %u", i, ALE_TIME_TDataL(i));
+	qmDebugMessage(QmDebug::Dump, "ALE Session timings (call dwell phase):");
+	qmDebugMessage(QmDebug::Dump, " tTxCall = %u", TIMER_VALUE_tTxCall);
+	qmDebugMessage(QmDebug::Dump, " tRoffSyncCall = %u", TIMER_VALUE_tRoffSyncCall);
+	qmDebugMessage(QmDebug::Dump, " tCallRonHshakeR_offset = %u", TIMER_VALUE_tCallRonHshakeR_offset);
+	qmDebugMessage(QmDebug::Dump, " tCallTxHshakeR_offset = %u", TIMER_VALUE_tCallTxHshakeR_offset);
+	qmDebugMessage(QmDebug::Dump, " tCallRoffHshakeR_offset = %u", TIMER_VALUE_tCallRoffHshakeR_offset);
+	qmDebugMessage(QmDebug::Dump, " tCallRonHshakeT_offset = %u", TIMER_VALUE_tCallRonHshakeT_offset);
+	qmDebugMessage(QmDebug::Dump, " tCallTxHshakeT_offset = %u", TIMER_VALUE_tCallTxHshakeT_offset);
+	qmDebugMessage(QmDebug::Dump, " tCallRoffHshakeT_offset = %u", TIMER_VALUE_tCallRoffHshakeT_offset);
+	qmDebugMessage(QmDebug::Dump, "ALE Session timings (negotiation phase):");
+	qmDebugMessage(QmDebug::Dump, " tNegStart = %u", TIMER_VALUE_tNegStart(0));
+	qmDebugMessage(QmDebug::Dump, " tNegTxRespCallQual_offset = %u", TIMER_VALUE_tNegTxRespCallQual_offset);
+	qmDebugMessage(QmDebug::Dump, " tNegRoffRespCallQual_offset = %u", TIMER_VALUE_tNegRoffRespCallQual_offset);
+	qmDebugMessage(QmDebug::Dump, " tNegRonHshakeTransMode_offset = %u", TIMER_VALUE_tNegRonHshakeTransMode_offset);
+	qmDebugMessage(QmDebug::Dump, " tNegTxHshakeTransMode_offset = %u", TIMER_VALUE_tNegTxHshakeTransMode_offset);
+	qmDebugMessage(QmDebug::Dump, " tNegRoffHshakeTransMode_offset = %u", TIMER_VALUE_tNegRoffHshakeTransMode_offset);
+	qmDebugMessage(QmDebug::Dump, " tNegRonHshakeReceiv_offset = %u", TIMER_VALUE_tNegRonHshakeReceiv_offset);
+	qmDebugMessage(QmDebug::Dump, " tNegTxHshakeReceiv_offset = %u", TIMER_VALUE_tNegTxHshakeReceiv_offset);
+	qmDebugMessage(QmDebug::Dump, " tNegRoffHshakeReceiv_offset = %u", TIMER_VALUE_tNegRoffHshakeReceiv_offset);
+	qmDebugMessage(QmDebug::Dump, " tNegRonHshakeTrans_offset = %u", TIMER_VALUE_tNegRonHshakeTrans_offset);
+	qmDebugMessage(QmDebug::Dump, " tNegTxHshakeTrans_offset = %u", TIMER_VALUE_tNegTxHshakeTrans_offset);
+	qmDebugMessage(QmDebug::Dump, " tNegRoffHshakeTrans_offset = %u", TIMER_VALUE_tNegRoffHshakeTrans_offset);
+	qmDebugMessage(QmDebug::Dump, " tNegCycle = %u", TIMER_VALUE_tNegCycle);
+	qmDebugMessage(QmDebug::Dump, "ALE Session timings (VM data transfer):");
+	qmDebugMessage(QmDebug::Dump, " tDataStart_offset = %u", TIMER_VALUE_tDataStart_offset(0));
+	qmDebugMessage(QmDebug::Dump, "ALE Session timings (VM msg phase):");
+	qmDebugMessage(QmDebug::Dump, " tMsgTxHead = %u", TIMER_VALUE_tDataTxHeadDelay(-1));
+	qmDebugMessage(QmDebug::Dump, " tMsgRoffSyncHead = %u", TIMER_VALUE_tDataRoffSyncHeadDelay(-1));
+	qmDebugMessage(QmDebug::Dump, " tMsgRonRespPackQual = %u", TIMER_VALUE_tDataRonRespPackQualDelay(-1));
+	qmDebugMessage(QmDebug::Dump, " tMsgTxRespPackQual = %u", TIMER_VALUE_tDataTxRespPackQualDelay(-1));
+	qmDebugMessage(QmDebug::Dump, " tMsgRoffRespPackQual = %u", TIMER_VALUE_tDataRoffRespPackQualDelay(-1));
+	qmDebugMessage(QmDebug::Dump, " tMsgRonHshakeT = %u", TIMER_VALUE_tDataRonHshakeTDelay(-1));
+	qmDebugMessage(QmDebug::Dump, " tMsgTxHshakeT = %u", TIMER_VALUE_tDataTxHshakeTDelay(-1));
+	qmDebugMessage(QmDebug::Dump, " tMsgRoffHshakeT = %u", TIMER_VALUE_tDataRoffHshakeTDelay(-1));
+	qmDebugMessage(QmDebug::Dump, " tMsgCycle = %u", TIMER_VALUE_tDataCycle(-1));
+	for (int i = 0; i < 8; i++) {
+		qmDebugMessage(QmDebug::Dump, "ALE Session timings (VM packet phase (sform = %u)):", i);
+		qmDebugMessage(QmDebug::Dump, " tDataTxHeadDelay(%u) = %u", i, TIMER_VALUE_tDataTxHeadDelay(i));
+		qmDebugMessage(QmDebug::Dump, " tDataRoffSyncHeadDelay(%u) = %u", i, TIMER_VALUE_tDataRoffSyncHeadDelay(i));
+		qmDebugMessage(QmDebug::Dump, " tDataRonRespPackQualDelay(%u) = %u", i, TIMER_VALUE_tDataRonRespPackQualDelay(i));
+		qmDebugMessage(QmDebug::Dump, " tDataTxRespPackQualDelay(%u) = %u", i, TIMER_VALUE_tDataTxRespPackQualDelay(i));
+		qmDebugMessage(QmDebug::Dump, " tDataRoffRespPackQualDelay(%u) = %u", i, TIMER_VALUE_tDataRoffRespPackQualDelay(i));
+		qmDebugMessage(QmDebug::Dump, " tDataRonHshakeTDelay(%u) = %u", i, TIMER_VALUE_tDataRonHshakeTDelay(i));
+		qmDebugMessage(QmDebug::Dump, " tDataTxHshakeTDelay(%u) = %u", i, TIMER_VALUE_tDataTxHshakeTDelay(i));
+		qmDebugMessage(QmDebug::Dump, " tDataRoffHshakeTDelay(%u) = %u", i, TIMER_VALUE_tDataRoffHshakeTDelay(i));
+		qmDebugMessage(QmDebug::Dump, " tDataCycle(%u) = %u", i, TIMER_VALUE_tDataCycle(i));
+	}
+}
+
 void MainServiceInterface::startAleRx() {
 	qmDebugMessage(QmDebug::Info, "starting ALE rx");
 	if (!startAleSession())
@@ -225,7 +315,7 @@ void MainServiceInterface::startAleRx() {
 	dsp_controller->setModemReceiverTimeSyncMode(DspController::modemtimesyncGPS);
 	dsp_controller->setModemReceiverPhase(DspController::modemphaseWaitingCall);
 	dsp_controller->setModemReceiverRole(DspController::modemroleResponder);
-	ale.timerRadioReady->start(100);
+	ale.timerRadioReady->start();
 }
 
 void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
@@ -242,7 +332,7 @@ void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
 	Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
 	int message_bits_size = message.size()*8;
 	ale.vm_size = message_bits_size/72;
-	ale.vm_f_count = ceil(message_bits_size/490);
+	ale.vm_f_count = ceilf((float)message_bits_size/490);
 	ale.vm_fragments.resize(ale.vm_f_count);
 	for (unsigned int i = 0; i < ale.vm_fragments.size(); i++) {
 		ale.vm_fragments[i].num_data[0] = (i & 0x3F) << 2;
@@ -253,7 +343,7 @@ void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
 		int f_i = m_bit_i / 490;
 		int f_bit_i = 6 + (m_bit_i % 490);
 		int f_byte_i = f_bit_i / 8;
-		int f_byte_bit = (f_bit_i - 6) % 8;
+		int f_byte_bit = 7 - (f_bit_i % 8);
 		if ((message[m_bit_i/8] & (1 << (m_bit_i % 8))) != 0)
 			ale.vm_fragments[f_i].num_data[f_byte_i] |= (1 << f_byte_bit);
 	}
@@ -266,12 +356,12 @@ void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
 	dsp_controller->setModemReceiverTimeSyncMode(DspController::modemtimesyncGPS);
 	dsp_controller->setModemReceiverPhase(DspController::modemphaseALE);
 	dsp_controller->setModemReceiverRole(DspController::modemroleCaller);
-	ale.timerRadioReady->start(100);
+	ale.timerRadioReady->start();
 }
 
 MainServiceInterface::AleResult MainServiceInterface::stopAle() {
-	setAlePhase(ALE_STOPPED);
 	stopAleSession();
+	setAlePhase(ALE_STOPPED);
 	ale.f_state = alefunctionIdle;
 	return AleResultNone;
 }
@@ -291,17 +381,26 @@ uint8_t MainServiceInterface::getAleRxAddress() {
 voice_message_t MainServiceInterface::getAleRxVmMessage() {
 	if (ale.vm_size == 0)
 		return voice_message_t();
-	Multiradio::voice_message_t vm_rx_message(ale.vm_size*72/8, 0);
+	int message_bits_size;
+	if (ale.vm_f_idx == ale.vm_f_count) {
+		message_bits_size = ale.vm_size*72;
+	} else {
+		message_bits_size = ale.vm_f_idx*490;
+		if (!((message_bits_size % 72) == 0))
+			message_bits_size += 72 - (message_bits_size % 72);
+	}
+	Multiradio::voice_message_t vm_rx_message(message_bits_size/8, 0);
+	int message_bits_offset = 0;
 	for (int f_i = 0; f_i < ale.vm_f_idx; f_i++) {
-		int f_bits_size = (f_i == (ale.vm_f_idx - 1))?(ale.vm_size*72 - (ale.vm_f_idx - 1)*490):(490);
-		int message_bits_offset = f_i*490;
+		int f_bits_size = (f_i == (ale.vm_f_count - 1))?(ale.vm_size*72 - (ale.vm_f_count - 1)*490):(490);
 		for (int f_bit_i = 6; f_bit_i < (6 + f_bits_size); f_bit_i++) {
 			int f_byte_i = f_bit_i / 8;
-			int f_byte_bit = (f_bit_i - 6) % 8;
-			int m_byte_i = (message_bits_offset + f_bit_i) / 8;
-			int m_byte_bit = (message_bits_offset + f_bit_i) % 8;
+			int f_byte_bit = 7 - (f_bit_i % 8);
+			int m_byte_i = message_bits_offset / 8;
+			int m_byte_bit = message_bits_offset % 8;
 			if ((ale.vm_fragments[f_i].num_data[f_byte_i] & (1 << f_byte_bit)) != 0)
 				vm_rx_message[m_byte_i] |= (1 << m_byte_bit);
+			message_bits_offset++;
 		}
 	}
 	return vm_rx_message;
@@ -412,15 +511,19 @@ bool MainServiceInterface::startAleSession() {
 void MainServiceInterface::stopAleSession() {
 	qmDebugMessage(QmDebug::Info, "ale session stop");
 	switch (ale.f_state) {
-	case alefunctionRx:
+	case alefunctionRx: {
 		stopAllRxTimers();
+		voice_message_t msg = getAleRxVmMessage();
+		headset_controller->setSmartMessageToPlay(msg);
 		break;
-	case alefunctionTx:
+	}
+	case alefunctionTx: {
 		ale.vm_fragments.clear();
 		stopAllTxTimers();
 		break;
+	}
 	default:
-		QM_ASSERT(0);
+		break;
 	}
 	if (ale.phase == ALE_STOPPED) {
 		setAleState(AleState_IDLE);
@@ -510,7 +613,10 @@ void MainServiceInterface::stopAllTxTimers() {
 }
 
 void MainServiceInterface::startVmRx() {
-	ale.timerDataStart->start(TIMER_VALUE_tDataStart_offset);
+	int data_start_offset = TIMER_VALUE_tDataStart_offset(ale.rcount);
+	ale.timerDataStart->start(ale.tCallStartSync, data_start_offset);
+	ale.tPacketSync = ale.tCallStartSync;
+	ale.tPacketSync.shift(data_start_offset);
 	setAlePhase(ALE_RX_VM_START);
 	ale.vm_msg_cycle = 0;
 	ale.vm_progress = 0;
@@ -519,7 +625,10 @@ void MainServiceInterface::startVmRx() {
 }
 
 void MainServiceInterface::startVmTx() {
-	ale.timerDataStart->start(TIMER_VALUE_tDataStart_offset);
+	int data_start_offset = TIMER_VALUE_tRoffSyncCall + TIMER_VALUE_tDataStart_offset(ale.rcount);
+	ale.timerDataStart->start(ale.tCallStartSync, data_start_offset);
+	ale.tPacketSync = ale.tCallStartSync;
+	ale.tPacketSync.shift(data_start_offset);
 	setAlePhase(ALE_TX_VM_START);
 	ale.vm_msg_cycle = 0;
 	ale.vm_progress = 0;
@@ -579,7 +688,7 @@ void MainServiceInterface::proceedRxScanning() {
 	stopAleRxTimers();
 	dsp_controller->setModemReceiverBandwidth(DspController::modembwAll);
 	dsp_controller->setModemReceiverPhase(DspController::modemphaseWaitingCall);
-	ale.timerRadioReady->start(100);
+	ale.timerRadioReady->start();
 	setAlePhase(ALE_RX_SETUP);
 	setAleState(AleState_RX_SCANNING);
 }
@@ -587,7 +696,7 @@ void MainServiceInterface::proceedRxScanning() {
 void MainServiceInterface::proceedTxCalling() {
 	stopAleTxTimers();
 	ale.cycle++;
-	if (!(ale.cycle <= 12)) {
+	if (!(ale.cycle <= (int)ale.call_freqs.size())) {
 		ale.supercycle++;
 		ale.cycle = 1;
 	}
@@ -601,8 +710,12 @@ void MainServiceInterface::proceedTxCalling() {
 }
 
 bool MainServiceInterface::evaluatePacketSNR(int8_t snr) {
+#ifndef ALE_OPTION_IGNORE_SNR
 	int8_t snr_threshold = (ale.supercycle == 1)?ALE_CALL_SNR_HIGH:ALE_CALL_SNR_LOW;
 	return (snr >= snr_threshold);
+#else
+	return true;
+#endif
 }
 
 void MainServiceInterface::aleprocessRadioReady() {
@@ -671,8 +784,8 @@ void MainServiceInterface::aleprocessModemPacketTransmitted(DspController::Modem
 			break;
 		}
 		case ALE_RX_VM_TX_LINK_RELEASE: {
-			stopAleSession();
 			setAleState(AleState_RX_VM_COMPLETE_FULL);
+			stopAleSession();
 			break;
 		}
 		default:
@@ -705,13 +818,13 @@ void MainServiceInterface::aleprocessModemPacketFailedTx() {
 	stopAleSession();
 }
 
-void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPacketType type, int8_t snr, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len) {
+void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPacketType type, uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len) {
 	switch (type) {
 	case DspController::modempacket_HshakeReceiv: {
 		switch (ale.phase) {
 		case ALE_TX_CALL_RX_HSHAKE: {
 			ale.timerCallRoffHshakeR->stop();
-			if (evaluatePacketSNR(snr)) {
+			if (evaluatePacketSNR(convertSnrFromPacket(snr))) {
 				dsp_controller->enableModemTransmitter();
 				setAlePhase(ALE_TX_CALL_TX_HSHAKE);
 			} else {
@@ -744,7 +857,7 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 	case DspController::modempacket_RespPackQual: {
 		switch (ale.phase) {
 		case ALE_TX_VM_RX_MSG_RESP: {
-			ale.timerMsgRoffRespPackQual[ale.vm_msg_cycle]->stop();
+			ale.timerMsgRoffRespPackQual[ale.vm_msg_cycle-1]->stop();
 			setAlePhase(ALE_TX_VM_TX_MSG_HSHAKE);
 			dsp_controller->enableModemTransmitter();
 			break;
@@ -776,24 +889,38 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 			break;
 		if (ale.phase != ALE_RX_CALL)
 			break;
+		ale.tCallStartSync.set();
 		ale.timerRoffCall->stop();
+		ale.timerCallTxHshakeR->start(ale.tCallStartSync, TIMER_VALUE_tCallTxHshakeR_offset);
+		ale.timerCallRonHshakeT->start(ale.tCallStartSync, TIMER_VALUE_tCallRonHshakeT_offset);
+		ale.timerCallRoffHshakeT->start(ale.tCallStartSync, TIMER_VALUE_tCallRoffHshakeT_offset);
+		for (int i = 0; i < 3; i++) {
+			int neg_start = TIMER_VALUE_tNegStart(i);
+			ale.timerRxNegStart[i]->start(ale.tCallStartSync, neg_start);
+			ale.timerNegTxRespCallQual[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegTxRespCallQual_offset));
+			ale.timerNegRonHshakeTransMode[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegRonHshakeTransMode_offset));
+			ale.timerNegRoffHshakeTransMode[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegRoffHshakeTransMode_offset));
+			ale.timerNegTxHshakeReceiv[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegTxHshakeReceiv_offset));
+			ale.timerNegRonHshakeTrans[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegRonHshakeTrans_offset));
+			ale.timerNegRoffHshakeTrans[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegRoffHshakeTrans_offset));
+		}
 		call_packet_t call_packet;
 		call_packet.lineType = (data[0] >> 7) & 0x01;
 		call_packet.cycleNum = (data[0] >> 3) & 0x0F;
 		call_packet.respAddr = ((data[0] & 0x07) << 2) | ((data[1] >> 6) & 0x03);
-		if (!((call_packet.lineType == 1) && (call_packet.respAddr == ale.station_address))) {
+		if (!((call_packet.lineType == 1) && (call_packet.cycleNum >= 1) && (call_packet.cycleNum <= 3) && (call_packet.respAddr == ale.station_address))) {
 			dsp_controller->disableModemReceiver();
 			proceedRxScanning();
 			break;
 		}
 		ale.supercycle = call_packet.cycleNum;
-		if (!evaluatePacketSNR(snr)) {
+		if (!evaluatePacketSNR(convertSnrFromPacket(snr))) {
 			dsp_controller->disableModemReceiver();
 			proceedRxScanning();
 			break;
 		}
 		ale.call_bw = bandwidth;
-		ale.call_snr = convertSnrToPacket(snr);
+		ale.call_snr = snr;
 		dsp_controller->enableModemTransmitter();
 		dsp_controller->setModemReceiverBandwidth(bandwidth);
 		dsp_controller->setModemReceiverPhase(DspController::modemphaseALE);
@@ -816,7 +943,8 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 			break;
 		}
 		case ALE_RX_VM_RX_MSG_HSHAKE: {
-			ale.timerMsgRoffHshakeT[ale.vm_msg_cycle]->stop();
+			ale.timerMsgRoffHshakeT[ale.vm_msg_cycle-1]->stop();
+			dsp_controller->disableModemReceiver();
 			break;
 		}
 		case ALE_RX_VM_RX_PACK_HSHAKE: {
@@ -866,9 +994,9 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 			break;
 		}
 		ale.vm_size = msghead_packet.msgSize;
-		ale.vm_f_count = ceil(ale.vm_size*72/490);
+		ale.vm_f_count = ceilf((float)ale.vm_size*72/490);
 		ale.vm_fragments.resize(ale.vm_f_count);
-		ale.timerMsgRoffHead[ale.vm_msg_cycle]->stop();
+		ale.timerMsgRoffHead[ale.vm_msg_cycle-1]->stop();
 		setAlePhase(ALE_RX_VM_TX_MSG_RESP);
 		dsp_controller->enableModemTransmitter();
 		break;
@@ -895,14 +1023,20 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 	}
 }
 
-void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(int8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len) {
-	if (!(param_packCode = 0)) {
+void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len) {
+#ifdef ALE_OPTION_DISABLE_ADAPTATION
+	if (!(param_signForm == ALE_VM_INITIAL_SFORM)) {
+		dsp_controller->disableModemReceiver();
+		return;
+	}
+#endif
+	if (!(param_packCode == 0)) {
 		dsp_controller->disableModemReceiver();
 		return;
 	}
 	switch (ale.phase) {
 	case ALE_RX_VM_RX_MSGHEAD: {
-		if (!(ale.vm_msg_cycle > 0)) {
+		if (!(ale.vm_msg_cycle > 1)) {
 			dsp_controller->disableModemReceiver();
 			return;
 		}
@@ -920,7 +1054,7 @@ void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(int8_t snr, Ds
 	}
 	ale.vm_sform_n = param_signForm;
 	ale.rcount = 0;
-	ale.vm_packet_snr = convertSnrToPacket(snr);
+	ale.vm_packet_snr = snr;
 }
 
 void MainServiceInterface::aleprocessModemPacketFailedRx(DspController::ModemPacketType type) {
@@ -946,21 +1080,22 @@ void MainServiceInterface::aleprocess1PPS() {
 		int freq_idx;
 		if (!checkDwellStart(freq_idx))
 			break;
+		ale.tCallStartSync.set();
 		qmDebugMessage(QmDebug::Info, "ale dwell start (tx call)");
-		ale.timerTxCall->start(TIMER_VALUE_tTxCall);
-		ale.timerCallRonHshakeR->start(TIMER_VALUE_tCallRonHshakeR);
-		ale.timerCallRoffHshakeR->start(TIMER_VALUE_tCallRoffHshakeR);
-		ale.timerCallTxHshakeT->start(TIMER_VALUE_tCallTxHshakeT);
+		ale.timerTxCall->start(ale.tCallStartSync, TIMER_VALUE_tTxCall);
+		ale.timerCallRonHshakeR->start(ale.tCallStartSync, TIMER_VALUE_tRoffSyncCall + TIMER_VALUE_tCallRonHshakeR_offset);
+		ale.timerCallRoffHshakeR->start(ale.tCallStartSync, TIMER_VALUE_tRoffSyncCall + TIMER_VALUE_tCallRoffHshakeR_offset);
+		ale.timerCallTxHshakeT->start(ale.tCallStartSync, TIMER_VALUE_tRoffSyncCall + TIMER_VALUE_tCallTxHshakeT_offset);
 		for (int i = 0; i < 3; i++) {
-			int neg_start = TIMER_VALUE_tNegStart(i);
-			ale.timerTxNegStart[i]->start(neg_start);
-			ale.timerNegRoffRespCallQual[i]->start(neg_start + TIMER_VALUE_tNegRoffRespCallQual_offset);
-			ale.timerNegTxHshakeTransMode[i]->start(neg_start + TIMER_VALUE_tNegTxHshakeTransMode_offset);
-			ale.timerNegRonHshakeReceiv[i]->start(neg_start + TIMER_VALUE_tNegRonHshakeReceiv_offset);
-			ale.timerNegRoffHshakeReceiv[i]->start(neg_start + TIMER_VALUE_tNegRoffHshakeReceiv_offset);
-			ale.timerNegTxHshakeTrans[i]->start(neg_start + TIMER_VALUE_tNegTxHshakeTrans_offset);
+			int neg_start = TIMER_VALUE_tRoffSyncCall + TIMER_VALUE_tNegStart(i);
+			ale.timerTxNegStart[i]->start(ale.tCallStartSync, neg_start);
+			ale.timerNegRoffRespCallQual[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegRoffRespCallQual_offset));
+			ale.timerNegTxHshakeTransMode[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegTxHshakeTransMode_offset));
+			ale.timerNegRonHshakeReceiv[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegRonHshakeReceiv_offset));
+			ale.timerNegRoffHshakeReceiv[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegRoffHshakeReceiv_offset));
+			ale.timerNegTxHshakeTrans[i]->start(ale.tCallStartSync, (neg_start + TIMER_VALUE_tNegTxHshakeTrans_offset));
 		}
-		dsp_controller->setRadioParameters(DspController::RadioModeSazhenData, ale.call_freqs[freq_idx]);
+		dsp_controller->tuneModemFrequency(ale.call_freqs[freq_idx]);
 		dsp_controller->enableModemTransmitter();
 		setAlePhase(ALE_TX_CALL);
 		ale.rcount = 0;
@@ -971,27 +1106,43 @@ void MainServiceInterface::aleprocess1PPS() {
 		if (!checkDwellStart(freq_idx))
 			break;
 		qmDebugMessage(QmDebug::Info, "ale dwell start (rx scan)");
-		ale.timerRoffCall->start(TIMER_VALUE_tRoffCall);
-		ale.timerCallTxHshakeR->start(TIMER_VALUE_tCallTxHshakeR);
-		ale.timerCallRonHshakeT->start(TIMER_VALUE_tCallRonHshakeT);
-		ale.timerCallRoffHshakeT->start(TIMER_VALUE_tCallRoffHshakeT);
-		for (int i = 0; i < 3; i++) {
-			int neg_start = TIMER_VALUE_tNegStart(i);
-			ale.timerRxNegStart[i]->start(neg_start);
-			ale.timerNegTxRespCallQual[i]->start(neg_start + TIMER_VALUE_tNegTxRespCallQual_offset);
-			ale.timerNegRonHshakeTransMode[i]->start(neg_start + TIMER_VALUE_tNegRonHshakeTransMode_offset);
-			ale.timerNegRoffHshakeTransMode[i]->start(neg_start + TIMER_VALUE_tNegRoffHshakeTransMode_offset);
-			ale.timerNegTxHshakeReceiv[i]->start(neg_start + TIMER_VALUE_tNegTxHshakeReceiv_offset);
-			ale.timerNegRonHshakeTrans[i]->start(neg_start + TIMER_VALUE_tNegRonHshakeTrans_offset);
-			ale.timerNegRoffHshakeTrans[i]->start(neg_start + TIMER_VALUE_tNegRoffHshakeTrans_offset);
-		}
-		dsp_controller->setRadioParameters(DspController::RadioModeSazhenData, ale.call_freqs[freq_idx]);
+		ale.timerRoffCall->start(ALE_TIME_dTSyn + TIMER_VALUE_tRoffSyncCall);
+		dsp_controller->tuneModemFrequency(ale.call_freqs[freq_idx]);
 		dsp_controller->enableModemReceiver();
 		setAlePhase(ALE_RX_CALL);
 		break;
 	}
 	default:
 		break;
+	}
+}
+
+void MainServiceInterface::aleprocessTimerDataStartExpired() {
+	switch (ale.phase) {
+	case ALE_RX_VM_START: {
+		for (int i = 0; i < 3; i++) {
+			int cycle = i*TIMER_VALUE_tDataCycle(-1);
+			ale.timerMsgRoffHead[i]->start(ale.tPacketSync, (cycle + TIMER_VALUE_tDataRoffSyncHeadDelay(-1)));
+			ale.timerMsgTxRespPackQual[i]->start(ale.tPacketSync, (cycle + TIMER_VALUE_tDataTxRespPackQualDelay(-1)));
+			ale.timerMsgRonHshakeT[i]->start(ale.tPacketSync, (cycle + TIMER_VALUE_tDataRonHshakeTDelay(-1)));
+			ale.timerMsgRoffHshakeT[i]->start(ale.tPacketSync, (cycle + TIMER_VALUE_tDataRoffHshakeTDelay(-1)));
+			ale.timerRxMsgCycle[i]->start(ale.tPacketSync, cycle);
+		}
+		break;
+	}
+	case ALE_TX_VM_START: {
+		for (int i = 0; i < 3; i++) {
+			int cycle = i*TIMER_VALUE_tDataCycle(-1);
+			ale.timerMsgTxHead[i]->start(ale.tPacketSync, (cycle + TIMER_VALUE_tDataTxHeadDelay(-1)));
+			ale.timerMsgRonRespPackQual[i]->start(ale.tPacketSync, (cycle + TIMER_VALUE_tDataRonRespPackQualDelay(-1)));
+			ale.timerMsgRoffRespPackQual[i]->start(ale.tPacketSync, (cycle + TIMER_VALUE_tDataRoffRespPackQualDelay(-1)));
+			ale.timerMsgTxHshakeT[i]->start(ale.tPacketSync, (cycle + TIMER_VALUE_tDataTxHshakeTDelay(-1)));
+			ale.timerTxMsgCycle[i]->start(ale.tPacketSync, cycle);
+		}
+		break;
+	}
+	default:
+		QM_ASSERT(0);
 	}
 }
 
@@ -1034,12 +1185,12 @@ void MainServiceInterface::aleprocessTimerNegRoffExpired() {
 	case ALE_TX_NEG_RX_QUAL:
 	case ALE_TX_NEG_RX_HSHAKE: {
 		dsp_controller->disableModemReceiver();
+		ale.rcount++;
 		if (ale.rcount < 3) {
-			ale.timerNegTxHshakeTransMode[ale.rcount]->stop();
-			ale.timerNegRonHshakeReceiv[ale.rcount]->stop();
-			ale.timerNegRoffHshakeReceiv[ale.rcount]->stop();
-			ale.timerNegTxHshakeTrans[ale.rcount]->stop();
-			ale.rcount++;
+			ale.timerNegTxHshakeTransMode[ale.rcount-1]->stop();
+			ale.timerNegRonHshakeReceiv[ale.rcount-1]->stop();
+			ale.timerNegRoffHshakeReceiv[ale.rcount-1]->stop();
+			ale.timerNegTxHshakeTrans[ale.rcount-1]->stop();
 		} else {
 			proceedTxCalling();
 		}
@@ -1077,42 +1228,7 @@ void MainServiceInterface::aleprocessTimerTxHshakeTransExpired() {
 	dsp_controller->sendModemPacket(DspController::modempacket_HshakeTrans, DspController::modembw20kHz, 0, 0);
 }
 
-void MainServiceInterface::aleprocessTimerDataStartExpired() {
-	switch (ale.phase) {
-	case ALE_RX_VM_START: {
-		ale.tPacketSync.set();
-		for (int i = 0; i < 3; i++) {
-			int cycle = i*TIMER_VALUE_tDataCycle(-1);
-			ale.timerMsgRoffHead[i]->start(cycle + TIMER_VALUE_tDataRoffHeadDelay(-1));
-			ale.timerMsgTxRespPackQual[i]->start(cycle + TIMER_VALUE_tDataTxRespPackQualDelay(-1));
-			ale.timerMsgRonHshakeT[i]->start(cycle + TIMER_VALUE_tDataRonHshakeTDelay(-1));
-			ale.timerMsgRoffHshakeT[i]->start(cycle + TIMER_VALUE_tDataRoffHshakeTDelay(-1));
-			ale.timerTxMsgCycle[i]->start(cycle);
-		}
-		dsp_controller->enableModemReceiver();
-		setAlePhase(ALE_RX_VM_RX_MSGHEAD);
-		break;
-	}
-	case ALE_TX_VM_START: {
-		ale.tPacketSync.set();
-		for (int i = 0; i < 3; i++) {
-			int cycle = i*TIMER_VALUE_tDataCycle(-1);
-			ale.timerMsgTxHead[i]->start(cycle + TIMER_VALUE_tDataTxHeadDelay(-1));
-			ale.timerMsgRonRespPackQual[i]->start(cycle + TIMER_VALUE_tDataRonRespPackQualDelay(-1));
-			ale.timerMsgRoffRespPackQual[i]->start(cycle + TIMER_VALUE_tDataRoffRespPackQualDelay(-1));
-			ale.timerMsgTxHshakeT[i]->start(cycle + TIMER_VALUE_tDataTxHshakeTDelay(-1));
-			ale.timerTxMsgCycle[i]->start(cycle);
-		}
-		dsp_controller->enableModemTransmitter();
-		break;
-	}
-	default:
-		QM_ASSERT(0);
-	}
-}
-
 void MainServiceInterface::aleprocessTimerMsgTxHeadExpired() {
-	setAlePhase(ALE_TX_VM_TX_MSGHEAD);
 	msghead_packet_t msghead_packet;
 	msghead_packet.msgSize = ale.vm_size;
 	msghead_packet.symCode = 0;
@@ -1130,7 +1246,7 @@ void MainServiceInterface::aleprocessTimerMsgRonRespPackQualExpired() {
 
 void MainServiceInterface::aleprocessTimerMsgRoffRespPackQualExpired() {
 	dsp_controller->disableModemReceiver();
-	ale.timerMsgTxHshakeT[ale.vm_msg_cycle]->stop();
+	ale.timerMsgTxHshakeT[ale.vm_msg_cycle-1]->stop();
 }
 
 void MainServiceInterface::aleprocessTimerMsgTxHshakeTExpired() {
@@ -1139,8 +1255,9 @@ void MainServiceInterface::aleprocessTimerMsgTxHshakeTExpired() {
 
 void MainServiceInterface::aleprocessTimerTxMsgCycleExpired() {
 	if (ale.phase != ALE_TX_VM_TX_MSG_HSHAKE) {
-		ale.vm_msg_cycle++;
 		if (ale.vm_msg_cycle < 3) {
+			ale.vm_msg_cycle++;
+			setAlePhase(ALE_TX_VM_TX_MSGHEAD);
 			dsp_controller->enableModemTransmitter();
 		} else {
 			setAleState(AleState_TX_VM_FAIL);
@@ -1148,7 +1265,7 @@ void MainServiceInterface::aleprocessTimerTxMsgCycleExpired() {
 		}
 	} else {
 		stopVmMsgTxTimers();
-		ale.tPacketSync.shift((ale.vm_msg_cycle + 1)*TIMER_VALUE_tDataCycle(-1));
+		ale.tPacketSync.shift(ale.vm_msg_cycle*TIMER_VALUE_tDataCycle(-1));
 		ale.vm_sform_c = ALE_VM_INITIAL_SFORM;
 		ale.vm_sform_p = ale.vm_sform_c;
 		ale.vm_f_idx = 0;
@@ -1176,7 +1293,7 @@ void MainServiceInterface::processPacketTxResponse(bool p_result, uint8_t p_snr)
 	}
 	if (p_result) {
 		ale.vm_f_idx++;
-		setAleVmProgress(ale.vm_f_idx/ale.vm_f_count);
+		setAleVmProgress((int)(100*ale.vm_f_idx/ale.vm_f_count));
 		ale.vm_snr_ack[ale.vm_ack_count] = snr;
 		ale.vm_nack_count = 0;
 		ale.vm_ack_count++;
@@ -1206,12 +1323,14 @@ void MainServiceInterface::processFailedPacketTxCycle() {
 }
 
 void MainServiceInterface::startNextPacketTxCycle() {
-	int sform = (ale.vm_sform_p > ale.vm_sform_c)?ale.vm_sform_p:ale.vm_sform_c;
+//	int sform = (ale.vm_sform_p > ale.vm_sform_c)?ale.vm_sform_p:ale.vm_sform_c;
+	int sform = ale.vm_sform_c;
 	ale.timerTxPacketSync->start(ale.tPacketSync, TIMER_VALUE_tDataCycle(sform));
 	ale.tPacketSync.shift(TIMER_VALUE_tDataCycle(sform));
 }
 
 void MainServiceInterface::adaptPacketTxUp() {
+#ifndef ALE_OPTION_DISABLE_ADAPTATION
 	int snr_e = qmMin(qmMin(ale.vm_snr_ack[0], ale.vm_snr_ack[1]), ale.vm_snr_ack[2]);
 	if (!(snr_e <= ale_vm_snr_table[ale.vm_sform_c])) {
 		int sform = (ale.vm_sform_c < 4)?0:4;
@@ -1226,9 +1345,11 @@ void MainServiceInterface::adaptPacketTxUp() {
 	ale.vm_ack_count--;
 	ale.vm_snr_ack[0] = ale.vm_snr_ack[1];
 	ale.vm_snr_ack[1] = ale.vm_snr_ack[2];
+#endif
 }
 
 bool MainServiceInterface::adaptPacketTxDown() {
+#ifndef ALE_OPTION_DISABLE_ADAPTATION
 	if (ale.vm_sform_c == 7) {
 		ale.vm_nack_count--;
 		return false;
@@ -1241,6 +1362,7 @@ bool MainServiceInterface::adaptPacketTxDown() {
 		if (ale.vm_sform_c == 2)
 			ale.vm_sform_c = 3;
 	}
+#endif
 	return true;
 }
 
@@ -1309,11 +1431,11 @@ void MainServiceInterface::aleprocessTimerNegRonHshakeTransModeExpired() {
 
 void MainServiceInterface::aleprocessTimerNegRoffHshakeTransModeExpired() {
 	dsp_controller->disableModemReceiver();
+	ale.rcount++;
 	if (ale.rcount < 3) {
-		ale.timerNegTxHshakeReceiv[ale.rcount]->stop();
-		ale.timerNegRonHshakeTrans[ale.rcount]->stop();
-		ale.timerNegRoffHshakeTrans[ale.rcount]->stop();
-		ale.rcount++;
+		ale.timerNegTxHshakeReceiv[ale.rcount-1]->stop();
+		ale.timerNegRonHshakeTrans[ale.rcount-1]->stop();
+		ale.timerNegRoffHshakeTrans[ale.rcount-1]->stop();
 	} else {
 		proceedRxScanning();
 	}
@@ -1330,18 +1452,16 @@ void MainServiceInterface::aleprocessTimerNegRonHshakeTransExpired() {
 
 void MainServiceInterface::aleprocessTimerNegRoffHshakeTransExpired() {
 	dsp_controller->disableModemReceiver();
-	if (ale.rcount < 3) {
-		ale.rcount++;
-	} else {
+	ale.rcount++;
+	if (!(ale.rcount < 3))
 		proceedRxScanning();
-	}
 }
 
 void MainServiceInterface::aleprocessTimerMsgRoffHeadExpired() {
 	dsp_controller->disableModemReceiver();
-	ale.timerMsgTxRespPackQual[ale.vm_msg_cycle]->stop();
-	ale.timerMsgRonHshakeT[ale.vm_msg_cycle]->stop();
-	ale.timerMsgRoffHshakeT[ale.vm_msg_cycle]->stop();
+	ale.timerMsgTxRespPackQual[ale.vm_msg_cycle-1]->stop();
+	ale.timerMsgRonHshakeT[ale.vm_msg_cycle-1]->stop();
+	ale.timerMsgRoffHshakeT[ale.vm_msg_cycle-1]->stop();
 }
 
 void MainServiceInterface::aleprocessTimerMsgTxRespPackQualExpired() {
@@ -1366,11 +1486,12 @@ void MainServiceInterface::aleprocessTimerMsgRoffHshakeTExpired() {
 void MainServiceInterface::aleprocessTimerRxMsgCycleExpired() {
 	if (ale.phase == ALE_RX_VM_RX_MSG_HSHAKE) {
 		setPacketRxPhase();
-		ale.timerPacketRoffHead->start(ale.tPacketSync, TIMER_VALUE_tDataRoffHeadDelay(ale.vm_sform_c));
-		setAlePhase(ALE_RX_VM_RX_PACKET);
+		ale.timerPacketRoffHead->start(ale.tPacketSync, TIMER_VALUE_tDataRoffSyncHeadDelay(ale.vm_sform_c));
+		dsp_controller->enableModemReceiver();
 	} else {
-		ale.vm_msg_cycle++;
 		if (ale.vm_msg_cycle < 3) {
+			ale.vm_msg_cycle++;
+			setAlePhase(ALE_RX_VM_RX_MSGHEAD);
 			dsp_controller->enableModemReceiver();
 		} else {
 			setAleState(AleState_RX_VM_FAIL);
@@ -1380,13 +1501,26 @@ void MainServiceInterface::aleprocessTimerRxMsgCycleExpired() {
 }
 
 void MainServiceInterface::setPacketRxPhase() {
-	ale.tPacketSync.shift((ale.vm_msg_cycle + 1)*TIMER_VALUE_tDataCycle(-1));
+	ale.tPacketSync.shift(ale.vm_msg_cycle*TIMER_VALUE_tDataCycle(-1));
 	ale.vm_sform_c = ALE_VM_INITIAL_SFORM;
+	ale.vm_sform_p = ale.vm_sform_c;
 	ale.vm_f_idx = 0;
 	ale.vm_last_result = true;
+	ale.vm_ack_count = 0;
+	ale.vm_nack_count = 0;
 	setAlePhase(ALE_RX_VM_RX_PACKET);
 	ale.result = AleResultVoiceMail;
 	stopVmMsgRxTimers();
+}
+
+void MainServiceInterface::processFailedPacketRxCycle() {
+	ale.rcount++;
+	if (ale.rcount < 3) {
+		ale.vm_ack_count = 0;
+	} else {
+		setAleState(AleState_RX_VM_COMPLETE_PARTIAL);
+		stopAleSession();
+	}
 }
 
 bool MainServiceInterface::processPacketReceivedPacket(uint8_t *data) {
@@ -1404,13 +1538,18 @@ bool MainServiceInterface::processPacketReceivedPacket(uint8_t *data) {
 	}
 	std::copy(packet->num_data, packet->num_data + sizeof(packet->num_data), ale.vm_fragments[ale.vm_f_idx].num_data);
 	ale.vm_f_idx++;
-	setAleVmProgress(ale.vm_f_idx/ale.vm_f_count);
+	setAleVmProgress((int)(100*ale.vm_f_idx/ale.vm_f_count));
 	return true;
 }
 
 void MainServiceInterface::processPacketMissedPacket() {
-	qmDebugMessage(QmDebug::Warning, "ale vm packHead missed (oh shit... SESSION HAS BEEN BROKEN !!!)");
-	//...
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	ale.timerRxPacketSync->start(ale.tPacketSync, TIMER_VALUE_tDataCycle(ale.vm_sform_c));
+	ale.tPacketSync.shift(TIMER_VALUE_tDataCycle(ale.vm_sform_c));
+
+	ale.vm_last_result = false;
+	processFailedPacketRxCycle();
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 void MainServiceInterface::startRxPacketResponse() {
@@ -1430,15 +1569,49 @@ void MainServiceInterface::processPacketReceivedAck() {
 	ale.vm_sform_c = ale.vm_sform_n;
 	ale.timerRxPacketSync->start(ale.tPacketSync, TIMER_VALUE_tDataCycle(ale.vm_sform_c));
 	ale.tPacketSync.shift(TIMER_VALUE_tDataCycle(ale.vm_sform_c));
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	ale.vm_adaptation = alevmadaptationNone;
+	int snr = convertSnrFromPacket(ale.vm_packet_snr);
+	if (ale.vm_packet_result) {
+		ale.vm_snr_ack[ale.vm_ack_count] = snr;
+		ale.vm_nack_count = 0;
+		ale.vm_ack_count++;
+		if (ale.vm_ack_count == 3)
+			ale.vm_adaptation = alevmadaptationUp;
+	} else {
+		ale.vm_snr_nack[ale.vm_nack_count] = snr;
+		ale.vm_ack_count = 0;
+		ale.vm_nack_count++;
+		if (ale.vm_nack_count == 2)
+			ale.vm_adaptation = alevmadaptationDown;
+	}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	ale.vm_sform_p = ale.vm_sform_c;
+	AleVmAdaptationType adaptation_required = ale.vm_adaptation;
+	if (adaptation_required == alevmadaptationDown) {
+		if (!adaptPacketTxDown()) {
+			processFailedPacketRxCycle();
+			return;
+		}
+	}
+	if (adaptation_required == alevmadaptationUp)
+		adaptPacketTxUp();
+	ale.rcount = 0;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 void MainServiceInterface::processPacketMissedAck() {
-	qmDebugMessage(QmDebug::Warning, "ale vm HshakeTrans missed (oh shit... SESSION HAS BEEN BROKEN !!!)");
-	//...
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	ale.timerRxPacketSync->start(ale.tPacketSync, TIMER_VALUE_tDataCycle(ale.vm_sform_c));
+	ale.tPacketSync.shift(TIMER_VALUE_tDataCycle(ale.vm_sform_c));
+
+	processFailedPacketRxCycle();
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 void MainServiceInterface::aleprocessRxPacketSync() {
-	ale.timerPacketRoffHead->start(ale.tPacketSync, TIMER_VALUE_tDataRoffHeadDelay(ale.vm_sform_c));
+	ale.timerPacketRoffHead->start(ale.tPacketSync, TIMER_VALUE_tDataRoffSyncHeadDelay(ale.vm_sform_c));
 	setAlePhase(ALE_RX_VM_RX_PACKET);
 }
 

@@ -42,3 +42,9 @@ void QmTimestamp::invalidate() {
 void QmTimestamp::shift(long int msec) {
 	impl->offset += msec;
 }
+
+QmTimestamp& QmTimestamp::operator =(const QmTimestamp& other) {
+	impl->reftimer = other.impl->reftimer;
+	impl->offset = other.impl->offset;
+	return *this;
+}

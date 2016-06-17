@@ -115,7 +115,7 @@ public:
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
 
     void startPSWFReceiving(bool ack);
-    void startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd);
+    void startPSWFTransmitting(bool ack,  uint8_t cmd, uint8_t r_adr,int retr);
 
     void startSMSRecieving(SmsStage stage = StageRx_call);
     void startSMSTransmitting(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call);
@@ -132,6 +132,8 @@ public:
     void processSyncPulse();
 
 uint8_t* get_guc_vector();
+
+	void tuneModemFrequency(uint32_t value);
     void enableModemReceiver();
     void disableModemReceiver();
     void setModemReceiverBandwidth(ModemBandwidth value);
@@ -151,9 +153,9 @@ uint8_t* get_guc_vector();
     sigc::signal<void> smsPacketMessage;
     sigc::signal<void, ModemPacketType/*type*/> transmittedModemPacket;
     sigc::signal<void> failedTxModemPacket;
-    sigc::signal<void, ModemPacketType/*type*/, int8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> receivedModemPacket;
-    sigc::signal<void, ModemPacketType/*type*/, int8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket;
-    sigc::signal<void, int8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket_packHead;
+    sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> receivedModemPacket;
+    sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket;
+    sigc::signal<void, uint8_t/*snr*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket_packHead;
     sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
 sigc::signal<void> recievedGucResp;
 
@@ -314,10 +316,13 @@ private:
 
 
     int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
+    int CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int prevSecond(int second);
 
     void RecievedPswf();
     int getFrequencyPswf();
+    int getFrequencySms();
+
 
     void getSwr();
     void transmitPswf();
@@ -420,6 +425,7 @@ private:
     std::vector<int> quit_vector;
     std::vector<std::vector<uint8_t>> guc_vector;
 
+    int cadrPswfTrueLcode = 0;
 
     int rs_data_clear[255];
 

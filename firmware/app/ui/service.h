@@ -75,6 +75,9 @@ public:
     void updateHeadset(Headset::Controller::Status);
     void updateMultiradio(Multiradio::MainServiceInterface::Status);
     void updateBattery(int);
+    void updateAleState(Multiradio::MainServiceInterface::AleState);
+    void updateAleVmProgress(uint8_t);
+    void updateHSState(Headset::Controller::SmartHSState);
     int  getFreq();
     void setFreq(int isFreq);
     void parsingGucCommand(uint8_t *str);
@@ -146,8 +149,6 @@ private:
     int command_rx_30 = 0;
     bool gpsSynchronization = true;
     uint8_t* vect = nullptr;
-
-    int voiceStatusTest = 10;
 
     //
     std::vector<int> guc_command_vector;

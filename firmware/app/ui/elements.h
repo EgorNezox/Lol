@@ -16,10 +16,10 @@
 #include "gdisp.h"
 #include "gui_elements_common.h"
 #include "gui_obj.h"
-
+#include <string>
 
 //-----------------------------
-#define MAX_LABEL_LENGTH 30
+#define MAX_LABEL_LENGTH 85
 #define MAX_TEXT_AREA_LENGTH 180
 
 struct ElementParams{
@@ -74,7 +74,7 @@ class GUI_EL_Label: public GUI_Element{
 		ColorScheme color_sch;
 	protected:
 		void CalcContentGeom();
-		char text[MAX_LABEL_LENGTH];
+        std::string text;
 };
 
 struct IconParams{

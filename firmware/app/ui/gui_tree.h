@@ -24,15 +24,15 @@ enum GuiWindowsSubType
 {
     //call,
     simpleCondComm,\
-    duplCondComm,\
-    txGroupCondComm,\
+    duplCondCmd,\
+    txGroupCondCmd,\
     txPutOffVoice,\
     message,
     recv,\
     recvVoice,\
     recvSms,\
-    recvCondComm,\
-    recvGroupCondComm,\
+    recvCondCmd,\
+    recvGroupCondCmd,\
     rxPutOffVoice,\
     recvSilence,\
     data,\
@@ -161,7 +161,8 @@ private:
     CState condCmd, groupCondCommand;
     CEndState sms, txPutOffVoice;
     SInputItemParameters smsParameters1{(char*)smsText[0], "", 2, 0, 31},\
-                         smsParameters2{(char*)smsText[1], "", 2, 0, 31};
+                         smsParameters2{(char*)smsText[1], "", 2, 0, 31},\
+                         smsParameters3{(char*)smsText[1], "", 2, 0, 31};
     // 1.1.1 - 1.1.2
     CState condCmdSimpl;
     CEndState condCmdDupl;
@@ -169,9 +170,11 @@ private:
                          condCmdDuplParameters2{(char*)callTitle[0], "", 2, 0, 31};
     // 1.2.1.1 - 1.2.1.2
     CEndState condCmdSimplGroupCall, condCmdSimplIndivCall;
-    SInputItemParameters condCmdSimplGroupCallParameters {(char*)callTitle[0], "", 2, 0, 99},
-                         condCmdSimplIndivCallParameters1{(char*)callTitle[1], "", 2, 0, 31},
-                         condCmdSimplIndivCallParameters2{(char*)callTitle[0], "", 2, 0, 99};
+    SInputItemParameters condCmdSimplGroupCallParameters1 {(char*)callTitle[0], "", 2, 0, 99},
+                         condCmdSimplGroupCallParameters2 {(char*)callTitle[0], "", 2, 0, 99},
+                         condCmdSimplIndivCallParameters1 {(char*)callTitle[1], "", 2, 0, 31},
+                         condCmdSimplIndivCallParameters2 {(char*)callTitle[0], "", 2, 0, 99},
+                         condCmdSimplIndivCallParameters3 {(char*)callTitle[0], "", 2, 0, 99};
     // 1.5.1 - 1.5.2
     CState groupCondCommandSimpl;
     CEndState groupCondCommandDupl;

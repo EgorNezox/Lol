@@ -67,8 +67,8 @@ private:
     void prepChString(char *str, int ch_num, Multiradio::voice_channel_t type );
 public:
     // фокус элементов главного экрана
-    int mwFocus = -1;
-    int mainWindowModeId = 0;
+    int mwFocus;
+    int mainWindowModeId;
 };
 
 //--------------------------
@@ -123,7 +123,7 @@ protected:
     TextAreaParams text_area_params;
     std::string title;
 //    std::string text;
-    char text[3];
+    char text[255];
 
     // slider
 public:

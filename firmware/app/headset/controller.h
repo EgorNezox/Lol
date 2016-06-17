@@ -11,6 +11,7 @@
 #ifndef FIRMWARE_APP_HEADSET_CONTROLLER_H_
 #define FIRMWARE_APP_HEADSET_CONTROLLER_H_
 
+#include <vector>
 #include "qmobject.h"
 #include "multiradio.h"
 #include <qmtimer.h>
@@ -38,10 +39,14 @@ public:
 		SmartHSState_SMART_NOT_CONNECTED,
 		SmartHSState_SMART_ERROR,
 		SmartHSState_SMART_BAD_CHANNEL,
-		SmartHSState_SMART_PREPARING_PLAY,
+		SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL,
+		SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE,
+		SmartHSState_SMART_RECORD_DOWNLOADING,
 		SmartHSState_SMART_PLAYING,
-		SmartHSState_SMART_PREPARING_RECORD,
+		SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL,
+		SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE,
 		SmartHSState_SMART_RECORDING,
+		SmartHSState_SMART_RECORD_UPLOADING,
 		SmartHSState_SMART_RECORD_TIMEOUT,
 		SmartHSState_SMART_READY
 	};
@@ -82,17 +87,26 @@ private:
 	void processPttDebounceTimeout();
 	void processPttResponseTimeout();
 	void transmitCmd(uint8_t cmd, uint8_t *data, int data_len);
+	void transmitResponceCmd(uint8_t cmd, uint8_t *data, int data_len);
+	void processCmdResponceTimeout();
+	void processHSUartPolling();
 	void processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len);
 	void processReceivedStatus(uint8_t* data, int data_len);
 	void processReceivedStatusAsync(uint8_t* data, int data_len);
-	void processHSUartPolling();
-	void processCmdResponceTimeout();
-	void processInitSmartHS();
 	void updateState(State new_state);
 	void updateStatus(Status new_status);
 	void resetState();
 	bool verifyHSChannels(uint8_t* data, int data_len);
 	void synchronizeHSState();
+	void setSmartHSState(SmartHSState state);
+	void startMessagePlay();
+	void sendHSMessageData();
+	void messageToPlayDataPack();
+	void sendHSMessageDataEnd();
+	void startMessageRecord();
+	void messagePacketReceived(uint8_t* data, int data_len);
+	void messagePacketResponce(int packet_number);
+	uint16_t calcPacketCrc(uint8_t* data, int data_len);
 
 	State state;
 	Status status;
@@ -110,6 +124,15 @@ private:
 	Multiradio::voice_channel_t ch_type;
 	bool indication_enable;
 	bool squelch_enable;
+
+	SmartHSState hs_state;
+	Multiradio::voice_message_t message_to_play_data;
+	Multiradio::voice_message_t message_record_data;
+	bool message_record_data_ready;
+
+	std::vector<Multiradio::voice_message_t> message_to_play_data_packets;
+	uint16_t message_to_play_data_packets_sent;
+	uint8_t message_to_play_last_packet_data_size;
 };
 
 } /* namespace Headset */
