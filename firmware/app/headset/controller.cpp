@@ -650,6 +650,7 @@ void Controller::sendHSMessageData() {
 
 void Controller::messageToPlayDataPack() {
 	QM_ASSERT(message_to_play_data.size() != 0);
+	message_to_play_data_packets.clear();
 	message_to_play_last_packet_data_size = message_to_play_data.size() % 200;
 	if (message_to_play_data.size() <= 200) {
 		message_to_play_data_packets.push_back(message_to_play_data);
@@ -680,10 +681,10 @@ void Controller::messageToPlayDataPack() {
 }
 
 void Controller::messagePacketReceived(uint8_t* data, int data_len) {
-	qmDebugMessage(QmDebug::Dump, "messagePacketReceived()");
-	for (int i = 0; i < data_len; ++i) {
-		qmDebugMessage(QmDebug::Dump, "data[%d] = %2X", i, data[i]);
-	}
+	qmDebugMessage(QmDebug::Dump, "messagePacketReceived() data_len = %d", data_len);
+//	for (int i = 0; i < data_len; ++i) {
+//		qmDebugMessage(QmDebug::Dump, "data[%d] = %2X", i, data[i]);
+//	}
 	if (data[0] != 0xAA && data[1] != 0xCD) {
 		qmDebugMessage(QmDebug::Dump, "messagePacketReceived() data header is not valid");
 		return;
