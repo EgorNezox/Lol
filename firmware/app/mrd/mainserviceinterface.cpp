@@ -1012,6 +1012,12 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 }
 
 void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(int8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len) {
+#ifdef ALE_OPTION_DISABLE_ADAPTATION
+	if (!(param_signForm == ALE_VM_INITIAL_SFORM)) {
+		dsp_controller->disableModemReceiver();
+		return;
+	}
+#endif
 	if (!(param_packCode == 0)) {
 		dsp_controller->disableModemReceiver();
 		return;
