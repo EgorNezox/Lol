@@ -360,8 +360,8 @@ void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
 }
 
 MainServiceInterface::AleResult MainServiceInterface::stopAle() {
-	setAlePhase(ALE_STOPPED);
 	stopAleSession();
+	setAlePhase(ALE_STOPPED);
 	ale.f_state = alefunctionIdle;
 	return AleResultNone;
 }
@@ -381,10 +381,18 @@ uint8_t MainServiceInterface::getAleRxAddress() {
 voice_message_t MainServiceInterface::getAleRxVmMessage() {
 	if (ale.vm_size == 0)
 		return voice_message_t();
-	Multiradio::voice_message_t vm_rx_message(ale.vm_size*72/8, 0);
+	int message_bits_size;
+	if (ale.vm_f_idx == ale.vm_f_count) {
+		message_bits_size = ale.vm_size*72;
+	} else {
+		message_bits_size = ale.vm_f_idx*490;
+		if (!((message_bits_size % 72) == 0))
+			message_bits_size += 72 - (message_bits_size % 72);
+	}
+	Multiradio::voice_message_t vm_rx_message(message_bits_size/8, 0);
 	int message_bits_offset = 0;
 	for (int f_i = 0; f_i < ale.vm_f_idx; f_i++) {
-		int f_bits_size = (f_i == (ale.vm_f_idx - 1))?(ale.vm_size*72 - (ale.vm_f_idx - 1)*490):(490);
+		int f_bits_size = (f_i == (ale.vm_f_count - 1))?(ale.vm_size*72 - (ale.vm_f_count - 1)*490):(490);
 		for (int f_bit_i = 6; f_bit_i < (6 + f_bits_size); f_bit_i++) {
 			int f_byte_i = f_bit_i / 8;
 			int f_byte_bit = 7 - (f_bit_i % 8);
@@ -1012,6 +1020,12 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 }
 
 void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(int8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len) {
+#ifdef ALE_OPTION_DISABLE_ADAPTATION
+	if (!(param_signForm == ALE_VM_INITIAL_SFORM)) {
+		dsp_controller->disableModemReceiver();
+		return;
+	}
+#endif
 	if (!(param_packCode == 0)) {
 		dsp_controller->disableModemReceiver();
 		return;
