@@ -1949,7 +1949,7 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::txPutOffVoice:
         {
-            int status = 0;
+            int status = 0;;
             if (menu->putOffVoiceStatus == 2)
             {
                 status = headset_controller->getSmartHSState();

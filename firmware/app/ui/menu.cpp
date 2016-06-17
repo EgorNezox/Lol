@@ -21,11 +21,11 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, Alignment align):CGui
     itemParams.icon_params.element  = GUI_EL_TEMP_CommonIcon;
     itemParams.icon_params.icon = sym_new_msg;
 
-//    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
-//    {
-//        item [i] = nullptr;
+    for (int i = 0; i < MAIN_MENU_MAX_LIST_SIZE; i++)
+    {
+        item [i] = nullptr;
 //        label[i] = nullptr;
-//    }
+    }
 
     tx = nullptr;
     tx = new char[100];
@@ -635,7 +635,7 @@ void CGuiMenu::initTxPutOffVoiceDialog(int status)
     case 1:
     {
         LabelParams param = GUI_EL_TEMP_LabelChannel;
-        param.element.align = {alignHCenter, alignVCenter};
+        param.element.align = {alignHCenter, alignTop};
         param.transparent = true;
 
         std::string str;
@@ -717,7 +717,7 @@ void CGuiMenu::initTxPutOffVoiceDialog(int status)
     case 5:
     {
         param = GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignHCenter, alignTop};
+        param.element.align = {alignLeft, alignTop};
         param.transparent   = true;
 
         std::string str; str.append(aleStateStr[status]);
@@ -726,11 +726,13 @@ void CGuiMenu::initTxPutOffVoiceDialog(int status)
             char ch[4];
             sprintf(ch, "%d", vmProgress);
             if (vmProgress != 100) ch[2] = '\0'; ch[3] = '\0';
+            str.append(" ");
             str.append(ch);
+            str.push_back('%');
         }
 
-        GUI_EL_Label label( &titleParams, &labelArea, (char*)"", (GUI_Obj *)this);
-        GUI_EL_Label field( &param, &fieldArea, (char*)str.c_str(), (GUI_Obj *)this);
+        GUI_EL_Label label( &titleParams, &labelArea, (char*)"",          (GUI_Obj *)this);
+        GUI_EL_Label field( &param,       &fieldArea, (char*)str.c_str(), (GUI_Obj *)this);
 
         label.Draw();
         field.Draw();
@@ -783,7 +785,9 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
             char ch[4];
             sprintf(ch, "%d", vmProgress);
             if (vmProgress != 100) ch[2] = '\0'; ch[3] = '\0';
+            str.append(" ");
             str.append(ch);
+            str.push_back('%');
         }
 
         GUI_EL_Label label( &label_param, &label_geom, (char*)"", (GUI_Obj *)this);
@@ -796,12 +800,12 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
     case 3:
     {
         MoonsGeometry labelArea   = {  7, 20, 147,  24 };
-        MoonsGeometry textArea    = { 35, 25,  59,  84 };
+        MoonsGeometry textArea    = {  7, 25,  59,  84 };
         MoonsGeometry addrArea    = { 60, 25, 147,  84 };
         MoonsGeometry volume_geom = {  7, 85, 147, 125 };
 
         LabelParams param[3] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelChannel, GUI_EL_TEMP_CommonTextAreaLT};
-        param[0].element.align = {alignRight,   alignTop};
+        param[0].element.align = {alignRight,   alignVCenter};
         param[1].element.align = {alignLeft,    alignTop};
         param[2].element.align = {alignHCenter, alignTop};
 
@@ -817,7 +821,7 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
         GUI_EL_Label    label     ( &titleParams, &labelArea,   (char*)voiceRxTxLabelStr[5], (GUI_Obj *)this);
         GUI_EL_Label    text      ( &param[0],    &textArea,    (char*)voiceRxStr[1],        (GUI_Obj *)this);
         GUI_EL_Label    addr      ( &param[1],    &addrArea,    (char*)str.c_str(),          (GUI_Obj *)this);
-        GUI_EL_TextArea prompt    ( &param[2],    &volume_geom, (char*)voiceRxStr[2],        (GUI_Obj *)this);
+        GUI_EL_Label    prompt    ( &param[2],    &volume_geom, (char*)voiceRxStr[2],        (GUI_Obj *)this);
 
         label.Draw();
         text.Draw();

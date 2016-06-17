@@ -41,7 +41,7 @@ GUI_Dialog_MainScr::GUI_Dialog_MainScr(MoonsGeometry *area):GUI_Obj(area),
                                                           mwFocus(-2),
                                                           editing(false)
 {
-  //mr_channel_t active_channel;
+  // mr_channel_t active_channel;
 
   MoonsGeometry window_geom = {0,0,(GXT)(GEOM_W(this->area)-1),(GYT)(GEOM_H(this->area)-1)};
 GUI_EL_TEMP_LabelChannel.transparent = true;
@@ -66,11 +66,11 @@ void GUI_Dialog_MainScr::setModeText(const char* newMode)
 }
 
 void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus status,
-                             int                                              ch_num,
-                             Multiradio::voice_channel_t                      channel_type
-                            )
+                               int                                              ch_num,
+                               Multiradio::voice_channel_t                      channel_type
+                              )
 {
-  //updateChannel(status, ch_num, channel_type);
+  updateChannel(status, ch_num, channel_type);
   mode_text->SetText((char *)mode.c_str());
 
   window->Draw();
