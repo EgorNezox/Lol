@@ -13,11 +13,12 @@
 #include "qm.h"
 
 #define ALE_OPTION_DISABLE_ADAPTATION
+#define ALE_OPTION_IGNORE_SNR
 
 /* Конфигурируемые параметры алгоритма */
 #define ALE_VM_INITIAL_SFORM	6
-#define ALE_CALL_SNR_HIGH		42
-#define ALE_CALL_SNR_LOW		-20
+#define ALE_CALL_SNR_HIGH		-8
+#define ALE_CALL_SNR_LOW		-13
 
 /* Из таблицы общих констант */
 #define ALE_TIME_TTuneTx			100

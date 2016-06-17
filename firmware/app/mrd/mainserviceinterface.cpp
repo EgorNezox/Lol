@@ -710,8 +710,12 @@ void MainServiceInterface::proceedTxCalling() {
 }
 
 bool MainServiceInterface::evaluatePacketSNR(int8_t snr) {
+#ifndef ALE_OPTION_IGNORE_SNR
 	int8_t snr_threshold = (ale.supercycle == 1)?ALE_CALL_SNR_HIGH:ALE_CALL_SNR_LOW;
 	return (snr >= snr_threshold);
+#else
+	return true;
+#endif
 }
 
 void MainServiceInterface::aleprocessRadioReady() {
@@ -814,13 +818,13 @@ void MainServiceInterface::aleprocessModemPacketFailedTx() {
 	stopAleSession();
 }
 
-void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPacketType type, int8_t snr, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len) {
+void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPacketType type, uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len) {
 	switch (type) {
 	case DspController::modempacket_HshakeReceiv: {
 		switch (ale.phase) {
 		case ALE_TX_CALL_RX_HSHAKE: {
 			ale.timerCallRoffHshakeR->stop();
-			if (evaluatePacketSNR(snr)) {
+			if (evaluatePacketSNR(convertSnrFromPacket(snr))) {
 				dsp_controller->enableModemTransmitter();
 				setAlePhase(ALE_TX_CALL_TX_HSHAKE);
 			} else {
@@ -910,13 +914,13 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 			break;
 		}
 		ale.supercycle = call_packet.cycleNum;
-		if (!evaluatePacketSNR(snr)) {
+		if (!evaluatePacketSNR(convertSnrFromPacket(snr))) {
 			dsp_controller->disableModemReceiver();
 			proceedRxScanning();
 			break;
 		}
 		ale.call_bw = bandwidth;
-		ale.call_snr = convertSnrToPacket(snr);
+		ale.call_snr = snr;
 		dsp_controller->enableModemTransmitter();
 		dsp_controller->setModemReceiverBandwidth(bandwidth);
 		dsp_controller->setModemReceiverPhase(DspController::modemphaseALE);
@@ -1019,7 +1023,7 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 	}
 }
 
-void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(int8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len) {
+void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len) {
 #ifdef ALE_OPTION_DISABLE_ADAPTATION
 	if (!(param_signForm == ALE_VM_INITIAL_SFORM)) {
 		dsp_controller->disableModemReceiver();
@@ -1050,7 +1054,7 @@ void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(int8_t snr, Ds
 	}
 	ale.vm_sform_n = param_signForm;
 	ale.rcount = 0;
-	ale.vm_packet_snr = convertSnrToPacket(snr);
+	ale.vm_packet_snr = snr;
 }
 
 void MainServiceInterface::aleprocessModemPacketFailedRx(DspController::ModemPacketType type) {

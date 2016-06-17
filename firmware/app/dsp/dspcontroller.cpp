@@ -1705,7 +1705,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     			data_offset = 5;
     		else
     			data_offset = 3;
-    		int8_t snr = qmFromBigEndian<int8_t>(value_ptr+2);
+    		uint8_t snr = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
     		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
     		receivedModemPacket.emit(type, snr, bandwidth, value_ptr + data_offset, value_len - data_offset);
     		break;
@@ -1724,7 +1724,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     			data_offset = 5;
     		else
     			data_offset = 3;
-    		int8_t snr = qmFromBigEndian<int8_t>(value_ptr+2);
+    		uint8_t snr = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
     		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
     		if (type == modempacket_packHead) {
     			uint8_t param_signForm = qmFromBigEndian<uint8_t>(value_ptr+3);
