@@ -89,6 +89,7 @@ private:
 	void transmitCmd(uint8_t cmd, uint8_t *data, int data_len);
 	void transmitResponceCmd(uint8_t cmd, uint8_t *data, int data_len);
 	void processCmdResponceTimeout();
+	void repeatLastCmd();
 	void processHSUartPolling();
 	void processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len);
 	void processReceivedStatus(uint8_t* data, int data_len);
@@ -102,7 +103,6 @@ private:
 	void startMessagePlay();
 	void sendHSMessageData();
 	void messageToPlayDataPack();
-	void sendHSMessageDataEnd();
 	void startMessageRecord();
 	void messagePacketReceived(uint8_t* data, int data_len);
 	void messagePacketResponce(int packet_number);
@@ -118,6 +118,7 @@ private:
 	SmartTransport* transport;
 	QmTimer* poll_timer;
 	QmTimer* cmd_resp_timer;
+	int cmd_repeats_counter;
 
 	const Multiradio::voice_channels_table_t* ch_table;
 	uint16_t ch_number;
