@@ -24,6 +24,7 @@ public:
 	void enable();
 	void disable();
 	void transmitCmd(uint8_t cmd, uint8_t *data, int data_len);
+	void repeatLastCmd();
 
 	sigc::signal<void, uint8_t/*cmd*/, uint8_t*/*data*/, int/*data_len*/> receivedCmd;
 
@@ -45,6 +46,10 @@ private:
 	QmUart *uart;
 	uint8_t *rx_frame_buf;
 	int rx_frame_size;
+
+	uint8_t last_cmd;
+	uint8_t* last_cmd_data;
+	int last_cmd_data_size;
 };
 
 } /* namespace Headset */

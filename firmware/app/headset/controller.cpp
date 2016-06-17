@@ -34,6 +34,8 @@ namespace Headset {
 #define HS_CMD_PTT_STATE_RESP_LEN	0
 #define HS_CMD_MESSAGE_LEN			208
 
+#define HS_MAX_CMD_REPEATS			10
+
 #define HS_CHANNELS_COUNT			98
 
 #define PTT_DEBOUNCE_TIMEOUT		50
@@ -42,6 +44,7 @@ namespace Headset {
 
 Controller::Controller(int rs232_uart_resource, int ptt_iopin_resource) :
 	state(StateNone), status(StatusNone), ptt_pressed(false),
+	cmd_repeats_counter(0),
 	ch_number(1), ch_type(Multiradio::channelInvalid),
 	indication_enable(true), squelch_enable(false),
 	hs_state(SmartHSState_SMART_NOT_CONNECTED),
@@ -117,17 +120,24 @@ void Controller::processPttDebounceTimeout() {
 		qmDebugMessage(QmDebug::Dump, "ptt state changed: %d", ptt_pressed);
 		uint8_t data = ptt_pressed ? 0xFF : 0;
 		qmDebugMessage(QmDebug::Dump, "transmit HS_CMD_PTT_STATE: 0x%02X", data);
+		++cmd_repeats_counter;
 		transport->transmitCmd(HS_CMD_PTT_STATE, &data, 1);
 		ptt_resp_timer->start();
 	}
 }
 
 void Controller::processPttResponseTimeout() {
-	qmDebugMessage(QmDebug::Info, "ptt response timeout");
-	resetState();
+	qmDebugMessage(QmDebug::Info, "ptt response timeout, repeat %d", cmd_repeats_counter);
+	if (cmd_repeats_counter < HS_MAX_CMD_REPEATS) {
+		repeatLastCmd();
+	} else {
+		resetState();
+	}
 }
 
 void Controller::transmitCmd(uint8_t cmd, uint8_t *data, int data_len) {
+	QM_ASSERT(data_len <= SmartTransport::MAX_FRAME_DATA_SIZE);
+	++cmd_repeats_counter;
 	transport->transmitCmd(cmd, data, data_len);
 	cmd_resp_timer->start();
 	qmDebugMessage(QmDebug::Dump, "cmd_resp_timer started");
@@ -138,8 +148,18 @@ void Controller::transmitResponceCmd(uint8_t cmd, uint8_t *data, int data_len) {
 }
 
 void Controller::processCmdResponceTimeout() {
-	qmDebugMessage(QmDebug::Info, "cmd response timeout");
-	resetState();
+	qmDebugMessage(QmDebug::Info, "cmd response timeout, repeat %d", cmd_repeats_counter);
+	if (cmd_repeats_counter < HS_MAX_CMD_REPEATS) {
+		repeatLastCmd();
+	} else {
+		resetState();
+	}
+}
+
+void Controller::repeatLastCmd() {
+	++cmd_repeats_counter;
+	transport->repeatLastCmd();
+	cmd_resp_timer->start();
 }
 
 void Controller::processHSUartPolling() {
@@ -148,6 +168,7 @@ void Controller::processHSUartPolling() {
 
 void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len) {
 	qmDebugMessage(QmDebug::Dump, "processReceivedCmd() cmd = 0x%2X, data_len = %d", cmd, data_len);
+	cmd_repeats_counter = 0;
 	switch (cmd) {
 	case HS_CMD_STATUS: {
 		qmDebugMessage(QmDebug::Dump, "cmd_resp_timer(%p): %d", cmd_resp_timer, cmd_resp_timer->isActive());
@@ -429,6 +450,7 @@ void Controller::updateStatus(Status new_status) {
 
 void Controller::resetState() {
 	updateState(StateNone);
+	cmd_repeats_counter = 0;
 	if (!poll_timer->isActive())
 		poll_timer->start();
 }
@@ -529,7 +551,7 @@ void Controller::startMessagePlay() {
 	data[2] = 0x01;
 	data[2] |= 0x40;
 	data[2] |= (uint8_t)((squelch_enable ? 0 : 1) << 5); // mode mask
-	data[3] = 0;//ch_number; // channel number
+	data[3] = 0; // channel number
 	data[4] = 0xFF; // reserved
 	data[5] = 0x01 | (uint8_t)((indication_enable ? 0 : 1) << 2);
 	for (int i = 6; i < data_size; ++i)
@@ -655,29 +677,6 @@ void Controller::messageToPlayDataPack() {
 		message_to_play_data_packets.at(last).push_back(0);
 	}
 	qmDebugMessage(QmDebug::Dump, "messageToPlayDataPack() packets number = %d", message_to_play_data_packets.size());
-}
-
-void Controller::sendHSMessageDataEnd() {
-	qmDebugMessage(QmDebug::Dump, "sendHSMessageDataEnd()");
-	setSmartHSState(SmartHSState_SMART_PLAYING);
-	const int data_size = 208;
-	uint8_t data[data_size];
-	data[0] = 0xAA;
-	data[1] = 0xCD;
-	data[2] = 1;
-	data[3] = 0;
-	data[4] = 0;
-	data[5] = 0;
-
-	uint32_t i = 6;
-	while (i < 206) {
-		data[i++] = 0;
-	}
-	qmToLittleEndian(calcPacketCrc(&data[2], 204), &data[206]);
-	for (int i = 0; i < data_size; ++i) {
-		qmDebugMessage(QmDebug::Dump, "data[%d] = %2X", i, data[i]);
-	}
-	transmitCmd(HS_CMD_MESSAGE_DOWNLOAD, data, data_size);
 }
 
 void Controller::messagePacketReceived(uint8_t* data, int data_len) {

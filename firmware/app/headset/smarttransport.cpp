@@ -30,7 +30,8 @@ const int SmartTransport::MAX_FRAME_DATA_SIZE = MAX_FRAME_PAYLOAD_SIZE - 1/*cmd*
 
 SmartTransport::SmartTransport(int uart_resource, int max_tx_queue_size, QmObject *parent) :
 	QmObject(parent),
-	rx_state(rxstateNone), rx_frame_size(-1)
+	rx_state(rxstateNone), rx_frame_size(-1),
+	last_cmd(0), last_cmd_data_size(0)
 {
 	rx_frame_buf = new uint8_t[MAX_FRAME_TOTAL_SIZE];
 	QmUart::ConfigStruct uart_config;
@@ -44,11 +45,13 @@ SmartTransport::SmartTransport(int uart_resource, int max_tx_queue_size, QmObjec
 	uart = new QmUart(uart_resource, &uart_config, this);
 	uart->dataReceived.connect(sigc::mem_fun(this, &SmartTransport::processUartReceivedData));
 	uart->rxError.connect(sigc::mem_fun(this, &SmartTransport::processUartReceivedErrors));
+	last_cmd_data = new uint8_t[SmartTransport::MAX_FRAME_DATA_SIZE];
 }
 
 SmartTransport::~SmartTransport() {
 	uart->close();
 	delete[] rx_frame_buf;
+	delete[] last_cmd_data;
 }
 
 void SmartTransport::enable() {
@@ -65,6 +68,10 @@ void SmartTransport::disable() {
 void SmartTransport::transmitCmd(uint8_t cmd, uint8_t *data, int data_len) {
 	QM_ASSERT(data_len <= MAX_FRAME_DATA_SIZE);
 	qmDebugMessage(QmDebug::Info, "transmitting frame (cmd=0x%02X, data_len=%d)", cmd, data_len);
+	last_cmd = cmd;
+	last_cmd_data_size = data_len;
+	memcpy(last_cmd_data, data, data_len);
+
 	uint8_t frame_crc[2];
 	qmToLittleEndian(calcFrameCRC(cmd, data, data_len), frame_crc);
 	uint8_t frame_start = FRAME_START_DELIMITER;
@@ -82,6 +89,10 @@ void SmartTransport::transmitCmd(uint8_t cmd, uint8_t *data, int data_len) {
 	written += uart->writeData(frame, frame_len);
 	written += uart->writeData(&frame_stop, 1);
 	QM_ASSERT(written == (2 + frame_len));
+}
+
+void SmartTransport::repeatLastCmd() {
+	transmitCmd(last_cmd, last_cmd_data, last_cmd_data_size);
 }
 
 void SmartTransport::processUartReceivedData() {
