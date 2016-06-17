@@ -11,6 +11,7 @@
 //#if defined(PORT__TARGET_DEVICE_REV1)
 class QmIopin;
 class QmUart;
+class QmTimer;
 //#endif /* PORT__TARGET_DEVICE_REV1 */
 
 #include <thread>
@@ -43,6 +44,7 @@ public:
 
 private:
 //#if defined(PORT__TARGET_DEVICE_REV1)
+ 	void processConfig();
 	void processUartReceivedData();
 	void processUartReceivedErrors(bool data_errors, bool overflow);
     void parsingData(uint8_t data[]);
@@ -55,6 +57,7 @@ private:
 	QmIopin *ant_flag_iopin;
 	QmIopin *sync_pulse_iopin;
 	QmUart *uart;
+	QmTimer *config_timer;
 //#endif /* PORT__TARGET_DEVICE_REV1 */
 };
 

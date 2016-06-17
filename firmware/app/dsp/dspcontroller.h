@@ -433,6 +433,8 @@ private:
     std::vector<std::vector<uint8_t>> guc_vector;
 
     int QNB = 0;
+    int QNB_RX = 0;
+    int count_clear = 0;
     int rs_data_clear[255];
 
     int cntChvc = 7;

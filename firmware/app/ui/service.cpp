@@ -1209,11 +1209,11 @@ void Service::keyPressed(UI_Key key)
 
                         if (atoi(ch) > 0)
                         {
+                        	voice_service->defaultSMSTrans();
                             if (atoi(retrAddr.c_str()) > 0)
                                 voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),atoi(retrAddr.c_str()));
                             else
                                 voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
-                        	voice_service->defaultSMSTrans();
                             for(auto &k: estate.listItem)
                                 k->inputStr.clear();
                         }
