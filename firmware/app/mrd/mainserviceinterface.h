@@ -131,6 +131,8 @@ private:
 		alevmadaptationDown
 	};
 
+
+
 	MainServiceInterface(Dispatcher *dispatcher, Navigation::Navigator *navigator);
 	~MainServiceInterface();
 	void setStatus(Status value);
