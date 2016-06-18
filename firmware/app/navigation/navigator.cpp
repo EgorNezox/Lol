@@ -85,12 +85,6 @@ int Navigator::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, 
     return L_CODE;
 }
 
-void Navigator::processConfig() {
-	const char * const config_sentences = "$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n";
-	qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
-	uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
-}
-
 int Navigator::Calc_LCODE_SMS_call(int R_ADR, int S_ADR, int CYC_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
 {
     int L_CODE = (R_ADR + S_ADR + CYC_N + RN_KEY + SEC + MIN + HRS + DAY) % 100;
