@@ -776,7 +776,7 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
     case 2:
     {
         LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignHCenter, alignTop};
+        param.element.align = {alignLeft, alignVCenter};
         param.transparent = true;
 
         std::string str; str.append(aleStateStr[status]);
@@ -858,7 +858,7 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
     case 5:
     {
         LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignLeft, alignTop};
+        param.element.align = {alignLeft, alignVCenter};
         param.transparent = true;
 
         GUI_EL_Label label     ( &titleParams, &label_geom, (char*)voiceRxTxLabelStr[3],      (GUI_Obj *)this);

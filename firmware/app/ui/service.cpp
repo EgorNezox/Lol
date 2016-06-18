@@ -1372,11 +1372,15 @@ void Service::keyPressed(UI_Key key)
 #ifndef _DEBUG_
                     multiradio_service->stopAle();
 #endif
+                    menu->voiceAddr.clear();
                     menu->putOffVoiceStatus--;
                 }
                 if (key == keyEnter)
                 {
                     // multiradio_service->getStatus();
+                	uint8_t rxAddr = multiradio_service->getAleRxAddress();
+                	char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
+                	menu->voiceAddr.append(ch);
                     menu->putOffVoiceStatus++;
                 }
                 break;
