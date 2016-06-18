@@ -250,8 +250,12 @@ void MainServiceInterface::printDebugAleTimings() {
 	qmDebugMessage(QmDebug::Dump, "ALE Session timings (VM packet constants):");
 	qmDebugMessage(QmDebug::Dump, " dTSynPacket = %u/%u", ALE_TIME_dTSynPacket(-1), ALE_TIME_dTSynPacket(0));
 	qmDebugMessage(QmDebug::Dump, " THeadL = %u/%u", ALE_TIME_THeadL(-1), ALE_TIME_THeadL(0));
+#ifndef ALE_OPTION_DISABLE_ADAPTATION
 	for (int i = 0; i < 8; i++)
 		qmDebugMessage(QmDebug::Dump, " TDataL (sform %u) = %u", i, ALE_TIME_TDataL(i));
+#else
+	qmDebugMessage(QmDebug::Dump, " TDataL = %u", ALE_TIME_TDataL(ALE_VM_INITIAL_SFORM));
+#endif
 	qmDebugMessage(QmDebug::Dump, "ALE Session timings (call dwell phase):");
 	qmDebugMessage(QmDebug::Dump, " tTxCall = %u", TIMER_VALUE_tTxCall);
 	qmDebugMessage(QmDebug::Dump, " tRoffSyncCall = %u", TIMER_VALUE_tRoffSyncCall);
@@ -287,7 +291,12 @@ void MainServiceInterface::printDebugAleTimings() {
 	qmDebugMessage(QmDebug::Dump, " tMsgTxHshakeT = %u", TIMER_VALUE_tDataTxHshakeTDelay(-1));
 	qmDebugMessage(QmDebug::Dump, " tMsgRoffHshakeT = %u", TIMER_VALUE_tDataRoffHshakeTDelay(-1));
 	qmDebugMessage(QmDebug::Dump, " tMsgCycle = %u", TIMER_VALUE_tDataCycle(-1));
+#ifndef ALE_OPTION_DISABLE_ADAPTATION
 	for (int i = 0; i < 8; i++) {
+#else
+	{
+		int i = ALE_VM_INITIAL_SFORM;
+#endif
 		qmDebugMessage(QmDebug::Dump, "ALE Session timings (VM packet phase (sform = %u)):", i);
 		qmDebugMessage(QmDebug::Dump, " tDataTxHeadDelay(%u) = %u", i, TIMER_VALUE_tDataTxHeadDelay(i));
 		qmDebugMessage(QmDebug::Dump, " tDataRoffSyncHeadDelay(%u) = %u", i, TIMER_VALUE_tDataRoffSyncHeadDelay(i));
@@ -1646,5 +1655,5 @@ void MainServiceInterface::aleprocessPacketRoffHshakeTExpired() {
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(mrd_mainservice, LevelInfo)
+QMDEBUG_DEFINE_DOMAIN(mrd_mainservice, LevelDefault)
 #include "qmdebug_domains_end.h"
