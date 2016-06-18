@@ -9,6 +9,7 @@
 #include "qmdebug.h"
 #include "qmiopin.h"
 #include "qmuart.h"
+#include "qmtimer.h"
 #include "qmthread.h"
 #include "qmtimer.h"
 #include <string.h>
@@ -82,6 +83,12 @@ int Navigator::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, 
 {
     int L_CODE = (R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY) % 100;
     return L_CODE;
+}
+
+void Navigator::processConfig() {
+	const char * const config_sentences = "$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n";
+	qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
+	uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
 }
 
 int Navigator::Calc_LCODE_SMS_call(int R_ADR, int S_ADR, int CYC_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
@@ -203,7 +210,7 @@ void Navigator::parsingData(uint8_t data[])
 //        if (parse_elem.size() > 0)
 //            memcpy(&CoordDate.time,parse_elem.at(0).c_str(),parse_elem.at(0).size());
 
-        if ((parse_elem.size() > 2) && (parse_elem.at(1).compare("V") != 0))
+        if ((parse_elem.size() > 2) /*&& (parse_elem.at(1).compare("V") != 0)*/)
         { // проверка по статусу gps
             if (parse_elem.size() > 3){
                 memcpy(&CoordDate.latitude,parse_elem.at(2).c_str(),parse_elem.at(2).size());

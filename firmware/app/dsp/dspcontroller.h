@@ -128,6 +128,7 @@ public:
     void *getContentPSWF();
 
     char* getSmsContent();
+    void setRnKey(int keyValue);
 
     void processSyncPulse();
 
@@ -144,6 +145,12 @@ uint8_t* get_guc_vector();
     void disableModemTransmitter();
     void sendModemPacket(ModemPacketType type, ModemBandwidth bandwidth, const uint8_t *data, int data_len);
     void sendModemPacket_packHead(ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, const uint8_t *data, int data_len);
+
+    void clearPswfBufer();
+    void defaultSMSTransmit();
+
+    void setSmsRetranslation(uint8_t retr);
+    uint8_t getSmsRetranslation();
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -267,7 +274,7 @@ private:
         uint8_t SNR;
         uint8_t R_ADR;
         uint8_t S_ADR;
-        uint8_t COM_N;
+        uint8_t CYC_N;
         uint8_t L_CODE;
         uint8_t RN_KEY;
         SmsStage stage;
@@ -323,7 +330,6 @@ private:
     int getFrequencyPswf();
     int getFrequencySms();
 
-
     void getSwr();
     void transmitPswf();
     void addSeconds(int *date_time);
@@ -335,11 +341,14 @@ private:
     void recSms();
     void sendGucQuit();
 
+
     void changeSmsRxFrequency();
 
     void startSMSCmdTransmitting(SmsStage stage);
 
     void generateSmsReceived();
+    int wzn_change(std::vector<int> &vect);
+    int calcFstn(int R_ADR, int S_ADR, int RN_KEY, int SEC, int MIN, int HRS, int DAY, int QNB);
 
     int check_rx_call();
 
@@ -425,9 +434,12 @@ private:
     std::vector<int> quit_vector;
     std::vector<std::vector<uint8_t>> guc_vector;
 
-    int cadrPswfTrueLcode = 0;
-
+    int QNB = 0;
+    int QNB_RX = 0;
+    int count_clear = 0;
     int rs_data_clear[255];
+
+    int cntChvc = 7;
 
     uint8_t guc_text[100];
     uint8_t rec_uin_guc;
@@ -442,6 +454,8 @@ bool modem_rx_on, modem_tx_on;
     int clear_que;
     int trans_guc;
 
+    int wzn_value;
+    uint8_t sms_retranslation;
     bool sms_call_received;
 };
 

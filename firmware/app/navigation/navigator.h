@@ -45,6 +45,7 @@ public:
 private:
 	//#if defined(PORT__TARGET_DEVICE_REV1)
 	void processConfig();
+ 	void processConfig();
 	void processUartReceivedData();
 	void processUartReceivedErrors(bool data_errors, bool overflow);
 	void parsingData(uint8_t data[]);

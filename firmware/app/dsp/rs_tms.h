@@ -104,12 +104,12 @@ int encode_rs(int* data, int* bb, rs_settings* settings)
 
 int eras_dec_rs(int* data, int* erase, rs_settings* settings)
 {
-    static int deg_lambda, el, deg_omega;
-    static int i, j, r;
-	static int u,q,tmp,num1,num2,den,discr_r;
+    int deg_lambda, el, deg_omega;
+    int i, j, r;
+	int u,q,tmp,num1,num2,den,discr_r;
 
-	static int syn_error, count, ret;
-	static int Nerase = 0;
+	int syn_error, count, ret;
+	int Nerase = 0;
     for(i=0; i < settings->code_length; i++) {
         if(erase[i]) {
             erase_pos[Nerase++] = i;
