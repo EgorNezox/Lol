@@ -112,6 +112,7 @@ public:
     void setRadioOperation(RadioOperation operation);
     void setRadioSquelch(uint8_t value);
     void setAudioVolumeLevel(uint8_t volume_level);
+    void setAudioMicLevel(uint8_t value);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
 
     void startPSWFReceiving(bool ack);
