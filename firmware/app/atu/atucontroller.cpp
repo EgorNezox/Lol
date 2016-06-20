@@ -14,6 +14,7 @@
 #include "qmthread.h"
 #include "qmtimer.h"
 #include "qmuart.h"
+#include "qmiopin.h"
 
 #include "atucontroller.h"
 
@@ -22,11 +23,9 @@
 
 namespace Multiradio {
 
-const uint8_t AtuController::antenna = 0;
-
-AtuController::AtuController(int uart_resource, QmObject *parent) :
+AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *parent) :
 	QmObject(parent),
-	mode(modeNone), tx_tuning_state(false)
+	mode(modeNone), tx_tuning_state(false), antenna(1)
 {
 	command.id = commandInactive;
 	command.data_buf = new uint8_t[MAX_FRAME_DATA_SIZE];
@@ -50,6 +49,7 @@ AtuController::AtuController(int uart_resource, QmObject *parent) :
 	tx_tune_timer = new QmTimer(true, this);
 	tx_tune_timer->setInterval(100);
 	tx_tune_timer->timeout.connect(sigc::mem_fun(this, &AtuController::processTxTuneTimeout));
+	poff_iopin = new QmIopin(iopin_resource, this);
 }
 
 AtuController::~AtuController()
@@ -76,8 +76,9 @@ AtuController::Mode AtuController::getMode() {
 	return mode;
 }
 
-bool AtuController::enterBypassMode() {
-	if (mode != modeActiveTx)
+bool AtuController::enterBypassMode(uint32_t frequency) {
+	setAntenna(frequency);
+	if (!((mode == modeActiveTx) || (mode == modeBypass)) || (antenna == 0))
 		return false;
 	startCommand(commandEnterBypassMode, &antenna, 1, 2);
 	setMode(modeStartingBypass);
@@ -85,16 +86,17 @@ bool AtuController::enterBypassMode() {
 }
 
 bool AtuController::tuneTxMode(uint32_t frequency) {
-	if (!((mode == modeBypass) || (mode == modeActiveTx)))
+	setAntenna(frequency);
+	if (!((mode == modeBypass) || (mode == modeActiveTx)) || (antenna == 0))
 		return false;
+	setMode(modeStartTuning);
 	uint32_t encoded_freq = frequency/10;
 	uint8_t command_data[4];
 	command_data[0] = (encoded_freq >> 16) & 0xFF;
 	command_data[1] = (encoded_freq >> 8) & 0xFF;
 	command_data[2] = (encoded_freq) & 0xFF;
-	command_data[3] = 0;
+	command_data[3] = antenna;
 	startCommand(commandEnterTuningMode, command_data, sizeof(command_data), 2);
-	setMode(modeStartTuning);
 	return true;
 }
 
@@ -105,6 +107,11 @@ void AtuController::acknowledgeTxRequest() {
 	sendFrame(frameid, 0, 0);
 	tx_tuning_state = !tx_tuning_state;
 	tx_tune_timer->start();
+}
+
+void AtuController::setRadioPowerOff(bool enable) {
+	poff_iopin->writeOutput(enable ? QmIopin::Level_High : QmIopin::Level_Low);
+	QmThread::msleep(10);
 }
 
 void AtuController::setMode(Mode mode) {
@@ -207,7 +214,9 @@ void AtuController::processReceivedTuningFrame(uint8_t id) {
 			finishCommand();
 			setMode(modeTuning);
 			tx_tuning_state = (id == frameid_U)?true:false;
-			requestTx(tx_tuning_state);
+//			requestTx(tx_tuning_state);
+			setRadioPowerOff(!tx_tuning_state);
+			acknowledgeTxRequest();
 			break;
 		default:
 			processReceivedUnexpectedFrame(id);
@@ -227,13 +236,17 @@ void AtuController::processReceivedTuningFrame(uint8_t id) {
 			if (!tx_tuning_state)
 				break;
 			tx_tune_timer->stop();
-			requestTx(true);
+//			requestTx(true);
+			setRadioPowerOff(false);
+			acknowledgeTxRequest();
 			break;
 		case frameid_D:
 			if (tx_tuning_state)
 				break;
 			tx_tune_timer->stop();
-			requestTx(false);
+//			requestTx(false);
+			setRadioPowerOff(true);
+			acknowledgeTxRequest();
 			break;
 		default:
 			processReceivedUnexpectedFrame(id);
@@ -365,6 +378,16 @@ void AtuController::processUartReceivedData() {
 			}
 			break;
 		}
+	}
+}
+
+void AtuController::setAntenna(uint32_t frequency) {
+	if ((4000000 <= frequency) && (frequency < 10500000)) {
+		antenna = 1;
+	} else if ((10500000 <= frequency) && (frequency < 30000000)) {
+		antenna = 2;
+	} else {
+		antenna = 0;
 	}
 }
 

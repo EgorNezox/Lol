@@ -24,20 +24,8 @@
 #include "power/battery.h"
 #include "ui/service.h"
 
-void boot_enter_bootloader();
-
-static bool check_bootloader_condition() {
-	QmMatrixKeyboard k(platformhwMatrixKeyboard);
-	return (k.isKeyPressed(platformhwKeyEnter) && k.isKeyPressed(platformhwKeyBack));
-}
-
 void qmMain() {
 	QmApplication app;
-
-	if (check_bootloader_condition()) {
-		boot_enter_bootloader();
-		return;
-	}
 
 #if defined(PORT__TARGET_DEVICE_REV1)
 	Power::Controller power_controller(platformhwPowerHSControlIopin, platformhwPowerControllerIopin,
@@ -52,10 +40,10 @@ void qmMain() {
 #if defined(PORT__TARGET_DEVICE_REV1)
     Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin,
     		platformhwNavigatorAntFlagIopin, platformhwNavigator1PPSIopin);
-	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
+	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,
             &headset_controller, &navigator, &data_storage_fs);
 #else
-    Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart,
+    Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,
             &headset_controller, 0, 0);
 #endif
 

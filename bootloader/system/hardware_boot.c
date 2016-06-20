@@ -9,6 +9,7 @@
 
 #include <stdbool.h>
 #include "stm32f2xx.h"
+#include "system.h"
 #include "system_hw_io.h"
 #include "hal_rcc.h"
 #include "device.h"
@@ -65,6 +66,10 @@ void hwboot_jump_firmware(void) {
 	/* Jump to firmware entry address */
 	uint32_t entry_addr = FLASH_FIRMWARE_PROGRAM_START_ADDRESS + FLASH_FIRMWARE_PROGRAM_ENTRY_OFFSET;
 	__asm volatile("bx %0" :: "r" (entry_addr | 1));
+}
+
+void hwboot_jump_system_bootloader(void) {
+	stm32f2_enter_bootloader();
 }
 
 static bool test_hse_clock(void) {

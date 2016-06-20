@@ -17,7 +17,6 @@ include(../Qm/Qm.pri)
 include(../system/3rdparty/libsigc++/sigc++.pri)
 
 SOURCES += \
-    boot.cpp \
     firmware_main.cpp \
     $$wildcardSources(app/atu, *.cpp) \
     $$wildcardSources(app/datastorage, *.cpp) \

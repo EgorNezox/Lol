@@ -29,11 +29,16 @@ ifeq ($(BUILD_MODE),release)
 endif
 
 # Полная сборка суб-проекта (build all)
-$(phony all): build hex
+$(phony all): build hex dfu
 # сборка программы (генерация выходного файла .elf)
 $(phony build): $(BUILD_ROOT_DIR)/$(TARGET_NAME).elf
 # генерация файла программы .hex
 $(phony hex): $(BUILD_ROOT_DIR)/$(TARGET_NAME).hex
+# генерация файла программы .dfu
+$(phony dfu): $(BUILD_ROOT_DIR)/$(TARGET_NAME).dfu
+# прошивка программы в целевое устройство по DFU
+$(phony flash_dfu): $(BUILD_ROOT_DIR)/$(TARGET_NAME)._flash_dfu
+.PHONY: $(BUILD_ROOT_DIR)/$(TARGET_NAME)._flash_dfu
 # генерация листинга программы
 $(phony list): $(BUILD_ROOT_DIR)/$(TARGET_NAME).lst
 # вывод размера программы

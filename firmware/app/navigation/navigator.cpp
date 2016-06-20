@@ -9,7 +9,9 @@
 #include "qmdebug.h"
 #include "qmiopin.h"
 #include "qmuart.h"
+#include "qmtimer.h"
 #include "qmthread.h"
+#include "qmtimer.h"
 #include <string.h>
 #include <string>
 #include <list>
@@ -61,9 +63,9 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
         CoordDate.time[i] = 0;
     }
 
-    QmThread::msleep(500);
-    const char * const config_sentences = "$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n";
-    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
+    config_timer = new QmTimer(true, this);
+    config_timer->timeout.connect(sigc::mem_fun(this, &Navigator::processConfig));
+    config_timer->start(3000); //tested on receivers versions 3.1, 4.1
 }
 
 Navigator::~Navigator() {
@@ -101,6 +103,7 @@ int Navigator::Calc_LCODE_SMS(int R_ADR, int S_ADR, int WZN, int RN_KEY, int DAY
     int L_CODE = (R_ADR + S_ADR + WZN + RN_KEY + SEC + MIN + HRS + DAY) % 100;
     return L_CODE;
 }
+
 
 //#if defined(PORT__TARGET_DEVICE_REV1)
 void Navigator::processUartReceivedData() {
@@ -196,7 +199,7 @@ void Navigator::parsingData(uint8_t data[])
 //        if (parse_elem.size() > 0)
 //            memcpy(&CoordDate.time,parse_elem.at(0).c_str(),parse_elem.at(0).size());
 
-        if ((parse_elem.size() > 2) && (parse_elem.at(1).compare("V") != 0))
+        if ((parse_elem.size() > 2) /*&& (parse_elem.at(1).compare("V") != 0)*/)
         { // проверка по статусу gps
             if (parse_elem.size() > 3){
                 memcpy(&CoordDate.latitude,parse_elem.at(2).c_str(),parse_elem.at(2).size());

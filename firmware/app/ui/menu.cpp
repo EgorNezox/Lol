@@ -370,8 +370,8 @@ void CGuiMenu::initGpsCoordinateDialog(std::string coord_lat, std::string coord_
 
     if (coord_lat.size() == 0)
     {
-        coord_lat.append("0123.4567,N");
-        coord_log.append("0123.4567,E");
+        coord_lat.append("0000.0000,N");
+        coord_log.append("0000.0000,N");
     }
 
     volume[0]->SetText((char *)coord_lat.c_str());
@@ -776,7 +776,7 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
     case 2:
     {
         LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignHCenter, alignTop};
+        param.element.align = {alignLeft, alignVCenter};
         param.transparent = true;
 
         std::string str; str.append(aleStateStr[status]);
@@ -858,7 +858,7 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
     case 5:
     {
         LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignLeft, alignTop};
+        param.element.align = {alignLeft, alignVCenter};
         param.transparent = true;
 
         GUI_EL_Label label     ( &titleParams, &label_geom, (char*)voiceRxTxLabelStr[3],      (GUI_Obj *)this);
@@ -930,7 +930,8 @@ void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
                     break;
                 }
 
-                field->pop_back();
+                if (field->size() > 0) // todo: это вызывает сбой
+                	field->pop_back();
             }
         }
         else

@@ -162,14 +162,14 @@ void Service::FailedSms(int stage)
     }
     case 0:
     {
-        guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail1);
-        msgBox( "Recieved packet ", sms_quit_fail1 );
+        guiTree.append(messangeWindow, "Failed Sms\0", sms_quit_fail1);
+        msgBox( "Recieved packet \0", sms_quit_fail1 );
         break;
     }
     case 1:
     {
-        guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
-        msgBox( "Recieved packet ", sms_quit_fail2);
+        guiTree.append(messangeWindow, "Failed Sms\0", sms_quit_fail2);
+        msgBox( "Recieved packet \0", sms_quit_fail2);
         break;
     }
     case 3:
@@ -497,6 +497,7 @@ void Service::keyPressed(UI_Key key)
         switch(estate.subType)
         {
         case GuiWindowsSubType::simpleCondComm:
+        case GuiWindowsSubType::duplCondCmd:
         {
             //[0] - CMD, [1] - R_ADDR, [2] - retrans
             switch (menu->txCondCmdStage)
@@ -588,25 +589,36 @@ void Service::keyPressed(UI_Key key)
                 if ( menu->txCondCmdStage > size )
                 {
 #ifndef _DEBUG_
-                    // [0] - cmd, [1] - raddr, [2] - retrans
-                    // bool menu->useRETRANS
-					int param[3] = {0,0,0}, i = 0;
-                    for(auto &k: estate.listItem)
-                    {
-                        param[i] = atoi(k->inputStr.c_str());
-                        i++;
-                    }
-                    	if (estate.listItem.size() == 2){
-                    		//voice_service->clearBuff();
-                            voice_service->TurnPSWFMode(0, 0, param[0],0);
-                    	}
-                    	else if (estate.listItem.size() == 3)
-                            voice_service->TurnPSWFMode(1, param[0], param[2],param[1]);
+                	if(estate.subType != duplCondCmd)
+                	{
+                		// [0] - cmd, [1] - raddr, [2] - retrans
+                		// bool menu->useRETRANS
+                		int param[3] = {0,0,0}, i = 0;
+                		for(auto &k: estate.listItem)
+                		{
+                			param[i] = atoi(k->inputStr.c_str());
+                			i++;
+                		}
+                		if (estate.listItem.size() == 2)
+                			voice_service->TurnPSWFMode(0, 0, param[0],0); //TODO: group pswf
+                		else
+                			voice_service->TurnPSWFMode(0, param[0], param[2],param[1]); // individual pswf
 
-//                        for(auto &k: estate.listItem)
-//                        {
-//                            k->inputStr.clear();
-//                        }
+                	 }
+
+                	else
+                	{
+                		int param[3] = {0,0,0}, i = 0;
+                		for(auto &k: estate.listItem)
+                		{
+                			param[i] = atoi(k->inputStr.c_str());
+                			i++;
+                		}
+
+                		voice_service->TurnPSWFMode(1,param[0],param[1],0); // retr. = none,r_adr != 0
+                	}
+
+
 #else
                     menu->txCondCmdStage = 1;
                     guiTree.resetCurrentState();
@@ -1232,11 +1244,11 @@ void Service::keyPressed(UI_Key key)
 
                         if (atoi(ch) > 0)
                         {
+                        	voice_service->defaultSMSTrans();
                             if (atoi(retrAddr.c_str()) > 0)
-                                voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str());
+                                voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),atoi(retrAddr.c_str()));
                             else
-                                voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str());
-
+                                voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
                             for(auto &k: estate.listItem)
                                 k->inputStr.clear();
                         }
@@ -1302,7 +1314,7 @@ void Service::keyPressed(UI_Key key)
                     if (menu->useTicket)
                         voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
                     else
-                        voice_service->TurnPSWFMode(0,0,0,0);
+                        voice_service->TurnPSWFMode(1,0,0,0);
 #endif
                     menu->rxCondCmdStatus = 1;
                 }
@@ -1385,11 +1397,15 @@ void Service::keyPressed(UI_Key key)
 #ifndef _DEBUG_
                     multiradio_service->stopAle();
 #endif
+                    menu->voiceAddr.clear();
                     menu->putOffVoiceStatus--;
                 }
                 if (key == keyEnter)
                 {
                     // multiradio_service->getStatus();
+                	uint8_t rxAddr = multiradio_service->getAleRxAddress();
+                	char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
+                	menu->voiceAddr.append(ch);
                     menu->putOffVoiceStatus++;
                 }
                 break;
@@ -1509,6 +1525,10 @@ void Service::keyPressed(UI_Key key)
             {
                 menu->supressStatus = menu->supressStatus ? false : true;
                 menu->inclStatus = menu->inclStatus ? false : true;
+
+                int value = 0;
+                if (menu->supressStatus == 1) value =  12;
+                voice_service->tuneSquelch(value);
             }
             if ( key == keyBack)
             {
@@ -1517,9 +1537,6 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyEnter)
             {
-                int value = 0;
-                if (menu->supressStatus == 1) value =  6;
-                voice_service->tuneSquelch(value);
             }
             break;
         }
@@ -1779,6 +1796,7 @@ void Service::keyPressed(UI_Key key)
             if (key == keyEnter)
             {
                 storageFs->setFhssKey((uint8_t)atoi(menu->RN_KEY.c_str()));
+                voice_service->setRnKey(atoi(menu->RN_KEY.c_str()));
                 menu->focus = 4;
                 guiTree.backvard();
 

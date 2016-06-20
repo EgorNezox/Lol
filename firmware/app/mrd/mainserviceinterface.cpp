@@ -1032,7 +1032,7 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 		msghead_packet_t msghead_packet;
 		msghead_packet.msgSize = ((data[0] & 0xFF) << 3) | ((data[1] >> 5) & 0x07);
 		msghead_packet.symCode = (data[1] >> 4) & 0x01;
-		if (!((msghead_packet.msgSize >= 1) && (msghead_packet.msgSize <= 250) && (msghead_packet.symCode == 0))) {
+		if (!((msghead_packet.msgSize >= 1) && (msghead_packet.msgSize <= 254) && (msghead_packet.symCode == 0))) {
 			qmDebugMessage(QmDebug::Info, "ale rejecting unsupported msgHead (msgSize = %u, symCode = %u)", msghead_packet.msgSize, msghead_packet.symCode);
 			setAleState(AleState_RX_VM_FAIL_UNSUPPORTED);
 			stopAleSession();
@@ -1404,6 +1404,8 @@ void MainServiceInterface::adaptPacketTxUp() {
 	ale.vm_ack_count--;
 	ale.vm_snr_ack[0] = ale.vm_snr_ack[1];
 	ale.vm_snr_ack[1] = ale.vm_snr_ack[2];
+#else
+	ale.vm_ack_count = 0;
 #endif
 }
 
@@ -1421,6 +1423,8 @@ bool MainServiceInterface::adaptPacketTxDown() {
 		if (ale.vm_sform_c == 2)
 			ale.vm_sform_c = 3;
 	}
+#else
+	ale.vm_nack_count = 0;
 #endif
 	return true;
 }
