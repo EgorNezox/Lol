@@ -937,9 +937,8 @@ void Service::keyPressed(UI_Key key)
 #ifdef _DEBUG_
                 if (key == keyEnter)
                 {
-                    if (menu->channalNum.size() < 1)
-                        menu->channalNum.append("12\0");
-                    menu->putOffVoiceStatus++;
+                    if (menu->channalNum.size() > 0)
+                        menu->putOffVoiceStatus++;
                 }
 #else
                 if (key == keyEnter && menu->channalNum.size() > 0)
@@ -958,10 +957,37 @@ void Service::keyPressed(UI_Key key)
                     menu->putOffVoiceStatus--;
                 }
 #ifndef _DEBUG_
-                if (key == keyEnter && menu->channalNum.size() > 0)
+                if (key == keyEnter) // && STATUS OK
                 {
                     headset_controller->stopSmartRecord();
-                    menu->putOffVoiceStatus++;
+
+                    if ( headset_controller->getSmartHSState() == SmartHSState_SMART_READY )
+                        menu->putOffVoiceStatus++;
+                    else if ( headset_controller->getSmartHSState() == SmartHSState_SMART_RECORD_TIMEOUT ||\
+                              headset_controller->getSmartHSState() == SmartHSState_SMART_EMPTY_MESSAGE  ||\
+                              headset_controller->getSmartHSState() == SmartHSState_SMART_ERROR          ||\
+                              )
+                    {
+                        multiradio_service->stopAle();
+                        menu->putOffVoiceStatus = 1;
+                        menu->voiceAddr.clear();
+                        menu->channalNum.clear();
+                        menu->focus = 0;
+                        guiTree.resetCurrentState();
+                    }
+                    // repeat
+                    else if (headset_controller->getSmartHSState() == SmartHSState_SMART_NOT_CONNECTED ||\
+                             headset_controller->getSmartHSState() == SmartHSState_SMART_BAD_CHANNEL ||\
+                             headset_controller->getSmartHSState() == SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL ||\
+                             headset_controller->getSmartHSState() == SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE ||\
+                             headset_controller->getSmartHSState() == SmartHSState_SMART_RECORD_DOWNLOADING ||\
+                             headset_controller->getSmartHSState() == SmartHSState_SMART_PLAYING ||\
+                             headset_controller->getSmartHSState() == SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL ||\
+                             headset_controller->getSmartHSState() == SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE ||\
+                             headset_controller->getSmartHSState() == SmartHSState_SMART_RECORDING ||\
+                             headset_controller->getSmartHSState() == SmartHSState_SMART_RECORD_UPLOADING ||\
+                             )
+                    {}
                 }
 #else
                 if (key == keyEnter)
@@ -995,9 +1021,8 @@ void Service::keyPressed(UI_Key key)
 #ifdef _DEBUG_
                 if (key == keyEnter)
                 {
-                    if (menu->voiceAddr.size() < 1)
-                        menu->voiceAddr.append("23\0");
-                    menu->putOffVoiceStatus++;
+                    if (menu->voiceAddr.size() > 0)
+                        menu->putOffVoiceStatus++;
                 }
 #else
                 if (key == keyEnter)
@@ -1038,7 +1063,7 @@ void Service::keyPressed(UI_Key key)
                     multiradio_service->stopAle();
 #endif
                 }
-                if (key == keyEnter)
+                if (key == keyEnter /*&& multiradio_service->getAleState() == */)
                 {
 #ifndef _DEBUG_
                     multiradio_service->stopAle();

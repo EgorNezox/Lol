@@ -65,7 +65,7 @@ class CState
     std::string    text;
 public:
     std::list<CState*> nextState;
-    CState*        prevState;
+    CState*            prevState;
 
     CState()
     {

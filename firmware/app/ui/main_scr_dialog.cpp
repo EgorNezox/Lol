@@ -51,7 +51,7 @@ GUI_EL_TEMP_LabelMode.transparent    = false;
   mode_text    = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,         &mode_text_geom, NULL, (GUI_Obj*)this);
   freq         = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,         &freq_geom,      NULL, (GUI_Obj*)this);
 
-  ch_num_label->SetText("--\0");
+  ch_num_label->SetText((char*)"--\0");
   cur_ch_invalid = false;
 
   oFreq.append("25000000");

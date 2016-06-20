@@ -125,7 +125,7 @@ void GUI_Dialog_MsgBox::Draw(){
   window.Draw();
   title_area.Draw();
   text_area.Draw();
-//  ok_button.Draw();
+  ok_button.Draw();
 }
 
 void GUI_Dialog_MsgBox::Draws(){

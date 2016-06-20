@@ -61,7 +61,7 @@ const char *sms_quit_fail1 = "Ошибка приема SMS\0";
 const char *sms_quit_fail2 = "Квитанция потеряна\0";
 const char *sms_crc_fail = "Пакет доставлен с ошибками\0";
 
-const char ch_key0[] = { '\ ', '0' };
+const char ch_key0[] = { ' ', '0' };
 const char ch_key1[] = { '.', ',', '!', '?', '\"', ':', '1' };
 const char ch_key2[] = { 'А', 'Б', 'В', 'Г', '2' };
 const char ch_key3[] = { 'Д', 'Е', 'Ж', 'З', '3' };
