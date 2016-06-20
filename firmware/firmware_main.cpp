@@ -24,20 +24,8 @@
 #include "power/battery.h"
 #include "ui/service.h"
 
-void boot_enter_bootloader();
-
-static bool check_bootloader_condition() {
-	QmMatrixKeyboard k(platformhwMatrixKeyboard);
-	return (k.isKeyPressed(platformhwKeyEnter) && k.isKeyPressed(platformhwKeyBack));
-}
-
 void qmMain() {
 	QmApplication app;
-
-	if (check_bootloader_condition()) {
-		boot_enter_bootloader();
-		return;
-	}
 
 #if defined(PORT__TARGET_DEVICE_REV1)
 	Power::Controller power_controller(platformhwPowerHSControlIopin, platformhwPowerControllerIopin,

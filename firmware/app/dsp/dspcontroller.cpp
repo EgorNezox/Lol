@@ -278,6 +278,13 @@ void DspController::setAudioVolumeLevel(uint8_t volume_level)
     sendCommand(Audiopath, AudioVolumeLevel, command_value);
 }
 
+void DspController::setAudioMicLevel(uint8_t value) {
+    QM_ASSERT(is_ready);
+    ParameterValue command_value;
+    command_value.mic_amplify = value;
+    sendCommandEasy(Audiopath, AudioMicAmplify, command_value);
+}
+
 void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
 {
     QM_ASSERT(is_ready);
@@ -2689,5 +2696,5 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
 #include "qmdebug_domains_end.h"

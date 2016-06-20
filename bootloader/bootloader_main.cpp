@@ -12,6 +12,12 @@
 #include "system/hardware_boot.h"
 
 #include "qmconsolescreen.h"
+#include "qmmatrixkeyboard.h"
+
+static bool check_bootloader_condition() {
+	QmMatrixKeyboard k(platformhwMatrixKeyboard);
+	return (k.isKeyPressed(platformhwKeyEnter) && k.isKeyPressed(platformhwKeyBack));
+}
 
 void qmMain() {
 	QmConsoleScreen::init(2, 2, 2, 2);
@@ -20,7 +26,13 @@ void qmMain() {
 #ifndef NDEBUG
 	QmConsoleScreen::oprintf("DEBUG BUILD\r\n");
 #endif
-	QmConsoleScreen::oprintf("\r\n");
+	QmConsoleScreen::oprintf("Press Enter+Back keys to start system bootloader\r\n\r\n");
+
+	if (check_bootloader_condition()) {
+		QmConsoleScreen::oprintf("*** SYSTEM BOOTLOADER\r\n");
+		hwboot_jump_system_bootloader();
+		/* (выполнение никогда не доходит до этого места) */
+	}
 
 	hwboot_test_result_t test_result = hwboot_test_board();
 	switch (test_result) {

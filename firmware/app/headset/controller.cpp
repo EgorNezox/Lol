@@ -339,6 +339,7 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 				sendHSMessageData();
 			} else {
 				setSmartHSState(SmartHSState_SMART_ERROR);
+				resetState();
 			}
 			break;
 		}
@@ -451,6 +452,7 @@ void Controller::updateStatus(Status new_status) {
 void Controller::resetState() {
 	updateState(StateNone);
 	cmd_repeats_counter = 0;
+	message_to_play_data_packets_sent = 0;
 	if (!poll_timer->isActive())
 		poll_timer->start();
 }
@@ -535,6 +537,10 @@ void Controller::startSmartPlay(uint8_t channel) {
 		setSmartHSState(SmartHSState_SMART_EMPTY_MESSAGE);
 		return;
 	}
+	if (hs_state != SmartHSState_SMART_READY) {
+		qmDebugMessage(QmDebug::Dump, "startSmartPlay() unexpected state");
+		return;
+	}
 	setSmartHSState(SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL);
 	messageToPlayDataPack();
 	ch_number = channel;
@@ -544,6 +550,7 @@ void Controller::startSmartPlay(uint8_t channel) {
 void Controller::startMessagePlay() {
 	qmDebugMessage(QmDebug::Warning, "startMessagePlay()");
 	setSmartHSState(SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE);
+	message_to_play_data_packets_sent = 0;
 	const int data_size = 16;
 	uint8_t data[data_size];
 	data[0] = 0xAB;
@@ -561,7 +568,9 @@ void Controller::startMessagePlay() {
 }
 
 void Controller::stopSmartPlay() {
-	resetState();
+	qmDebugMessage(QmDebug::Dump, "stopSmartPlay()");
+	setSmartHSState(SmartHSState_SMART_READY);
+	synchronizeHSState();
 }
 
 void Controller::startSmartRecord(uint8_t channel) {
@@ -569,6 +578,10 @@ void Controller::startSmartRecord(uint8_t channel) {
 	if (ch_table->at(channel - 1).type != Multiradio::channelClose) {
 		qmDebugMessage(QmDebug::Warning, "startSmartRecord() channel %d is not close", channel);
 		setSmartHSState(SmartHSState_SMART_BAD_CHANNEL);
+		return;
+	}
+	if (hs_state != SmartHSState_SMART_READY) {
+		qmDebugMessage(QmDebug::Dump, "startSmartRecord() unexpected state");
 		return;
 	}
 	qmDebugMessage(QmDebug::Dump, "startSmartRecord() channel %d", channel);
@@ -599,7 +612,9 @@ void Controller::startMessageRecord() {
 }
 
 void Controller::stopSmartRecord() {
-	resetState();
+	qmDebugMessage(QmDebug::Dump, "stopSmartRecord()");
+	setSmartHSState(SmartHSState_SMART_READY);
+	synchronizeHSState();
 }
 
 Controller::SmartHSState Controller::getSmartHSState() {

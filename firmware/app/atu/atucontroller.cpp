@@ -25,7 +25,7 @@ namespace Multiradio {
 
 AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *parent) :
 	QmObject(parent),
-	mode(modeNone), tx_tuning_state(false), antenna(0)
+	mode(modeNone), tx_tuning_state(false), antenna(1)
 {
 	command.id = commandInactive;
 	command.data_buf = new uint8_t[MAX_FRAME_DATA_SIZE];
