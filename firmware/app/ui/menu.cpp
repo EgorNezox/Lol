@@ -930,7 +930,8 @@ void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
                     break;
                 }
 
-                field->pop_back();
+                if (field->size() > 0) // todo: это вызывает сбой
+                	field->pop_back();
             }
         }
         else

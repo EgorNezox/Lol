@@ -110,11 +110,6 @@ int Navigator::Calc_LCODE_SMS(int R_ADR, int S_ADR, int WZN, int RN_KEY, int DAY
     return L_CODE;
 }
 
-void Navigator::processConfig() {
-	const char * const config_sentences = "$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n";
-	qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
-	uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
-}
 
 //#if defined(PORT__TARGET_DEVICE_REV1)
 void Navigator::processUartReceivedData() {

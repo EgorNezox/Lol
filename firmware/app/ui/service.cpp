@@ -162,14 +162,14 @@ void Service::FailedSms(int stage)
     }
     case 0:
     {
-        guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail1);
-        msgBox( "Recieved packet ", sms_quit_fail1 );
+        guiTree.append(messangeWindow, "Failed Sms\0", sms_quit_fail1);
+        msgBox( "Recieved packet \0", sms_quit_fail1 );
         break;
     }
     case 1:
     {
-        guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
-        msgBox( "Recieved packet ", sms_quit_fail2);
+        guiTree.append(messangeWindow, "Failed Sms\0", sms_quit_fail2);
+        msgBox( "Recieved packet \0", sms_quit_fail2);
         break;
     }
     case 3:
@@ -600,9 +600,9 @@ void Service::keyPressed(UI_Key key)
                 			i++;
                 		}
                 		if (estate.listItem.size() == 2)
-                			voice_service->TurnPSWFMode(1, 0, param[0],0); //TODO:
+                			voice_service->TurnPSWFMode(0, 0, param[0],0); //TODO: group pswf
                 		else
-                			voice_service->TurnPSWFMode(1, param[0], param[2],param[1]);
+                			voice_service->TurnPSWFMode(0, param[0], param[2],param[1]); // individual pswf
 
                 	 }
 
@@ -615,7 +615,7 @@ void Service::keyPressed(UI_Key key)
                 			i++;
                 		}
 
-                		voice_service->TurnPSWFMode(1,param[0],param[1],0);
+                		voice_service->TurnPSWFMode(1,param[0],param[1],0); // retr. = none,r_adr != 0
                 	}
 
 
@@ -1496,6 +1496,10 @@ void Service::keyPressed(UI_Key key)
             {
                 menu->supressStatus = menu->supressStatus ? false : true;
                 menu->inclStatus = menu->inclStatus ? false : true;
+
+                int value = 0;
+                if (menu->supressStatus == 1) value =  12;
+                voice_service->tuneSquelch(value);
             }
             if ( key == keyBack)
             {
@@ -1504,9 +1508,6 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyEnter)
             {
-                int value = 0;
-                if (menu->supressStatus == 1) value =  6;
-                voice_service->tuneSquelch(value);
             }
             break;
         }
