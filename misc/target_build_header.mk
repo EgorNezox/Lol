@@ -122,6 +122,16 @@ $(BUILD_ROOT_DIR)/%.hex : $(BUILD_ROOT_DIR)/%.elf
 	@&mkdir -p $(dir_noslash $(output))
 	$(OBJCOPY) -O ihex -j .text -j .data -j .fastcode $(foreach section,$(SECTIONS),-j $(section)) $(input) $(output)
 
+$(BUILD_ROOT_DIR)/%.dfu : $(BUILD_ROOT_DIR)/%.hex
+	@&echo "*** Generate DFU file: $(notdir $(output)) ***"
+	@&mkdir -p $(dir_noslash $(output))
+	stm32_dfu_generator $(input) $(output)
+
+$(BUILD_ROOT_DIR)/%._flash_dfu : $(BUILD_ROOT_DIR)/%.dfu
+	@&echo "*** Flash target with $(notdir $(input)) ***"
+	@&mkdir -p $(dir_noslash $(output))
+	DfuSeCommand -c -d --v --fn $(input)
+
 $(BUILD_ROOT_DIR)/%.lst : $(BUILD_ROOT_DIR)/%.elf
 	@&echo "*** Generate listing: $(notdir $(output)) ***"
 	@&mkdir -p $(dir_noslash $(output))
