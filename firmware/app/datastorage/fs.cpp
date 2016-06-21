@@ -239,6 +239,7 @@ bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
 		}
 		data.push_back(ch_entry);
 	}
+	data[87].type = Multiradio::channelInvalid;
 
 	return true;
 }
