@@ -261,11 +261,9 @@ void DspController::setRadioOperation(RadioOperation operation) {
 
 void DspController::setRadioSquelch(uint8_t value) {
 	QM_ASSERT(is_ready);
-	if (!resyncPendingCommand())
-		return;
 	ParameterValue command_value;
 	command_value.squelch = value;
-	sendCommand(RxRadiopath, RxSquelch, command_value);
+	sendCommandEasy(RxRadiopath, RxSquelch, command_value);
 }
 
 void DspController::setAudioVolumeLevel(uint8_t volume_level)
@@ -608,7 +606,7 @@ void DspController::RecievedPswf()
 
 
     private_lcode = (char)navigator->Calc_LCODE(ContentPSWF.R_ADR,ContentPSWF.S_ADR,recievedPswfBuffer.at(command_rx30).at(0),ContentPSWF.RN_KEY,
-            date_time[0],date_time[1], date_time[2], date_time[3]); //TODO: fix receiving ? prevSEC
+            date_time[0],date_time[1], date_time[2], prevSecond(date_time[3])); //TODO: fix receiving ? prevSEC
 
     // TODO: make to 32 to pswf masters
 
@@ -2214,7 +2212,7 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t cmd, uint8_t r_adr,i
     ContentPSWF.TYPE = 0;
     ContentPSWF.COM_N = cmd;
     ContentPSWF.R_ADR = r_adr;
-    if ((pswf_retranslator > 0) || (pswf_ack == 1)) ContentPSWF.R_ADR += 32;
+    if (pswf_retranslator > 0) ContentPSWF.R_ADR += 32;
     ContentPSWF.S_ADR = PSWF_SELF_ADR;
 
     ParameterValue comandValue;
@@ -2696,5 +2694,5 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"

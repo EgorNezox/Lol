@@ -216,6 +216,13 @@ void Navigator::parsingData(uint8_t data[])
 
 }
 
+
+void Navigator::processConfig() {
+	const char * const config_sentences = "$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n";
+	qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
+	uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
+}
+
 void Navigator::processSyncPulse(bool overflow) {
 	if (overflow)
 		qmDebugMessage(QmDebug::Warning, "sync pulse overflow detected !!!");

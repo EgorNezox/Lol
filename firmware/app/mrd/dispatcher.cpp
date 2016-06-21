@@ -112,7 +112,7 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 				startIdle();
 				break;
 			}
-			dsp_controller->setAudioMicLevel(50);
+			dsp_controller->setAudioMicLevel(24);
 		}
 		setVoiceChannel();
 		bool ptt_state = false;

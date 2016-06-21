@@ -600,9 +600,9 @@ void Service::keyPressed(UI_Key key)
                 			i++;
                 		}
                 		if (estate.listItem.size() == 2)
-                			voice_service->TurnPSWFMode(0, 0, param[0],0); //TODO: group pswf
+                			voice_service->TurnPSWFMode(1, 0, param[0],0); //TODO: group pswf
                 		else
-                			voice_service->TurnPSWFMode(0, param[0], param[2],param[1]); // individual pswf
+                			voice_service->TurnPSWFMode(1, param[0], param[2],param[1]); // individual pswf
 
                 	 }
 
@@ -1502,7 +1502,7 @@ void Service::keyPressed(UI_Key key)
                 menu->inclStatus = menu->inclStatus ? false : true;
 
                 int value = 0;
-                if (menu->supressStatus == 1) value =  12;
+                if (menu->supressStatus == false) value =  12;
                 voice_service->tuneSquelch(value);
             }
             if ( key == keyBack)
@@ -1512,6 +1512,8 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyEnter)
             {
+            	int value =  12;
+            	voice_service->tuneSquelch(value);
             }
             break;
         }
@@ -1752,7 +1754,7 @@ void Service::keyPressed(UI_Key key)
                 // check
                 int rc = atoi(menu->RN_KEY.c_str());
 
-                if ( rc < 1 || rc > 98 )
+                if ( rc < 1 || rc > 999)
                 { menu->RN_KEY.clear(); }
             }
             if (key == keyBack)
