@@ -26,11 +26,11 @@
 
 
 
-#define PSWF_SELF_ADR	1
+#define PSWF_SELF_ADR	3
 
 #define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
 
-#define DefkeyValue 0
+#define DefkeyValue 631
 
 namespace Multiradio {
 
