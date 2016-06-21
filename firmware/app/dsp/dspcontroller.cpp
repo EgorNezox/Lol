@@ -24,9 +24,10 @@
 #include <string.h>
 #include "..\dsp\rs_tms.h"
 
+#include "../../../sazhenn.h"
 
 
-#define PSWF_SELF_ADR	3
+#define PSWF_SELF_ADR	SAZHEN_NETWORK_ADDRESS
 
 #define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
 

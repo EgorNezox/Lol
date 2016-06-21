@@ -2,6 +2,8 @@
 
 #include "fs.h"
 
+#include "../../../sazhenn.h"
+
 namespace DataStorage {
 
 FS::FS(int flash_spi_resource) {
@@ -261,7 +263,7 @@ bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data) {
 }
 
 bool FS::getAleStationAddress(uint8_t& data) {
-	data = 3;
+	data = SAZHEN_NETWORK_ADDRESS;
 	return true;
 }
 
