@@ -614,8 +614,9 @@ void Service::keyPressed(UI_Key key)
                 			param[i] = atoi(k->inputStr.c_str());
                 			i++;
                 		}
-
-                		voice_service->TurnPSWFMode(1,param[0],param[1],0); // retr. = none,r_adr != 0
+                		param[1] = 2;
+                		param[1] +=32;
+                		voice_service->TurnPSWFMode(1,param[0]/*param[0]*/,param[1],0); // retr. = none,r_adr != 0
                 	}
 
 
