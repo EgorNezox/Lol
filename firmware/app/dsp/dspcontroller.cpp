@@ -1909,7 +1909,9 @@ void DspController::sendSms(Module module)
 
     	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
     	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);
+
+
+        qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);
     	++tx_data_len;
     	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len);
     	++tx_data_len;
@@ -2015,8 +2017,15 @@ void DspController::recSms()
         {
             qmDebugMessage(QmDebug::Dump, "recSms() recievedSmsBuffer.size() =  %d", recievedSmsBuffer.size());
             if (quit_vector.size() >= 2) {
+            	radio_state = radiostateSync;
                 qmDebugMessage(QmDebug::Dump, "recSms() SMS transmitting successfully finished");
-                if (ok_quit >= 2) smsFailed(-1);
+                if (ok_quit >= 2)
+                {
+                	smsFailed(-1);
+                	if (getSmsRetranslation() != 0){
+                		startSMSRecieving();
+                	}
+                }
                 else
                     smsFailed(0);
 
@@ -2260,7 +2269,7 @@ void DspController::startSMSRecieving(SmsStage stage)
     sendCommand(PSWFReceiver, PswfRxRAdr, param);
 
     ParameterValue comandValue;
-    if (stage == StageRx_data){
+    if ((stage == StageRx_data) || (ContentSms.stage == StageTx_quit)){
     	comandValue.radio_mode = RadioModeOff;
     	    sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     	    comandValue.pswf_indicator = RadioModePSWF;
@@ -2317,8 +2326,8 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
         uint8_t ret = getSmsRetranslation();
         if (ret != 0){
-            ContentSms.message[87] = ContentSms.message[87] | (ret >> 2);
-            ContentSms.message[88] = ContentSms.message[88] | ((ret << 6) & 0xFF);
+            ContentSms.message[87] = ContentSms.message[87] | (ret  << 4);
+            ContentSms.message[88] = ContentSms.message[88] | ((ret >> 4) & 0x3);
         }
 
         uint32_t abc = pack_manager->CRC32(ContentSms.message,89);

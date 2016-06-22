@@ -1212,6 +1212,13 @@ void Service::keyPressed(UI_Key key)
                     auto msg = (*iter)->inputStr;
                     (*iter)++; (*iter)++;
                     auto retrAddr = (*iter)->inputStr;
+                    int param[3] = {0,0,0};
+                    int i = 0;
+                    for(auto &k: estate.listItem)
+            		{
+            			param[i] = atoi(k->inputStr.c_str());
+            			i++;
+            		}
 
                     if (navigator != 0){
                         Navigation::Coord_Date date = navigator->getCoordDate();
@@ -1221,8 +1228,8 @@ void Service::keyPressed(UI_Key key)
                         if (atoi(ch) > 0)
                         {
                         	voice_service->defaultSMSTrans();
-                            if (atoi(retrAddr.c_str()) > 0)
-                                voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),atoi(retrAddr.c_str()));
+                            if (param[2] > 0)
+                                voice_service->TurnSMSMode(param[2], (char*)msg.c_str(),atoi(dstAddr.c_str())); //retr,msg,radr
                             else
                                 voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
                             for(auto &k: estate.listItem)
