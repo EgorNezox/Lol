@@ -117,9 +117,11 @@ void CGuiTree::init()
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[1]);
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[2]);
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[3]);
-    // 1.4.2 - двухсторонняя связь
+//  // 1.4.2 - двухсторонняя связь
+//    groupCondCommandDupl.subType = GuiWindowsSubType::txGroupCondCmd;
     groupCondCommandDupl.prevState = &groupCondCommand;
     groupCondCommandDupl.nextState.clear();
+
     // 2 - Прием
     recv.prevState = &main;
     recv.nextState.push_back(&recvSms);

@@ -262,7 +262,7 @@ private:
         uint8_t S_ADR;
         uint8_t COM_N;
         uint8_t L_CODE;
-        uint8_t RN_KEY;
+        int RN_KEY;
         uint8_t Conditional_Command;
         uint8_t RET_end_adr;
     } ContentPSWF;
@@ -278,7 +278,7 @@ private:
         uint8_t S_ADR;
         uint8_t CYC_N;
         uint8_t L_CODE;
-        uint8_t RN_KEY;
+        int RN_KEY;
         SmsStage stage;
         uint8_t message[259];
     } ContentSms;

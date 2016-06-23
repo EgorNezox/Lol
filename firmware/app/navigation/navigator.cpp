@@ -63,9 +63,9 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
         CoordDate.time[i] = 0;
     }
 
-    //config_timer = new QmTimer(true, this);
-    //config_timer->timeout.connect(sigc::mem_fun(this, &Navigator::processConfig));
-    //config_timer->start(3000); //tested on receivers versions 3.1, 4.1
+    config_timer = new QmTimer(true, this);
+    config_timer->timeout.connect(sigc::mem_fun(this, &Navigator::processConfig));
+    config_timer->start(3000); //tested on receivers versions 3.1, 4.1
 }
 
 Navigator::~Navigator() {
@@ -92,9 +92,9 @@ int Navigator::Calc_LCODE_SMS_call(int R_ADR, int S_ADR, int CYC_N, int RN_KEY, 
 }
 
 
-int Navigator::Calc_LCODE_RETR(int RP_ADR,int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
+int Navigator::Calc_LCODE_RETR(int RP_ADR,int R_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)
 {
-    int L_CODE = (RP_ADR + R_ADR + S_ADR + COM_N + RN_KEY + SEC + MIN + HRS + DAY) % 100;
+    int L_CODE = (RP_ADR + R_ADR  + COM_N + RN_KEY + SEC + MIN + HRS + DAY) % 100;
     return L_CODE;
 }
 
@@ -214,6 +214,13 @@ void Navigator::parsingData(uint8_t data[])
         }
         qmDebugMessage(QmDebug::Dump, "parsing result:  %s %s %s %s", (char*)CoordDate.time,(char*)CoordDate.data,(char*)CoordDate.latitude,(char*)CoordDate.longitude);
 
+}
+
+
+void Navigator::processConfig() {
+    const char * const config_sentences = "$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n";
+    qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
+    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
 }
 
 void Navigator::processSyncPulse(bool overflow) {

@@ -74,6 +74,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     //this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::));
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
+
     guiTree.append(messangeWindow, (char*)test_Pass, (char*)error_SWF/*voice_service->ReturnSwfStatus()*/);
     msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
 
@@ -622,9 +623,9 @@ void Service::keyPressed(UI_Key key)
                 			i++;
                 		}
                 		if (estate.listItem.size() == 2)
-                			voice_service->TurnPSWFMode(0, 0, param[0],0); //TODO: group pswf
+                			voice_service->TurnPSWFMode(1, 0, param[0],0); //TODO: group pswf
                 		else
-                			voice_service->TurnPSWFMode(0, param[0], param[2],param[1]); // individual pswf
+                			voice_service->TurnPSWFMode(1, param[0], param[2],param[1]); // individual pswf
 
                 	 }
 
@@ -636,8 +637,9 @@ void Service::keyPressed(UI_Key key)
                 			param[i] = atoi(k->inputStr.c_str());
                 			i++;
                 		}
-
-                		voice_service->TurnPSWFMode(1,param[0],param[1],0); // retr. = none,r_adr != 0
+                		param[1] = 2;
+                		param[1] +=32;
+                		voice_service->TurnPSWFMode(1,param[0]/*param[0]*/,param[1],0); // retr. = none,r_adr != 0
                 	}
 
 
@@ -1011,7 +1013,7 @@ void Service::keyPressed(UI_Key key)
                         menu->putOffVoiceStatus++;
                     else if ( headset_controller->getSmartHSState() == SmartHSState_SMART_RECORD_TIMEOUT ||\
                               headset_controller->getSmartHSState() == SmartHSState_SMART_EMPTY_MESSAGE  ||\
-                              headset_controller->getSmartHSState() == SmartHSState_SMART_ERROR          ||\
+                              headset_controller->getSmartHSState() == SmartHSState_SMART_ERROR
                               )
                     {
                         multiradio_service->stopAle();
@@ -1031,7 +1033,7 @@ void Service::keyPressed(UI_Key key)
                              headset_controller->getSmartHSState() == SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL ||\
                              headset_controller->getSmartHSState() == SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE ||\
                              headset_controller->getSmartHSState() == SmartHSState_SMART_RECORDING ||\
-                             headset_controller->getSmartHSState() == SmartHSState_SMART_RECORD_UPLOADING ||\
+                             headset_controller->getSmartHSState() == SmartHSState_SMART_RECORD_UPLOADING
                              )
                     {}
                 }
@@ -1270,6 +1272,13 @@ void Service::keyPressed(UI_Key key)
                     auto msg = (*iter)->inputStr;
                     (*iter)++; (*iter)++;
                     auto retrAddr = (*iter)->inputStr;
+                    int param[3] = {0,0,0};
+                    int i = 0;
+                    for(auto &k: estate.listItem)
+            		{
+            			param[i] = atoi(k->inputStr.c_str());
+            			i++;
+            		}
 
                     if (navigator != 0){
                         Navigation::Coord_Date date = navigator->getCoordDate();
@@ -1279,8 +1288,8 @@ void Service::keyPressed(UI_Key key)
                         if (atoi(ch) > 0)
                         {
                         	voice_service->defaultSMSTrans();
-                            if (atoi(retrAddr.c_str()) > 0)
-                                voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),atoi(retrAddr.c_str()));
+                            if (param[2] > 0)
+                                voice_service->TurnSMSMode(param[2], (char*)msg.c_str(),atoi(dstAddr.c_str())); //retr,msg,radr
                             else
                                 voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
                             for(auto &k: estate.listItem)
@@ -1561,7 +1570,7 @@ void Service::keyPressed(UI_Key key)
                 menu->inclStatus = menu->inclStatus ? false : true;
 
                 int value = 0;
-                if (menu->supressStatus == 1) value =  12;
+                if (menu->supressStatus == false) value =  12;
                 voice_service->tuneSquelch(value);
             }
             if ( key == keyBack)
@@ -1571,6 +1580,8 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyEnter)
             {
+            	int value =  12;
+            	voice_service->tuneSquelch(value);
             }
             break;
         }
@@ -1823,7 +1834,7 @@ void Service::keyPressed(UI_Key key)
                 // check
                 int rc = atoi(menu->RN_KEY.c_str());
 
-                if ( rc < 1 || rc > 998 )
+                if ( rc < 1 || rc > 999)
                 { menu->RN_KEY.clear(); }
             }
             if (key == keyBack)
