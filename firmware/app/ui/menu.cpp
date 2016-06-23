@@ -129,12 +129,22 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     switch (txCondCmdStage)
     {
     case 1:
-    { // с ретранслятором/ без ретранстятора
-        labelStr.append(condCommStr[3]);
-        if (useCmdRetrans)
-            str.append(useScanMenu[0]);
+    {
+        // simple, individual
+        if (state.subType == simpleCondComm && state.listItem.size() == 3)
+        {
+            // с ретранслятором/ без ретранстятора
+            labelStr.append(condCommStr[3]);
+            if (useCmdRetrans)
+                str.append(useScanMenu[0]);
+            else
+                str.append(useScanMenu[1]);
+        }
         else
-            str.append(useScanMenu[1]);
+        {
+            labelStr.append(pressEnter);
+            str.append("");
+        }
 
         break;
     }
@@ -886,8 +896,14 @@ void CGuiMenu::initEditRnKeyDialog()
 
     std::string str;
     if (RN_KEY.size() == 0)
-        str.append("00");
+        str.append("000");
     else if (RN_KEY.size() == 1)
+    {
+        str.push_back('0');
+        str.push_back('0');
+        str.append(RN_KEY);
+    }
+    else if (RN_KEY.size() == 2)
     {
         str.push_back('0');
         str.append(RN_KEY);
@@ -933,6 +949,8 @@ void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
                 if (field->size() > 0) // todo: это вызывает сбой
                 	field->pop_back();
             }
+            else
+                keyPressCount = 0;
         }
         else
         {
@@ -941,8 +959,6 @@ void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
 
         prevKey = key;
 
-//        if ( (field.size() > 0) && (field.size()%16 == 0) )
-//        { field.push_back('\n'); }
         switch (key)
         {
         case key0:
@@ -1217,16 +1233,17 @@ void CGuiMenu::initRxCondCmdDialog()
     window.Draw();
 
 
-    if (rxCondCmdStatus == 1)
+//    if (rxCondCmdStatus == 1)
+//    {
+//        title.Draw();
+//        param = GUI_EL_TEMP_LabelMode;
+//        param.transparent = true;
+//        MoonsGeometry buttonArea  = { 9, 40, 110, 80 };
+//        GUI_EL_Label    button ( &param, &buttonArea, (char*)useScanMenu[useTicket], (GUI_Obj *)this);
+//        button.Draw();
+//    }
+//    else
     {
-        title.Draw();
-        param = GUI_EL_TEMP_LabelMode;
-        param.transparent = true;
-        MoonsGeometry buttonArea  = { 9, 40, 110, 80 };
-        GUI_EL_Label    button ( &param, &buttonArea, (char*)useScanMenu[useTicket], (GUI_Obj *)this);
-        button.Draw();
-    }
-    else{
         title.SetText((char*)callSubMenu[0]);
         title.Draw();
         if (recvStage == 0)
@@ -1248,55 +1265,35 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
     case 0: // set frequence
     {
                       titleArea  = {  5,   5, 150,  20 };
-        MoonsGeometry freq1Area  = {  5,  21, 150,  41 };
-        MoonsGeometry value1Area = {  5,  42, 150,  62 };
-        MoonsGeometry freq2Area  = {  5,  63, 150,  83 };
-        MoonsGeometry value2Area = {  5,  84, 150, 104 };
-        MoonsGeometry buttonArea = {  5, 105, 150, 125 };
+        MoonsGeometry freqArea   = {  5,  21, 150,  41 };
+        MoonsGeometry valueArea  = {  5,  55, 150,  70 };
 
-        LabelParams param[5] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelButton};
+        LabelParams param[2] = { GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT };
 
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 2; i++)
             param[i].transparent = true;
 
-        if ( focus == 0 )
-            param[1].transparent = false;
-        if ( focus == 1 )
-            param[3].transparent = false;
-        if ( focus == 2 )
-            param[4].transparent = false;
-
         param[0].element.align = {alignHCenter, alignVCenter};
-        param[2].element.align = {alignHCenter, alignVCenter};
-        param[4].element.align = {alignHCenter, alignVCenter};
+        param[1].element.align = {alignHCenter, alignVCenter};
 
-        param[1].element.align = {alignRight, alignVCenter};
-        param[3].element.align = {alignRight, alignVCenter};
+        std::string str;
+        str.append(groupCondCommFreqStr);
 
-        std::string str1, str2;
-        str1.append(groupCondCommFreqStr); str1.push_back('1');
-        str2.append(groupCondCommFreqStr); str2.push_back('2');
+        auto frequency = state.listItem.begin();
+        std::string freq = (*frequency)->inputStr;
+        if (freq.size() != 0 )
+            freq.append(" ")\
+                .append(freq_hz);
 
-        auto freq = state.listItem.begin();
-        std::string freq1 = (*freq)->inputStr; freq1.append(" ").append(freq_hz);
-        *freq++;
-        std::string freq2 = (*freq)->inputStr;  freq2.append(" ").append(freq_hz);
-
-        GUI_EL_Window window     ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
-        GUI_EL_Label  title      ( &titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj*)this );
-        GUI_EL_Label  freq1Title ( &param[0],                  &freq1Area,  (char*)str1.c_str(),     (GUI_Obj*)this );
-        GUI_EL_Label  freq1Value ( &param[1],                  &value1Area, (char*)freq1.c_str(),    (GUI_Obj*)this );
-        GUI_EL_Label  freq2Title ( &param[2],                  &freq2Area,  (char*)str2.c_str(),     (GUI_Obj*)this );
-        GUI_EL_Label  freq2Value ( &param[3],                  &value2Area, (char*)freq2.c_str(),    (GUI_Obj*)this );
-        GUI_EL_Label  ok_button  ( &param[4],                  &buttonArea, (char*)continueStr,      (GUI_Obj*)this );
+        GUI_EL_Window window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
+        GUI_EL_Label  title  ( &titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj*)this );
+        GUI_EL_Label  label  ( &param[0],                  &freqArea,   (char*)str.c_str(),      (GUI_Obj*)this );
+        GUI_EL_Label  value  ( &param[1],                  &valueArea,  (char*)freq.c_str(),     (GUI_Obj*)this );
 
         window.Draw();
         title.Draw();
-        freq1Title.Draw();
-        freq1Value.Draw();
-        freq2Title.Draw();
-        freq2Value.Draw();
-        ok_button.Draw();
+        label.Draw();
+        value.Draw();
         break;
     }
     case 1:
@@ -1316,7 +1313,7 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
       else
       {
           commandTitleArea = {  5,  21, 150,  41 };
-          commandValueArea = {  5,  42, 150,  62 };
+          commandValueArea = {  5,  42, 150,  100 };
       }
           MoonsGeometry buttonArea       = {  5, 105, 150, 125};
 
@@ -1376,6 +1373,7 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
                 str.append((*iter)->inputStr);
             else
                 str.append((*iter)->inputStr.substr( (*iter)->inputStr.size()-20, 20));
+
             GUI_EL_Label  commandValue ( &param[3],                  &commandValueArea, (char*)str.c_str(),   (GUI_Obj*)this );
             GUI_EL_Label  ok_button    ( &param[4],                  &buttonArea,       (char*)trans,         (GUI_Obj*)this );
 

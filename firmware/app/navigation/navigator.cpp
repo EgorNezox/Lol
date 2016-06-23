@@ -63,9 +63,9 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
         CoordDate.time[i] = 0;
     }
 
-    config_timer = new QmTimer(true, this);
-    config_timer->timeout.connect(sigc::mem_fun(this, &Navigator::processConfig));
-    config_timer->start(3000); //tested on receivers versions 3.1, 4.1
+    //config_timer = new QmTimer(true, this);
+    //config_timer->timeout.connect(sigc::mem_fun(this, &Navigator::processConfig));
+    //config_timer->start(3000); //tested on receivers versions 3.1, 4.1
 }
 
 Navigator::~Navigator() {

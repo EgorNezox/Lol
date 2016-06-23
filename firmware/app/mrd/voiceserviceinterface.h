@@ -53,6 +53,7 @@ public:
     uint8_t* getGucCommand();
 
     void defaultSMSTrans();
+    void rerror();
 
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
@@ -60,6 +61,7 @@ public:
     sigc::signal<void,int> smsFailed;
     sigc::signal<void> smsMess;
     sigc::signal<void> respGuc;
+    sigc::signal<void> errorAsu;
 
 private:
 	friend class Dispatcher;
@@ -74,8 +76,10 @@ private:
     void smsMessage();
 
 	Dispatcher *dispatcher;
-	ChannelStatus current_channel_status;
+    ChannelStatus current_channel_status;
 };
+
+
 
 } /* namespace Multiradio */
 

@@ -167,7 +167,8 @@ private:
     CState condCmdSimpl;
     CEndState condCmdDupl;
     SInputItemParameters condCmdDuplParameters1{(char*)callTitle[1], "", 2, 0, 31},\
-                         condCmdDuplParameters2{(char*)callTitle[0], "", 2, 0, 31};
+                         condCmdDuplParameters2{(char*)callTitle[0], "", 2, 0, 31},\
+                         condCmdDuplParameters3{(char*)callTitle[0], "", 2, 0, 31};
     // 1.2.1.1 - 1.2.1.2
     CEndState condCmdSimplGroupCall, condCmdSimplIndivCall;
     SInputItemParameters condCmdSimplGroupCallParameters1 {(char*)callTitle[0], "", 2, 0, 99},

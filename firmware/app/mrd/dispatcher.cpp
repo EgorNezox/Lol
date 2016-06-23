@@ -243,6 +243,11 @@ void Dispatcher::processAtuModeChange(AtuController::Mode new_mode) {
 		}
 		break;
 	}
+    case AtuController::modeMalfunction:
+    {
+        voice_service->errorAsu();
+        break;
+    }
 	default: {
 		if ((main_service->current_status == MainServiceInterface::StatusTuningTx) && !atu_controller->isDeviceOperational()) {
 			startVoiceTx();

@@ -82,6 +82,7 @@ void CGuiTree::init()
     condCmdDupl.nextState.clear();
     condCmdDupl.listItem.push_back( &condCmdDuplParameters1 );
     condCmdDupl.listItem.push_back( &condCmdDuplParameters2 );
+    condCmdDupl.listItem.push_back( &condCmdDuplParameters3 );
     // 1.2 - SMS
     sms.subType = GuiWindowsSubType::message;
     sms.prevState = &call;
@@ -151,8 +152,8 @@ void CGuiTree::init()
     recvSilence.nextState.clear();
     // 3 - Данные
     data.prevState = &main;
-    data.nextState.push_back(&dataRecv);
-    data.nextState.push_back(&dataSend);
+//    data.nextState.push_back(&dataRecv);
+//    data.nextState.push_back(&dataSend);
     data.nextState.push_back(&dataGps);
     // 3.1 - Принятые
     dataRecv.prevState = &data;
