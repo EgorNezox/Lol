@@ -33,7 +33,7 @@ public:
 	Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_iopin_resource, int sync_pulse_iopin_resource);
 	~Navigator();
 
-	sigc::signal<void> CoordinateUpdated; // обновили дату,время и координаты
+    sigc::signal<void> CoordinateUpdated;
 	sigc::signal<void> syncPulse;
 	Coord_Date getCoordDate();
 
@@ -43,7 +43,6 @@ public:
      int Calc_LCODE_SMS_call(int R_ADR, int S_ADR, int CYC_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
 
 private:
-	//#if defined(PORT__TARGET_DEVICE_REV1)
     void processConfig();
 	void processUartReceivedData();
 	void processUartReceivedErrors(bool data_errors, bool overflow);
@@ -58,7 +57,6 @@ private:
 	QmIopin *sync_pulse_iopin;
 	QmUart *uart;
 	QmTimer *config_timer;
-//#endif /* PORT__TARGET_DEVICE_REV1 */
 };
 
 } /* namespace Navigation */

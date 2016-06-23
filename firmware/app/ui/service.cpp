@@ -2336,7 +2336,8 @@ void Service::setCoordDate(Navigation::Coord_Date date)
 
     qmDebugMessage(QmDebug::Dump, "DATE TIME %s :", str.c_str());
     indicator->date_time->SetText((char *)str.c_str());
-    drawIndicator();
+    if (guiTree.getCurrentState().getType() == GuiWindowTypes::mainWindow)
+        drawIndicator();
     str.clear();
 }
 
