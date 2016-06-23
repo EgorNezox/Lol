@@ -24,6 +24,7 @@
 #include "sym_dsc_out.h"
 #include "sym_dsc_listn.h"
 #include "sym_gps_lock.h"
+#include "sym_gps_unlock.h"
 #include "sym_headphones_analog.h"
 #include "sym_headphones_smart.h"
 #include "sym_headphines_broken.h"
