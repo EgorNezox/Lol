@@ -38,7 +38,7 @@ DspTransport::DspTransport(int uart_resource, int max_tx_queue_size, QmObject *p
 	uart_config.flow_control = QmUart::FlowControl_None;
 	uart_config.rx_buffer_size = 4096;
 	uart_config.tx_buffer_size = max_tx_queue_size*(MAX_FRAME_SIZE + 2/*маркеры*/);
-	uart_config.io_pending_interval = 10;
+	uart_config.io_pending_interval = 1;
 	uart = new QmUart(uart_resource, &uart_config, this);
 	uart->dataReceived.connect(sigc::mem_fun(this, &DspTransport::processUartReceivedData));
 	uart->rxError.connect(sigc::mem_fun(this, &DspTransport::processUartReceivedErrors));
