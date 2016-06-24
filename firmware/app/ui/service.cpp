@@ -805,7 +805,7 @@ void Service::keyPressed(UI_Key key)
                         	if (i == 3) str = k->inputStr.c_str();
                         	i++;
                         }
-                        int r_adr = 0;//atoi(mas[0]);
+                        int r_adr = mas[2];
                         int speed = 0;//atoi(mas[1]);
                         guc_command_vector.clear();
                         parsingGucCommand((uint8_t*)str);

@@ -167,6 +167,7 @@ uint8_t* get_guc_vector();
     sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
     sigc::signal<void> recievedGucResp;
     sigc::signal<void> pswfQuitRec;
+    sigc::signal<void> gucQuitRec;
 
     float swf_res = 2; // надо изменить значение на нижнее предельное
 
@@ -458,6 +459,8 @@ bool modem_rx_on, modem_tx_on;
 
     int pswf_rec = 0;
     bool state_pswf = 0;
+
+    bool guc_quit = 0;
 
     int wzn_value;
     uint8_t sms_retranslation;

@@ -1510,18 +1510,26 @@ void DspController::recGuc()
     // todo
 	srand(time(0));
 
-    if (ContentGuc.stage == GucTxQuit)
-    {
-        guc_timer->start();
-        startGucRecieving();
-    }
-    if (ContentGuc.stage == GucRxQuit)
-    {
-    	startGucTransmitting();
-    	uint32_t time = 3 - ((uint32_t)rand() % 3);
-    	guc_timer->start();
-//    	guc_rx_quit_timer->start(time);
-    }
+	if (guc_quit == 1)
+	{
+		guc_quit = 0;
+		gucQuitRec();
+		qmDebugMessage(QmDebug::Dump, "qutiation rec------------------------------");
+	}
+	else{
+		if (ContentGuc.stage == GucTxQuit)
+		{
+			guc_timer->start();
+			startGucRecieving();
+		}
+		if (ContentGuc.stage == GucRxQuit)
+		{
+			startGucTransmitting();
+			uint32_t time = 3 - ((uint32_t)rand() % 3);
+			guc_timer->start();
+			//    	guc_rx_quit_timer->start(time);
+		}
+	}
 }
 
 void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len) {
@@ -1765,12 +1773,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         		qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , indicator %d", indicator);
         	}
             if (indicator == 30) {
-            	qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , indicator %d", indicator);
-
+            	ContentGuc.R_ADR = ((data[2] & 0xF0) << 2) + (data[3] & 0x3F);
+            	qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
                 std::vector<uint8_t> guc;
                 for(int i = 0;i<data_len;i++){qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , num %d", data[i],i);
                 	guc.push_back(data[i]); // по N едениц данных
-
                 	}
 				if (guc_vector.size() < 50) {
 
@@ -2127,7 +2134,7 @@ void DspController::generateSmsReceived()
 
 	if (crc_packet != crc_calc)
 	{
-		//smsFailed(3);
+		smsFailed(3);
 		ack = 99;
 //		for(int i = 0;i<90;i++) sms_content[i] = (char)packed[i];
 //		sms_content[99] = '\0';
@@ -2373,7 +2380,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     ContentGuc.type = 1;
     ContentGuc.chip_time = 2;
     ContentGuc.WIDTH_SIGNAL = 1;
-    ContentGuc.S_ADR = 1;
+    ContentGuc.S_ADR = SAZHEN_NETWORK_ADDRESS;
     ContentGuc.R_ADR = r_adr;
 
     uint8_t num_cmd = command.size();
@@ -2438,8 +2445,8 @@ void DspController::sendGucQuit()
 	ContentGuc.type = 4;
 	ContentGuc.chip_time = 2;
 	ContentGuc.WIDTH_SIGNAL = 1;
-	ContentGuc.S_ADR = 1;
-	ContentGuc.R_ADR = 1;
+	ContentGuc.S_ADR = SAZHEN_NETWORK_ADDRESS;
+	//ContentGuc.R_ADR = 1;
 
 	ContentGuc.ckk = 0;
 	ContentGuc.ckk |= (1 & 0x01);
@@ -2488,7 +2495,9 @@ void DspController::startGucRecieving()
     comandValue.radio_mode = RadioModeOff;// отключили радиорежим
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     comandValue.guc_mode = 3;
-    sendCommandEasy(RadioLineNotPswf, 0 ,comandValue); // отключить низкоскоростной модем
+    sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
+    comandValue.guc_mode = SAZHEN_NETWORK_ADDRESS;
+    sendCommandEasy(RadioLineNotPswf, 3 ,comandValue); // отключить низкоскоростной модем
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
     comandValue.frequency = 3000000;
@@ -2510,11 +2519,16 @@ void DspController::checkGucQuit()
 
     if (size > 0){
         recievedGucResp();
+        startGucTransmitting();
+        sendGucQuit();
+        guc_quit = 1;
     }
-
-    sendGucQuit();
+    else
+    	{radio_state = radiostateSync;}
+    //sendGucQuit();
     guc_vector.clear();
-    radio_state = radiostateSync;
+
+
 }
 
 uint8_t* DspController::get_guc_vector()
