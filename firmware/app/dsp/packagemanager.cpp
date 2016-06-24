@@ -43,7 +43,7 @@ PackageManager::PackageManager()
     koi_sim.insert(std::pair<char,int>(ch_key9[1],124));
     koi_sim.insert(std::pair<char,int>(ch_key9[2],96));
     koi_sim.insert(std::pair<char,int>(ch_key9[3],113));
-    koi_sim.insert(std::pair<char,int>(ch_key0[0],48));
+    koi_sim.insert(std::pair<char,int>(ch_key0[0],32));
     koi_sim.insert(std::pair<char,int>('1',49));
     koi_sim.insert(std::pair<char,int>('2',50));
     koi_sim.insert(std::pair<char,int>('3',51));
@@ -53,7 +53,7 @@ PackageManager::PackageManager()
     koi_sim.insert(std::pair<char,int>('7',55));
     koi_sim.insert(std::pair<char,int>('8',56));
     koi_sim.insert(std::pair<char,int>('9',57));
-    koi_sim.insert(std::pair<char,int>(ch_key0[1],32));
+    koi_sim.insert(std::pair<char,int>(ch_key0[1],48));
 
 }
 

@@ -36,7 +36,6 @@ class GUI_Dialog_MsgBox;
 class CGuiMenu;
 
 
-
 namespace Headset {
     class Controller;
 }
@@ -83,7 +82,7 @@ public:
     void parsingGucCommand(uint8_t *str);
     void setCoordDate(Navigation::Coord_Date);
     void gucFrame();
-
+    void errorMessage();
 
 private:
     void msgBox(const char*);

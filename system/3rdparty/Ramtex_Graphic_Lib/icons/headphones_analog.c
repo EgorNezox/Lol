@@ -16,7 +16,7 @@
 static struct
 {
 	GCSYMHEAD sh;
-	SGUCHAR b[2*24*24];
+    SGUCHAR b[3*24*24];
 } GCODE headphones_analog[1] =
 {
 	#include "headphones_analog.sym"

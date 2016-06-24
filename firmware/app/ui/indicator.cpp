@@ -31,8 +31,7 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
     date_time = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &icon_geom, (char*)"15.06 10:59", (GUI_Obj *)this);
 
     icon_geom = {4*ICON_SIZE+25, 0, ICON_SIZE*6, ICON_SIZE-1};
-    //gpsLabel = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &icon_geom, (char*)"X", (GUI_Obj*)this);
-    gpsLabel = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
+    gpsLabel = new GUI_EL_Icon(&GUI_EL_TEMP_CommonIcon, &icon_geom, sym_gps_unlock, (GUI_Obj *)this);
 
     icon_geom = {ICON_SIZE*6,0,ICON_SIZE*6+BATTERY_SIZE-1, ICON_SIZE-1};	//геометрия батарейки
 
@@ -82,7 +81,7 @@ void GUI_Indicator::UpdateGpsStatus(bool status){
     if ( status )
         gpsLabel->icon = sym_gps;
     else
-        gpsLabel->icon = sym_blank;
+        gpsLabel->icon = sym_gps_unlock;
 }
 
 //-----------------------------

@@ -1399,7 +1399,7 @@ void DspController::sendPswf(Module module) {
     }
 
 
-	QM_ASSERT(pending_command->in_progress == false);
+	//QM_ASSERT(pending_command->in_progress == false);
 	pending_command->in_progress = true;
 	pending_command->sync_next = true;
 	pending_command->module = module;
@@ -2123,6 +2123,21 @@ void DspController::generateSmsReceived()
     pack_manager->to_Win1251(packed); //test
 
 
+    std::string str;
+    str.push_back(packed[0]);
+    for(int i = 1; i<100;i++){
+    	str.push_back(packed[i]);
+    	if (str[i-1] == ' ' && str[i] ==' ')
+    		str.pop_back();
+    }
+
+    if (str.length() > 0)
+    for(int i = 0; i<str.length();i++){
+    	packed[i] = str[i];
+    }
+
+   str.push_back('\0');
+
 	recievedSmsBuffer.clear();
 
 	uint32_t crc_packet = 0;
@@ -2144,7 +2159,8 @@ void DspController::generateSmsReceived()
 	else
 	{
 		ack = 73;
-		for(int i = 0;i<90;i++) sms_content[i] = (char)packed[i];
+		//for(int i = 0;i<90;i++) sms_content[i] = (char)packed[i];
+		for(int i = 0; i < 99; i++) sms_content[i] = str[i];
 		sms_content[99] = '\0'; //REVIEW: начиная c sms_content[90] по sms_content[98] будет мусор
         qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
 		smsPacketMessage();
@@ -2251,9 +2267,9 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
 
     ParameterValue comandValue;
     comandValue.radio_mode = RadioModeOff;
-    sendCommand(RxRadiopath, RxRadioMode, comandValue);
+    sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
     comandValue.pswf_indicator = RadioModePSWF;
-    sendCommand(TxRadiopath, TxRadioMode, comandValue);
+    sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     pswfTxStateSync = 0;
     radio_state = radiostatePswfTxPrepare;
 }

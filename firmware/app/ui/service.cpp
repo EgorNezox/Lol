@@ -74,6 +74,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     //this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::));
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
+
     guiTree.append(messangeWindow, (char*)test_Pass, (char*)error_SWF/*voice_service->ReturnSwfStatus()*/);
     msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
 
@@ -88,6 +89,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->smsMess.connect(sigc::mem_fun(this,&Service::smsMessage));
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
     voice_service->respGuc.connect(sigc::mem_fun(this,&Service::gucFrame));
+    voice_service->errorAsu.connect(sigc::mem_fun(this, &Service::errorMessage));
 
 #ifndef PORT__PCSIMULATOR
     systemTimeTimer = new QmTimer(true); //TODO:
@@ -97,6 +99,12 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 #endif
 
 
+}
+
+void Service::errorMessage()
+{
+    msgBox( "Error ", "ASU modeMalFunction\0");
+    guiTree.append(messangeWindow, (char*)"Error ASU\0", "0\0");
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -313,6 +321,11 @@ void Service::chPrevHandler()
 
 void Service::voiceChannelChanged()
 {
+    char mas[11];
+    sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
+    mas[11] = '\0';
+    main_scr->oFreq.clear(); main_scr->oFreq.append(mas);
+    main_scr->setFreq(mas);
     CState state = guiTree.getCurrentState();
     if ( state.getType() == mainWindow)
         drawMainWindow();
@@ -499,17 +512,27 @@ void Service::keyPressed(UI_Key key)
         case GuiWindowsSubType::simpleCondComm:
         case GuiWindowsSubType::duplCondCmd:
         {
+//            if (){ menu->txCondCmdStage}
+//            else if() {}
+//            else {}
             //[0] - CMD, [1] - R_ADDR, [2] - retrans
             switch (menu->txCondCmdStage)
             {
             case 1:
-            { // � ��������������/ ��� �������������
-                if (key == keyUp || key == keyDown)
-                { menu->useCmdRetrans = menu->useCmdRetrans ? false : true; }
+            {
+                if ( estate.subType == simpleCondComm && estate.listItem.size() == 3)
+                {
+                    if (key == keyUp || key == keyDown)
+                    { menu->useCmdRetrans = menu->useCmdRetrans ? false : true; }
+                }
+                else
+                {
+                    menu->useCmdRetrans = false;
+                }
                 break;
             }
             case 2:
-            { // ���� ������ ����������
+            {
                 if ( key > 5 && key < 16)
                 {
                     auto iter = estate.listItem.begin();
@@ -526,7 +549,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 3:
-            { // ���� ������ �������������
+            {
                 if ( key > 5 && key < 16)
                 {
                     auto iter = estate.listItem.begin();
@@ -543,7 +566,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 4:
-            { // ���� �������� �������
+            {
                 if ( key > 5 && key < 16)
                 {
                     auto iter = estate.listItem.begin();
@@ -572,12 +595,12 @@ void Service::keyPressed(UI_Key key)
                 // next field
                 if (menu->txCondCmdStage <= size )
                 {
-                    if (menu->txCondCmdStage == 1 && estate.listItem.size() == 2)
+                    // group address
+                    if (menu->txCondCmdStage == 1 && estate.listItem.size() == 2 && estate.subType != duplCondCmd)
                     {
-                        menu->txCondCmdStage++;
-                        if (menu->useCmdRetrans == false)
                             menu->txCondCmdStage++;
                     }
+                    // no retrans
                     if (menu->txCondCmdStage == 2 && menu->useCmdRetrans == false)
                     {
                         menu->txCondCmdStage++;
@@ -614,9 +637,9 @@ void Service::keyPressed(UI_Key key)
                 			param[i] = atoi(k->inputStr.c_str());
                 			i++;
                 		}
-                		param[1] = 2;
-                		param[1] +=32;
-                		voice_service->TurnPSWFMode(1,param[0]/*param[0]*/,param[1],0); // retr. = none,r_adr != 0
+
+                		param[2] +=32;
+                		voice_service->TurnPSWFMode(1,param[0]/*param[0]*/,param[2],0); // retr. = none,r_adr != 0
                 	}
 
 
@@ -633,14 +656,29 @@ void Service::keyPressed(UI_Key key)
             {
                 auto iter = estate.listItem.begin();
 
-                if (menu->txCondCmdStage == 2)
+                if (menu->txCondCmdStage == 1)
+                {
+                    guiTree.backvard();
+                    for(auto &k: estate.listItem)
+                        k->inputStr.clear();
+                }
+                else if (menu->txCondCmdStage == 2)
                 {
                     // R_ADR
                     (*iter)++;(*iter)++;
                     if ((*iter)->inputStr.size() > 0)
                         (*iter)->inputStr.pop_back();
                     else
-                        menu->txCondCmdStage--;
+                    {
+                        if (estate.subType == simpleCondComm && estate.listItem.size() == 3)
+                            menu->txCondCmdStage--;
+                        else
+                        {
+                            guiTree.backvard();
+                            for(auto &k: estate.listItem)
+                                k->inputStr.clear();
+                        }
+                    }
                 }
                 else if(menu->txCondCmdStage == 3)
                 {
@@ -673,15 +711,7 @@ void Service::keyPressed(UI_Key key)
                 }
                 else
                 {
-                    if (menu->txCondCmdStage > 1)
-                        menu->txCondCmdStage--;
-                    else
-                    {
-                        menu->txCondCmdStage = 1;
-                        guiTree.backvard();
-                        for(auto &k: estate.listItem)
-                            k->inputStr.clear();
-                    }
+                    menu->txCondCmdStage--;
                 }
             }
             default:
@@ -698,6 +728,8 @@ void Service::keyPressed(UI_Key key)
                 if (menu->focus == 1)
                     (*iter)++;
             }
+
+            // individual
             else if ( menu->groupCondCommStage == 1 && estate.listItem.size() == 4 )
             {
                 if ( menu->focus == 0 )
@@ -709,6 +741,7 @@ void Service::keyPressed(UI_Key key)
                     (*iter)++;(*iter)++;(*iter)++;
                 }
             }
+            // group
             else if ( menu->groupCondCommStage == 1 && estate.listItem.size() == 3 )
             {
                 if ( menu->focus == 0 )
@@ -782,11 +815,8 @@ void Service::keyPressed(UI_Key key)
             {
                 if ( menu->groupCondCommStage == 0 )
                 {
-                    if ( menu->focus == 2 )
-                    {
-                        menu->focus = 0;
-                        menu->groupCondCommStage = 1;
-                    }
+                    menu->focus = 0;
+                    menu->groupCondCommStage = 1;
                     break;
                 }
                 if ( menu->groupCondCommStage == 1 )
@@ -821,19 +851,24 @@ void Service::keyPressed(UI_Key key)
             }
             case keyUp:
             {
-                if ( menu->focus > 0 )
+                if ( menu->focus > 0 && menu->groupCondCommStage == 0 )
                     menu->focus--;
                 break;
             }
             case keyDown:
             {
-                if ( estate.listItem.size() == 3 && menu->groupCondCommStage == 1 ){
-                    if (menu->focus < 1)
-                        menu->focus++;
+                if (menu->groupCondCommStage == 1)
+                {
+                    if ( estate.listItem.size() == 3 )
+                    {
+                        if (menu->focus < 1)
+                            menu->focus++;
 
-                }else
-                    if ( menu->focus < 2 )
-                        menu->focus++;
+                    }
+                    else
+                        if ( menu->focus < 2 )
+                            menu->focus++;
+                }
                 break;
             }
             default:
@@ -874,7 +909,7 @@ void Service::keyPressed(UI_Key key)
                             std::string* commands;
                             commands = &(*iter)->inputStr;
 
-                            if ( key > 5 && key < 17 && commands->size() < 20 )
+                            if ( key > 5 && key < 17 && commands->size() < 100 )
                             {
                                 if ( key != key0 )
                                 {
@@ -950,9 +985,8 @@ void Service::keyPressed(UI_Key key)
 #ifdef _DEBUG_
                 if (key == keyEnter)
                 {
-                    if (menu->channalNum.size() < 1)
-                        menu->channalNum.append("12\0");
-                    menu->putOffVoiceStatus++;
+                    if (menu->channalNum.size() > 0)
+                        menu->putOffVoiceStatus++;
                 }
 #else
                 if (key == keyEnter && menu->channalNum.size() > 0)
@@ -971,10 +1005,37 @@ void Service::keyPressed(UI_Key key)
                     menu->putOffVoiceStatus--;
                 }
 #ifndef _DEBUG_
-                if (key == keyEnter && menu->channalNum.size() > 0)
+                if (key == keyEnter) // && STATUS OK
                 {
                     headset_controller->stopSmartRecord();
-                    menu->putOffVoiceStatus++;
+
+                    if ( headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_READY )
+                        menu->putOffVoiceStatus++;
+                    else if ( headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_RECORD_TIMEOUT ||\
+                              headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_EMPTY_MESSAGE  ||\
+                              headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_ERROR
+                              )
+                    {
+                        multiradio_service->stopAle();
+                        menu->putOffVoiceStatus = 1;
+                        menu->voiceAddr.clear();
+                        menu->channalNum.clear();
+                        menu->focus = 0;
+                        guiTree.resetCurrentState();
+                    }
+                    // repeat
+                    else if (headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_NOT_CONNECTED ||\
+                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_BAD_CHANNEL ||\
+                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL ||\
+                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE ||\
+                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_RECORD_DOWNLOADING ||\
+                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_PLAYING ||\
+                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL ||\
+                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE ||\
+                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_RECORDING ||\
+                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_RECORD_UPLOADING
+                             )
+                    {}
                 }
 #else
                 if (key == keyEnter)
@@ -1008,9 +1069,8 @@ void Service::keyPressed(UI_Key key)
 #ifdef _DEBUG_
                 if (key == keyEnter)
                 {
-                    if (menu->voiceAddr.size() < 1)
-                        menu->voiceAddr.append("23\0");
-                    menu->putOffVoiceStatus++;
+                    if (menu->voiceAddr.size() > 0)
+                        menu->putOffVoiceStatus++;
                 }
 #else
                 if (key == keyEnter)
@@ -1051,7 +1111,7 @@ void Service::keyPressed(UI_Key key)
                     multiradio_service->stopAle();
 #endif
                 }
-                if (key == keyEnter)
+                if (key == keyEnter /*&& multiradio_service->getAleState() == */)
                 {
 #ifndef _DEBUG_
                     multiradio_service->stopAle();
@@ -1271,25 +1331,25 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::recvCondCmd:
         {
-            if ( menu->rxCondCmdStatus == 1 && (key == keyUp || key == keyDown))
-            {
-                menu->useTicket = menu->useTicket ? false : true;
-            }
+//            if ( menu->rxCondCmdStatus == 1 && (key == keyUp || key == keyDown))
+//            {
+//                menu->useTicket = menu->useTicket ? false : true;
+//            }
 
             if ( key == keyBack)
             {
-                if (menu->rxCondCmdStatus == 2)
-                    menu->rxCondCmdStatus--;
-                else
+//                if (menu->rxCondCmdStatus == 2)
+//                    menu->rxCondCmdStatus--;
+//                else
                     guiTree.backvard();
             }
             if ( key == keyEnter)
             {
-                if (menu->rxCondCmdStatus == 1)
-                {
-                    menu->rxCondCmdStatus++;
-                }
-                else if( menu->rxCondCmdStatus == 2 )
+//                if (menu->rxCondCmdStatus == 1)
+//                {
+//                    menu->rxCondCmdStatus++;
+//                }
+//                else if( menu->rxCondCmdStatus == 2 )
                 {
 #ifdef _DEBUG_
                     guiTree.resetCurrentState();
@@ -1299,10 +1359,10 @@ void Service::keyPressed(UI_Key key)
                     else
                         voice_service->TurnPSWFMode(1,0,0,0);
 #endif
-                    menu->rxCondCmdStatus = 1;
+//                    menu->rxCondCmdStatus = 1;
                 }
-                else
-                {}
+//                else
+//                {}
             }
             break;
         }
@@ -1693,7 +1753,19 @@ void Service::keyPressed(UI_Key key)
             switch ( key )
             {
             case keyEnter:
-            {  }
+            {
+                if (estate.subType == GuiWindowsSubType::setFreq)
+                {
+                    auto iter = estate.listItem.begin();
+                    main_scr->oFreq.clear();
+                    main_scr->oFreq.append( (*iter)->inputStr.c_str() );
+                    int freq = atoi(main_scr->nFreq.c_str());
+                    voice_service->TuneFrequency(freq);
+
+                    guiTree.resetCurrentState();
+                    menu->focus = 0;
+                }
+            }
                 break;
             case keyBack:
             {
@@ -1756,7 +1828,7 @@ void Service::keyPressed(UI_Key key)
         case GuiWindowsSubType::editRnKey:
         {
             // выбрать канал воспроизведения
-            if ( key > 5 && key < 16 && menu->RN_KEY.size() < 2 )
+            if ( key > 5 && key < 16 && menu->RN_KEY.size() < 3 )
             {
                 menu->RN_KEY.push_back((char)(42+key));
                 // check
@@ -1772,7 +1844,7 @@ void Service::keyPressed(UI_Key key)
                 else
                 {
                     uint8_t t; storageFs->getFhssKey(t);
-                    char ch[3]; sprintf(ch, "%d", t); ch[2] = '\0';
+                    char ch[4]; sprintf(ch, "%d", t); ch[3] = '\0';
                     menu->RN_KEY.append(ch);
                     menu->focus = 4;
                     guiTree.backvard();
@@ -1892,13 +1964,13 @@ void Service::drawMainWindow()
 
 
     //main_scr->oFreq.clear();
-    char mas[11];
+//    char mas[11];
 
-#ifdef _DEBUG_
-    sprintf(mas,"%d",1);
-#else
-    sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
-#endif
+//#ifdef _DEBUG_
+//    sprintf(mas,"%d",1);
+//#else
+//    sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
+//#endif
 
     //std::string freq(mas);
     //main_scr->oFreq.append(freq);
@@ -2262,12 +2334,10 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     str.push_back((char)date.time[2]);
     str.push_back((char)date.time[3]);
 
-    str.push_back((char)':');
-    str.push_back((char)date.time[4]);
-    str.push_back((char)date.time[5]);
     qmDebugMessage(QmDebug::Dump, "DATE TIME %s :", str.c_str());
     indicator->date_time->SetText((char *)str.c_str());
-    drawIndicator();
+    if (guiTree.getCurrentState().getType() == GuiWindowTypes::mainWindow)
+        drawIndicator();
     str.clear();
 }
 
