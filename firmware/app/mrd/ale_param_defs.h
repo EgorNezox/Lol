@@ -24,18 +24,18 @@
 #define ALE_TIME_TTuneTx			52
 #define ALE_TIME_TOpenTx			52
 #define ALE_TIME_TTuneRx			107
-#define ALE_TIME_TEthTx				30
-#define ALE_TIME_TEthRx				30
+#define ALE_TIME_TEthTx				132
+#define ALE_TIME_TEthRx				182
 #define ALE_TIME_TRChan				16
 #define ALE_TIME_DTMistiming		((ALE_TIME_TEthTx + ALE_TIME_TRChan + ALE_TIME_TEthRx)/2)
-#define ALE_TIME_THshakeTransMode	(3024 + 102)
-#define ALE_TIME_TRespCallQual		(2128 + 102)
-#define ALE_TIME_THshakeReceiv		(448 + 102)
-#define ALE_TIME_THshakeTrans		(448 + 137)
-#define ALE_TIME_TmsgHeadL			(2576 + 102)
-#define ALE_TIME_TpackHeadL			(2576 + 126)
-#define ALE_TIME_TRespPackQualL		(1792 + 132)
-#define ALE_TIME_TLinkReleaseL		(784 + 102)
+#define ALE_TIME_THshakeTransMode	(3024 + 0)
+#define ALE_TIME_TRespCallQual		(2128 + 0)
+#define ALE_TIME_THshakeReceiv		(448 + 0)
+#define ALE_TIME_THshakeTrans		(448 + 35)
+#define ALE_TIME_TmsgHeadL			(2576 + 0)
+#define ALE_TIME_TpackHeadL			(2576 + 24)
+#define ALE_TIME_TRespPackQualL		(1792 + 30)
+#define ALE_TIME_TLinkReleaseL		(784 + 0)
 #define ALE_TIME_dTInit				100
 
 /* Из перечня вспомогательных констант */
@@ -44,13 +44,13 @@
 
 /* Из таблицы констант, зависящих от режима синхронизации времени */
 #define ALE_TIME_dTSyn			250
-#define ALE_TIME_TCall			(2128 + 112)
+#define ALE_TIME_TCall			(2128 + 10)
 
 /* Из перечня констант для цикла передачи данных сеанса голосовой почты */
 #define ALE_TIME_dTSynPacket(sform)	(((sform) == -1)?(100):(0))
 #define ALE_TIME_THeadL(sform)	(((sform) == -1)?(ALE_TIME_TmsgHeadL):(ALE_TIME_TpackHeadL))
 //																0		1		2		3		4		5		6		7
-#define ALE_TIME_TDataL(sform)	(((sform) == -1)?(0):((int[]){	2640,	3960,	7920,	7920,	7392,	14784,	29568,	59136	}[(sform)] + 1600))
+#define ALE_TIME_TDataL(sform)	(((sform) == -1)?(0):((int[]){	2640,	3960,	7920,	7920,	7392,	14784,	29568,	59136	}[(sform)] + 1600 - 150))
 
 //								   0  1  2  3   4   5    6    7
 #define ALE_VM_SNR_TABLE_VALUES	{ 10, 8, 5, 5, -5, -8, -11, -14 }
