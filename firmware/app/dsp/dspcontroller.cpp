@@ -2421,7 +2421,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
-    comandValue.frequency = 3000000;
+    comandValue.frequency =  freqGucValue;//3000000;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
     sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
     radio_state = radiostateGucTxPrepare;
@@ -2429,6 +2429,11 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     ContentGuc.stage =  GucTx;
 
     command.clear();
+}
+
+
+void DspController::setFreq(int value){
+	 freqGucValue  = value;
 }
 
 void DspController::startGucTransmitting()
@@ -2441,7 +2446,7 @@ void DspController::startGucTransmitting()
     sendCommand(RxRadiopath, RxRadioMode, comandValue);
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
-    comandValue.frequency = 3000000;
+    comandValue.frequency = freqGucValue;//3000000;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
     sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
     radio_state = radiostateGucTxPrepare;
@@ -2516,7 +2521,7 @@ void DspController::startGucRecieving()
     sendCommandEasy(RadioLineNotPswf, 3 ,comandValue); // отключить низкоскоростной модем
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
-    comandValue.frequency = 3000000;
+    comandValue.frequency = freqGucValue;//3000000;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
 
     radio_state = radiostateGucRxPrepare;

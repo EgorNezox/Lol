@@ -146,6 +146,11 @@ void Service::updateMultiradio(Multiradio::MainServiceInterface::Status status)
     drawIndicator();
 }
 
+void Service::setFreqLabelValue(int value)
+{
+	voice_service->saveFreq(value);
+}
+
 void Service::updateBattery(int new_val)
 {
     indicator->UpdateBattery(new_val);
@@ -839,6 +844,7 @@ void Service::keyPressed(UI_Key key)
                         int speed = 0;//atoi(mas[1]);
                         guc_command_vector.clear();
                         parsingGucCommand((uint8_t*)str);
+                        voice_service->saveFreq(getFreq());
                         voice_service->TurnGuc(r_adr,speed,guc_command_vector);
 #else
                         for (auto &k: estate.listItem)

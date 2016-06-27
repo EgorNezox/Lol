@@ -152,6 +152,7 @@ uint8_t* get_guc_vector();
 
     void setSmsRetranslation(uint8_t retr);
     uint8_t getSmsRetranslation();
+    void setFreq(int value);
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -461,6 +462,7 @@ bool modem_rx_on, modem_tx_on;
     bool state_pswf = 0;
 
     bool guc_quit = 0;
+    int freqGucValue = 0;
 
     int wzn_value;
     uint8_t sms_retranslation;

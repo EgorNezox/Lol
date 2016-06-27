@@ -204,6 +204,11 @@ void VoiceServiceInterface::fistPacketRecieve(int packet)
     firstPacket(packet);
 }
 
+void VoiceServiceInterface::saveFreq(int value)
+{
+    dispatcher->dsp_controller->setFreq(value);
+}
+
 void VoiceServiceInterface::responseGuc()
 {
     respGuc();

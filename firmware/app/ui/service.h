@@ -83,6 +83,7 @@ public:
     void setCoordDate(Navigation::Coord_Date);
     void gucFrame();
     void errorMessage();
+    void setFreqLabelValue(int value);
 
 private:
     void msgBox(const char*);

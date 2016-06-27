@@ -43,6 +43,7 @@ public:
     void TurnSMSMode(int r_adr, char *message, uint8_t retr);
     void TurnSMSMode();
     void SmsFailStage(int stage);
+    void saveFreq(int value);
 
     void setRnKey(int value);
 
