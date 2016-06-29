@@ -787,6 +787,7 @@ void MainServiceInterface::aleprocessModemPacketTransmitted(DspController::Modem
 			startVmTx();
 			break;
 		case ALE_TX_VM_TX_PACK_HSHAKE: {
+			dsp_controller->disableModemTransmitter();
 			ale.vm_sform_p = ale.vm_sform_c;
 			AleVmAdaptationType adaptation_required = ale.vm_adaptation;
 			if (adaptation_required == alevmadaptationDown) {
@@ -998,6 +999,7 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 		}
 		case ALE_RX_VM_RX_PACK_HSHAKE: {
 			ale.timerPacketRoffHshakeT->stop();
+			dsp_controller->disableModemReceiver();
 			processPacketReceivedAck();
 			break;
 		}
@@ -1698,6 +1700,7 @@ void MainServiceInterface::processPacketMissedAck() {
 
 void MainServiceInterface::aleprocessRxPacketSync() {
 	qmDebugMessage(QmDebug::Info, "ale vm packet cycle start");
+	dsp_controller->enableModemReceiver();
 	ale.timerPacketRoffHead->start(ale.tPacketSync, TIMER_VALUE_tDataRoffSyncHeadDelay(ale.vm_sform_c));
 	setAlePhase(ALE_RX_VM_RX_PACKET);
 }
