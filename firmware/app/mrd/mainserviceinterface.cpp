@@ -204,15 +204,6 @@ MainServiceInterface::MainServiceInterface(Dispatcher *dispatcher, Navigation::N
 	dsp_controller->startedRxModemPacket_packHead.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessModemPacketStartedRxPackHead));
 	dsp_controller->failedRxModemPacket.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessModemPacketFailedRx));
 
-
-	volatile unsigned int a1 = 123;
-	volatile unsigned int a2 = 123;
-	volatile unsigned int a3 = 123;
-	qmDebugMessage(QmDebug::Info, "t");
-	qmDebugMessage(QmDebug::Info, "ale rejecting unsupported HshakeTransMode (soundType = %u, workMode = %u, paramMode = %u, schedule = %u)", a1, a2, a3);
-	qmDebugMessage(QmDebug::Info, "t");
-
-
 	printDebugAleTimings();
 }
 
