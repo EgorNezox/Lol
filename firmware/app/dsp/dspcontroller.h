@@ -169,7 +169,7 @@ uint8_t* get_guc_vector();
     sigc::signal<void> recievedGucResp;
     sigc::signal<void> pswfQuitRec;
     sigc::signal<void> gucQuitRec;
-
+    sigc::signal<void> recievedGucQuitForTransm;
     float swf_res = 2; // надо изменить значение на нижнее предельное
 
     PackageManager *pack_manager;

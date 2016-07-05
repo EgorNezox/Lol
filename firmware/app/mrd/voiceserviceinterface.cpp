@@ -26,10 +26,15 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     dispatcher->dsp_controller->smsPacketMessage.connect(sigc::mem_fun(this,&VoiceServiceInterface::smsMessage));
     dispatcher->dsp_controller->smsFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::SmsFailStage));
     dispatcher->dsp_controller->recievedGucResp.connect(sigc::mem_fun(this,&VoiceServiceInterface::responseGuc));
+    dispatcher->dsp_controller->recievedGucQuitForTransm.connect(sigc::mem_fun(this,&VoiceServiceInterface::messageGucQuit));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
 {
+}
+
+void VoiceServiceInterface::messageGucQuit(){
+	messageGucTxQuit();
 }
 
 VoiceServiceInterface::ChannelStatus VoiceServiceInterface::getCurrentChannelStatus()

@@ -90,6 +90,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
     voice_service->respGuc.connect(sigc::mem_fun(this,&Service::gucFrame));
     voice_service->errorAsu.connect(sigc::mem_fun(this, &Service::errorMessage));
+    voice_service->messageGucTxQuit.connect(sigc::mem_fun(this, &Service::msgGucTXQuit));
 
 #ifndef PORT__PCSIMULATOR
     systemTimeTimer = new QmTimer(true); //TODO:
@@ -2442,6 +2443,12 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
         if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 2)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 5)))
             drawMenu();
     }
+}
+
+void Service::msgGucTXQuit()
+{
+	 msgBox( "Get GUC", "Get quitation\0");
+	    guiTree.append(messangeWindow, (char*)"Get Guc\0", "QUIT\0");
 }
 
 }/* namespace Ui */

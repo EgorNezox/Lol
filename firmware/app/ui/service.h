@@ -133,6 +133,7 @@ private:
     void draw();
     void drawIndicator();
     void updateSystemTime();
+    void msgGucTXQuit();
 
     void FailedSms(int stage);
 
