@@ -124,7 +124,7 @@ public:
     void startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command);
     void startGucTransmitting();
     void startGucRecieving();
-    void checkGucQuit();
+    void GucSwichRxTxAndViewData();
 
     void *getContentPSWF();
 
