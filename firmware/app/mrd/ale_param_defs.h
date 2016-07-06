@@ -24,8 +24,8 @@
 #define ALE_TIME_TTuneTx			52
 #define ALE_TIME_TOpenTx			52
 #define ALE_TIME_TTuneRx			107
-#define ALE_TIME_TEthTx				132
-#define ALE_TIME_TEthRx				182
+#define ALE_TIME_TEthTx				82
+#define ALE_TIME_TEthRx				82
 #define ALE_TIME_TRChan				16
 #define ALE_TIME_DTMistiming		((ALE_TIME_TEthTx + ALE_TIME_TRChan + ALE_TIME_TEthRx)/2)
 #define ALE_TIME_THshakeTransMode	(3024 + 0)
