@@ -187,8 +187,12 @@ bool Dispatcher::isVoiceChannelTunable() {
 
 void Dispatcher::processDspSetRadioCompletion() {
 	if (main_service->current_status == MainServiceInterface::StatusTuningTx) {
-		if (atu_controller->getMode() != AtuController::modeTuning)
-			atu_controller->tuneTxMode((*voice_channel).frequency);
+		if (atu_controller->getMode() != AtuController::modeTuning) {
+			if (!atu_controller->tuneTxMode((*voice_channel).frequency)) {
+				startVoiceTx();
+				voice_service->setCurrentChannel(VoiceServiceInterface::ChannelActive);
+			}
+		}
 //		else
 //			atu_controller->acknowledgeTxRequest();
 	}
@@ -246,7 +250,7 @@ void Dispatcher::processAtuModeChange(AtuController::Mode new_mode) {
     case AtuController::modeMalfunction:
     {
         voice_service->errorAsu();
-        break;
+        /* no break */
     }
 	default: {
 		if ((main_service->current_status == MainServiceInterface::StatusTuningTx) && !atu_controller->isDeviceOperational()) {
