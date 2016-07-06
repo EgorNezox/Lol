@@ -97,7 +97,7 @@ void CGuiTree::init()
     // 1.4 - √руппа условных команд
     groupCondCommand.prevState = &call;
     groupCondCommand.nextState.push_back(&groupCondCommandSimpl);
-    groupCondCommand.nextState.push_back(&groupCondCommandDupl);
+//    groupCondCommand.nextState.push_back(&groupCondCommandDupl);
     // 1.4.1 - ќдносторонн€€ св€зь
     groupCondCommandSimpl.prevState = &groupCondCommand;
     groupCondCommandSimpl.nextState.push_back(&groupCondCommandSimplGroupCall);

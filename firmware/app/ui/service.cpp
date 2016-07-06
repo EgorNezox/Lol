@@ -349,14 +349,25 @@ void Service::keyPressed(UI_Key key)
             switch(key)
             {
             case keyBack:
-                main_scr->mwFocus = -2;
-                main_scr->setFocus(1-main_scr->mwFocus);
-                main_scr->editing = false;
-                main_scr->setFreq(main_scr->oFreq.c_str());
+                if (main_scr->nFreq.size() > 0)
+                {
+                    main_scr->nFreq.pop_back();
+                    main_scr->setFreq(main_scr->nFreq.c_str());
+                }
+                else
+                {
+                    main_scr->mwFocus = -2;
+                    main_scr->setFocus(1-main_scr->mwFocus);
+                    main_scr->editing = false;
+                    main_scr->setFreq(main_scr->oFreq.c_str());
+                }
                 break;
             case keyEnter:
                 if (main_scr->mwFocus == 0)
                 {
+                    main_scr->mwFocus = -2;
+                    main_scr->setFocus(1-main_scr->mwFocus);
+                    main_scr->editing = false;
                     main_scr->oFreq.clear();
                     main_scr->oFreq.append(main_scr->nFreq.c_str());
                     int freq = atoi(main_scr->nFreq.c_str());
