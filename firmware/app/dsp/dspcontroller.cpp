@@ -429,8 +429,7 @@ void DspController::transmitSMS()
             qmDebugMessage(QmDebug::Dump, "ContentSms.stage = StageTx_call_ack");
             ContentSms.stage = StageTx_call_ack;
             radio_state = radiostateSmsTxRxSwitch;
-            //radio_state = radiostateSmsRxPrepare;
-            //startSMSRecieving(ContentSms.stage);
+            updateSmsStatus(getSmsForUiStage());
             return;
         }
         else
@@ -451,6 +450,7 @@ void DspController::transmitSMS()
             //radio_state = radiostateSmsTxRxSwitch;
             radio_state = radiostateSmsRxPrepare;
             startSMSRecieving(ContentSms.stage);
+            updateSmsStatus(getSmsForUiStage());
             return;
         }
         else
@@ -468,6 +468,7 @@ void DspController::transmitSMS()
     		qmDebugMessage(QmDebug::Dump, "ContentSms.stage = StageTx_quit");
     		ContentSms.stage = StageTx_quit;
     		radio_state = radiostateSmsTxRxSwitch;
+            updateSmsStatus(getSmsForUiStage());
     		QNB = 0;
     	}
     	else
@@ -592,7 +593,6 @@ void DspController::changeSmsRxFrequency()
 	else
 		sendCommand(PSWFReceiver, PswfRxFrequency, param);
 
-	//if (pswf_first_packet_received)
 		recSms();
 }
 
@@ -1459,47 +1459,16 @@ void DspController::sendGuc()
     qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
     tx_data_len += 4;
 
-//            qmToBigEndian((uint8_t)ContentGuc.uin, tx_data + tx_data_len);
-//
-//            Navigation::Coord_Date date = navigator->getCoordDate();
-//
-//            std::string lon((const char*)date.longitude);
-//            std::string lat((const char*)date.latitude);
-//
-//            uint16_t coord[4];
-//            coord[0] = atoi(lon.substr(0,4).c_str());
-//            coord[1] = atoi(lon.substr(0,5).c_str());
-//            coord[2] = atoi(lat.substr(7,4).c_str());
-//            coord[3] = atoi(lat.substr(6,4).c_str());
-//
-//            for(int i = 0;i<4;i++){
-//                qmToBigEndian((uint16_t)(coord[i]), tx_data + tx_data_len);
-//                tx_data_len += 2;
-//            }
-//            uint8_t quadrant = 0;
-//
-//            if ((strstr((const char*)date.longitude[0],"N") !=0) && strstr((const char*)date.latitude[0],"E") !=0)
-//                quadrant = 0;
-//            if ((strstr((const char*)date.longitude[0],"S") !=0) && strstr((const char*)date.latitude[0],"E") !=0)
-//                quadrant = 1;
-//            if ((strstr((const char*)date.longitude,"S") !=0) && strstr((const char*)date.latitude[0],"W") !=0)
-//                quadrant = 2;
-//            if ((strstr((const char*)date.longitude,"N") !=0) && strstr((const char*)date.latitude[0],"W") !=0)
-//                quadrant = 3;
-//
-//            qmToBigEndian((uint8_t)quadrant, tx_data + tx_data_len);
-//            ++tx_data_len;
-//
-//            uint8_t *data_crc;
-//            data_crc = &tx_data[tx_data_len - 9];
-//            uint32_t crc = pack_manager->CRC32(data_crc,9);
-//
-//            qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
-//            tx_data_len+=4;
-
-//   QM_ASSERT(pending_command->in_progress == false);
-//   pending_command->in_progress = true;
-//   pending_command->sync_next = true;
+     if (isGpsGuc)
+     {
+        uint8_t coord[13] = {0,0,0,0,0,0,0,0,0,0,0,0,0};
+        getGpsGucCoordinat(coord);
+        for(int i = 0;i<13;i++)
+        {
+            qmToBigEndian((uint8_t)ContentGuc.command[i], tx_data + tx_data_len);
+            ++tx_data_len;
+        }
+     }
 
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
 }
@@ -1983,6 +1952,7 @@ void DspController::recSms()
                 qmDebugMessage(QmDebug::Dump, "wzn_value" ,wzn_value);
                 startSMSTransmitting(ContentSms.R_ADR, ContentSms.message, StageTx_data);
                 qmDebugMessage(QmDebug::Dump, "start stage Data TX");
+                updateSmsStatus(getSmsForUiStage());
             } else {
                 qmDebugMessage(QmDebug::Dump, "recSms() smsFailed, radio_state = radiostateSync");
                 smsFailed(0);
@@ -2007,6 +1977,7 @@ void DspController::recSms()
             if (quit_vector.size() >= 2) {
             	radio_state = radiostateSync;
                 qmDebugMessage(QmDebug::Dump, "recSms() SMS transmitting successfully finished");
+                 updateSmsStatus(100);
                 if (ok_quit >= 2)
                 {
                 	smsFailed(-1);
@@ -2041,6 +2012,7 @@ void DspController::recSms()
     		sms_call_received = false;
     		qmDebugMessage(QmDebug::Dump, "recSms() sms call received");
     		startSMSCmdTransmitting(StageRx_call_ack);
+            updateSmsStatus(getSmsForUiStage());
     		pswf_first_packet_received = false;
     		counterSms[StageRx_call] = 18;
     	}
@@ -2052,6 +2024,7 @@ void DspController::recSms()
         {
             qmDebugMessage(QmDebug::Dump, "recSms() recievedSmsBuffer.size() =  %d", recievedSmsBuffer.size());
             if (recievedSmsBuffer.size() > 10) { //TODO:
+                updateSmsStatus(getSmsForUiStage());
                 startSMSCmdTransmitting(StageRx_quit);
                 generateSmsReceived(); //TODO:
             } else {
@@ -2132,15 +2105,10 @@ void DspController::generateSmsReceived()
 	{
 		smsFailed(3);
 		ack = 99;
-//		for(int i = 0;i<90;i++) sms_content[i] = (char)packed[i];
-//		sms_content[99] = '\0';
-//		smsPacketMessage();
-
 	}
 	else
 	{
 		ack = 73;
-		//for(int i = 0;i<90;i++) sms_content[i] = (char)packed[i];
 		for(int i = 0; i < 99; i++) sms_content[i] = str[i];
 		sms_content[99] = '\0'; //REVIEW: начиная c sms_content[90] по sms_content[98] будет мусор
         qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
@@ -2366,6 +2334,8 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     smsTxStateSync = 0;
     radio_state = radiostateSmsTxPrepare;
     ContentSms.stage = stage;
+
+    updateSmsStatus(getSmsForUiStage());
 }
 
 void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command)
@@ -2414,7 +2384,29 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
 
 
 void DspController::setFreq(int value){
-	 freqGucValue  = value;
+    freqGucValue  = value;
+}
+
+int DspController::getSmsForUiStage()
+{
+    switch (ContentSms.stage)
+    {
+    case StageNone:
+        return 0;
+    case StageTx_call:
+    case StageRx_call:
+        return 10;
+    case StageRx_call_ack:
+    case StageTx_call_ack:
+        return 25;
+    case StageTx_data:
+    case StageRx_data:
+        return 45;
+    case StageTx_quit:
+    case StageRx_quit:
+        return 90;
+    default: return 0;
+    }
 }
 
 void DspController::startGucTransmitting()
@@ -2476,6 +2468,53 @@ void DspController::sendGucQuit()
     }
 
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
+}
+
+uint8_t *DspController::getGpsGucCoordinat(uint8_t *coord)
+{
+
+    Navigation::Coord_Date date = navigator->getCoordDate();
+    std::string lon((const char*)date.longitude);
+    std::string lat((const char*)date.latitude);
+
+    coord[0] = (uint8_t)atoi(lon.substr(0,2).c_str());
+    coord[1] = (uint8_t)atoi(lon.substr(2,2).c_str());
+    coord[2] = (uint8_t)atoi(lon.substr(5,2).c_str());
+    coord[3] = (uint8_t)atoi(lon.substr(7,2).c_str());
+    coord[4] = (uint8_t)atoi(lat.substr(0,3).c_str());
+    coord[5] = (uint8_t)atoi(lat.substr(3,2).c_str());
+    coord[6] = (uint8_t)atoi(lat.substr(6,2).c_str());
+    coord[7] = (uint8_t)atoi(lat.substr(8,2).c_str());
+
+    if ((strstr((const char*)date.longitude[0],"N") !=0) && strstr((const char*)date.latitude[0],"E") !=0)
+        coord[8] = 0;
+    if ((strstr((const char*)date.longitude[0],"S") !=0) && strstr((const char*)date.latitude[0],"E") !=0)
+        coord[8] = 1;
+    if ((strstr((const char*)date.longitude,"S") !=0) && strstr((const char*)date.latitude[0],"W") !=0)
+        coord[8] = 2;
+    if ((strstr((const char*)date.longitude,"N") !=0) && strstr((const char*)date.latitude[0],"W") !=0)
+        coord[8] = 3;
+
+    uint32_t crc = pack_manager->CRC32(coord,9);
+    for(int i = 0; i<4;i++){coord[i+9] = (uint8_t)((crc >> (8*i)) & 0xFF);}
+    return coord;
+}
+
+uint8_t *DspController::returnGpsCoordinat(uint8_t *data,uint8_t* res,int index)
+{
+    std::string lon1;
+    std::string lat1;
+
+    memcpy(res,&data[index],9);
+    std::string str((const char*)res);
+
+    lon1 = str.substr(0,2).append(",").append(str.substr(2,4));
+    lat1 = str.substr(4,6).append(",").append(str.substr(6,8));
+
+    cordGucValue.lat = lat1;
+    cordGucValue.lon = lon1;
+
+    updateGucGpsStatus(cordGucValue);
 }
 
 void DspController::setSmsRetranslation(uint8_t retr)

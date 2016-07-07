@@ -26,6 +26,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     dispatcher->dsp_controller->smsPacketMessage.connect(sigc::mem_fun(this,&VoiceServiceInterface::smsMessage));
     dispatcher->dsp_controller->smsFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::SmsFailStage));
     dispatcher->dsp_controller->recievedGucResp.connect(sigc::mem_fun(this,&VoiceServiceInterface::responseGuc));
+        dispatcher->dsp_controller->updateSmsStatus.connect(sigc::mem_fun(this,&VoiceServiceInterface::getSmsForUiStage));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
@@ -145,6 +146,11 @@ const char* VoiceServiceInterface::ReturnSwfStatus()
 void VoiceServiceInterface::rerror()
 {
     errorAsu();
+}
+
+void VoiceServiceInterface::getSmsForUiStage(int value)
+{
+    getSmsStageUi(value);
 }
 
 void VoiceServiceInterface::defaultSMSTrans()
