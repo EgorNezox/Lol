@@ -19,43 +19,46 @@
 
 #include "ale_param_defs.h"
 
+static_assert(ALE_TIME_TLinkReleaseL <= ALE_TIME_TRespPackQualL, "");
+static_assert(ALE_TIME_dTCodec >= ALE_TIME_dTCommand, "");
+
 /* Расчет значений временных параметров */
 #define ALE_TIME_Tdwell0 (ALE_TIME_tTxCall_offset + ALE_TIME_tRoffCall_offset + TIMER_VALUE_tCallToffHshakeT_offset + ALE_TIME_dTSyn)
 #define ALE_TIME_Tdwell ((unsigned int)(ceilf((float)(ALE_TIME_Tdwell0)/1000)*1000))
 #define ALE_TIME_dTDwellLeft ((unsigned int)(ceilf((float)(ALE_TIME_Tdwell - ALE_TIME_Tdwell0)/2)))
 #define ALE_TIME_tTxCall_offset (ALE_TIME_TEthRx + ALE_TIME_TTuneRx + ALE_TIME_TEthTx + ALE_TIME_TTuneTx + ALE_TIME_TEthTx + ALE_TIME_TOpenTx + ALE_TIME_dTSyn)
 #define TIMER_VALUE_tTxCall (ALE_TIME_dTDwellLeft + ALE_TIME_tTxCall_offset)
-#define ALE_TIME_tRoffCall_offset (ALE_TIME_TEthTx + ALE_TIME_TCall + ALE_TIME_TRChan + ALE_TIME_TEthRx)
+#define ALE_TIME_tRoffCall_offset (ALE_TIME_TEthTx + ALE_TIME_TCall + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_dTCommand)
 #define TIMER_VALUE_tRoffSyncCall (TIMER_VALUE_tTxCall + ALE_TIME_tRoffCall_offset)
 #define TIMER_VALUE_tCallRonHshakeR_offset (ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
 #define TIMER_VALUE_tCallTxHshakeR_offset (TIMER_VALUE_tCallRonHshakeR_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
-#define TIMER_VALUE_tCallRoffHshakeR_offset (TIMER_VALUE_tCallTxHshakeR_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeReceiv + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tCallRoffHshakeR_offset (TIMER_VALUE_tCallTxHshakeR_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeReceiv + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_dTCommand + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tCallRonHshakeT_offset (TIMER_VALUE_tCallRoffHshakeR_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
 #define TIMER_VALUE_tCallTxHshakeT_offset (TIMER_VALUE_tCallRonHshakeT_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
-#define TIMER_VALUE_tCallRoffHshakeT_offset (TIMER_VALUE_tCallTxHshakeT_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tCallRoffHshakeT_offset (TIMER_VALUE_tCallTxHshakeT_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_dTCommand + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tCallToffHshakeT_offset (TIMER_VALUE_tCallRoffHshakeT_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
 #define TIMER_VALUE_tNegTxRespCallQual_offset (ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
-#define TIMER_VALUE_tNegRoffRespCallQual_offset (TIMER_VALUE_tNegTxRespCallQual_offset + ALE_TIME_TEthTx + ALE_TIME_TRespCallQual + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tNegRoffRespCallQual_offset (TIMER_VALUE_tNegTxRespCallQual_offset + ALE_TIME_TEthTx + ALE_TIME_TRespCallQual + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_dTCommand + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tNegRonHshakeTransMode_offset (TIMER_VALUE_tNegRoffRespCallQual_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
 #define TIMER_VALUE_tNegTxHshakeTransMode_offset (TIMER_VALUE_tNegRonHshakeTransMode_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
-#define TIMER_VALUE_tNegRoffHshakeTransMode_offset (TIMER_VALUE_tNegTxHshakeTransMode_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeTransMode + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tNegRoffHshakeTransMode_offset (TIMER_VALUE_tNegTxHshakeTransMode_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeTransMode + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_dTCommand + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tNegRonHshakeReceiv_offset (TIMER_VALUE_tNegRoffHshakeTransMode_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
 #define TIMER_VALUE_tNegTxHshakeReceiv_offset (TIMER_VALUE_tNegRonHshakeReceiv_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
-#define TIMER_VALUE_tNegRoffHshakeReceiv_offset (TIMER_VALUE_tNegTxHshakeReceiv_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeReceiv + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tNegRoffHshakeReceiv_offset (TIMER_VALUE_tNegTxHshakeReceiv_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeReceiv + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_dTCommand + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tNegRonHshakeTrans_offset (TIMER_VALUE_tNegRoffHshakeReceiv_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
 #define TIMER_VALUE_tNegTxHshakeTrans_offset (TIMER_VALUE_tNegRonHshakeTrans_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
-#define TIMER_VALUE_tNegRoffHshakeTrans_offset (TIMER_VALUE_tNegTxHshakeTrans_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tNegRoffHshakeTrans_offset (TIMER_VALUE_tNegTxHshakeTrans_offset + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_dTCommand + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tNegCycle (TIMER_VALUE_tNegRoffHshakeTrans_offset + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
 #define TIMER_VALUE_tNegStart(n) (TIMER_VALUE_tCallToffHshakeT_offset + (n)*TIMER_VALUE_tNegCycle)
 #define TIMER_VALUE_tDataStart_offset(n) (TIMER_VALUE_tNegStart(n+1) + ALE_TIME_dTInit)
 #define TIMER_VALUE_tDataTxHeadDelay(sform) (ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming + ALE_TIME_dTSynPacket(sform))
-#define TIMER_VALUE_tDataRoffSyncHeadDelay(sform) (TIMER_VALUE_tDataTxHeadDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_THeadL(sform) + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
-#define TIMER_VALUE_tDataRonRespPackQualDelay(sform) (TIMER_VALUE_tDataRoffSyncHeadDelay(sform) + ALE_TIME_TDataL(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
+#define TIMER_VALUE_tDataRoffSyncHeadDelay(sform) (TIMER_VALUE_tDataTxHeadDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_THeadL(sform) + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_dTCommand + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tDataRonRespPackQualDelay(sform) (TIMER_VALUE_tDataRoffSyncHeadDelay(sform) + ALE_TIME_TDataL(sform) + (((sform) == -1)?(0):(ALE_TIME_dTCodec - ALE_TIME_dTCommand)) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
 #define TIMER_VALUE_tDataTxRespPackQualDelay(sform) (TIMER_VALUE_tDataRonRespPackQualDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
-#define TIMER_VALUE_tDataRoffRespPackQualDelay(sform) (TIMER_VALUE_tDataTxRespPackQualDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_TRespPackQualL + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tDataRoffRespPackQualDelay(sform) (TIMER_VALUE_tDataTxRespPackQualDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_TRespPackQualL + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_dTCommand + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tDataRonHshakeTDelay(sform) (TIMER_VALUE_tDataRoffRespPackQualDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX)
 #define TIMER_VALUE_tDataTxHshakeTDelay(sform) (TIMER_VALUE_tDataRonHshakeTDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
-#define TIMER_VALUE_tDataRoffHshakeTDelay(sform) (TIMER_VALUE_tDataTxHshakeTDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_DTMistiming)
+#define TIMER_VALUE_tDataRoffHshakeTDelay(sform) (TIMER_VALUE_tDataTxHshakeTDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_dTCommand + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tDataCycle(sform) (TIMER_VALUE_tDataRoffHshakeTDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_dTSynPacket(sform))
 
 struct call_packet_t {
@@ -231,15 +234,11 @@ void MainServiceInterface::printDebugAleTimings() {
 	qmDebugMessage(QmDebug::Dump, " TEthRx = %u", ALE_TIME_TEthRx);
 	qmDebugMessage(QmDebug::Dump, " TRChan = %u", ALE_TIME_TRChan);
 	qmDebugMessage(QmDebug::Dump, " DTMistiming = %u", ALE_TIME_DTMistiming);
+	qmDebugMessage(QmDebug::Dump, " dTCommand = %u", ALE_TIME_dTCommand);
 	qmDebugMessage(QmDebug::Dump, " THshakeTransMode = %u", ALE_TIME_THshakeTransMode);
 	qmDebugMessage(QmDebug::Dump, " TRespCallQual = %u", ALE_TIME_TRespCallQual);
 	qmDebugMessage(QmDebug::Dump, " THshakeReceiv = %u", ALE_TIME_THshakeReceiv);
 	qmDebugMessage(QmDebug::Dump, " THshakeTrans = %u", ALE_TIME_THshakeTrans);
-	qmDebugMessage(QmDebug::Dump, " TmsgHeadL = %u", ALE_TIME_TmsgHeadL);
-	qmDebugMessage(QmDebug::Dump, " TpackHeadL = %u", ALE_TIME_TpackHeadL);
-	qmDebugMessage(QmDebug::Dump, " TRespPackQualL = %u", ALE_TIME_TRespPackQualL);
-	qmDebugMessage(QmDebug::Dump, " TLinkReleaseL = %u", ALE_TIME_TLinkReleaseL);
-	qmDebugMessage(QmDebug::Dump, " dTInit = %u", ALE_TIME_dTInit);
 	qmDebugMessage(QmDebug::Dump, "ALE Session timings (aux constants):");
 	qmDebugMessage(QmDebug::Dump, " TMaxEthX = %u", ALE_TIME_TMaxEthX);
 	qmDebugMessage(QmDebug::Dump, " TMaxOpenTuneX = %u", ALE_TIME_TMaxOpenTuneX);
@@ -249,6 +248,12 @@ void MainServiceInterface::printDebugAleTimings() {
 	qmDebugMessage(QmDebug::Dump, " dTDwellLeft = %u", ALE_TIME_dTDwellLeft);
 	qmDebugMessage(QmDebug::Dump, " TCall = %u", ALE_TIME_TCall);
 	qmDebugMessage(QmDebug::Dump, "ALE Session timings (VM packet constants):");
+	qmDebugMessage(QmDebug::Dump, " TmsgHeadL = %u", ALE_TIME_TmsgHeadL);
+	qmDebugMessage(QmDebug::Dump, " TpackHeadL = %u", ALE_TIME_TpackHeadL);
+	qmDebugMessage(QmDebug::Dump, " TRespPackQualL = %u", ALE_TIME_TRespPackQualL);
+	qmDebugMessage(QmDebug::Dump, " TLinkReleaseL = %u", ALE_TIME_TLinkReleaseL);
+	qmDebugMessage(QmDebug::Dump, " dTInit = %u", ALE_TIME_dTInit);
+	qmDebugMessage(QmDebug::Dump, " dTCodec = %u", ALE_TIME_dTCodec);
 	qmDebugMessage(QmDebug::Dump, " dTSynPacket = %u/%u", ALE_TIME_dTSynPacket(-1), ALE_TIME_dTSynPacket(0));
 	qmDebugMessage(QmDebug::Dump, " THeadL = %u/%u", ALE_TIME_THeadL(-1), ALE_TIME_THeadL(0));
 #ifndef ALE_OPTION_DISABLE_ADAPTATION
