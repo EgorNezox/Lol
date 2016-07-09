@@ -174,10 +174,9 @@ uint8_t* get_guc_vector();
     sigc::signal<void> recievedGucResp;
     sigc::signal<void> pswfQuitRec;
     sigc::signal<void> gucQuitRec;
-    sigc::signal<void,int> updateSmsStatus;
-    sigc::signal<void,CoordGuc> updateGucGpsStatus;
-
-    float swf_res = 2; // надо изменить значение на нижнее предельное
+    sigc::signal<void> recievedGucQuitForTransm;
+sigc::signal<void,int> updateSmsStatus;
+    sigc::signal<void,CoordGuc> updateGucGpsStatus;    float swf_res = 2; // надо изменить значение на нижнее предельное
 
     PackageManager *pack_manager;
 

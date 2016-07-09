@@ -1476,12 +1476,14 @@ void DspController::sendGuc()
 void DspController::recGuc()
 {
 	srand(time(0));
-    if (ContentGuc.stage == GucTxQuit){
+    if (ContentGuc.stage == GucTx){
+    	ContentGuc.stage = GucTxQuit;
         startGucRecieving();
         guc_timer->setInterval(GUC_TIMER_INTERVAL_REC);
         guc_timer->start();
     }
-    if (ContentGuc.stage == GucRxQuit){
+    if (ContentGuc.stage == GucRx){
+    	ContentGuc.stage = GucRxQuit;
         startGucTransmitting();
         guc_timer->start();
     }
@@ -1714,6 +1716,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     }
     case 0x7B:{
         if (indicator == 22) {
+        	if (ContentGuc.stage != GucNone)
             recGuc();
         }
         break;
@@ -1727,15 +1730,18 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         	}
             if (indicator == 30) {
             	ContentGuc.R_ADR = ((data[2] & 0xF0) << 2) + (data[3] & 0x3F);
-            	qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
-                std::vector<uint8_t> guc;
-                for(int i = 0;i<data_len;i++){
-                    qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , num %d", data[i],i);
-                    guc.push_back(data[i]); // по N едениц данных
-                }
-                if (guc_vector.size() < 50)     guc_vector.push_back(guc);
-                if (ContentGuc.stage != GucTxQuit) ContentGuc.stage = GucRxQuit;
-				recGuc();
+
+            	if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(); ContentGuc.stage = GucNone;}
+            	else{
+            		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
+            		std::vector<uint8_t> guc;
+            		for(int i = 0;i<data_len;i++){
+            			qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , num %d", data[i],i);
+            			guc.push_back(data[i]); // по N едениц данных
+            		}
+            		if (guc_vector.size() < 50)     guc_vector.push_back(guc);
+            		recGuc();
+            	}
             }
         }
         break;
@@ -2424,7 +2430,10 @@ void DspController::startGucTransmitting()
     sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
     radio_state = radiostateGucTxPrepare;
     gucTxStateSync = 0;
-    ContentGuc.stage =  GucRxQuit;
+    if (ContentGuc.stage == GucRxQuit)
+    	ContentGuc.stage = GucNone;
+    else
+    	ContentGuc.stage =  GucRxQuit;
 }
 
 void DspController::sendGucQuit()
@@ -2548,6 +2557,7 @@ void DspController::startGucRecieving()
     gucRxStateSync = 0;
     if (ContentGuc.stage != GucTxQuit)
     	ContentGuc.stage =  GucRx;
+//    else ContentGuc.stage = GucNone;
 }
 
 void DspController::GucSwichRxTxAndViewData()
@@ -2773,5 +2783,5 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"

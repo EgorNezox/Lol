@@ -55,8 +55,8 @@ public:
 
     void defaultSMSTrans();
     void rerror();
-    void getSmsForUiStage(int value);
-
+    void messageGucQuit();
+	void getSmsForUiStage(int value);
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
     sigc::signal<void,int> firstPacket;
@@ -64,7 +64,8 @@ public:
     sigc::signal<void> smsMess;
     sigc::signal<void> respGuc;
     sigc::signal<void> errorAsu;
-    sigc::signal<void,int> getSmsStageUi;
+	sigc::signal<void,int> getSmsStageUi;
+    sigc::signal<void> messageGucTxQuit;
 
 private:
 	friend class Dispatcher;
