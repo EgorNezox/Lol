@@ -23,7 +23,7 @@ public:
 
     void to_Koi7(uint8_t *message);
     void to_Win1251(uint8_t *message);
-
+    void shiftMasTo7Bit(uint8_t *input, uint8_t *output,  int out_shift, int len);
 
 private:
     const unsigned int CRC_POLY1 = 0xEDB88320;

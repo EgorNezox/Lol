@@ -175,8 +175,9 @@ uint8_t* get_guc_vector();
     sigc::signal<void> pswfQuitRec;
     sigc::signal<void> gucQuitRec;
     sigc::signal<void> recievedGucQuitForTransm;
-sigc::signal<void,int> updateSmsStatus;
+    sigc::signal<void,int> updateSmsStatus;
     sigc::signal<void,CoordGuc> updateGucGpsStatus;    float swf_res = 2; // надо изменить значение на нижнее предельное
+
 
     PackageManager *pack_manager;
 
@@ -308,7 +309,7 @@ private:
         uint8_t uin;
         uint8_t Coord;
         uint8_t stage;
-        uint8_t command[100];
+        uint8_t command[120];
 
     } ContentGuc;
 
@@ -432,11 +433,8 @@ private:
     bool pswf_first_packet_received;
     bool pswf_ack;
 
-    char rec_sms[37];//REVIEW: unused
     int date_time[4];
     char private_lcode;
-
-
     int pswf_retranslator = 0;
 
     std::vector< std::vector<char> > recievedPswfBuffer;
@@ -478,6 +476,8 @@ bool modem_rx_on, modem_tx_on;
     bool sms_call_received;
 
     bool isGpsGuc = false;
+
+    uint8_t guc_coord[9];
 };
 
 
