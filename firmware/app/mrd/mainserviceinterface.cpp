@@ -26,7 +26,7 @@ static_assert(ALE_TIME_dTCodec >= ALE_TIME_dTCommand, "");
 #define ALE_TIME_Tdwell0 (ALE_TIME_tTxCall_offset + ALE_TIME_tRoffCall_offset + TIMER_VALUE_tCallToffHshakeT_offset + ALE_TIME_dTSyn)
 #define ALE_TIME_Tdwell ((unsigned int)(ceilf((float)(ALE_TIME_Tdwell0)/1000)*1000))
 #define ALE_TIME_dTDwellLeft ((unsigned int)(ceilf((float)(ALE_TIME_Tdwell - ALE_TIME_Tdwell0)/2)))
-#define ALE_TIME_tTxCall_offset (ALE_TIME_TEthRx + ALE_TIME_TTuneRx + ALE_TIME_TEthTx + ALE_TIME_TTuneTx + ALE_TIME_TEthTx + ALE_TIME_TOpenTx + ALE_TIME_dTSyn)
+#define ALE_TIME_tTxCall_offset (ALE_TIME_TEthRx + ALE_TIME_TTuneRx + ALE_TIME_TEthTx + ALE_TIME_TTuneTx + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_dTSyn)
 #define TIMER_VALUE_tTxCall (ALE_TIME_dTDwellLeft + ALE_TIME_tTxCall_offset)
 #define ALE_TIME_tRoffCall_offset (ALE_TIME_TEthTx + ALE_TIME_TCall + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_dTCommand)
 #define TIMER_VALUE_tRoffSyncCall (TIMER_VALUE_tTxCall + ALE_TIME_tRoffCall_offset)
