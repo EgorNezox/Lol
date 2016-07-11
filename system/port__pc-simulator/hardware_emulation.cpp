@@ -11,6 +11,7 @@
 
 #include "hardware_emulation.h"
 #include "../platform_hw_map.h"
+#include "../init.h"
 #include "mainwidget.h"
 #include "dsp/dspdevice.h"
 #include "atu/atudevice.h"
@@ -63,3 +64,5 @@ void show_message(const char* text) {
 }
 
 } /* namespace QtHwEmu */
+
+void target_device_multiradio_init(void) {}

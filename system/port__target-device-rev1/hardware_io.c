@@ -14,6 +14,7 @@
 
 #include "system_hw_io.h"
 #include "../platform_hw_map.h"
+#include "../init.h"
 #include "hal_gpio.h"
 #include "hal_timer.h"
 #include "hal_i2c.h"
@@ -285,7 +286,9 @@ void stm32f2_hardware_io_init(void)
 	stm32f2_ext_pins_init(platformhwBatterySmbusI2c);
 	hal_i2c_set_bus_mode(stm32f2_get_i2c_bus_instance(platformhwBatterySmbusI2c), hi2cModeSMBus);
 	stm32f2_ext_pins_init(platformhwDataFlashSpi);
+}
 
+void target_device_multiradio_init(void) {
 	init_stm32f2cube_hal();
 	tune_frequency_generator();
 	init_sky72310();
