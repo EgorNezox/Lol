@@ -1420,6 +1420,8 @@ void DspController::sendGuc()
     qmToBigEndian((uint8_t)ContentGuc.type, tx_data + tx_data_len);
     ++tx_data_len;
 
+    isGpsGuc  = 1; // для тестирования
+
     ContentGuc.Coord = (isGpsGuc == true) ? 1 : 0;
 
     // заполнение чвс для основных данных пакета
@@ -2503,27 +2505,29 @@ void DspController::sendGucQuit()
 uint8_t *DspController::getGpsGucCoordinat(uint8_t *coord)
 {
 
-    Navigation::Coord_Date date = navigator->getCoordDate();
-    std::string lon((const char*)date.longitude);
-    std::string lat((const char*)date.latitude);
+//    Navigation::Coord_Date date = navigator->getCoordDate();
+//    std::string lon((const char*)date.longitude);
+//    std::string lat((const char*)date.latitude);
+//
+//    coord[0] = (uint8_t)atoi(lat.substr(0,2).c_str());
+//    coord[1] = (uint8_t)atoi(lat.substr(2,2).c_str());
+//    coord[2] = (uint8_t)atoi(lat.substr(5,2).c_str());
+//    coord[3] = (uint8_t)atoi(lat.substr(7,2).c_str());
+//    coord[4] = (uint8_t)atoi(lon.substr(0,3).c_str());
+//    coord[5] = (uint8_t)atoi(lon.substr(3,2).c_str());
+//    coord[6] = (uint8_t)atoi(lon.substr(6,2).c_str());
+//    coord[7] = (uint8_t)atoi(lon.substr(8,2).c_str());
+//
+//    if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"E") !=0)
+//        coord[8] = 0;
+//    if ((strstr((const char*)date.latitude,"S") !=0) && strstr((const char*)date.longitude,"E") !=0)
+//        coord[8] = 1;
+//    if ((strstr((const char*)date.latitude,"S") !=0) && strstr((const char*)date.longitude,"W") !=0)
+//        coord[8] = 2;
+//    if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"W") !=0)
+//        coord[8] = 3;
 
-    coord[0] = (uint8_t)atoi(lat.substr(0,2).c_str());
-    coord[1] = (uint8_t)atoi(lat.substr(2,2).c_str());
-    coord[2] = (uint8_t)atoi(lat.substr(5,2).c_str());
-    coord[3] = (uint8_t)atoi(lat.substr(7,2).c_str());
-    coord[4] = (uint8_t)atoi(lon.substr(0,3).c_str());
-    coord[5] = (uint8_t)atoi(lon.substr(3,2).c_str());
-    coord[6] = (uint8_t)atoi(lon.substr(6,2).c_str());
-    coord[7] = (uint8_t)atoi(lon.substr(8,2).c_str());
-
-    if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"E") !=0)
-        coord[8] = 0;
-    if ((strstr((const char*)date.latitude,"S") !=0) && strstr((const char*)date.longitude,"E") !=0)
-        coord[8] = 1;
-    if ((strstr((const char*)date.latitude,"S") !=0) && strstr((const char*)date.longitude,"W") !=0)
-        coord[8] = 2;
-    if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"W") !=0)
-        coord[8] = 3;
+	for(int i = 0; i< 9;i++) coord[i] = 1;
 
     return coord;
 }
@@ -2598,103 +2602,84 @@ void DspController::GucSwichRxTxAndViewData()
 
 uint8_t* DspController::get_guc_vector()
 {
-    int num = (guc_vector.at(0).at(3) & 0x3f) << 1;
-    num +=    (guc_vector.at(0).at(4) & 0x80) >> 7;
+	int num = (guc_vector.at(0).at(3) & 0x3f) << 1;
+	num +=    (guc_vector.at(0).at(4) & 0x80) >> 7;
 
-    // получение количества элементов в векторе
-    guc_text[0] = num;
-
-    if (isGpsGuc){
-        for (int i = num; i< num + 9;i++){
-            guc_coord[i] = guc_vector.at(0).at(7+i);
-        }
-    }
+	//получение количества элементов в векторе
+	guc_text[0] = num;
 
 
-    // заполнение в тексте
-    for(int i = 0; i<num;i++){
-        guc_text[i+1] = guc_vector.at(0).at(7+i);
-    }
-
-    uint8_t out[120];
-    for(int i = 0; i<120;i++) out[i] = 0;
-
-    // заполнение расчетного массива для crc32
-    for(int i = 0;  i< num;i++)
-    {
-        int sdvig  = (i+1) % 8;
-        if (sdvig != 0)
-            out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
-        else
-            out[i] = guc_text[i+1];
-    }
-
-    // если присутствуют координаты, выбираем 9 байт координат и добавляем к out массиву для рассчета crc32
-    // TODO: необходимо  вынести в функцию данный сдвиговый алгоритм - shiftMasTo7Bit (реализовал в packagemanager)
-    if (isGpsGuc)
-    {
-        for(int i = 0; i< 9;i++)
-        {
-            int sdvig  = (i+1) % 8;
-            if (sdvig != 0)
-                out[i+num] = (guc_coord[i] << sdvig) + (guc_coord[i+1] >> (7 -  sdvig));
-            else
-                out[i+num] = guc_coord[i];
-        }
-    }
-
-    // достаем crc32 сумму из конца пакета
-    int m = 3;
-    uint32_t crc_packet = 0;
-    int l = 0;
-    while(m >=0){
-        uint8_t sum = guc_vector.at(0).at(guc_vector.at(0).size() - 1 - m);
-        crc_packet += sum << (8*m);
-        l++;
-        m--;
-    }
-
-    // update: а не убрать ли это?
-    int count = 0;
-    if (isGpsGuc == 0)
-    {
-        if (num <= 5) count = 5;
-        if ((num > 5) && (num <= 11))   count = 11;
-        if ((num > 11) && (num <= 25))  count = 25;
-        if ((num > 25) && (num <= 100)) count = 100;
-    }
-    else
-    {
-        if (num <= 6) count = 6;
-        if ((num > 10) && (num <= 10))   count = 10;
-        if ((num > 10) && (num <= 26))  count = 26;
-        if ((num > 26) && (num <= 100)) count = 100;
-    }
-    // считаем crc32 сумму
-
-    if (isGpsGuc) count += 9;
-
-    uint32_t crc = 0;
-    crc = pack_manager->CRC32(out,count);
-
-    if (isGpsGuc)
-    {
-        //произвести работу с guc_coord
-        uint8_t res[9];
-        returnGpsCoordinat(guc_coord,res,0);
-    }
-
-    if (crc != crc_packet) //TODO: crc check pro
-    {
-        qmDebugMessage(QmDebug::Dump, "Crc failded for guc vector %i, %i", crc_packet);
-    }
+	// update: а не убрать ли это?
+	int count = 0;
+	if (isGpsGuc == 0)
+	{
+		if (num <= 5) count = 5;
+		if ((num > 5) && (num <= 11))   count = 11;
+		if ((num > 11) && (num <= 25))  count = 25;
+		if ((num > 25) && (num <= 100)) count = 100;
+	}
+	else
+	{
+		if (num <= 6) count = 6;
+		if ((num > 10) && (num <= 10))   count = 10;
+		if ((num > 10) && (num <= 26))  count = 26;
+		if ((num > 26) && (num <= 100)) count = 100;
+	}
 
 
+	// заполнение в тексте
+	for(int i = 0; i<num;i++){
+		guc_text[i+1] = guc_vector.at(0).at(7+i);
+	}
 
+	if (isGpsGuc){
+		for (int i = count; i< count + 9;i++){
+			guc_text[i+1] = guc_vector.at(0).at(7+i);
+		}
+	}
 
-    guc_vector.clear();
+	uint8_t out[120];
+	for(int i = 0; i<120;i++) out[i] = 0;
 
-    return guc_text;
+	// заполнение расчетного массива для crc32
+	if (isGpsGuc) count += 9;
+
+	for(int i = 0;  i< count;i++)
+	{
+		int sdvig  = (i+1) % 8;
+		if (sdvig != 0)
+			out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
+		else
+			out[i] = guc_text[i+1];
+	}
+
+	// достаем crc32 сумму из конца пакета
+	int m = 3;
+	uint32_t crc_packet = 0;
+	int l = 0;
+	while(m >=0){
+		uint8_t sum = guc_vector.at(0).at(guc_vector.at(0).size() - 1 - m);
+		crc_packet += sum << (8*m);
+		l++;
+		m--;
+	}
+
+	// считаем crc32 сумму
+	uint32_t crc = 0;
+	crc = pack_manager->CRC32(out,count);
+
+	if (isGpsGuc) {
+		uint8_t res[9];
+		//returnGpsCoordinat(guc_coord,res,0);
+	}
+
+	if (crc != crc_packet) //TODO: crc check pro
+	{
+		qmDebugMessage(QmDebug::Dump, "Crc failded for guc vector %i", crc_packet);
+	}
+	guc_vector.clear();
+
+	return guc_text;
 }
 
 

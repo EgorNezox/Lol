@@ -2447,7 +2447,7 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
 
 void Service::msgGucTXQuit()
 {
-	 msgBox( "Get GUC", "Get quitation\0");
+	 msgBox( "Get GUC", "Получена квитанция\0");
 	    guiTree.append(messangeWindow, (char*)"Get Guc\0", "QUIT\0");
 }
 

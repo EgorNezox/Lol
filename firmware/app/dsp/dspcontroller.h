@@ -452,7 +452,7 @@ private:
 
     int cntChvc = 7;
 
-    uint8_t guc_text[100];
+    uint8_t guc_text[120];
     uint8_t rec_uin_guc;
     uint8_t rec_s_adr;
     int guc_tx_num;
