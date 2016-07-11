@@ -921,6 +921,7 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 			qmDebugMessage(QmDebug::Info, "ale received unexpected modempacket_LinkRelease");
 			break;
 		}
+		ale.timerPacketRoffRespPackQual->stop();
 		ale.timerTxPacketTxLinkRelease->start(ale.tPacketSync, TIMER_VALUE_tDataTxHshakeTDelay(ale.vm_sform_c));
 		dsp_controller->enableModemTransmitter();
 		setAlePhase(ALE_TX_VM_TX_LINK_RELEASE);
