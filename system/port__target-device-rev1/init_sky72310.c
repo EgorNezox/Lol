@@ -41,6 +41,7 @@ static void write_reg(uint8_t address, uint16_t value) {
 
 void init_sky72310(void) {
 	SpiHandle.Instance               = SPIx;
+	SpiHandle.State = HAL_SPI_STATE_RESET;
 	SpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
 	SpiHandle.Init.Direction         = SPI_DIRECTION_2LINES;
 	SpiHandle.Init.CLKPhase          = SPI_PHASE_1EDGE;

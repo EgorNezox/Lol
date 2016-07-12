@@ -482,10 +482,8 @@ void HAL_IncTick(void);
 void xPortSysTickHandler( void )
 {
 #ifdef PORT__TARGET_DEVICE_REV1
-	if (stm32f2cube_hal_active) {
+	if (stm32f2cube_hal_active)
 		HAL_IncTick();
-		return;
-	}
 #endif
 	/* The SysTick runs at the lowest interrupt priority, so when this interrupt
 	executes all interrupts must be unmasked.  There is therefore no need to
