@@ -2527,8 +2527,8 @@ uint8_t *DspController::getGpsGucCoordinat(uint8_t *coord)
 //    if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"W") !=0)
 //        coord[8] = 3;
 
-	for(int i = 0; i< 9;i++) coord[i] = 1;
-
+	for(int i = 0; i< 9;i++) coord[i] = i+1;
+	coord[8] = 0xc0;
     return coord;
 }
 
@@ -2635,8 +2635,10 @@ uint8_t* DspController::get_guc_vector()
 	if (isGpsGuc){
 		for (int i = count; i< count + 9;i++){
 			guc_text[i+1] = guc_vector.at(0).at(7+i);
+			if (i  == (count + 8)) guc_text[i+1] = guc_text[i+1] & 0xC0;
 		}
 	}
+
 
 	uint8_t out[120];
 	for(int i = 0; i<120;i++) out[i] = 0;
