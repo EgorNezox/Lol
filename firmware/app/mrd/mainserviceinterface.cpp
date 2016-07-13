@@ -782,6 +782,18 @@ void MainServiceInterface::aleprocessModemPacketTransmitted(DspController::Modem
 			stopAleTxTimers();
 			startVmTx();
 			break;
+		case ALE_TX_VM_TX_MSG_HSHAKE:
+			dsp_controller->disableModemTransmitter();
+			stopVmMsgTxTimers();
+			ale.tPacketSync.shift(ale.vm_msg_cycle*TIMER_VALUE_tDataCycle(-1));
+			ale.vm_sform_c = ALE_VM_INITIAL_SFORM;
+			ale.vm_sform_p = ale.vm_sform_c;
+			ale.vm_f_idx = 0;
+			ale.rcount = 0;
+			ale.vm_ack_count = 0;
+			ale.vm_nack_count = 0;
+			aleprocessTxPacketSync();
+			break;
 		case ALE_TX_VM_TX_PACK_HSHAKE: {
 			dsp_controller->disableModemTransmitter();
 			ale.vm_sform_p = ale.vm_sform_c;
@@ -990,8 +1002,10 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 			break;
 		}
 		case ALE_RX_VM_RX_MSG_HSHAKE: {
-			ale.timerMsgRoffHshakeT[ale.vm_msg_cycle-1]->stop();
 			dsp_controller->disableModemReceiver();
+			setPacketRxPhase();
+			ale.timerPacketRoffHead->start(ale.tPacketSync, TIMER_VALUE_tDataRoffSyncHeadDelay(ale.vm_sform_c));
+			dsp_controller->enableModemReceiver();
 			break;
 		}
 		case ALE_RX_VM_RX_PACK_HSHAKE: {
@@ -1311,6 +1325,10 @@ void MainServiceInterface::aleprocessTimerMsgRoffRespPackQualExpired() {
 	qmDebugMessage(QmDebug::Info, "ale rx RespPackQual timeout");
 	dsp_controller->disableModemReceiver();
 	ale.timerMsgTxHshakeT[ale.vm_msg_cycle-1]->stop();
+	if (ale.vm_msg_cycle >= 3) {
+		setAleState(AleState_TX_VM_FAIL);
+		stopAleSession();
+	}
 }
 
 void MainServiceInterface::aleprocessTimerMsgTxHshakeTExpired() {
@@ -1319,26 +1337,9 @@ void MainServiceInterface::aleprocessTimerMsgTxHshakeTExpired() {
 
 void MainServiceInterface::aleprocessTimerTxMsgCycleExpired() {
 	qmDebugMessage(QmDebug::Info, "ale vm msg cycle start");
-	if (ale.phase != ALE_TX_VM_TX_MSG_HSHAKE) {
-		if (ale.vm_msg_cycle < 3) {
-			ale.vm_msg_cycle++;
-			setAlePhase(ALE_TX_VM_TX_MSGHEAD);
-			dsp_controller->enableModemTransmitter();
-		} else {
-			setAleState(AleState_TX_VM_FAIL);
-			stopAleSession();
-		}
-	} else {
-		stopVmMsgTxTimers();
-		ale.tPacketSync.shift(ale.vm_msg_cycle*TIMER_VALUE_tDataCycle(-1));
-		ale.vm_sform_c = ALE_VM_INITIAL_SFORM;
-		ale.vm_sform_p = ale.vm_sform_c;
-		ale.vm_f_idx = 0;
-		ale.rcount = 0;
-		ale.vm_ack_count = 0;
-		ale.vm_nack_count = 0;
-		aleprocessTxPacketSync();
-	}
+	ale.vm_msg_cycle++;
+	setAlePhase(ALE_TX_VM_TX_MSGHEAD);
+	dsp_controller->enableModemTransmitter();
 }
 
 void MainServiceInterface::aleprocessTxPacketSync() {
@@ -1539,6 +1540,10 @@ void MainServiceInterface::aleprocessTimerMsgRoffHeadExpired() {
 	ale.timerMsgTxRespPackQual[ale.vm_msg_cycle-1]->stop();
 	ale.timerMsgRonHshakeT[ale.vm_msg_cycle-1]->stop();
 	ale.timerMsgRoffHshakeT[ale.vm_msg_cycle-1]->stop();
+	if (ale.vm_msg_cycle >= 3) {
+		setAleState(AleState_RX_VM_FAIL);
+		stopAleSession();
+	}
 }
 
 void MainServiceInterface::aleprocessTimerMsgTxRespPackQualExpired() {
@@ -1558,25 +1563,19 @@ void MainServiceInterface::aleprocessTimerMsgRonHshakeTExpired() {
 
 void MainServiceInterface::aleprocessTimerMsgRoffHshakeTExpired() {
 	qmDebugMessage(QmDebug::Info, "ale rx HshakeTrans timeout");
-	setAlePhase(ALE_RX_VM_RX_MSGHEAD);
+	if (ale.vm_msg_cycle < 3) {
+		setAlePhase(ALE_RX_VM_RX_MSGHEAD);
+	} else {
+		setAleState(AleState_RX_VM_FAIL);
+		stopAleSession();
+	}
 }
 
 void MainServiceInterface::aleprocessTimerRxMsgCycleExpired() {
 	qmDebugMessage(QmDebug::Info, "ale vm msg cycle start");
-	if (ale.phase == ALE_RX_VM_RX_MSG_HSHAKE) {
-		setPacketRxPhase();
-		ale.timerPacketRoffHead->start(ale.tPacketSync, TIMER_VALUE_tDataRoffSyncHeadDelay(ale.vm_sform_c));
-		dsp_controller->enableModemReceiver();
-	} else {
-		if (ale.vm_msg_cycle < 3) {
-			ale.vm_msg_cycle++;
-			setAlePhase(ALE_RX_VM_RX_MSGHEAD);
-			dsp_controller->enableModemReceiver();
-		} else {
-			setAleState(AleState_RX_VM_FAIL);
-			stopAleSession();
-		}
-	}
+	ale.vm_msg_cycle++;
+	setAlePhase(ALE_RX_VM_RX_MSGHEAD);
+	dsp_controller->enableModemReceiver();
 }
 
 void MainServiceInterface::setPacketRxPhase() {

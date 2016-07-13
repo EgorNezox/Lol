@@ -21,6 +21,8 @@ void FS::init() {
 }
 
 bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
+	data.clear();
+
 	Multiradio::voice_channel_entry_t ch_entry;
 	ch_entry.speed = Multiradio::voicespeed1200;
 
@@ -247,6 +249,7 @@ bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
 }
 
 bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data) {
+	data.clear();
 	data.push_back(3288000);
 	data.push_back(3637000);
 	data.push_back(3844000);
