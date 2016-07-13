@@ -2505,30 +2505,30 @@ void DspController::sendGucQuit()
 uint8_t *DspController::getGpsGucCoordinat(uint8_t *coord)
 {
 
-//    Navigation::Coord_Date date = navigator->getCoordDate();
-//    std::string lon((const char*)date.longitude);
-//    std::string lat((const char*)date.latitude);
-//
-//    coord[0] = (uint8_t)atoi(lat.substr(0,2).c_str());
-//    coord[1] = (uint8_t)atoi(lat.substr(2,2).c_str());
-//    coord[2] = (uint8_t)atoi(lat.substr(5,2).c_str());
-//    coord[3] = (uint8_t)atoi(lat.substr(7,2).c_str());
-//    coord[4] = (uint8_t)atoi(lon.substr(0,3).c_str());
-//    coord[5] = (uint8_t)atoi(lon.substr(3,2).c_str());
-//    coord[6] = (uint8_t)atoi(lon.substr(6,2).c_str());
-//    coord[7] = (uint8_t)atoi(lon.substr(8,2).c_str());
-//
-//    if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"E") !=0)
-//        coord[8] = 0;
-//    if ((strstr((const char*)date.latitude,"S") !=0) && strstr((const char*)date.longitude,"E") !=0)
-//        coord[8] = 1;
-//    if ((strstr((const char*)date.latitude,"S") !=0) && strstr((const char*)date.longitude,"W") !=0)
-//        coord[8] = 2;
-//    if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"W") !=0)
-//        coord[8] = 3;
+	    Navigation::Coord_Date date = navigator->getCoordDate();
+	    std::string lon((const char*)date.longitude);
+	    std::string lat((const char*)date.latitude);
 
-	for(int i = 0; i< 9;i++) coord[i] = i+1;
-	coord[8] = 0xc0;
+	    coord[0] = (uint8_t)atoi(lat.substr(0,2).c_str());
+	    coord[1] = (uint8_t)atoi(lat.substr(2,2).c_str());
+	    coord[2] = (uint8_t)atoi(lat.substr(5,2).c_str());
+	    coord[3] = (uint8_t)atoi(lat.substr(7,2).c_str());
+	    coord[4] = (uint8_t)atoi(lon.substr(0,3).c_str());
+	    coord[5] = (uint8_t)atoi(lon.substr(3,2).c_str());
+	    coord[6] = (uint8_t)atoi(lon.substr(6,2).c_str());
+	    coord[7] = (uint8_t)atoi(lon.substr(8,2).c_str());
+
+	    if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"E") !=0)
+	        coord[8] = 0;
+	    if ((strstr((const char*)date.latitude,"S") !=0) && strstr((const char*)date.longitude,"E") !=0)
+	        coord[8] = 1;
+	    if ((strstr((const char*)date.latitude,"S") !=0) && strstr((const char*)date.longitude,"W") !=0)
+	        coord[8] = 2;
+	    if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"W") !=0)
+	        coord[8] = 3;
+
+//	for(int i = 0; i< 9;i++) coord[i] = i+1;
+//	coord[8] = 0xc0;
     return coord;
 }
 

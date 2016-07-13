@@ -100,5 +100,6 @@ extern const char* condCommSendStr;
 extern const char* ticketStr[];
 extern const char* voicePostTitleStr[];
 
+
 extern const char* pressEnter;
 #endif /* TEXTS_H_ */
