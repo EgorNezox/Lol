@@ -121,7 +121,7 @@ public:
     void startSMSRecieving(SmsStage stage = StageRx_call);
     void startSMSTransmitting(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call);
 
-    void startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command);
+    void startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command,bool isGps);
     void startGucTransmitting();
     void startGucRecieving();
     void GucSwichRxTxAndViewData();
@@ -130,6 +130,8 @@ public:
 
     char* getSmsContent();
     void setRnKey(int keyValue);
+
+    void resetContentStructState();
 
     void processSyncPulse();
 
@@ -174,10 +176,10 @@ uint8_t* get_guc_vector();
     sigc::signal<void> recievedGucResp;
     sigc::signal<void> pswfQuitRec;
     sigc::signal<void> gucQuitRec;
-    sigc::signal<void> recievedGucQuitForTransm;
+    sigc::signal<void,int> recievedGucQuitForTransm;
     sigc::signal<void,int> updateSmsStatus;
     sigc::signal<void,CoordGuc> updateGucGpsStatus;    float swf_res = 2; // надо изменить значение на нижнее предельное
-
+    sigc::signal<void> gucCrcFailed;
 
     PackageManager *pack_manager;
 
@@ -476,6 +478,7 @@ bool modem_rx_on, modem_tx_on;
     bool sms_call_received;
 
     bool isGpsGuc = false;
+    bool unblockGucTx = false;
 
     uint8_t guc_coord[9];
 };

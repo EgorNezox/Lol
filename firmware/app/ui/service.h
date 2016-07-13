@@ -70,7 +70,6 @@ public:
 			);
     ~Service();
     void setNotification(NotificationType type);
-    // ������ �����������
     void updateHeadset(Headset::Controller::Status);
     void updateMultiradio(Multiradio::MainServiceInterface::Status);
     void updateBattery(int);
@@ -83,7 +82,9 @@ public:
     void setCoordDate(Navigation::Coord_Date);
     void gucFrame();
     void errorMessage();
+    void errorGucCrc();
     void setFreqLabelValue(int value);
+
 
 private:
     void msgBox(const char*);
@@ -133,7 +134,7 @@ private:
     void draw();
     void drawIndicator();
     void updateSystemTime();
-    void msgGucTXQuit();
+    void msgGucTXQuit(int ans);
 
     void FailedSms(int stage);
 

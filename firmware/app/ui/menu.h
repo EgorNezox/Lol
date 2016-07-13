@@ -91,6 +91,7 @@ public:
     // tx group condition commands
     int txGroupCondCommStatus = 1;
     void initTxGroupCondComm(CEndState);
+    bool useCbool = false;
 
     // message ( SMS )
     uint8_t smsTxStage = 1;

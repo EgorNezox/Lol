@@ -151,4 +151,8 @@ const char* condCommSendStr = "Нажмите Ввод для \nзапуска передачи\0";
 const char* ticketStr[] = {"Квитирование\0", "Ретрансляция\0"};
 const char* voicePostTitleStr[] = {"Передача гол. почты\0", "Прием гол. почты\0"};
 
+const char* gucQuitTextFail = "Квитанция не принята\0";
+const char* gucQuitTextOk   = "Принята квитанция\0";
+const char* errorCrcGuc = "Данные не достоверны\0";
 const char* pressEnter = "Нажмите ввод\nдля продолжения\0";
+

@@ -28,14 +28,15 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     dispatcher->dsp_controller->recievedGucResp.connect(sigc::mem_fun(this,&VoiceServiceInterface::responseGuc));
     dispatcher->dsp_controller->recievedGucQuitForTransm.connect(sigc::mem_fun(this,&VoiceServiceInterface::messageGucQuit));
 	dispatcher->dsp_controller->updateSmsStatus.connect(sigc::mem_fun(this,&VoiceServiceInterface::getSmsForUiStage));
+    dispatcher->dsp_controller->gucCrcFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCrcFail));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
 {
 }
 
-void VoiceServiceInterface::messageGucQuit(){
-	messageGucTxQuit();
+void VoiceServiceInterface::messageGucQuit(int ans){
+    messageGucTxQuit(ans);
 }
 
 VoiceServiceInterface::ChannelStatus VoiceServiceInterface::getCurrentChannelStatus()
@@ -158,6 +159,11 @@ void VoiceServiceInterface::getSmsForUiStage(int value)
     getSmsStageUi(value);
 }
 
+void VoiceServiceInterface::gucCrcFail()
+{
+    gucCrcFailed();
+}
+
 void VoiceServiceInterface::defaultSMSTrans()
 {
 	dispatcher->dsp_controller->defaultSMSTransmit();
@@ -185,9 +191,9 @@ void VoiceServiceInterface::setRnKey(int value)
 }
 
 
-void VoiceServiceInterface::TurnGuc(int r_adr, int speed_tx, std::vector<int> command)
+void VoiceServiceInterface::TurnGuc(int r_adr, int speed_tx, std::vector<int> command, bool isGps)
 {
-    dispatcher->dsp_controller->startGucTransmitting(r_adr,speed_tx,command);
+    dispatcher->dsp_controller->startGucTransmitting(r_adr,speed_tx,command, isGps);
 }
 
 uint8_t* VoiceServiceInterface::getGucCommand()

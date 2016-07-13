@@ -91,6 +91,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->respGuc.connect(sigc::mem_fun(this,&Service::gucFrame));
     voice_service->errorAsu.connect(sigc::mem_fun(this, &Service::errorMessage));
     voice_service->messageGucTxQuit.connect(sigc::mem_fun(this, &Service::msgGucTXQuit));
+    voice_service->gucCrcFailed.connect(sigc::mem_fun(this,&Service::errorGucCrc));
 
 #ifndef PORT__PCSIMULATOR
     systemTimeTimer = new QmTimer(true); //TODO:
@@ -106,6 +107,12 @@ void Service::errorMessage()
 {
     msgBox( "Error ", "ASU modeMalFunction\0");
     guiTree.append(messangeWindow, (char*)"Error ASU\0", "0\0");
+}
+
+void Service::errorGucCrc()
+{
+    msgBox( "Error ", "Crc error\0");
+    guiTree.append(messangeWindow, errorCrcGuc, "0\0");
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -846,7 +853,7 @@ void Service::keyPressed(UI_Key key)
                         guc_command_vector.clear();
                         parsingGucCommand((uint8_t*)str);
                         voice_service->saveFreq(getFreq());
-                        voice_service->TurnGuc(r_adr,speed,guc_command_vector);
+                        voice_service->TurnGuc(r_adr,speed,guc_command_vector,useCbool);
 #else
                         for (auto &k: estate.listItem)
                             k->inputStr.clear();
@@ -858,12 +865,18 @@ void Service::keyPressed(UI_Key key)
             }
             case keyUp:
             {
-                if ( menu->focus > 0 && menu->groupCondCommStage == 0 )
+                if ( (menu->focus > 0 && menu->groupCondCommStage == 0 ) || menu->groupCondCommStage == 1)
                     menu->focus--;
                 break;
             }
             case keyDown:
             {
+                if (menu->groupCondCommStage == 0)
+                {
+                    if (menu->focus < 1)
+                        menu->focus++;
+                }
+
                 if (menu->groupCondCommStage == 1)
                 {
                     if ( estate.listItem.size() == 3 )
@@ -881,7 +894,7 @@ void Service::keyPressed(UI_Key key)
             default:
             {
                 // set freq
-                if ( menu->groupCondCommStage == 0 && (menu->focus == 0 || menu->focus == 1) )
+                if ( menu->groupCondCommStage == 0 && menu->focus == 0 )
                 {
                     std::string* freq;
 
@@ -904,6 +917,10 @@ void Service::keyPressed(UI_Key key)
                             }
                         }
                     }
+                }
+                if ( menu->groupCondCommStage == 0 && menu->focus == 1 )
+                {
+                    menu->useCbool = menu->useCbool ? false : true;
                 }
 
                 if ( menu->groupCondCommStage == 1 )
@@ -2352,9 +2369,12 @@ void Service::gucFrame()
 {
     const char *sym = "Recieved packet for station\0";
     vect = voice_service->getGucCommand();
-    char ch[3]; sprintf(ch, "%d", vect[position]); ch[2] = '\0';
-    guiTree.append(messangeWindow, sym, ch);
-    msgBox( "Recieved Guc\0", vect[position], vect[0], position);
+    if (vect[0] != '\0')
+    {
+        char ch[3]; sprintf(ch, "%d", vect[position]); ch[2] = '\0';
+        guiTree.append(messangeWindow, sym, ch);
+        msgBox( "Recieved Guc\0", vect[position], vect[0], position);
+    }
 }
 
 
@@ -2445,10 +2465,17 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
     }
 }
 
-void Service::msgGucTXQuit()
+void Service::msgGucTXQuit(int ans)
 {
-	 msgBox( "Get GUC", "Guc Ok\0");
-	    guiTree.append(messangeWindow, (char*)"Get Guc\0", "QUIT\0");
+    if (ans == 1){
+        msgBox( "GUC", gucQuitTextOk);
+        guiTree.append(messangeWindow, gucQuitTextOk, "QUIT\0");
+    }
+    else
+    {
+        msgBox( "GUC", gucQuitTextFail);
+        guiTree.append(messangeWindow, gucQuitTextFail, "QUIT\0");
+    }
 }
 
 }/* namespace Ui */

@@ -1267,6 +1267,7 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
                       titleArea  = {  5,   5, 150,  20 };
         MoonsGeometry freqArea   = {  5,  21, 150,  41 };
         MoonsGeometry valueArea  = {  5,  55, 150,  70 };
+        MoonsGeometry     cArea  = {  5,  75, 150,  110 };
 
         LabelParams param[2] = { GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT };
 
@@ -1290,10 +1291,20 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
         GUI_EL_Label  label  ( &param[0],                  &freqArea,   (char*)str.c_str(),      (GUI_Obj*)this );
         GUI_EL_Label  value  ( &param[1],                  &valueArea,  (char*)freq.c_str(),     (GUI_Obj*)this );
 
+        std::string useCstr;
+        if (useCbool)
+            useCstr.append("true");
+        else
+            useCstr.append("false");
+
+        GUI_EL_Label useC( &param[1], &cArea, (char*)useCstr.c_str(), (GUI_Obj*)this);
+
         window.Draw();
         title.Draw();
         label.Draw();
         value.Draw();
+        useC.Draw();
+
         break;
     }
     case 1:

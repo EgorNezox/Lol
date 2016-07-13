@@ -47,7 +47,7 @@ public:
 
     void setRnKey(int value);
 
-    void TurnGuc(int r_adr, int speed_tx, std::vector<int> command);
+    void TurnGuc(int r_adr, int speed_tx, std::vector<int> command, bool isGps);
     void TurnGuc();
 
     char* getSmsContent();
@@ -55,8 +55,10 @@ public:
 
     void defaultSMSTrans();
     void rerror();
-    void messageGucQuit();
+    void messageGucQuit(int ans);
 	void getSmsForUiStage(int value);
+    void gucCrcFail();
+
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
     sigc::signal<void,int> firstPacket;
@@ -65,7 +67,8 @@ public:
     sigc::signal<void> respGuc;
     sigc::signal<void> errorAsu;
 	sigc::signal<void,int> getSmsStageUi;
-    sigc::signal<void> messageGucTxQuit;
+    sigc::signal<void,int> messageGucTxQuit;
+    sigc::signal<void> gucCrcFailed;
 
 private:
 	friend class Dispatcher;

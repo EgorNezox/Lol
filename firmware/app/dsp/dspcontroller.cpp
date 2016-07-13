@@ -629,20 +629,6 @@ void DspController::RecievedPswf()
 
     if (pswf_rec == 3) firstPacket(ContentPSWF.COM_N);
 
-//    for(uint8_t i =0; i<recievedPswfBuffer.size(); i++)
-//    {
-//    	if (i != command_rx30)
-//    		if (recievedPswfBuffer.at(command_rx30).at(0) == recievedPswfBuffer.at(i).at(0)) {
-//    			ContentPSWF.COM_N = recievedPswfBuffer.at(command_rx30).at(0);
-//    			ContentPSWF.R_ADR = ContentPSWF.S_ADR;
-//    			ContentPSWF.S_ADR = PSWF_SELF_ADR;
-//    			if (private_lcode == recievedPswfBuffer.at(command_rx30).at(1)) {
-//    				++pswf_rec;
-//    			}
-//    			if (pswf_rec == 3)
-//    			firstPacket(ContentPSWF.COM_N);
-//    		}
-//    }
     ++command_rx30;
 }
 
@@ -702,6 +688,13 @@ void DspController::setRnKey(int keyValue)
     ContentPSWF.RN_KEY = keyValue;
     ContentSms.RN_KEY  = keyValue;
     // somthing else setting rn_key
+}
+
+void DspController::resetContentStructState()
+{
+    ContentGuc.stage = GucNone;
+    ContentSms.stage = StageNone;
+    // добавить определение других функций
 }
 
 
@@ -1420,8 +1413,6 @@ void DspController::sendGuc()
     qmToBigEndian((uint8_t)ContentGuc.type, tx_data + tx_data_len);
     ++tx_data_len;
 
-    isGpsGuc  = 1; // для тестирования
-
     ContentGuc.Coord = (isGpsGuc == true) ? 1 : 0;
 
     // заполнение чвс для основных данных пакета
@@ -1607,6 +1598,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 }
             }
 			processCommandResponse((indicator == 3), module, code, value);
+
+            if (ContentGuc.stage == GucTx) unblockGucTx = true;
 		}
 		break;
 	}
@@ -1754,7 +1747,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             	ContentGuc.R_ADR = ((data[2] & 0xF0) << 2) + (data[3] & 0x3F);
                 isGpsGuc = data[6]; // TODO: требуется проверить в реальных условиях
 
-            	if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(); ContentGuc.stage = GucNone;}
+                if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(1); ContentGuc.stage = GucNone;}
             	else{
             		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
             		std::vector<uint8_t> guc;
@@ -1762,7 +1755,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             			qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , num %d", data[i],i);
             			guc.push_back(data[i]); // по N едениц данных
             		}
-            		if (guc_vector.size() < 50)     guc_vector.push_back(guc);
+                    if (guc_vector.size() < 50)     guc_vector.push_back(guc); // TODO: WHAT?
             		recGuc();
             	}
             }
@@ -2367,9 +2360,9 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     updateSmsStatus(getSmsForUiStage());
 }
 
-void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command)
+void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command, bool isGps)
 {
-    qmDebugMessage(QmDebug::Dump, "startGucTransmitting(%i, %i, 0x%X)", r_adr, speed_tx);
+    qmDebugMessage(QmDebug::Dump, "startGucTransmitting(%i, %i)", r_adr, speed_tx);
     QM_ASSERT(is_ready);
 
     ContentGuc.indicator = 20;
@@ -2382,6 +2375,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     uint8_t num_cmd = command.size();
     ContentGuc.NUM_com = num_cmd;
 
+    isGpsGuc = isGps;
 
     for(int i = 0;i<100;i++) ContentGuc.command[i] = 0;
     for(int i = 0;i<num_cmd; i++)
@@ -2396,6 +2390,11 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     ContentGuc.uin = 0;
     ContentGuc.Coord = 0;
 
+    ContentGuc.stage =  GucTx;
+
+    initResetState();
+
+
     ParameterValue comandValue;
     comandValue.radio_mode = RadioModeOff;// отключили прием
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
@@ -2403,10 +2402,11 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     comandValue.frequency =  freqGucValue;//3000000;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
+    if (unblockGucTx == false){ /* do sleep*/ QmThread::msleep(100); }
+    unblockGucTx = false;
     sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
     radio_state = radiostateGucTxPrepare;
     gucTxStateSync = 0;
-    ContentGuc.stage =  GucTx;
 
     command.clear();
 }
@@ -2580,7 +2580,6 @@ void DspController::startGucRecieving()
     gucRxStateSync = 0;
     if (ContentGuc.stage != GucTxQuit)
     	ContentGuc.stage =  GucRx;
-//    else ContentGuc.stage = GucNone;
 }
 
 void DspController::GucSwichRxTxAndViewData()
@@ -2596,7 +2595,11 @@ void DspController::GucSwichRxTxAndViewData()
         startGucTransmitting();
         sendGucQuit();
     }
-    else {radio_state = radiostateSync;}
+    else
+    {
+        radio_state = radiostateSync;
+        if (ContentGuc.stage == GucTxQuit) recievedGucQuitForTransm(0);
+    }
     guc_vector.clear();
 }
 
@@ -2608,8 +2611,6 @@ uint8_t* DspController::get_guc_vector()
 	//получение количества элементов в векторе
 	guc_text[0] = num;
 
-
-	// update: а не убрать ли это?
 	int count = 0;
 	if (isGpsGuc == 0)
 	{
@@ -2672,13 +2673,14 @@ uint8_t* DspController::get_guc_vector()
 
 	if (isGpsGuc) {
 		uint8_t res[9];
-		//returnGpsCoordinat(guc_coord,res,0);
+        //returnGpsCoordinat(guc_coord,res,0);
 	}
 
-	if (crc != crc_packet) //TODO: crc check pro
-	{
-		qmDebugMessage(QmDebug::Dump, "Crc failded for guc vector %i", crc_packet);
-	}
+    if (crc != crc_packet)
+    {
+        gucCrcFailed();
+        guc_text[0] = '\0';
+    }
 	guc_vector.clear();
 
 	return guc_text;
