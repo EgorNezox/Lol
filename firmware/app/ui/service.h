@@ -125,6 +125,8 @@ private:
     Power::Battery * pGetPowerBattery();
     int getLanguage();
 
+    void GucCoord();
+
     void FirstPacketPSWFRecieved(int packet);
     void smsMessage();
 

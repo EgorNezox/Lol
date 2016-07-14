@@ -1745,7 +1745,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         	}
             if (indicator == 30) {
             	ContentGuc.R_ADR = ((data[2] & 0xF0) << 2) + (data[3] & 0x3F);
-                isGpsGuc = data[6]; // TODO: требуется проверить в реальных условиях
+                isGpsGuc = data[5]; // TODO: требуется проверить в реальных условиях
 
                 if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(1); ContentGuc.stage = GucNone;}
             	else{
@@ -2532,22 +2532,19 @@ uint8_t *DspController::getGpsGucCoordinat(uint8_t *coord)
     return coord;
 }
 
-uint8_t *DspController::returnGpsCoordinat(uint8_t *data,uint8_t* res,int index)
+uint8_t *DspController::returnGpsCoordinat(uint8_t *data,uint8_t* res,uint8_t index)
 {
-    std::string lon1;
-    std::string lat1;
+	uint8_t len = index - 8;
 
-    memcpy(res,&data[index],9);
-    std::string str((const char*)res);
+	memcpy(res,&data[len],9);
 
-    lon1 = str.substr(0,2).append(",").append(str.substr(2,4));
-    lat1 = str.substr(4,6).append(",").append(str.substr(6,8));
-
-    cordGucValue.lat = lat1;
-    cordGucValue.lon = lon1;
-
-    updateGucGpsStatus(cordGucValue);
+	updateGucGpsStatus();
 }
+
+uint8_t* DspController::getGucCoord(){
+     return guc_coord;
+}
+
 
 void DspController::setSmsRetranslation(uint8_t retr)
 {
@@ -2672,8 +2669,8 @@ uint8_t* DspController::get_guc_vector()
 	crc = pack_manager->CRC32(out,count);
 
 	if (isGpsGuc) {
-		uint8_t res[9];
-        //returnGpsCoordinat(guc_coord,res,0);
+		guc_coord[10] = '\0';
+        returnGpsCoordinat(guc_text,guc_coord,count);
 	}
 
     if (crc != crc_packet)

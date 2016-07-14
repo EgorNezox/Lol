@@ -92,6 +92,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->errorAsu.connect(sigc::mem_fun(this, &Service::errorMessage));
     voice_service->messageGucTxQuit.connect(sigc::mem_fun(this, &Service::msgGucTXQuit));
     voice_service->gucCrcFailed.connect(sigc::mem_fun(this,&Service::errorGucCrc));
+    voice_service->gucCoord.connect(sigc::mem_fun(this,&Service::GucCoord));
 
 #ifndef PORT__PCSIMULATOR
     systemTimeTimer = new QmTimer(true); //TODO:
@@ -113,6 +114,15 @@ void Service::errorGucCrc()
 {
     msgBox( "Error ", "Crc error\0");
     guiTree.append(messangeWindow, errorCrcGuc, "0\0");
+}
+
+void Service::GucCoord(){
+	uint8_t *mes;
+	mes = voice_service->requestGucCoord();
+	std::string s((const char*)mes);
+    s.insert(5,1,'\n');
+	msgBox( "Coord", s.c_str());
+	guiTree.append(messangeWindow,s.c_str(), "0\0");
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -853,7 +863,7 @@ void Service::keyPressed(UI_Key key)
                         guc_command_vector.clear();
                         parsingGucCommand((uint8_t*)str);
                         voice_service->saveFreq(getFreq());
-                        voice_service->TurnGuc(r_adr,speed,guc_command_vector,useCbool);
+                        voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useCbool);
 #else
                         for (auto &k: estate.listItem)
                             k->inputStr.clear();

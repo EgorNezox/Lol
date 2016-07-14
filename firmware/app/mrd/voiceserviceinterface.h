@@ -58,6 +58,9 @@ public:
     void messageGucQuit(int ans);
 	void getSmsForUiStage(int value);
     void gucCrcFail();
+    void gucCoordRec();
+
+    uint8_t* requestGucCoord();
 
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
@@ -69,6 +72,7 @@ public:
 	sigc::signal<void,int> getSmsStageUi;
     sigc::signal<void,int> messageGucTxQuit;
     sigc::signal<void> gucCrcFailed;
+    sigc::signal<void> gucCoord;
 
 private:
 	friend class Dispatcher;

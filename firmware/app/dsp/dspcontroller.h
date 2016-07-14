@@ -156,6 +156,9 @@ uint8_t* get_guc_vector();
     uint8_t getSmsRetranslation();
     void setFreq(int value);
     int getSmsForUiStage();
+
+    uint8_t* getGucCoord();
+
     struct CoordGuc{
         std::string lat;
         std::string lon;
@@ -178,7 +181,7 @@ uint8_t* get_guc_vector();
     sigc::signal<void> gucQuitRec;
     sigc::signal<void,int> recievedGucQuitForTransm;
     sigc::signal<void,int> updateSmsStatus;
-    sigc::signal<void,CoordGuc> updateGucGpsStatus;    float swf_res = 2; // надо изменить значение на нижнее предельное
+    sigc::signal<void> updateGucGpsStatus;    float swf_res = 2; // надо изменить значение на нижнее предельное
     sigc::signal<void> gucCrcFailed;
 
     PackageManager *pack_manager;
@@ -356,7 +359,7 @@ private:
     void recSms();
     void sendGucQuit();
     uint8_t *getGpsGucCoordinat(uint8_t *coord);
-    uint8_t *returnGpsCoordinat(uint8_t *data, uint8_t *res, int index);
+    uint8_t *returnGpsCoordinat(uint8_t *data, uint8_t *res, uint8_t index);
 
     void changeSmsRxFrequency();
 
@@ -480,7 +483,7 @@ bool modem_rx_on, modem_tx_on;
     bool isGpsGuc = false;
     bool unblockGucTx = false;
 
-    uint8_t guc_coord[9];
+    uint8_t guc_coord[10];
 };
 
 
