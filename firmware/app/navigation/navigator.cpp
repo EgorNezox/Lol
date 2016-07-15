@@ -17,6 +17,7 @@
 #include <list>
 #include <cstring>
 #include <vector>
+#include <stdlib.h>
 #include <math.h>
 #include "navigator.h"
 
@@ -196,22 +197,47 @@ void Navigator::parsingData(uint8_t data[])
 
     }
 
-
     if ((parse_elem.size() > 2) /*&& (parse_elem.at(1).compare("V") != 0)*/)
     { // проверка по статусу gps
         if (parse_elem.size() > 3){
             memcpy(&CoordDate.latitude,parse_elem.at(2).c_str(),parse_elem.at(2).size());
             memcpy(&CoordDate.latitude[parse_elem.at(2).size()],parse_elem.at(3).c_str(),parse_elem.at(3).size());
+            redactCoordForSpec(CoordDate.latitude,5);
+
         }
         if (parse_elem.size() > 5){
             memcpy(&CoordDate.longitude,parse_elem.at(4).c_str(),parse_elem.at(4).size());
             memcpy(&CoordDate.longitude[parse_elem.at(4).size()],parse_elem.at(5).c_str(),parse_elem.at(5).size());
+            redactCoordForSpec(CoordDate.longitude,6);
         }
         if (parse_elem.size() > 8)
             memcpy(&CoordDate.data,parse_elem.at(8).c_str(),parse_elem.at(8).size());
     }
     qmDebugMessage(QmDebug::Dump, "parsing result:  %s %s %s %s", (char*)CoordDate.time,(char*)CoordDate.data,(char*)CoordDate.latitude,(char*)CoordDate.longitude);
 
+}
+
+void Navigator::redactCoordForSpec(uint8_t *input, int val){
+	    char mas[4];
+	    double value = 0;
+	    float sec_msec = 0; uint16_t a1,a2; char param1, param2;
+
+	    memcpy(&mas,&input[val],4);
+	    value = atoi(mas);
+	    sec_msec = (value / 10000) * 60;
+	    a1 = (uint16_t)sec_msec;
+	    sec_msec -= a1;
+	    a2 = (uint16_t)(round(sec_msec*100));
+	    int cnt = val;
+	    for(int i  = 0; i<2;i++)
+	    {
+	    	if ( i % 2 != 0) {param1 = (char)(a2 / 10) + '0'; param2 = (char)(a2 % 10) + '0'; }
+	    	else {param1 = (char)(a1 / 10) + '0';param2 = (char)(a1 % 10) + '0';}
+
+	    	memcpy(&input[cnt],&param1,1);
+	    	memcpy(&input[cnt + 1],&param2,1);
+	    	cnt += 2;
+	    }
 }
 
 

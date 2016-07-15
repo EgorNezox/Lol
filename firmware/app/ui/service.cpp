@@ -9,8 +9,10 @@
 #include <navigation/navigator.h>
 #include <math.h>
 #include <stdio.h>
+#include <iostream>
 #include <string.h>
 #include <string>
+
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
@@ -119,10 +121,14 @@ void Service::errorGucCrc()
 void Service::GucCoord(){
 	uint8_t *mes;
 	mes = voice_service->requestGucCoord();
-	std::string s((const char*)mes);
-    s.insert(5,1,'\n');
-	msgBox( "Coord", s.c_str());
-	guiTree.append(messangeWindow,s.c_str(), "0\0");
+	char str[9];
+//	for(int i = 0; i<=8 ;i++) {
+//		int a = static_cast<int>(mes[i]);
+//		sprintf(str,"%d",a);
+//	}
+//	str[9] = '\0';
+//	msgBox( "Coord", str);
+//	guiTree.append(messangeWindow,str, "0\0");
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)

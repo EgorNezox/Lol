@@ -1469,6 +1469,20 @@ void DspController::sendGuc()
     // выбор длинны кодируемого массива
      int crc32_len = (isGpsGuc == true) ? (ContentGuc.NUM_com + 9) : (ContentGuc.NUM_com);
 
+     if (isGpsGuc)
+     {
+    	 uint8_t mas[9]; int index = 0;
+    	 for(int i = crc32_len - 9; i< crc32_len;i++)
+    	 {
+    		 mas[index] = ContentGuc.command[i];
+    		 ++index;
+    		 ContentGuc.command[i] = 0;
+    	 }
+
+    	 for(int i = 9;i < 120;i++) ContentGuc.command[i] = ContentGuc.command[i- 9];
+    	 for(int i = 0; i<9;i++) ContentGuc.command[i] = mas[i];
+     }
+
     // сдвиг массива для crc32-суммы
     for(int i = 0; i < crc32_len;i++)
     {
@@ -2590,7 +2604,9 @@ void DspController::GucSwichRxTxAndViewData()
         recievedGucResp();
         if (ContentGuc.stage != GucTxQuit)
         startGucTransmitting();
+        if (!failQuitGuc)
         sendGucQuit();
+        else failQuitGuc = false;
     }
     else
     {
@@ -2639,18 +2655,38 @@ uint8_t* DspController::get_guc_vector()
 
 
 	uint8_t out[120];
-	for(int i = 0; i<120;i++) out[i] = 0;
+	uint8_t guc_mas[120];
+	for(int i = 0; i<120;i++) {out[i] = 0; guc_mas[i] = 0;}
 
 	// заполнение расчетного массива для crc32
 	if (isGpsGuc) count += 9;
 
+	if (isGpsGuc)
+	{
+		for(int i = 0; i< count - 9;i++){
+			guc_mas[9+i+1] = guc_text[i+1];
+		}
+		for(int i = 1; i<9;i++){
+			guc_mas[i] = guc_text[count - 9 + i];
+		}
+		guc_mas[119] = '\0';
+	}
+
+
 	for(int i = 0;  i< count;i++)
 	{
 		int sdvig  = (i+1) % 8;
-		if (sdvig != 0)
-			out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
-		else
-			out[i] = guc_text[i+1];
+		if (sdvig != 0){
+			if (isGpsGuc)
+			{  out[i] = (guc_mas[i+1] << sdvig) + (guc_mas[i+2] >> (7 -  sdvig)); }
+			else
+			{out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));}
+		}
+		else{
+			if (isGpsGuc) out[i] = guc_mas[i+1];
+				else
+					out[i] = guc_text[i+1];
+		}
 	}
 
 	// достаем crc32 сумму из конца пакета
@@ -2677,6 +2713,7 @@ uint8_t* DspController::get_guc_vector()
     {
         gucCrcFailed();
         guc_text[0] = '\0';
+        failQuitGuc = true;
     }
 	guc_vector.clear();
 

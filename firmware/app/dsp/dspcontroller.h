@@ -484,6 +484,7 @@ bool modem_rx_on, modem_tx_on;
     bool unblockGucTx = false;
 
     uint8_t guc_coord[10];
+    bool failQuitGuc = false;
 };
 
 
