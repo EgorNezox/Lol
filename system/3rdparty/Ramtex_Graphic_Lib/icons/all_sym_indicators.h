@@ -1,13 +1,3 @@
-/**
-  ******************************************************************************
-  * @file     all_sym_indicators.h
-  * @author  Egor, PMR dept. software team, ONIIP, PJSC
-  * @date    11 ���. 2013 �.
-  * @brief   
-  *
-  ******************************************************************************
-  */
-
 #ifndef ALL_SYM_INDICATORS_H_
 #define ALL_SYM_INDICATORS_H_
 

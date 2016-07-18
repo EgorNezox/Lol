@@ -159,8 +159,8 @@ void Service::updateBattery(int new_val)
 
 void Service::drawIndicator()
 {
-    if ( guiTree.getCurrentState().getType() == mainWindow )
-        indicator->Draw();
+//    if ( guiTree.getCurrentState().getType() == mainWindow )
+//        indicator->Draw();
 }
 
 void Service::FailedSms(int stage)
@@ -502,6 +502,7 @@ void Service::keyPressed(UI_Key key)
         {
             guiTree.backvard();
             menu->focus = 0;
+            menu->offset = 0;
         }
         if (key == keyUp)
         {
@@ -516,6 +517,21 @@ void Service::keyPressed(UI_Key key)
                     menu->focus++;
             }
         }
+
+        if ( menu->focus == 3 && menu->offset == 0) menu->offset = 1;
+        if ( menu->focus == 4 && menu->offset == 1) menu->offset = 2;
+        if ( menu->focus == 5 && menu->offset == 2) menu->offset = 3;
+        if ( menu->focus == 6 && menu->offset == 3) menu->offset = 4;
+        if ( menu->focus == 7 && menu->offset == 4) menu->offset = 5;
+        if ( menu->focus == 8 && menu->offset == 5) menu->offset = 6;
+
+        if ( menu->focus == 0 && menu->offset == 1) menu->offset = 0;
+        if ( menu->focus == 1 && menu->offset == 2) menu->offset = 1;
+        if ( menu->focus == 2 && menu->offset == 3) menu->offset = 2;
+        if ( menu->focus == 3 && menu->offset == 4) menu->offset = 3;
+        if ( menu->focus == 4 && menu->offset == 5) menu->offset = 4;
+        if ( menu->focus == 5 && menu->offset == 6) menu->offset = 5;
+
         menu->keyPressed(key);
         break;
     }
@@ -525,8 +541,7 @@ void Service::keyPressed(UI_Key key)
 
         switch(estate.subType)
         {
-        case GuiWindowsSubType::simpleCondComm:
-        case GuiWindowsSubType::duplCondCmd:
+        case GuiWindowsSubType::condCommand:
         {
 //            if (){ menu->txCondCmdStage}
 //            else if() {}
@@ -536,7 +551,7 @@ void Service::keyPressed(UI_Key key)
             {
             case 1:
             {
-                if ( estate.subType == simpleCondComm && estate.listItem.size() == 3)
+                if ( estate.subType == condCommand && estate.listItem.size() == 3)
                 {
                     if (key == keyUp || key == keyDown)
                     { menu->useCmdRetrans = menu->useCmdRetrans ? false : true; }
@@ -612,7 +627,7 @@ void Service::keyPressed(UI_Key key)
                 if (menu->txCondCmdStage <= size )
                 {
                     // group address
-                    if (menu->txCondCmdStage == 1 && estate.listItem.size() == 2 && estate.subType != duplCondCmd)
+                    if (menu->txCondCmdStage == 1 && estate.listItem.size() == 2 && estate.subType != condCommand)
                     {
                             menu->txCondCmdStage++;
                     }
@@ -686,7 +701,7 @@ void Service::keyPressed(UI_Key key)
                         (*iter)->inputStr.pop_back();
                     else
                     {
-                        if (estate.subType == simpleCondComm && estate.listItem.size() == 3)
+                        if (estate.subType == condCommand && estate.listItem.size() == 3)
                             menu->txCondCmdStage--;
                         else
                         {
@@ -2043,7 +2058,6 @@ void Service::drawMenu()
         }
 
         menu->initItems(t, st.getName(), focusItem);
-        menu->Draw();
         t.clear();
     }
     else
@@ -2053,8 +2067,7 @@ void Service::drawMenu()
 
         switch( st.subType )
         {
-        case GuiWindowsSubType::simpleCondComm:
-        case GuiWindowsSubType::duplCondCmd:
+        case GuiWindowsSubType::condCommand:
         {
             menu->initCondCommDialog(st);
             break;
@@ -2209,11 +2222,11 @@ void Service::drawMenu()
             menu->initSetParametersDialog( str );
             break;
         }
-        case GuiWindowsSubType::twoState:
-        {
-            menu->initTwoStateDialog();
-            break;
-        }
+//        case GuiWindowsSubType::twoState:
+//        {
+//            menu->initTwoStateDialog();
+//            break;
+//        }
         case GuiWindowsSubType::scan:
         {
             menu->inclStatus = menu->scanStatus;
@@ -2365,6 +2378,7 @@ void Service::gucFrame()
     char ch[3]; sprintf(ch, "%d", vect[position]); ch[2] = '\0';
     guiTree.append(messangeWindow, sym, ch);
     msgBox( "Recieved Guc\0", vect[position], vect[0], position);
+
 }
 
 
