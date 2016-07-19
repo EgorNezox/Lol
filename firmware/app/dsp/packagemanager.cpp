@@ -299,6 +299,31 @@ void PackageManager::shiftMasTo7Bit(uint8_t *input, uint8_t *output, int out_shi
     }
 }
 
+void PackageManager::addBytetoBitsArray(uint8_t value, std::vector<bool> &data,int len)
+{
+    bool param;
+    for(int i = 0; i< len; i++)
+    {
+        param = value & (1 >> i);
+        data.push_back(param);
+    }
+}
+
+void PackageManager::getArrayByteFromBit(std::vector<bool> &data, uint8_t *dest)
+{
+    int len  = data.size();
+    int ost = len  % 8;
+    if (ost != 0 ){ for(int i = 0; i< 8 - ost;i++) data.push_back(0);}
+
+    int j = 0;int cnt = 0;
+    for(int i = 0; i < len; i++) {
+        if (i % 8 == 0) { ++j; cnt = 0;}
+        dest[j] = data.at(i) >> cnt;
+        ++cnt;
+    }
+
+}
+
 
 
 void PackageManager::makeTable(int polynomChoosen)

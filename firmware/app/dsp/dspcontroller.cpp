@@ -1469,6 +1469,8 @@ void DspController::sendGuc()
     // выбор длинны кодируемого массива
      int crc32_len = (isGpsGuc == true) ? (ContentGuc.NUM_com + 9) : (ContentGuc.NUM_com);
 
+     std::vector<bool> data_guc;
+
      if (isGpsGuc)
      {
     	 uint8_t mas[9]; int index = 0;
@@ -1480,10 +1482,25 @@ void DspController::sendGuc()
     	 }
 
     	 for(int i = 9;i < 120;i++) ContentGuc.command[i] = ContentGuc.command[i- 9];
-    	 for(int i = 0; i<9;i++) ContentGuc.command[i] = mas[i];
+         for(int i = 0; i<9;i++) {
+             ContentGuc.command[i] = mas[i];
+             pack_manager->addBytetoBitsArray(ContentGuc.command[i],data_guc,8);
+         }
+         bool quadrant = ContentGuc.command[8] & 1;
+         data_guc.push_back(quadrant);
+         quadrant = ContentGuc.command[8] & (1 >> 1);
+         data_guc.push_back(quadrant);
+         for(int i = 0; i<ContentGuc.NUM_com;i++){
+             pack_manager->addBytetoBitsArray(ContentGuc.command[i+9],data_guc,7);
+         }
      }
 
     // сдвиг массива для crc32-суммы
+    if (isGpsGuc){
+        pack_manager->getArrayByteFromBit(data_guc,ContentGuc.command);
+        crc32_len = data_guc.size() / 8;
+    }
+    else
     for(int i = 0; i < crc32_len;i++)
     {
     	int sdvig  = (i+1) % 8;
@@ -1495,7 +1512,6 @@ void DspController::sendGuc()
      uint32_t crc = pack_manager->CRC32(ContentGuc.command, crc32_len);
      qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
      tx_data_len += 4;
-
 
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
 }
@@ -2017,7 +2033,10 @@ void DspController::recSms()
                 if (ok_quit >= 2)
                 {
                 	smsFailed(-1);
-                	if (getSmsRetranslation() != 0){
+                    if (getSmsRetranslation() != 0)
+                    {
+                        // требуется, чтобы здесь происходил запуск приема,
+                        initResetState();
                 		startSMSRecieving();
                 	}
                 }
@@ -2278,15 +2297,15 @@ void DspController::startSMSRecieving(SmsStage stage)
 
     ParameterValue comandValue;
     if ((stage == StageRx_data) || (ContentSms.stage == StageTx_quit)){
-    	comandValue.radio_mode = RadioModeOff;
-    	    sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
-    	    comandValue.pswf_indicator = RadioModePSWF;
-    	    sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
+        comandValue.radio_mode = RadioModeOff;
+        sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
+        comandValue.pswf_indicator = RadioModePSWF;
+        sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
     }else{
-    comandValue.radio_mode = RadioModeOff;
-    sendCommand(TxRadiopath, TxRadioMode, comandValue);
-    comandValue.pswf_indicator = RadioModePSWF;
-    sendCommand(RxRadiopath, RxRadioMode, comandValue);}
+        comandValue.radio_mode = RadioModeOff;
+        sendCommand(TxRadiopath, TxRadioMode, comandValue);
+        comandValue.pswf_indicator = RadioModePSWF;
+        sendCommand(RxRadiopath, RxRadioMode, comandValue);}
     smsRxStateSync = 0;
     radio_state = radiostateSmsRxPrepare;
     ContentSms.stage = stage;

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <map>
+#include <vector>
 
 class PackageManager
 {
@@ -24,6 +25,8 @@ public:
     void to_Koi7(uint8_t *message);
     void to_Win1251(uint8_t *message);
     void shiftMasTo7Bit(uint8_t *input, uint8_t *output,  int out_shift, int len);
+    void addBytetoBitsArray(uint8_t value, std::vector<bool> &data, int len);
+    void getArrayByteFromBit(std::vector<bool> &data, uint8_t* dest);
 
 private:
     const unsigned int CRC_POLY1 = 0xEDB88320;
