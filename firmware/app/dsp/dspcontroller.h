@@ -13,6 +13,7 @@
 
 #include "qmobject.h"
 #include "../navigation/navigator.h"
+#include "../datastorage/fs.h"
 #include <list>
 #include <vector>
 #include "packagemanager.h"
@@ -104,7 +105,7 @@ public:
 		modempacket_RespPackQual = 23
     };
 
-    DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, QmObject *parent);
+    DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, DataStorage::FS *data_storage_fs, QmObject *parent);
     ~DspController();
     bool isReady();
     void startServicing();
@@ -359,6 +360,7 @@ private:
     uint8_t calc_ack_code(uint8_t ack);
 
     Navigation::Navigator *navigator;
+    DataStorage::FS *data_storage_fs;
 
     bool is_ready;
     QmIopin *reset_iopin;

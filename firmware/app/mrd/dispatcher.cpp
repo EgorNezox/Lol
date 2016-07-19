@@ -37,7 +37,7 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 	headset_controller->statusChanged.connect(sigc::mem_fun(this, &Dispatcher::setupVoiceMode));
 	headset_controller->pttStateChanged.connect(sigc::mem_fun(this, &Dispatcher::processHeadsetPttStateChange));
 	headset_controller->smartCurrentChannelChanged.connect(sigc::mem_fun(this, &Dispatcher::processHeadsetSmartCurrentChannelChange));
-	dsp_controller = new DspController(dsp_uart_resource, dspreset_iopin_resource, navigator, this);
+	dsp_controller = new DspController(dsp_uart_resource, dspreset_iopin_resource, navigator, data_storage_fs, this);
 	dsp_controller->started.connect(sigc::mem_fun(this, &Dispatcher::processDspStartup));
 	dsp_controller->setRadioCompleted.connect(sigc::mem_fun(this, &Dispatcher::processDspSetRadioCompletion));
 	atu_controller = new AtuController(atu_uart_resource, atu_iopin_resource, this);
