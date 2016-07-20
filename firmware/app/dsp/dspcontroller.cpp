@@ -1484,12 +1484,15 @@ void DspController::sendGuc()
     	 for(int i = 9;i < 120;i++) ContentGuc.command[i] = ContentGuc.command[i- 9];
          for(int i = 0; i<9;i++) {
              ContentGuc.command[i] = mas[i];
+             if (i != 8)
              pack_manager->addBytetoBitsArray(ContentGuc.command[i],data_guc,8);
          }
+
          bool quadrant = ContentGuc.command[8] & 1;
          data_guc.push_back(quadrant);
-         quadrant = ContentGuc.command[8] & (1 >> 1);
+         quadrant = ContentGuc.command[8] & (1 << 1);
          data_guc.push_back(quadrant);
+
          for(int i = 0; i<ContentGuc.NUM_com;i++){
              pack_manager->addBytetoBitsArray(ContentGuc.command[i+9],data_guc,7);
          }
@@ -1499,6 +1502,10 @@ void DspController::sendGuc()
     if (isGpsGuc){
         pack_manager->getArrayByteFromBit(data_guc,ContentGuc.command);
         crc32_len = data_guc.size() / 8;
+
+        for(int i = 0; i< crc32_len;i++){
+        	qmDebugMessage(QmDebug::Dump,"packet guc: %d", ContentGuc.command[i]);
+        }
     }
     else
     for(int i = 0; i < crc32_len;i++)

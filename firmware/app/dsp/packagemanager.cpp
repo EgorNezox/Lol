@@ -304,7 +304,7 @@ void PackageManager::addBytetoBitsArray(uint8_t value, std::vector<bool> &data,i
     bool param;
     for(int i = 0; i< len; i++)
     {
-        param = value & (1 >> i);
+        param = value & (1 << (len-i-1));
         data.push_back(param);
     }
 }
@@ -315,10 +315,10 @@ void PackageManager::getArrayByteFromBit(std::vector<bool> &data, uint8_t *dest)
     int ost = len  % 8;
     if (ost != 0 ){ for(int i = 0; i< 8 - ost;i++) data.push_back(0);}
 
-    int j = 0;int cnt = 0;
-    for(int i = 0; i < len; i++) {
-        if (i % 8 == 0) { ++j; cnt = 0;}
-        dest[j] = data.at(i) >> cnt;
+    int j = 0;int cnt = 0; uint8_t res = 0;
+    for(int i = 0; i < data.size(); i++) {
+        if ((i % 8) == 0 && (i !=0)) { dest[j] = res; ++j; cnt = 0; res = 0; }
+        res += data.at(i) << (8 - cnt - 1);
         ++cnt;
     }
 
