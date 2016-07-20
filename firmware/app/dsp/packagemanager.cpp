@@ -277,8 +277,29 @@ void PackageManager::to_Win1251(uint8_t *message)
 				}
 			}
 			++i;
-		}
+        }
 }
+
+
+// функция для сдвига 8-битного массива в 7-ми битный,
+// input - входной массив
+// output - выходной масисив,
+// out_shift - номер элемента, с которого просходит добавление в выходной массив
+// len - длинна
+void PackageManager::shiftMasTo7Bit(uint8_t *input, uint8_t *output, int out_shift, int len)
+{
+    int sdvig = 0;
+    for(int i = 0; i< len; i++)
+    {
+        sdvig = (i + 1) % 8;
+        if (sdvig != 0)
+            output[i + out_shift] = (input[i] << sdvig) + (input[i] >> sdvig);
+        else
+            output[i + out_shift] = input[i];
+    }
+}
+
+
 
 void PackageManager::makeTable(int polynomChoosen)
 {

@@ -72,6 +72,12 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     //[0] - CMD, [1] - R_ADDR, [2] - retrans
     switch (txCondCmdStage)
     {
+    case 0: /* Group <-> Individual <-> Ticket */
+    {
+        labelStr.append("Mode\0");
+        str.append(smplSubMenu[condCmdModeSelect]);
+        break;
+    }
     case 1:
     {
         // simple, individual
@@ -93,18 +99,6 @@ void CGuiMenu::initCondCommDialog(CEndState state)
         break;
     }
     case 2:
-    { // ввод адреса получателя
-        (*iter)++;(*iter)++;
-        if ((*iter)->inputStr.size() == 0)
-            str.append("--");
-        else if ((*iter)->inputStr.size() == 1)
-        { str.append("-"); }
-
-        str.append((*iter)->inputStr);
-        labelStr.append(condCommStr[0]);
-        break;
-    }
-    case 3:
     { // ввод адреса ретранслятора
         (*iter)++;
         if ((*iter)->inputStr.size() == 0)
@@ -114,6 +108,18 @@ void CGuiMenu::initCondCommDialog(CEndState state)
 
         str.append((*iter)->inputStr);
         labelStr.append(condCommStr[1]);
+        break;
+    }
+    case 3:
+    { // ввод адреса получателя
+        (*iter)++;(*iter)++;
+        if ((*iter)->inputStr.size() == 0)
+            str.append("--");
+        else if ((*iter)->inputStr.size() == 1)
+        { str.append("-"); }
+
+        str.append((*iter)->inputStr);
+        labelStr.append(condCommStr[0]);
         break;
     }
     case 4:
@@ -140,8 +146,8 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     params.element.align = {alignHCenter, alignVCenter};
     params.transparent = true;
 
-    MoonsGeometry localLabelArea = { 7, 25, 150,  55 };
-    MoonsGeometry localFieldArea = { 7, 60, 150, 125 };
+    MoonsGeometry localLabelArea = { 7,  5, 150,  39 };
+    MoonsGeometry localFieldArea = { 7, 40, 150, 125 };
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                               (GUI_Obj *)this);
     GUI_EL_Label  label (&GUI_EL_TEMP_LabelTitle,    &localLabelArea,  (char*)labelStr.c_str(), (GUI_Obj *)this);
@@ -1215,6 +1221,7 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
         titleArea  = {  5,   5, 150,  20 };
         MoonsGeometry freqArea   = {  5,  21, 150,  41 };
         MoonsGeometry valueArea  = {  5,  55, 150,  70 };
+        MoonsGeometry     cArea  = {  5,  75, 150,  110 };
 
         LabelParams param[2] = { GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT };
 
@@ -1238,10 +1245,20 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
         GUI_EL_Label  label  ( &param[0],                  &freqArea,   (char*)str.c_str(),      (GUI_Obj*)this );
         GUI_EL_Label  value  ( &param[1],                  &valueArea,  (char*)freq.c_str(),     (GUI_Obj*)this );
 
+        std::string useCstr;
+        if (useCbool)
+            useCstr.append("true");
+        else
+            useCstr.append("false");
+
+        GUI_EL_Label useC( &param[1], &cArea, (char*)useCstr.c_str(), (GUI_Obj*)this);
+
         window.Draw();
         title.Draw();
         label.Draw();
         value.Draw();
+        useC.Draw();
+
         break;
     }
     case 1:

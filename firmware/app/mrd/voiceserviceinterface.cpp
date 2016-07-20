@@ -26,10 +26,18 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     dispatcher->dsp_controller->smsPacketMessage.connect(sigc::mem_fun(this,&VoiceServiceInterface::smsMessage));
     dispatcher->dsp_controller->smsFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::SmsFailStage));
     dispatcher->dsp_controller->recievedGucResp.connect(sigc::mem_fun(this,&VoiceServiceInterface::responseGuc));
+    dispatcher->dsp_controller->recievedGucQuitForTransm.connect(sigc::mem_fun(this,&VoiceServiceInterface::messageGucQuit));
+	dispatcher->dsp_controller->updateSmsStatus.connect(sigc::mem_fun(this,&VoiceServiceInterface::getSmsForUiStage));
+    dispatcher->dsp_controller->gucCrcFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCrcFail));
+    dispatcher->dsp_controller->updateGucGpsStatus.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCoordRec));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
 {
+}
+
+void VoiceServiceInterface::messageGucQuit(int ans){
+    messageGucTxQuit(ans);
 }
 
 VoiceServiceInterface::ChannelStatus VoiceServiceInterface::getCurrentChannelStatus()
@@ -147,6 +155,16 @@ void VoiceServiceInterface::rerror()
     errorAsu();
 }
 
+void VoiceServiceInterface::getSmsForUiStage(int value)
+{
+    getSmsStageUi(value);
+}
+
+void VoiceServiceInterface::gucCrcFail()
+{
+    gucCrcFailed();
+}
+
 void VoiceServiceInterface::defaultSMSTrans()
 {
 	dispatcher->dsp_controller->defaultSMSTransmit();
@@ -174,9 +192,13 @@ void VoiceServiceInterface::setRnKey(int value)
 }
 
 
-void VoiceServiceInterface::TurnGuc(int r_adr, int speed_tx, std::vector<int> command)
+void VoiceServiceInterface::TurnGuc(int r_adr, int speed_tx, std::vector<int> command, bool isGps)
 {
-    dispatcher->dsp_controller->startGucTransmitting(r_adr,speed_tx,command);
+    dispatcher->dsp_controller->startGucTransmitting(r_adr,speed_tx,command, isGps);
+}
+
+uint8_t* VoiceServiceInterface::requestGucCoord(){
+	return dispatcher->dsp_controller->getGucCoord();
 }
 
 uint8_t* VoiceServiceInterface::getGucCommand()
@@ -217,6 +239,10 @@ void VoiceServiceInterface::responseGuc()
 void VoiceServiceInterface::smsMessage()
 {
 	smsMess();
+}
+
+void VoiceServiceInterface::gucCoordRec(){
+	gucCoord();
 }
 
 } /* namespace Multiradio */

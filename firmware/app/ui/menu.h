@@ -70,7 +70,8 @@ public:
 
     // tx cond cmd
     bool useCmdRetrans = false;
-    int txCondCmdStage = 1;
+    int txCondCmdStage = 0;
+    int condCmdModeSelect = 0;
     void setCondCommParam(CEndState, UI_Key);
     // rx cond cmd
     void initRxCondCmdDialog();
@@ -93,6 +94,7 @@ public:
     // tx group condition commands
     int txGroupCondCommStatus = 1;
     void initTxGroupCondComm(CEndState);
+    bool useCbool = false;
 
     // message ( SMS )
     uint8_t smsTxStage = 1;

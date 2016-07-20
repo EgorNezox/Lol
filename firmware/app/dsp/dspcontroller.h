@@ -121,7 +121,7 @@ public:
     void startSMSRecieving(SmsStage stage = StageRx_call);
     void startSMSTransmitting(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call);
 
-    void startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command);
+    void startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command,bool isGps);
     void startGucTransmitting();
     void startGucRecieving();
     void GucSwichRxTxAndViewData();
@@ -130,6 +130,8 @@ public:
 
     char* getSmsContent();
     void setRnKey(int keyValue);
+
+    void resetContentStructState();
 
     void processSyncPulse();
 
@@ -153,6 +155,14 @@ uint8_t* get_guc_vector();
     void setSmsRetranslation(uint8_t retr);
     uint8_t getSmsRetranslation();
     void setFreq(int value);
+    int getSmsForUiStage();
+
+    uint8_t* getGucCoord();
+
+    struct CoordGuc{
+        std::string lat;
+        std::string lon;
+    } cordGucValue;
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -169,12 +179,16 @@ uint8_t* get_guc_vector();
     sigc::signal<void> recievedGucResp;
     sigc::signal<void> pswfQuitRec;
     sigc::signal<void> gucQuitRec;
-
-    float swf_res = 2; // надо изменить значение на нижнее предельное
+    sigc::signal<void,int> recievedGucQuitForTransm;
+    sigc::signal<void,int> updateSmsStatus;
+    sigc::signal<void> updateGucGpsStatus;    float swf_res = 2; // надо изменить значение на нижнее предельное
+    sigc::signal<void> gucCrcFailed;
 
     PackageManager *pack_manager;
 
     int decode_bit[255];
+
+
 
 private:
     friend struct DspCommand;
@@ -300,7 +314,7 @@ private:
         uint8_t uin;
         uint8_t Coord;
         uint8_t stage;
-        uint8_t command[100];
+        uint8_t command[120];
 
     } ContentGuc;
 
@@ -344,7 +358,8 @@ private:
     void sendSms(Module module);
     void recSms();
     void sendGucQuit();
-
+    uint8_t *getGpsGucCoordinat(uint8_t *coord);
+    uint8_t *returnGpsCoordinat(uint8_t *data, uint8_t *res, uint8_t index);
 
     void changeSmsRxFrequency();
 
@@ -423,11 +438,8 @@ private:
     bool pswf_first_packet_received;
     bool pswf_ack;
 
-    char rec_sms[37];//REVIEW: unused
     int date_time[4];
     char private_lcode;
-
-
     int pswf_retranslator = 0;
 
     std::vector< std::vector<char> > recievedPswfBuffer;
@@ -445,7 +457,7 @@ private:
 
     int cntChvc = 7;
 
-    uint8_t guc_text[100];
+    uint8_t guc_text[120];
     uint8_t rec_uin_guc;
     uint8_t rec_s_adr;
     int guc_tx_num;
@@ -467,6 +479,12 @@ bool modem_rx_on, modem_tx_on;
     int wzn_value;
     uint8_t sms_retranslation;
     bool sms_call_received;
+
+    bool isGpsGuc = false;
+    bool unblockGucTx = false;
+
+    uint8_t guc_coord[10];
+    bool failQuitGuc = false;
 };
 
 
