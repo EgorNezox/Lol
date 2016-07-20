@@ -2650,70 +2650,69 @@ uint8_t* DspController::get_guc_vector()
 	//получение количества элементов в векторе
 	guc_text[0] = num;
 
+    uint8_t out[120];
+    for(int i = 0; i<120;i++) out[i] = 0;
+    int crc_coord_len = 0;
+
+    // если с координатами, то выборка по одному алгоритму, иначе по другому
 	int count = 0;
-	if (isGpsGuc == 0)
-	{
-		if (num <= 5) count = 5;
-		if ((num > 5) && (num <= 11))   count = 11;
-		if ((num > 11) && (num <= 25))  count = 25;
-		if ((num > 25) && (num <= 100)) count = 100;
-	}
-	else
-	{
-		if (num <= 6) count = 6;
-		if ((num > 10) && (num <= 10))   count = 10;
-		if ((num > 10) && (num <= 26))  count = 26;
-		if ((num > 26) && (num <= 100)) count = 100;
-	}
+    if (isGpsGuc == 0)
+    {
+        if (num <= 5) count = 5;
+        if ((num > 5) && (num <= 11))   count = 11;
+        if ((num > 11) && (num <= 25))  count = 25;
+        if ((num > 25) && (num <= 100)) count = 100;
+    }
+    else
+    {
+        if (num <= 6) count = 6;
+        if ((num > 10) && (num <= 10))   count = 10;
+        if ((num > 10) && (num <= 26))  count = 26;
+        if ((num > 26) && (num <= 100)) count = 100;
+    }
 
 
-	// заполнение в тексте
-	for(int i = 0; i<num;i++){
-		guc_text[i+1] = guc_vector.at(0).at(7+i);
-	}
 
-	if (isGpsGuc){
-		for (int i = count; i< count + 9;i++){
-			guc_text[i+1] = guc_vector.at(0).at(7+i);
-			if (i  == (count + 8)) guc_text[i+1] = guc_text[i+1] & 0xC0;
-		}
-	}
+    if (isGpsGuc)
+    {
+        for (int i = 0; i< 9;i++)
+        {
+            guc_text[i+1] = guc_vector.at(0).at(7+i+count);
+            if (i  == (count + 8)) guc_text[i+1] = guc_text[i+1] & 0xC0;
+        }
+        // -- Записали координаты, начиная с первой позиции массива guc_text
+        for(int i = 0; i< count;i++){guc_text[9 + i+1] = guc_vector.at(0).at(7+i);}
+        // -- Запиcали данные, начиная с 10-й позиции нашего массива
+        std::vector<bool> data;
+        for(int i = 0; i< 9; i++) pack_manager->addBytetoBitsArray(guc_text[i+1],data,8);
+        // добавили координаты к битовому вектору
+        bool quadrant = guc_text[9] & (1 << 1);
+        data.push_back(quadrant);
+        quadrant = guc_text[9] & 1;
+        data.push_back(quadrant);
+        // добавили к битовому вектору квадрант
+        for(int i = 0; i<count;i++) pack_manager->addBytetoBitsArray(guc_text[9 + i+1],data,7);
+        // добавили к битовому вектору данные по 7 бит
+        pack_manager->getArrayByteFromBit(data,out);
+        // записали в выходной массив преобразованные данные из битового массива по анологии с формирование пакета для CRC32 на передаче
+        crc_coord_len = data.size() / 8;
+        // получили длинну пакета
+    }
 
+    else
+    {
+        for(int i = 0; i<num;i++) guc_text[i+1] = guc_vector.at(0).at(7+i);
 
-	uint8_t out[120];
-	uint8_t guc_mas[120];
-	for(int i = 0; i<120;i++) {out[i] = 0; guc_mas[i] = 0;}
+        for(int i = 0;  i< count;i++){
+            int sdvig  = (i+1) % 8;
+            if (sdvig != 0)
+                out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
+            else
+                out[i] = guc_text[i+1];
 
-	// заполнение расчетного массива для crc32
-	if (isGpsGuc) count += 9;
+        }
+    }
 
-	if (isGpsGuc)
-	{
-		for(int i = 0; i< count - 9;i++){
-			guc_mas[9+i+1] = guc_text[i+1];
-		}
-		for(int i = 1; i<9;i++){
-			guc_mas[i] = guc_text[count - 9 + i];
-		}
-		guc_mas[119] = '\0';
-	}
-
-
-	for(int i = 0;  i< count;i++)
-	{
-		int sdvig  = (i+1) % 8;
-		if (sdvig != 0){
-			if (isGpsGuc)
-			{  out[i] = (guc_mas[i+1] << sdvig) + (guc_mas[i+2] >> (7 -  sdvig)); }
-			else
-			{out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));}
-		}
-		else{
-			if (isGpsGuc) out[i] = guc_mas[i+1];
-				else
-					out[i] = guc_text[i+1];
-		}
-	}
 
 	// достаем crc32 сумму из конца пакета
 	int m = 3;
@@ -2727,8 +2726,10 @@ uint8_t* DspController::get_guc_vector()
 	}
 
 	// считаем crc32 сумму
-	uint32_t crc = 0;
-	crc = pack_manager->CRC32(out,count);
+    uint32_t crc = 0;
+    int value  = (isGpsGuc) ? crc_coord_len : count;
+    // выбрали длинну, исходя из режима передачи
+    crc = pack_manager->CRC32(out,value);
 
 	if (isGpsGuc) {
 		guc_coord[10] = '\0';
