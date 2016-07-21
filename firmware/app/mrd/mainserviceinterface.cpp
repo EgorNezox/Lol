@@ -1033,7 +1033,8 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 		hshaketransmode_packet.paramMode = ((data[0] & 0x03) << 4) | ((data[1] >> 4) & 0x0F);
 		hshaketransmode_packet.schedule = (data[1] >> 3) & 0x01;
 		hshaketransmode_packet.callAddr = ((data[1] & 0x07) << 2) | ((data[2] >> 6) & 0x03);
-		if (!((hshaketransmode_packet.soundType == 0) && (hshaketransmode_packet.schedule == 1)
+		if (!(((hshaketransmode_packet.soundType == 0) || (hshaketransmode_packet.soundType == 3))
+				&& (hshaketransmode_packet.schedule == 1)
 				&& (hshaketransmode_packet.workMode == 3) && (hshaketransmode_packet.paramMode == 1))) {
 			qmDebugMessage(QmDebug::Info, "ale rejecting unsupported HshakeTransMode (soundType = %u, workMode = %u, paramMode = %u, schedule = %u)", hshaketransmode_packet.soundType, hshaketransmode_packet.workMode, hshaketransmode_packet.paramMode, hshaketransmode_packet.schedule);
 			setAleState(AleState_RX_CALL_FAIL_UNSUPPORTED);
