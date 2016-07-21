@@ -1432,10 +1432,11 @@ bool MainServiceInterface::adaptPacketTxDown() {
 		if (ale.vm_sform_c == 2)
 			ale.vm_sform_c = 3;
 	}
-#else
-	ale.vm_nack_count = 0;
-#endif
 	return true;
+#else
+	ale.vm_nack_count--;
+	return false;
+#endif
 }
 
 void MainServiceInterface::aleprocessTimerPacketTxHeadDataExpired() {
