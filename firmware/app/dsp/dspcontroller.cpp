@@ -2608,6 +2608,12 @@ void DspController::startGucRecieving()
     sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
     comandValue.guc_mode = SAZHEN_NETWORK_ADDRESS;
     sendCommandEasy(RadioLineNotPswf, 3 ,comandValue); // отключить низкоскоростной модем
+
+    // TODO: установка полосы частот 3,1 кГц
+    //sendCommandEasy(RadioLineNotPswf, 1, 3);
+    //QmThread::msleep(100);
+    //-----------------------------------
+
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
     comandValue.frequency = freqGucValue;//3000000;
@@ -2666,7 +2672,7 @@ uint8_t* DspController::get_guc_vector()
     else
     {
         if (num <= 6) count = 6;
-        if ((num > 10) && (num <= 10))   count = 10;
+        if ((num > 6) && (num <= 10))   count = 10;
         if ((num > 10) && (num <= 26))  count = 26;
         if ((num > 26) && (num <= 100)) count = 100;
     }
@@ -2678,17 +2684,22 @@ uint8_t* DspController::get_guc_vector()
         for (int i = 0; i< 9;i++)
         {
             guc_text[i+1] = guc_vector.at(0).at(7+i+count);
-            if (i  == (count + 8)) guc_text[i+1] = guc_text[i+1] & 0xC0;
         }
         // -- Записали координаты, начиная с первой позиции массива guc_text
-        for(int i = 0; i< count;i++){guc_text[9 + i+1] = guc_vector.at(0).at(7+i);}
+        for(int i = 0; i< count;i++){
+        	if (i < num)
+        		guc_text[9 + i+1] = guc_vector.at(0).at(7+i);
+        	else
+        		guc_text[9 + i+1] = 0;
+        }
         // -- Запиcали данные, начиная с 10-й позиции нашего массива
         std::vector<bool> data;
-        for(int i = 0; i< 9; i++) pack_manager->addBytetoBitsArray(guc_text[i+1],data,8);
+        for(int i = 0; i< 8; i++) pack_manager->addBytetoBitsArray(guc_text[i+1],data,8);
         // добавили координаты к битовому вектору
-        bool quadrant = guc_text[9] & (1 << 1);
+
+        bool quadrant = guc_text[9] & (1 << 7);
         data.push_back(quadrant);
-        quadrant = guc_text[9] & 1;
+        quadrant = guc_text[9] & (1 >> 6);
         data.push_back(quadrant);
         // добавили к битовому вектору квадрант
         for(int i = 0; i<count;i++) pack_manager->addBytetoBitsArray(guc_text[9 + i+1],data,7);
