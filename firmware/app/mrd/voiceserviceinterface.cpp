@@ -54,6 +54,11 @@ int VoiceServiceInterface::getCurrentChannelFrequency()
     return dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).frequency;
 }
 
+voice_emission_t VoiceServiceInterface::getCurrentChannelEmissionType() {
+	//...
+	return voiceemissionInvalid;
+}
+
 voice_channel_t VoiceServiceInterface::getCurrentChannelType() {
 	if (current_channel_status == ChannelDisabled)
 		return channelInvalid;
@@ -94,7 +99,7 @@ void VoiceServiceInterface::tunePreviousChannel() {
     dispatcher->updateVoiceChannel();
 }
 
-void VoiceServiceInterface::TuneFrequency(int Frequency)
+void VoiceServiceInterface::tuneFrequency(int Frequency)
 {
 
     if (Frequency >= 30000000)
@@ -102,6 +107,10 @@ void VoiceServiceInterface::TuneFrequency(int Frequency)
     else
         dispatcher->dsp_controller->setRadioParameters(DspController::RadioModeUSB,Frequency);
     dispatcher->dsp_controller->setRadioOperation(DspController::RadioOperationRxMode);
+}
+
+void VoiceServiceInterface::tuneEmissionType(voice_emission_t type) {
+	//...
 }
 
 void VoiceServiceInterface::tuneSquelch(uint8_t value) {

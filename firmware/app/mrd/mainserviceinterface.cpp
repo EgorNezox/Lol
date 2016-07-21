@@ -218,6 +218,15 @@ MainServiceInterface::Status MainServiceInterface::getStatus() {
 	return current_status;
 }
 
+void MainServiceInterface::setVoiceMode(VoiceMode mode) {
+	//...
+}
+
+MainServiceInterface::VoiceMode MainServiceInterface::getVoiceMode() {
+	//...
+	return VoiceModeManual;
+}
+
 void MainServiceInterface::setStatus(Status value) {
 	if (current_status != value) {
 		current_status = value;

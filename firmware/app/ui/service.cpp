@@ -361,7 +361,7 @@ void Service::keyPressed(UI_Key key)
                     main_scr->oFreq.clear();
                     main_scr->oFreq.append(main_scr->nFreq.c_str());
                     int freq = atoi(main_scr->nFreq.c_str());
-                    voice_service->TuneFrequency(freq);
+                    voice_service->tuneFrequency(freq);
                 }
                 // ? пїЅпїЅпїЅ
                 switch ( main_scr->mainWindowModeId )
@@ -1767,7 +1767,7 @@ void Service::keyPressed(UI_Key key)
                     main_scr->oFreq.clear();
                     main_scr->oFreq.append( (*iter)->inputStr.c_str() );
                     int freq = atoi(main_scr->nFreq.c_str());
-                    voice_service->TuneFrequency(freq);
+                    voice_service->tuneFrequency(freq);
 
                     guiTree.resetCurrentState();
                     menu->focus = 0;

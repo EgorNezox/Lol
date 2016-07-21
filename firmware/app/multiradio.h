@@ -14,6 +14,12 @@
 
 namespace Multiradio {
 
+enum voice_emission_t {
+	voiceemissionInvalid,
+	voiceemissionUSB,
+	voiceemissionFM
+};
+
 enum voice_channel_t {
 	channelInvalid,
 	channelOpen,

@@ -34,6 +34,10 @@ public:
 		StatusVoiceTx,
 		StatusTuningTx
 	};
+	enum VoiceMode {
+		VoiceModeAuto,
+		VoiceModeManual
+	};
 	enum AleResult {
 		AleResultNone,
 		AleResultVoiceMail
@@ -63,6 +67,8 @@ public:
 	};
 
 	Status getStatus();
+	void setVoiceMode(VoiceMode mode);
+	VoiceMode getVoiceMode();
 
 	void startAleRx();
 	void startAleTxVoiceMail(uint8_t address);

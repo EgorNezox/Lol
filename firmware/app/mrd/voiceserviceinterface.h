@@ -30,10 +30,12 @@ public:
 	ChannelStatus getCurrentChannelStatus();
 	int getCurrentChannelNumber();
     int getCurrentChannelFrequency();
+    voice_emission_t getCurrentChannelEmissionType();
 	voice_channel_t getCurrentChannelType();
 	void tuneNextChannel();
 	void tunePreviousChannel();
-    void TuneFrequency(int Frequency);
+    void tuneFrequency(int frequency);
+    void tuneEmissionType(voice_emission_t type);
     void tuneSquelch(uint8_t value);
     void TuneAudioLevel(uint8_t volume_level);
     void TurnAGCMode(uint8_t mode, int radio_path);
