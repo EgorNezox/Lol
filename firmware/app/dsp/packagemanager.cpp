@@ -319,6 +319,7 @@ void PackageManager::getArrayByteFromBit(std::vector<bool> &data, uint8_t *dest)
     for(int i = 0; i < data.size(); i++) {
         if ((i % 8) == 0 && (i !=0)) { dest[j] = res; ++j; cnt = 0; res = 0; }
         res += data.at(i) << (8 - cnt - 1);
+        if (i == data.size()-1) {dest[j] = res;}
         ++cnt;
     }
 

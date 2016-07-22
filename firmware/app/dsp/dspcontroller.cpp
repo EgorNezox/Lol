@@ -1781,7 +1781,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: indicator %d", indicator);
         	}
             if (indicator == 30) {
-            	ContentGuc.R_ADR = ((data[2] & 0xF0) << 2) + (data[3] & 0x3F);
+            	ContentGuc.R_ADR = ((data[2] & 0xF0) >> 3); //(data[3] & 0x3F);
                 isGpsGuc = data[5]; // TODO: требуется проверить в реальных условиях
 
                 if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(1); ContentGuc.stage = GucNone;}
@@ -2610,8 +2610,9 @@ void DspController::startGucRecieving()
     sendCommandEasy(RadioLineNotPswf, 3 ,comandValue); // отключить низкоскоростной модем
 
     // TODO: установка полосы частот 3,1 кГц
-    //sendCommandEasy(RadioLineNotPswf, 1, 3);
-    //QmThread::msleep(100);
+    comandValue.guc_mode = 3;
+   sendCommandEasy(RadioLineNotPswf, 1, comandValue);
+   QmThread::msleep(100);
     //-----------------------------------
 
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
@@ -2740,6 +2741,10 @@ uint8_t* DspController::get_guc_vector()
     uint32_t crc = 0;
     int value  = (isGpsGuc) ? crc_coord_len : count;
     // выбрали длинну, исходя из режима передачи
+    if (isGpsGuc){
+    if ((count > 6) && (count <= 10)) value += 1;}
+    else
+    {if (count > 5) value +=1;}
     crc = pack_manager->CRC32(out,value);
 
 	if (isGpsGuc) {
