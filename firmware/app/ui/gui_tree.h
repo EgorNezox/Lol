@@ -182,7 +182,11 @@ private:
     // 1.5.1 - 1.5.2
     CState groupCondCommandSimpl;
     CEndState groupCondCommandDupl;
-    SInputItemParameters groupCondCommandDuplParameters;
+    SInputItemParameters groupCondCommandParameters1{(char*)callTitle[0], "", 2, 0, 31},\
+                         groupCondCommandParameters2{(char*)callTitle[1], "", 2, 0, 31},\
+                         groupCondCommandParameters3{(char*)callTitle[1], "", 2, 0, 31},\
+                         groupCondCommandParameters4{(char*)callTitle[1], "", 2, 0, 31};
+
     // 1.5.1.1 - 1.5.1.2
     CEndState groupCondCommandSimplGroupCall, groupCondCommandSimplIndivCall;
     SInputItemParameters groupCondCommandSimplCallParameters[4];

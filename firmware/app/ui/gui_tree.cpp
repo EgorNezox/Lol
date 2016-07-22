@@ -104,8 +104,14 @@ void CGuiTree::init()
     txPutOffVoice.prevState = &call;
     txPutOffVoice.nextState.clear();
     // 1.4 - √руппа условных команд
+    groupCondCommand.subType = GuiWindowsSubType::txGroupCondCmd;
     groupCondCommand.prevState = &call;
-    groupCondCommand.nextState.push_back(&groupCondCommandSimpl);
+    groupCondCommand.nextState.clear();
+    groupCondCommand.listItem.push_back(&groupCondCommandParameters1);
+    groupCondCommand.listItem.push_back(&groupCondCommandParameters2);
+    groupCondCommand.listItem.push_back(&groupCondCommandParameters3);
+//    groupCondCommand.listItem.push_back(&groupCondCommandParameters4);
+//    groupCondCommand.nextState.push_back(&groupCondCommandSimpl);k
 //    groupCondCommand.nextState.push_back(&groupCondCommandDupl);
     // 1.4.1 - ќдносторонн€€ св€зь
     groupCondCommandSimpl.prevState = &groupCondCommand;
@@ -126,8 +132,8 @@ void CGuiTree::init()
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[1]);
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[2]);
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[3]);
-//  // 1.4.2 - двухсторонн€€ св€зь
-//    groupCondCommandDupl.subType = GuiWindowsSubType::txGroupCondCmd;
+    // 1.4.2 - двухсторонн€€ св€зь
+//  groupCondCommandDupl.subType = GuiWindowsSubType::txGroupCondCmd;
     groupCondCommandDupl.prevState = &groupCondCommand;
     groupCondCommandDupl.nextState.clear();
 

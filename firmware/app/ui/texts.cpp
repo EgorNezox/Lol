@@ -48,6 +48,7 @@ const char *settingsSubMenu[] = {"Дата/время\0", " Пар связи\0", " Скан\0", " АР
         const char *setDateOrTime[] = {" Установить дату\0", " Установить время\0"};
     const char *setConnParam[] = {" Частота\0", " Скорость\0"};
 
+const char *coordinateStr = "Координаты\0";
 const char *useScanMenu[] = {"ВКЛ\0", "ВЫКЛ\0"};
 const char *aruStr = "АРУ\0";
 const char *armStr = "АРМ\0";
