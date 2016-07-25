@@ -113,11 +113,11 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 				if (main_service->current_mode == MainServiceInterface::VoiceModeAuto)
 					return;
 		} else {
-			if (main_service->current_mode == MainServiceInterface::VoiceModeAuto) {
-				voice_channel = std::find_if( std::begin(voice_channels_table), std::end(voice_channels_table),
-						[&](const voice_channel_entry_t entry){ return (entry.type == channelOpen); } );
-				if (voice_channel == voice_channels_table.end()) {
-					voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
+			voice_channel = std::find_if( std::begin(voice_channels_table), std::end(voice_channels_table),
+					[&](const voice_channel_entry_t entry){ return (entry.type == channelOpen); } );
+			if (voice_channel == voice_channels_table.end()) {
+				voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
+				if (main_service->current_mode == MainServiceInterface::VoiceModeAuto) {
 					startIdle();
 					return;
 				}
@@ -221,7 +221,9 @@ bool Dispatcher::isVoiceMode() {
 }
 
 bool Dispatcher::isVoiceChannelTunable() {
-	return (isVoiceMode() && (headset_controller->getStatus() == Headset::Controller::StatusAnalog));
+	return ((voice_channel != voice_channels_table.end())
+			&& (headset_controller->getStatus() == Headset::Controller::StatusAnalog)
+			&& (main_service->current_mode == MainServiceInterface::VoiceModeAuto));
 }
 
 void Dispatcher::processDspSetRadioCompletion() {

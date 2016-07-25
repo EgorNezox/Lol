@@ -89,7 +89,7 @@ voice_channel_t VoiceServiceInterface::getCurrentChannelType() {
 }
 
 void VoiceServiceInterface::tuneNextChannel() {
-	if (!(dispatcher->isVoiceChannelTunable() && (dispatcher->main_service->current_mode == MainServiceInterface::VoiceModeAuto)))
+	if (!dispatcher->isVoiceChannelTunable())
 		return;
 	auto current_channel = dispatcher->voice_channel;
 	bool wrapped = false;
@@ -106,7 +106,7 @@ void VoiceServiceInterface::tuneNextChannel() {
 }
 
 void VoiceServiceInterface::tunePreviousChannel() {
-	if (!(dispatcher->isVoiceChannelTunable() && (dispatcher->main_service->current_mode == MainServiceInterface::VoiceModeAuto)))
+	if (!dispatcher->isVoiceChannelTunable())
 		return;
 	auto current_channel = dispatcher->voice_channel;
 	bool wrapped = false;
