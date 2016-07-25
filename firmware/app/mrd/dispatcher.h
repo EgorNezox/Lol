@@ -63,6 +63,7 @@ private:
 	voice_channels_table_t::iterator voice_channel;
 	uint32_t voice_manual_frequency;
 	voice_emission_t voice_manual_emission_type;
+	voice_channel_speed_t voice_manual_channel_speed;
 	DataStorage::FS *data_storage_fs;
 
     sigc::signal<void> getPSWF();

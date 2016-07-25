@@ -20,6 +20,7 @@ void FS::init() {
     RnKey = 0;
     voice_frequency = 10000000;
     voice_emission_type = Multiradio::voiceemissionUSB;
+    voice_channel_speed = Multiradio::voicespeed1200;
 }
 
 bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
@@ -297,6 +298,15 @@ bool FS::getVoiceEmissionType(Multiradio::voice_emission_t &data) {
 
 void FS::setVoiceEmissionType(Multiradio::voice_emission_t data) {
 	voice_emission_type = data;
+}
+
+bool FS::getVoiceChannelSpeed(Multiradio::voice_channel_speed_t &data) {
+	data = voice_channel_speed;
+	return true;
+}
+
+void FS::setVoiceChannelSpeed(Multiradio::voice_channel_speed_t data) {
+	voice_channel_speed = data;
 }
 
 } /* namespace DataStorage */

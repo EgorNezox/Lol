@@ -49,6 +49,8 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 		voice_manual_frequency = 0;
 	if (!data_storage_fs->getVoiceEmissionType(voice_manual_emission_type))
 		voice_manual_emission_type = voiceemissionInvalid;
+	if (!data_storage_fs->getVoiceChannelSpeed(voice_manual_channel_speed))
+		voice_manual_channel_speed = voicespeedInvalid;
 }
 
 Dispatcher::~Dispatcher()
@@ -201,6 +203,8 @@ bool Dispatcher::changeVoiceChannel(int number, voice_channel_t type) {
 			startIdle();
 		return false;
 	}
+	if (main_service->current_mode == MainServiceInterface::VoiceModeAuto)
+		headset_controller->setSmartCurrentChannelSpeed(voice_channels_table[number-1].speed);
 	return true;
 }
 

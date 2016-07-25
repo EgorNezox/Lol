@@ -110,6 +110,11 @@ bool Controller::getSmartCurrentChannel(int& number, Multiradio::voice_channel_t
 	return state == StateSmartOk;
 }
 
+bool Controller::setSmartCurrentChannelSpeed(Multiradio::voice_channel_speed_t speed) {
+	//TODO:...
+	return false;
+}
+
 void Controller::processPttStateChanged() {
 	ptt_debounce_timer->start();
 }

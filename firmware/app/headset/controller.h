@@ -100,6 +100,12 @@ public:
 	 * \return статус операции
 	 */
 	bool getSmartCurrentChannel(int &number, Multiradio::voice_channel_t &type);
+	/*!
+	 * \brief Устанавливает скорость текущего канала гарнитуры СКЗИ
+	 * \param speed скорость
+	 * \return статус операции
+	 */
+	bool setSmartCurrentChannelSpeed(Multiradio::voice_channel_speed_t speed);
 
 	/*!
 	 * \brief Инициирует воспроизведение сообщения на гарнитуре СКЗИ

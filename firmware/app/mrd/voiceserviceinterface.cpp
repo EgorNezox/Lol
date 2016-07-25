@@ -88,6 +88,29 @@ voice_channel_t VoiceServiceInterface::getCurrentChannelType() {
 	return (*(dispatcher->voice_channel)).type;
 }
 
+voice_channel_speed_t VoiceServiceInterface::getCurrentChannelSpeed() {
+	switch (dispatcher->main_service->current_mode) {
+	case MainServiceInterface::VoiceModeAuto: {
+		if (current_channel_status != ChannelDisabled)
+			return dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).speed;
+		break;
+	}
+	case MainServiceInterface::VoiceModeManual: {
+		return dispatcher->voice_manual_channel_speed;
+	}
+	}
+	return voicespeedInvalid;
+}
+
+void VoiceServiceInterface::setCurrentChannelSpeed(voice_channel_speed_t speed) {
+	dispatcher->data_storage_fs->setVoiceChannelSpeed(speed);
+	dispatcher->voice_manual_channel_speed = speed;
+	if (!((dispatcher->main_service->current_mode == MainServiceInterface::VoiceModeManual)
+			&& (dispatcher->headset_controller->getStatus() == Headset::Controller::StatusSmartOk)))
+		return;
+	dispatcher->headset_controller->setSmartCurrentChannelSpeed(speed);
+}
+
 void VoiceServiceInterface::tuneNextChannel() {
 	if (!dispatcher->isVoiceChannelTunable())
 		return;
@@ -124,18 +147,18 @@ void VoiceServiceInterface::tunePreviousChannel() {
 
 void VoiceServiceInterface::tuneFrequency(int frequency)
 {
-	if (dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
-		return;
 	dispatcher->data_storage_fs->setVoiceFrequency(frequency);
 	dispatcher->voice_manual_frequency = frequency;
+	if (dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
+		return;
     dispatcher->updateVoiceChannel();
 }
 
 void VoiceServiceInterface::tuneEmissionType(voice_emission_t type) {
-	if (dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
-		return;
 	dispatcher->data_storage_fs->setVoiceEmissionType(type);
 	dispatcher->voice_manual_emission_type = type;
+	if (dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
+		return;
     dispatcher->updateVoiceChannel();
 }
 
