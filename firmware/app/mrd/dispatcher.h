@@ -40,6 +40,7 @@ private:
 	bool processHeadsetPttStateChange(bool new_state);
 	void processHeadsetSmartCurrentChannelChange(int new_channel_number, voice_channel_t new_channel_type);
 	void setupVoiceMode(Headset::Controller::Status headset_status);
+	voice_emission_t getVoiceEmissionFromFrequency(uint32_t frequency);
 	void setVoiceChannel();
 	bool changeVoiceChannel(int number, voice_channel_t type);
 	void updateVoiceChannel();
@@ -60,6 +61,8 @@ private:
 	VoiceServiceInterface *voice_service;
 	voice_channels_table_t voice_channels_table;
 	voice_channels_table_t::iterator voice_channel;
+	uint32_t voice_manual_frequency;
+	voice_emission_t voice_manual_emission_type;
 	DataStorage::FS *data_storage_fs;
 
     sigc::signal<void> getPSWF();

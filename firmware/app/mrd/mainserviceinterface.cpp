@@ -97,6 +97,8 @@ namespace Multiradio {
 MainServiceInterface::MainServiceInterface(Dispatcher *dispatcher, Navigation::Navigator *navigator) :
 	QmObject(dispatcher),
 	current_status(StatusNotReady),
+	current_mode(VoiceModeManual),
+	dispatcher(dispatcher),
 	data_storage_fs(dispatcher->data_storage_fs), dsp_controller(dispatcher->dsp_controller), navigator(navigator), headset_controller(dispatcher->headset_controller)
 {
 	ale.f_state = alefunctionIdle;
@@ -219,12 +221,16 @@ MainServiceInterface::Status MainServiceInterface::getStatus() {
 }
 
 void MainServiceInterface::setVoiceMode(VoiceMode mode) {
-	//...
+	if (mode == current_mode)
+		return;
+	current_mode = mode;
+	if ((mode == VoiceModeAuto) && !dispatcher->isVoiceMode())
+		return;
+	dispatcher->updateVoiceChannel();
 }
 
 MainServiceInterface::VoiceMode MainServiceInterface::getVoiceMode() {
-	//...
-	return VoiceModeManual;
+	return current_mode;
 }
 
 void MainServiceInterface::setStatus(Status value) {
