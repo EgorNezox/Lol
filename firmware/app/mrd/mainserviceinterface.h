@@ -84,6 +84,7 @@ public:
 
 private:
 	friend class Dispatcher;
+	friend class VoiceServiceInterface;
 
 	enum AleFunctionalState {
 		alefunctionIdle,
@@ -228,6 +229,8 @@ private:
 	void aleprocessPacketRoffHshakeTExpired();
 
 	Status current_status;
+	VoiceMode current_mode;
+	Dispatcher *dispatcher;
 	DataStorage::FS *data_storage_fs;
 	DspController *dsp_controller;
 	Navigation::Navigator *navigator;

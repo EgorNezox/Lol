@@ -47,7 +47,7 @@ void qmMain() {
             &headset_controller, &navigator, &data_storage_fs);
 #else
     Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,
-            &headset_controller, 0, 0);
+            &headset_controller, 0, &data_storage_fs);
 #endif
 
 	Power::Battery power_battery(platformhwBatterySmbusI2c);

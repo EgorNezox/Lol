@@ -11,8 +11,10 @@
 #include "qm.h"
 
 #include "voiceserviceinterface.h"
+#include "mainserviceinterface.h"
 #include "dispatcher.h"
 #include <math.h>
+#include "../datastorage/fs.h"
 
 
 namespace Multiradio {
@@ -44,18 +46,39 @@ VoiceServiceInterface::ChannelStatus VoiceServiceInterface::getCurrentChannelSta
 
 int VoiceServiceInterface::getCurrentChannelNumber()
 {
+	if (current_channel_status == ChannelDisabled)
+		return 0;
     return (dispatcher->voice_channel - dispatcher->voice_channels_table.begin() + 1);
 }
 
 int VoiceServiceInterface::getCurrentChannelFrequency()
 {
-	if (current_channel_status == ChannelDisabled)
-		return 0;
-    return dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).frequency;
+	switch (dispatcher->main_service->current_mode) {
+	case MainServiceInterface::VoiceModeAuto: {
+		if (current_channel_status != ChannelDisabled)
+			return dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).frequency;
+		break;
+	}
+	case MainServiceInterface::VoiceModeManual: {
+		return dispatcher->voice_manual_frequency;
+	}
+	}
+	return 0;
 }
 
 voice_emission_t VoiceServiceInterface::getCurrentChannelEmissionType() {
-	//...
+	switch (dispatcher->main_service->current_mode) {
+	case MainServiceInterface::VoiceModeAuto: {
+		if (current_channel_status != ChannelDisabled) {
+			uint32_t frequency = dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).frequency;
+			return dispatcher->getVoiceEmissionFromFrequency(frequency);
+		}
+		break;
+	}
+	case MainServiceInterface::VoiceModeManual: {
+		return dispatcher->voice_manual_emission_type;
+	}
+	}
 	return voiceemissionInvalid;
 }
 
@@ -66,7 +89,7 @@ voice_channel_t VoiceServiceInterface::getCurrentChannelType() {
 }
 
 void VoiceServiceInterface::tuneNextChannel() {
-	if (!dispatcher->isVoiceChannelTunable())
+	if (!(dispatcher->isVoiceChannelTunable() && (dispatcher->main_service->current_mode == MainServiceInterface::VoiceModeAuto)))
 		return;
 	auto current_channel = dispatcher->voice_channel;
 	bool wrapped = false;
@@ -83,7 +106,7 @@ void VoiceServiceInterface::tuneNextChannel() {
 }
 
 void VoiceServiceInterface::tunePreviousChannel() {
-	if (!dispatcher->isVoiceChannelTunable())
+	if (!(dispatcher->isVoiceChannelTunable() && (dispatcher->main_service->current_mode == MainServiceInterface::VoiceModeAuto)))
 		return;
 	auto current_channel = dispatcher->voice_channel;
 	bool wrapped = false;
@@ -99,18 +122,21 @@ void VoiceServiceInterface::tunePreviousChannel() {
     dispatcher->updateVoiceChannel();
 }
 
-void VoiceServiceInterface::tuneFrequency(int Frequency)
+void VoiceServiceInterface::tuneFrequency(int frequency)
 {
-
-    if (Frequency >= 30000000)
-        dispatcher->dsp_controller->setRadioParameters(DspController::RadioModeFM,Frequency);
-    else
-        dispatcher->dsp_controller->setRadioParameters(DspController::RadioModeUSB,Frequency);
-    dispatcher->dsp_controller->setRadioOperation(DspController::RadioOperationRxMode);
+	if (dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
+		return;
+	dispatcher->data_storage_fs->setVoiceFrequency(frequency);
+	dispatcher->voice_manual_frequency = frequency;
+    dispatcher->updateVoiceChannel();
 }
 
 void VoiceServiceInterface::tuneEmissionType(voice_emission_t type) {
-	//...
+	if (dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
+		return;
+	dispatcher->data_storage_fs->setVoiceEmissionType(type);
+	dispatcher->voice_manual_emission_type = type;
+    dispatcher->updateVoiceChannel();
 }
 
 void VoiceServiceInterface::tuneSquelch(uint8_t value) {
