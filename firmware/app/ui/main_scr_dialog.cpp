@@ -25,8 +25,8 @@
 
 //----------GLOBAL_VARS--------
 
-static MoonsGeometry ch_label_geom  = {  1,  5,  78,  65 };
-static MoonsGeometry mode_text_geom = { 80,  5, 158,  32 };
+static MoonsGeometry ch_label_geom  = {  1, 33,  78,  65 };
+static MoonsGeometry mode_text_geom = { 80, 38, 158,  73 };
 static MoonsGeometry freq_geom      = {  9, 74, 150, 126 };
 
 bool GUI_main_scr_init_flag=0;
@@ -46,10 +46,10 @@ GUI_Dialog_MainScr::GUI_Dialog_MainScr(MoonsGeometry *area):GUI_Obj(area),
   MoonsGeometry window_geom = {0,0,(GXT)(GEOM_W(this->area)-1),(GYT)(GEOM_H(this->area)-1)};
 GUI_EL_TEMP_LabelChannel.transparent = true;
 GUI_EL_TEMP_LabelMode.transparent    = false;
-  window       = new GUI_EL_Window(&GUI_EL_TEMP_WindowGeneralBack, &window_geom,          (GUI_Obj*)this);
-  ch_num_label = new GUI_EL_Label (&GUI_EL_TEMP_LabelChannel,      &ch_label_geom,  NULL, (GUI_Obj*)this);
-  mode_text    = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,         &mode_text_geom, NULL, (GUI_Obj*)this);
-  freq         = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,         &freq_geom,      NULL, (GUI_Obj*)this);
+  window       = new GUI_EL_Window(&GUI_EL_TEMP_WindowGeneralBack, &window_geom,           (GUI_Obj*)this);
+  ch_num_label = new GUI_EL_Label (&GUI_EL_TEMP_LabelChannel,      &ch_label_geom,   NULL, (GUI_Obj*)this);
+  mode_text    = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,         &mode_text_geom,  NULL, (GUI_Obj*)this);
+  freq         = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,         &freq_geom,       NULL, (GUI_Obj*)this);
 
   ch_num_label->SetText((char*)"--\0");
   cur_ch_invalid = false;

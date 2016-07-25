@@ -100,5 +100,11 @@ extern const char* condCommSendStr;
 extern const char* ticketStr[];
 extern const char* voicePostTitleStr[];
 
+extern const char* errorCrcGuc;
+extern const char* gucQuitTextFail;
+extern const char* gucQuitTextOk;
+
+extern const char *coordinateStr;
+
 extern const char* pressEnter;
 #endif /* TEXTS_H_ */

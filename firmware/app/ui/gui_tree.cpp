@@ -9,6 +9,7 @@ void CGuiTree::init()
     // 1.1 - 1.4
     condCmd.setName(callSubMenu[0]); sms.setName(callSubMenu[1]); txPutOffVoice.setName(callSubMenu[2]); groupCondCommand.setName(callSubMenu[3]);
     // 1.2.1 - 1.2.2
+//    condCmdSimpl.setName(commandsSubMenu[0]); condCmdDupl.setName(commandsSubMenu[1]);
     condCmdSimpl.setName(commandsSubMenu[0]); condCmdDupl.setName(commandsSubMenu[1]);
     // 1.2.1.1 - 1.2.1.2
     condCmdSimplGroupCall.setName(smplSubMenu[0]); condCmdSimplIndivCall.setName(smplSubMenu[1]);
@@ -95,8 +96,14 @@ void CGuiTree::init()
     txPutOffVoice.prevState = &call;
     txPutOffVoice.nextState.clear();
     // 1.4 - √руппа условных команд
+//    groupCondCommand.subType = GuiWindowsSubType::txGroupCondCmd;
     groupCondCommand.prevState = &call;
-    groupCondCommand.nextState.push_back(&groupCondCommandSimpl);
+    groupCondCommand.nextState.clear();
+//    groupCondCommand.listItem.push_back(&groupCondCommandParameters1);
+//    groupCondCommand.listItem.push_back(&groupCondCommandParameters2);
+//    groupCondCommand.listItem.push_back(&groupCondCommandParameters3);
+//    groupCondCommand.listItem.push_back(&groupCondCommandParameters4);
+//    groupCondCommand.nextState.push_back(&groupCondCommandSimpl);k
     groupCondCommand.nextState.push_back(&groupCondCommandDupl);
     // 1.4.1 - ќдносторонн€€ св€зь
     groupCondCommandSimpl.prevState = &groupCondCommand;
@@ -117,8 +124,8 @@ void CGuiTree::init()
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[1]);
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[2]);
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[3]);
-//  // 1.4.2 - двухсторонн€€ св€зь
-//    groupCondCommandDupl.subType = GuiWindowsSubType::txGroupCondCmd;
+    // 1.4.2 - двухсторонн€€ св€зь
+//  groupCondCommandDupl.subType = GuiWindowsSubType::txGroupCondCmd;
     groupCondCommandDupl.prevState = &groupCondCommand;
     groupCondCommandDupl.nextState.clear();
 

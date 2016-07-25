@@ -2,7 +2,7 @@
 
 const char *test_Pass = {"Тестирование\0"};
 
-char *mode_txt[] = {(char *)"Речь\0", (char*)"АУС\0", (char*)"ГрупУК\0"};
+char *mode_txt[] = {(char *)"Авто\0", (char*)"Ручн.\0"};
 char *disabled_ch_txt = (char *)"--";
 char ch_open_letter='О';
 char ch_zero_letter='0';
@@ -48,6 +48,7 @@ const char *settingsSubMenu[] = {" Дата/время\0", " Параметры связи\0", " Сканир
         const char *setDateOrTime[] = {" Установить дату\0", " Установить время\0"};
     const char *setConnParam[] = {" Частота\0", " Скорость\0"};
 
+const char *coordinateStr = "Координаты\0";
 const char *useScanMenu[] = {"ВКЛ\0", "ВЫКЛ\0"};
 const char *aruStr = "АРУ\0";
 const char *armStr = "АРМ\0";

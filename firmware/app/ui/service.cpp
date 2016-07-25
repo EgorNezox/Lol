@@ -381,11 +381,17 @@ void Service::keyPressed(UI_Key key)
                 break;
             case keyLeft:
                 if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
+                {
                     main_scr->mainWindowModeId--;
+                    this->multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode(main_scr->mainWindowModeId));
+                }
                 break;
             case keyRight:
-                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 2)
+                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 1)
+                {
                     main_scr->mainWindowModeId++;
+                    this->multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode(main_scr->mainWindowModeId));
+                }
                 break;
             default:
                 if ( main_scr->mwFocus == 0 )
@@ -424,7 +430,9 @@ void Service::keyPressed(UI_Key key)
                     guiTree.advance(0);
                 if (main_scr->mwFocus >= 0)
                 {
-                    main_scr->editing = true;
+                    if (this->multiradio_service->getVoiceMode() == Multiradio::MainServiceInterface::VoiceModeManual)
+                        main_scr->editing = true;
+
                     if (main_scr->mwFocus == 0)
                         main_scr->nFreq.clear();
                 }
@@ -904,6 +912,10 @@ void Service::keyPressed(UI_Key key)
                             }
                         }
                     }
+                }
+                if ( menu->groupCondCommStage == 0 && menu->focus == 1 )
+                {
+                    menu->useCoordinatel = menu->useCoordinatel ? false : true;
                 }
 
                 if ( menu->groupCondCommStage == 1 )
@@ -2051,7 +2063,7 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::txGroupCondCmd:
         {
-            menu->/*initTxGroupCondComm*/initGroupCondCmd(st);
+            menu->initGroupCondCmd(st);
             break;
         }
         case GuiWindowsSubType::txPutOffVoice:

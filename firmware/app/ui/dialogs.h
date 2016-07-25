@@ -53,9 +53,9 @@ public:
     std::string nFreq, oFreq;
 private:
     GUI_EL_Window *window;
-    GUI_EL_Label *ch_num_label;
-    GUI_EL_Label *mode_text;
-    GUI_EL_Label *freq;
+    GUI_EL_Label  *ch_num_label;
+    GUI_EL_Label  *mode_text;
+    GUI_EL_Label  *freq;
     bool cur_ch_invalid;
     std::string mode;
     int focus = -2;
