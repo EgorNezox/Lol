@@ -725,35 +725,23 @@ void Service::keyPressed(UI_Key key)
                 if ( menu->txCondCmdStage > size )
                 {
 #ifndef _DEBUG_
-                    if(estate.subType != duplCondCmd)
-                    {
-                        // [0] - cmd, [1] - raddr, [2] - retrans
-                        // bool menu->useRETRANS
-                        int param[3] = {0,0,0}, i = 0;
-                        for(auto &k: estate.listItem)
-                        {
-                            param[i] = atoi(k->inputStr.c_str());
-                            i++;
-                        }
-                        if (estate.listItem.size() == 2)
-                            voice_service->TurnPSWFMode(1, 0, param[0],0); //TODO: group pswf
-                        else
-                            voice_service->TurnPSWFMode(1, param[0], param[2],param[1]); // individual pswf
 
+                    // [0] - cmd, [1] - raddr, [2] - retrans
+                    // condCmdModeSelect, 1 - individ, 2 - quit
+                    int param[3] = {0,0,0}, i = 0;
+                    for(auto &k: estate.listItem){
+                        param[i] = atoi(k->inputStr.c_str());
+                        i++;
                     }
-
-                    else
-                    {
-                        int param[3] = {0,0,0}, i = 0;
-                        for(auto &k: estate.listItem)
-                        {
-                            param[i] = atoi(k->inputStr.c_str());
-                            i++;
-                        }
-
+                    if (menu->condCmdModeSelect == 0)
+                        voice_service->TurnPSWFMode(1, param[0], 0,0); // групповой вызов
+                    if (menu->condCmdModeSelect == 1)
+                        voice_service->TurnPSWFMode(1, param[0], param[2],param[1]); // индивидуальный вызов
+                    if (menu->condCmdModeSelect == 2){
                         param[2] +=32;
-                        voice_service->TurnPSWFMode(1,param[0]/*param[0]*/,param[2],0); // retr. = none,r_adr != 0
+                        voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
                     }
+
 
 
 #else
@@ -903,7 +891,7 @@ void Service::keyPressed(UI_Key key)
                     guc_command_vector.clear();
                     parsingGucCommand((uint8_t*)str);
                     voice_service->saveFreq(getFreq());
-                    voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useCbool);
+                    voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
 #else
                     for (auto &k: estate.listItem)
                         k->inputStr.clear();
@@ -1387,10 +1375,11 @@ void Service::keyPressed(UI_Key key)
 #ifdef _DEBUG_
                     guiTree.resetCurrentState();
 #else
-                    if (menu->useTicket)
                         voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
-                    else
-                        voice_service->TurnPSWFMode(1,0,0,0);
+                        // параметр ответа определяется по получению кадра на адрес 0x63
+                        // в первой стадии вызова
+                        // if (ContentSms.R_ADR > 32) pswf_ack = true;
+
 #endif
                     //                    menu->rxCondCmdStatus = 1;
                 }
@@ -1436,7 +1425,6 @@ void Service::keyPressed(UI_Key key)
             {
 #ifndef PORT__PCSIMULATOR
                 voice_service->TurnGuc();
-                // voice_service->TurnPSWFMode(0,0,0);
 #else
                 guiTree.resetCurrentState();
 #endif

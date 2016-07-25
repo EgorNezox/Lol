@@ -1515,6 +1515,12 @@ void DspController::sendGuc()
     	ContentGuc.command[i] = (ContentGuc.command[i] << sdvig) + (ContentGuc.command[i+1] >> (7 -  sdvig));
     }
 
+    if (isGpsGuc){
+        if ((ContentGuc.NUM_com > 6) && (ContentGuc.NUM_com <=10)) crc32_len +=1;
+    } else {
+        if (ContentGuc.NUM_com > 5) crc32_len += 1;
+    }
+
      // добавление crc32 к пакету данных
      uint32_t crc = pack_manager->CRC32(ContentGuc.command, crc32_len);
      qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
@@ -1703,6 +1709,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                     {
                         sms_call_received = true;
                         ContentSms.R_ADR = data[8]; // todo: check
+                        if (ContentSms.R_ADR > 32) pswf_ack = true;
                         qmDebugMessage(QmDebug::Dump, "sms call received");
                         syncro_recieve.clear();
                         for(int i = 0; i<18;i++)
@@ -1781,8 +1788,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: indicator %d", indicator);
         	}
             if (indicator == 30) {
-            	ContentGuc.R_ADR = ((data[2] & 0xF0) >> 3); //(data[3] & 0x3F);
-                isGpsGuc = data[5]; // TODO: требуется проверить в реальных условиях
+                ContentGuc.R_ADR = ((data[2] & 0xF0) >> 3);
+                ContentGuc.uin = (data[4] & 0x01) + (data[5] & 0xFE);
+                isGpsGuc = data[5] & 0x1; // TODO: требуется проверить в реальных условиях
 
                 if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(1); ContentGuc.stage = GucNone;}
             	else{
@@ -2427,7 +2435,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     ContentGuc.ckk |= (1 & 0x03) << 2;
     ContentGuc.ckk |= (ContentGuc.chip_time & 0x03) << 4;
 
-    ContentGuc.uin = 0;
+   // ContentGuc.uin = 0;
     ContentGuc.Coord = 0;
 
     ContentGuc.stage =  GucTx;
@@ -2512,7 +2520,7 @@ void DspController::sendGucQuit()
 	ContentGuc.chip_time = 2;
 	ContentGuc.WIDTH_SIGNAL = 1;
 	ContentGuc.S_ADR = SAZHEN_NETWORK_ADDRESS;
-	//ContentGuc.R_ADR = 1;
+
 
 	ContentGuc.ckk = 0;
 	ContentGuc.ckk |= (1 & 0x01);
@@ -2531,7 +2539,7 @@ void DspController::sendGucQuit()
 	uint8_t pack[3] = {0, 0, 0};
 	pack[2] = (ContentGuc.S_ADR & 0x1F) << 3;
 	pack[2] |= (ContentGuc.R_ADR & 0x1F) >> 2;
-	pack[1] |= (ContentGuc.ckk & 0x3F);
+    pack[1] |= (ContentGuc.R_ADR & 0x1F) << 6;
 	pack[0] = ContentGuc.uin;
 
     for(int i = 2; i >= 0; --i) {

@@ -116,7 +116,7 @@ public:
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
 
     void startPSWFReceiving(bool ack);
-    void startPSWFTransmitting(bool ack,  uint8_t cmd, uint8_t r_adr,int retr);
+    void startPSWFTransmitting(bool ack,  uint8_t r_adr, uint8_t cmd,int retr);
 
     void startSMSRecieving(SmsStage stage = StageRx_call);
     void startSMSTransmitting(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call);

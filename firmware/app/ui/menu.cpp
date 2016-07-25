@@ -69,7 +69,7 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     std::string str, labelStr;
     auto iter = state.listItem.begin();
 
-    //[0] - CMD, [1] - R_ADDR, [2] - retrans
+    //[0] - CMD, [1] -retrans , [2] - R_ADDR
     switch (txCondCmdStage)
     {
     case 0: /* Group <-> Individual <-> Ticket */
@@ -80,7 +80,6 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     }
     case 1:
     {
-        // simple, individual
         if (state.subType == condCommand && state.listItem.size() == 3)
         {
             // с ретранслятором/ без ретранстятора
