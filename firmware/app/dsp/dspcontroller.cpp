@@ -1469,6 +1469,8 @@ void DspController::sendGuc()
     // выбор длинны кодируемого массива
      int crc32_len = (isGpsGuc == true) ? (ContentGuc.NUM_com + 9) : (ContentGuc.NUM_com);
 
+     std::vector<bool> data_guc;
+
      if (isGpsGuc)
      {
     	 uint8_t mas[9]; int index = 0;
@@ -1480,10 +1482,32 @@ void DspController::sendGuc()
     	 }
 
     	 for(int i = 9;i < 120;i++) ContentGuc.command[i] = ContentGuc.command[i- 9];
-    	 for(int i = 0; i<9;i++) ContentGuc.command[i] = mas[i];
+         for(int i = 0; i<9;i++) {
+             ContentGuc.command[i] = mas[i];
+             if (i != 8)
+             pack_manager->addBytetoBitsArray(ContentGuc.command[i],data_guc,8);
+         }
+
+         bool quadrant = ContentGuc.command[8] & 1;
+         data_guc.push_back(quadrant);
+         quadrant = ContentGuc.command[8] & (1 << 1);
+         data_guc.push_back(quadrant);
+
+         for(int i = 0; i<ContentGuc.NUM_com;i++){
+             pack_manager->addBytetoBitsArray(ContentGuc.command[i+9],data_guc,7);
+         }
      }
 
     // сдвиг массива для crc32-суммы
+    if (isGpsGuc){
+        pack_manager->getArrayByteFromBit(data_guc,ContentGuc.command);
+        crc32_len = data_guc.size() / 8;
+
+        for(int i = 0; i< crc32_len;i++){
+        	qmDebugMessage(QmDebug::Dump,"packet guc: %d", ContentGuc.command[i]);
+        }
+    }
+    else
     for(int i = 0; i < crc32_len;i++)
     {
     	int sdvig  = (i+1) % 8;
@@ -1495,7 +1519,6 @@ void DspController::sendGuc()
      uint32_t crc = pack_manager->CRC32(ContentGuc.command, crc32_len);
      qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
      tx_data_len += 4;
-
 
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
 }
@@ -1758,7 +1781,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: indicator %d", indicator);
         	}
             if (indicator == 30) {
-            	ContentGuc.R_ADR = ((data[2] & 0xF0) << 2) + (data[3] & 0x3F);
+            	ContentGuc.R_ADR = ((data[2] & 0xF0) >> 3); //(data[3] & 0x3F);
                 isGpsGuc = data[5]; // TODO: требуется проверить в реальных условиях
 
                 if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(1); ContentGuc.stage = GucNone;}
@@ -2017,7 +2040,10 @@ void DspController::recSms()
                 if (ok_quit >= 2)
                 {
                 	smsFailed(-1);
-                	if (getSmsRetranslation() != 0){
+                    if (getSmsRetranslation() != 0)
+                    {
+                        // требуется, чтобы здесь происходил запуск приема,
+                        initResetState();
                 		startSMSRecieving();
                 	}
                 }
@@ -2278,15 +2304,15 @@ void DspController::startSMSRecieving(SmsStage stage)
 
     ParameterValue comandValue;
     if ((stage == StageRx_data) || (ContentSms.stage == StageTx_quit)){
-    	comandValue.radio_mode = RadioModeOff;
-    	    sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
-    	    comandValue.pswf_indicator = RadioModePSWF;
-    	    sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
+        comandValue.radio_mode = RadioModeOff;
+        sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
+        comandValue.pswf_indicator = RadioModePSWF;
+        sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
     }else{
-    comandValue.radio_mode = RadioModeOff;
-    sendCommand(TxRadiopath, TxRadioMode, comandValue);
-    comandValue.pswf_indicator = RadioModePSWF;
-    sendCommand(RxRadiopath, RxRadioMode, comandValue);}
+        comandValue.radio_mode = RadioModeOff;
+        sendCommand(TxRadiopath, TxRadioMode, comandValue);
+        comandValue.pswf_indicator = RadioModePSWF;
+        sendCommand(RxRadiopath, RxRadioMode, comandValue);}
     smsRxStateSync = 0;
     radio_state = radiostateSmsRxPrepare;
     ContentSms.stage = stage;
@@ -2582,6 +2608,13 @@ void DspController::startGucRecieving()
     sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
     comandValue.guc_mode = SAZHEN_NETWORK_ADDRESS;
     sendCommandEasy(RadioLineNotPswf, 3 ,comandValue); // отключить низкоскоростной модем
+
+    // TODO: установка полосы частот 3,1 кГц
+    comandValue.guc_mode = 3;
+   sendCommandEasy(RadioLineNotPswf, 1, comandValue);
+   QmThread::msleep(100);
+    //-----------------------------------
+
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
     comandValue.frequency = freqGucValue;//3000000;
@@ -2624,70 +2657,74 @@ uint8_t* DspController::get_guc_vector()
 	//получение количества элементов в векторе
 	guc_text[0] = num;
 
+    uint8_t out[120];
+    for(int i = 0; i<120;i++) out[i] = 0;
+    int crc_coord_len = 0;
+
+    // если с координатами, то выборка по одному алгоритму, иначе по другому
 	int count = 0;
-	if (isGpsGuc == 0)
-	{
-		if (num <= 5) count = 5;
-		if ((num > 5) && (num <= 11))   count = 11;
-		if ((num > 11) && (num <= 25))  count = 25;
-		if ((num > 25) && (num <= 100)) count = 100;
-	}
-	else
-	{
-		if (num <= 6) count = 6;
-		if ((num > 10) && (num <= 10))   count = 10;
-		if ((num > 10) && (num <= 26))  count = 26;
-		if ((num > 26) && (num <= 100)) count = 100;
-	}
+    if (isGpsGuc == 0)
+    {
+        if (num <= 5) count = 5;
+        if ((num > 5) && (num <= 11))   count = 11;
+        if ((num > 11) && (num <= 25))  count = 25;
+        if ((num > 25) && (num <= 100)) count = 100;
+    }
+    else
+    {
+        if (num <= 6) count = 6;
+        if ((num > 6) && (num <= 10))   count = 10;
+        if ((num > 10) && (num <= 26))  count = 26;
+        if ((num > 26) && (num <= 100)) count = 100;
+    }
 
 
-	// заполнение в тексте
-	for(int i = 0; i<num;i++){
-		guc_text[i+1] = guc_vector.at(0).at(7+i);
-	}
 
-	if (isGpsGuc){
-		for (int i = count; i< count + 9;i++){
-			guc_text[i+1] = guc_vector.at(0).at(7+i);
-			if (i  == (count + 8)) guc_text[i+1] = guc_text[i+1] & 0xC0;
-		}
-	}
+    if (isGpsGuc)
+    {
+        for (int i = 0; i< 9;i++)
+        {
+            guc_text[i+1] = guc_vector.at(0).at(7+i+count);
+        }
+        // -- Записали координаты, начиная с первой позиции массива guc_text
+        for(int i = 0; i< count;i++){
+        	if (i < num)
+        		guc_text[9 + i+1] = guc_vector.at(0).at(7+i);
+        	else
+        		guc_text[9 + i+1] = 0;
+        }
+        // -- Запиcали данные, начиная с 10-й позиции нашего массива
+        std::vector<bool> data;
+        for(int i = 0; i< 8; i++) pack_manager->addBytetoBitsArray(guc_text[i+1],data,8);
+        // добавили координаты к битовому вектору
 
+        bool quadrant = guc_text[9] & (1 << 7);
+        data.push_back(quadrant);
+        quadrant = guc_text[9] & (1 >> 6);
+        data.push_back(quadrant);
+        // добавили к битовому вектору квадрант
+        for(int i = 0; i<count;i++) pack_manager->addBytetoBitsArray(guc_text[9 + i+1],data,7);
+        // добавили к битовому вектору данные по 7 бит
+        pack_manager->getArrayByteFromBit(data,out);
+        // записали в выходной массив преобразованные данные из битового массива по анологии с формирование пакета для CRC32 на передаче
+        crc_coord_len = data.size() / 8;
+        // получили длинну пакета
+    }
 
-	uint8_t out[120];
-	uint8_t guc_mas[120];
-	for(int i = 0; i<120;i++) {out[i] = 0; guc_mas[i] = 0;}
+    else
+    {
+        for(int i = 0; i<num;i++) guc_text[i+1] = guc_vector.at(0).at(7+i);
 
-	// заполнение расчетного массива для crc32
-	if (isGpsGuc) count += 9;
+        for(int i = 0;  i< count;i++){
+            int sdvig  = (i+1) % 8;
+            if (sdvig != 0)
+                out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
+            else
+                out[i] = guc_text[i+1];
 
-	if (isGpsGuc)
-	{
-		for(int i = 0; i< count - 9;i++){
-			guc_mas[9+i+1] = guc_text[i+1];
-		}
-		for(int i = 1; i<9;i++){
-			guc_mas[i] = guc_text[count - 9 + i];
-		}
-		guc_mas[119] = '\0';
-	}
+        }
+    }
 
-
-	for(int i = 0;  i< count;i++)
-	{
-		int sdvig  = (i+1) % 8;
-		if (sdvig != 0){
-			if (isGpsGuc)
-			{  out[i] = (guc_mas[i+1] << sdvig) + (guc_mas[i+2] >> (7 -  sdvig)); }
-			else
-			{out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));}
-		}
-		else{
-			if (isGpsGuc) out[i] = guc_mas[i+1];
-				else
-					out[i] = guc_text[i+1];
-		}
-	}
 
 	// достаем crc32 сумму из конца пакета
 	int m = 3;
@@ -2701,8 +2738,14 @@ uint8_t* DspController::get_guc_vector()
 	}
 
 	// считаем crc32 сумму
-	uint32_t crc = 0;
-	crc = pack_manager->CRC32(out,count);
+    uint32_t crc = 0;
+    int value  = (isGpsGuc) ? crc_coord_len : count;
+    // выбрали длинну, исходя из режима передачи
+    if (isGpsGuc){
+    if ((count > 6) && (count <= 10)) value += 1;}
+    else
+    {if (count > 5) value +=1;}
+    crc = pack_manager->CRC32(out,value);
 
 	if (isGpsGuc) {
 		guc_coord[10] = '\0';
