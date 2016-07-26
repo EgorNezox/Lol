@@ -1305,13 +1305,35 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
         auto iter = state.listItem.begin();
         (*iter)++;
         if ( (*iter)->inputStr.size() != 0 )
-        valueStr = (*iter)->inputStr;
+            valueStr.append((*iter)->inputStr);
+
+
         if (valueStr.size() != 0 )
             valueStr.append(" ");
         break;
     }
     case 4: // set command
     {
+        labelStr.append(groupCondCommFreqStr);
+
+        auto iter = state.listItem.begin();
+        (*iter)++;
+        if ( (*iter)->inputStr.size() != 0 )
+        {
+            if ((*iter)->inputStr.size() < 8)
+                valueStr.append((*iter)->inputStr);
+            else
+                for (int i = 0; i < (*iter)->inputStr.size(); i++)
+                {
+                    if ( i%8 == 0 && i != 0)
+                        valueStr.push_back('\n');
+                    else
+                        valueStr.push_back((*iter)->inputStr[i]);
+                }
+        }
+
+        if (valueStr.size() != 0 )
+            valueStr.append(" ");
         break;
     }
     case 5: // print report
