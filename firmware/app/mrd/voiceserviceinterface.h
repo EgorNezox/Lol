@@ -32,6 +32,8 @@ public:
     int getCurrentChannelFrequency();
     voice_emission_t getCurrentChannelEmissionType();
 	voice_channel_t getCurrentChannelType();
+	voice_channel_speed_t getCurrentChannelSpeed();
+	void setCurrentChannelSpeed(voice_channel_speed_t speed);
 	void tuneNextChannel();
 	void tunePreviousChannel();
     void tuneFrequency(int frequency);

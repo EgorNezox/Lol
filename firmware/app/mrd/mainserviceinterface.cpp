@@ -16,6 +16,7 @@
 
 #include "mainserviceinterface.h"
 #include "dispatcher.h"
+#include "voiceserviceinterface.h"
 
 #include "ale_param_defs.h"
 
@@ -227,6 +228,7 @@ void MainServiceInterface::setVoiceMode(VoiceMode mode) {
 	if ((mode == VoiceModeAuto) && !dispatcher->isVoiceMode())
 		return;
 	dispatcher->updateVoiceChannel();
+	headset_controller->setSmartCurrentChannelSpeed(dispatcher->voice_service->getCurrentChannelSpeed());
 }
 
 MainServiceInterface::VoiceMode MainServiceInterface::getVoiceMode() {

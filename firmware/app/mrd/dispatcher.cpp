@@ -49,6 +49,8 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 		voice_manual_frequency = 0;
 	if (!data_storage_fs->getVoiceEmissionType(voice_manual_emission_type))
 		voice_manual_emission_type = voiceemissionInvalid;
+	if (!data_storage_fs->getVoiceChannelSpeed(voice_manual_channel_speed))
+		voice_manual_channel_speed = voicespeedInvalid;
 }
 
 Dispatcher::~Dispatcher()
@@ -113,11 +115,11 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 				if (main_service->current_mode == MainServiceInterface::VoiceModeAuto)
 					return;
 		} else {
-			if (main_service->current_mode == MainServiceInterface::VoiceModeAuto) {
-				voice_channel = std::find_if( std::begin(voice_channels_table), std::end(voice_channels_table),
-						[&](const voice_channel_entry_t entry){ return (entry.type == channelOpen); } );
-				if (voice_channel == voice_channels_table.end()) {
-					voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
+			voice_channel = std::find_if( std::begin(voice_channels_table), std::end(voice_channels_table),
+					[&](const voice_channel_entry_t entry){ return (entry.type == channelOpen); } );
+			if (voice_channel == voice_channels_table.end()) {
+				voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
+				if (main_service->current_mode == MainServiceInterface::VoiceModeAuto) {
 					startIdle();
 					return;
 				}
@@ -201,6 +203,8 @@ bool Dispatcher::changeVoiceChannel(int number, voice_channel_t type) {
 			startIdle();
 		return false;
 	}
+	if (main_service->current_mode == MainServiceInterface::VoiceModeAuto)
+		headset_controller->setSmartCurrentChannelSpeed(voice_channels_table[number-1].speed);
 	return true;
 }
 
@@ -221,7 +225,9 @@ bool Dispatcher::isVoiceMode() {
 }
 
 bool Dispatcher::isVoiceChannelTunable() {
-	return (isVoiceMode() && (headset_controller->getStatus() == Headset::Controller::StatusAnalog));
+	return ((voice_channel != voice_channels_table.end())
+			&& (headset_controller->getStatus() == Headset::Controller::StatusAnalog)
+			&& (main_service->current_mode == MainServiceInterface::VoiceModeAuto));
 }
 
 void Dispatcher::processDspSetRadioCompletion() {
