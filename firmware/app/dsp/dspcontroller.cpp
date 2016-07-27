@@ -1433,6 +1433,9 @@ void DspController::sendGuc()
     	++tx_data_len;
     }
 
+    int crc32_len = ContentGuc.NUM_com; // реальное количество команд
+    int real_len = crc32_len;
+
     // Выбор количества передаваемых байтов с координатами или без по регламенту
     if (isGpsGuc){
         if (ContentGuc.NUM_com <= 6) ContentGuc.NUM_com = 6;
@@ -1467,7 +1470,7 @@ void DspController::sendGuc()
     }
 
     // выбор длинны кодируемого массива
-     int crc32_len = (isGpsGuc == true) ? (ContentGuc.NUM_com + 9) : (ContentGuc.NUM_com);
+     crc32_len = (isGpsGuc == true) ? (ContentGuc.NUM_com + 9) : (ContentGuc.NUM_com);
 
      std::vector<bool> data_guc;
 
@@ -1481,7 +1484,11 @@ void DspController::sendGuc()
     		 ContentGuc.command[i] = 0;
     	 }
 
-    	 for(int i = 9;i < 120;i++) ContentGuc.command[i] = ContentGuc.command[i- 9];
+    	 uint8_t value[120];
+    	 for(int i = 0; i< ContentGuc.NUM_com;i++) value[i] = ContentGuc.command[i];
+    	 for(int i = 9;i < 9+ContentGuc.NUM_com;i++) {
+    		  ContentGuc.command[i] = value[i- 9];
+    	 }
          for(int i = 0; i<9;i++) {
              ContentGuc.command[i] = mas[i];
              if (i != 8)
@@ -1493,7 +1500,7 @@ void DspController::sendGuc()
          quadrant = ContentGuc.command[8] & (1 << 1);
          data_guc.push_back(quadrant);
 
-         for(int i = 0; i<ContentGuc.NUM_com;i++){
+         for(int i = 0; i<real_len;i++){
              pack_manager->addBytetoBitsArray(ContentGuc.command[i+9],data_guc,7);
          }
      }
@@ -1515,12 +1522,7 @@ void DspController::sendGuc()
     	ContentGuc.command[i] = (ContentGuc.command[i] << sdvig) + (ContentGuc.command[i+1] >> (7 -  sdvig));
     }
 
-    if (isGpsGuc){
-        if ((ContentGuc.NUM_com > 6) && (ContentGuc.NUM_com <=10)) crc32_len +=1;
-    } else {
-        if (ContentGuc.NUM_com > 5) crc32_len += 1;
-    }
-
+     if (!isGpsGuc) {crc32_len = ((real_len*7)/8); if ((real_len*7)% 8 !=0) crc32_len +=1; }
      // добавление crc32 к пакету данных
      uint32_t crc = pack_manager->CRC32(ContentGuc.command, crc32_len);
      qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
@@ -1788,8 +1790,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: indicator %d", indicator);
         	}
             if (indicator == 30) {
-                ContentGuc.R_ADR = ((data[2] & 0xF0) >> 3);
-                ContentGuc.uin = (data[4] & 0x01) + (data[5] & 0xFE);
+            	ContentGuc.R_ADR = ((data[2] & 0x1F) >> 3);
+            	ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
                 isGpsGuc = data[5] & 0x1; // TODO: требуется проверить в реальных условиях
 
                 if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(1); ContentGuc.stage = GucNone;}
@@ -2425,7 +2427,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
 
     isGpsGuc = isGps;
 
-    for(int i = 0;i<100;i++) ContentGuc.command[i] = 0;
+    //for(int i = 0;i<100;i++) ContentGuc.command[i] = 0;
     for(int i = 0;i<num_cmd; i++)
     ContentGuc.command[i] = command[i];
 
@@ -2528,7 +2530,7 @@ void DspController::sendGucQuit()
 	ContentGuc.ckk |= (1 & 0x03) << 2;
 	ContentGuc.ckk |= (ContentGuc.chip_time & 0x03) << 4;
 
-	ContentGuc.uin = 0;
+	//ContentGuc.uin = 0;
 
 	qmToBigEndian((uint8_t)ContentGuc.indicator, tx_data + tx_data_len);
 	++tx_data_len;
@@ -2537,10 +2539,11 @@ void DspController::sendGucQuit()
 
 
 	uint8_t pack[3] = {0, 0, 0};
-	pack[2] = (ContentGuc.S_ADR & 0x1F) << 3;
-	pack[2] |= (ContentGuc.R_ADR & 0x1F) >> 2;
-    pack[1] |= (ContentGuc.R_ADR & 0x1F) << 6;
-	pack[0] = ContentGuc.uin;
+	pack[2] = (ContentGuc.R_ADR & 0x1F) << 3;  // 5 бит
+	pack[2] |= (ContentGuc.S_ADR & 0x1F) >> 2; // 3 бита
+	pack[1] |= (ContentGuc.S_ADR & 0x1F) << 6; // 2 бита
+	pack[1] |= (ContentGuc.uin >> 2) & 0x3F;   // 6 бит
+	pack[0] = (ContentGuc.uin << 6) & 0xC0;    // 2 бита
 
     for(int i = 2; i >= 0; --i) {
     	qmToBigEndian((uint8_t)pack[i], tx_data + tx_data_len);
@@ -2711,7 +2714,7 @@ uint8_t* DspController::get_guc_vector()
         quadrant = guc_text[9] & (1 >> 6);
         data.push_back(quadrant);
         // добавили к битовому вектору квадрант
-        for(int i = 0; i<count;i++) pack_manager->addBytetoBitsArray(guc_text[9 + i+1],data,7);
+        for(int i = 0; i<num;i++) pack_manager->addBytetoBitsArray(guc_text[9 + i+1],data,7);
         // добавили к битовому вектору данные по 7 бит
         pack_manager->getArrayByteFromBit(data,out);
         // записали в выходной массив преобразованные данные из битового массива по анологии с формирование пакета для CRC32 на передаче
@@ -2747,12 +2750,11 @@ uint8_t* DspController::get_guc_vector()
 
 	// считаем crc32 сумму
     uint32_t crc = 0;
-    int value  = (isGpsGuc) ? crc_coord_len : count;
+    int value  = (isGpsGuc) ? crc_coord_len : num;
     // выбрали длинну, исходя из режима передачи
-    if (isGpsGuc){
-    if ((count > 6) && (count <= 10)) value += 1;}
-    else
-    {if (count > 5) value +=1;}
+
+    if (!isGpsGuc) {value = ((num*7)/8); if ((num*7)% 8 !=0) value +=1; }
+
     crc = pack_manager->CRC32(out,value);
 
 	if (isGpsGuc) {
