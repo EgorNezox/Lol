@@ -13,6 +13,7 @@
 #define QMDEBUGDOMAIN mrd_mainservice
 #include "qmdebug.h"
 #include "qmcrc.h"
+#include "qmendian.h"
 
 #include "mainserviceinterface.h"
 #include "dispatcher.h"
@@ -357,6 +358,9 @@ void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
 	ale.supercycle = 1;
 	ale.cycle = 1;
 	voice_message_t message = headset_controller->getRecordedSmartMessage();
+	int message_size_mismatch = message.size() % 9;
+	if (message_size_mismatch > 0)
+		message.resize((message.size() + (9 - message_size_mismatch)), 0);
 	int message_bits_size = message.size()*8;
 	ale.vm_size = message_bits_size/72;
 	ale.vm_f_count = ceilf((float)message_bits_size/490);
@@ -371,13 +375,14 @@ void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
 		int f_bit_i = 6 + (m_bit_i % 490);
 		int f_byte_i = f_bit_i / 8;
 		int f_byte_bit = 7 - (f_bit_i % 8);
-		if ((message[m_bit_i/8] & (1 << (m_bit_i % 8))) != 0)
+		int m_byte_bit = 7 - (m_bit_i % 8);
+		if ((message[m_bit_i/8] & (1 << m_byte_bit)) != 0)
 			ale.vm_fragments[f_i].num_data[f_byte_i] |= (1 << f_byte_bit);
 	}
 	for (unsigned int i = 0; i < ale.vm_fragments.size(); i++) {
 		CRC32 f_crc;
 		f_crc.update(&(ale.vm_fragments[i].num_data[0]), sizeof(ale.vm_fragments[0].num_data));
-		ale.vm_fragments[i].crc = f_crc.result();
+		qmToBigEndian(f_crc.result(), (uint8_t *)&(ale.vm_fragments[i].crc));
 	}
 	printDebugVmMessage(ale.vm_size, ale.vm_f_count, message);
 	dsp_controller->setModemReceiverBandwidth(DspController::modembw20kHz);
@@ -425,7 +430,7 @@ voice_message_t MainServiceInterface::getAleRxVmMessage() {
 			int f_byte_i = f_bit_i / 8;
 			int f_byte_bit = 7 - (f_bit_i % 8);
 			int m_byte_i = message_bits_offset / 8;
-			int m_byte_bit = message_bits_offset % 8;
+			int m_byte_bit = 7 - (message_bits_offset % 8);
 			if ((ale.vm_fragments[f_i].num_data[f_byte_i] & (1 << f_byte_bit)) != 0)
 				vm_rx_message[m_byte_i] |= (1 << m_byte_bit);
 			message_bits_offset++;
@@ -1607,7 +1612,7 @@ bool MainServiceInterface::processPacketReceivedPacket(uint8_t *data) {
 	AleVmPacket *packet = (AleVmPacket *)data;
 	CRC32 crc;
 	crc.update(packet->num_data, sizeof(packet->num_data));
-	if (!(crc.result() == packet->crc)) {
+	if (!(crc.result() == qmFromBigEndian<uint32_t>((uint8_t *)&(packet->crc)))) {
 		qmDebugMessage(QmDebug::Info, "ale rx vm packet with bad CRC");
 		return false;
 	}
@@ -1704,6 +1709,7 @@ void MainServiceInterface::aleprocessRxPacketSync() {
 
 void MainServiceInterface::aleprocessPacketRoffHeadExpired() {
 	qmDebugMessage(QmDebug::Info, "ale rx packHead timeout");
+	dsp_controller->disableModemReceiver();
 	processPacketMissedPacket();
 }
 
@@ -1729,6 +1735,7 @@ void MainServiceInterface::aleprocessPacketRonHshakeTExpired() {
 
 void MainServiceInterface::aleprocessPacketRoffHshakeTExpired() {
 	qmDebugMessage(QmDebug::Info, "ale rx HshakeTrans timeout");
+	dsp_controller->disableModemReceiver();
 	processPacketMissedAck();
 }
 
