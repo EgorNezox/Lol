@@ -978,7 +978,6 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 			proceedRxScanning();
 			break;
 		}
-		ale.call_bw = bandwidth;
 		ale.call_snr = snr;
 		dsp_controller->enableModemTransmitter();
 		dsp_controller->setModemReceiverBandwidth(bandwidth);
@@ -1471,7 +1470,7 @@ void MainServiceInterface::aleprocessTimerRoffCallExpired() {
 }
 
 void MainServiceInterface::aleprocessTimerCallTxHshakeRExpired() {
-	dsp_controller->sendModemPacket(DspController::modempacket_HshakeReceiv, ale.call_bw, 0, 0);
+	dsp_controller->sendModemPacket(DspController::modempacket_HshakeReceiv, DspController::modembw20kHz, 0, 0);
 }
 
 void MainServiceInterface::aleprocessTimerCallRonHshakeTExpired() {
@@ -1498,7 +1497,7 @@ void MainServiceInterface::aleprocessTimerNegTxRespCallQualExpired() {
 	data[0] |= (respcallqual_packet.errSignal & 0x1F) << 3;
 	data[0] |= (respcallqual_packet.SNR & 0x3F) >> 3;
 	data[1] |= (respcallqual_packet.SNR & 0x3F) << 5;
-	dsp_controller->sendModemPacket(DspController::modempacket_RespCallQual, ale.call_bw, data, sizeof(data));
+	dsp_controller->sendModemPacket(DspController::modempacket_RespCallQual, DspController::modembw20kHz, data, sizeof(data));
 }
 
 void MainServiceInterface::aleprocessTimerNegRonHshakeTransModeExpired() {
@@ -1520,7 +1519,7 @@ void MainServiceInterface::aleprocessTimerNegRoffHshakeTransModeExpired() {
 }
 
 void MainServiceInterface::aleprocessTimerNegTxHshakeReceivExpired() {
-	dsp_controller->sendModemPacket(DspController::modempacket_HshakeReceiv, ale.call_bw, 0, 0);
+	dsp_controller->sendModemPacket(DspController::modempacket_HshakeReceiv, DspController::modembw20kHz, 0, 0);
 }
 
 void MainServiceInterface::aleprocessTimerNegRonHshakeTransExpired() {
@@ -1555,7 +1554,7 @@ void MainServiceInterface::aleprocessTimerMsgTxRespPackQualExpired() {
 	uint8_t data[2] = {0, 0};
 	data[0] |= (resppackqual_packet.packResult & 0x1) << 7;
 	data[0] |= (resppackqual_packet.SNR & 0x3F) << 1;
-	dsp_controller->sendModemPacket(DspController::modempacket_RespPackQual, ale.call_bw, data, sizeof(data));
+	dsp_controller->sendModemPacket(DspController::modempacket_RespPackQual, DspController::modembw20kHz, data, sizeof(data));
 }
 
 void MainServiceInterface::aleprocessTimerMsgRonHshakeTExpired() {
@@ -1715,11 +1714,11 @@ void MainServiceInterface::aleprocessPacketTxRespPackQualExpired() {
 	uint8_t data[2] = {0, 0};
 	data[0] |= (resppackqual_packet.packResult & 0x1) << 7;
 	data[0] |= (resppackqual_packet.SNR & 0x3F) << 1;
-	dsp_controller->sendModemPacket(DspController::modempacket_RespPackQual, ale.call_bw, data, sizeof(data));
+	dsp_controller->sendModemPacket(DspController::modempacket_RespPackQual, DspController::modembw20kHz, data, sizeof(data));
 }
 
 void MainServiceInterface::aleprocessTimerRxPacketTxLinkReleaseExpired() {
-	dsp_controller->sendModemPacket(DspController::modempacket_LinkRelease, ale.call_bw, 0, 0);
+	dsp_controller->sendModemPacket(DspController::modempacket_LinkRelease, DspController::modembw20kHz, 0, 0);
 }
 
 void MainServiceInterface::aleprocessPacketRonHshakeTExpired() {
