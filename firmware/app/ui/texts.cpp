@@ -1,7 +1,7 @@
 #include "texts.h"
 
 const char *test_Pass = {"Тестирование\0"};
-
+const char *errorStr = "Ошибка\0";
 char *mode_txt[] = {(char *)"Авто\0", (char*)"Ручн.\0"};
 char *disabled_ch_txt = (char *)"--";
 char ch_open_letter='О';

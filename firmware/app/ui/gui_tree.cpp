@@ -205,6 +205,7 @@ void CGuiTree::init()
     dataGps.prevState = &data;
     dataGps.nextState.clear();
     // 4 - Настройки
+    settings.setType(GuiWindowTypes::menuWindow);
     settings.prevState = &main;
     settings.nextState.push_back(&sttDateTime);
     settings.nextState.push_back(&sttConnParam);
@@ -212,29 +213,35 @@ void CGuiTree::init()
     settings.nextState.push_back(&sttSound);
     settings.nextState.push_back(&sttSuppress);
     // 4.1 - Дата/время
+    sttDateTime.setType(GuiWindowTypes::menuWindow);
     sttDateTime.prevState = &settings;
     sttDateTime.nextState.push_back(&sttConnParamGPS);
     sttDateTime.nextState.push_back(&sttConnParamHand);
     // 4.1.1 - GPS синх-ция
+    sttConnParamGPS.setType(GuiWindowTypes::menuWindow);
     sttConnParamGPS.subType = GuiWindowsSubType::gpsSync;
     sttConnParamGPS.prevState = &sttDateTime;
     sttConnParamGPS.nextState.clear();
     sttConnParamGPS.listItem.push_back(&gpsSynchronization);
     // 4.1.2 - Ручная установка
+    sttConnParamHand.setType(GuiWindowTypes::menuWindow);
     sttConnParamHand.prevState = &sttDateTime;
     sttConnParamHand.nextState.push_back(&sttSetDate);
     sttConnParamHand.nextState.push_back(&sttSetTime);
     // 4.1.2.1 - Установить дату
+    sttSetDate.setType(GuiWindowTypes::endMenuWindow);
     sttSetDate.subType = GuiWindowsSubType::setDate;
     sttSetDate.prevState = &sttConnParamHand;
     sttSetDate.nextState.clear();
     sttSetDate.listItem.push_back(&dateParameters);
     // 4.1.2.2 - Установить время
+    sttSetTime.setType(GuiWindowTypes::endMenuWindow);
     sttSetTime.subType = GuiWindowsSubType::setTime;
     sttSetTime.prevState = &sttConnParamHand;
     sttSetTime.nextState.clear();
     sttSetTime.listItem.push_back(&timeParameters);
     // 4.2 - Параметры связи
+    sttConnParam.setType(GuiWindowTypes::menuWindow);
     sttConnParam.prevState = &settings;
     sttConnParam.nextState.push_back(&sttSetFreq);
     sttConnParam.nextState.push_back(&sttSetSpeed);
@@ -242,11 +249,13 @@ void CGuiTree::init()
     sttConnParam.nextState.push_back(&sttWaitGuk);
     sttConnParam.nextState.push_back(&sttEditRnKey);
     // 4.2.1 - Частота
+    sttSetFreq.setType(GuiWindowTypes::endMenuWindow);
     sttSetFreq.subType = GuiWindowsSubType::setFreq;
     sttSetFreq.prevState = &sttConnParam;
     sttSetFreq.nextState.clear();
     sttSetFreq.listItem.push_back(&freqParameters);
     // 4.2.2 - Скорость
+    sttSetSpeed.setType(GuiWindowTypes::endMenuWindow);
     sttSetSpeed.subType = GuiWindowsSubType::setSpeed;
     sttSetSpeed.prevState = &sttConnParam;
     sttSetSpeed.nextState.clear();

@@ -15,7 +15,7 @@
 #define SETTINGS_LIST_SIZE 2
 
 extern const char *test_Pass;
-
+extern const char *errorStr;
 extern char *mode_txt[];
 extern char *disabled_ch_txt;
 extern char ch_zero_letter;

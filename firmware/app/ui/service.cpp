@@ -495,6 +495,14 @@ void Service::keyPressed(UI_Key key)
         {
             guiTree.advance(menu->focus);
             menu->focus = 0;
+
+            auto type = guiTree.getCurrentState().getType();
+            if ( type == GuiWindowTypes::endMenuWindow )
+            {
+                CEndState estate = (CEndState&)guiTree.getCurrentState();
+                if ( estate.subType == GuiWindowsSubType::setSpeed )
+                    currentSpeed = voice_service->getCurrentChannelSpeed();
+            }
         }
         if ( key == keyBack)
         {
@@ -1767,23 +1775,19 @@ void Service::keyPressed(UI_Key key)
             break;
         }
         case GuiWindowsSubType::setFreq:
-        case GuiWindowsSubType::setSpeed:
         {
             switch ( key )
             {
             case keyEnter:
             {
-                if (estate.subType == GuiWindowsSubType::setFreq)
-                {
-                    auto iter = estate.listItem.begin();
-                    main_scr->oFreq.clear();
-                    main_scr->oFreq.append( (*iter)->inputStr.c_str() );
-                    int freq = atoi(main_scr->nFreq.c_str());
-                    voice_service->tuneFrequency(freq);
+                auto iter = estate.listItem.begin();
+                main_scr->oFreq.clear();
+                main_scr->oFreq.append( (*iter)->inputStr.c_str() );
+                int freq = atoi(main_scr->nFreq.c_str());
+                voice_service->tuneFrequency(freq);
 
-                    guiTree.resetCurrentState();
-                    menu->focus = 0;
-                }
+                guiTree.resetCurrentState();
+                menu->focus = 0;
             }
                 break;
             case keyBack:
@@ -1840,6 +1844,46 @@ void Service::keyPressed(UI_Key key)
                         i++;
                     }
                 }
+                break;
+            }
+            break;
+        }
+        case GuiWindowsSubType::setSpeed:
+        {
+            switch ( key )
+            {
+            case keyEnter:
+            {
+                voice_service->setCurrentChannelSpeed(currentSpeed);
+                break;
+            }
+            case keyBack:
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+                break;
+            }
+            case keyUp:
+            {
+                Multiradio::voice_channel_speed_t speed = voice_service->getCurrentChannelSpeed();
+                if ( speed > Multiradio::voice_channel_speed_t(2) )
+                {
+                    currentSpeedId--;
+                    currentSpeed = Multiradio::voice_channel_speed_t(currentSpeedId);
+                }
+                break;
+            }
+            case keyDown:
+            {
+                Multiradio::voice_channel_speed_t speed = voice_service->getCurrentChannelSpeed();
+                if ( speed < Multiradio::voice_channel_speed_t(5) )
+                {
+                    currentSpeedId++;
+                    currentSpeed = Multiradio::voice_channel_speed_t(currentSpeedId);
+                }
+                break;
+            }
+            default:
                 break;
             }
             break;
@@ -2207,7 +2251,34 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::setSpeed:
         {
-            std::string str; str.append(st.listItem.front()->inputStr); if ( str.size() >= 5 ){ str.push_back('\n');} str.append(" ").append(speed_bit);
+            bool f_error = false;
+            std::string str;
+
+            switch (currentSpeed)
+            {
+            case Multiradio::voice_channel_speed_t::voicespeed600:
+            { str.append("600"); break;}
+            case Multiradio::voice_channel_speed_t::voicespeed1200:
+            { str.append("1200"); break;}
+            case Multiradio::voice_channel_speed_t::voicespeed2400:
+            { str.append("2400"); break;}
+            case Multiradio::voice_channel_speed_t::voicespeed4800:
+            { str.append("4800"); break;}
+            case Multiradio::voice_channel_speed_t::voicespeedInvalid:
+            { str.append(errorStr); break;}
+            default:
+            {
+                str.append(errorStr);
+                f_error = true;
+                break;
+            }
+            }
+
+            if (currentSpeed != Multiradio::voice_channel_speed_t::voicespeedInvalid && !f_error)
+            {   str.push_back('\n'); str.append(" ").append(speed_bit); }
+
+            str.push_back('\0');
+
             menu->initSetParametersDialog( str );
             break;
         }

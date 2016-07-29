@@ -44,6 +44,7 @@ public:
         std::string str;
         str.append(fr);
         str.append(freq_hz);
+        str.push_back('\0');
         freq->SetText((char*)str.c_str());
     }
     void editingFreq(UI_Key);

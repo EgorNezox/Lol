@@ -535,6 +535,27 @@ void CGuiMenu::setSttParam(CEndState state, UI_Key key)
     switch ( type )
     {
     case setFreq:
+    {
+        if (key == keyBack && str->size() > 0)
+        {
+            str->pop_back();
+        }
+        else if (key == keyBack && str->size() == 0)
+        {}
+        if ( key > 5 && key < 16)
+        {
+            if ( str->size() == 0 && key != key0)
+            {
+                str->push_back(key+42);
+            }
+            else if ( str->size() > 0 && str->size() < 8 )
+            {
+                str->push_back(key+42);
+            }
+        }
+
+        break;
+    }
     case setSpeed:
     {
         if (key == keyBack && str->size() > 0)

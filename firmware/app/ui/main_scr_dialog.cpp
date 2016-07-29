@@ -54,7 +54,7 @@ GUI_EL_TEMP_LabelMode.transparent    = false;
   ch_num_label->SetText((char*)"--\0");
   cur_ch_invalid = false;
 
-  oFreq.append("25000000");
+  oFreq.append("2500001");
   setFreq(oFreq.c_str());
 }
 
