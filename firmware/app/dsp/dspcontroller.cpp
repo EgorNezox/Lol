@@ -1774,6 +1774,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         if (indicator == 22) {
         	if (ContentGuc.stage != GucNone)
             recGuc();
+        	else
+        	{
+        		radio_state = radiostateSync;
+        	}
+
         }
         break;
     }
@@ -1789,7 +1794,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             	ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
                 isGpsGuc = data[5] & 0x1; // TODO: требуется проверить в реальных условиях
 
-                if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(1); ContentGuc.stage = GucNone;}
+                if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(ContentGuc.R_ADR); ContentGuc.stage = GucNone;}
             	else{
             		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
             		std::vector<uint8_t> guc;
@@ -2419,7 +2424,6 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
 
     isGpsGuc = isGps;
 
-    //for(int i = 0;i<100;i++) ContentGuc.command[i] = 0;
     for(int i = 0;i<num_cmd; i++)
     ContentGuc.command[i] = command[i];
 
@@ -2429,7 +2433,6 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     ContentGuc.ckk |= (1 & 0x03) << 2;
     ContentGuc.ckk |= (ContentGuc.chip_time & 0x03) << 4;
 
-   // ContentGuc.uin = 0;
     ContentGuc.Coord = 0;
 
     ContentGuc.stage =  GucTx;
@@ -2442,6 +2445,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
+    if (freqGucValue != 0)
     comandValue.frequency =  freqGucValue;//3000000;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
     if (unblockGucTx == false){ /* do sleep*/ QmThread::msleep(100); }
@@ -2640,7 +2644,7 @@ void DspController::GucSwichRxTxAndViewData()
     else
     {
         radio_state = radiostateSync;
-        if (ContentGuc.stage == GucTxQuit) recievedGucQuitForTransm(0);
+        if (ContentGuc.stage == GucTxQuit) recievedGucQuitForTransm(-1);
     }
     guc_vector.clear();
 }

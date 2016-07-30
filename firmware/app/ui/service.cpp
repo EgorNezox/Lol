@@ -883,14 +883,14 @@ void Service::keyPressed(UI_Key key)
                     for (auto &k: estate.listItem)
                     {
                         mas[i] = atoi(k->inputStr.c_str());
-                        if (i == 3) str = k->inputStr.c_str();
+                        if (i == 2) str = k->inputStr.c_str();
                         i++;
                     }
-                    int r_adr = mas[2];
+                    int r_adr = mas[1];
                     int speed = 0;//atoi(mas[1]);
                     guc_command_vector.clear();
                     parsingGucCommand((uint8_t*)str);
-                    voice_service->saveFreq(getFreq());
+                    voice_service->saveFreq(getFreq()); //
                     voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
 #else
                     for (auto &k: estate.listItem)
@@ -2371,10 +2371,11 @@ void Service::gucFrame(int value)
         if (value == 0)
         msgBox(titleGuc, vect[position], vect[0], position);
         if (value == 1){
-            msgBox(titleGuc, vect[position], vect[0], position+8); // todo:: проверить коррекность использования для смещения на 9 байт координат
-            char coord[8];
-            memcpy(coord,&vect[1],8);
-            msgBox(titleCoord,coord);
+        	char mas[101];
+        	mas[0] = (char)(vect[0]);
+        	for(int i = 1;i<=vect[0];i++) mas[i] = (char)vect[i+9];
+        	mas[vect[0]+1] = '\0';
+            msgBox(titleGuc, mas[position], mas[0], position); // todo:: проверить коррекность использования для смещения на 9 байт координат
         }
 
     }
@@ -2471,9 +2472,11 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
 
 void Service::msgGucTXQuit(int ans)
 {
-    if (ans == 1){
-        msgBox( "GUC", gucQuitTextOk);
-        guiTree.append(messangeWindow, gucQuitTextOk, "QUIT\0");
+    if (ans != -1){
+    	char a[3]; a[2] = '\0';
+    	sprintf(a,"%d",ans);
+        msgBox( gucQuitTextOk, ans);
+        guiTree.append(messangeWindow, a, "QUIT\0");
     }
     else
     {
