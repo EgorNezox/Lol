@@ -107,4 +107,8 @@ extern const char* gucQuitTextOk;
 extern const char *coordinateStr;
 
 extern const char* pressEnter;
+extern const char* recievedGUC_CMD;
+extern const char* titleGuc;
+extern const char* titleCoord;
+
 #endif /* TEXTS_H_ */

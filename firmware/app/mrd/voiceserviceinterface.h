@@ -67,7 +67,7 @@ public:
     sigc::signal<void,int> firstPacket;
     sigc::signal<void,int> smsFailed;
     sigc::signal<void> smsMess;
-    sigc::signal<void> respGuc;
+    sigc::signal<void,int> respGuc;
     sigc::signal<void> errorAsu;
 	sigc::signal<void,int> getSmsStageUi;
     sigc::signal<void,int> messageGucTxQuit;
@@ -83,7 +83,7 @@ private:
 
 
     void fistPacketRecieve(int packet);
-    void responseGuc();
+    void responseGuc(int value);
     void smsMessage();
 
 	Dispatcher *dispatcher;

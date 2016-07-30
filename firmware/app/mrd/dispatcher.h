@@ -62,7 +62,6 @@ private:
 	voice_channels_table_t::iterator voice_channel;
 	DataStorage::FS *data_storage_fs;
 
-    sigc::signal<void> getPSWF();
 };
 
 } /* namespace Multiradio */

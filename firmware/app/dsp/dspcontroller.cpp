@@ -159,7 +159,6 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     guc_rx_quit_timer->timeout.connect(sigc::mem_fun(this,&DspController::sendGucQuit));
 
     for(int i = 0;i<50;i++) guc_text[i] = '\0';
-    guc_tx_num = 2;
 
     sms_call_received = false;
     for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
@@ -1739,11 +1738,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 pswf_data.push_back(data[10]);
                 recievedPswfBuffer.push_back(pswf_data);
                 getDataTime();
-                if (state_pswf == 1){
-                	pswfQuitRec();
-                	state_pswf = 0;
-                }
-                else
+                if (state_pswf == 0)
                 RecievedPswf();
             }
         }
@@ -1802,7 +1797,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             			qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , num %d", data[i],i);
             			guc.push_back(data[i]); // по N едениц данных
             		}
-                    if (guc_vector.size() < 50)     guc_vector.push_back(guc); // TODO: WHAT?
+                    guc_vector.push_back(guc);
             		recGuc();
             	}
             }
@@ -1890,9 +1885,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	}
 }
 
-// maybe two sides of pswf
-// заглушка для сообещения о заполнении структуры
-//void DspController::parsingData(){}
 
 void *DspController::getContentPSWF()
 {
@@ -2583,14 +2575,7 @@ uint8_t *DspController::getGpsGucCoordinat(uint8_t *coord)
     return coord;
 }
 
-uint8_t *DspController::returnGpsCoordinat(uint8_t *data,uint8_t* res,uint8_t index)
-{
-	uint8_t len = index - 8;
 
-	memcpy(res,&data[len],9);
-
-	updateGucGpsStatus();
-}
 
 uint8_t* DspController::getGucCoord(){
      return guc_coord;
@@ -2645,7 +2630,7 @@ void DspController::GucSwichRxTxAndViewData()
     qmDebugMessage(QmDebug::Dump, "size guc command %d", guc_vector.size());
 
     if (size > 0){
-        recievedGucResp();
+        (isGpsGuc) ? recievedGucResp(1) : recievedGucResp(0);
         if (ContentGuc.stage != GucTxQuit)
         startGucTransmitting();
         if (!failQuitGuc)
@@ -2757,11 +2742,6 @@ uint8_t* DspController::get_guc_vector()
 
     crc = pack_manager->CRC32(out,value);
 
-	if (isGpsGuc) {
-		guc_coord[10] = '\0';
-        returnGpsCoordinat(guc_text,guc_coord,count);
-	}
-
     if (crc != crc_packet)
     {
         gucCrcFailed();
@@ -2769,6 +2749,7 @@ uint8_t* DspController::get_guc_vector()
         failQuitGuc = true;
     }
 	guc_vector.clear();
+
 
 	return guc_text;
 }

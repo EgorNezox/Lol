@@ -473,10 +473,10 @@ void Service::keyPressed(UI_Key key)
                 //                break;
             case key0:
             {
-                int p = 10;
-                char sym[64];
-                sprintf(sym,"%d",p);
-                guiTree.append(messangeWindow, (char*)"Receive first packet", sym);
+//                int p = 10;
+//                char sym[64];
+//                sprintf(sym,"%d",p);
+//                guiTree.append(messangeWindow, (char*)"Receive first packet", sym);
             }
                 break;
             default:
@@ -2360,7 +2360,7 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     str.clear();
 }
 
-void Service::gucFrame()
+void Service::gucFrame(int value)
 {
     const char *sym = "Recieved packet for station\0";
     vect = voice_service->getGucCommand();
@@ -2368,7 +2368,15 @@ void Service::gucFrame()
     {
         char ch[3]; sprintf(ch, "%d", vect[position]); ch[2] = '\0';
         guiTree.append(messangeWindow, sym, ch);
-        msgBox( "Recieved Guc\0", vect[position], vect[0], position);
+        if (value == 0)
+        msgBox(titleGuc, vect[position], vect[0], position);
+        if (value == 1){
+            msgBox(titleGuc, vect[position], vect[0], position+8); // todo:: проверить коррекность использования для смещения на 9 байт координат
+            char coord[8];
+            memcpy(coord,&vect[1],8);
+            msgBox(titleCoord,coord);
+        }
+
     }
 
 }

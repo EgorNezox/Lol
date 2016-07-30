@@ -157,3 +157,7 @@ const char* gucQuitTextOk   = "Принята квитанция\0";
 const char* errorCrcGuc = "Данные не достоверны\0";
 const char* pressEnter = "Нажмите ввод\nдля продолжения\0";
 
+const char* recievedGUC_CMD = "Приняты команды\0";
+const char* titleGuc        = "Сообщение\0";
+const char* titleCoord      = "Получены\nкоодинаты\0";
+
