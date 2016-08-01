@@ -45,7 +45,7 @@ namespace Headset {
 Controller::Controller(int rs232_uart_resource, int ptt_iopin_resource) :
 	state(StateNone), status(StatusNone), ptt_pressed(false),
 	cmd_repeats_counter(0),
-	ch_number(1), ch_type(Multiradio::channelInvalid),
+	ch_number(1), ch_type(Multiradio::channelInvalid), ch_speed(Multiradio::voicespeedInvalid),
 	indication_enable(true), squelch_enable(false),
 	hs_state(SmartHSState_SMART_NOT_CONNECTED),
 	message_record_data_ready(false),
@@ -67,6 +67,7 @@ Controller::Controller(int rs232_uart_resource, int ptt_iopin_resource) :
 	cmd_resp_timer = new QmTimer(true, this);
 	cmd_resp_timer->timeout.connect(sigc::mem_fun(this, &Controller::processCmdResponceTimeout));
 	cmd_resp_timer->setInterval(HS_RESPONCE_TIMEOUT);
+	smart_status_description.channels_mismatch = false;
 }
 
 Controller::~Controller() {
@@ -74,11 +75,17 @@ Controller::~Controller() {
 }
 
 void Controller::startServicing(const Multiradio::voice_channels_table_t& local_channels_table) {
-	QM_ASSERT(local_channels_table.size() > 0);
 	qmDebugMessage(QmDebug::Info, "start servicing...");
 	ch_table = &local_channels_table;
-	ch_number = 1;
-	ch_type = ch_table->at(0).type;
+	if (local_channels_table.size() == 0) {
+		ch_number = 0;
+		ch_type = Multiradio::channelInvalid;
+		ch_speed = Multiradio::voicespeedInvalid;
+	} else {
+		ch_number = 1;
+		ch_type = ch_table->at(0).type;
+		ch_speed = ch_table->at(0).speed;
+	}
 	transport->enable();
 	poll_timer->start();
 	ptt_pressed = ptt_key->isPressed();
@@ -90,7 +97,7 @@ Controller::Status Controller::getStatus() {
 }
 
 bool Controller::getSmartStatus(SmartStatusDescription& description) {
-	description.channels_mismatch = false; //TODO:
+	description = smart_status_description; //TODO:
 	return state == StateSmartOk;
 }
 
@@ -111,7 +118,11 @@ bool Controller::getSmartCurrentChannel(int& number, Multiradio::voice_channel_t
 }
 
 bool Controller::setSmartCurrentChannelSpeed(Multiradio::voice_channel_speed_t speed) {
-	//TODO:...
+	if (state == StateSmartOk) {
+		ch_speed = speed;
+		synchronizeHSState();
+		return true;
+	}
 	return false;
 }
 
@@ -216,9 +227,12 @@ void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len) {
 			break;
 		} else if (!verifyHSChannels(data, data_len)) {
 			qmDebugMessage(QmDebug::Warning, "Headset channels is not match to local channels table");
-			resetState();
-			updateState(StateSmartMalfunction);
-			break;
+			smart_status_description.channels_mismatch = true;
+//			delete ch_table; //TODO: may be &local_channels_table after call startServicing()
+			ch_table = new Multiradio::voice_channels_table_t;
+			ch_number = 0;
+			ch_speed = Multiradio::voicespeed1200;
+			ch_type = Multiradio::channelInvalid;
 		}
 		updateState(StateSmartInitHSModeSetting);
 		synchronizeHSState();
@@ -463,8 +477,12 @@ void Controller::resetState() {
 }
 
 bool Controller::verifyHSChannels(uint8_t* data, int data_len) {
-	if (ch_table->size() != HS_CHANNELS_COUNT)
+	if (data_len != HS_CMD_CH_LIST_RESP_LEN) {
 		return false;
+	}
+	if (ch_table->size() != HS_CHANNELS_COUNT) {
+		return false;
+	}
 //	qmDebugMessage(QmDebug::Dump, "Channels types:");
 //	int type_[4] = {0, 0, 0, 0};
 //	for (int i = 0; i < 25; ++i) {
@@ -513,7 +531,7 @@ void Controller::synchronizeHSState() {
 	data[0] = 0xAB;
 	data[1] = 0xBA;
 	data[2] = 0x01;
-	switch (ch_table->at(ch_number - 1).speed) {
+	switch (ch_speed) {
 	case Multiradio::voicespeed600: data[2] |= 0x02; break;
 	case Multiradio::voicespeed1200: data[2] |= 0x06; break;
 	case Multiradio::voicespeed2400: data[2] |= 0x08; break;
