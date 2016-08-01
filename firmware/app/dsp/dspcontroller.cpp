@@ -1786,9 +1786,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
     		int data_offset;
     		if (type == modempacket_packHead)
-    			data_offset = 5;
+    			data_offset = 6;
     		else
-    			data_offset = 3;
+    			data_offset = 4;
     		uint8_t snr = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
     		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
     		receivedModemPacket.emit(type, snr, bandwidth, value_ptr + data_offset, value_len - data_offset);
@@ -1797,7 +1797,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     	case 31: {
     		if (!(value_len >= 1))
     			break;
-    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+0);
+    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
     		failedRxModemPacket.emit(type);
     		break;
     	}
@@ -1805,14 +1805,14 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
     		int data_offset;
     		if (type == modempacket_packHead)
-    			data_offset = 5;
+    			data_offset = 6;
     		else
-    			data_offset = 3;
+    			data_offset = 4;
     		uint8_t snr = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
     		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
     		if (type == modempacket_packHead) {
-    			uint8_t param_signForm = qmFromBigEndian<uint8_t>(value_ptr+3);
-    			uint8_t param_packCode = qmFromBigEndian<uint8_t>(value_ptr+4);
+    			uint8_t param_signForm = qmFromBigEndian<uint8_t>(value_ptr+4);
+    			uint8_t param_packCode = qmFromBigEndian<uint8_t>(value_ptr+5);
         		startedRxModemPacket_packHead.emit(snr, bandwidth, param_signForm, param_packCode, value_ptr + data_offset, value_len - data_offset);
     		} else {
         		startedRxModemPacket.emit(type, snr, bandwidth, value_ptr + data_offset, value_len - data_offset);
@@ -2712,11 +2712,12 @@ void DspController::disableModemTransmitter() {
 void DspController::sendModemPacket(ModemPacketType type,
 		ModemBandwidth bandwidth, const uint8_t *data, int data_len) {
 	QM_ASSERT(type != modempacket_packHead);
-	std::vector<uint8_t> payload(4);
+	std::vector<uint8_t> payload(5);
 	payload[0] = 20;
 	payload[1] = bandwidth;
 	payload[2] = type;
 	payload[3] = 0;
+	payload[4] = 0;
 	if (data_len > 0) {
 		QM_ASSERT(data);
 		payload.insert(std::end(payload), data, data + data_len);
@@ -2727,13 +2728,14 @@ void DspController::sendModemPacket(ModemPacketType type,
 void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 		uint8_t param_signForm, uint8_t param_packCode,
 		const uint8_t *data, int data_len) {
-	std::vector<uint8_t> payload(6);
+	std::vector<uint8_t> payload(7);
 	payload[0] = 20;
 	payload[1] = bandwidth;
 	payload[2] = 22;
 	payload[3] = 0;
-	payload[4] = param_signForm;
-	payload[5] = param_packCode;
+	payload[4] = 0;
+	payload[5] = param_signForm;
+	payload[6] = param_packCode;
 	QM_ASSERT(data);
 	QM_ASSERT(data_len > 0);
 	payload.insert(std::end(payload), data, data + data_len);

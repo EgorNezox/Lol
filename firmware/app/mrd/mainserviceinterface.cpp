@@ -61,6 +61,7 @@ static_assert(ALE_TIME_dTCodec >= ALE_TIME_dTCommand, "");
 #define TIMER_VALUE_tDataTxHshakeTDelay(sform) (TIMER_VALUE_tDataRonHshakeTDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tDataRoffHshakeTDelay(sform) (TIMER_VALUE_tDataTxHshakeTDelay(sform) + ALE_TIME_TEthTx + ALE_TIME_THshakeTrans + ALE_TIME_TRChan + ALE_TIME_TEthRx + ALE_TIME_dTCommand + ALE_TIME_DTMistiming)
 #define TIMER_VALUE_tDataCycle(sform) (TIMER_VALUE_tDataRoffHshakeTDelay(sform) + ALE_TIME_TMaxEthX + ALE_TIME_TMaxOpenTuneX + ALE_TIME_dTSynPacket(sform))
+#define TIMER_VALUE_tDataTxLinkReleaseDelay(sform) (TIMER_VALUE_tDataTxHshakeTDelay(sform) - ALE_TIME_TRespPackQualL + ALE_TIME_TLinkReleaseL)
 
 struct call_packet_t {
 	unsigned int lineType;
@@ -939,7 +940,7 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 			break;
 		}
 		ale.timerPacketRoffRespPackQual->stop();
-		ale.timerTxPacketTxLinkRelease->start(ale.tPacketSync, TIMER_VALUE_tDataTxHshakeTDelay(ale.vm_sform_c));
+		ale.timerTxPacketTxLinkRelease->start(ale.tPacketSync, TIMER_VALUE_tDataTxLinkReleaseDelay(ale.vm_sform_c));
 		dsp_controller->enableModemTransmitter();
 		setAlePhase(ALE_TX_VM_TX_LINK_RELEASE);
 		break;
@@ -1138,17 +1139,11 @@ void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(uint8_t snr, D
 }
 
 void MainServiceInterface::aleprocessModemPacketFailedRx(DspController::ModemPacketType type) {
-	switch (type) {
-	case DspController::modempacket_packHead: {
-		if (ale.phase != ALE_RX_VM_RX_PACKET)
-			break;
+	if (ale.phase == ALE_RX_VM_RX_PACKET) {
+		QM_ASSERT(type == DspController::modempacket_packHead);
 		qmDebugMessage(QmDebug::Info, "ale VM packet data rx failed");
 		ale.vm_packet_result = false;
 		startRxPacketResponse();
-		break;
-	}
-	default:
-		break;
 	}
 }
 
