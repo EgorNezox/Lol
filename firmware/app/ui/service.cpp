@@ -183,8 +183,8 @@ void Service::updateBattery(int new_val)
 
 void Service::drawIndicator()
 {
-    //    if ( guiTree.getCurrentState().getType() == mainWindow )
-    //        indicator->Draw();
+        if ( guiTree.getCurrentState().getType() == mainWindow )
+            indicator->Draw();
 }
 
 void Service::FailedSms(int stage)
