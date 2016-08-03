@@ -110,5 +110,12 @@ extern const char* pressEnter;
 extern const char* recievedGUC_CMD;
 extern const char* titleGuc;
 extern const char* titleCoord;
+extern const char* typeCondCmd;
+
+extern const char* YesGucCoord;
+extern const char* NoGucCoord;
+extern const char* StartGucTx;
+extern const char* GucIndivid;
+extern const char* GucGroup;
 
 #endif /* TEXTS_H_ */

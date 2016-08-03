@@ -74,7 +74,7 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     {
     case 0: /* Group <-> Individual <-> Ticket */
     {
-        labelStr.append("Mode\0");
+        labelStr.append(typeCondCmd);
         str.append(smplSubMenu[condCmdModeSelect]);
         break;
     }
@@ -1222,9 +1222,9 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
         labelStr.append(coordinateStr);
 
         if (useSndCoord)
-            valueStr.append("ON");
+            valueStr.append(YesGucCoord);
         else
-            valueStr.append("OFF");
+            valueStr.append(NoGucCoord);
 
         break;
     }
@@ -1245,9 +1245,9 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
         labelStr.append("\0");
 
         if (sndMode)
-            valueStr.append("Group");
+            valueStr.append(GucGroup);
         else
-            valueStr.append("Indiv");
+            valueStr.append(GucIndivid);
 
         break;
     }
@@ -1279,10 +1279,12 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
     {
         labelStr.append("\0");
 
-        if (useCoordinatel)
-            valueStr.append("OK");
-        else
-            valueStr.append("ERROR");
+//        if (useCoordinatel)
+//            valueStr.append("OK");
+//        else
+//            valueStr.append("ERROR");
+
+        valueStr.append(StartGucTx);
 
         break;
     }
