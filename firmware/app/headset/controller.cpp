@@ -747,6 +747,12 @@ uint16_t Controller::calcPacketCrc(uint8_t* data, int data_len) {
 	return result;
 }
 
+bool Controller::smartChannelType(){
+	bool res = false;
+	res = (ch_type == Multiradio::channelOpen)  ?  true : false;
+	return res;
+}
+
 } /* namespace Headset */
 
 #include "qmdebug_domains_start.h"

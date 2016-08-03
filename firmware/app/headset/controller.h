@@ -68,6 +68,9 @@ public:
 	Multiradio::voice_message_t getRecordedSmartMessage();
 	void setSmartMessageToPlay(Multiradio::voice_message_t data);
 
+	bool smartChannelType();
+
+
 	sigc::signal<void, Status/*new_status*/> statusChanged;
 	sigc::signal<bool/*accepted*/, bool/*new_state*/> pttStateChanged; // single connection (returns value)
 	sigc::signal<void, int/*new_channel_number*/, Multiradio::voice_channel_t/*new_channel_type*/> smartCurrentChannelChanged;
