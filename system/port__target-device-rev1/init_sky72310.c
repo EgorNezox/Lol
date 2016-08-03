@@ -63,6 +63,7 @@ void init_sky72310(void) {
 	write_reg(0x02, 0x0027);
 	write_reg(0x01, 0x0E76);
 
+
 	HAL_SPI_DeInit(&SpiHandle);
 }
 

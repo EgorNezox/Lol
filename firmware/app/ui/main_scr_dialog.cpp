@@ -1,18 +1,4 @@
-﻿/**
-  ******************************************************************************
-  * @file     main_scr_dialog.cpp
-  * @author  Egor Dudyak, PMR dept. software team, ONIIP, PJSC
-  * @date    04 окт. 2013 г.
-  * @brief   Диалог главного экрана. Предполагается что он будет создан в единственном экземпляре и не будет удаляться.
-  * Поэтому для оптимизации(сокращение размера объекта, изегание лишних отрисовок) объекты Label
-  * объявлены глобально и выделяются динамически.
-  *
-  ******************************************************************************
-  */
-
-
-//----------INCLUDES-----------
-
+﻿//----------INCLUDES-----------
 #include <string.h>
 #include <stdio.h>
 
@@ -25,9 +11,8 @@
 
 //----------GLOBAL_VARS--------
 
-static MoonsGeometry ch_label_geom  = {  1,  5,  78,  65 };
-static MoonsGeometry mode_text_geom = { 80,  5, 158,  32 };
-static MoonsGeometry freq_geom      = {  9, 74, 150, 126 };
+static MoonsGeometry ch_label_geom  = { 10, 40,  90,  75 };
+static MoonsGeometry freq_geom      = {  9, 76, 150, 120 };
 
 bool GUI_main_scr_init_flag=0;
 
@@ -41,14 +26,15 @@ GUI_Dialog_MainScr::GUI_Dialog_MainScr(MoonsGeometry *area):GUI_Obj(area),
                                                           mwFocus(-2),
                                                           editing(false)
 {
-  // mr_channel_t active_channel;
-
   MoonsGeometry window_geom = {0,0,(GXT)(GEOM_W(this->area)-1),(GYT)(GEOM_H(this->area)-1)};
-GUI_EL_TEMP_LabelChannel.transparent = true;
-GUI_EL_TEMP_LabelMode.transparent    = false;
+
+    GUI_EL_TEMP_LabelMode.transparent    = true;
   window       = new GUI_EL_Window(&GUI_EL_TEMP_WindowGeneralBack, &window_geom,          (GUI_Obj*)this);
-  ch_num_label = new GUI_EL_Label (&GUI_EL_TEMP_LabelChannel,      &ch_label_geom,  NULL, (GUI_Obj*)this);
-  mode_text    = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,         &mode_text_geom, NULL, (GUI_Obj*)this);
+
+  LabelParams ch_num_label_params = GUI_EL_TEMP_LabelChannel;
+  ch_num_label_params.transparent = true;
+  ch_num_label = new GUI_EL_Label (&ch_num_label_params,      &ch_label_geom,  NULL, (GUI_Obj*)this);
+
   freq         = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,         &freq_geom,      NULL, (GUI_Obj*)this);
 
   ch_num_label->SetText((char*)"--\0");
@@ -58,11 +44,8 @@ GUI_EL_TEMP_LabelMode.transparent    = false;
   setFreq(oFreq.c_str());
 }
 
-//-----------------------------
 void GUI_Dialog_MainScr::setModeText(const char* newMode)
 {
-  mode.clear();
-  mode.append(newMode);
 }
 
 void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus status,
@@ -71,7 +54,6 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
                               )
 {
   updateChannel(status, ch_num, channel_type);
-  mode_text->SetText((char *)mode.c_str());
 
   window->Draw();
   ch_num_label->Draw();
@@ -80,11 +62,7 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
       groundrect(2,30,52,31,0,GFRAME);
   }
 
-  mode_text->transparent = true;
-  if (focus == 0){ mode_text->transparent = false; }
-  mode_text->Draw();
-
-  freq->transparent = true;
+  freq->transparent = false;
   if (focus == 1){ freq->transparent = false; }
   freq->Draw();
 }
@@ -126,7 +104,8 @@ void GUI_Dialog_MainScr::prepChString(char *str, int ch_num, Multiradio::voice_c
       str[1] = str[0];
       str[0] = ch_zero_letter;
   }
-  switch(type){
+  switch(type)
+  {
       case Multiradio::channelOpen:
           str[2] = ch_open_letter;
           break;
@@ -149,7 +128,6 @@ GUI_Dialog_MainScr::~GUI_Dialog_MainScr()
 {
   delete window;
   delete ch_num_label;
-  delete mode_text;
   delete freq;
 }
 
