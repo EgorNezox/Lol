@@ -104,6 +104,7 @@ MainServiceInterface::MainServiceInterface(Dispatcher *dispatcher, Navigation::N
 	ale.f_state = alefunctionIdle;
 	ale.state = AleState_IDLE;
 	ale.phase = ALE_STOPPED;
+	dispatcher->dsp_controller->hardwareFailed.connect(sigc::mem_fun(this, &MainServiceInterface::forwardDspHardwareFailure));
 	ale.timerRadioReady = new QmTimer(true, this);
 	ale.timerRadioReady->setInterval(500);
 	ale.timerRadioReady->timeout.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessRadioReady));
@@ -225,6 +226,10 @@ void MainServiceInterface::setStatus(Status value) {
 		current_status = value;
 		statusChanged(value);
 	}
+}
+
+void MainServiceInterface::forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code) {
+	dspHardwareFailed.emit(subdevice_code, error_code);
 }
 
 void MainServiceInterface::printDebugAleTimings() {

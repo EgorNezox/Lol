@@ -167,3 +167,8 @@ const char* NoGucCoord      = "Нет\0";
 const char* StartGucTx      = "Старт\0";
 const char* GucIndivid      = "Одному\0";
 const char* GucGroup        = "Всем\0";
+
+const char* dsphardwarefailure_7_5_title_str = "Авария АФУ";
+const char* dsphardwarefailure_7_5_text_str = "0";
+const char* dsphardwarefailure_unknown_title_str = "Аппаратный сбой DSP";
+const char* dsphardwarefailure_unknown_text_str = "Устр. %d, код %d";

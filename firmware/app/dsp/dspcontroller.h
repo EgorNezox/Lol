@@ -182,6 +182,7 @@ public:
     sigc::signal<void,int> updateSmsStatus;          // статус СМС
     sigc::signal<void> updateGucGpsStatus;    float swf_res = 2; // надо изменить значение на нижнее предельное
     sigc::signal<void> gucCrcFailed;                 // ошибка crc-суммы
+    sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> hardwareFailed;
 
     PackageManager *pack_manager;
 

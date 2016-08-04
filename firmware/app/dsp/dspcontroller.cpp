@@ -1615,6 +1615,16 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 			processStartup(qmFromBigEndian<uint16_t>(value_ptr+0), qmFromBigEndian<uint16_t>(value_ptr+2), qmFromBigEndian<uint16_t>(value_ptr+4));
 		break;
 	}
+	case 0x31: {
+    	value_ptr -= 1; // костылное превращение в нестандартный формат кадра
+    	value_len += 1; // костылное превращение в нестандартный формат кадра
+    	if (indicator == 5) {
+    		uint8_t subdevice_code = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+0);
+    		uint8_t error_code = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
+    		hardwareFailed.emit(subdevice_code, error_code);
+    	}
+    	break;
+	}
 	case 0x51:
 	case 0x81: {
 		if ((indicator == 3) || (indicator == 4)) { // "команда выполнена", "команда не выполнена" ?

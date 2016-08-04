@@ -82,6 +82,7 @@ public:
     void setCoordDate(Navigation::Coord_Date);
     void gucFrame(int value);
     void errorMessage();
+    void showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
     void errorGucCrc();
     void setFreqLabelValue(int value);
 

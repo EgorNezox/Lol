@@ -118,4 +118,9 @@ extern const char* StartGucTx;
 extern const char* GucIndivid;
 extern const char* GucGroup;
 
+extern const char* dsphardwarefailure_7_5_title_str;
+extern const char* dsphardwarefailure_7_5_text_str;
+extern const char* dsphardwarefailure_unknown_title_str;
+extern const char* dsphardwarefailure_unknown_text_str;
+
 #endif /* TEXTS_H_ */

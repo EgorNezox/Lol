@@ -92,6 +92,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
     voice_service->respGuc.connect(sigc::mem_fun(this,&Service::gucFrame));
     voice_service->errorAsu.connect(sigc::mem_fun(this, &Service::errorMessage));
+    multiradio_service->dspHardwareFailed.connect(sigc::mem_fun(this, &Service::showDspHardwareFailure));
     voice_service->messageGucTxQuit.connect(sigc::mem_fun(this, &Service::msgGucTXQuit));
     voice_service->gucCrcFailed.connect(sigc::mem_fun(this,&Service::errorGucCrc));
     voice_service->gucCoord.connect(sigc::mem_fun(this,&Service::GucCoord));
@@ -110,6 +111,22 @@ void Service::errorMessage()
 {
     msgBox( "Error ", "ASU modeMalFunction\0");
     guiTree.append(messangeWindow, (char*)"Error ASU\0", "0\0");
+}
+
+void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)
+{
+	std::string title, text;
+	if ((subdevice_code == 7) && (error_code == 5)) {
+		title = dsphardwarefailure_7_5_title_str;
+		text = dsphardwarefailure_7_5_text_str;
+	} else {
+		title = dsphardwarefailure_unknown_title_str;
+		char text_buffer[50];
+		sprintf(text_buffer , dsphardwarefailure_unknown_text_str, subdevice_code, error_code);
+		text = text_buffer;
+	}
+	msgBox(title.c_str(), text.c_str());
+	guiTree.append(messangeWindow, title.c_str(), text.c_str());
 }
 
 void Service::errorGucCrc()
