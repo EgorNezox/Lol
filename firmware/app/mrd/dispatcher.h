@@ -62,6 +62,8 @@ private:
 	voice_channels_table_t::iterator voice_channel;
 	DataStorage::FS *data_storage_fs;
 
+    uint32_t prevFrequency = 0;
+
 };
 
 } /* namespace Multiradio */

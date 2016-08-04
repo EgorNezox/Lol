@@ -62,8 +62,10 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
       groundrect(2,30,52,31,0,GFRAME);
   }
 
-  freq->transparent = false;
+  freq->transparent = true; // todo : поменял значение
   if (focus == 1){ freq->transparent = false; }
+
+  returnFreqStatus((bool(*)(int))Headset::Controller::getMainLabelStatus);
   freq->Draw();
 }
 

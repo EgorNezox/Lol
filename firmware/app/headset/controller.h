@@ -163,6 +163,9 @@ public:
 	 */
 	sigc::signal<void, SmartHSState/*new_state*/> smartHSStateChanged;
 
+    bool getMainLabelStatus(int);
+    bool statusMainLabel = false;
+
 private:
 	/*!< Состояние подключения гарнитуры */
 	enum State {
