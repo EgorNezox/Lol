@@ -750,7 +750,13 @@ uint16_t Controller::calcPacketCrc(uint8_t* data, int data_len) {
 bool Controller::smartChannelType(){
 	bool res = false;
 	res = (ch_type == Multiradio::channelOpen)  ?  true : false;
-	return res;
+    return res;
+}
+
+bool Controller::getMainLabelStatus(int value)
+{
+    statusMainLabel = ((value == 1) ? true : false); // 0 -active, 1- disable
+    return statusMainLabel;
 }
 
 } /* namespace Headset */

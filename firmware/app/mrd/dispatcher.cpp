@@ -146,6 +146,7 @@ void Dispatcher::setVoiceDirection(bool ptt_state) {
 
 void Dispatcher::setVoiceChannel() {
 	uint32_t frequency = (*voice_channel).frequency;
+    if (!headset_controller->statusMainLabel) { frequency = prevFrequency; } else {prevFrequency = frequency;}
 	DspController::RadioMode mode;
 	if ((1500000 <= frequency) && (frequency < 30000000)) {
 		mode = DspController::RadioModeUSB;
