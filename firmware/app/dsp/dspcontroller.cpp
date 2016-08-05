@@ -1521,7 +1521,19 @@ void DspController::sendGuc()
     	ContentGuc.command[i] = (ContentGuc.command[i] << sdvig) + (ContentGuc.command[i+1] >> (7 -  sdvig));
     }
 
-     if (!isGpsGuc) {crc32_len = ((real_len*7)/8); if ((real_len*7)% 8 !=0) crc32_len +=1; }
+    if (!isGpsGuc)
+    {
+    	crc32_len = ((real_len*7)/8); uint8_t ost =  (real_len*7)% 8;
+    	if (ost !=0)
+    	{
+    		uint8_t mask = 0;
+    		for(int i = 0; i<ost;i++) mask +=  1 << (7 - i);
+    		crc32_len +=1;
+    		ContentGuc.command[crc32_len-1] = ContentGuc.command[crc32_len-1] & mask;
+
+    	}
+
+    }
      // добавление crc32 к пакету данных
      uint32_t crc = pack_manager->CRC32(ContentGuc.command, crc32_len);
      qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
@@ -2713,16 +2725,19 @@ uint8_t* DspController::get_guc_vector()
 
     else
     {
-        for(int i = 0; i<num;i++) guc_text[i+1] = guc_vector.at(0).at(7+i);
+    	std::vector<bool> data;
+        for(int i = 0; i<num;i++) pack_manager->addBytetoBitsArray(guc_vector.at(0).at(7+i),data,7);
+        for(int i = 0; i<count;i++) pack_manager->getArrayByteFromBit(data,out);
 
-        for(int i = 0;  i< count;i++){
-            int sdvig  = (i+1) % 8;
-            if (sdvig != 0)
-                out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
-            else
-                out[i] = guc_text[i+1];
+//        for(int i = 0;  i< count;i++){
+//            int sdvig  = (i+1) % 8;
+//            if (sdvig != 0)
+//                out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
+//            else
+//                out[i] = guc_text[i+1];
+//
+//        }
 
-        }
     }
 
 
@@ -2742,7 +2757,17 @@ uint8_t* DspController::get_guc_vector()
     int value  = (isGpsGuc) ? crc_coord_len : num;
     // выбрали длинну, исходя из режима передачи
 
-    if (!isGpsGuc) {value = ((num*7)/8); if ((num*7)% 8 !=0) value +=1; }
+    if (!isGpsGuc) {value = ((num*7)/8); uint8_t ost = (num*7)% 8;
+
+    if (ost !=0)
+        	{
+        		uint8_t mask = 0;
+        		for(int i = 0; i<ost;i++) mask +=  1 << (7 - i);
+        		value +=1;
+        		out[value-1] = out[value-1] & mask;
+        	}
+
+    }
 
     crc = pack_manager->CRC32(out,value);
 

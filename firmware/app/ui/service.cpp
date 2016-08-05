@@ -2366,17 +2366,9 @@ void Service::gucFrame(int value)
     vect = voice_service->getGucCommand();
     if (vect[0] != '\0')
     {
-        char ch[3]; sprintf(ch, "%d", vect[position]); ch[2] = '\0';
-        guiTree.append(messangeWindow, sym, ch);
-        if (value == 0)
-        msgBox(titleGuc, vect[position], vect[0], position);
-        if (value == 1){
-        	char mas[101];
-        	mas[0] = (char)(vect[0]);
-        	for(int i = 1;i<=vect[0];i++) mas[i] = (char)vect[i+9];
-        	mas[vect[0]+1] = '\0';
-            msgBox(titleGuc, mas[position], mas[0], position); // todo:: проверить коррекность использования для смещения на 9 байт координат
-        }
+    	char ch[3]; sprintf(ch, "%d", vect[position]); ch[2] = '\0';
+    	guiTree.append(messangeWindow, sym, ch);
+    	msgBox( titleGuc, vect[position], vect[0], position);
 
     }
 
