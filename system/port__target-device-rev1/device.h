@@ -22,5 +22,7 @@
 #define FLASH_FIRMWARE_PROGRAM_MAGIC_OFFSET		0x00000000	// offset from start to firmware magic word
 #define FLASH_FIRMWARE_PROGRAM_MAGIC_VALUE		0xBAD4DEAD	// valid value of firmware magic word
 #define FLASH_FIRMWARE_PROGRAM_ENTRY_OFFSET		0x00000004	// offset from start to firmware startup entry
+#define FLASH_USBFLASHER_PROGRAM_START_ADDRESS	0x080E0000
+#define FLASH_USBFLASHER_PROGRAM_LENGTH			131072
 
 #endif /* DEVICE_H_ */
