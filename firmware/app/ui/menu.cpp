@@ -875,6 +875,44 @@ void CGuiMenu::initEditRnKeyDialog()
     addr.Draw();
 }
 
+void CGuiMenu::initZondDialog(int focus, std::vector<std::string> &data)
+{
+
+    if (focus >= data.size()) {focus = 0; return;}
+    int count =  (data.size() - focus > 3) ? 3: (data.size() - focus - 1);
+
+    MoonsGeometry itemArea;
+    MoonsGeometry addrArea    = { 7, 0, 140, 70 };
+    MoonsGeometry labelArea   = { 7, 5, 140, 70 };
+
+    LabelParams param = GUI_EL_TEMP_LabelText;
+    param.element.align = {alignHCenter, alignTop};
+    param.transparent = true;
+
+    GUI_EL_Window   window( &GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this );
+
+    GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)Zond_label, (GUI_Obj *)this);
+
+    window.Draw();
+    label.Draw();
+    for(int i = 0; i < count;i++)
+    {
+        itemArea = {(GXT)(addrArea.xs + MARGIN),
+                    (GYT)(addrArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
+                    (GXT)(addrArea.xe - MARGIN),
+                    (GYT)(addrArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
+                   };
+
+        std::string ex = data.at(focus + i);
+        GUI_EL_TextArea addr( &param, &itemArea,(char*)ex.c_str(),(GUI_Obj *)this);
+        addr.Draw();
+    }
+    MoonsGeometry sliderArea  = { 150, 25, 157, 110};
+    SliderParams  sliderParams = {(int32_t)data.size(), (int32_t)1, (int32_t)focus};
+    GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
+    slider.Draw();
+}
+
 void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
 {
     auto newTime = std::chrono::steady_clock::now();

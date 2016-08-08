@@ -103,6 +103,18 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
 #endif
 
+    for(int i = 1; i< 10; i++)
+    {
+        std::string s(callSubMenu[i%4]);
+        char str[2];  sprintf(str,"%d",i);
+        s.append(" ").append(str).append(":00 ");
+        char str2[10];
+        s.append("\n ");
+        sprintf(str2,"%i",i*210000);
+        s.append(str2);
+        s.append("GHZ\0");
+        zond_data.push_back(s);
+    }
 
 }
 
@@ -1881,6 +1893,20 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case  GuiWindowsSubType::zond:
+        {
+            if (key == keyUp)
+            {
+                if (zond_position > 0)
+                --zond_position;
+            }
+            if (key == keyDown)
+            {
+                if (zond_position < zond_data.size()-2)
+                ++zond_position;
+            }
+             break;
+        }
         default:
             break;
         }
@@ -2241,6 +2267,12 @@ void Service::drawMenu()
         case GuiWindowsSubType::editRnKey:
         {
             menu->initEditRnKeyDialog();
+            break;
+        }
+        case GuiWindowsSubType::zond:
+        {
+
+            menu->initZondDialog(zond_position,zond_data);
             break;
         }
         default:

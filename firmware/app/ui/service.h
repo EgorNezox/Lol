@@ -157,6 +157,9 @@ private:
     //
     std::vector<int> guc_command_vector;
     int position = 0;
+
+    int zond_position = 0;
+    std::vector<std::string> zond_data;
 };
 
 } /* namespace Ui */

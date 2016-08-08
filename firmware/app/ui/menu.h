@@ -12,6 +12,7 @@
 #include "keyboard.h"
 #include "ui_keys.h"
 #include "texts.h"
+#include <vector>
 
 #include <chrono>
 #include <ctime>
@@ -145,6 +146,10 @@ public:
     // RN_KEY
     std::string RN_KEY;
     void initEditRnKeyDialog();
+
+    //ZOND
+    std::map<int, std::string> sheldure;
+    void initZondDialog(int focus, std::vector<std::string> &data);
 
 private:
     GUI_Obj obj;
