@@ -58,6 +58,39 @@ bool hwboot_check_firmware(void) {
 	return true;
 }
 
+void hwboot_jump_usbflasher(void) {
+	/* Interrupts must be disabled to safely proceed
+	 * (before firmware switches to its isr vectors table and initializes interrupts).
+	 */
+	__disable_irq();
+
+	/* Firstly, disable and clear pending interrupts from all mcu peripherals */
+	for (int i = 0; i <= 80; i++) {
+		NVIC_DisableIRQ((IRQn_Type)i);
+		NVIC_ClearPendingIRQ((IRQn_Type)i);
+	}
+	/* Set system clock from HSI oscillator (and reset prescalers) */
+	RCC->CFGR &= ~RCC_CFGR_SW;
+	RCC->CFGR &= ~(RCC_CFGR_HPRE | RCC_CFGR_PPRE1  | RCC_CFGR_PPRE2);
+	while ((RCC->CFGR & RCC_CFGR_SWS ) != RCC_CFGR_SWS_HSI);
+	/* Reset access latency of flash interface to zero CPU cycles */
+	FLASH->ACR &= ~FLASH_ACR_LATENCY;
+	/* Reset HSE and main PLL */
+	RCC->CR &= ~(RCC_CR_HSEON | RCC_CR_PLLON);
+	/* Reset all peripheral clocks
+	 * Warning: breaks access to external memory (if any) since here !
+	 */
+	RCC->AHB1ENR = 0;
+	RCC->AHB2ENR = 0;
+	RCC->AHB3ENR = 0;
+	RCC->APB1ENR = 0;
+	RCC->APB2ENR = 0;
+
+	/* Jump to firmware entry address */
+	uint32_t* entry_addr = (uint32_t*)(FLASH_USBFLASHER_PROGRAM_START_ADDRESS + 4);
+	__asm volatile("bx %0" :: "r" (*entry_addr | 1));
+}
+
 void hwboot_jump_firmware(void) {
 	/* Interrupts must be disabled to safely proceed
 	 * (before firmware switches to its isr vectors table and initializes interrupts).

@@ -25,7 +25,7 @@ static struct
    GSYMHEAD sh;         /* Symbol header */
    SGUCHAR b[12];       /* Symbol data, "variable length" */
    }
-GCODE FCODE Lucida_Console_8x12sym[256] =
+GCODE FCODE Lucida_Console_8x12sym[152] =
    {
    #include "Lucida_Console_8x12.sym" /* Include symbols */
    };
@@ -37,7 +37,7 @@ GCODE GFONT FCODE Lucida_Console_8x12 =
    12,       /* height */
    sizeof(Lucida_Console_8x12sym[0]) - sizeof(GSYMHEAD), /* number of bytes in a symbol (including any alignment padding)*/
    (PGSYMBOL)Lucida_Console_8x12sym, /* pointer to array of SYMBOLS */
-   256,      /* num symbols */
+   152,      /* num symbols */
    (PGCODEPAGE)&Lucida_Console_8x12cp
    };
 

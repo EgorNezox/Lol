@@ -17,7 +17,7 @@
 #include <ctime>
 
 #define MARGIN			4
-#define BUTTON_HEIGHT	13
+#define BUTTON_HEIGHT	33
 #define BUTTON_WIDTH	30
 
 extern MoonsGeometry ui_common_dialog_area;
@@ -66,9 +66,12 @@ public:
     std::string dstAddr, newDstAddr;
     std::string message, newMessage;
 
+    uint8_t offset = 0;
+
     // tx cond cmd
     bool useCmdRetrans = false;
-    int txCondCmdStage = 1;
+    int txCondCmdStage = 0;
+    int condCmdModeSelect = 0;
     void setCondCommParam(CEndState, UI_Key);
     // rx cond cmd
     void initRxCondCmdDialog();
@@ -91,6 +94,9 @@ public:
     // tx group condition commands
     int txGroupCondCommStatus = 1;
     void initTxGroupCondComm(CEndState);
+    bool useCoordinatel = false;
+    bool useSndCoord = false;
+    bool sndMode = false;
 
     // message ( SMS )
     uint8_t smsTxStage = 1;
@@ -149,11 +155,9 @@ private:
     std::string textStr;
 
     MenuItemParams itemParams;
-    MoonsGeometry  itemArea[7];
     bool draw_mark;
 
     int numItem;
-    GUI_EL_MenuItem *item[6];
     char *tx;
     bool editing;
 

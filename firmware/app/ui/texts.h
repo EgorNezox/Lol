@@ -100,5 +100,27 @@ extern const char* condCommSendStr;
 extern const char* ticketStr[];
 extern const char* voicePostTitleStr[];
 
+extern const char* errorCrcGuc;
+extern const char* gucQuitTextFail;
+extern const char* gucQuitTextOk;
+
+extern const char *coordinateStr;
+
 extern const char* pressEnter;
+extern const char* recievedGUC_CMD;
+extern const char* titleGuc;
+extern const char* titleCoord;
+extern const char* typeCondCmd;
+
+extern const char* YesGucCoord;
+extern const char* NoGucCoord;
+extern const char* StartGucTx;
+extern const char* GucIndivid;
+extern const char* GucGroup;
+
+extern const char* dsphardwarefailure_7_5_title_str;
+extern const char* dsphardwarefailure_7_5_text_str;
+extern const char* dsphardwarefailure_unknown_title_str;
+extern const char* dsphardwarefailure_unknown_text_str;
+
 #endif /* TEXTS_H_ */
