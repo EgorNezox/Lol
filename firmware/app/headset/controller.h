@@ -106,7 +106,6 @@ public:
 	 * \return статус операции
 	 */
 	bool setSmartCurrentChannelSpeed(Multiradio::voice_channel_speed_t speed);
-
 	/*!
 	 * \brief Инициирует воспроизведение сообщения на гарнитуре СКЗИ
 	 * \detailed Воспроизводимое сообщение должно быть предварительно установлено вызовом \a setSmartMessageToPlay()
@@ -314,9 +313,11 @@ private:
 	QmTimer* cmd_resp_timer;
 	int cmd_repeats_counter;
 
+	SmartStatusDescription smart_status_description;
 	const Multiradio::voice_channels_table_t* ch_table;
 	uint16_t ch_number;
 	Multiradio::voice_channel_t ch_type;
+	Multiradio::voice_channel_speed_t ch_speed;
 	bool indication_enable;
 	bool squelch_enable;
 
