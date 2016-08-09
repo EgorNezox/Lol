@@ -147,6 +147,8 @@ private:
     std::string date;
     std::string time;
 
+    Multiradio::voice_channel_speed_t currentSpeed = Multiradio::voice_channel_speed_t(0);
+
     int RN_KEY = 1;
     int mainWindowModeId;
 

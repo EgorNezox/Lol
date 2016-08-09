@@ -56,7 +56,7 @@ void GUI_Indicator::UpdateMultiradio(Multiradio::MainServiceInterface::Status st
     switch(status){
         case Multiradio::MainServiceInterface::StatusIdle:
         case Multiradio::MainServiceInterface::StatusNotReady:
-            ind_multiradio->icon = sym_blank;
+            ind_multiradio->icon = sym_rx;//sym_blank;
             break;
         case Multiradio::MainServiceInterface::StatusVoiceRx:
             ind_multiradio->icon = sym_rx;
@@ -91,16 +91,16 @@ void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
     switch(status)
     {
         case Headset::Controller::StatusNone:
-            ind_headset->icon = sym_headphones_none;
+            ind_headset->icon = sym_headphones_analog;//sym_headphones_none;
             break;
         case Headset::Controller::StatusAnalog:
             ind_headset->icon = sym_headphones_analog;
             break;
         case Headset::Controller::StatusSmartOk:
-            ind_headset->icon = sym_headphones_smart;
+            ind_headset->icon = sym_headphones_analog;//sym_headphones_smart;
             break;
         case Headset::Controller::StatusSmartMalfunction:
-            ind_headset->icon = sym_headphones_broken;
+            ind_headset->icon = sym_headphones_analog;//sym_headphones_broken;
             break;
         default:
             QM_ASSERT(0);

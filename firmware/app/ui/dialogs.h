@@ -44,6 +44,7 @@ public:
         std::string str;
         str.append(fr);
         str.append(freq_hz);
+        str.push_back('\0');
         freq->SetText((char*)str.c_str());
     }
     void editingFreq(UI_Key);
@@ -56,8 +57,9 @@ public:
 
 private:
     GUI_EL_Window *window;
-    GUI_EL_Label *ch_num_label;
-    GUI_EL_Label *freq;
+    GUI_EL_Label  *ch_num_label;
+    GUI_EL_Label  *mode_text;
+    GUI_EL_Label  *freq;
     bool cur_ch_invalid;
     int focus = -2;
 
