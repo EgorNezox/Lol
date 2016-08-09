@@ -17,6 +17,7 @@
 #include <list>
 #include <cstring>
 #include <vector>
+#include <stdlib.h>
 #include <math.h>
 #include "navigator.h"
 
@@ -130,90 +131,113 @@ void Navigator::parsingData(uint8_t data[])
     // $GPRMC,hhmmss.sss,A,GGMM.MM,P,gggmm.mm,J,v.v,b.b,ddmmyy,x.x,n,m*hh<CR><LF>
     // $GPZDA,172809.456,12,07,1996,00,00*45
 
-        char* rmc = (char*)data;
-        char* rmc_dubl = nullptr;
-        char* zda = (char*)data;
-        char* zda_dubl = nullptr;
+    char* rmc = (char*)data;
+    char* rmc_dubl = nullptr;
+    char* zda = (char*)data;
+    char* zda_dubl = nullptr;
 
-        while (rmc != NULL){
-            rmc = strstr((const char*)rmc,(const char*)"$GPRMC");
-            if (zda != NULL)
+    while (rmc != NULL){
+        rmc = strstr((const char*)rmc,(const char*)"$GPRMC");
+        if (zda != NULL)
             zda = strstr((const char*)zda,(const char*)"$GPZDA");
-            if (rmc != NULL){
-                rmc_dubl = rmc;
-                *rmc++;
-            }
-            if (zda != NULL){
-            	zda_dubl = zda;
-            	*zda++;
-            }
+        if (rmc != NULL){
+            rmc_dubl = rmc;
+            *rmc++;
         }
-
-        if (zda_dubl == nullptr)
-        	return;
-
-        char zda_text[6];
-        for(int i = 0;i<6;i++){
-        	zda_text[i] = zda_dubl[i+7];
+        if (zda != NULL){
+            zda_dubl = zda;
+            *zda++;
         }
+    }
 
-        memcpy(&CoordDate.time,&zda_text,6);
+    if (zda_dubl == nullptr)
+        return;
 
-        if (rmc_dubl == nullptr)
-        	return;
+    char zda_text[6];
+    for(int i = 0;i<6;i++){
+        zda_text[i] = zda_dubl[i+7];
+    }
 
-        char *param_start = rmc_dubl;
-        char *param_end    = rmc_dubl;
+    memcpy(&CoordDate.time,&zda_text,6);
 
-        std::vector<std::string> parse_elem;
-        std::string str;
+    if (rmc_dubl == nullptr)
+        return;
 
-        while (param_start != NULL){
-            param_start = strstr((const char*)param_start,(const char*)",");
-            if (param_start != NULL) {
-                *param_start++;
-                param_end =   strstr((const char*)param_start,(const char*)",");
-                if (param_end != NULL){
-                   str.clear();
-                   str.append(param_start);
-                   int ind1 = strlen((const char*)param_start);
-                   int ind2 = strlen((const char*)param_end);
-                   ind1 = ind1 - ind2;
-                   str = str.substr(0, ind1);
-                   if (strstr(str.c_str(),"\r\n") != 0) break;
-                   else
-                   parse_elem.push_back(str);
+    char *param_start = rmc_dubl;
+    char *param_end    = rmc_dubl;
 
-                } else{
-                    str.clear();
-                    if (strstr(str.c_str(),"\r\n") == 0)
-                        str.append(param_start);
+    std::vector<std::string> parse_elem;
+    std::string str;
+
+    while (param_start != NULL){
+        param_start = strstr((const char*)param_start,(const char*)",");
+        if (param_start != NULL) {
+            *param_start++;
+            param_end =   strstr((const char*)param_start,(const char*)",");
+            if (param_end != NULL){
+                str.clear();
+                str.append(param_start);
+                int ind1 = strlen((const char*)param_start);
+                int ind2 = strlen((const char*)param_end);
+                ind1 = ind1 - ind2;
+                str = str.substr(0, ind1);
+                if (strstr(str.c_str(),"\r\n") != 0) break;
+                else
                     parse_elem.push_back(str);
-                    break;
-                }
 
+            } else{
+                str.clear();
+                if (strstr(str.c_str(),"\r\n") == 0)
+                    str.append(param_start);
+                parse_elem.push_back(str);
+                break;
             }
 
         }
 
-//        if (parse_elem.size() > 0)
-//            memcpy(&CoordDate.time,parse_elem.at(0).c_str(),parse_elem.at(0).size());
+    }
 
-        if ((parse_elem.size() > 2) /*&& (parse_elem.at(1).compare("V") != 0)*/)
-        { // проверка по статусу gps
-            if (parse_elem.size() > 3){
-                memcpy(&CoordDate.latitude,parse_elem.at(2).c_str(),parse_elem.at(2).size());
-                memcpy(&CoordDate.latitude[parse_elem.at(2).size()],parse_elem.at(3).c_str(),parse_elem.at(3).size());
-            }
-            if (parse_elem.size() > 5){
-                memcpy(&CoordDate.longitude,parse_elem.at(4).c_str(),parse_elem.at(4).size());
-                memcpy(&CoordDate.longitude[parse_elem.at(4).size()],parse_elem.at(5).c_str(),parse_elem.at(5).size());
-            }
-            if (parse_elem.size() > 8)
-                memcpy(&CoordDate.data,parse_elem.at(8).c_str(),parse_elem.at(8).size());
+    if ((parse_elem.size() > 2) /*&& (parse_elem.at(1).compare("V") != 0)*/)
+    { // проверка по статусу gps
+        if (parse_elem.size() > 3){
+            memcpy(&CoordDate.latitude,parse_elem.at(2).c_str(),parse_elem.at(2).size());
+            memcpy(&CoordDate.latitude[parse_elem.at(2).size()],parse_elem.at(3).c_str(),parse_elem.at(3).size());
+            redactCoordForSpec(CoordDate.latitude,5);
+
         }
-        qmDebugMessage(QmDebug::Dump, "parsing result:  %s %s %s %s", (char*)CoordDate.time,(char*)CoordDate.data,(char*)CoordDate.latitude,(char*)CoordDate.longitude);
+        if (parse_elem.size() > 5){
+            memcpy(&CoordDate.longitude,parse_elem.at(4).c_str(),parse_elem.at(4).size());
+            memcpy(&CoordDate.longitude[parse_elem.at(4).size()],parse_elem.at(5).c_str(),parse_elem.at(5).size());
+            redactCoordForSpec(CoordDate.longitude,6);
+        }
+        if (parse_elem.size() > 8)
+            memcpy(&CoordDate.data,parse_elem.at(8).c_str(),parse_elem.at(8).size());
+    }
+    qmDebugMessage(QmDebug::Dump, "parsing result:  %s %s %s %s", (char*)CoordDate.time,(char*)CoordDate.data,(char*)CoordDate.latitude,(char*)CoordDate.longitude);
 
+}
+
+void Navigator::redactCoordForSpec(uint8_t *input, int val){
+	    char mas[4];
+	    double value = 0;
+	    float sec_msec = 0; uint16_t a1,a2; char param1, param2;
+
+	    memcpy(&mas,&input[val],4);
+	    value = atoi(mas);
+	    sec_msec = (value / 10000) * 60;
+	    a1 = (uint16_t)sec_msec;
+	    sec_msec -= a1;
+	    a2 = (uint16_t)(round(sec_msec*100));
+	    int cnt = val;
+	    for(int i  = 0; i<2;i++)
+	    {
+	    	if ( i % 2 != 0) {param1 = (char)(a2 / 10) + '0'; param2 = (char)(a2 % 10) + '0'; }
+	    	else {param1 = (char)(a1 / 10) + '0';param2 = (char)(a1 % 10) + '0';}
+
+	    	memcpy(&input[cnt],&param1,1);
+	    	memcpy(&input[cnt + 1],&param2,1);
+	    	cnt += 2;
+	    }
 }
 
 
@@ -228,7 +252,7 @@ void Navigator::processSyncPulse(bool overflow) {
 		qmDebugMessage(QmDebug::Warning, "sync pulse overflow detected !!!");
 	syncPulse();
 }
-//#endif /* PORT__TARGET_DEVICE_REV1 */
+
 
 } /* namespace Navigation */
 

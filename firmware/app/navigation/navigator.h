@@ -48,6 +48,7 @@ private:
 	void processUartReceivedErrors(bool data_errors, bool overflow);
 	void parsingData(uint8_t data[]);
 	void processSyncPulse(bool overflow);
+	void redactCoordForSpec(uint8_t *input, int val);
 
 
 	Coord_Date CoordDate;

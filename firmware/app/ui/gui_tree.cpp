@@ -7,11 +7,14 @@ void CGuiTree::init()
     // 0 - 4
     main.setName(mainMenu[0]); call.setName(mainMenu[1]); recv.setName(mainMenu[2]); data.setName(mainMenu[3]); settings.setName(mainMenu[4]);
     // 1.1 - 1.4
-    condCmd.setName(callSubMenu[0]); sms.setName(callSubMenu[1]); txPutOffVoice.setName(callSubMenu[2]); groupCondCommand.setName(callSubMenu[3]);
+    condCmd.setName(callSubMenu[0]);
+    sms.setName(callSubMenu[1]);
+    txPutOffVoice.setName(callSubMenu[2]);
+    groupCondCommand.setName(callSubMenu[3]);
     // 1.2.1 - 1.2.2
-    condCmdSimpl.setName(commandsSubMenu[0]); condCmdDupl.setName(commandsSubMenu[1]);
-    // 1.2.1.1 - 1.2.1.2
-    condCmdSimplGroupCall.setName(smplSubMenu[0]); condCmdSimplIndivCall.setName(smplSubMenu[1]);
+//    condCmdSimpl.setName(commandsSubMenu[0]); condCmdDupl.setName(commandsSubMenu[1]);
+//    // 1.2.1.1 - 1.2.1.2
+//    condCmdSimplGroupCall.setName(smplSubMenu[0]); condCmdSimplIndivCall.setName(smplSubMenu[1]);
     // 1.5.1 - 1.5.2
     groupCondCommandSimpl.setName(groupCommandsSubMenu[0]); groupCondCommandDupl.setName(groupCommandsSubMenu[1]);
     // 1.5.1.1 - 1.5.1.2
@@ -47,7 +50,7 @@ void CGuiTree::init()
     main.prevState = &MainWindow;
     main.nextState.push_back(&call);
     main.nextState.push_back(&recv);
-    main.nextState.push_back(&data);
+//    main.nextState.push_back(&data);
     main.nextState.push_back(&settings);
     // 1 - Вызов
     call.prevState = &main;
@@ -56,33 +59,39 @@ void CGuiTree::init()
     call.nextState.push_back(&txPutOffVoice);
     call.nextState.push_back(&groupCondCommand);
     // 1.1 - Условные команды
+     condCmd.subType = GuiWindowsSubType::condCommand;
     condCmd.prevState = &call;
-    condCmd.nextState.push_back(&condCmdSimpl);
-    condCmd.nextState.push_back(&condCmdDupl);
-    // 1.1.1 - Одност.связь
-    condCmdSimpl.prevState = &condCmd;
-    condCmdSimpl.nextState.push_back(&condCmdSimplGroupCall);
-    condCmdSimpl.nextState.push_back(&condCmdSimplIndivCall);
-    // 1.1.1.1 - Групповой вызов
-    condCmdSimplGroupCall.subType = GuiWindowsSubType::simpleCondComm;
-    condCmdSimplGroupCall.prevState = &condCmdSimpl;
-    condCmdSimplGroupCall.nextState.clear();
-    condCmdSimplGroupCall.listItem.push_back(&condCmdSimplGroupCallParameters1 );
-    condCmdSimplGroupCall.listItem.push_back(&condCmdSimplGroupCallParameters2 );
-    // 1.1.1.2 - Индивидуальный
-    condCmdSimplIndivCall.subType = GuiWindowsSubType::simpleCondComm;
-    condCmdSimplIndivCall.prevState = &condCmdSimpl;
-    condCmdSimplIndivCall.nextState.clear();
-    condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters1 );
-    condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters2 );
-    condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters3 );
-    // 1.1.2 - Двухст.связь | только индивидуально
-    condCmdDupl.subType = GuiWindowsSubType::duplCondCmd;
-    condCmdDupl.prevState = &condCmd;
-    condCmdDupl.nextState.clear();
-    condCmdDupl.listItem.push_back( &condCmdDuplParameters1 );
-    condCmdDupl.listItem.push_back( &condCmdDuplParameters2 );
-    condCmdDupl.listItem.push_back( &condCmdDuplParameters3 );
+    condCmd.nextState.clear();
+    condCmd.listItem.push_back(&condCmdParameters1);
+    condCmd.listItem.push_back(&condCmdParameters2);
+    condCmd.listItem.push_back(&condCmdParameters3);
+
+//    // 1.1.1 - Одност.связь
+//    condCmdSimpl.prevState = &condCmd;
+//    condCmdSimpl.nextState.push_back(&condCmdSimplGroupCall);
+//    condCmdSimpl.nextState.push_back(&condCmdSimplIndivCall);
+//    // 1.1.1.1 - Групповой вызов
+//    condCmdSimplGroupCall.subType = GuiWindowsSubType::simpleCondComm;
+//    condCmdSimplGroupCall.prevState = &condCmdSimpl;
+//    condCmdSimplGroupCall.nextState.clear();
+//    condCmdSimplGroupCall.listItem.push_back(&condCmdSimplGroupCallParameters1 );
+//    condCmdSimplGroupCall.listItem.push_back(&condCmdSimplGroupCallParameters2 );
+//    // 1.1.1.2 - Индивидуальный
+//    condCmdSimplIndivCall.subType = GuiWindowsSubType::simpleCondComm;
+//    condCmdSimplIndivCall.prevState = &condCmdSimpl;
+//    condCmdSimplIndivCall.nextState.clear();
+//    condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters1 );
+//    condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters2 );
+//    condCmdSimplIndivCall.listItem.push_back( &condCmdSimplIndivCallParameters3 );
+//    // 1.1.2 - Двухст.связь | только индивидуально
+//    condCmdDupl.subType = GuiWindowsSubType::condCommand;
+//    condCmdDupl.prevState = &condCmd;
+//    condCmdDupl.nextState.clear();
+//    condCmdDupl.listItem.push_back( &condCmdDuplParameters1 );
+//    condCmdDupl.listItem.push_back( &condCmdDuplParameters2 );
+//    condCmdDupl.listItem.push_back( &condCmdDuplParameters3 );
+
+
     // 1.2 - SMS
     sms.subType = GuiWindowsSubType::message;
     sms.prevState = &call;
@@ -95,8 +104,14 @@ void CGuiTree::init()
     txPutOffVoice.prevState = &call;
     txPutOffVoice.nextState.clear();
     // 1.4 - Группа условных команд
+    groupCondCommand.subType = GuiWindowsSubType::txGroupCondCmd;
     groupCondCommand.prevState = &call;
-    groupCondCommand.nextState.push_back(&groupCondCommandSimpl);
+    groupCondCommand.nextState.clear();
+    groupCondCommand.listItem.push_back(&groupCondCommandParameters1);
+    groupCondCommand.listItem.push_back(&groupCondCommandParameters2);
+    groupCondCommand.listItem.push_back(&groupCondCommandParameters3);
+//    groupCondCommand.listItem.push_back(&groupCondCommandParameters4);
+//    groupCondCommand.nextState.push_back(&groupCondCommandSimpl);k
 //    groupCondCommand.nextState.push_back(&groupCondCommandDupl);
     // 1.4.1 - Односторонняя связь
     groupCondCommandSimpl.prevState = &groupCondCommand;
@@ -117,8 +132,8 @@ void CGuiTree::init()
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[1]);
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[2]);
     groupCondCommandSimplIndivCall.listItem.push_back(&groupCondCommandSimplCallParameters[3]);
-//  // 1.4.2 - двухсторонняя связь
-//    groupCondCommandDupl.subType = GuiWindowsSubType::txGroupCondCmd;
+    // 1.4.2 - двухсторонняя связь
+//  groupCondCommandDupl.subType = GuiWindowsSubType::txGroupCondCmd;
     groupCondCommandDupl.prevState = &groupCondCommand;
     groupCondCommandDupl.nextState.clear();
 
@@ -149,6 +164,7 @@ void CGuiTree::init()
     recvGroupCondCommsnds.prevState = &recv;
     recvGroupCondCommsnds.nextState.clear();
     // 2.9 - Режим радиомолчания
+
     recvSilence.subType = GuiWindowsSubType::recvSilence;
     recvSilence.prevState = &recv;
     recvSilence.nextState.clear();

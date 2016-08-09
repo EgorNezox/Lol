@@ -19,6 +19,11 @@ static bool check_bootloader_condition() {
 	return (k.isKeyPressed(platformhwKeyEnter) && k.isKeyPressed(platformhwKeyBack));
 }
 
+static bool check_usbflasher_condition() {
+	QmMatrixKeyboard k(platformhwMatrixKeyboard);
+	return (k.isKeyPressed(platformhwKeyEnter) && k.isKeyPressed(platformhwKeyLeft));
+}
+
 void qmMain() {
 	QmConsoleScreen::init(2, 2, 2, 2);
 
@@ -47,6 +52,12 @@ void qmMain() {
 		QmConsoleScreen::oprintf("*** Ref. clock test FAILED, system terminated !!!\r\n");
 		while(1); // cannot safely continue !
 		break;
+	}
+
+	if (check_usbflasher_condition()) {
+		QmConsoleScreen::oprintf("*** USB Flasher\r\n");
+		hwboot_jump_usbflasher();
+		/* (выполнение никогда не доходит до этого места) */
 	}
 
 	if (!hwboot_check_firmware()) {

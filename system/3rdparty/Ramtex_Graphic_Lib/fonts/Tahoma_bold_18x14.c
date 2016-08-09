@@ -25,7 +25,7 @@ static struct
    GSYMHEAD sh;         /* Symbol header */
    SGUCHAR b[42];       /* Symbol data, "variable length" */
    }
-GCODE FCODE Tahoma_bold_18x14sym[256] =
+GCODE FCODE Tahoma_bold_18x14sym[154] =
    {
    #include "Tahoma_bold_18x14.sym" /* Include symbols */
    };
@@ -37,7 +37,7 @@ GCODE GFONT FCODE Tahoma_bold_18x14 =
    14,       /* height */
    sizeof(Tahoma_bold_18x14sym[0]) - sizeof(GSYMHEAD), /* number of bytes in a symbol (including any alignment padding)*/
    (PGSYMBOL)Tahoma_bold_18x14sym, /* pointer to array of SYMBOLS */
-   256,      /* num symbols */
+   154,      /* num symbols */
    (PGCODEPAGE)&Tahoma_bold_18x14cp
    };
 

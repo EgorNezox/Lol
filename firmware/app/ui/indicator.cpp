@@ -7,7 +7,7 @@
 
 #define ICON_SIZE	24
 #define BATTERY_SIZE 16
-#define GEOM_ICON(order) ((MoonsGeometry){order*ICON_SIZE,0,((order+1)*ICON_SIZE-1),ICON_SIZE-1})
+#define GEOM_ICON(order) ((MoonsGeometry){order*ICON_SIZE,4,((order+1)*ICON_SIZE-1),ICON_SIZE-1})
 
 //----------TYPES--------------
 
@@ -21,20 +21,21 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
 {
     MoonsGeometry icon_geom;
 
-    icon_geom = GEOM_ICON(0);
+    icon_geom = {12+ICON_SIZE, 6, 12+2*ICON_SIZE-1, 23};
     ind_multiradio = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
 
-    icon_geom = GEOM_ICON(1);
+    icon_geom = {12+2*ICON_SIZE, 6, 12+3*ICON_SIZE-1, 32};
     ind_headset = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
 
-    icon_geom = {2*ICON_SIZE+3, 0, 4*ICON_SIZE+24, ICON_SIZE-1};
-    date_time = new GUI_EL_Label(&GUI_EL_TEMP_LabelTitle, &icon_geom, (char*)"15.06 10:59", (GUI_Obj *)this);
+    icon_geom = {5, 35, 154, 60};
+    LabelParams p_label = GUI_EL_TEMP_LabelMode;
+    p_label.element.align = {alignHCenter, alignVCenter};
+    date_time = new GUI_EL_Label(&p_label, &icon_geom, (char*)"15.06 10:59", (GUI_Obj *)this);
 
-    icon_geom = {4*ICON_SIZE+25, 0, ICON_SIZE*6, ICON_SIZE-1};
+    icon_geom = {12+3*ICON_SIZE, 6, 12+4*ICON_SIZE-1, 32};
     gpsLabel = new GUI_EL_Icon(&GUI_EL_TEMP_CommonIcon, &icon_geom, sym_gps_unlock, (GUI_Obj *)this);
 
-    icon_geom = {ICON_SIZE*6,0,ICON_SIZE*6+BATTERY_SIZE-1, ICON_SIZE-1};	//геометрия батарейки
-
+    icon_geom = {12+4*ICON_SIZE, 6, 12+5*ICON_SIZE-1, 29};
     ind_battery = new GUI_EL_Battery(&GUI_EL_TEMP_BatteryIndicator, 75, &icon_geom, (GUI_Obj *)this);
 }
 

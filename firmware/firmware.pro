@@ -27,7 +27,8 @@ SOURCES += \
     $$wildcardSources(app/power, *.cpp) \
     $$wildcardSources(app/ui, *.cpp) \
     app/ui/menu.cpp \
-    app/ui/gui_tree.cpp
+    app/ui/gui_tree.cpp \
+    app/dsp/sheldurer.cpp
 
 #!!! Временный хак для реализации прямого доступа к Ramtex из модуля UI
 #!!! Убрать, когда модуль будет переработан на использование средств Qm
@@ -67,6 +68,7 @@ HEADERS += \
     app/headset/smarttransport.h \
     app/navigation/navigator.h \
     app/messages/rs_tms.h \
-    app/dsp/packagemanager.h
+    app/dsp/packagemanager.h \
+    app/dsp/sheldurer.h
 
 CONFIG(debug, release|debug):DEFINES += _DEBUG_

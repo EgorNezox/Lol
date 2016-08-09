@@ -66,7 +66,8 @@ private:
 	voice_channel_speed_t voice_manual_channel_speed;
 	DataStorage::FS *data_storage_fs;
 
-    sigc::signal<void> getPSWF();
+    uint32_t prevFrequency = 0;
+
 };
 
 } /* namespace Multiradio */

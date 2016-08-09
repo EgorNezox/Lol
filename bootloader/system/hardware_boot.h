@@ -24,6 +24,7 @@ typedef enum {
 
 hwboot_test_result_t hwboot_test_board(void);
 bool hwboot_check_firmware(void);
+void hwboot_jump_usbflasher(void);
 void hwboot_jump_firmware(void);
 void hwboot_jump_system_bootloader(void);
 

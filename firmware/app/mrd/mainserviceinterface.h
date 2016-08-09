@@ -79,6 +79,7 @@ public:
 	voice_message_t getAleRxVmMessage();
 
 	sigc::signal<void, Status/*new_status*/> statusChanged;
+    sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> dspHardwareFailed;
 	sigc::signal<void, AleState/*new_state*/> aleStateChanged;
 	sigc::signal<void, uint8_t/*new_value*/> aleVmProgressUpdated;
 
@@ -143,6 +144,7 @@ private:
 	MainServiceInterface(Dispatcher *dispatcher, Navigation::Navigator *navigator);
 	~MainServiceInterface();
 	void setStatus(Status value);
+	void forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
 	void printDebugAleTimings();
 	void printDebugVmMessage(int groups, int packets, voice_message_t &message);
 	void setAleState(AleState value);
@@ -244,7 +246,6 @@ private:
 		ale_call_freqs_t call_freqs;
 		uint8_t station_address, address;
 		int supercycle, cycle;
-		DspController::ModemBandwidth call_bw;
 		uint8_t call_snr;
 		int rcount;
 		int vm_size;

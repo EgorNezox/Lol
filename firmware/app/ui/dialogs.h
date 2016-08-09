@@ -51,13 +51,14 @@ public:
     bool isEditing(){ if(editing) return true; else return false; }
     bool editing;
     std::string nFreq, oFreq;
+
+    void returnFreqStatus(bool (*f)(int)){  f(freq->transparent);}
+
 private:
     GUI_EL_Window *window;
     GUI_EL_Label *ch_num_label;
-    GUI_EL_Label *mode_text;
     GUI_EL_Label *freq;
     bool cur_ch_invalid;
-    std::string mode;
     int focus = -2;
 
     void updateChannel(Multiradio::VoiceServiceInterface::ChannelStatus status,
