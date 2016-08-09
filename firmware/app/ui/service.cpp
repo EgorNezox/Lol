@@ -501,7 +501,9 @@ void Service::keyPressed(UI_Key key)
             {
                 CEndState estate = (CEndState&)guiTree.getCurrentState();
                 if ( estate.subType == GuiWindowsSubType::setSpeed )
-                    currentSpeed = voice_service->getCurrentChannelSpeed();
+                {
+                    currentSpeed = /*Multiradio::voice_channel_speed_t(4);*/voice_service->getCurrentChannelSpeed();
+                }
             }
         }
         if ( key == keyBack)
@@ -1865,21 +1867,19 @@ void Service::keyPressed(UI_Key key)
             }
             case keyUp:
             {
-                Multiradio::voice_channel_speed_t speed = voice_service->getCurrentChannelSpeed();
-                if ( speed > Multiradio::voice_channel_speed_t(2) )
+                if ( currentSpeed > Multiradio::voice_channel_speed_t(1) )
                 {
-                    currentSpeedId--;
-                    currentSpeed = Multiradio::voice_channel_speed_t(currentSpeedId);
+                    int i = currentSpeed;
+                    currentSpeed = Multiradio::voice_channel_speed_t(--i);
                 }
                 break;
             }
             case keyDown:
             {
-                Multiradio::voice_channel_speed_t speed = voice_service->getCurrentChannelSpeed();
-                if ( speed < Multiradio::voice_channel_speed_t(5) )
+                if ( currentSpeed < Multiradio::voice_channel_speed_t(4) )
                 {
-                    currentSpeedId++;
-                    currentSpeed = Multiradio::voice_channel_speed_t(currentSpeedId);
+                    int i = currentSpeed;
+                    currentSpeed = Multiradio::voice_channel_speed_t(++i);
                 }
                 break;
             }
