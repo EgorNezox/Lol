@@ -112,7 +112,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
         s.append("\n ");
         sprintf(str2,"%i",i*210000);
         s.append(str2);
-        s.append("GHZ\0");
+        s.append(freq_hz);
         zond_data.push_back(s);
     }
 
@@ -533,6 +533,7 @@ void Service::keyPressed(UI_Key key)
         {
             guiTree.advance(menu->focus);
             menu->focus = 0;
+            menu->offset = 0;
         }
         if ( key == keyBack)
         {
@@ -1895,15 +1896,38 @@ void Service::keyPressed(UI_Key key)
         }
         case  GuiWindowsSubType::zond:
         {
+            if ( key == keyEnter)
+            {
+                guiTree.advance(menu->focus);
+                menu->focus = 0;
+            }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+                menu->offset = 0;
+            }
             if (key == keyUp)
             {
-                if (zond_position > 0)
-                --zond_position;
+                if ( menu->focus > 0 )
+                    menu->focus--;
             }
             if (key == keyDown)
             {
-                if (zond_position < zond_data.size()-2)
-                ++zond_position;
+                if ( zond_data.size() != 0 )
+                {
+                    if ( menu->focus < zond_data.size()-1)
+                        menu->focus++;
+                }
+            }
+
+            //int value = 0;
+            if (menu->focus > menu->offset){
+                if (menu->offset + 2 == menu->focus) menu->offset +=1;
+            }
+            else
+            {
+                if (menu->focus + 1 == menu->offset) menu->offset = menu->focus;
             }
              break;
         }
@@ -2272,7 +2296,7 @@ void Service::drawMenu()
         case GuiWindowsSubType::zond:
         {
 
-            menu->initZondDialog(zond_position,zond_data);
+            menu->initZondDialog(menu->focus,zond_data);
             break;
         }
         default:

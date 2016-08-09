@@ -876,18 +876,15 @@ void CGuiMenu::initEditRnKeyDialog()
 }
 
 void CGuiMenu::initZondDialog(int focus, std::vector<std::string> &data)
-{
-
-    if (focus >= data.size()) {focus = 0; return;}
-    int count =  (data.size() - focus > 3) ? 3: (data.size() - focus - 1);
-
+{    
     MoonsGeometry itemArea;
-    MoonsGeometry addrArea    = { 7, 0, 140, 70 };
+    MoonsGeometry addrArea    = { 17, 5, 140, 70 };
     MoonsGeometry labelArea   = { 7, 5, 140, 70 };
 
-    LabelParams param = GUI_EL_TEMP_LabelText;
-    param.element.align = {alignHCenter, alignTop};
-    param.transparent = true;
+    MenuItemParams param = GUI_EL_TEMP_DefaultMenuItem;
+    param.label_params.element.align = {alignHCenter, alignTop};
+    param.label_params.transparent = true;
+    param.label_params.font = &Tahoma26;
 
     GUI_EL_Window   window( &GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this );
 
@@ -895,16 +892,20 @@ void CGuiMenu::initZondDialog(int focus, std::vector<std::string> &data)
 
     window.Draw();
     label.Draw();
-    for(int i = 0; i < count;i++)
+
+    for(int i = 0; i < data.size(); i++)
     {
-        itemArea = {(GXT)(addrArea.xs + MARGIN),
-                    (GYT)(addrArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
-                    (GXT)(addrArea.xe - MARGIN),
-                    (GYT)(addrArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
+        if (i > 1) break;
+
+        itemArea = {(GXT)(windowArea.xs + 5),
+                    (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT+20)),
+                    (GXT)(windowArea.xe - MARGIN - 15),
+                    (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT+20) )
                    };
 
-        std::string ex = data.at(focus + i);
-        GUI_EL_TextArea addr( &param, &itemArea,(char*)ex.c_str(),(GUI_Obj *)this);
+        std::string ex = data.at(offset+i);
+        bool select = (focus - offset == i) ? true : false;
+        GUI_EL_MenuItem addr( &param, &itemArea, (char*)ex.c_str() ,false, select,(GUI_Obj *)this);
         addr.Draw();
     }
     MoonsGeometry sliderArea  = { 150, 25, 157, 110};
