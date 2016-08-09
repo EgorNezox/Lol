@@ -26,10 +26,10 @@ enum GuiWindowsSubType
     condCommand,\
     txGroupCondCmd,\
     txPutOffVoice,\
-    message,
+    txSmsMessage,
     recv,\
     recvVoice,\
-    recvSms,\
+    rxSmsMessage,\
     recvCondCmd,\
     recvGroupCondCmd,\
     rxPutOffVoice,\

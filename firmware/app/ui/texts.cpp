@@ -1,7 +1,7 @@
 #include "texts.h"
 
 const char *test_Pass = {"Тестирование\0"};
-
+const char* exitStr = "Выход\0";
 char *mode_txt[] = {(char *)"Речь\0", (char*)"АУС\0", (char*)"ГрупУК\0"};
 char *disabled_ch_txt = (char *)"--";
 char ch_open_letter='О';
@@ -100,6 +100,7 @@ const char* smatrHSStateStr[] = {
     "Готово\n\0",
     "14","15","16","17","18","19","20"
 };
+
 const char* aleStateStr[] = {
     "...\0",
     "Нет\nсинхронизации\n\0",
@@ -141,6 +142,20 @@ const char *smsDataInformRx[] = {
     "Прием\nданных\0",
     "Сеанс\nпрерван\nПовторите\0",
     "Данные\nпотеряны\nПовторите\0",
+};
+
+const char *txSmsResultStatus[] = {
+    "Вызов станции\0",
+    "Отправка ответа\0",
+    "Отправка данных\0",
+    "Квитанция\0"
+};
+
+const char *rxSmsResultStatus[] = {
+    "Ожидание вызова\0",
+    "Получение ответа\0",
+    "Прием данных\0",
+    "Ожидание квитанции\0"
 };
 
 const char* voiceRxStr[] = {"Нажмите Ввод для\nзапуска приема\0", "От: \0", "Нажмите ввод\0"};

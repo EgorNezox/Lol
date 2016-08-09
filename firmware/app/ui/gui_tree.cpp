@@ -93,7 +93,7 @@ void CGuiTree::init()
 
 
     // 1.2 - SMS
-    sms.subType = GuiWindowsSubType::message;
+    sms.subType = GuiWindowsSubType::txSmsMessage;
     sms.prevState = &call;
     sms.nextState.clear();
     sms.listItem.push_back(&smsParameters1);
@@ -148,7 +148,7 @@ void CGuiTree::init()
     recvVoice.prevState = &recv;
     recvVoice.nextState.clear();
     // 2.5 - Сообщение (СМС)
-    recvSms.subType = GuiWindowsSubType::recvSms;
+    recvSms.subType = GuiWindowsSubType::rxSmsMessage;
     recvSms.prevState = &recv;
     recvSms.nextState.clear();
     // 2.6 - Сообщение (АУС)

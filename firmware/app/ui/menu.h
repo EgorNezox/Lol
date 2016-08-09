@@ -58,6 +58,7 @@ public:
     void initGpsCoordinateDialog(std::string, std::string);
     void initSetParametersDialog(std::string);
     void initSetDateOrTimeDialog(std::string);
+    void initSetSpeedDialog();
 
     void setTitle(const char*);
     void keyPressed(UI_Key);
@@ -94,7 +95,6 @@ public:
     // tx group condition commands
     int txGroupCondCommStatus = 1;
     void initTxGroupCondComm(CEndState);
-    bool useCoordinatel = false;
     bool useSndCoord = false;
     bool sndMode = false;
 
@@ -108,13 +108,15 @@ public:
     char ch = ' ';
     int keyPressCount = 0;
     std::chrono::time_point<std::chrono::steady_clock> ct = std::chrono::steady_clock::now();
+    std::string smsValueStrStatus;
+    uint8_t smsStage = 0;
 
     // recv
     bool recvStatus = false;
     uint8_t recvStage = 0;
 
     // recv sms
-    void initRxSmsDialog();
+    void initRxSmsDialog(std::string);
 
     // volume
     void incrVolume(){ if ( vol < 100) vol += 5; }

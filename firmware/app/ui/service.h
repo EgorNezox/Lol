@@ -84,6 +84,7 @@ public:
     void errorMessage();
     void errorGucCrc();
     void setFreqLabelValue(int value);
+    void updateSmsStatus(int value);
 
 
 private:
