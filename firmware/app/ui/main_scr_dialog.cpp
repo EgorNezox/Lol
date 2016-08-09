@@ -92,9 +92,9 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
 //-----------------------------
 
 void GUI_Dialog_MainScr::updateChannel( Multiradio::VoiceServiceInterface::ChannelStatus status,
-                                      int                                              ch_num,
-                                      Multiradio::voice_channel_t                      channel_type
-                                     )
+                                        int                                              ch_num,
+                                        Multiradio::voice_channel_t                      channel_type
+                                      )
 {
   char ch_str[4];
   cur_ch_invalid = false;

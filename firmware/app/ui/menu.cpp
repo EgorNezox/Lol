@@ -1287,6 +1287,9 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
     {
     case 0: // use coordinate ?
     {
+        GUI_EL_Window window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
+        window.Draw();
+
         labelStr.append(coordinateStr);
 
         if (useCoordinatel)
@@ -1384,12 +1387,12 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
     param[0].element.align = {alignHCenter, alignVCenter};
     param[1].element.align = {alignHCenter, alignVCenter};
 
-    GUI_EL_Window window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
+
     GUI_EL_Label  title  ( &titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj*)this );
     GUI_EL_Label  label  ( &param[0],                  &labelArea,  (char*)labelStr.c_str(), (GUI_Obj*)this );
     GUI_EL_Label  value  ( &param[1],                  &valueArea,  (char*)valueStr.c_str(), (GUI_Obj*)this );
 
-    window.Draw();
+
     title.Draw();
     label.Draw();
     value.Draw();
