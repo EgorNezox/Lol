@@ -77,6 +77,10 @@ private:
 	void sendNak();
 	void processUartReceivedData();
 	void setAntenna(uint32_t frequency);
+	void processDeferred();
+	void executeEnterBypassMode();
+	void executeTuneTxMode(uint32_t frequency);
+
 
 	Mode mode;
 	bool tx_tuning_state;
@@ -100,6 +104,11 @@ private:
 	} uart_rx_frame;
 	uint8_t antenna;
 	QmIopin *poff_iopin;
+	bool deferred_enterbypass_active;
+	struct {
+		bool active;
+		uint32_t frequency;
+	} deferred_tunetx;
 };
 
 } /* namespace Multiradio */

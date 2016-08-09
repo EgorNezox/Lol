@@ -14,6 +14,7 @@
 
 #include "system_hw_io.h"
 #include "../platform_hw_map.h"
+#include "../init.h"
 #include "hal_i2c.h"
 
 #define FSMC_BANK_REG_OFFSET(number)	(((number)-1)*2)
@@ -177,6 +178,8 @@ void stm32f2_hardware_io_init(void)
 	stm32f2_ext_pins_init(platformhwBatterySmbusI2c);
 	hal_i2c_set_bus_mode(stm32f2_get_i2c_bus_instance(platformhwBatterySmbusI2c), hi2cModeSMBus);
 }
+
+void target_device_multiradio_init(void) {}
 
 void stm32f2_ext_pins_init(int platform_hw_resource) {
 	hal_gpio_params_t params;

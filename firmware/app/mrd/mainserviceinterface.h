@@ -235,7 +235,6 @@ private:
 		ale_call_freqs_t call_freqs;
 		uint8_t station_address, address;
 		int supercycle, cycle;
-		DspController::ModemBandwidth call_bw;
 		uint8_t call_snr;
 		int rcount;
 		int vm_size;

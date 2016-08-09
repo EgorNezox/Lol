@@ -10,6 +10,7 @@
  */
 
 #include "../system/platform_hw_map.h"
+#include "../system/init.h"
 
 #include "qmdebug.h"
 #include "qmapplication.h"
@@ -26,6 +27,8 @@
 
 void qmMain() {
 	QmApplication app;
+
+	target_device_multiradio_init();
 
 #if defined(PORT__TARGET_DEVICE_REV1)
 	Power::Controller power_controller(platformhwPowerHSControlIopin, platformhwPowerControllerIopin,

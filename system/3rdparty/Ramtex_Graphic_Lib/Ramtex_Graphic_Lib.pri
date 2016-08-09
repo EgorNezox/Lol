@@ -13,4 +13,4 @@ INCLUDEPATH += \
 SOURCES += \
 	$$wildcardSources(common, *.c) \
 	$$wildcardSources(fonts, *.c) \
-	$$wildcardSources(icons, *.c)
+        $$wildcardSources(icons, *.c)

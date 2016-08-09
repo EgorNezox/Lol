@@ -25,7 +25,6 @@ QmFile::QmFile(const std::string &dir, const std::string &name) :
 {
 	d_ptr->name = name;
 	d_ptr->fs_pcb = qmstorageSpiffsAcquirePcb(dir);
-	QM_ASSERT(d_ptr->fs_pcb);
 	d_ptr->is_open = false;
 }
 
@@ -33,12 +32,13 @@ QmFile::~QmFile()
 {
 	if (d_ptr->is_open)
 		d_ptr->fs_pcb->closeFile(d_ptr->handle);
-	qmstorageSpiffsReleasePcb(d_ptr->fs_pcb);
+	if (d_ptr->fs_pcb != 0)
+		qmstorageSpiffsReleasePcb(d_ptr->fs_pcb);
 	delete d_ptr;
 }
 
 bool QmFile::open(OpenMode mode) {
-	if (d_ptr->is_open)
+	if (d_ptr->is_open || (d_ptr->fs_pcb == 0))
 		return false;
 	d_ptr->handle = d_ptr->fs_pcb->openFile(d_ptr->name, mode);
 	if (d_ptr->handle == 0)

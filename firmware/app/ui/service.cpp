@@ -95,7 +95,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->messageGucTxQuit.connect(sigc::mem_fun(this, &Service::msgGucTXQuit));
     voice_service->gucCrcFailed.connect(sigc::mem_fun(this,&Service::errorGucCrc));
     voice_service->gucCoord.connect(sigc::mem_fun(this,&Service::GucCoord));
-    voice_service->getSmsStageUi.connect(sigc::mem_fun(this, &Service::));
+    //voice_service->getSmsStageUi.connect(sigc::mem_fun(this, &Service::));
 
 #ifndef PORT__PCSIMULATOR
     systemTimeTimer = new QmTimer(true); // TODO:
@@ -104,6 +104,18 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
 #endif
 
+    for(int i = 1; i< 10; i++)
+    {
+        std::string s(callSubMenu[i%4]);
+        char str[2];  sprintf(str,"%d",i);
+        s.append(" ").append(str).append(":00 ");
+        char str2[10];
+        s.append("\n ");
+        sprintf(str2,"%i",i*210000);
+        s.append(str2);
+        s.append(freq_hz);
+        zond_data.push_back(s);
+    }
 
 }
 
@@ -256,8 +268,8 @@ void Service::updateBattery(int new_val)
 
 void Service::drawIndicator()
 {
-    //    if ( guiTree.getCurrentState().getType() == mainWindow )
-    //        indicator->Draw();
+        if ( guiTree.getCurrentState().getType() == mainWindow )
+            indicator->Draw();
 }
 
 void Service::FailedSms(int stage)
@@ -546,10 +558,10 @@ void Service::keyPressed(UI_Key key)
                 //                break;
             case key0:
             {
-                int p = 10;
-                char sym[64];
-                sprintf(sym,"%d",p);
-                guiTree.append(messangeWindow, (char*)"Receive first packet", sym);
+//                int p = 10;
+//                char sym[64];
+//                sprintf(sym,"%d",p);
+//                guiTree.append(messangeWindow, (char*)"Receive first packet", sym);
             }
                 break;
             default:
@@ -594,6 +606,7 @@ void Service::keyPressed(UI_Key key)
         {
             guiTree.advance(menu->focus);
             menu->focus = 0;
+            menu->offset = 0;
         }
         if ( key == keyBack)
         {
@@ -798,35 +811,23 @@ void Service::keyPressed(UI_Key key)
                 if ( menu->txCondCmdStage > size )
                 {
 #ifndef _DEBUG_
-                    if(estate.subType != duplCondCmd)
-                    {
-                        // [0] - cmd, [1] - raddr, [2] - retrans
-                        // bool menu->useRETRANS
-                        int param[3] = {0,0,0}, i = 0;
-                        for(auto &k: estate.listItem)
-                        {
-                            param[i] = atoi(k->inputStr.c_str());
-                            i++;
-                        }
-                        if (estate.listItem.size() == 2)
-                            voice_service->TurnPSWFMode(1, 0, param[0],0); //TODO: group pswf
-                        else
-                            voice_service->TurnPSWFMode(1, param[0], param[2],param[1]); // individual pswf
 
+                    // [0] - cmd, [1] - raddr, [2] - retrans
+                    // condCmdModeSelect, 1 - individ, 2 - quit
+                    int param[3] = {0,0,0}, i = 0;
+                    for(auto &k: estate.listItem){
+                        param[i] = atoi(k->inputStr.c_str());
+                        i++;
                     }
-
-                    else
-                    {
-                        int param[3] = {0,0,0}, i = 0;
-                        for(auto &k: estate.listItem)
-                        {
-                            param[i] = atoi(k->inputStr.c_str());
-                            i++;
-                        }
-
+                    if (menu->condCmdModeSelect == 0)
+                        voice_service->TurnPSWFMode(1, param[0], 0,0); // групповой вызов
+                    if (menu->condCmdModeSelect == 1)
+                        voice_service->TurnPSWFMode(1, param[0], param[2],param[1]); // индивидуальный вызов
+                    if (menu->condCmdModeSelect == 2){
                         param[2] +=32;
-                        voice_service->TurnPSWFMode(1,param[0]/*param[0]*/,param[2],0); // retr. = none,r_adr != 0
+                        voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
                     }
+
 
 
 #else
@@ -968,15 +969,15 @@ void Service::keyPressed(UI_Key key)
                     for (auto &k: estate.listItem)
                     {
                         mas[i] = atoi(k->inputStr.c_str());
-                        if (i == 3) str = k->inputStr.c_str();
+                        if (i == 2) str = k->inputStr.c_str();
                         i++;
                     }
-                    int r_adr = mas[2];
+                    int r_adr = mas[1];
                     int speed = 0;//atoi(mas[1]);
                     guc_command_vector.clear();
                     parsingGucCommand((uint8_t*)str);
-                    voice_service->saveFreq(getFreq());
-                    voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useCbool);
+                    voice_service->saveFreq(getFreq()); //
+                    voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
 #else
                     for (auto &k: estate.listItem)
                         k->inputStr.clear();
@@ -1470,10 +1471,11 @@ void Service::keyPressed(UI_Key key)
 #ifdef _DEBUG_
                     guiTree.resetCurrentState();
 #else
-                    if (menu->useTicket)
                         voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
-                    else
-                        voice_service->TurnPSWFMode(1,0,0,0);
+                        // параметр ответа определяется по получению кадра на адрес 0x63
+                        // в первой стадии вызова
+                        // if (ContentSms.R_ADR > 32) pswf_ack = true;
+
 #endif
                     //                    menu->rxCondCmdStatus = 1;
                 }
@@ -1530,7 +1532,6 @@ void Service::keyPressed(UI_Key key)
             {
 #ifndef PORT__PCSIMULATOR
                 voice_service->TurnGuc();
-                // voice_service->TurnPSWFMode(0,0,0);
 #else
                 guiTree.resetCurrentState();
 #endif
@@ -2053,6 +2054,43 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case  GuiWindowsSubType::zond:
+        {
+            if ( key == keyEnter)
+            {
+                guiTree.advance(menu->focus);
+                menu->focus = 0;
+            }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+                menu->offset = 0;
+            }
+            if (key == keyUp)
+            {
+                if ( menu->focus > 0 )
+                    menu->focus--;
+            }
+            if (key == keyDown)
+            {
+                if ( zond_data.size() != 0 )
+                {
+                    if ( menu->focus < zond_data.size()-1)
+                        menu->focus++;
+                }
+            }
+
+            //int value = 0;
+            if (menu->focus > menu->offset){
+                if (menu->offset + 2 == menu->focus) menu->offset +=1;
+            }
+            else
+            {
+                if (menu->focus + 1 == menu->offset) menu->offset = menu->focus;
+            }
+             break;
+        }
         default:
             break;
         }
@@ -2331,7 +2369,7 @@ void Service::drawMenu()
         case GuiWindowsSubType::recvVoice:
         case GuiWindowsSubType::rxSmsMessage:
         {
-            menu->initRxSmsDialog();
+            //menu->initRxSmsDialog();
             break;
         }
         case GuiWindowsSubType::rxPutOffVoice:
@@ -2421,6 +2459,12 @@ void Service::drawMenu()
         case GuiWindowsSubType::editRnKey:
         {
             menu->initEditRnKeyDialog();
+            break;
+        }
+        case GuiWindowsSubType::zond:
+        {
+
+            menu->initZondDialog(menu->focus,zond_data);
             break;
         }
         default:
@@ -2540,15 +2584,16 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     str.clear();
 }
 
-void Service::gucFrame()
+void Service::gucFrame(int value)
 {
     const char *sym = "Recieved packet for station\0";
     vect = voice_service->getGucCommand();
     if (vect[0] != '\0')
     {
-        char ch[3]; sprintf(ch, "%d", vect[position]); ch[2] = '\0';
-        guiTree.append(messangeWindow, sym, ch);
-        msgBox( "Recieved Guc\0", vect[position], vect[0], position);
+    	char ch[3]; sprintf(ch, "%d", vect[position]); ch[2] = '\0';
+    	guiTree.append(messangeWindow, sym, ch);
+    	msgBox( titleGuc, vect[position], vect[0], position);
+
     }
 
 }
@@ -2643,9 +2688,11 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
 
 void Service::msgGucTXQuit(int ans)
 {
-    if (ans == 1){
-        msgBox( "GUC", gucQuitTextOk);
-        guiTree.append(messangeWindow, gucQuitTextOk, "QUIT\0");
+    if (ans != -1){
+    	char a[3]; a[2] = '\0';
+    	sprintf(a,"%d",ans);
+        msgBox( gucQuitTextOk, ans);
+        guiTree.append(messangeWindow, a, "QUIT\0");
     }
     else
     {

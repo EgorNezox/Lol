@@ -231,9 +231,9 @@ void VoiceServiceInterface::saveFreq(int value)
     dispatcher->dsp_controller->setFreq(value);
 }
 
-void VoiceServiceInterface::responseGuc()
+void VoiceServiceInterface::responseGuc(int value)
 {
-    respGuc();
+    respGuc(value);
 }
 
 void VoiceServiceInterface::smsMessage()

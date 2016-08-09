@@ -80,7 +80,7 @@ public:
     void setFreq(int isFreq);
     void parsingGucCommand(uint8_t *str);
     void setCoordDate(Navigation::Coord_Date);
-    void gucFrame();
+    void gucFrame(int value);
     void errorMessage();
     void errorGucCrc();
     void setFreqLabelValue(int value);
@@ -158,6 +158,9 @@ private:
     //
     std::vector<int> guc_command_vector;
     int position = 0;
+
+    int zond_position = 0;
+    std::vector<std::string> zond_data;
 };
 
 } /* namespace Ui */

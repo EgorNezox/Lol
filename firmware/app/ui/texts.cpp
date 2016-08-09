@@ -38,14 +38,14 @@ const char *callSubMenu[] = {" УК\0", " СМС\0", " ГП\0", " ГУК\0"};
     const char *groupCommandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
         const char *groupCommandsSimplSubMenu[] = {" Групповой вызов\0", " Индивидуальный\0"};
 
-const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " ГП\0", " УК\0", " ГУК\0", " Радиомолч\0"};
+const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " ГП\0", " УК\0", " ГУК\0", " Тишина\0"};
 
 const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0", " GPS координаты\0"};
     const char *dataSubSubMenu[] = {" Условные команды\0", " СМС\0", " Головая почта\0", " Группа усл.команд\0"};
 
-const char *settingsSubMenu[] = {"Дата/время\0", " Пар связи\0", " Скан\0", " АРУ/АРМ/АУC\0", " Громкость\0", " подавитель\0"," Ожид ГУК\0", " КР"}; //TODO:
-    const char *dateAndTimeSubMenu[] = {" GPS синх-ция\0", " Ручная установка\0"};
-        const char *setDateOrTime[] = {" Установить дату\0", " Установить время\0"};
+const char *settingsSubMenu[] = {" ДВ\0", " Связь\0", " Скан\0", " Усиление\0", " Громкость\0", " Шумодав\0"," Время ГУК\0", " КР"," Конфигур"}; //TODO:
+    const char *dateAndTimeSubMenu[] = {" СИНХРО\0", " РУЧНОЙ\0"};
+        const char *setDateOrTime[] = {" Ввод даты\0", " Ввод время\0"};
     const char *setConnParam[] = {" Частота\0", " Скорость\0"};
 
 const char *coordinateStr = "Координаты\0";
@@ -172,3 +172,15 @@ const char* gucQuitTextOk   = "Принята квитанция\0";
 const char* errorCrcGuc = "Данные не достоверны\0";
 const char* pressEnter = "Нажмите ввод\nдля продолжения\0";
 
+const char* recievedGUC_CMD = "Приняты команды\0";
+const char* titleGuc        = "Сообщение\0";
+const char* titleCoord      = "Получены\nкоодинаты\0";
+
+const char* typeCondCmd     = "Выберите тип\0";
+const char* YesGucCoord     = "Есть\0";
+const char* NoGucCoord      = "Нет\0";
+const char* StartGucTx      = "Старт\0";
+const char* GucIndivid      = "Одному\0";
+const char* GucGroup        = "Всем\0";
+const char* Zond            = "12 000000 Гц\n12:34 ГУК\0";
+const char* Zond_label           = "Расписание";

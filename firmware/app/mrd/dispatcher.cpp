@@ -103,7 +103,7 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 			headset_controller->getSmartCurrentChannel(smart_ch_number, smart_ch_type);
 			if (!changeVoiceChannel(smart_ch_number, smart_ch_type))
 				break;
-			dsp_controller->setAudioMicLevel(16);
+		  (headset_controller->smartChannelType()) ?  dsp_controller->setAudioMicLevel(24) : dsp_controller->setAudioMicLevel(16);
 		} else {
 			voice_channel = std::find_if( std::begin(voice_channels_table), std::end(voice_channels_table),
 					[&](const voice_channel_entry_t entry){ return (entry.type == channelOpen); } );
@@ -159,6 +159,7 @@ void Dispatcher::setVoiceChannel() {
 	if ((main_service->current_status == MainServiceInterface::StatusVoiceRx) && atu_controller->isDeviceOperational())
 		atu_controller->enterBypassMode(frequency);
 	dsp_controller->setRadioParameters(mode, frequency);
+	(headset_controller->smartChannelType()) ?  dsp_controller->setAudioMicLevel(24) : dsp_controller->setAudioMicLevel(16);
 }
 
 bool Dispatcher::changeVoiceChannel(int number, voice_channel_t type) {
@@ -187,8 +188,12 @@ bool Dispatcher::isVoiceChannelTunable() {
 
 void Dispatcher::processDspSetRadioCompletion() {
 	if (main_service->current_status == MainServiceInterface::StatusTuningTx) {
-		if (atu_controller->getMode() != AtuController::modeTuning)
-			atu_controller->tuneTxMode((*voice_channel).frequency);
+		if (atu_controller->getMode() != AtuController::modeTuning) {
+			if (!atu_controller->tuneTxMode((*voice_channel).frequency)) {
+				startVoiceTx();
+				voice_service->setCurrentChannel(VoiceServiceInterface::ChannelActive);
+			}
+		}
 //		else
 //			atu_controller->acknowledgeTxRequest();
 	}
@@ -246,7 +251,7 @@ void Dispatcher::processAtuModeChange(AtuController::Mode new_mode) {
     case AtuController::modeMalfunction:
     {
         voice_service->errorAsu();
-        break;
+        /* no break */
     }
 	default: {
 		if ((main_service->current_status == MainServiceInterface::StatusTuningTx) && !atu_controller->isDeviceOperational()) {

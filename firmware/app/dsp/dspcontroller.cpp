@@ -159,7 +159,6 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     guc_rx_quit_timer->timeout.connect(sigc::mem_fun(this,&DspController::sendGucQuit));
 
     for(int i = 0;i<50;i++) guc_text[i] = '\0';
-    guc_tx_num = 2;
 
     sms_call_received = false;
     for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
@@ -1433,6 +1432,9 @@ void DspController::sendGuc()
     	++tx_data_len;
     }
 
+    int crc32_len = ContentGuc.NUM_com; // реальное количество команд
+    int real_len = crc32_len;
+
     // Выбор количества передаваемых байтов с координатами или без по регламенту
     if (isGpsGuc){
         if (ContentGuc.NUM_com <= 6) ContentGuc.NUM_com = 6;
@@ -1467,7 +1469,7 @@ void DspController::sendGuc()
     }
 
     // выбор длинны кодируемого массива
-     int crc32_len = (isGpsGuc == true) ? (ContentGuc.NUM_com + 9) : (ContentGuc.NUM_com);
+     crc32_len = (isGpsGuc == true) ? (ContentGuc.NUM_com + 9) : (ContentGuc.NUM_com);
 
      std::vector<bool> data_guc;
 
@@ -1481,7 +1483,11 @@ void DspController::sendGuc()
     		 ContentGuc.command[i] = 0;
     	 }
 
-    	 for(int i = 9;i < 120;i++) ContentGuc.command[i] = ContentGuc.command[i- 9];
+    	 uint8_t value[120];
+    	 for(int i = 0; i< ContentGuc.NUM_com;i++) value[i] = ContentGuc.command[i];
+    	 for(int i = 9;i < 9+ContentGuc.NUM_com;i++) {
+    		  ContentGuc.command[i] = value[i- 9];
+    	 }
          for(int i = 0; i<9;i++) {
              ContentGuc.command[i] = mas[i];
              if (i != 8)
@@ -1493,7 +1499,7 @@ void DspController::sendGuc()
          quadrant = ContentGuc.command[8] & (1 << 1);
          data_guc.push_back(quadrant);
 
-         for(int i = 0; i<ContentGuc.NUM_com;i++){
+         for(int i = 0; i<real_len;i++){
              pack_manager->addBytetoBitsArray(ContentGuc.command[i+9],data_guc,7);
          }
      }
@@ -1515,6 +1521,19 @@ void DspController::sendGuc()
     	ContentGuc.command[i] = (ContentGuc.command[i] << sdvig) + (ContentGuc.command[i+1] >> (7 -  sdvig));
     }
 
+    if (!isGpsGuc)
+    {
+    	crc32_len = ((real_len*7)/8); uint8_t ost =  (real_len*7)% 8;
+    	if (ost !=0)
+    	{
+    		uint8_t mask = 0;
+    		for(int i = 0; i<ost;i++) mask +=  1 << (7 - i);
+    		crc32_len +=1;
+    		ContentGuc.command[crc32_len-1] = ContentGuc.command[crc32_len-1] & mask;
+
+    	}
+
+    }
      // добавление crc32 к пакету данных
      uint32_t crc = pack_manager->CRC32(ContentGuc.command, crc32_len);
      qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
@@ -1703,6 +1722,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                     {
                         sms_call_received = true;
                         ContentSms.R_ADR = data[8]; // todo: check
+                        if (ContentSms.R_ADR > 32) pswf_ack = true;
                         qmDebugMessage(QmDebug::Dump, "sms call received");
                         syncro_recieve.clear();
                         for(int i = 0; i<18;i++)
@@ -1730,11 +1750,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 pswf_data.push_back(data[10]);
                 recievedPswfBuffer.push_back(pswf_data);
                 getDataTime();
-                if (state_pswf == 1){
-                	pswfQuitRec();
-                	state_pswf = 0;
-                }
-                else
+                if (state_pswf == 0)
                 RecievedPswf();
             }
         }
@@ -1770,6 +1786,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         if (indicator == 22) {
         	if (ContentGuc.stage != GucNone)
             recGuc();
+        	else
+        	{
+        		radio_state = radiostateSync;
+        	}
+
         }
         break;
     }
@@ -1781,10 +1802,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: indicator %d", indicator);
         	}
             if (indicator == 30) {
-            	ContentGuc.R_ADR = ((data[2] & 0xF0) >> 3); //(data[3] & 0x3F);
-                isGpsGuc = data[5]; // TODO: требуется проверить в реальных условиях
+                ContentGuc.R_ADR = ((data[2] & 0xF8) >> 3);
+            	ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
+                isGpsGuc = data[5] & 0x1; // TODO: требуется проверить в реальных условиях
 
-                if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(1); ContentGuc.stage = GucNone;}
+                if (ContentGuc.stage == GucTxQuit){ ContentGuc.S_ADR = (data[2] & 0x1F);  recievedGucQuitForTransm(ContentGuc.S_ADR); ContentGuc.stage = GucNone;}
             	else{
             		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
             		std::vector<uint8_t> guc;
@@ -1792,7 +1814,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             			qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , num %d", data[i],i);
             			guc.push_back(data[i]); // по N едениц данных
             		}
-                    if (guc_vector.size() < 50)     guc_vector.push_back(guc); // TODO: WHAT?
+                    guc_vector.push_back(guc);
             		recGuc();
             	}
             }
@@ -1808,9 +1830,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
     		int data_offset;
     		if (type == modempacket_packHead)
-    			data_offset = 5;
+    			data_offset = 6;
     		else
-    			data_offset = 3;
+    			data_offset = 4;
     		uint8_t snr = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
     		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
     		receivedModemPacket.emit(type, snr, bandwidth, value_ptr + data_offset, value_len - data_offset);
@@ -1819,7 +1841,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     	case 31: {
     		if (!(value_len >= 1))
     			break;
-    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+0);
+    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
     		failedRxModemPacket.emit(type);
     		break;
     	}
@@ -1827,14 +1849,14 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
     		int data_offset;
     		if (type == modempacket_packHead)
-    			data_offset = 5;
+    			data_offset = 6;
     		else
-    			data_offset = 3;
+    			data_offset = 4;
     		uint8_t snr = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
     		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
     		if (type == modempacket_packHead) {
-    			uint8_t param_signForm = qmFromBigEndian<uint8_t>(value_ptr+3);
-    			uint8_t param_packCode = qmFromBigEndian<uint8_t>(value_ptr+4);
+    			uint8_t param_signForm = qmFromBigEndian<uint8_t>(value_ptr+4);
+    			uint8_t param_packCode = qmFromBigEndian<uint8_t>(value_ptr+5);
         		startedRxModemPacket_packHead.emit(snr, bandwidth, param_signForm, param_packCode, value_ptr + data_offset, value_len - data_offset);
     		} else {
         		startedRxModemPacket.emit(type, snr, bandwidth, value_ptr + data_offset, value_len - data_offset);
@@ -1880,9 +1902,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	}
 }
 
-// maybe two sides of pswf
-// заглушка для сообещения о заполнении структуры
-//void DspController::parsingData(){}
 
 void *DspController::getContentPSWF()
 {
@@ -2417,7 +2436,6 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
 
     isGpsGuc = isGps;
 
-    for(int i = 0;i<100;i++) ContentGuc.command[i] = 0;
     for(int i = 0;i<num_cmd; i++)
     ContentGuc.command[i] = command[i];
 
@@ -2427,7 +2445,6 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     ContentGuc.ckk |= (1 & 0x03) << 2;
     ContentGuc.ckk |= (ContentGuc.chip_time & 0x03) << 4;
 
-    ContentGuc.uin = 0;
     ContentGuc.Coord = 0;
 
     ContentGuc.stage =  GucTx;
@@ -2440,6 +2457,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
     comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
+    if (freqGucValue != 0)
     comandValue.frequency =  freqGucValue;//3000000;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
     if (unblockGucTx == false){ /* do sleep*/ QmThread::msleep(100); }
@@ -2512,7 +2530,7 @@ void DspController::sendGucQuit()
 	ContentGuc.chip_time = 2;
 	ContentGuc.WIDTH_SIGNAL = 1;
 	ContentGuc.S_ADR = SAZHEN_NETWORK_ADDRESS;
-	//ContentGuc.R_ADR = 1;
+
 
 	ContentGuc.ckk = 0;
 	ContentGuc.ckk |= (1 & 0x01);
@@ -2520,7 +2538,7 @@ void DspController::sendGucQuit()
 	ContentGuc.ckk |= (1 & 0x03) << 2;
 	ContentGuc.ckk |= (ContentGuc.chip_time & 0x03) << 4;
 
-	ContentGuc.uin = 0;
+	//ContentGuc.uin = 0;
 
 	qmToBigEndian((uint8_t)ContentGuc.indicator, tx_data + tx_data_len);
 	++tx_data_len;
@@ -2529,10 +2547,11 @@ void DspController::sendGucQuit()
 
 
 	uint8_t pack[3] = {0, 0, 0};
-	pack[2] = (ContentGuc.S_ADR & 0x1F) << 3;
-	pack[2] |= (ContentGuc.R_ADR & 0x1F) >> 2;
-	pack[1] |= (ContentGuc.ckk & 0x3F);
-	pack[0] = ContentGuc.uin;
+	pack[2] = (ContentGuc.R_ADR & 0x1F) << 3;  // 5 бит
+	pack[2] |= (ContentGuc.S_ADR & 0x1F) >> 2; // 3 бита
+	pack[1] |= (ContentGuc.S_ADR & 0x1F) << 6; // 2 бита
+	pack[1] |= (ContentGuc.uin >> 2) & 0x3F;   // 6 бит
+	pack[0] = (ContentGuc.uin << 6) & 0xC0;    // 2 бита
 
     for(int i = 2; i >= 0; --i) {
     	qmToBigEndian((uint8_t)pack[i], tx_data + tx_data_len);
@@ -2572,14 +2591,7 @@ uint8_t *DspController::getGpsGucCoordinat(uint8_t *coord)
     return coord;
 }
 
-uint8_t *DspController::returnGpsCoordinat(uint8_t *data,uint8_t* res,uint8_t index)
-{
-	uint8_t len = index - 8;
 
-	memcpy(res,&data[len],9);
-
-	updateGucGpsStatus();
-}
 
 uint8_t* DspController::getGucCoord(){
      return guc_coord;
@@ -2634,7 +2646,7 @@ void DspController::GucSwichRxTxAndViewData()
     qmDebugMessage(QmDebug::Dump, "size guc command %d", guc_vector.size());
 
     if (size > 0){
-        recievedGucResp();
+        (isGpsGuc) ? recievedGucResp(1) : recievedGucResp(0);
         if (ContentGuc.stage != GucTxQuit)
         startGucTransmitting();
         if (!failQuitGuc)
@@ -2644,7 +2656,7 @@ void DspController::GucSwichRxTxAndViewData()
     else
     {
         radio_state = radiostateSync;
-        if (ContentGuc.stage == GucTxQuit) recievedGucQuitForTransm(0);
+        if (ContentGuc.stage == GucTxQuit) recievedGucQuitForTransm(-1);
     }
     guc_vector.clear();
 }
@@ -2703,7 +2715,7 @@ uint8_t* DspController::get_guc_vector()
         quadrant = guc_text[9] & (1 >> 6);
         data.push_back(quadrant);
         // добавили к битовому вектору квадрант
-        for(int i = 0; i<count;i++) pack_manager->addBytetoBitsArray(guc_text[9 + i+1],data,7);
+        for(int i = 0; i<num;i++) pack_manager->addBytetoBitsArray(guc_text[9 + i+1],data,7);
         // добавили к битовому вектору данные по 7 бит
         pack_manager->getArrayByteFromBit(data,out);
         // записали в выходной массив преобразованные данные из битового массива по анологии с формирование пакета для CRC32 на передаче
@@ -2713,16 +2725,19 @@ uint8_t* DspController::get_guc_vector()
 
     else
     {
-        for(int i = 0; i<num;i++) guc_text[i+1] = guc_vector.at(0).at(7+i);
+    	std::vector<bool> data;
+        for(int i = 0; i<num;i++) pack_manager->addBytetoBitsArray(guc_vector.at(0).at(7+i),data,7);
+        for(int i = 0; i<count;i++) pack_manager->getArrayByteFromBit(data,out);
 
-        for(int i = 0;  i< count;i++){
-            int sdvig  = (i+1) % 8;
-            if (sdvig != 0)
-                out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
-            else
-                out[i] = guc_text[i+1];
+//        for(int i = 0;  i< count;i++){
+//            int sdvig  = (i+1) % 8;
+//            if (sdvig != 0)
+//                out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
+//            else
+//                out[i] = guc_text[i+1];
+//
+//        }
 
-        }
     }
 
 
@@ -2739,18 +2754,22 @@ uint8_t* DspController::get_guc_vector()
 
 	// считаем crc32 сумму
     uint32_t crc = 0;
-    int value  = (isGpsGuc) ? crc_coord_len : count;
+    int value  = (isGpsGuc) ? crc_coord_len : num;
     // выбрали длинну, исходя из режима передачи
-    if (isGpsGuc){
-    if ((count > 6) && (count <= 10)) value += 1;}
-    else
-    {if (count > 5) value +=1;}
-    crc = pack_manager->CRC32(out,value);
 
-	if (isGpsGuc) {
-		guc_coord[10] = '\0';
-        returnGpsCoordinat(guc_text,guc_coord,count);
-	}
+    if (!isGpsGuc) {value = ((num*7)/8); uint8_t ost = (num*7)% 8;
+
+    if (ost !=0)
+        	{
+        		uint8_t mask = 0;
+        		for(int i = 0; i<ost;i++) mask +=  1 << (7 - i);
+        		value +=1;
+        		out[value-1] = out[value-1] & mask;
+        	}
+
+    }
+
+    crc = pack_manager->CRC32(out,value);
 
     if (crc != crc_packet)
     {
@@ -2759,6 +2778,7 @@ uint8_t* DspController::get_guc_vector()
         failQuitGuc = true;
     }
 	guc_vector.clear();
+
 
 	return guc_text;
 }
@@ -2872,11 +2892,12 @@ void DspController::disableModemTransmitter() {
 void DspController::sendModemPacket(ModemPacketType type,
 		ModemBandwidth bandwidth, const uint8_t *data, int data_len) {
 	QM_ASSERT(type != modempacket_packHead);
-	std::vector<uint8_t> payload(4);
+	std::vector<uint8_t> payload(5);
 	payload[0] = 20;
 	payload[1] = bandwidth;
 	payload[2] = type;
 	payload[3] = 0;
+	payload[4] = 0;
 	if (data_len > 0) {
 		QM_ASSERT(data);
 		payload.insert(std::end(payload), data, data + data_len);
@@ -2887,13 +2908,14 @@ void DspController::sendModemPacket(ModemPacketType type,
 void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 		uint8_t param_signForm, uint8_t param_packCode,
 		const uint8_t *data, int data_len) {
-	std::vector<uint8_t> payload(6);
+	std::vector<uint8_t> payload(7);
 	payload[0] = 20;
 	payload[1] = bandwidth;
 	payload[2] = 22;
 	payload[3] = 0;
-	payload[4] = param_signForm;
-	payload[5] = param_packCode;
+	payload[4] = 0;
+	payload[5] = param_signForm;
+	payload[6] = param_packCode;
 	QM_ASSERT(data);
 	QM_ASSERT(data_len > 0);
 	payload.insert(std::end(payload), data, data + data_len);
@@ -2904,5 +2926,5 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
 #include "qmdebug_domains_end.h"
