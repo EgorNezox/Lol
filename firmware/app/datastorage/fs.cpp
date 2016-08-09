@@ -1,5 +1,5 @@
 #include "qm.h"
-
+#include <qmfile.h>
 #include "fs.h"
 
 #include "../../../sazhenn.h"

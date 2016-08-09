@@ -2,6 +2,7 @@
 #define FIRMWARE_APP_DATASTORAGE_FS_H_
 
 #include "multiradio.h"
+#include <string>
 
 namespace DataStorage {
 

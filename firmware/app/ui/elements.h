@@ -177,6 +177,7 @@ class GUI_EL_SpinBox: public GUI_Element{
         void Dec();
         int32_t GetValue();
         void SetValue(int32_t value);
+        LabelParams *lab_params;
     protected:
         void CalcContentGeom();
     private:
@@ -188,7 +189,7 @@ class GUI_EL_SpinBox: public GUI_Element{
         int32_t max;
         int32_t step;
         int32_t spbox_len;
-        LabelParams *lab_params;
+
         PGSYMBOL up_arrow;
         PGSYMBOL down_arrow;
         GYT label_h;

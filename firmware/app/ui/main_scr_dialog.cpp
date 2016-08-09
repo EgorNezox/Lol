@@ -11,9 +11,8 @@
 
 //----------GLOBAL_VARS--------
 
-static MoonsGeometry ch_label_geom  = {  1, 33,  78,  65 };
-static MoonsGeometry mode_text_geom = { 80, 38, 158,  73 };
-static MoonsGeometry freq_geom      = {  9, 74, 150, 126 };
+static MoonsGeometry ch_label_geom  = { 10, 40,  90,  75 };
+static MoonsGeometry freq_geom      = {  9, 76, 150, 120 };
 
 bool GUI_main_scr_init_flag=0;
 
@@ -29,16 +28,19 @@ GUI_Dialog_MainScr::GUI_Dialog_MainScr(MoonsGeometry *area):GUI_Obj(area),
 {
   MoonsGeometry window_geom = {0,0,(GXT)(GEOM_W(this->area)-1),(GYT)(GEOM_H(this->area)-1)};
 
-    GUI_EL_TEMP_LabelMode.transparent    = true;
-  window       = new GUI_EL_Window(&GUI_EL_TEMP_WindowGeneralBack, &window_geom,           (GUI_Obj*)this);
-  ch_num_label = new GUI_EL_Label (&GUI_EL_TEMP_LabelChannel,      &ch_label_geom,   NULL, (GUI_Obj*)this);
-  mode_text    = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,         &mode_text_geom,  NULL, (GUI_Obj*)this);
-  freq         = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,         &freq_geom,       NULL, (GUI_Obj*)this);
+    GUI_EL_TEMP_LabelMode.transparent = true;
+  window       = new GUI_EL_Window(&GUI_EL_TEMP_WindowGeneralBack, &window_geom,          (GUI_Obj*)this);
+
+  LabelParams ch_num_label_params = GUI_EL_TEMP_LabelChannel;
+  ch_num_label_params.transparent = true;
+  ch_num_label = new GUI_EL_Label (&ch_num_label_params,      &ch_label_geom,  NULL, (GUI_Obj*)this);
+
+  freq         = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode,    &freq_geom,      NULL, (GUI_Obj*)this);
 
   ch_num_label->SetText((char*)"--\0");
   cur_ch_invalid = false;
 
-  oFreq.append("2500001");
+  oFreq.append("2500000");
   setFreq(oFreq.c_str());
 }
 
@@ -69,9 +71,9 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
 //-----------------------------
 
 void GUI_Dialog_MainScr::updateChannel( Multiradio::VoiceServiceInterface::ChannelStatus status,
-                                        int                                              ch_num,
-                                        Multiradio::voice_channel_t                      channel_type
-                                      )
+                                      int                                              ch_num,
+                                      Multiradio::voice_channel_t                      channel_type
+                                     )
 {
   char ch_str[4];
   cur_ch_invalid = false;
