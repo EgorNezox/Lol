@@ -13,6 +13,7 @@
 #include <string.h>
 #include "elements.h"
 #include "all_sym_indicators.h"
+#include <stdio.h>
 
 
 //----------DEFINES------------

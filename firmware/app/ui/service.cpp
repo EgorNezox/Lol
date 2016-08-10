@@ -822,7 +822,7 @@ void Service::keyPressed(UI_Key key)
                     if (menu->condCmdModeSelect == 0)
                         voice_service->TurnPSWFMode(1, param[0], 0,0); // групповой вызов
                     if (menu->condCmdModeSelect == 1)
-                        voice_service->TurnPSWFMode(1, param[0], param[2],param[1]); // индивидуальный вызов
+                        voice_service->TurnPSWFMode(0, param[0], param[2],param[1]); // индивидуальный вызов
                     if (menu->condCmdModeSelect == 2){
                         param[2] +=32;
                         voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
@@ -1002,7 +1002,7 @@ void Service::keyPressed(UI_Key key)
                 }
                 if (menu->groupCondCommStage == 4)
                 {
-                    // ���������
+                    // ���������
                 }
                 break;
             }

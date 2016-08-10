@@ -521,7 +521,7 @@ void DspController::transmitPswf()
     {
         qmDebugMessage(QmDebug::Dump, "PSWF trinsmitting finished");
         command_tx30 = 0;
-        if (pswf_ack) {
+        if (pswf_ack || (ContentPSWF.RET_end_adr > 0)) {
             startPSWFReceiving(false);
             state_pswf = true;
         } else {
@@ -627,6 +627,7 @@ void DspController::RecievedPswf()
     }
 
     if (pswf_rec == 3) firstPacket(ContentPSWF.COM_N);
+    if ((pswf_ack == false) && (command_rx30 == 30)) {radio_state = radiostateSync;}
 
     ++command_rx30;
 }
@@ -1514,11 +1515,16 @@ void DspController::sendGuc()
         }
     }
     else
-    for(int i = 0; i < crc32_len;i++)
+    //for(int i = 0; i < crc32_len;i++)
     {
-    	int sdvig  = (i+1) % 8;
-    	if (sdvig != 0)
-    	ContentGuc.command[i] = (ContentGuc.command[i] << sdvig) + (ContentGuc.command[i+1] >> (7 -  sdvig));
+
+    	std::vector<bool> data;
+    	for(int i = 0; i<ContentGuc.NUM_com;i++) pack_manager->addBytetoBitsArray(ContentGuc.command[i],data,7);
+    	for(int i = 0; i<crc32_len;i++) pack_manager->getArrayByteFromBit(data,ContentGuc.command);
+
+//    	int sdvig  = (i+1) % 8;
+//    	if (sdvig != 0)
+//    	ContentGuc.command[i] = (ContentGuc.command[i] << sdvig) + (ContentGuc.command[i+1] >> (7 -  sdvig));
     }
 
     if (!isGpsGuc)
@@ -1748,9 +1754,10 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 ContentPSWF.S_ADR = data[8];
                 pswf_data.push_back(data[9]);
                 pswf_data.push_back(data[10]);
+                if (ContentPSWF.R_ADR > 32) pswf_ack = true;
                 recievedPswfBuffer.push_back(pswf_data);
                 getDataTime();
-                if (state_pswf == 0)
+               // if (state_pswf == 0)
                 RecievedPswf();
             }
         }
@@ -1806,7 +1813,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             	ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
                 isGpsGuc = data[5] & 0x1; // TODO: требуется проверить в реальных условиях
 
-                if (ContentGuc.stage == GucTxQuit){ ContentGuc.S_ADR = (data[2] & 0x1F);  recievedGucQuitForTransm(ContentGuc.S_ADR); ContentGuc.stage = GucNone;}
+                if (ContentGuc.stage == GucTxQuit){ ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);  recievedGucQuitForTransm(ContentGuc.S_ADR); ContentGuc.stage = GucNone;}
             	else{
             		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
             		std::vector<uint8_t> guc;
@@ -2926,5 +2933,5 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"
