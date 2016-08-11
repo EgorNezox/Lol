@@ -81,9 +81,8 @@ void Dispatcher::processDspStartup() {
 }
 
 bool Dispatcher::processHeadsetPttStateChange(bool new_state) {
-//	if (!isVoiceMode())
-//		return false;
-	setVoiceDirection(new_state);
+	if (isVoiceMode())
+		setVoiceDirection(new_state);
 	return true;
 }
 
@@ -123,10 +122,6 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 			}
 		}
 		updateVoiceChannel();
-		bool ptt_state = false;
-		headset_controller->getPTTState(ptt_state);
-		setVoiceDirection(ptt_state);
-		voice_service->setCurrentChannel(VoiceServiceInterface::ChannelActive);
 		break;
 	}
 	default: {
@@ -226,6 +221,11 @@ bool Dispatcher::changeVoiceChannel(int number, voice_channel_t type) {
 
 void Dispatcher::updateVoiceChannel() {
 	setVoiceChannel();
+	if (main_service->current_status == MainServiceInterface::StatusIdle) {
+		bool ptt_state = false;
+		headset_controller->getPTTState(ptt_state);
+		setVoiceDirection(ptt_state);
+	}
 	if (isVoiceMode()) {
 		if ((main_service->current_mode == MainServiceInterface::VoiceModeAuto)
 				|| ((main_service->current_mode == MainServiceInterface::VoiceModeManual)

@@ -229,10 +229,10 @@ void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len) {
 			qmDebugMessage(QmDebug::Warning, "Headset channels is not match to local channels table");
 			smart_status_description.channels_mismatch = true;
 //			delete ch_table; //TODO: may be &local_channels_table after call startServicing()
-			ch_table = new Multiradio::voice_channels_table_t;
-			ch_number = 0;
-			ch_speed = Multiradio::voicespeed1200;
-			ch_type = Multiradio::channelInvalid;
+//			ch_table = new Multiradio::voice_channels_table_t;
+//			ch_number = 0;
+//			ch_speed = Multiradio::voicespeed1200;
+//			ch_type = Multiradio::channelInvalid;
 		}
 		updateState(StateSmartInitHSModeSetting);
 		synchronizeHSState();
