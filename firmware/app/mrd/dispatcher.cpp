@@ -121,7 +121,7 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 				voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
 				if (main_service->current_mode == MainServiceInterface::VoiceModeAuto) {
 					startIdle();
-					return;
+					break;
 				}
 			}
 		}
@@ -129,6 +129,7 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 		bool ptt_state = false;
 		headset_controller->getPTTState(ptt_state);
 		setVoiceDirection(ptt_state);
+		voice_service->setCurrentChannel(VoiceServiceInterface::ChannelActive);
 		break;
 	}
 	default: {
@@ -164,14 +165,16 @@ voice_emission_t Dispatcher::getVoiceEmissionFromFrequency(uint32_t frequency) {
 }
 
 void Dispatcher::setVoiceChannel() {
-	uint32_t frequency = voice_service->getCurrentChannelFrequency();
+	uint32_t frequency = 0;
 	voice_emission_t emission_type = voiceemissionInvalid;
 	switch (main_service->current_mode) {
 	case MainServiceInterface::VoiceModeAuto: {
+		frequency = (*voice_channel).frequency;
 		emission_type = getVoiceEmissionFromFrequency(frequency);
 		break;
 	}
 	case MainServiceInterface::VoiceModeManual: {
+		frequency = voice_manual_frequency;
 		emission_type = voice_manual_emission_type;
 		break;
 	}

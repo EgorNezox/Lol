@@ -37,6 +37,7 @@ void qmMain() {
 
 	Multiradio::voice_channels_table_t mr_channels_table;
 	DataStorage::FS data_storage_fs(platformhwDataFlashSpi);
+	data_storage_fs.init();
 	QmIopin enrxrs232_iopin(platformhwEnRxRs232Iopin);
 	QmIopin entxrs232_iopin(platformhwEnTxRs232Iopin);
 	Headset::Controller headset_controller(platformhwHeadsetUart, platformhwHeadsetPttIopin);
@@ -104,7 +105,6 @@ void qmMain() {
 
 
 	kb_light_iopin.writeOutput(QmIopin::Level_Low);
-	data_storage_fs.init();
 	data_storage_fs.getVoiceChannelsTable(mr_channels_table);
 
     if (mr_channels_table.empty())
