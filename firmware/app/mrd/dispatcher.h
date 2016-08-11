@@ -40,6 +40,7 @@ private:
 	bool processHeadsetPttStateChange(bool new_state);
 	void processHeadsetSmartCurrentChannelChange(int new_channel_number, voice_channel_t new_channel_type);
 	void setupVoiceMode(Headset::Controller::Status headset_status);
+	void setSmartChannelMicLevel(voice_channel_t type);
 	voice_emission_t getVoiceEmissionFromFrequency(uint32_t frequency);
 	void setVoiceChannel();
 	bool changeVoiceChannel(int number, voice_channel_t type);
