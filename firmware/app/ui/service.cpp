@@ -91,7 +91,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->smsMess.connect(sigc::mem_fun(this,&Service::smsMessage));
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
     voice_service->respGuc.connect(sigc::mem_fun(this,&Service::gucFrame));
-    voice_service->errorAsu.connect(sigc::mem_fun(this, &Service::errorMessage));
+    voice_service->atuMalfunction.connect(sigc::mem_fun(this, &Service::showAtuMalfunction));
     multiradio_service->dspHardwareFailed.connect(sigc::mem_fun(this, &Service::showDspHardwareFailure));
     voice_service->messageGucTxQuit.connect(sigc::mem_fun(this, &Service::msgGucTXQuit));
     voice_service->gucCrcFailed.connect(sigc::mem_fun(this,&Service::errorGucCrc));
@@ -107,10 +107,10 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
 }
 
-void Service::errorMessage()
+void Service::showAtuMalfunction()
 {
-    msgBox( "Error ", "ASU modeMalFunction\0");
-    guiTree.append(messangeWindow, (char*)"Error ASU\0", "0\0");
+    msgBox(atumalfunction_title_str, atumalfunction_text_str);
+    guiTree.append(messangeWindow, atumalfunction_title_str, atumalfunction_text_str);
 }
 
 void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)

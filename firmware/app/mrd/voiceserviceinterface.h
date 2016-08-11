@@ -54,7 +54,6 @@ public:
     uint8_t* getGucCommand();
 
     void defaultSMSTrans();
-    void rerror();
     void messageGucQuit(int ans);
 	void getSmsForUiStage(int value);
     void gucCrcFail();
@@ -68,7 +67,7 @@ public:
     sigc::signal<void,int> smsFailed;
     sigc::signal<void> smsMess;
     sigc::signal<void,int> respGuc;
-    sigc::signal<void> errorAsu;
+    sigc::signal<void> atuMalfunction;
 	sigc::signal<void,int> getSmsStageUi;
     sigc::signal<void,int> messageGucTxQuit;
     sigc::signal<void> gucCrcFailed;

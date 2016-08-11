@@ -168,6 +168,9 @@ const char* StartGucTx      = "Старт\0";
 const char* GucIndivid      = "Одному\0";
 const char* GucGroup        = "Всем\0";
 
+const char* atumalfunction_title_str = "Сбой АСУ";
+const char* atumalfunction_text_str = "Передача на текущей частоте ограничена";
+
 const char* dsphardwarefailure_7_5_title_str = "Авария АФУ";
 const char* dsphardwarefailure_7_5_text_str = "0";
 const char* dsphardwarefailure_unknown_title_str = "Аппаратный сбой DSP";

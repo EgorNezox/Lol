@@ -251,7 +251,7 @@ void Dispatcher::processAtuModeChange(AtuController::Mode new_mode) {
 	}
     case AtuController::modeMalfunction:
     {
-        voice_service->errorAsu();
+        voice_service->atuMalfunction();
         /* no break */
     }
 	default: {
