@@ -176,6 +176,8 @@ const char* recievedGUC_CMD = "Приняты команды\0";
 const char* titleGuc        = "Сообщение\0";
 const char* titleCoord      = "Получены\nкоодинаты\0";
 
+const char* startStr           = "Старт\0";
+
 const char* typeCondCmd     = "Выберите тип\0";
 const char* YesGucCoord     = "Есть\0";
 const char* NoGucCoord      = "Нет\0";

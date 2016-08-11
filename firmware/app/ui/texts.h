@@ -123,4 +123,6 @@ extern const char* GucGroup;
 extern const char* Zond;
 extern const char* Zond_label;
 
+extern const char* startStr;
+
 #endif /* TEXTS_H_ */

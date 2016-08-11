@@ -828,7 +828,10 @@ void Service::keyPressed(UI_Key key)
                         voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
                     }
 
-
+                    menu->txCondCmdStage = 0;
+                    guiTree.resetCurrentState();
+                    for(auto &k: estate.listItem)
+                        k->inputStr.clear();
 
 #else
                     menu->txCondCmdStage = 0;
@@ -1375,7 +1378,15 @@ void Service::keyPressed(UI_Key key)
                 }
                 case keyEnter:
                 {
-                    if ( menu->smsStage == 0 )
+
+                    if ( menu->smsStage == 0xF0 )
+                    {
+                        menu->smsStage = 0;
+                        menu->smsTxStage = 1;
+                        guiTree.resetCurrentState();
+                    }
+                    else if (menu->smsStage == 0x0F){   /*menu->smsStage = 0;*/  }
+                    else
                     {
                         // call
                         // [0] - dstAddr, [1]- message, [3] - retrAddr
@@ -1409,12 +1420,6 @@ void Service::keyPressed(UI_Key key)
                                     k->inputStr.clear();
                             }
                         }
-                    }
-                    else if ( menu->smsStage == 0xF0 )
-                    {
-                        menu->smsStage = 0;
-                        menu->smsTxStage = 1;
-                        guiTree.resetCurrentState();
                     }
 
                     break;
@@ -2339,7 +2344,7 @@ void Service::drawMenu()
                 if (menu->smsStage == 0)
                 {
                     fieldStr.clear();
-                    fieldStr.append(startAleTxVoiceMailStr);
+                    fieldStr.append(startStr);
                 }
                 if (menu->smsStage == 0x0F)
                 {

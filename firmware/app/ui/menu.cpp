@@ -1047,9 +1047,10 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     MoonsGeometry title_geom = {  5,   5, 150,  20 };
     MoonsGeometry field_geom  = {  7,  40, 147,  60 };
 
-    LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT};
+    LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelMode};
     param[0].element.align = {alignHCenter, alignTop};
     param[1].element.align = {alignHCenter, alignVCenter};
+
 
     switch(smsTxStage)
     {
@@ -1080,8 +1081,8 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 //            fieldStr.push_back('--');
 //            fieldStr.append(fieldStr);
 //        }
-        else
-            fieldStr.append(fieldStr);
+//        else
+//            fieldStr.append(fieldStr);
 
         break;
     }
@@ -1090,12 +1091,12 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
         std::string tmp; tmp.append(fieldStr);
         fieldStr.clear();
 
-        for (uint8_t i = 0; i < fieldStr.size(); i++)
+        for (uint8_t i = 0; i < tmp.size(); i++)
         {
             if ( (i%15 == 0) && (i != 0) )
                 fieldStr.push_back('\n');
 
-            fieldStr.push_back( fieldStr[i] );
+            fieldStr.push_back( tmp[i] );
         }
 
         field_geom = {  7,  20, 158,  120 };
