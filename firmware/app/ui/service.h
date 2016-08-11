@@ -23,7 +23,7 @@
 #include "../navigation/navigator.h"
 #include <qmtimer.h>
 #include <string.h>
-
+#include <time.h>
 
 #include "gui_obj.h"
 #include "menu.h"
@@ -146,7 +146,7 @@ private:
     std::string coord_lat;
     std::string coord_log;
     std::string date;
-    std::string time;
+    std::string timeStr;
 
     Multiradio::voice_channel_speed_t currentSpeed = Multiradio::voice_channel_speed_t(0);
 

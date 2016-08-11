@@ -106,15 +106,15 @@ void CGuiTree::init()
     txPutOffVoice.prevState = &call;
     txPutOffVoice.nextState.clear();
     // 1.4 - √руппа условных команд
-//    groupCondCommand.subType = GuiWindowsSubType::txGroupCondCmd;
+    groupCondCommand.subType = GuiWindowsSubType::txGroupCondCmd;
     groupCondCommand.prevState = &call;
     groupCondCommand.nextState.clear();
-//    groupCondCommand.listItem.push_back(&groupCondCommandParameters1);
-//    groupCondCommand.listItem.push_back(&groupCondCommandParameters2);
-//    groupCondCommand.listItem.push_back(&groupCondCommandParameters3);
-//    groupCondCommand.listItem.push_back(&groupCondCommandParameters4);
+    groupCondCommand.listItem.push_back(&groupCondCommandParameters1);
+    groupCondCommand.listItem.push_back(&groupCondCommandParameters2);
+    groupCondCommand.listItem.push_back(&groupCondCommandParameters3);
+    groupCondCommand.listItem.push_back(&groupCondCommandParameters4);
 //    groupCondCommand.nextState.push_back(&groupCondCommandSimpl);k
-    groupCondCommand.nextState.push_back(&groupCondCommandDupl);
+//    groupCondCommand.nextState.push_back(&groupCondCommandDupl);
     // 1.4.1 - ќдносторонн€€ св€зь
     groupCondCommandSimpl.prevState = &groupCondCommand;
     groupCondCommandSimpl.nextState.push_back(&groupCondCommandSimplGroupCall);

@@ -247,7 +247,7 @@ struct SliderParams{
 };
 
 /*!Класс элемента бегунок*/
-class GUI_EL_Slider:public GUI_Element{
+class GUI_EL_Slider: public GUI_Element{
     public:
         GUI_EL_Slider(SliderParams *params, MoonsGeometry *geom, GUI_Obj *parrent_obj);
         void Draw();
