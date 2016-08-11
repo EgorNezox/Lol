@@ -640,6 +640,20 @@ void Service::keyPressed(UI_Key key)
                 {
                     currentSpeed = /*Multiradio::voice_channel_speed_t(4);*/voice_service->getCurrentChannelSpeed();
                 }
+                else if (estate.subType == GuiWindowsSubType::voiceMode)
+                {
+                    if (multiradio_service->getVoiceMode() == Multiradio::MainServiceInterface::VoiceModeAuto)
+                        menu->useMode = true;
+                    else
+                        menu->useMode = false;
+                }
+                else if (estate.subType == GuiWindowsSubType::channelEmissionType)
+                {
+                    if ( voice_service->getCurrentChannelEmissionType() == Multiradio::voiceemissionFM)
+                        menu->ch_emiss_type = true;
+                    else
+                        menu->ch_emiss_type = false;
+                }
             }
             menu->offset = 0;
         }
@@ -2098,6 +2112,55 @@ void Service::keyPressed(UI_Key key)
             }
              break;
         }
+        case GuiWindowsSubType::voiceMode:
+        {
+            if ( key == keyEnter)
+            {
+                if (menu->useMode)
+                    multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode::VoiceModeAuto);
+                else
+                    multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode::VoiceModeManual);
+
+//                guiTree.advance(menu->focus);
+//                menu->focus = 0;
+            }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+                menu->offset = 0;
+            }
+            if (key == keyUp || key == keyDown)
+            {
+                menu->useMode = menu->useMode ? false : true;
+            }
+
+            break;
+        }
+        case GuiWindowsSubType::channelEmissionType:
+        {
+            if ( key == keyEnter)
+            {
+                if (menu->ch_emiss_type)
+                    voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionFM);
+                else
+                    voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionUSB);
+
+//                guiTree.advance(menu->focus);
+//                menu->focus = 0;
+            }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+                menu->offset = 0;
+            }
+            if (key == keyUp || key == keyDown)
+            {
+                menu->ch_emiss_type = menu->ch_emiss_type ? false : true;
+            }
+            break;
+        }
         default:
             break;
         }
@@ -2192,9 +2255,34 @@ void Service::msgBox(const char *title, const int condCmd, const int size, const
 
 void Service::drawMainWindow()
 {
-    main_scr->setModeText(mode_txt[main_scr->mainWindowModeId]);
 
     Multiradio::VoiceServiceInterface *voice_service = pGetVoiceService();
+
+    Multiradio::voice_emission_t emission_type = voice_service->getCurrentChannelEmissionType();
+
+    std::string str;
+    switch (emission_type)
+    {
+    case Multiradio::voice_emission_t::voiceemissionFM:
+        str.append(mode_txt[0]);
+        break;
+    case Multiradio::voice_emission_t::voiceemissionUSB:
+        str.append(mode_txt[1]);
+        break;
+    default:
+        str.append(mode_txt[1]);//str.append((char*)"--\0");
+        break;
+    }
+//    str.pop_back();
+
+//    if (this->multiradio_service->getVoiceMode() == Multiradio::MainServiceInterface::VoiceModeAuto)
+//        str.append(" A\0");
+//    else if (this->multiradio_service->getVoiceMode() == Multiradio::MainServiceInterface::VoiceModeManual)
+//        str.append(" M\0");
+//    else
+//        str.append(" -\0");
+
+    main_scr->setModeText(str.c_str());
 
     main_scr->Draw(voice_service->getCurrentChannelStatus(),
                    voice_service->getCurrentChannelNumber(),
@@ -2497,8 +2585,17 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::zond:
         {
-
             menu->initZondDialog(menu->focus,zond_data);
+            break;
+        }
+        case GuiWindowsSubType::voiceMode:
+        {
+            menu->initSelectVoiceModeParameters(menu->useMode);
+            break;
+        }
+        case GuiWindowsSubType::channelEmissionType:
+        {
+            menu->initSelectChEmissTypeParameters(menu->ch_emiss_type);
             break;
         }
         default:

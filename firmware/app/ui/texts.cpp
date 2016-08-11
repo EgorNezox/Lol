@@ -2,12 +2,14 @@
 
 const char *test_Pass = {"Тестирование\0"};
 const char *errorStr = "Ошибка\0";
-char *mode_txt[] = {(char *)"Авто\0", (char*)"Ручн.\0"};
+char *mode_txt[] = {" Авто\0", "Ручн.\0"};
 char *disabled_ch_txt = (char *)"--";
 char ch_open_letter='О';
 char ch_zero_letter='0';
 char ch_closed_letter='З';
-char ch_invalid_letter='!';
+char ch_invalid_letter='x';
+
+const char* ch_em_type_str[] = {(char *)"ЧМ\0", (char*)"ВБП\0"};
 
 const char* exitStr = "Выход\0";
 
@@ -48,7 +50,7 @@ const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0", 
 const char *settingsSubMenu[] = {" ДВ\0", " Связь\0", " Скан\0", " Усиление\0", " Громкость\0", " Шумодав\0"," Время ГУК\0", " КР"," Конфигур"}; //TODO:
     const char *dateAndTimeSubMenu[] = {" СИНХРО\0", " РУЧНОЙ\0"};
         const char *setDateOrTime[] = {" Ввод даты\0", " Ввод время\0"};
-    const char *setConnParam[] = {" Частота\0", " Скорость\0"};
+    const char *setConnParam[] = {" Частота\0", " Скорость\0", "Тип излуч\0", "Режим пере\0"};
 
 const char *coordinateStr = "Координаты\0";
 const char *useScanMenu[] = {"ВКЛ\0", "ВЫКЛ\0"};

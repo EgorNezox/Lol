@@ -24,6 +24,8 @@ extern char ch_open_letter;
 extern char ch_closed_letter;
 extern char ch_invalid_letter;
 
+extern const char* ch_em_type_str[];
+
 extern const char* freq_khz;
 extern const char* freq_hz;
 

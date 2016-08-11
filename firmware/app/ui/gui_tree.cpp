@@ -45,6 +45,9 @@ void CGuiTree::init()
     sttSetDate.setName(setDateOrTime[0]); sttSetTime.setName(setDateOrTime[1]);
     // 4.2.1 - 4.2.2
     sttSetFreq.setName(setConnParam[0]); sttSetSpeed.setName(setConnParam[1]);
+    // 4.2.6 -4.2.7
+    sttChannelEmissionType.setName(setConnParam[2]);
+    sttVoiceMode.setName(setConnParam[3]);
 
     MainWindow.prevState = nullptr;
     MainWindow.nextState.push_back(&main);
@@ -260,6 +263,9 @@ void CGuiTree::init()
     sttConnParam.nextState.push_back(&swAruArm);
     sttConnParam.nextState.push_back(&sttWaitGuk);
     sttConnParam.nextState.push_back(&sttEditRnKey);
+    sttConnParam.nextState.push_back(&sttChannelEmissionType);
+    sttConnParam.nextState.push_back(&sttVoiceMode);
+
     // 4.2.1 - Частота
     sttSetFreq.setType(GuiWindowTypes::endMenuWindow);
     sttSetFreq.subType = GuiWindowsSubType::setFreq;
@@ -284,6 +290,16 @@ void CGuiTree::init()
     sttEditRnKey.subType = GuiWindowsSubType::editRnKey;
     sttEditRnKey.prevState = &sttConnParam;
     sttEditRnKey.nextState.clear();
+    // 4.2.6 - Режим передачи
+    sttChannelEmissionType.subType = GuiWindowsSubType::channelEmissionType;
+    sttChannelEmissionType.prevState = &sttConnParam;
+    sttChannelEmissionType.nextState.clear();
+
+    // 4.2.7 - Тип излучения
+    sttVoiceMode.subType = GuiWindowsSubType::voiceMode;
+    sttVoiceMode.prevState = &sttConnParam;
+    sttVoiceMode.nextState.clear();
+
     // 4.3 - Сканирование
     sttScan.subType = GuiWindowsSubType::scan;
     sttScan.prevState = &settings;
