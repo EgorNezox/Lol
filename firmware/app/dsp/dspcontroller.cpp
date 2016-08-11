@@ -171,6 +171,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     ContentPSWF.RN_KEY = DefkeyValue;
     ContentSms.RN_KEY = DefkeyValue;
 
+    retranslation_active = false;
+
 }
 DspController::~DspController()
 
@@ -582,6 +584,7 @@ void DspController::changePswfRxFrequency()
 void DspController::changeSmsRxFrequency()
 {
 	getDataTime();
+	//if ((retranslation_active) && (ContentSms.stage == StageRx_data)) {addSeconds(date_time);}
     ContentSms.Frequency =  getFrequencySms();
 
 	ParameterValue param;
@@ -2069,19 +2072,37 @@ void DspController::recSms()
                     if (getSmsRetranslation() != 0)
                     {
                         // требуется, чтобы здесь происходил запуск приема,
-                        initResetState();
-                		startSMSRecieving();
+                    	//ContentSms.stage = StageNone;
+                        //initResetState();
+                		//startSMSRecieving(StageRx_call);
+                    	retranslation_active = true;
+                    	radio_state = radiostateSmsRxPrepare;
+                    	smsRxStateSync = 0;
+                    	ContentSms.stage = StageRx_call;
                 	}
+                    else
+                    {
+                    	// если нет ретрансляции, то выключить
+                    	radio_state = radiostateSync;
+                    	ContentSms.stage = StageNone;
+                    }
                 }
                 else
+                {
+                	// если нет совпадений, то выход
                     smsFailed(0);
+                    radio_state = radiostateSync;
+                    ContentSms.stage = StageNone;
+                }
 
             } else {
                 qmDebugMessage(QmDebug::Dump, "recSms() smsFailed, radio_state = radiostateSync");
                 smsFailed(1);
+                // если нет в буфере значений, то выход
+                radio_state = radiostateSync;
+                ContentSms.stage = StageNone;
             }
-            radio_state = radiostateSync;
-            ContentSms.stage = StageNone;
+
             counterSms[StageTx_quit] = 6;
             pswf_first_packet_received = false;
         }
@@ -2198,7 +2219,7 @@ void DspController::generateSmsReceived()
 	{
 		ack = 73;
 		for(int i = 0; i < 99; i++) sms_content[i] = str[i];
-		sms_content[99] = '\0'; //REVIEW: начиная c sms_content[90] по sms_content[98] будет мусор
+		sms_content[99] = '\0';
         qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
 		smsPacketMessage();
     }

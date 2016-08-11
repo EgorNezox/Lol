@@ -184,6 +184,7 @@ public:
     sigc::signal<void> gucCrcFailed;                 // ошибка crc-суммы
 
     PackageManager *pack_manager;
+    bool retranslation_active = false;
 
 private:
     friend struct DspCommand;
