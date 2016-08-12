@@ -2277,9 +2277,17 @@ void Service::drawMainWindow()
 
     main_scr->setModeText(str.c_str());
 
+    auto status = multiradio_service->getStatus();
+
+    bool valid_freq = true;
+    if ( status == Multiradio::MainServiceInterface::StatusNotReady || status == Multiradio::MainServiceInterface::StatusIdle )
+        valid_freq = false;
+
     main_scr->Draw(voice_service->getCurrentChannelStatus(),
                    voice_service->getCurrentChannelNumber(),
-                   voice_service->getCurrentChannelType());
+                   voice_service->getCurrentChannelType(),
+                   valid_freq
+                   );
 
 
     //main_scr->oFreq.clear();

@@ -32,7 +32,8 @@ public:
     virtual ~GUI_Dialog_MainScr();
     virtual void Draw( Multiradio::VoiceServiceInterface::ChannelStatus status,
                        int ch_num,
-                       Multiradio::voice_channel_t channel_type
+                       Multiradio::voice_channel_t channel_type,
+                       bool valid_freq
                        );
     void setModeText(const char*);
     void setFocus(int newFocus)

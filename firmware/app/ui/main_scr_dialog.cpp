@@ -54,7 +54,8 @@ void GUI_Dialog_MainScr::setModeText(const char* newMode)
 
 void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus status,
                                int                                              ch_num,
-                               Multiradio::voice_channel_t                      channel_type
+                               Multiradio::voice_channel_t                      channel_type,
+                               bool valid_freq
                               )
 {
   updateChannel(status, ch_num, channel_type);
@@ -75,7 +76,9 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
   freq->transparent = true; // todo : поменял значение
   if (focus == 1){ freq->transparent = false; }
 
-  freq->Draw();
+  if (valid_freq)
+    freq->Draw();
+
 }
 
 //-----------------------------
