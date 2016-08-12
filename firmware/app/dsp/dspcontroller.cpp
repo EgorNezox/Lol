@@ -171,6 +171,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     ContentPSWF.RN_KEY = DefkeyValue;
     ContentSms.RN_KEY = DefkeyValue;
 
+    retranslation_active = false;
+
 }
 DspController::~DspController()
 
@@ -521,7 +523,7 @@ void DspController::transmitPswf()
     {
         qmDebugMessage(QmDebug::Dump, "PSWF trinsmitting finished");
         command_tx30 = 0;
-        if (pswf_ack) {
+        if (pswf_ack || (ContentPSWF.RET_end_adr > 0)) {
             startPSWFReceiving(false);
             state_pswf = true;
         } else {
@@ -582,6 +584,7 @@ void DspController::changePswfRxFrequency()
 void DspController::changeSmsRxFrequency()
 {
 	getDataTime();
+	//if ((retranslation_active) && (ContentSms.stage == StageRx_data)) {addSeconds(date_time);}
     ContentSms.Frequency =  getFrequencySms();
 
 	ParameterValue param;
@@ -627,6 +630,7 @@ void DspController::RecievedPswf()
     }
 
     if (pswf_rec == 3) firstPacket(ContentPSWF.COM_N);
+    if ((pswf_ack == false) && (command_rx30 == 30)) {radio_state = radiostateSync;}
 
     ++command_rx30;
 }
@@ -1514,14 +1518,31 @@ void DspController::sendGuc()
         }
     }
     else
-    for(int i = 0; i < crc32_len;i++)
+    //for(int i = 0; i < crc32_len;i++)
     {
-    	int sdvig  = (i+1) % 8;
-    	if (sdvig != 0)
-    	ContentGuc.command[i] = (ContentGuc.command[i] << sdvig) + (ContentGuc.command[i+1] >> (7 -  sdvig));
+
+    	std::vector<bool> data;
+    	for(int i = 0; i<ContentGuc.NUM_com;i++) pack_manager->addBytetoBitsArray(ContentGuc.command[i],data,7);
+    	for(int i = 0; i<crc32_len;i++) pack_manager->getArrayByteFromBit(data,ContentGuc.command);
+
+//    	int sdvig  = (i+1) % 8;
+//    	if (sdvig != 0)
+//    	ContentGuc.command[i] = (ContentGuc.command[i] << sdvig) + (ContentGuc.command[i+1] >> (7 -  sdvig));
     }
 
-     if (!isGpsGuc) {crc32_len = ((real_len*7)/8); if ((real_len*7)% 8 !=0) crc32_len +=1; }
+    if (!isGpsGuc)
+    {
+    	crc32_len = ((real_len*7)/8); uint8_t ost =  (real_len*7)% 8;
+    	if (ost !=0)
+    	{
+    		uint8_t mask = 0;
+    		for(int i = 0; i<ost;i++) mask +=  1 << (7 - i);
+    		crc32_len +=1;
+    		ContentGuc.command[crc32_len-1] = ContentGuc.command[crc32_len-1] & mask;
+
+    	}
+
+    }
      // добавление crc32 к пакету данных
      uint32_t crc = pack_manager->CRC32(ContentGuc.command, crc32_len);
      qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
@@ -1746,9 +1767,10 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 ContentPSWF.S_ADR = data[8];
                 pswf_data.push_back(data[9]);
                 pswf_data.push_back(data[10]);
+                if (ContentPSWF.R_ADR > 32) pswf_ack = true;
                 recievedPswfBuffer.push_back(pswf_data);
                 getDataTime();
-                if (state_pswf == 0)
+               // if (state_pswf == 0)
                 RecievedPswf();
             }
         }
@@ -1800,11 +1822,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: indicator %d", indicator);
         	}
             if (indicator == 30) {
-            	ContentGuc.R_ADR = ((data[2] & 0x1F) >> 3);
+                ContentGuc.R_ADR = ((data[2] & 0xF8) >> 3);
             	ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
                 isGpsGuc = data[5] & 0x1; // TODO: требуется проверить в реальных условиях
 
-                if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(ContentGuc.R_ADR); ContentGuc.stage = GucNone;}
+                if (ContentGuc.stage == GucTxQuit){ ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);  recievedGucQuitForTransm(ContentGuc.S_ADR); ContentGuc.stage = GucNone;}
             	else{
             		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
             		std::vector<uint8_t> guc;
@@ -2060,19 +2082,37 @@ void DspController::recSms()
                     if (getSmsRetranslation() != 0)
                     {
                         // требуется, чтобы здесь происходил запуск приема,
-                        initResetState();
-                		startSMSRecieving();
+                    	//ContentSms.stage = StageNone;
+                        //initResetState();
+                		//startSMSRecieving(StageRx_call);
+                    	retranslation_active = true;
+                    	radio_state = radiostateSmsRxPrepare;
+                    	smsRxStateSync = 0;
+                    	ContentSms.stage = StageRx_call;
                 	}
+                    else
+                    {
+                    	// если нет ретрансляции, то выключить
+                    	radio_state = radiostateSync;
+                    	ContentSms.stage = StageNone;
+                    }
                 }
                 else
+                {
+                	// если нет совпадений, то выход
                     smsFailed(0);
+                    radio_state = radiostateSync;
+                    ContentSms.stage = StageNone;
+                }
 
             } else {
                 qmDebugMessage(QmDebug::Dump, "recSms() smsFailed, radio_state = radiostateSync");
                 smsFailed(1);
+                // если нет в буфере значений, то выход
+                radio_state = radiostateSync;
+                ContentSms.stage = StageNone;
             }
-            radio_state = radiostateSync;
-            ContentSms.stage = StageNone;
+
             counterSms[StageTx_quit] = 6;
             pswf_first_packet_received = false;
         }
@@ -2189,7 +2229,7 @@ void DspController::generateSmsReceived()
 	{
 		ack = 73;
 		for(int i = 0; i < 99; i++) sms_content[i] = str[i];
-		sms_content[99] = '\0'; //REVIEW: начиная c sms_content[90] по sms_content[98] будет мусор
+		sms_content[99] = '\0';
         qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
 		smsPacketMessage();
     }
@@ -2719,20 +2759,28 @@ uint8_t* DspController::get_guc_vector()
         // записали в выходной массив преобразованные данные из битового массива по анологии с формирование пакета для CRC32 на передаче
         crc_coord_len = data.size() / 8;
         // получили длинну пакета
+
+        for(int i = 1;i<9; i++)  guc_text[num+i] = guc_text[i]; // после данных передадим координаты
+        for(int i = 0;i<num;i++) guc_text[i+1] = guc_text[9+i+1];
+
     }
 
     else
     {
+    	std::vector<bool> data;
+        for(int i = 0; i<num;i++) pack_manager->addBytetoBitsArray(guc_vector.at(0).at(7+i),data,7);
+        for(int i = 0; i<count;i++) pack_manager->getArrayByteFromBit(data,out);
+        guc_text[0] = num;
         for(int i = 0; i<num;i++) guc_text[i+1] = guc_vector.at(0).at(7+i);
+//        for(int i = 0;  i< count;i++){
+//            int sdvig  = (i+1) % 8;
+//            if (sdvig != 0)
+//                out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
+//            else
+//                out[i] = guc_text[i+1];
+//
+//        }
 
-        for(int i = 0;  i< count;i++){
-            int sdvig  = (i+1) % 8;
-            if (sdvig != 0)
-                out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
-            else
-                out[i] = guc_text[i+1];
-
-        }
     }
 
 
@@ -2752,7 +2800,17 @@ uint8_t* DspController::get_guc_vector()
     int value  = (isGpsGuc) ? crc_coord_len : num;
     // выбрали длинну, исходя из режима передачи
 
-    if (!isGpsGuc) {value = ((num*7)/8); if ((num*7)% 8 !=0) value +=1; }
+    if (!isGpsGuc) {value = ((num*7)/8); uint8_t ost = (num*7)% 8;
+
+    if (ost !=0)
+        	{
+        		uint8_t mask = 0;
+        		for(int i = 0; i<ost;i++) mask +=  1 << (7 - i);
+        		value +=1;
+        		out[value-1] = out[value-1] & mask;
+        	}
+
+    }
 
     crc = pack_manager->CRC32(out,value);
 
@@ -2911,5 +2969,5 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"

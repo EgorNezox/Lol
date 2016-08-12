@@ -13,6 +13,7 @@
 #include <string.h>
 #include "elements.h"
 #include "all_sym_indicators.h"
+#include <stdio.h>
 
 
 //----------DEFINES------------
@@ -448,7 +449,8 @@ GUI_EL_SpinBox::GUI_EL_SpinBox(MoonsGeometry* geom, SpBoxParams *spbox_params, S
 }
 
 void GUI_EL_SpinBox::Draw(){
-	(*ValueToStr)(value,str);
+    //(*ValueToStr)(value,str);
+    sprintf(str, "%d", value);
 	MoonsGeometry up_arr_geom={geom.xs,geom.ys,geom.xe,(GYT)(geom.ys+(GEOM_H(geom)-label_h)/2-1)};
 	MoonsGeometry down_arr_geom={geom.xs,(GYT)(geom.ye-(GEOM_H(geom)-label_h)/2+1),geom.xe,geom.ye};
 	MoonsGeometry label_geom={geom.xs,(GYT)(geom.ys+(GEOM_H(geom)-label_h)/2),geom.xe,0};

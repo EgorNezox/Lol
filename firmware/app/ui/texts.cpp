@@ -1,7 +1,7 @@
 #include "texts.h"
 
 const char *test_Pass = {"Тестирование\0"};
-
+const char* exitStr = "Выход\0";
 char *mode_txt[] = {(char *)"Речь\0", (char*)"АУС\0", (char*)"ГрупУК\0"};
 char *disabled_ch_txt = (char *)"--";
 char ch_open_letter='О';
@@ -43,7 +43,7 @@ const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " ГП\0", " УК\0", " ГУК\0", 
 const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0", " GPS координаты\0"};
     const char *dataSubSubMenu[] = {" Условные команды\0", " СМС\0", " Головая почта\0", " Группа усл.команд\0"};
 
-const char *settingsSubMenu[] = {"ДВ\0", " Связь\0", " Скан\0", " Усиление\0", " Громкость\0", " Шумодав\0"," Время ГУК\0", " КР"}; //TODO:
+const char *settingsSubMenu[] = {" ДВ\0", " Связь\0", " Скан\0", " Усиление\0", " Громкость\0", " Шумодав\0"," Время ГУК\0", " КР"," Конфигур"}; //TODO:
     const char *dateAndTimeSubMenu[] = {" СИНХРО\0", " РУЧНОЙ\0"};
         const char *setDateOrTime[] = {" Ввод даты\0", " Ввод время\0"};
     const char *setConnParam[] = {" Частота\0", " Скорость\0"};
@@ -100,6 +100,7 @@ const char* smatrHSStateStr[] = {
     "Готово\n\0",
     "14","15","16","17","18","19","20"
 };
+
 const char* aleStateStr[] = {
     "...\0",
     "Нет\nсинхронизации\n\0",
@@ -143,6 +144,20 @@ const char *smsDataInformRx[] = {
     "Данные\nпотеряны\nПовторите\0",
 };
 
+const char *txSmsResultStatus[] = {
+    "Вызов станции\0",
+    "Отправка ответа\0",
+    "Отправка данных\0",
+    "Квитанция\0"
+};
+
+const char *rxSmsResultStatus[] = {
+    "Ожидание вызова\0",
+    "Получение ответа\0",
+    "Прием данных\0",
+    "Ожидание квитанции\0"
+};
+
 const char* voiceRxStr[] = {"Нажмите Ввод для\nзапуска приема\0", "От: \0", "Нажмите ввод\0"};
 const char* voiceRxTxLabelStr[] = {"Канал записи\0", "Канал воспр.\0", "Запись речи\0", "Воспр. речи\0", "Получатель\0", "Получена гол.поч.\0"};
 
@@ -161,13 +176,16 @@ const char* recievedGUC_CMD = "Приняты команды\0";
 const char* titleGuc        = "Сообщение\0";
 const char* titleCoord      = "Получены\nкоодинаты\0";
 
+const char* startStr           = "Старт\0";
+
 const char* typeCondCmd     = "Выберите тип\0";
 const char* YesGucCoord     = "Есть\0";
 const char* NoGucCoord      = "Нет\0";
 const char* StartGucTx      = "Старт\0";
 const char* GucIndivid      = "Одному\0";
 const char* GucGroup        = "Всем\0";
-
+const char* Zond            = "12 000000 Гц\n12:34 ГУК\0";
+const char* Zond_label           = "Расписание";
 const char* atumalfunction_title_str = "Сбой АСУ";
 const char* atumalfunction_text_str = "Передача на текущей частоте ограничена";
 
