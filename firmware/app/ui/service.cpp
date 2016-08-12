@@ -343,12 +343,15 @@ void Service::setNotification(NotificationType type)
     switch(type)
     {
     case NotificationMissingVoiceChannelsTable:
-        guiTree.append(messangeWindow, missing_ch_table_txt[getLanguage()]);
+        msgBox(missing_ch_table_txt[getLanguage()]);
+    	guiTree.append(messangeWindow, missing_ch_table_txt[getLanguage()]);
         break;
     case NotificationMissingOpenVoiceChannels:
+        msgBox(missing_open_ch_txt[getLanguage()]);
         guiTree.append(messangeWindow, missing_open_ch_txt[getLanguage()]);
         break;
     case NotificationMismatchVoiceChannelsTable:
+        msgBox(ch_table_mismatch_txt[getLanguage()]);
         guiTree.append(messangeWindow, ch_table_mismatch_txt[getLanguage()]);
         break;
     default:
@@ -499,15 +502,15 @@ void Service::keyPressed(UI_Key key)
                     int freq = atoi(main_scr->nFreq.c_str());
                     voice_service->tuneFrequency(freq);
                 }
-                // ? пїЅпїЅпїЅ
+                // ? РїС—Р…РїС—Р…РїС—Р…
                 switch ( main_scr->mainWindowModeId )
                 {
                 case 0:
                 {}
-                    // пїЅпїЅпїЅ
+                    // РїС—Р…РїС—Р…РїС—Р…
                 case 1:
                 {}
-                    // пїЅпїЅпїЅ
+                    // РїС—Р…РїС—Р…РїС—Р…
                 case 2:
                 {}
                 default:
@@ -624,7 +627,7 @@ void Service::keyPressed(UI_Key key)
         }
         break;
     }
-        // ? пїЅ ? пїЅ? пїЅ? пїЅСЋ
+        // ? РїС—Р… ? РїС—Р…? РїС—Р…? РїС—Р…РЎР‹
     case menuWindow:
     {
         if ( key == keyEnter)
@@ -869,12 +872,12 @@ void Service::keyPressed(UI_Key key)
                         i++;
                     }
                     if (menu->condCmdModeSelect == 0)
-                        voice_service->TurnPSWFMode(1, param[0], 0,0); // групповой вызов
+                        voice_service->TurnPSWFMode(1, param[0], 0,0); // РіСЂСѓРїРїРѕРІРѕР№ РІС‹Р·РѕРІ
                     if (menu->condCmdModeSelect == 1)
-                        voice_service->TurnPSWFMode(1, param[0], param[2],param[1]); // индивидуальный вызов
+                        voice_service->TurnPSWFMode(1, param[0], param[2],param[1]); // РёРЅРґРёРІРёРґСѓР°Р»СЊРЅС‹Р№ РІС‹Р·РѕРІ
                     if (menu->condCmdModeSelect == 2){
                         param[2] +=32;
-                        voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
+                        voice_service->TurnPSWFMode(1,param[0],param[2],0); // СЃ РєРІРёС‚Р°РЅС†РёРµР№
                     }
 
 
@@ -1051,7 +1054,7 @@ void Service::keyPressed(UI_Key key)
                 }
                 if (menu->groupCondCommStage == 4)
                 {
-                    // ���������
+                    // прокрутка
                 }
                 break;
             }
@@ -1210,7 +1213,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 3:
-            {// ввод адреса олучатель
+            {// РІРІРѕРґ Р°РґСЂРµСЃР° РѕР»СѓС‡Р°С‚РµР»СЊ
                 if ( key > 5 && key < 16 && menu->voiceAddr.size() < 2 )
                 {
                     menu->voiceAddr.push_back((char)(42+key));
@@ -1245,7 +1248,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 4:
-            {// подтверждение
+            {// РїРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ
                 if (key == keyBack)
                 {
                     menu->putOffVoiceStatus--;
@@ -1267,7 +1270,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 5:
-            {// статус
+            {// СЃС‚Р°С‚СѓСЃ
                 if (key == keyBack)
                 {
                     menu->putOffVoiceStatus--;
@@ -1525,8 +1528,8 @@ void Service::keyPressed(UI_Key key)
                     guiTree.resetCurrentState();
 #else
                         voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
-                        // параметр ответа определяется по получению кадра на адрес 0x63
-                        // в первой стадии вызова
+                        // РїР°СЂР°РјРµС‚СЂ РѕС‚РІРµС‚Р° РѕРїСЂРµРґРµР»СЏРµС‚СЃСЏ РїРѕ РїРѕР»СѓС‡РµРЅРёСЋ РєР°РґСЂР° РЅР° Р°РґСЂРµСЃ 0x63
+                        // РІ РїРµСЂРІРѕР№ СЃС‚Р°РґРёРё РІС‹Р·РѕРІР°
                         // if (ContentSms.R_ADR > 32) pswf_ack = true;
 
 #endif
@@ -1648,7 +1651,7 @@ void Service::keyPressed(UI_Key key)
             }
             case 4:
             {
-                // выбрать канал воспроизведения
+                // РІС‹Р±СЂР°С‚СЊ РєР°РЅР°Р» РІРѕСЃРїСЂРѕРёР·РІРµРґРµРЅРёСЏ
                 if ( key > 5 && key < 16 && menu->channalNum.size() < 2 )
                 {
                     menu->channalNum.push_back((char)(42+key));
@@ -2042,7 +2045,7 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::editRnKey:
         {
-            // выбрать канал воспроизведения
+            // РІС‹Р±СЂР°С‚СЊ РєР°РЅР°Р» РІРѕСЃРїСЂРѕРёР·РІРµРґРµРЅРёСЏ
             if ( key > 5 && key < 16 && menu->RN_KEY.size() < 3 )
             {
                 menu->RN_KEY.push_back((char)(42+key));
@@ -2344,7 +2347,7 @@ void Service::drawMenu()
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
         //
-        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        // РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…РїС—Р…
         //        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
 
         for (auto &k: st.nextState)

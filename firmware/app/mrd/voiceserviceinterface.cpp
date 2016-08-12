@@ -86,7 +86,7 @@ voice_emission_t VoiceServiceInterface::getCurrentChannelEmissionType() {
 }
 
 voice_channel_t VoiceServiceInterface::getCurrentChannelType() {
-	if (current_channel_status == ChannelDisabled)
+	if (current_channel_status != ChannelActive)
 		return channelInvalid;
 	return (*(dispatcher->voice_channel)).type;
 }

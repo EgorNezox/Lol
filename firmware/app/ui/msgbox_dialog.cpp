@@ -33,6 +33,7 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
   text_area_params = GUI_EL_TEMP_CommonTextAreaLT;
   text_area_params.element.align = align;
   this->title.append( p_title );
+  text[0] = '\0';
 }
 
 GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
