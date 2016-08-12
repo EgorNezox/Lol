@@ -92,13 +92,21 @@ class GUI_EL_TextArea: public GUI_Element{
         GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj);
         void Draw();
         void SetText(char *text);
+        void ScrollUp();
+        void ScrollDown();
+        int32_t GetScrollIndex();
+        int32_t GetMaxScrollIndex();
+        int32_t SetScrollIndex(int32_t index);
     private:
         int32_t lines_count;
         GYT line_height;
         TextAreaParams params;
+        bool isScroll = false;
+        int32_t visLineBegin = 0;
+        int32_t visLinesCount = 0;
     protected:
         void CalcContentGeom();
-        char text[MAX_TEXT_AREA_LENGTH];
+        char text[300];
 };
 
 //-----------------------------

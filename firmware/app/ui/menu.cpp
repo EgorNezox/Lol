@@ -567,17 +567,31 @@ void CGuiMenu::inputGroupCondCmd( CEndState state )
     auto elem = state.listItem.back();
     auto newTime = std::chrono::steady_clock::now();
 
-    if ( ( newTime - ct ).count() < 900*(1000000) )
-    {
-        keyPressCount++;
-        if ( keyPressCount > 1 )
-            keyPressCount = 0;
+    static int8_t multiple = 1;
 
-        elem->inputStr.pop_back();
-        elem->inputStr.push_back(ch_key0[keyPressCount]);
+    if (( newTime - ct ).count() < 900*(1000000) )
+    {
+        multiple++;
+        if (multiple == 2)
+        {
+            keyPressCount++;
+            if ( keyPressCount > 1 )
+                keyPressCount = 0;
+            elem->inputStr.pop_back();
+            elem->inputStr.push_back(ch_key0[keyPressCount]);
+        }
+        if (multiple > 2)
+        {
+            multiple = 1;
+            keyPressCount++;
+            if ( keyPressCount > 1 )
+                keyPressCount = 0;
+            elem->inputStr.push_back(ch_key0[keyPressCount]);
+        }
     }
     else
     {
+        multiple = 1;
         keyPressCount = 0;
         elem->inputStr.push_back(ch_key0[keyPressCount]);
     }
@@ -873,6 +887,108 @@ void CGuiMenu::initEditRnKeyDialog()
     window.Draw();
     label.Draw();
     addr.Draw();
+}
+
+void CGuiMenu::initZondDialog(int size, int focusItem)
+{ 
+
+    MoonsGeometry addrArea    = { 7, 0, 140, 70 };
+    MoonsGeometry labelArea  = { 7, 5, 140, 70  };
+
+    static int32_t visElemsCount = (GEOM_H(windowArea) - 17) / GEOM_H(addrArea) + 1;
+    static int32_t visElemBegin = 0;
+    static int32_t visElemEnd = visElemBegin + visElemsCount;
+
+    int32_t localFocusItem = 0;
+
+    if (focusItem > visElemEnd)
+    {
+        localFocusItem = visElemsCount;
+        visElemBegin++;
+        visElemEnd = visElemBegin + visElemsCount;
+
+        if (visElemBegin + visElemsCount >= size)
+          visElemBegin = visElemBegin + visElemsCount - 1;
+    }
+    else if ((focusItem >= visElemBegin) && (focusItem <= visElemEnd))
+    {
+        localFocusItem =  focusItem - visElemBegin;
+    }
+  //  else if ((focusItem >= size )
+  //  {
+  //      localFocusItem =  focusItem - visElemBegin;
+  //  }
+    else if (focusItem < visElemBegin)
+    {
+        localFocusItem = 0;
+        visElemBegin--;
+        visElemEnd = visElemBegin + visElemsCount;
+
+        if (visElemBegin < 0)
+          visElemBegin = 0;
+        if (visElemEnd >= size)
+          visElemEnd = size;
+    }
+
+
+    LabelParams param = GUI_EL_TEMP_LabelText;
+    param.element.align = {alignLeft, alignTop};
+    param.transparent = true;
+
+    GUI_EL_Window   window( &GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this );
+
+    std::list<std::string> tlist;
+    tlist.push_back(std::string("Val1"));
+    tlist.push_back(std::string("V1"));
+    tlist.push_back(std::string("ГУК1"));
+    tlist.push_back(std::string(Zond));
+
+    GUI_EL_Label label( &titleParams, &labelArea, (char*)Zond_label, (GUI_Obj *)this);
+
+    window.Draw();
+    label.Draw();
+
+    for(int i = 0; i < size; i++){
+    MoonsGeometry itemArea;
+    if ((i >= visElemBegin) && (i <= visElemEnd))
+    {
+        itemArea =
+        {
+            (GXT)(addrArea.xs + MARGIN),
+            (GYT)(addrArea.ys + 17 + (i - visElemBegin)*(MARGIN + BUTTON_HEIGHT)),
+            (GXT)(addrArea.xe - MARGIN),
+            (GYT)(addrArea.ys + 14 + (i - visElemBegin + 1)*(MARGIN + BUTTON_HEIGHT))
+        };
+    }
+
+    if (i == focusItem)
+        {
+        gsetcolorb(GENERAL_BACK_COLOR);
+        gsetcolorf(GENERAL_FORE_COLOR);
+
+        gselvp(0);
+        gsetvp(0,0,159, 127);
+        groundrect(addrArea.xs + MARGIN,
+                   addrArea.ys + 17 + (i - visElemBegin)*(MARGIN + BUTTON_HEIGHT),
+                   addrArea.xe - MARGIN,
+                   addrArea.ys + 14 + (i - visElemBegin + 1)*(MARGIN + BUTTON_HEIGHT),
+                   0,
+                   GFRAME);
+        }
+
+    if ((i >= visElemBegin) && (i <= visElemEnd))
+    {
+        GUI_EL_TextArea addr( &param, &itemArea,(char*)Zond,(GUI_Obj *)this);
+        addr.Draw();
+    }
+
+    }
+
+    MoonsGeometry sliderArea  = { 150, 25, 157, 110};
+    SliderParams  sliderParams = {(int32_t)size, (int32_t)1, (int32_t)focusItem};
+    GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
+
+    slider.Draw();
 }
 
 void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
@@ -1215,6 +1331,9 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
 {
     std::string labelStr, valueStr;
 
+    static bool isCommand = false;
+    isCommand = false;
+
     switch( groupCondCommStage )
     {
     case 0: // use coordinate ?
@@ -1265,6 +1384,8 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
     }
     case 4: // set command
     {
+        isCommand = true;
+
         labelStr.append( callTitle[0] );
 
         auto iter = state.listItem.begin();
@@ -1294,6 +1415,10 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
 
                   titleArea = {  5,   5, 150,  20 };
     MoonsGeometry labelArea = {  5,  21, 150,  51 };
+    if (isCommand)
+    {
+        labelArea = {  5,  15, 150,  40 };
+    }
     MoonsGeometry valueArea = {  5,  52, 150,  85 };
 
     LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
@@ -1310,7 +1435,35 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
     GUI_EL_Label  value  ( &param[1],                  &valueArea,  (char*)valueStr.c_str(), (GUI_Obj*)this );
 
     window.Draw();
-    title.Draw();
     label.Draw();
-    value.Draw();
+    title.Draw();
+
+
+    if (isCommand)
+    {
+
+        std::string ccount = "";
+
+        ccount += (char)(48 + comCount / 10);
+        ccount += (char)(48 + comCount % 10);
+
+        MoonsGeometry titleCommandCountArea = { 0,  0, 25,  25 };
+        LabelParams paramCommandCount = GUI_EL_TEMP_LabelMode;
+
+        GUI_EL_Label titleCommandCount( &paramCommandCount, &titleCommandCountArea,(char*)ccount.c_str(), (GUI_Obj*)this );
+        titleCommandCount.Draw();
+
+        TextAreaParams params = GUI_EL_TEMP_LabelMode;
+        params.element={{0,0,0,0},{alignLeft, alignTop}};
+       // params.font = &Lucida_Console_8x12;
+
+        MoonsGeometry text_geom = {5, 40, 150, 120};
+
+        GUI_EL_TextArea value(&params, &text_geom, (char*)valueStr.c_str(), (GUI_Obj*)this);
+        scrollIndex = value.SetScrollIndex(scrollIndex);
+        scrollIndexMax = value.GetMaxScrollIndex();
+        value.Draw();
+    }
+    else
+        value.Draw();
 }

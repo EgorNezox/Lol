@@ -117,5 +117,9 @@ extern const char* NoGucCoord;
 extern const char* StartGucTx;
 extern const char* GucIndivid;
 extern const char* GucGroup;
+extern const char* Zond;
+extern const char* Zond_label;
+
+extern const char *zondSubMenu[];
 
 #endif /* TEXTS_H_ */

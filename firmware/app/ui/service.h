@@ -157,6 +157,15 @@ private:
     //
     std::vector<int> guc_command_vector;
     int position = 0;
+
+    uint8_t zondPosition = 0;
+    uint8_t zondCount = 10;
+
+    uint8_t comSymRunningCount = 0;
+    uint8_t commandCount = 0;
+    uint8_t commandCountMax = 99;
+
+    bool isComComplete = false;
 };
 
 } /* namespace Ui */

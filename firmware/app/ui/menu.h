@@ -84,6 +84,8 @@ public:
     int groupCondCommStage = 0;
     void inputGroupCondCmd(CEndState);
 
+    uint8_t comCount = 0;
+
     // put off voice
     std::string  channalNum;
     std::string  voiceAddr;
@@ -145,6 +147,12 @@ public:
     // RN_KEY
     std::string RN_KEY;
     void initEditRnKeyDialog();
+
+    //ZOND
+    std::map<int, std::string> sheldure;
+    void initZondDialog(int size, int focusItem);
+    int32_t scrollIndex = 0;
+    int32_t scrollIndexMax = 0;
 
 private:
     GUI_Obj obj;

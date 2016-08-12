@@ -1802,11 +1802,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: indicator %d", indicator);
         	}
             if (indicator == 30) {
-            	ContentGuc.R_ADR = ((data[2] & 0x1F) >> 3);
+                ContentGuc.R_ADR = ((data[2] & 0xF8) >> 3);
             	ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
                 isGpsGuc = data[5] & 0x1; // TODO: требуется проверить в реальных условиях
 
-                if (ContentGuc.stage == GucTxQuit){ recievedGucQuitForTransm(ContentGuc.R_ADR); ContentGuc.stage = GucNone;}
+                if (ContentGuc.stage == GucTxQuit){ ContentGuc.S_ADR = (data[2] & 0x1F);  recievedGucQuitForTransm(ContentGuc.S_ADR); ContentGuc.stage = GucNone;}
             	else{
             		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
             		std::vector<uint8_t> guc;

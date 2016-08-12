@@ -849,7 +849,47 @@ void Service::keyPressed(UI_Key key)
 
                     if ( (*iter)->inputStr.size() > 0 )
                     {
-                        (*iter)->inputStr.pop_back();
+                        static bool isDigit = false;
+                        bool isSpace = false;
+
+                        if ((*iter)->inputStr[(*iter)->inputStr.size()-1] == ch_key0[0])
+                        {
+                           (*iter)->inputStr.pop_back();
+                            isSpace = true;
+                        }
+
+                          if ((*iter)->inputStr[(*iter)->inputStr.size()-1] != ch_key0[0])
+                          { // *
+                            if ((*iter)->inputStr.size() > 1)
+                            {  // ?*
+                                if ((*iter)->inputStr[(*iter)->inputStr.size()-2] == ch_key0[0])
+                                { // _*
+                                    if (isDigit || isComComplete || isSpace || ( key > 5 && key < 17 && (comSymRunningCount == 1)) ){
+                                        commandCount--;
+                                        menu->comCount--;
+                                        isDigit = false;
+                                   }
+                                }
+                                else { // **
+                                   isDigit = true;
+                                   isComComplete = false;
+                                }
+                            }
+
+                            (*iter)->inputStr.pop_back();
+                            comSymRunningCount--;
+
+                            if (comSymRunningCount < 0)
+                              comSymRunningCount = 0;
+                          }
+
+                        if ((*iter)->inputStr.size() == 0){
+                            comSymRunningCount = 0;
+                            commandCount = 0;
+                            menu->comCount = 0;
+                        }
+                        menu->scrollIndex = menu->scrollIndexMax;
+
                     }
                     else
                     {
@@ -960,23 +1000,121 @@ void Service::keyPressed(UI_Key key)
                     (*iter)++; (*iter)++;
                     commands = &(*iter)->inputStr;
 
-                    if ( key > 5 && key < 17 && commands->size() < 100 )
+                    if ( key > 5 && key < 17 && commandCount < commandCountMax )
                     {
+                        isComComplete = false;
                         if ( key != key0 )
                         {
+                            int32_t size = commands->size();
+
+                            // clear spaces
+                            while ( (((*iter)->inputStr[size-1] == ch_key0[0]) && ((*iter)->inputStr[size-2] == ch_key0[0]))
+                                    ||
+                                    ((size == 1) && ((*iter)->inputStr[size-1] == ch_key0[0])))
+                            {
+                              commands->pop_back();
+                              size = commands->size();   
+                            }
+                            // end clear
+
                             commands->push_back( (char)(42 + key) );
+                            comSymRunningCount++;
+
+                            if (comSymRunningCount == 2 && (commandCount < commandCountMax))
+                            {
+                                commandCount++;
+                                commands->push_back(ch_key0[0]);
+                                comSymRunningCount = 0;
+                                isComComplete = true;
+                            }
                         }
                         else
-                        {
+                        { 
+
+                            bool change = false;
+                            int32_t sizePrev, size;
+
+                            sizePrev = (*iter)->inputStr.size();
                             menu->inputGroupCondCmd(estate);
+                            size = (*iter)->inputStr.size();
+
+                            if (size == sizePrev)
+                                change = true;
+
+                            char c, cPrev,cPrev2;
+                            cPrev = ' '; cPrev2 = ' ';
+                                               c = (*iter)->inputStr[size-1];
+                            if (size > 1)  cPrev = (*iter)->inputStr[size-2];
+                            if (size > 2) cPrev2 = (*iter)->inputStr[size-3];
+
+
+                            size = commands->size();
+                           while ( ((*iter)->inputStr[size-2] == ch_key0[0]) && ((*iter)->inputStr[size-3] == ch_key0[0]) && !change )
+                            {  // _ _ _
+                              commands->pop_back();
+                              commands->pop_back();
+                              size = commands->size();
+                            }
+
+                           size = commands->size();
+                           while ((size == 2) && ((*iter)->inputStr[size-2] == ch_key0[0])){
+                               commands->pop_back();
+                               size = commands->size();
+                           }
+
+                            if (c == ch_key0[1]){ // 0
+                                comSymRunningCount++;
+                                if ((cPrev == ch_key0[1]) && (cPrev2 != ch_key0[0])){
+                                    // *00
+                                    commands->pop_back();
+                                    commands->push_back(ch_key0[0]);
+                                    commands->push_back(ch_key0[1]);
+
+                                }
+                            }
+
+                            if ((c == ch_key0[0]) && (cPrev != ch_key0[0]) && (cPrev2 == ch_key0[0]) && (commandCount < commandCountMax)){
+                                // _*_
+                                commandCount++;
+                                comSymRunningCount = 0;
+                                isComComplete = true;
+                            }
+
+                            if ((c == ch_key0[1]) && (cPrev != ch_key0[0]) && (cPrev2 == ch_key0[0]) && (commandCount < commandCountMax)){
+                                // _*0
+                                comSymRunningCount--;
+                                commands->push_back(ch_key0[0]);
+                            }
+
+                            if ((comSymRunningCount == 2) && (commandCount < commandCountMax)){
+                                // **
+                                commandCount++;
+                                commands->push_back(ch_key0[0]);
+                                comSymRunningCount = 0;
+                                isComComplete = true;
+                            }
                         }
+
+                       menu->comCount = commandCount;
+                       menu->scrollIndex = menu->scrollIndexMax + 1;
                     }
+                    if (key == keyUp)
+                    {
+                       if (menu->scrollIndex > 0)
+                          menu->scrollIndex--;
+                    }
+                    if (key == keyDown)
+                    {
+                          menu->scrollIndex++;
+                    }
+
                 }
 
                 break;
             }
             }
             break;
+
         }
         case GuiWindowsSubType::txPutOffVoice:
         {
@@ -1881,6 +2019,26 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case  GuiWindowsSubType::zond:
+        {
+            //int position = 0;
+            if (key == keyUp)
+            {
+                if (zondPosition > 0)--zondPosition;
+                menu->initZondDialog(zondCount,zondPosition);
+            }
+            if (key == keyDown)
+            {
+                if (zondPosition < zondCount - 1) ++zondPosition;
+                menu->initZondDialog(zondCount,zondPosition);
+            }
+            if ( key == keyBack )
+            {
+                guiTree.backvard();
+                menu->focus = 5;
+                break;
+            }
+        }
         default:
             break;
         }
@@ -2241,6 +2399,11 @@ void Service::drawMenu()
         case GuiWindowsSubType::editRnKey:
         {
             menu->initEditRnKeyDialog();
+            break;
+        }
+        case GuiWindowsSubType::zond:
+        {
+            menu->initZondDialog(zondCount,zondPosition);
             break;
         }
         default:

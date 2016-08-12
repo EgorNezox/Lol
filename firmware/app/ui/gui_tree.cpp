@@ -36,6 +36,12 @@ void CGuiTree::init()
     sttSuppress.setName(settingsSubMenu[5]);
     sttWaitGuk.setName(settingsSubMenu[6]);
     sttEditRnKey.setName(settingsSubMenu[7]);
+    sttZond.setName(settingsSubMenu[9]);
+
+    //sttZond1.setName(zondSubMenu[0]);
+   // sttZond2.setName(zondSubMenu[1]);
+    //sttZond3.setName(zondSubMenu[2]);
+    //sttZond4.setName(zondSubMenu[3]);
 
     // 4.1.1 - 4.1.2
     sttConnParamGPS.setName(dateAndTimeSubMenu[0]); sttConnParamHand.setName(dateAndTimeSubMenu[1]);
@@ -220,6 +226,7 @@ void CGuiTree::init()
     settings.nextState.push_back(&sttScan);
     settings.nextState.push_back(&sttSound);
     settings.nextState.push_back(&sttSuppress);
+    settings.nextState.push_back(&sttZond);
     // 4.1 - Дата/время
     sttDateTime.prevState = &settings;
     sttDateTime.nextState.push_back(&sttConnParamGPS);
@@ -284,7 +291,29 @@ void CGuiTree::init()
     sttSuppress.subType = GuiWindowsSubType::suppress;
     sttSuppress.prevState = &settings;
     sttSuppress.nextState.clear();
+    // 4.7  - Конфигуратор
+    sttZond.subType     = GuiWindowsSubType::zond;
+    sttZond.prevState    = &settings;
+    sttZond.nextState.clear();
 
+   // sttZond.nextState.push_back(&sttZond1);
+   // sttZond.nextState.push_back(&sttZond2);
+  //  sttZond.nextState.push_back(&sttZond3);
+   // sttZond.nextState.push_back(&sttZond4);
+
+  //  sttZond1.prevState = &sttZond;
+  //  sttZond2.prevState = &sttZond;
+   // sttZond3.prevState = &sttZond;
+ //   sttZond4.prevState = &sttZond;
+  //  sttZond1.nextState.clear();
+   // sttZond2.nextState.clear();
+ //   sttZond3.nextState.clear();
+ //   sttZond4.nextState.clear();
+
+   // sttZond1.subType     = GuiWindowsSubType::zond;
+   // sttZond2.subType     = GuiWindowsSubType::zond;
+  //  sttZond3.subType     = GuiWindowsSubType::zond;
+  //  sttZond4.subType     = GuiWindowsSubType::zond;
     currentState = &MainWindow;
     statesStack.clear();
 }
