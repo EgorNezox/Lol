@@ -2749,6 +2749,10 @@ uint8_t* DspController::get_guc_vector()
         // записали в выходной массив преобразованные данные из битового массива по анологии с формирование пакета для CRC32 на передаче
         crc_coord_len = data.size() / 8;
         // получили длинну пакета
+
+        for(int i = 1;i<9; i++)  guc_text[num+i] = guc_text[i]; // после данных передадим координаты
+        for(int i = 0;i<num;i++) guc_text[i+1] = guc_text[9+i+1];
+
     }
 
     else
@@ -2756,7 +2760,8 @@ uint8_t* DspController::get_guc_vector()
     	std::vector<bool> data;
         for(int i = 0; i<num;i++) pack_manager->addBytetoBitsArray(guc_vector.at(0).at(7+i),data,7);
         for(int i = 0; i<count;i++) pack_manager->getArrayByteFromBit(data,out);
-
+        guc_text[0] = num;
+        for(int i = 0; i<num;i++) guc_text[i+1] = guc_vector.at(0).at(7+i);
 //        for(int i = 0;  i< count;i++){
 //            int sdvig  = (i+1) % 8;
 //            if (sdvig != 0)

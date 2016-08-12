@@ -1498,30 +1498,30 @@ void Service::keyPressed(UI_Key key)
             }
             if ( key == keyEnter)
             {
-                switch(menu->recvStage)
-                {
-                case 0:
-                {
-                    menu->recvStage = 1;
+//                switch(menu->recvStage)
+//                {
+//                case 0:
+//                {
+//                    menu->recvStage = 1;
 #ifndef PORT__PCSIMULATOR
                     voice_service->TurnSMSMode();
 #endif
-                    break;
-                }
-                case 1:
-                {
-                    //
-                    break;
-                }
-                case 2:
-                {
-                    menu->recvStage = 0;
+//                    break;
+//                }
+//                case 1:
+//                {
+//                    //
+//                    break;
+//                }
+//                case 2:
+//                {
+//                    menu->recvStage = 0;
                     guiTree.resetCurrentState();
-                    break;
-                }
-                default:
-                    break;
-                }
+//                    break;
+//                }
+//                default:
+//                    break;
+//                }
 
             }
             break;
