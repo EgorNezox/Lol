@@ -73,7 +73,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     this->multiradio_service->aleStateChanged.connect(sigc::mem_fun(this, &Service::updateAleState));
     this->multiradio_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &Service::updateAleVmProgress));
-    //this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::));
+    this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateHeadset));
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
 
@@ -2264,23 +2264,16 @@ void Service::drawMainWindow()
     switch (emission_type)
     {
     case Multiradio::voice_emission_t::voiceemissionFM:
-        str.append(mode_txt[0]);
+        str.append(ch_em_type_str[0]);
         break;
     case Multiradio::voice_emission_t::voiceemissionUSB:
-        str.append(mode_txt[1]);
+        str.append(ch_em_type_str[1]);
         break;
     default:
-        str.append(mode_txt[1]);//str.append((char*)"--\0");
+        str.append((char*)"--\0");
         break;
     }
-//    str.pop_back();
 
-//    if (this->multiradio_service->getVoiceMode() == Multiradio::MainServiceInterface::VoiceModeAuto)
-//        str.append(" A\0");
-//    else if (this->multiradio_service->getVoiceMode() == Multiradio::MainServiceInterface::VoiceModeManual)
-//        str.append(" M\0");
-//    else
-//        str.append(" -\0");
 
     main_scr->setModeText(str.c_str());
 

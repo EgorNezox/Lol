@@ -38,7 +38,7 @@ GUI_Dialog_MainScr::GUI_Dialog_MainScr(MoonsGeometry *area):GUI_Obj(area),
   mode_text    = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &mode_label_geom, NULL, (GUI_Obj*)this);
   freq         = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &freq_geom,       NULL, (GUI_Obj*)this);
 
-  mode_text->SetText((char*)"-- -\0");
+  mode_text->SetText((char*)"--\0");
 
   ch_num_label->SetText((char*)"--\0");
   cur_ch_invalid = false;
@@ -61,17 +61,16 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
 
   window->Draw();
 
-  ch_num_label->SetText("88з\0");
   ch_num_label->transparent = false;
   ch_num_label->Draw();
 
-//  if (cur_ch_invalid)
-//  {
-//      groundrect(2,30,52,31,0,GFRAME);
-//  }
+  if (cur_ch_invalid)
+  {
+      groundrect(2,30,52,31,0,GFRAME);
+  }
 
   mode_text->transparent = false;
-//  mode_text->Draw();
+  mode_text->Draw();
 
   freq->transparent = true; // todo : поменял значение
   if (focus == 1){ freq->transparent = false; }
@@ -99,9 +98,7 @@ void GUI_Dialog_MainScr::updateChannel( Multiradio::VoiceServiceInterface::Chann
           ch_num_label->SetText(ch_str);
           break;
       case Multiradio::VoiceServiceInterface::ChannelDisabled:
-          //ch_num_label->SetText(disabled_ch_txt);
-          prepChString(ch_str, ch_num, channel_type);
-          ch_num_label->SetText(ch_str);
+          ch_num_label->SetText(disabled_ch_txt);
           break;
       default:
           QM_ASSERT(0);
