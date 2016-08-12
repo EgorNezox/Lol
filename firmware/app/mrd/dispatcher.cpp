@@ -221,7 +221,8 @@ bool Dispatcher::changeVoiceChannel(int number, voice_channel_t type) {
 
 void Dispatcher::updateVoiceChannel() {
 	setVoiceChannel();
-	if (main_service->current_status == MainServiceInterface::StatusIdle) {
+	if ((main_service->current_status == MainServiceInterface::StatusNotReady)
+			|| (main_service->current_status == MainServiceInterface::StatusIdle)) {
 		bool ptt_state = false;
 		headset_controller->getPTTState(ptt_state);
 		setVoiceDirection(ptt_state);

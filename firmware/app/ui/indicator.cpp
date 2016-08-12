@@ -97,7 +97,7 @@ void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
             ind_headset->icon = sym_headphones_analog;
             break;
         case Headset::Controller::StatusSmartOk:
-            ind_headset->icon = sym_headphones_smart;
+            ind_headset->icon = sym_headphones_analog;
             break;
         case Headset::Controller::StatusSmartMalfunction:
             ind_headset->icon = sym_headphones_broken;

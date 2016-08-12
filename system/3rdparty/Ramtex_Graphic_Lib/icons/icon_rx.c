@@ -16,7 +16,7 @@
 static struct
 {
 	GCSYMHEAD sh;
-    SGUCHAR b[2*24*24];
+	SGUCHAR b[2*24*24];
 } GCODE icon_rx[1] =
 {
 	#include "icon_rx.sym"
