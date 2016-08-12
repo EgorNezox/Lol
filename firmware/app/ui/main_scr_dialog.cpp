@@ -63,6 +63,7 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
   window->Draw();
 
   //ch_num_label->transparent = false;
+
   ch_num_label->Draw();
 
   if (cur_ch_invalid)
@@ -71,7 +72,8 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
   }
 
   //mode_text->transparent = false;
-  mode_text->Draw();
+  if (valid_freq)
+    mode_text->Draw();
 
   freq->transparent = true; // todo : поменял значение
   if (focus == 1){ freq->transparent = false; }
