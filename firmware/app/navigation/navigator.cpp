@@ -50,18 +50,6 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 //	QM_UNUSED(reset_iopin_resource);
 //#endif /* PORT__TARGET_DEVICE_REV1 */
 
-    for(int i = 0;i<11;i++){
-      CoordDate.longitude[i] = 0;
-      CoordDate.latitude[i] = 0;
-    }
-
-    CoordDate.longitude[11] = 0;
-
-    for(int i = 0;i<10;i++){
-        CoordDate.data[i] = 0;
-        CoordDate.time[i] = 0;
-    }
-
 	setMinimalActivityMode(false);
 
     config_timer = new QmTimer(true, this);
@@ -260,6 +248,15 @@ void Navigator::setMinimalActivityMode(bool enabled) {
 		uart->readData(0, uart->getRxDataAvailable()); // flush received chunks
 		sync_pulse_iopin->setInputTriggerMode(QmIopin::InputTrigger_Disabled);
 	} else {
+	    for(int i = 0;i<11;i++){
+	      CoordDate.longitude[i] = 0;
+	      CoordDate.latitude[i] = 0;
+	    }
+	    CoordDate.longitude[11] = 0;
+	    for(int i = 0;i<10;i++){
+	        CoordDate.data[i] = 0;
+	        CoordDate.time[i] = 0;
+	    }
 		uart->open();
 		sync_pulse_iopin->setInputTriggerMode(QmIopin::InputTrigger_Rising, QmIopin::TriggerOnce);
 	}

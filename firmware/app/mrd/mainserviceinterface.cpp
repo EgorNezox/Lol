@@ -742,6 +742,7 @@ void MainServiceInterface::proceedRxScanning() {
 	ale.timerRadioReady->start();
 	setAlePhase(ALE_RX_SETUP);
 	setAleState(AleState_RX_SCANNING);
+	dispatcher->navigator->setMinimalActivityMode(false);
 }
 
 void MainServiceInterface::proceedTxCalling() {
@@ -755,6 +756,7 @@ void MainServiceInterface::proceedTxCalling() {
 	if (ale.supercycle <= 3) {
 		setAlePhase(ALE_TX_CYCLE_CALL);
 		setAleState(AleState_TX_CALLING);
+		dispatcher->navigator->setMinimalActivityMode(false);
 	} else {
 		setAleState(AleState_TX_CALL_FAIL);
 		stopAleSession();
@@ -1237,6 +1239,8 @@ void MainServiceInterface::aleprocessTimerDataStartExpired() {
 }
 
 void MainServiceInterface::aleprocessTimerGnssSyncExpired() {
+	if ((ale.phase != ALE_TX_CYCLE_CALL) && (ale.phase != ALE_RX_SCAN))
+		return;
 	setAleState(AleState_FAIL_GNSS);
 	stopAleSession();
 }
