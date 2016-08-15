@@ -40,12 +40,10 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 	uart = new QmUart(uart_resource, &uart_config, this);
 	uart->dataReceived.connect(sigc::mem_fun(this, &Navigator::processUartReceivedData));
 	uart->rxError.connect(sigc::mem_fun(this, &Navigator::processUartReceivedErrors));
-	uart->open();
 	reset_iopin->writeOutput(QmIopin::Level_High);
 	ant_flag_iopin = new QmIopin(ant_flag_iopin_resource, this);
 	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 	sync_pulse_iopin = new QmIopin(sync_pulse_iopin_resource, this);
-	sync_pulse_iopin->setInputTriggerMode(QmIopin::InputTrigger_Rising, QmIopin::TriggerOnce);
 	sync_pulse_iopin->inputTriggerOnce.connect(sigc::mem_fun(this, &Navigator::processSyncPulse));
 //#else
 //	QM_UNUSED(uart_resource);
@@ -63,6 +61,8 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
         CoordDate.data[i] = 0;
         CoordDate.time[i] = 0;
     }
+
+	setMinimalActivityMode(false);
 
     config_timer = new QmTimer(true, this);
     config_timer->timeout.connect(sigc::mem_fun(this, &Navigator::processConfig));
@@ -253,6 +253,17 @@ void Navigator::processSyncPulse(bool overflow) {
 	syncPulse();
 }
 
+void Navigator::setMinimalActivityMode(bool enabled) {
+	minimal_activity_mode = enabled;
+	if (enabled) {
+		uart->close();
+		uart->readData(0, uart->getRxDataAvailable()); // flush received chunks
+		sync_pulse_iopin->setInputTriggerMode(QmIopin::InputTrigger_Disabled);
+	} else {
+		uart->open();
+		sync_pulse_iopin->setInputTriggerMode(QmIopin::InputTrigger_Rising, QmIopin::TriggerOnce);
+	}
+}
 
 } /* namespace Navigation */
 

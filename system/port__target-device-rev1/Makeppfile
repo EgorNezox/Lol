@@ -18,8 +18,10 @@ DEFINES_system += "HSI_VALUE=((uint32_t)16000000)" # internal oscillator
 DEFINES_system += "HSE_VALUE=((uint32_t)26000000)" # 26 MHz clock generator
 
 # Ramtex graphic library port (SEPS525 controller)
-SOURCES_system += \
+SOURCES_ramtex_port += \
 	$(wildcard port_ramtex_s6d0129_cfg_stm32f2/**/*.c)
+$(sources_to_objects $(SOURCES_ramtex_port)): C_EXTRA_FLAGS += -O2
+SOURCES_system += $(SOURCES_ramtex_port)
 INCLUDEPATH_system += \
 	port_ramtex_s6d0129_cfg_stm32f2/ccfg0129 \
 	port_ramtex_s6d0129_cfg_stm32f2/cfgio \

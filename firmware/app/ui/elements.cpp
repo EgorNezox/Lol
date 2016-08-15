@@ -112,11 +112,18 @@ void GUI_Element::AlignContent(){	//В зависимости от типа вы
 //+++++++++++++Label+++++++++++++++++++++
 
 GUI_EL_Label::GUI_EL_Label(LabelParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj):GUI_Element(geom, &params->element.align, &params->element.margins, parent_obj){
+	skip_text_bg_filling = false;
 	font=params->font;
 	transparent=params->transparent;
 	color_sch=params->color_sch;
 	SetText(text);
 	if(text!=0)PrepareContent();
+}
+
+//-----------------------------
+
+void GUI_EL_Label::setSkipTextBackgronundFilling(bool enabled){
+    skip_text_bg_filling = enabled;
 }
 
 //-----------------------------
@@ -142,14 +149,19 @@ void GUI_EL_Label::Draw(){
 		gselfont(font);
 		gsetcolorb(color_sch.background);
 		gsetcolorf(color_sch.foreground);
+		SGUCHAR skipflags;
 		if(!transparent){
 			gsetmode(COMMON_ELEMENT_VP_MODE);
-            groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,GLINE);
+			skipflags = GLINE;
 		}
 		else {
             gsetmode(COMMON_ELEMENT_VP_MODE | GTRANSPERANT);
-            groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,GFILL);
+			skipflags = GFILL;
 		}
+		if (!skip_text_bg_filling)
+			groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,skipflags);
+		else
+			gsetmode(COMMON_ELEMENT_VP_MODE);
 		gsetpos(content.x, CONTENT_YE(content));
 		gputs(text.c_str());
 		if(transparent){

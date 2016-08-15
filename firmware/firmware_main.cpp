@@ -35,6 +35,8 @@ void qmMain() {
 			platformhwPowerOffIntIopin, platformhwPowerSourceIopin);
 #endif /* PORT__TARGET_DEVICE_REV1 */
 
+	Power::Battery power_battery(platformhwBatterySmbusI2c);
+
 	Multiradio::voice_channels_table_t mr_channels_table;
 	DataStorage::FS data_storage_fs(platformhwDataFlashSpi);
 	QmIopin enrxrs232_iopin(platformhwEnRxRs232Iopin);
@@ -44,13 +46,11 @@ void qmMain() {
     Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin,
     		platformhwNavigatorAntFlagIopin, platformhwNavigator1PPSIopin);
 	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,
-            &headset_controller, &navigator, &data_storage_fs);
+            &headset_controller, &navigator, &data_storage_fs, &power_battery);
 #else
     Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,
-            &headset_controller, 0, 0);
+            &headset_controller, 0, &data_storage_fs, &power_battery);
 #endif
-
-	Power::Battery power_battery(platformhwBatterySmbusI2c);
 
 	Ui::matrix_keyboard_t ui_matrixkb_desc;
 	Ui::aux_keyboard_t ui_auxkb_desc;

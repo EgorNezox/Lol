@@ -589,7 +589,7 @@ void CGuiMenu::initTxPutOffVoiceDialog(int status)
 {
     MoonsGeometry titleArea  = { 7,  6, 147,  20 };
     MoonsGeometry labelArea  = { 7, 21, 147,  35 };
-    MoonsGeometry fieldArea  = { 7, 36, 147, 125 };
+    MoonsGeometry fieldArea  = { 30, 35, 107, 110 };
 
     LabelParams param;
 
@@ -686,16 +686,17 @@ void CGuiMenu::initTxPutOffVoiceDialog(int status)
         std::string str; str.append(aleStateStr[status]);
         if (status == 13)
         {
-            char ch[4];
-            sprintf(ch, "%d", vmProgress);
-            if (vmProgress != 100) ch[2] = '\0'; ch[3] = '\0';
-            str.append(" ");
-            str.append(ch);
-            str.push_back('%');
+        	char ch[100];
+        	sprintf(ch, "%3d%%       \n            \n            \n", vmProgress);
+        	str.append(ch);
         }
 
         GUI_EL_Label label( &titleParams, &labelArea, (char*)"",          (GUI_Obj *)this);
         GUI_EL_Label field( &param,       &fieldArea, (char*)str.c_str(), (GUI_Obj *)this);
+        if (status != 0) {
+        	label.setSkipTextBackgronundFilling(true);
+        	field.setSkipTextBackgronundFilling(true);
+        }
 
         label.Draw();
         field.Draw();
@@ -711,7 +712,7 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
 {
     MoonsGeometry title_geom  = { 5,  5, 150,  19 };
     MoonsGeometry label_geom  = { 5, 20, 150,  34 };
-    MoonsGeometry field_geom  = { 7, 35, 147, 110 };
+    MoonsGeometry field_geom  = { 30, 35, 107, 110 };
 
     LabelParams label_param = GUI_EL_TEMP_CommonTextAreaLT;
     label_param.element.align = {alignHCenter, alignTop};
@@ -739,22 +740,23 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
     case 2:
     {
         LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignLeft, alignVCenter};
+        param.element.align = {alignLeft, alignTop};
         param.transparent = true;
 
         std::string str; str.append(aleStateStr[status]);
         if (status == 9)
         {
-            char ch[4];
-            sprintf(ch, "%d", vmProgress);
-            if (vmProgress != 100) ch[2] = '\0'; ch[3] = '\0';
-            str.append(" ");
-            str.append(ch);
-            str.push_back('%');
+        	char ch[100];
+        	sprintf(ch, "%3d%%       \n            \n            \n", vmProgress);
+        	str.append(ch);
         }
 
         GUI_EL_Label label( &label_param, &label_geom, (char*)"", (GUI_Obj *)this);
         GUI_EL_Label field( &param,       &field_geom, (char*)str.c_str(),      (GUI_Obj *)this);
+        if (status != 0) {
+        	label.setSkipTextBackgronundFilling(true);
+        	field.setSkipTextBackgronundFilling(true);
+        }
 
         label.Draw();
         field.Draw();

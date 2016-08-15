@@ -32,6 +32,8 @@ public:
 	Status getStatus();
 	int getChargeLevel();
 
+	void setMinimalActivityMode(bool enabled);
+
 	sigc::signal<void, Status/*new_status*/> statusChanged;
 	sigc::signal<void, int/*new_level*/> chargeLevelChanged;
 

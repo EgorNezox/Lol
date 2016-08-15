@@ -1134,6 +1134,7 @@ void Service::keyPressed(UI_Key key)
 #else
                 if (key == keyEnter)
                 {
+                	updateAleState(Multiradio::MainServiceInterface::AleState_IDLE);
                     multiradio_service->startAleTxVoiceMail((uint8_t)atoi(menu->voiceAddr.c_str()));
                     menu->putOffVoiceStatus++;
                 }
@@ -1465,6 +1466,7 @@ void Service::keyPressed(UI_Key key)
                 if (key == keyEnter)
                 {
 #ifndef _DEBUG_
+                	updateAleState(Multiradio::MainServiceInterface::AleState_IDLE);
                     multiradio_service->startAleRx();
 #endif
                     menu->putOffVoiceStatus++;

@@ -66,12 +66,14 @@ class GUI_EL_Label: public GUI_Element{
 	public:
 		void Draw();
 		GUI_EL_Label(LabelParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj);
+		void setSkipTextBackgronundFilling(bool enabled);
 		void SetText(char *text);
         bool transparent;
 	private:
 
 		PGFONT font;
 		ColorScheme color_sch;
+		bool skip_text_bg_filling;
 	protected:
 		void CalcContentGeom();
         std::string text;

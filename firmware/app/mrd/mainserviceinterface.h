@@ -134,7 +134,7 @@ private:
 
 
 
-	MainServiceInterface(Dispatcher *dispatcher, Navigation::Navigator *navigator);
+	MainServiceInterface(Dispatcher *dispatcher);
 	~MainServiceInterface();
 	void setStatus(Status value);
 	void forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
@@ -224,10 +224,7 @@ private:
 	void aleprocessPacketRoffHshakeTExpired();
 
 	Status current_status;
-	DataStorage::FS *data_storage_fs;
-	DspController *dsp_controller;
-	Navigation::Navigator *navigator;
-	Headset::Controller *headset_controller;
+	Dispatcher *dispatcher;
 	struct {
 		AleFunctionalState f_state;
 		AleState state;

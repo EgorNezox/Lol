@@ -15,4 +15,6 @@ INCLUDEPATH_system += \
 SOURCES_system += \
 	$(wildcard **/*.c)
 
+$(sources_to_objects $(SOURCES_system)): C_EXTRA_FLAGS += -O2
+
 include misc/target_build_footer.mk
