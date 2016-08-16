@@ -42,6 +42,8 @@ public:
 	void acknowledgeTxRequest();
 	void setRadioPowerOff(bool enable);
 
+	void setMinimalActivityMode(bool enabled);
+
 	sigc::signal<void, Mode/*new_mode*/> modeChanged;
 	sigc::signal<void, bool/*enable*/> requestTx;
 
@@ -109,6 +111,8 @@ private:
 		bool active;
 		uint32_t frequency;
 	} deferred_tunetx;
+
+	bool minimal_activity_mode;
 };
 
 } /* namespace Multiradio */

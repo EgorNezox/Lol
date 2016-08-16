@@ -27,12 +27,15 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 						int atu_iopin_resource,
                         Headset::Controller *headset_controller,
                         Navigation::Navigator *navigator,
-						DataStorage::FS *data_storage_fs
+						DataStorage::FS *data_storage_fs,
+						Power::Battery *power_battery
                         ) :
                         QmObject(0),
                         headset_controller(headset_controller),
+						navigator(navigator),
                         voice_channel(voice_channels_table.end()),
-						data_storage_fs(data_storage_fs)
+						data_storage_fs(data_storage_fs),
+						power_battery(power_battery)
 {
 	headset_controller->statusChanged.connect(sigc::mem_fun(this, &Dispatcher::setupVoiceMode));
 	headset_controller->pttStateChanged.connect(sigc::mem_fun(this, &Dispatcher::processHeadsetPttStateChange));
@@ -43,7 +46,7 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 	atu_controller = new AtuController(atu_uart_resource, atu_iopin_resource, this);
 	atu_controller->modeChanged.connect(sigc::mem_fun(this, &Dispatcher::processAtuModeChange));
 	atu_controller->requestTx.connect(sigc::mem_fun(this, &Dispatcher::processAtuRequestTx));
-	main_service = new MainServiceInterface(this, navigator);
+	main_service = new MainServiceInterface(this);
 	voice_service = new VoiceServiceInterface(this);
 
 }

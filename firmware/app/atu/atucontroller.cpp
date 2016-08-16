@@ -25,7 +25,8 @@ namespace Multiradio {
 
 AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *parent) :
 	QmObject(parent),
-	mode(modeNone), tx_tuning_state(false), antenna(1)
+	mode(modeNone), tx_tuning_state(false), antenna(1),
+	minimal_activity_mode(false)
 {
 	command.id = commandInactive;
 	command.data_buf = new uint8_t[MAX_FRAME_DATA_SIZE];
@@ -40,7 +41,7 @@ AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *pa
 	uart_config.flow_control = QmUart::FlowControl_None;
 	uart_config.rx_buffer_size = 512;
 	uart_config.tx_buffer_size = 512;
-	uart_config.io_pending_interval = 0;
+	uart_config.io_pending_interval = 1;
 	uart = new QmUart(uart_resource, &uart_config, this);
 	uart->dataReceived.connect(sigc::mem_fun(this, &AtuController::processUartReceivedData));
 	scan_timer = new QmTimer(false, this);
@@ -115,6 +116,19 @@ void AtuController::acknowledgeTxRequest() {
 void AtuController::setRadioPowerOff(bool enable) {
 	poff_iopin->writeOutput(enable ? QmIopin::Level_High : QmIopin::Level_Low);
 	QmThread::msleep(10);
+}
+
+void AtuController::setMinimalActivityMode(bool enabled) {
+	minimal_activity_mode = enabled;
+	if (enabled) {
+		scan_timer->stop();
+		command_timeout_timer->stop();
+		uart->close();
+		mode = modeNone;
+	} else {
+		uart->open();
+		scan_timer->start();
+	}
 }
 
 void AtuController::setMode(Mode mode) {

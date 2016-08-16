@@ -104,4 +104,12 @@ void Battery::processDataTransferCompleted(QmI2CDevice::TransferResult result) {
 	state = StateNone;
 }
 
+void Battery::setMinimalActivityMode(bool enabled) {
+	if (enabled) {
+		poll_timer->stop();
+	} else {
+		poll_timer->start();
+	}
+}
+
 } /* namespace Power */

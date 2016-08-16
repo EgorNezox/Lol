@@ -37,6 +37,8 @@ public:
 	sigc::signal<void> syncPulse;
 	Coord_Date getCoordDate();
 
+	void setMinimalActivityMode(bool enabled);
+
 	int Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
      int Calc_LCODE_RETR(int RP_ADR,int R_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC);
      int Calc_LCODE_SMS(int R_ADR, int S_ADR, int WZN, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
@@ -58,6 +60,8 @@ private:
 	QmIopin *sync_pulse_iopin;
 	QmUart *uart;
 	QmTimer *config_timer;
+
+	bool minimal_activity_mode;
 };
 
 } /* namespace Navigation */
