@@ -310,6 +310,8 @@ void CGuiMenu::initSuppressDialog()
     char str[3];
     sprintf(str,"%d",inclStatus);
     str[2] = '\0';
+    if (atoi(str) == 0) volume->SetText((char*)useScanMenu[1]);
+    else
     volume->SetText((char *)str);
 
     // title
