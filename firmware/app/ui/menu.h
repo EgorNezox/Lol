@@ -139,7 +139,7 @@ public:
     bool scanStatus = true;
 
     // supress
-    bool supressStatus = true;
+    uint8_t supressStatus = 0;
 
     // date, time, speed
     std::string localDate, localTime, speed;

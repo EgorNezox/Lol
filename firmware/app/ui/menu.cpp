@@ -302,6 +302,36 @@ void CGuiMenu::initIncludeDialog()
     delete volume;
 }
 
+void CGuiMenu::initSuppressDialog()
+{
+    MoonsGeometry volume_geom  = {  10,  45,  95,  70 };
+    GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom,  NULL, (GUI_Obj*)this);
+
+    char str[3];
+    sprintf(str,"%d",inclStatus);
+    str[2] = '\0';
+    volume->SetText((char *)str);
+
+    // title
+    titleArea = {(GXT)(windowArea.xs + MARGIN),
+                 (GYT)(windowArea.ys + MARGIN),
+                 (GXT)(windowArea.xe - MARGIN),
+                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
+                };
+
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
+    GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
+
+    window.Draw();
+    title.Draw();
+    volume->Draw();
+
+    delete volume;
+}
+
+
+
+
 void CGuiMenu::initGpsCoordinateDialog(std::string coord_lat, std::string coord_log)
 {
     MoonsGeometry volume_geom[2];

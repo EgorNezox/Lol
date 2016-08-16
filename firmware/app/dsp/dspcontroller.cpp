@@ -1808,7 +1808,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             recGuc();
         	else
         	{
-        		radio_state = radiostateSync;
+                initResetState();
         	}
 
         }

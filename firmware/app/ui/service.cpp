@@ -118,6 +118,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
         zond_data.push_back(s);
     }
 
+    menu->supressStatus = 0;
+
 }
 
 
@@ -1722,13 +1724,24 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyRight || key == keyLeft )
             {
-                menu->supressStatus = menu->supressStatus ? false : true;
-                menu->inclStatus = menu->inclStatus ? false : true;
+
+                if (menu->supressStatus <= 24 && key == keyRight)
+                    ++menu->supressStatus;
+                if (menu->supressStatus >= 6 && key == keyLeft)
+                    --menu->supressStatus;
+                if (menu->supressStatus > 24 || menu->supressStatus <6)
+                    menu->supressStatus = 6;
 
                 int value = 0;
-                if (menu->supressStatus == false) value =  12;
+                value =  menu->supressStatus;
                 voice_service->tuneSquelch(value);
             }
+            if (key == keyDown)
+            {
+                menu->supressStatus = 0;
+                voice_service->tuneSquelch(menu->supressStatus);
+            }
+
             if ( key == keyBack)
             {
                 guiTree.backvard();
@@ -2471,7 +2484,7 @@ void Service::drawMenu()
         case GuiWindowsSubType::suppress:
         {
             menu->inclStatus = menu->supressStatus;
-            menu->initIncludeDialog();
+            menu->initSuppressDialog();
             break;
         }
         case GuiWindowsSubType::aruarmaus:
