@@ -2678,6 +2678,7 @@ void Service::smsMessage()
     for(int i = 0; i<50;++i) sym[i] = '0';
 
     memcpy(sym, voice_service->getSmsContent(), 50);
+    for(int i = 1; i<5;i++) { sym[i*10]  == '\n'; }
     sym[49] = '\0';
 
     guiTree.append(messangeWindow, "Recieved SMS ", sym);
