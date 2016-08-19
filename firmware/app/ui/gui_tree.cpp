@@ -296,24 +296,6 @@ void CGuiTree::init()
     sttZond.prevState    = &settings;
     sttZond.nextState.clear();
 
-   // sttZond.nextState.push_back(&sttZond1);
-   // sttZond.nextState.push_back(&sttZond2);
-  //  sttZond.nextState.push_back(&sttZond3);
-   // sttZond.nextState.push_back(&sttZond4);
-
-  //  sttZond1.prevState = &sttZond;
-  //  sttZond2.prevState = &sttZond;
-   // sttZond3.prevState = &sttZond;
- //   sttZond4.prevState = &sttZond;
-  //  sttZond1.nextState.clear();
-   // sttZond2.nextState.clear();
- //   sttZond3.nextState.clear();
- //   sttZond4.nextState.clear();
-
-   // sttZond1.subType     = GuiWindowsSubType::zond;
-   // sttZond2.subType     = GuiWindowsSubType::zond;
-  //  sttZond3.subType     = GuiWindowsSubType::zond;
-  //  sttZond4.subType     = GuiWindowsSubType::zond;
     currentState = &MainWindow;
     statesStack.clear();
 }

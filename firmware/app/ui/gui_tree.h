@@ -17,7 +17,7 @@ enum GuiWindowTypes
     messangeWindow,\
     menuWindow,
     endMenuWindow,\
-    dialogWindow
+    dialogWindow,
 };
 
 enum GuiWindowsSubType

@@ -56,7 +56,7 @@ public:
     void defaultSMSTrans();
     void rerror();
     void messageGucQuit(int ans);
-	void getSmsForUiStage(int value);
+    void getSmsForUiStage(int value);
     void gucCrcFail();
     void gucCoordRec();
 

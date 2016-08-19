@@ -126,9 +126,12 @@ private:
     int getLanguage();
 
     void GucCoord();
+    void SmsStage(int value);
 
     void FirstPacketPSWFRecieved(int packet);
     void smsMessage();
+
+    void drawMessage();
 
     void drawMainWindow();
 
@@ -165,7 +168,9 @@ private:
     uint8_t commandCount = 0;
     uint8_t commandCountMax = 99;
 
+    bool isDeletedDigit = false;
     bool isComComplete = false;
+    bool isMessage = true;
 };
 
 } /* namespace Ui */

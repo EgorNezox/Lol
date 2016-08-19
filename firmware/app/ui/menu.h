@@ -23,6 +23,7 @@
 extern MoonsGeometry ui_common_dialog_area;
 extern MoonsGeometry ui_indicator_area;
 
+void ValueToStr(int32_t value, char *str);
 
 class CGuiDialog: public GUI_Obj
 {
@@ -52,12 +53,14 @@ public:
     void initVolumeDialog();
     void initScanDialog();
     void initAruarmDialog();
+    void initWaitGukDialog();
     void initIncludeDialog();
     void initSuppressDialog();
     void initTwoStateDialog();
     void initGpsCoordinateDialog(std::string, std::string);
     void initSetParametersDialog(std::string);
     void initSetDateOrTimeDialog(std::string);
+    void initSmsStageDialog(std::string);
 
     void setTitle(const char*);
     void keyPressed(UI_Key);
@@ -85,6 +88,7 @@ public:
     void inputGroupCondCmd(CEndState);
 
     uint8_t comCount = 0;
+    uint8_t symCount = 0;
 
     // put off voice
     std::string  channalNum;
@@ -151,9 +155,19 @@ public:
     //ZOND
     std::map<int, std::string> sheldure;
     void initZondDialog(int size, int focusItem);
+
     int32_t scrollIndex = 0;
     int32_t scrollIndexMax = 0;
 
+    bool isKeyCom = true;
+
+    int32_t pin_focus = 0;
+    int32_t pin_value[4] = {-1, -1, -1, -1};
+
+    //char *gucTime[] = {"_","_", ":" ,"_","_"};
+    char *gucTime = "__:__";
+
+    bool isSendStart = false;
 private:
     GUI_Obj obj;
     MoonsGeometry menuArea;

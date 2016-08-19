@@ -51,12 +51,7 @@ public:
     bool isEditing(){ if(editing) return true; else return false; }
     bool editing;
     std::string nFreq, oFreq;
-<<<<<<< Updated upstream
-=======
-
     void returnFreqStatus(bool(*f)(int)){  f(freq->transparent);}
-
->>>>>>> Stashed changes
 private:
     GUI_EL_Window *window;
     GUI_EL_Label *ch_num_label;

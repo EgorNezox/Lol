@@ -97,6 +97,7 @@ extern const char* voiceRxStr[];
 extern const char* voiceRxTxLabelStr[];
 extern const char* condCommStr[];
 extern const char* condCommSendStr;
+extern const char* condCommSendStartStr;
 extern const char* ticketStr[];
 extern const char* voicePostTitleStr[];
 
@@ -119,6 +120,8 @@ extern const char* GucIndivid;
 extern const char* GucGroup;
 extern const char* Zond;
 extern const char* Zond_label;
+
+extern const char *smsDataInformDx[];
 
 extern const char *zondSubMenu[];
 
