@@ -891,11 +891,14 @@ void Service::keyPressed(UI_Key key)
                     for(auto &k: estate.listItem)
                         k->inputStr.clear();
 
+                    redrawMessage(callSubMenu[0],StartCmd);
+
 #else
                     menu->txCondCmdStage = 0;
                     guiTree.resetCurrentState();
                     for(auto &k: estate.listItem)
                         k->inputStr.clear();
+
 #endif
                 }
                 break;
@@ -997,7 +1000,7 @@ void Service::keyPressed(UI_Key key)
                     if ( (*iter)->inputStr.size() > 0 )
                     {
                         static bool isDigit = false;
-                        bool isSpace = false;                        
+                        bool isSpace = false;
 
                         if ((*iter)->inputStr[(*iter)->inputStr.size()-1] == ch_key0[0])
                         {
@@ -1020,15 +1023,15 @@ void Service::keyPressed(UI_Key key)
                                 else { // **
                                    isDigit = true;
                                    isComComplete = false;
-                                   isDeletedDigit = true;
+                                   //isDeletedDigit = true;
                                    //comSymRunningCount = 2; // дальше умешьшается до необходимого
                                 }
                             }
 
                             (*iter)->inputStr.pop_back();
                             comSymRunningCount--;
-                            if (isDeletedDigit)
-                                comSymRunningCount = 1;
+                            //if (isDeletedDigit)
+                            //    comSymRunningCount = 1;
 
                             if (comSymRunningCount < 0)
                               comSymRunningCount = 0;
@@ -1056,7 +1059,7 @@ void Service::keyPressed(UI_Key key)
                       menu->groupCondCommStage = 0;}
                 else
                 {
-                    menu->groupCondCommStage--;                    
+                    menu->groupCondCommStage--;
                    // commandCount = 0;
                    // menu->comCount = 0;
                 }
@@ -1088,7 +1091,7 @@ void Service::keyPressed(UI_Key key)
                     int speed = 0;//atoi(mas[1]);
                     guc_command_vector.clear();
                     parsingGucCommand((uint8_t*)str);
-                    voice_service->saveFreq(getFreq()); //
+                    voice_service->saveFreq(getFreq());
                     voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
 #else
                     for (auto &k: estate.listItem)
@@ -1097,7 +1100,7 @@ void Service::keyPressed(UI_Key key)
                     commandCount = 0;
                     menu->comCount = 0;
 
-                    SmsStage(45);//test
+                    redrawMessage(callSubMenu[3],StartCmd);
 #endif
                 }
                 else
@@ -1651,6 +1654,9 @@ void Service::keyPressed(UI_Key key)
                                     voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
                                 for(auto &k: estate.listItem)
                                     k->inputStr.clear();
+
+                                redrawMessage(callSubMenu[1],StartCmd);
+
                             }
                         }
                     }
@@ -1713,6 +1719,7 @@ void Service::keyPressed(UI_Key key)
                         // параметр ответа определяется по получению кадра на адрес 0x63
                         // в первой стадии вызова
                         // if (ContentSms.R_ADR > 32) pswf_ack = true;
+                        redrawMessage(callSubMenu[0],EndCmd);
 
 #endif
                     //                    menu->rxCondCmdStatus = 1;
@@ -1738,6 +1745,7 @@ void Service::keyPressed(UI_Key key)
 //                    menu->recvStage = 1;
 #ifndef PORT__PCSIMULATOR
                     voice_service->TurnSMSMode();
+                    redrawMessage(callSubMenu[1],EndCmd);
 #endif
 //                    break;
 //                }
@@ -1770,6 +1778,7 @@ void Service::keyPressed(UI_Key key)
             {
 #ifndef PORT__PCSIMULATOR
                 voice_service->TurnGuc();
+                redrawMessage(callSubMenu[0],EndCmd);
 #else
                 guiTree.resetCurrentState();
 #endif
@@ -2413,6 +2422,13 @@ void Service::keyPressed(UI_Key key)
 int Service::getLanguage()
 {
     return 0;
+}
+
+void Service::redrawMessage( const char* title,const  char* message)
+{
+    guiTree.resetCurrentState();
+    guiTree.append(messangeWindow,title,message);
+    msgBox(title,message);
 }
 
 void Service::FirstPacketPSWFRecieved(int packet)

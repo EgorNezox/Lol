@@ -165,15 +165,12 @@ void GUI_EL_Label::Draw(){
 			skipflags = GFILL;
 		}
 
-        if (isCursor)
-        {
-            int16_t x = 0;
-            for (int8_t i = 0; i <= cursorPos; i++)
-                x += ggetsymw(text[i]);
-            grectangle (x, 7, x, 22);
-        }
+        if (!skip_text_bg_filling)
+            groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,skipflags);
+        else
+            gsetmode(COMMON_ELEMENT_VP_MODE);
         gsetpos(content.x, CONTENT_YE(content));
-		gputs(text.c_str());
+        gputs(text.c_str());
 
 		if(transparent){
 			gsetmode(COMMON_ELEMENT_VP_MODE);       

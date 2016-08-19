@@ -1245,15 +1245,13 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     }
     case 4:
     {
-        std::string tmp; tmp.append(fieldStr);
-        fieldStr.clear();
-
-        for (uint8_t i = 0; i < tmp.size(); i++)
+        std::string str;
+        for (uint8_t i = 0; i < fieldStr.size(); i++)
         {
-           // if ( (i%15 == 0) && (i != 0) )
-           //     str.push_back('\n');
+            // if ( (i%15 == 0) && (i != 0) )
+            //     str.push_back('\n');
 
-            fieldStr.push_back( tmp[i] );
+            str.push_back( fieldStr[i] );
         }
 
 
@@ -1440,20 +1438,7 @@ void CGuiMenu::initRxCondCmdDialog()
 
 void CGuiMenu::initGroupCondCmd( CEndState state )
 {
-                  titleArea = {  5,   5, 150,  20 };
-    MoonsGeometry labelArea = {  5,  21, 150,  51 };
-    MoonsGeometry valueArea = {  7,  52, 150,  85 };
-
-    LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
-
-    param[0].transparent = true;
-    param[1].transparent = false;
-
-    param[0].element.align = {alignHCenter, alignVCenter};
-    param[1].element.align = {alignHCenter, alignVCenter};
-
     std::string labelStr, valueStr;
-    int offset = 0;
 
     static bool isCommand = false;
     isCommand = false;
@@ -1515,30 +1500,9 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
         auto iter = state.listItem.begin();
         (*iter)++; (*iter)++;
         if ( (*iter)->inputStr.size() > 0 )
-        {
-            if ((*iter)->inputStr.size() > 16)
-            {
-                offset = (*iter)->inputStr.size() - 16;
-            }
-
-            for (int i = offset; i < (*iter)->inputStr.size(); i++)
-            {
-                if ( (i-offset) % 8 == 0 && (i-offset) != 0 )
-                {
-                    valueStr.push_back('\n');
-                    //valueStr.push_back(' ');
-                }
-
-                valueStr.push_back( (*iter)->inputStr[ i ] );
-            }
-
-            valueStr.push_back('\0');
-        }
+            valueStr = (*iter)->inputStr;
         else
             valueStr.append("--\0");
-
-        valueArea = {  5,  52, 150,  125 };
-
         break;
     }
     case 5: // print report
@@ -1566,25 +1530,19 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
     }
     MoonsGeometry valueArea = {  5,  52, 150,  85 };
 
+    LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
 
-    GUI_EL_Window   window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
-    GUI_EL_Label    title  ( &titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj*)this );
-    GUI_EL_Label    label  ( &param[0],                  &labelArea,  (char*)labelStr.c_str(), (GUI_Obj*)this );
-    GUI_EL_TextArea value  ( &param[1],                  &valueArea,  (char*)valueStr.c_str(), (GUI_Obj*)this );
+    param[0].transparent = true;
+    param[1].transparent = true;
 
-    window.Draw();
-    title.Draw();
+    param[0].element.align = {alignHCenter, alignVCenter};
+    param[1].element.align = {alignHCenter, alignVCenter};
 
-    if ( groupCondCommStage == 4 && offset > 0)
-    {
-        auto iter = state.listItem.begin();
-        (*iter)++; (*iter)++;
-        uint32_t position = 0;
-        std::size_t data_size = offset+16;
-        position = (uint32_t)data_size;
+    GUI_EL_Window window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
+    GUI_EL_Label  title  ( &titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj*)this );
+    GUI_EL_Label  label  ( &param[0],                  &labelArea,  (char*)labelStr.c_str(), (GUI_Obj*)this );
+    GUI_EL_Label  value  ( &param[1],                  &valueArea,  (char*)valueStr.c_str(), (GUI_Obj*)this );
 
-    window.Draw();
-    title.Draw();
     window.Draw();
     label.Draw();
     title.Draw();
@@ -1619,3 +1577,7 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
     else
         value.Draw();
 }
+
+
+
+

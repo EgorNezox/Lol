@@ -93,6 +93,7 @@ private:
     void msgBox(const char*, const char*);
     void msgBox(const char*, const int);
     void msgBox(const char*, const int, const int, const int);
+    void redrawMessage(const char *title,const char *message);
 
     matrix_keyboard_t matrix_kb;
     aux_keyboard_t aux_kb;
@@ -126,6 +127,7 @@ private:
     Multiradio::VoiceServiceInterface* pGetVoiceService();
     Power::Battery * pGetPowerBattery();
     int getLanguage();
+
 
     void GucCoord();
     void SmsStage(int value);

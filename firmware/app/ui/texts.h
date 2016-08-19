@@ -138,4 +138,7 @@ extern const char *smsDataInformDx[];
 
 extern const char *zondSubMenu[];
 
+extern const char *StartCmd;
+extern const char *EndCmd;
+
 #endif /* TEXTS_H_ */
