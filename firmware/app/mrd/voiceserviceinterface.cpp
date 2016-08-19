@@ -150,11 +150,6 @@ const char* VoiceServiceInterface::ReturnSwfStatus()
     return text;
 }
 
-void VoiceServiceInterface::rerror()
-{
-    errorAsu();
-}
-
 void VoiceServiceInterface::getSmsForUiStage(int value)
 {
     getSmsStageUi(value);

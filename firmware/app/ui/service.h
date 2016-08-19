@@ -81,10 +81,11 @@ public:
     void parsingGucCommand(uint8_t *str);
     void setCoordDate(Navigation::Coord_Date);
     void gucFrame(int value);
-    void errorMessage();
+    void showAtuMalfunction();
     void showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
     void errorGucCrc();
     void setFreqLabelValue(int value);
+    void updateSmsStatus(int value);
 
 
 private:
@@ -158,6 +159,9 @@ private:
     //
     std::vector<int> guc_command_vector;
     int position = 0;
+
+    int zond_position = 0;
+    std::vector<std::string> zond_data;
 };
 
 } /* namespace Ui */

@@ -12,6 +12,7 @@
 #include "keyboard.h"
 #include "ui_keys.h"
 #include "texts.h"
+#include <vector>
 
 #include <chrono>
 #include <ctime>
@@ -58,6 +59,7 @@ public:
     void initGpsCoordinateDialog(std::string, std::string);
     void initSetParametersDialog(std::string);
     void initSetDateOrTimeDialog(std::string);
+    void initSetSpeedDialog();
 
     void setTitle(const char*);
     void keyPressed(UI_Key);
@@ -94,7 +96,6 @@ public:
     // tx group condition commands
     int txGroupCondCommStatus = 1;
     void initTxGroupCondComm(CEndState);
-    bool useCoordinatel = false;
     bool useSndCoord = false;
     bool sndMode = false;
 
@@ -108,13 +109,15 @@ public:
     char ch = ' ';
     int keyPressCount = 0;
     std::chrono::time_point<std::chrono::steady_clock> ct = std::chrono::steady_clock::now();
+    std::string smsValueStrStatus;
+    uint8_t smsStage = 0;
 
     // recv
     bool recvStatus = false;
     uint8_t recvStage = 0;
 
     // recv sms
-    void initRxSmsDialog();
+    void initRxSmsDialog(std::string);
 
     // volume
     void incrVolume(){ if ( vol < 100) vol += 5; }
@@ -136,7 +139,7 @@ public:
     bool scanStatus = true;
 
     // supress
-    bool supressStatus = true;
+    uint8_t supressStatus = 0;
 
     // date, time, speed
     std::string localDate, localTime, speed;
@@ -145,6 +148,10 @@ public:
     // RN_KEY
     std::string RN_KEY;
     void initEditRnKeyDialog();
+
+    //ZOND
+    std::map<int, std::string> sheldure;
+    void initZondDialog(int focus, std::vector<std::string> &data);
 
 private:
     GUI_Obj obj;

@@ -38,6 +38,8 @@ void qmMain() {
 			platformhwPowerOffIntIopin, platformhwPowerSourceIopin);
 #endif /* PORT__TARGET_DEVICE_REV1 */
 
+	Power::Battery power_battery(platformhwBatterySmbusI2c);
+
 	QmSPIBus::enable(platformhwDataFlashSpi);
 	QmM25PDevice::Config data_flash_config;
 	data_flash_config.sector_size = 64*1024;
@@ -71,13 +73,11 @@ void qmMain() {
     Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin,
     		platformhwNavigatorAntFlagIopin, platformhwNavigator1PPSIopin);
 	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,
-            &headset_controller, &navigator, &data_storage_fs);
+            &headset_controller, &navigator, &data_storage_fs, &power_battery);
 #else
     Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,
-            &headset_controller, 0, &data_storage_fs);
+            &headset_controller, 0, &data_storage_fs, &power_battery);
 #endif
-
-	Power::Battery power_battery(platformhwBatterySmbusI2c);
 
 	Ui::matrix_keyboard_t ui_matrixkb_desc;
 	Ui::aux_keyboard_t ui_auxkb_desc;

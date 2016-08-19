@@ -66,12 +66,14 @@ class GUI_EL_Label: public GUI_Element{
 	public:
 		void Draw();
 		GUI_EL_Label(LabelParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj);
+		void setSkipTextBackgronundFilling(bool enabled);
 		void SetText(char *text);
         bool transparent;
 	private:
 
 		PGFONT font;
 		ColorScheme color_sch;
+		bool skip_text_bg_filling;
 	protected:
 		void CalcContentGeom();
         std::string text;
@@ -177,6 +179,7 @@ class GUI_EL_SpinBox: public GUI_Element{
         void Dec();
         int32_t GetValue();
         void SetValue(int32_t value);
+        LabelParams *lab_params;
     protected:
         void CalcContentGeom();
     private:
@@ -188,7 +191,7 @@ class GUI_EL_SpinBox: public GUI_Element{
         int32_t max;
         int32_t step;
         int32_t spbox_len;
-        LabelParams *lab_params;
+
         PGSYMBOL up_arrow;
         PGSYMBOL down_arrow;
         GYT label_h;

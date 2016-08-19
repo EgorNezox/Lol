@@ -16,6 +16,7 @@
 
 extern const char *test_Pass;
 
+extern const char* exitStr;
 extern char *mode_txt[];
 extern char *disabled_ch_txt;
 extern char ch_zero_letter;
@@ -63,6 +64,8 @@ extern const char *ausStr;
 extern const char *error_SWF;
 extern const char *true_SWF;
 
+extern const char *txSmsResultStatus[];
+extern const char *rxSmsResultStatus[];
 extern const char *smsText[];
 
 extern const char *sms_quit_fail1;
@@ -117,6 +120,13 @@ extern const char* NoGucCoord;
 extern const char* StartGucTx;
 extern const char* GucIndivid;
 extern const char* GucGroup;
+extern const char* Zond;
+extern const char* Zond_label;
+
+extern const char* startStr;
+
+extern const char* atumalfunction_title_str;
+extern const char* atumalfunction_text_str;
 
 extern const char* dsphardwarefailure_7_5_title_str;
 extern const char* dsphardwarefailure_7_5_text_str;

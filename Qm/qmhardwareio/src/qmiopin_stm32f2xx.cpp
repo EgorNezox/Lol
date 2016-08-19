@@ -62,7 +62,6 @@ bool QmIopin::setInputTriggerMode(LevelTriggerMode mode, TriggerProcessingType t
 	QM_D(QmIopin);
 	if (d->exti_line == -1)
 		return false;
-	d->input_trigger_mode = mode;
 	if (mode != InputTrigger_Disabled) {
 		d->trigger_event.active = false;
 		d->trigger_event.overflow = false;
@@ -76,11 +75,14 @@ bool QmIopin::setInputTriggerMode(LevelTriggerMode mode, TriggerProcessingType t
 		}
 		exti_params.isrcallbackTrigger = qmiopinExtiTriggerIsrCallback;
 		exti_params.userid = static_cast<void *>(&d->trigger_event);
+		if (d->input_trigger_mode != InputTrigger_Disabled)
+			hal_exti_close(d->exti_handle);
 		d->exti_handle = hal_exti_open(d->exti_line, &exti_params);
-	} else {
+	} else if (mode != d->input_trigger_mode) {
 		hal_exti_close(d->exti_handle);
 		QmApplication::removePostedEvents(this, QmEvent::HardwareIO);
 	}
+	d->input_trigger_mode = mode;
 	return true;
 }
 

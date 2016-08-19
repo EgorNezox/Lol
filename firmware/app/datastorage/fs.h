@@ -15,6 +15,8 @@ public:
 	bool getAleStationAddress(uint8_t &data);
 	bool getFhssKey(uint8_t &data);
 	void setFhssKey(uint8_t data);
+    void setChannelStation(uint8_t number);
+    bool getChannelStation(uint8_t &number);
 private:
 	std::string dir;
 };
