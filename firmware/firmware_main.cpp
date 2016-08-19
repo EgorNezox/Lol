@@ -43,7 +43,7 @@ void qmMain() {
 	data_flash_config.sector_size = 64*1024;
 	data_flash_config.sectors_count = 32;
 	data_flash_config.speed = 75000000;
-	data_flash_config.idle_clock_low = true;
+	data_flash_config.idle_clock_low = false;
 	QmM25PDevice data_flash_device(data_flash_config, platformhwDataFlashSpi, platformhwDataFlashCsPin);
 	QmSpiffs::Config data_fs_config;
 	data_fs_config.device = &data_flash_device;
