@@ -93,6 +93,7 @@ private:
     void msgBox(const char*, const char*);
     void msgBox(const char*, const int);
     void msgBox(const char*, const int, const int, const int);
+    void redrawMessage(const char *title,const char *message);
 
     matrix_keyboard_t matrix_kb;
     aux_keyboard_t aux_kb;
@@ -127,10 +128,14 @@ private:
     Power::Battery * pGetPowerBattery();
     int getLanguage();
 
+
     void GucCoord();
+    void SmsStage(int value);
 
     void FirstPacketPSWFRecieved(int packet);
     void smsMessage();
+
+    void drawMessage();
 
     void drawMainWindow();
 
@@ -160,6 +165,16 @@ private:
     std::vector<int> guc_command_vector;
     int position = 0;
 
+    uint8_t zondPosition = 0;
+    uint8_t zondCount = 10;
+
+    uint8_t comSymRunningCount = 0;
+    uint8_t commandCount = 0;
+    uint8_t commandCountMax = 99;
+
+    bool isDeletedDigit = false;
+    bool isComComplete = false;
+    bool isMessage = true;
     int zond_position = 0;
     std::vector<std::string> zond_data;
 };

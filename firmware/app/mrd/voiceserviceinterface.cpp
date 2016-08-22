@@ -108,7 +108,7 @@ void VoiceServiceInterface::TuneFrequency(int Frequency)
 }
 
 void VoiceServiceInterface::tuneSquelch(uint8_t value) {
-	if (value != 0 && (value < 6 || value > 24)) {
+	if (/*value != 0 &&*/ (value < 0 || value > 24)) {
 		return;
 	}
 	dispatcher->dsp_controller->setRadioSquelch(value);

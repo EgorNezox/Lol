@@ -1706,6 +1706,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                count_clear += 7;
                for(int i = count_clear - 7; i<count_clear;i++)
                rs_data_clear[i] = 1; //REVIEW: count_clear может быть 259? тогда выход за границы rs_data_clear
+
+               std::vector<uint8_t> sms_data;
+               for(int i = 8;i<15;i++) { sms_data.push_back(data[i]);}
+               if (counterSms[StageRx_data] < 37)
+               recievedSmsBuffer.push_back(sms_data);
             }
         } else if (indicator == 30) {
         	qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");
@@ -1808,7 +1813,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             recGuc();
         	else
         	{
-                initResetState();
+                //initResetState();
+        		radio_state = radiostateSync;
         	}
 
         }
@@ -2650,6 +2656,8 @@ void DspController::startGucRecieving()
 {
     qmDebugMessage(QmDebug::Dump, "startGucRecieving");
     QM_ASSERT(is_ready);
+
+    initResetState();
 
     ParameterValue comandValue;
     comandValue.radio_mode = RadioModeOff;// отключили радиорежим
