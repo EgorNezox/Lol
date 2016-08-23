@@ -133,8 +133,14 @@ void CGuiMenu::initCondCommDialog(CEndState state)
         break;
     }
     case 5:
-    { // send
-        labelStr.append(condCommSendStr);
+    { // send       
+        if (!isSendStart)
+        {
+           labelStr.append(condCommSendStr);
+           str.append(StartGucTx);
+        }
+        else
+           str.append(condCommSendStartStr);
         break;
     }
     default:
@@ -188,8 +194,11 @@ void CGuiMenu::initTwoStateDialog()
 
 void CGuiMenu::initVolumeDialog()
 {
-    MoonsGeometry volume_geom  = {  20,  20,  120,  90 };
-    GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelChannel, &volume_geom,  NULL, (GUI_Obj*)this);
+    MoonsGeometry volume_geom  = {  20,  45,  140,  105 };
+    LabelParams labpar = GUI_EL_TEMP_LabelMode;
+    labpar.font = &Consolas25x35;
+    labpar.element.align.align_h = alignHCenter;
+    GUI_EL_Label *volume = new GUI_EL_Label (&labpar, &volume_geom,  NULL, (GUI_Obj*)this);
 
     char s[4]; sprintf(s,"%d",vol);
     std::string str;
@@ -273,6 +282,75 @@ void CGuiMenu::initAruarmDialog()
 
     for (int i = 0; i < 6; i++)
         delete volume[i];
+}
+
+void CGuiMenu::initWaitGukDialog()
+{
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this);
+    GUI_EL_Label  title (&titleParams, &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
+
+    MoonsGeometry timeArea = {45, 40, 115, 80};
+
+    std::string ccount = "";
+    for (int8_t i = 0; i < 4; i++)
+    {
+        if (i == 2)
+        {
+            ccount += ":";
+        }
+
+            if (pin_value[i] == -1)
+                ccount += "_";
+            else
+                ccount += (char)( 48 + pin_value[i]);
+    };
+
+    GUI_EL_Label  time (&GUI_EL_TEMP_LabelMode, &timeArea,  (char*)ccount.c_str(), (GUI_Obj *)this);
+
+    window.Draw();
+    title.Draw();
+    time.Draw();
+
+//    MoonsGeometry spbox_1_geom = {40, 40, 59,  80};
+//    MoonsGeometry spbox_2_geom = {60, 40, 79,  80};
+//    MoonsGeometry spbox_3_geom = {80, 40, 99,  80};
+//    MoonsGeometry spbox_4_geom = {100, 40, 120, 80};
+
+//    SpBoxParams spbox_1_params = GUI_EL_TEMP_CommonSpBox;
+
+//    SpBoxSettings spbox_1_settings;
+//                  spbox_1_settings.value = 0;
+//                  spbox_1_settings.min = 0;
+//                  spbox_1_settings.max = 9;
+//                  spbox_1_settings.step = 1;
+//                  spbox_1_settings.spbox_len = 10;
+//                  spbox_1_settings.cyclic = false;
+//                  spbox_1_settings.ValueToStr = &ValueToStr;
+
+
+//    GUI_EL_SpinBox spin_1(&spbox_1_geom, &spbox_1_params, &spbox_1_settings, (GUI_Obj*)this);
+//    GUI_EL_SpinBox spin_2(&spbox_2_geom, &spbox_1_params, &spbox_1_settings, (GUI_Obj*)this);
+//    GUI_EL_SpinBox spin_3(&spbox_3_geom, &spbox_1_params, &spbox_1_settings, (GUI_Obj*)this);
+//    GUI_EL_SpinBox spin_4(&spbox_4_geom, &spbox_1_params, &spbox_1_settings, (GUI_Obj*)this);
+
+//    if (pin_value[0] > -1) spin_1.SetValue(pin_value[0]);
+//    if (pin_value[1] > -1)spin_2.SetValue(pin_value[1]);
+//    if (pin_value[2] > -1)spin_3.SetValue(pin_value[2]);
+//    if (pin_value[3] > -1)spin_4.SetValue(pin_value[3]);
+
+//    switch (pin_focus){
+//        case 0: spin_1.SetActiveness(true); break;
+//        case 1: spin_2.SetActiveness(true); break;
+//        case 2: spin_3.SetActiveness(true); break;
+//        case 3: spin_4.SetActiveness(true); break;
+//    };
+
+
+
+//    spin_1.Draw();
+//    spin_2.Draw();
+//    spin_3.Draw();
+//    spin_4.Draw();
 }
 
 void CGuiMenu::initIncludeDialog()
@@ -630,22 +708,52 @@ void CGuiMenu::initSetDateOrTimeDialog(std::string text)
     volume.Draw();
 }
 
+void CGuiMenu::initSmsStageDialog(std::string text)
+{
+//    Alignment align007 = {alignHCenter,alignTop};
+//    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+
+//    GUI_Dialog_MsgBox msg_box(&area007,(char*)1, (char*)text.c_str(), align007);
+//    msg_box.Draw();
+}
+
 void CGuiMenu::inputGroupCondCmd( CEndState state )
 {
     auto elem = state.listItem.back();
     auto newTime = std::chrono::steady_clock::now();
 
-    if ( ( newTime - ct ).count() < 900*(1000000) )
-    {
-        keyPressCount++;
-        if ( keyPressCount > 1 )
-            keyPressCount = 0;
+    static int8_t multiple = 1;
 
-        elem->inputStr.pop_back();
-        elem->inputStr.push_back(ch_key0[keyPressCount]);
+    if (( newTime - ct ).count() < 900*(1000000))
+    {
+        if (isKeyCom) multiple++;
+          else
+        {
+            keyPressCount = 1;
+            isKeyCom = true;
+        }
+
+        if (multiple == 2)
+        {
+            keyPressCount++;
+            if ( keyPressCount > 1 )
+                keyPressCount = 0;
+            elem->inputStr.pop_back();
+            elem->inputStr.push_back(ch_key0[keyPressCount]);
+
+        }
+        if (multiple > 2)
+        {
+            multiple = 1;
+            keyPressCount++;
+            if ( keyPressCount > 1 )
+                keyPressCount = 0;
+            elem->inputStr.push_back(ch_key0[keyPressCount]);
+        }
     }
     else
     {
+        multiple = 1;
         keyPressCount = 0;
         elem->inputStr.push_back(ch_key0[keyPressCount]);
     }
@@ -990,10 +1098,15 @@ void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
 
     if ( key > 5 && key < 16)
     {
+        scrollIndex = scrollIndexMax + 2;
         if (prevKey == key)
         {
             if ( ( newTime - ct ).count() < 800*(1000000) )
             {
+                symCount++;
+
+
+
                 keyPressCount++;
                 switch ( key )
                 {
@@ -1028,6 +1141,16 @@ void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
             break;
         case key1:
             field->push_back(ch_key1[keyPressCount]);
+
+            //TEST
+            for (int32_t i = 0; i < 20; i++)
+            {
+            field->push_back(ch_key5[0]);
+            field->push_back(ch_key4[0]);
+            field->push_back(ch_key6[0]);
+            field->push_back(ch_key0[0]);
+            }
+
             break;
         case key2:
             field->push_back(ch_key2[keyPressCount]);
@@ -1079,7 +1202,7 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 {
 
     MoonsGeometry title_geom = {  5,   5, 150,  20 };
-    MoonsGeometry field_geom  = {  7,  40, 147,  60 };
+    MoonsGeometry field_geom  = {  7,  40, 147,  70 };
 
     LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelMode};
     param[0].element.align = {alignHCenter, alignTop};
@@ -1122,20 +1245,43 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     }
     case 4:
     {
-        std::string tmp; tmp.append(fieldStr);
-        fieldStr.clear();
-
-        for (uint8_t i = 0; i < tmp.size(); i++)
+        std::string str;
+        for (uint8_t i = 0; i < fieldStr.size(); i++)
         {
-            if ( (i%15 == 0) && (i != 0) )
-                fieldStr.push_back('\n');
+            // if ( (i%15 == 0) && (i != 0) )
+            //     str.push_back('\n');
 
-            fieldStr.push_back( tmp[i] );
+            str.push_back( fieldStr[i] );
         }
 
-        field_geom = {  7,  20, 158,  120 };
-        param[1] = GUI_EL_TEMP_CommonTextAreaLT;
 
+        MoonsGeometry titleSymCountArea = { 0,  0, 25,  25 };
+        LabelParams paramSymCount = GUI_EL_TEMP_LabelMode;
+        paramSymCount.font = &Lucida_Console_8x12;
+
+        std::string ccount = "";
+        ccount += (char)(48 + str.size() / 100);
+        ccount += (char)(48 + (str.size() / 10) % 10);
+        ccount += (char)(48 + str.size() % 10);
+
+        GUI_EL_Label titleSymCount( &paramSymCount, &titleSymCountArea,(char*)ccount.c_str(), (GUI_Obj*)this );
+
+        GUI_EL_Window   window (&GUI_EL_TEMP_WindowGeneral, &windowArea,         (GUI_Obj *)this);
+        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
+
+        field_geom  = { 5, 25, 155, 120 };
+        param[1] = GUI_EL_TEMP_CommonTextAreaLT;
+        //param[1]= GUI_EL_TEMP_LabelMode;
+        //param[1].font = &Lucida_Console_8x12;
+
+        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)str.c_str(), (GUI_Obj *)this);
+        field.SetMaxStrSymCount(15);
+        scrollIndex = field.SetScrollIndex(scrollIndex);
+        scrollIndexMax = field.GetMaxScrollIndex();
+        window.Draw();
+        title.Draw();
+        titleSymCount.Draw();
+        field.Draw();
         break;
     }
     case 5:
@@ -1292,20 +1438,10 @@ void CGuiMenu::initRxCondCmdDialog()
 
 void CGuiMenu::initGroupCondCmd( CEndState state )
 {
-                  titleArea = {  5,   5, 150,  20 };
-    MoonsGeometry labelArea = {  5,  21, 150,  51 };
-    MoonsGeometry valueArea = {  7,  52, 150,  85 };
-
-    LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
-
-    param[0].transparent = true;
-    param[1].transparent = false;
-
-    param[0].element.align = {alignHCenter, alignVCenter};
-    param[1].element.align = {alignHCenter, alignVCenter};
-
     std::string labelStr, valueStr;
-    int offset = 0;
+
+    static bool isCommand = false;
+    isCommand = false;
 
     switch( groupCondCommStage )
     {
@@ -1320,18 +1456,18 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
 
         break;
     }
-    case 1: // set frequency
-    {
-        labelStr.append(groupCondCommFreqStr);
+//    case 1: // set frequency
+//    {
+//        labelStr.append(groupCondCommFreqStr);
 
-        auto frequency = state.listItem.begin();
-        valueStr = (*frequency)->inputStr;
-        if (valueStr.size() != 0 )
-            valueStr.append(" ")\
-                    .append(freq_hz);
+//        auto frequency = state.listItem.begin();
+//        valueStr = (*frequency)->inputStr;
+//        if (valueStr.size() != 0 )
+//            valueStr.append(" ")\
+//                    .append(freq_hz);
 
-        break;
-    }
+//        break;
+//    }
     case 2: // group vs. indiv.
     {
         labelStr.append("\0");
@@ -1357,35 +1493,16 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
     }
     case 4: // set command
     {
+        isCommand = true;
+
         labelStr.append( callTitle[0] );
 
         auto iter = state.listItem.begin();
         (*iter)++; (*iter)++;
         if ( (*iter)->inputStr.size() > 0 )
-        {
-            if ((*iter)->inputStr.size() > 16)
-            {
-                offset = (*iter)->inputStr.size() - 16;
-            }
-
-            for (int i = offset; i < (*iter)->inputStr.size(); i++)
-            {
-                if ( (i-offset) % 8 == 0 && (i-offset) != 0 )
-                {
-                    valueStr.push_back('\n');
-                    //valueStr.push_back(' ');
-                }
-
-                valueStr.push_back( (*iter)->inputStr[ i ] );
-            }
-
-            valueStr.push_back('\0');
-        }
+            valueStr = (*iter)->inputStr;
         else
             valueStr.append("--\0");
-
-        valueArea = {  5,  52, 150,  125 };
-
         break;
     }
     case 5: // print report
@@ -1405,30 +1522,62 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
         break;
     }
 
+                  titleArea = {  5,   5, 150,  20 };
+    MoonsGeometry labelArea = {  5,  21, 150,  51 };
+    if (isCommand)
+    {
+        labelArea = {  5,  15, 150,  40 };
+    }
+    MoonsGeometry valueArea = {  5,  52, 150,  85 };
 
+    LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
 
-    GUI_EL_Window   window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
-    GUI_EL_Label    title  ( &titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj*)this );
-    GUI_EL_Label    label  ( &param[0],                  &labelArea,  (char*)labelStr.c_str(), (GUI_Obj*)this );
-    GUI_EL_TextArea value  ( &param[1],                  &valueArea,  (char*)valueStr.c_str(), (GUI_Obj*)this );
+    param[0].transparent = true;
+    param[1].transparent = true;
+
+    param[0].element.align = {alignHCenter, alignVCenter};
+    param[1].element.align = {alignHCenter, alignVCenter};
+
+    GUI_EL_Window window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
+    GUI_EL_Label  title  ( &titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj*)this );
+    GUI_EL_Label  label  ( &param[0],                  &labelArea,  (char*)labelStr.c_str(), (GUI_Obj*)this );
+    GUI_EL_Label  value  ( &param[1],                  &valueArea,  (char*)valueStr.c_str(), (GUI_Obj*)this );
 
     window.Draw();
+    label.Draw();
     title.Draw();
 
-    if ( groupCondCommStage == 4 && offset > 0)
+
+    if (isCommand)
     {
-        auto iter = state.listItem.begin();
-        (*iter)++; (*iter)++;
-        uint32_t position = 0;
-        std::size_t data_size = offset+16;
-        position = (uint32_t)data_size;
+        std::string ccount = "";
 
-        MoonsGeometry sliderArea   = { (uint8_t)(windowArea.xe - 4*MARGIN), labelArea.ye, (uint8_t)(windowArea.xe - 2*MARGIN), (uint8_t)(115)};
-        SliderParams  sliderParams = {(int32_t)data_size, (int32_t)16, (int32_t)position};
-        GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
-        slider.Draw();
+        ccount += (char)(48 + comCount / 10);
+        ccount += (char)(48 + comCount % 10);
+
+        MoonsGeometry titleCommandCountArea = { 0,  0, 25,  25 };
+        LabelParams paramCommandCount = GUI_EL_TEMP_LabelMode;
+
+        GUI_EL_Label titleCommandCount( &paramCommandCount, &titleCommandCountArea,(char*)ccount.c_str(), (GUI_Obj*)this );
+        titleCommandCount.Draw();
+
+        TextAreaParams params = GUI_EL_TEMP_LabelMode;
+        params.element={{0,0,0,0},{alignLeft, alignTop}};
+       // params.font = &Lucida_Console_8x12;
+
+        MoonsGeometry text_geom = {5, 40, 150, 120};
+
+        GUI_EL_TextArea value(&params, &text_geom, (char*)valueStr.c_str(), (GUI_Obj*)this);
+        scrollIndex = value.SetScrollIndex(scrollIndex);
+        scrollIndexMax = value.GetMaxScrollIndex();
+        //value.SetCursorPos(valueStr.size());
+        //value.SetCursorPos(0, false);
+        value.Draw();
     }
-
-    label.Draw();
-    value.Draw();
+    else
+        value.Draw();
 }
+
+
+
+
