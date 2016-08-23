@@ -316,7 +316,7 @@ private:
 
     } ContentGuc;
 
-
+    void goToVoice();
     void initResetState();
     void processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version);
     void processStartupTimeout();

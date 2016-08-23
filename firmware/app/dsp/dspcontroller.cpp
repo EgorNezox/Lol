@@ -529,6 +529,7 @@ void DspController::transmitPswf()
         } else {
         	qmDebugMessage(QmDebug::Dump, "radio_state = radiostateSync");
         	radio_state = radiostateSync;
+        	goToVoice();
         }
         return;
     }
@@ -567,6 +568,7 @@ void DspController::changePswfRxFrequency()
 			} else {
 				qmDebugMessage(QmDebug::Dump, "radio_state = radiostateSync");
 				radio_state = radiostateSync;
+				started();
 			}
 			return;
 		}
@@ -2062,6 +2064,7 @@ void DspController::recSms()
                 smsFailed(0);
                 radio_state = radiostateSync;
                 ContentSms.stage = StageNone;
+                goToVoice();
             }
             counterSms[StageTx_call_ack] = 18;
             pswf_first_packet_received = false;
@@ -2101,6 +2104,7 @@ void DspController::recSms()
                     	// если нет ретрансляции, то выключить
                     	radio_state = radiostateSync;
                     	ContentSms.stage = StageNone;
+                    	goToVoice();
                     }
                 }
                 else
@@ -2109,6 +2113,7 @@ void DspController::recSms()
                     smsFailed(0);
                     radio_state = radiostateSync;
                     ContentSms.stage = StageNone;
+                    goToVoice();
                 }
 
             } else {
@@ -2117,6 +2122,7 @@ void DspController::recSms()
                 // если нет в буфере значений, то выход
                 radio_state = radiostateSync;
                 ContentSms.stage = StageNone;
+                goToVoice();
             }
 
             counterSms[StageTx_quit] = 6;
@@ -2973,9 +2979,16 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 	transport->transmitFrame(0x7E, &payload[0], payload.size());
 }
 
+void DspController::goToVoice(){
+	ParameterValue comandValue;
+	comandValue.radio_mode = RadioModeOff;
+	sendCommandEasy(RxRadiopath,2,comandValue);
+	sendCommandEasy(TxRadiopath,2,comandValue);
+}
+
 
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"
