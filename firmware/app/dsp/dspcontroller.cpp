@@ -210,7 +210,18 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 	QM_ASSERT(is_ready);
 	switch (radio_state) {
 	case radiostateSync: {
-		radio_state = radiostateCmdTxPower;
+		switch (current_radio_operation) {
+		case RadioOperationOff:
+			radio_state = radiostateCmdRxFreq;
+			break;
+		case RadioOperationRxMode:
+			radio_state = radiostateCmdModeOffRx;
+			break;
+		case RadioOperationTxMode:
+		case RadioOperationCarrierTx:
+			radio_state = radiostateCmdModeOffTx;
+			break;
+		}
 		break;
 	}
 	case radiostateCmdRxOff:
@@ -224,6 +235,7 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 		radio_state = radiostateCmdModeOffRx;
 		break;
 	}
+	case radiostateCmdTxPower:
 	case radiostateCmdTxMode:
 	case radiostateCmdCarrierTx: {
 		radio_state = radiostateCmdModeOffTx;
@@ -807,6 +819,9 @@ bool DspController::startRadioOff() {
 	case radiostateCmdRxMode:
 		radio_state = radiostateCmdRxOff;
 		break;
+	case radiostateCmdTxPower:
+		radio_state = radiostateSync;
+		break;
 	case radiostateCmdTxMode:
 	case radiostateCmdCarrierTx:
 		radio_state = radiostateCmdTxOff;
@@ -829,6 +844,7 @@ bool DspController::startRadioRxMode() {
 		break;
 	case radiostateCmdRxOff:
 	case radiostateCmdTxOff:
+	case radiostateCmdTxPower:
 		radio_state = radiostateCmdRxMode;
 		break;
 	default:
@@ -842,14 +858,14 @@ bool DspController::startRadioTxMode() {
 	case radiostateSync:
 	case radiostateCmdRxMode:
 		if (current_radio_operation == RadioOperationOff)
-			radio_state = radiostateCmdTxMode;
+			radio_state = radiostateCmdTxPower;
 		else
 			radio_state = radiostateCmdRxOff;
 		break;
 	case radiostateCmdRxOff:
 	case radiostateCmdTxOff:
 	case radiostateCmdCarrierTx:
-		radio_state = radiostateCmdTxMode;
+		radio_state = radiostateCmdTxPower;
 		break;
 	default:
 		return false;
@@ -862,14 +878,14 @@ bool DspController::startRadioCarrierTx() {
 	case radiostateSync:
 	case radiostateCmdRxMode:
 		if (current_radio_operation == RadioOperationOff)
-			radio_state = radiostateCmdCarrierTx;
+			radio_state = radiostateCmdTxPower;
 		else
 			radio_state = radiostateCmdRxOff;
 		break;
 	case radiostateCmdRxOff:
 	case radiostateCmdTxOff:
 	case radiostateCmdTxMode:
-		radio_state = radiostateCmdCarrierTx;
+		radio_state = radiostateCmdTxPower;
 		break;
 	default:
 		return false;
@@ -884,14 +900,6 @@ void DspController::processRadioState() {
 	switch (radio_state) {
 	case radiostateSync:
 		break;
-	case radiostateCmdTxPower: {
-		if (current_radio_frequency >= 30000000)
-			command_value.power = 80;
-		else
-			command_value.power = 100;
-		sendCommand(TxRadiopath, TxPower, command_value);
-		break;
-	}
 	case radiostateCmdRxFreq: {
 		command_value.frequency = current_radio_frequency;
 		sendCommand(RxRadiopath, RxFrequency, command_value);
@@ -919,6 +927,18 @@ void DspController::processRadioState() {
 		sendCommand(RxRadiopath, RxRadioMode, command_value);
 		break;
 	}
+	case radiostateCmdTxPower: {
+		if (current_radio_operation != RadioOperationCarrierTx) {
+			if (current_radio_frequency >= 30000000)
+				command_value.power = 80;
+			else
+				command_value.power = 100;
+		} else {
+			command_value.power = 80;
+		}
+		sendCommand(TxRadiopath, TxPower, command_value);
+		break;
+	}
 	case radiostateCmdTxMode: {
 		command_value.radio_mode = current_radio_mode;
 		sendCommand(TxRadiopath, TxRadioMode, command_value);
@@ -938,21 +958,6 @@ void DspController::syncNextRadioState() {
 	case radiostateSync:
 		QM_ASSERT(0);
 		break;
-	case radiostateCmdTxPower: {
-		switch (current_radio_operation) {
-		case RadioOperationOff:
-			radio_state = radiostateCmdRxFreq;
-			break;
-		case RadioOperationRxMode:
-			radio_state = radiostateCmdModeOffRx;
-			break;
-		case RadioOperationTxMode:
-		case RadioOperationCarrierTx:
-			radio_state = radiostateCmdModeOffTx;
-			break;
-		}
-		break;
-	}
 	case radiostateCmdModeOffRx:
 	case radiostateCmdModeOffTx: {
 		radio_state = radiostateCmdRxFreq;
@@ -973,15 +978,30 @@ void DspController::syncNextRadioState() {
 			radio_state = radiostateCmdRxMode;
 			break;
 		case RadioOperationTxMode:
+		case RadioOperationCarrierTx:
+			radio_state = radiostateCmdTxPower;
+			break;
+		}
+		break;
+	}
+	case radiostateCmdRxMode: {
+		radio_state = radiostateSync;
+		break;
+	}
+	case radiostateCmdTxPower: {
+		switch (current_radio_operation) {
+		case RadioOperationTxMode:
 			radio_state = radiostateCmdTxMode;
 			break;
 		case RadioOperationCarrierTx:
 			radio_state = radiostateCmdCarrierTx;
 			break;
+		default:
+			radio_state = radiostateSync;
+			break;
 		}
 		break;
 	}
-	case radiostateCmdRxMode:
 	case radiostateCmdTxMode:
 	case radiostateCmdCarrierTx: {
 		radio_state = radiostateSync;
