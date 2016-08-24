@@ -541,6 +541,7 @@ void DspController::transmitPswf()
         } else {
         	qmDebugMessage(QmDebug::Dump, "radio_state = radiostateSync");
         	radio_state = radiostateSync;
+        	goToVoice();
         }
         return;
     }
@@ -579,6 +580,7 @@ void DspController::changePswfRxFrequency()
 			} else {
 				qmDebugMessage(QmDebug::Dump, "radio_state = radiostateSync");
 				radio_state = radiostateSync;
+				started();
 			}
 			return;
 		}
@@ -1726,6 +1728,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                count_clear += 7;
                for(int i = count_clear - 7; i<count_clear;i++)
                rs_data_clear[i] = 1; //REVIEW: count_clear может быть 259? тогда выход за границы rs_data_clear
+
+               std::vector<uint8_t> sms_data;
+               for(int i = 8;i<15;i++) { sms_data.push_back(data[i]);}
+               if (counterSms[StageRx_data] < 37)
+               recievedSmsBuffer.push_back(sms_data);
             }
         } else if (indicator == 30) {
         	qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");
@@ -1828,7 +1835,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             recGuc();
         	else
         	{
-                initResetState();
+                //initResetState();
+        		radio_state = radiostateSync;
         	}
 
         }
@@ -2076,6 +2084,7 @@ void DspController::recSms()
                 smsFailed(0);
                 radio_state = radiostateSync;
                 ContentSms.stage = StageNone;
+                goToVoice();
             }
             counterSms[StageTx_call_ack] = 18;
             pswf_first_packet_received = false;
@@ -2115,6 +2124,7 @@ void DspController::recSms()
                     	// если нет ретрансляции, то выключить
                     	radio_state = radiostateSync;
                     	ContentSms.stage = StageNone;
+                    	goToVoice();
                     }
                 }
                 else
@@ -2123,6 +2133,7 @@ void DspController::recSms()
                     smsFailed(0);
                     radio_state = radiostateSync;
                     ContentSms.stage = StageNone;
+                    goToVoice();
                 }
 
             } else {
@@ -2131,6 +2142,7 @@ void DspController::recSms()
                 // если нет в буфере значений, то выход
                 radio_state = radiostateSync;
                 ContentSms.stage = StageNone;
+                goToVoice();
             }
 
             counterSms[StageTx_quit] = 6;
@@ -2671,6 +2683,8 @@ void DspController::startGucRecieving()
     qmDebugMessage(QmDebug::Dump, "startGucRecieving");
     QM_ASSERT(is_ready);
 
+    initResetState();
+
     ParameterValue comandValue;
     comandValue.radio_mode = RadioModeOff;// отключили радиорежим
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
@@ -2985,9 +2999,16 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 	transport->transmitFrame(0x7E, &payload[0], payload.size());
 }
 
+void DspController::goToVoice(){
+	ParameterValue comandValue;
+	comandValue.radio_mode = RadioModeOff;
+	sendCommandEasy(RxRadiopath,2,comandValue);
+	sendCommandEasy(TxRadiopath,2,comandValue);
+}
+
 
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"
