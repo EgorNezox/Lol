@@ -171,7 +171,6 @@ const char* voiceRxTxLabelStr[] = {"Канал записи\0", "Канал воспр.\0", "Запись р
 
 const char* condCommStr[] = {"Адрес получателя\0", "Адрес ретранслятора\0", "Команда\0", "Ретранслятор\0", "Сообщение\0"};
 const char* condCommSendStr = "Нажмите Ввод для \nзапуска передачи\0";
-const char* condCommSendStartStr = "Передача...\0";
 
 const char* ticketStr[] = {"Квитирование\0", "Ретрансляция\0"};
 const char* voicePostTitleStr[] = {"Передача гол. почты\0", "Прием гол. почты\0"};

@@ -7,6 +7,7 @@
   ******************************************************************************
   */
 
+
 //----------INCLUDES-----------
 
 #include <string.h>
@@ -48,7 +49,7 @@ GUI_Element::GUI_Element(MoonsGeometry *geom, Alignment *align, Margins *margins
 
 //-----------------------------
 
-GUI_Element::~GUI_Element(){}
+GUI_Element::~GUI_Element(){ }
 
 //-----------------------------
 
@@ -140,12 +141,6 @@ void GUI_EL_Label::SetText(char *text){
     }
 }
 
-void GUI_EL_Label::drawCursor(int32_t pos, bool isDraw)
-{
-    isCursor = isDraw;
-    cursorPos = pos;
-}
-
 //-----------------------------
 
 void GUI_EL_Label::Draw(){
@@ -171,11 +166,9 @@ void GUI_EL_Label::Draw(){
             gsetmode(COMMON_ELEMENT_VP_MODE);
         gsetpos(content.x, CONTENT_YE(content));
         gputs(text.c_str());
-
 		if(transparent){
-			gsetmode(COMMON_ELEMENT_VP_MODE);       
+			gsetmode(COMMON_ELEMENT_VP_MODE);
 		}
-
 	}
 }
 
@@ -201,7 +194,6 @@ void GUI_EL_Label::CalcContentGeom(){
 GUI_EL_TextArea::GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj):GUI_Element(geom, &params->element.align, &params->element.margins, parent_obj){
  this->params=*params;
  lines_count=0;
- isMaxSymStr = false;
  SetText(text);
 }
 
@@ -211,137 +203,75 @@ void GUI_EL_TextArea::SetText(char *text){
 	if(text!=NULL){
 		strcpy(this->text, text);
 	}
-    CalcContentGeom();
 }
 
 //-----------------------------
 
 void GUI_EL_TextArea::Draw(){
-    if(text !=0 ){
-        int32_t i = 0, j = 0, k = 0, str_width = 0, last_space = 0, sym_to_cp = 0;
+	if(text!=0){
+		int32_t i=0, j=0,k=0,str_width=0, last_space=0, sym_to_cp=0;
         MoonsGeometry local_content, line_geom;
-        char line_str[200];
-
-        LabelParams label_params = params;
-
-    //    label_params.element.align.align_v = alignTop;
-     //   label_params.element.margins = {0,0,0,0};
-
+		char line_str[MAX_LABEL_LENGTH];
+		LabelParams label_params=params;
+		label_params.element.align.align_v=alignTop;
+		label_params.element.margins={0,0,0,0};
         PrepareContent();
         PrepareViewport();
-
-        local_content = GetContentGeomOnElem();
-
-        line_geom = local_content;
-        line_geom.ye = line_geom.ys + line_height-1;
-
-        int32_t cursorPosX = 0;
-        //int32_t cursorPosY = 0;
-        cursorLine = 0;
-        bool isCursorSet = false;
-
-        int32_t l = 0;
-        for(i = 0; i < lines_count; ++i){
-            if (!isCursorSet)
-                cursorPosX = 0;
-            for(j=0, str_width=0, last_space=0 ; ; ++j, ++k){
-                if (isCursor && !isCursorSet){
-                  if (k == cursorPos){
-                      cursorLine = i;
-                      isCursorSet = true;
-                  }
-                  else{
-                      cursorPosX += ggetsymw(text[k]);
-                  }
-                }
-
-                if(text[k]=='\n' || text[k]==0){
-                    strncpy(line_str,&text[k-j],j);
-                    line_str[j]=0;
-                    l = 0;
+		local_content=GetContentGeomOnElem();
+		line_geom=local_content;
+		line_geom.ye=line_geom.ys+line_height-1;
+		for(i=0;i<lines_count;++i, line_geom.ys+=line_height, line_geom.ye+=line_height){
+			for(j=0, str_width=0, last_space=0;;++j,++k){
+				if(text[k]=='\n' || text[k]==0){
+					strncpy(line_str,&text[k-j],j);
+					line_str[j]=0;
+                    ++k;
                     break;
                 }
                 else{
-                    if(text[k]==' '){
-                        last_space=k;
+					if(text[k]==' '){
+						last_space=k;
                     }
-                    l++;
-                    str_width+=ggetsymw(text[k]);
-                    if(str_width>GEOM_W(el_geom) || (isMaxSymStr && (l%maxStrSymCount == 0) && (l != 0)) ){
-                        if(last_space==0 || text[k]==' '){
-                            sym_to_cp=j;
-                            strncpy(line_str,&text[k-j],sym_to_cp+1);
-                            line_str[sym_to_cp+1]=0;
+					str_width+=ggetsymw(text[k]);
+					if(str_width>GEOM_W(el_geom)){
+						if(last_space==0 || text[k]==' '){
+							sym_to_cp=j;
+							strncpy(line_str,&text[k-j],sym_to_cp);
+							line_str[sym_to_cp]=0;
                             ++k;
-                            l = 0;
                             break;
-
                         }
                         else{
-                            sym_to_cp=j-(k-last_space);
-                            strncpy(line_str,&text[k-j],sym_to_cp);
-                            line_str[sym_to_cp]=0;
-                            l = 0;                            
-                            k=last_space+1;
+							sym_to_cp=j-(k-last_space);
+							strncpy(line_str,&text[k-j],sym_to_cp);
+							line_str[sym_to_cp]=0;
+							k=last_space+1;
                             break;
                         }
+
                     }
                 }
-
+            }
+                GUI_EL_Label text_line(&label_params,&line_geom,line_str,parent_obj);
+                text_line.Draw();
             }
 
-
-
-            if ((i >= visLineBegin) && (i < visLineBegin + visLinesCount)){
-               GUI_EL_Label text_line(&label_params, &line_geom, line_str, parent_obj);
-               text_line.Draw();
-
-                   line_geom.ys += line_height;
-                   line_geom.ye += line_height;
-            }
         }
-
-        if (isCursor && (cursorLine >= visLineBegin) && (cursorLine < visLineBegin + visLinesCount)){
-            PrepareViewport();
-            grectangle (cursorPosX, (cursorLine-visLineBegin)*line_height+7, cursorPosX, (cursorLine-visLineBegin)*line_height + 23);
-        }
-
-        if (isScroll)
-        {
-            MoonsGeometry sliderArea  = { el_geom.xe, el_geom.ys, (GXT)(el_geom.xe + 9), el_geom.ye};
-            SliderParams  sliderParams = {lines_count - visLinesCount + 1, (int32_t)1, visLineBegin};
-            GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this->parent_obj);
-            slider.Draw();
-        }
-    }
 }
-
 
 //-----------------------------
 
 void GUI_EL_TextArea::CalcContentGeom(){
-    int32_t i = 0,
-    lf_count=0,
-    max_str_width=0,
-    str_width=0,
-    size=strlen(text),
-    last_space=0,
-    last_str_with=0;
-
+    int32_t i = 0, lf_count=0, max_str_width=0, str_width=0, size=strlen(text), last_space=0, last_str_with=0;
     content.W=0;
     content.H=0;
     gselfont(params.font);
-
-
-    int32_t l = 0 ;
     for(i=0;i<=size;++i){ //	подсчет количества строк
-        l++;
         if(text[i]==' '){
             last_space=i;
             last_str_with=str_width;
         }
         if(text[i]=='\n' || text[i]==0){
-            l = 0;
             ++lf_count;
             if(str_width>max_str_width){
                 max_str_width=str_width;
@@ -350,11 +280,10 @@ void GUI_EL_TextArea::CalcContentGeom(){
         }
         else {
             str_width+=ggetsymw(text[i]);
-            if(str_width>GEOM_W(el_geom) || (isMaxSymStr && (l%maxStrSymCount == 0) && (l != 0))){		//если строка длиннее чем область элемента
+            if(str_width>GEOM_W(el_geom)){		//если строка длиннее чем область элемента
                 ++lf_count;						//cчитаем перенос строки
-                l = 0;
                 if(last_space==0 || text[i]==' '){
-                    //str_width-=ggetsymw(text[i]);	//и отменяем сложение длины этого символа
+                    str_width-=ggetsymw(text[i]);	//и отменяем сложение длины этого символа
                 }
                 else{
                     str_width=last_str_with;
@@ -370,92 +299,14 @@ void GUI_EL_TextArea::CalcContentGeom(){
             }
         }
     }
-
     lines_count=lf_count;
     line_height=ggetfh();
-
-    visLinesCount = (el_geom.ye - el_geom.ys) / line_height;
-    if (visLinesCount < 1)
-      visLinesCount = 1;
-
-    int32_t contH = ggetfh()*lines_count;
-
-    content.H=ggetfh()*lines_count; // overflow
+	content.H=ggetfh()*lines_count;
     content.W=max_str_width;
-
-    if ((contH > GEOM_H(el_geom)) && !isScroll && (lines_count > 1))
-    {
-        el_geom.xe -= 10;
-        isScroll = true;
-        CalcContentGeom();
-        visLinesCount = (el_geom.ye - el_geom.ys) / line_height;
-        if (visLinesCount < 1)
-          visLinesCount = 1;
-    }
 }
 
-void GUI_EL_TextArea::ScrollUp(){
-   if (visLineBegin > 0){
-       --visLineBegin;
-       Draw();
-   }
-}
 
-void GUI_EL_TextArea::ScrollDown(){
-    if (visLineBegin < lines_count - visLinesCount){
-        ++visLineBegin;
-        Draw();
-    }
-}
 
-int32_t GUI_EL_TextArea::GetScrollIndex(){
-    return visLineBegin;
-}
-
-int32_t GUI_EL_TextArea::GetMaxScrollIndex(){
-    return lines_count - visLinesCount;
-}
-
-int32_t GUI_EL_TextArea::SetScrollIndex(int32_t index){
-    int32_t oldIndex;
-
-    if (isScroll){
-        if (index <= 0 ){
-            oldIndex = 0;
-        }
-        else if (index >= lines_count - visLinesCount ){
-            oldIndex = lines_count - visLinesCount;
-        }
-        else
-            oldIndex = index;
-
-        if (visLineBegin != oldIndex){
-            visLineBegin = oldIndex;
-        }
-    }
-    return visLineBegin;
-}
-
-void GUI_EL_TextArea::SetMaxStrSymCount(int32_t count)
-{
-    if (count)
-    {
-        isMaxSymStr = true;
-        maxStrSymCount = count;
-        CalcContentGeom();
-    }
-}
-
-int32_t GUI_EL_TextArea::SetCursorPos(int32_t pos, bool isEnable)
-{
-    isCursor = isEnable;
-    if (pos >= 0 && pos <= strlen(text))
-        cursorPos = pos;
-    else if (pos >= strlen(text))
-      cursorPos = strlen(text);
-    else cursorPos = 0;
-    return cursorPos;
-}
 
 //+++++++++++++Icon+++++++++++++++++++++
 
@@ -801,8 +652,7 @@ void GUI_EL_Slider::Draw(){
 	up_arrow.Draw();
 	down_arrow.Draw();
 
-    if (GEOM_H(el_geom) >= 20)
-    {
+
 	PrepareViewport();
 	gsetcolorf(GENERAL_FORE_COLOR);
 	gsetcolorb(GENERAL_FORE_COLOR);
@@ -830,7 +680,6 @@ void GUI_EL_Slider::Draw(){
 	}
 	groundrect(xs,ys,xe,ye,0,GFILL);
 
-    }
 }
 
 //-----------------------------

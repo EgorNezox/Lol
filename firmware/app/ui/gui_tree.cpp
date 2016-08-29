@@ -38,11 +38,6 @@ void CGuiTree::init()
     sttEditRnKey.setName(settingsSubMenu[7]);
     sttZond.setName(settingsSubMenu[8]);
 
-    //sttZond1.setName(zondSubMenu[0]);
-   // sttZond2.setName(zondSubMenu[1]);
-    //sttZond3.setName(zondSubMenu[2]);
-    //sttZond4.setName(zondSubMenu[3]);
-
     // 4.1.1 - 4.1.2
     sttConnParamGPS.setName(dateAndTimeSubMenu[0]); sttConnParamHand.setName(dateAndTimeSubMenu[1]);
     // 4.1.2.1 - 4.1.2.2
@@ -226,7 +221,6 @@ void CGuiTree::init()
     settings.nextState.push_back(&sttScan);
     settings.nextState.push_back(&sttSound);
     settings.nextState.push_back(&sttSuppress);
-    settings.nextState.push_back(&sttZond);
     // 4.1 - Дата/время
     sttDateTime.prevState = &settings;
     sttDateTime.nextState.push_back(&sttConnParamGPS);
@@ -291,10 +285,6 @@ void CGuiTree::init()
     sttSuppress.subType = GuiWindowsSubType::suppress;
     sttSuppress.prevState = &settings;
     sttSuppress.nextState.clear();
-    // 4.7  - Конфигуратор
-    sttZond.subType     = GuiWindowsSubType::zond;
-    sttZond.prevState    = &settings;
-    sttZond.nextState.clear();
 
     currentState = &MainWindow;
     statesStack.clear();

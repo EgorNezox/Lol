@@ -69,10 +69,8 @@ class GUI_EL_Label: public GUI_Element{
 		void setSkipTextBackgronundFilling(bool enabled);
 		void SetText(char *text);
         bool transparent;
-        void drawCursor(int32_t pos, bool isDraw = false);
 	private:
-        bool isCursor = false;
-        int32_t cursorPos = 0;
+
 		PGFONT font;
 		ColorScheme color_sch;
 		bool skip_text_bg_filling;
@@ -96,28 +94,13 @@ class GUI_EL_TextArea: public GUI_Element{
         GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj);
         void Draw();
         void SetText(char *text);
-        void ScrollUp();
-        void ScrollDown();
-        int32_t GetScrollIndex();
-        int32_t GetMaxScrollIndex();
-        int32_t SetScrollIndex(int32_t index);
-        void SetMaxStrSymCount(int32_t count);
-        int32_t SetCursorPos(int32_t pos = 0, bool isEnable = true); // return curPos
     private:
-        int32_t cursorPos = 0;
-        int32_t cursorLine = 0;
-        bool isCursor = false;
-        int32_t maxStrSymCount;
-        bool isMaxSymStr;
         int32_t lines_count;
         GYT line_height;
         TextAreaParams params;
-        bool isScroll = false;
-        int32_t visLineBegin = 0;
-        int32_t visLinesCount = 0;
     protected:
         void CalcContentGeom();
-        char text[300];
+        char text[MAX_TEXT_AREA_LENGTH];
 };
 
 //-----------------------------

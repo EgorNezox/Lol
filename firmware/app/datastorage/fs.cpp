@@ -1,5 +1,5 @@
 #include "qm.h"
-#include <qmfile.h>
+
 #include "fs.h"
 
 #include "../../../sazhenn.h"
@@ -187,26 +187,6 @@ bool FS::getFhssKey(uint8_t& data) {
 
 void FS::setFhssKey(uint8_t data) {
     RnKey = data;
-}
-
-void FS::setChannelStation(uint8_t number)
-{
-    QmFile file(dir,"ChanVal");
-    if (file.open(QmFile::WriteOnly)) return;
-    file.write((uint8_t*)&number,1);
-}
-
-bool FS::getChannelStation(uint8_t &number)
-{
-    QmFile file(dir, "ChanVal");
-    if (!file.open(QmFile::ReadOnly))
-        return false;
-
-    int64_t file_size = file.size();
-    if (!(file_size == 1))
-        return false;
-    file.read((uint8_t *)&number, 1);
-    return true;
 }
 
 } /* namespace DataStorage */
