@@ -103,14 +103,17 @@ private:
 		ALE_TX_NEG_TX_MODE,
 		ALE_TX_NEG_RX_HSHAKE,
 		ALE_TX_NEG_TX_HSHAKE,
+		ALE_TX_NEG_IDLE,
 		ALE_TX_VM_START,
 		ALE_TX_VM_TX_MSGHEAD,
 		ALE_TX_VM_RX_MSG_RESP,
 		ALE_TX_VM_TX_MSG_HSHAKE,
+		ALE_TX_VM_MSG_IDLE,
 		ALE_TX_VM_TX_PACKET,
 		ALE_TX_VM_RX_PACK_RESP,
 		ALE_TX_VM_TX_PACK_HSHAKE,
 		ALE_TX_VM_TX_LINK_RELEASE,
+		ALE_TX_VM_PACK_IDLE,
 		ALE_RX_SETUP,
 		ALE_RX_SCAN,
 		ALE_RX_CALL,
@@ -120,14 +123,17 @@ private:
 		ALE_RX_NEG_RX_MODE,
 		ALE_RX_NEG_TX_HSHAKE,
 		ALE_RX_NEG_RX_HSHAKE,
+		ALE_RX_NEG_IDLE,
 		ALE_RX_VM_START,
 		ALE_RX_VM_RX_MSGHEAD,
 		ALE_RX_VM_TX_MSG_RESP,
 		ALE_RX_VM_RX_MSG_HSHAKE,
+		ALE_RX_VM_MSG_IDLE,
 		ALE_RX_VM_RX_PACKET,
 		ALE_RX_VM_TX_PACK_RESP,
 		ALE_RX_VM_TX_LINK_RELEASE,
-		ALE_RX_VM_RX_PACK_HSHAKE
+		ALE_RX_VM_RX_PACK_HSHAKE,
+		ALE_RX_VM_PACK_IDLE
 	};
 	struct __attribute__ ((__packed__)) AleVmPacket {
 		uint8_t num_data[62];
@@ -141,7 +147,7 @@ private:
 
 
 
-	MainServiceInterface(Dispatcher *dispatcher, Navigation::Navigator *navigator);
+	MainServiceInterface(Dispatcher *dispatcher);
 	~MainServiceInterface();
 	void setStatus(Status value);
 	void forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);

@@ -63,6 +63,8 @@ public:
     void initSelectVoiceModeParameters(bool);
     void initSelectChEmissTypeParameters(bool);
 
+    void initSmsStageDialog(std::string);
+
     void setTitle(const char*);
     void keyPressed(UI_Key);
     bool isEditing(){ return editing; }
@@ -141,7 +143,7 @@ public:
     bool scanStatus = true;
 
     // supress
-    bool supressStatus = true;
+    uint8_t supressStatus = 0;
 
     // date, time, speed
     std::string localDate, localTime, speed;
@@ -154,6 +156,8 @@ public:
     //ZOND
     std::map<int, std::string> sheldure;
     void initZondDialog(int focus, std::vector<std::string> &data);
+    int32_t scrollIndex = 0;
+    int32_t scrollIndexMax = 0;
 
     //
     bool useMode = false;

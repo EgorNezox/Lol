@@ -42,6 +42,8 @@ global C_EXTRA_FLAGS CXX_EXTRA_FLAGS
 global DEFINES INCDIR OBJECTS LDDEPS
 global DEFINES_system INCDIR_system OBJECTS_system LDFLAGS_system
 
+global COMPILE_OPT_FLAGS_LTO_ENABLED
+
 # Файл конфигурации сборки проекта (в корне исходников проекта)
 # В нем должны быть определены следующие локальные переменные:
 # - PROJECT_NAME (имя проекта, м.б. использоваться в субпроектах как название выходного файла сборки)

@@ -91,12 +91,11 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->smsMess.connect(sigc::mem_fun(this,&Service::smsMessage));
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
     voice_service->respGuc.connect(sigc::mem_fun(this,&Service::gucFrame));
-    voice_service->errorAsu.connect(sigc::mem_fun(this, &Service::errorMessage));
+    voice_service->atuMalfunction.connect(sigc::mem_fun(this, &Service::showAtuMalfunction));
     multiradio_service->dspHardwareFailed.connect(sigc::mem_fun(this, &Service::showDspHardwareFailure));
     voice_service->messageGucTxQuit.connect(sigc::mem_fun(this, &Service::msgGucTXQuit));
     voice_service->gucCrcFailed.connect(sigc::mem_fun(this,&Service::errorGucCrc));
     voice_service->gucCoord.connect(sigc::mem_fun(this,&Service::GucCoord));
-    //voice_service->getSmsStageUi.connect(sigc::mem_fun(this, &Service::));
 
 #ifndef PORT__PCSIMULATOR
     systemTimeTimer = new QmTimer(true); // TODO:
@@ -118,7 +117,10 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
         zond_data.push_back(s);
     }
 
+    menu->supressStatus = 0;
+
 }
+
 
 void Service::updateSmsStatus(int value)
 {
@@ -192,10 +194,15 @@ void Service::updateSmsStatus(int value)
     }
 }
 
-void Service::errorMessage()
+//void Service::errorMessage()
+//{
+//    guiTree.append(messangeWindow, (char*)"Error ASU\0", "0\0");
+//}
+
+void Service::showAtuMalfunction()
 {
-    msgBox( "Error ", "ASU modeMalFunction\0");
-    guiTree.append(messangeWindow, (char*)"Error ASU\0", "0\0");
+    msgBox(atumalfunction_title_str, atumalfunction_text_str);
+    guiTree.append(messangeWindow, atumalfunction_title_str, atumalfunction_text_str);
 }
 
 void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)
@@ -505,15 +512,15 @@ void Service::keyPressed(UI_Key key)
                     int freq = atoi(main_scr->nFreq.c_str());
                     voice_service->tuneFrequency(freq);
                 }
-                // ? � їС—� …� їС—� …� їС—� …
+                // ? пїЅпїЅпїЅ
                 switch ( main_scr->mainWindowModeId )
                 {
                 case 0:
                 {}
-                    // � їС—� …� їС—� …� їС—� …
+                    // пїЅпїЅпїЅ
                 case 1:
                 {}
-                    // � їС—� …� їС—� …� їС—� …
+                    // пїЅпїЅпїЅ
                 case 2:
                 {}
                 default:
@@ -630,7 +637,7 @@ void Service::keyPressed(UI_Key key)
         }
         break;
     }
-        // ? � їС—� … ? � їС—� …? � їС—� …? � їС—� …� Ў� ‹
+        // ? пїЅ ? пїЅ? пїЅ? пїЅСЋ
     case menuWindow:
     {
         if ( key == keyEnter)
@@ -859,7 +866,7 @@ void Service::keyPressed(UI_Key key)
                          menu->txCondCmdStage == 4 ||
                          menu->txCondCmdStage == 5
                          )
-                        menu->txCondCmdStage++;
+                     menu->txCondCmdStage++;
                 }
 
                 // send
@@ -875,21 +882,27 @@ void Service::keyPressed(UI_Key key)
                         i++;
                     }
                     if (menu->condCmdModeSelect == 0)
-                        voice_service->TurnPSWFMode(1, param[0], 0,0); // � іСЂСѓ� ї� ї� ѕ� І� ѕ� № � ІС‹� ·� ѕ� І
+                        voice_service->TurnPSWFMode(1, param[0], 0,0); // групповой вызов
                     if (menu->condCmdModeSelect == 1)
-                        voice_service->TurnPSWFMode(1, param[0], param[2],param[1]); // � ё� Ѕ� ґ� ё� І� ё� ґСѓ� °� »СЊ� ЅС‹� № � ІС‹� ·� ѕ� І
+                        voice_service->TurnPSWFMode(0, param[0], param[2],param[1]); // индивидуальный вызов
                     if (menu->condCmdModeSelect == 2){
                         param[2] +=32;
-                        voice_service->TurnPSWFMode(1,param[0],param[2],0); // СЃ � є� І� ёС‚� °� ЅС� � ё� µ� №
+                        voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
                     }
 
+                    menu->txCondCmdStage = 0;
+                    guiTree.resetCurrentState();
+                    for(auto &k: estate.listItem)
+                        k->inputStr.clear();
 
+                    redrawMessage(callSubMenu[0],StartCmd);
 
 #else
                     menu->txCondCmdStage = 0;
                     guiTree.resetCurrentState();
                     for(auto &k: estate.listItem)
                         k->inputStr.clear();
+
 #endif
                 }
                 break;
@@ -990,8 +1003,8 @@ void Service::keyPressed(UI_Key key)
 
                     if ( (*iter)->inputStr.size() > 0 )
                     {
-                        (*iter)->inputStr.pop_back();
-                    }
+                           (*iter)->inputStr.pop_back();
+                        }
                     else
                     {
                         menu->groupCondCommStage--;
@@ -1031,7 +1044,7 @@ void Service::keyPressed(UI_Key key)
                     int speed = 0;//atoi(mas[1]);
                     guc_command_vector.clear();
                     parsingGucCommand((uint8_t*)str);
-                    voice_service->saveFreq(getFreq()); //
+                    voice_service->saveFreq(getFreq());
                     voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
 #else
                     for (auto &k: estate.listItem)
@@ -1057,7 +1070,7 @@ void Service::keyPressed(UI_Key key)
                 }
                 if (menu->groupCondCommStage == 4)
                 {
-                    // прокрутка
+                    // ���������
                 }
                 break;
             }
@@ -1114,13 +1127,13 @@ void Service::keyPressed(UI_Key key)
                         if ( key != key0 )
                         {
                             commands->push_back( (char)(42 + key) );
-                        }
+                            }
                         else
                         {
                             menu->inputGroupCondCmd(estate);
-                        }
-                    }
-                }
+                            }
+                           }
+                                }
 
                 break;
             }
@@ -1216,7 +1229,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 3:
-            {// � І� І� ѕ� ґ � °� ґСЂ� µСЃ� ° � ѕ� »СѓС‡� °С‚� µ� »СЊ
+            {// ввод адреса олучатель
                 if ( key > 5 && key < 16 && menu->voiceAddr.size() < 2 )
                 {
                     menu->voiceAddr.push_back((char)(42+key));
@@ -1251,7 +1264,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 4:
-            {// � ї� ѕ� ґС‚� І� µСЂ� ¶� ґ� µ� Ѕ� ё� µ
+            {// подтверждение
                 if (key == keyBack)
                 {
                     menu->putOffVoiceStatus--;
@@ -1266,6 +1279,7 @@ void Service::keyPressed(UI_Key key)
 #else
                 if (key == keyEnter)
                 {
+                	updateAleState(Multiradio::MainServiceInterface::AleState_IDLE);
                     multiradio_service->startAleTxVoiceMail((uint8_t)atoi(menu->voiceAddr.c_str()));
                     menu->putOffVoiceStatus++;
                 }
@@ -1273,7 +1287,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 5:
-            {// СЃС‚� °С‚СѓСЃ
+            {// статус
                 if (key == keyBack)
                 {
                     menu->putOffVoiceStatus--;
@@ -1434,7 +1448,15 @@ void Service::keyPressed(UI_Key key)
                 }
                 case keyEnter:
                 {
-                    if ( menu->smsStage == 0 )
+
+                    if ( menu->smsStage == 0xF0 )
+                    {
+                        menu->smsStage = 0;
+                        menu->smsTxStage = 1;
+                        guiTree.resetCurrentState();
+                    }
+                    else if (menu->smsStage == 0x0F){   /*menu->smsStage = 0;*/  }
+                    else
                     {
                         // call
                         // [0] - dstAddr, [1]- message, [3] - retrAddr
@@ -1466,14 +1488,11 @@ void Service::keyPressed(UI_Key key)
                                     voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
                                 for(auto &k: estate.listItem)
                                     k->inputStr.clear();
+
+                                redrawMessage(callSubMenu[1],StartCmd);
+
                             }
                         }
-                    }
-                    else if ( menu->smsStage == 0xF0 )
-                    {
-                        menu->smsStage = 0;
-                        menu->smsTxStage = 1;
-                        guiTree.resetCurrentState();
                     }
 
                     break;
@@ -1531,9 +1550,10 @@ void Service::keyPressed(UI_Key key)
                     guiTree.resetCurrentState();
 #else
                         voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
-                        // � ї� °СЂ� °� ј� µС‚СЂ � ѕС‚� І� µС‚� ° � ѕ� їСЂ� µ� ґ� µ� »СЏ� µС‚СЃСЏ � ї� ѕ � ї� ѕ� »СѓС‡� µ� Ѕ� ёСЋ � є� °� ґСЂ� ° � Ѕ� ° � °� ґСЂ� µСЃ 0x63
-                        // � І � ї� µСЂ� І� ѕ� № СЃС‚� °� ґ� ё� ё � ІС‹� ·� ѕ� І� °
+                        // параметр ответа определяется по получению кадра на адрес 0x63
+                        // в первой стадии вызова
                         // if (ContentSms.R_ADR > 32) pswf_ack = true;
+                        redrawMessage(callSubMenu[0],EndCmd);
 
 #endif
                     //                    menu->rxCondCmdStatus = 1;
@@ -1552,30 +1572,31 @@ void Service::keyPressed(UI_Key key)
             }
             if ( key == keyEnter)
             {
-                switch(menu->recvStage)
-                {
-                case 0:
-                {
-                    menu->recvStage = 1;
+//                switch(menu->recvStage)
+//                {
+//                case 0:
+//                {
+//                    menu->recvStage = 1;
 #ifndef PORT__PCSIMULATOR
                     voice_service->TurnSMSMode();
+                    redrawMessage(callSubMenu[1],EndCmd);
 #endif
-                    break;
-                }
-                case 1:
-                {
-                    //
-                    break;
-                }
-                case 2:
-                {
-                    menu->recvStage = 0;
+//                    break;
+//                }
+//                case 1:
+//                {
+//                    //
+//                    break;
+//                }
+//                case 2:
+//                {
+//                    menu->recvStage = 0;
                     guiTree.resetCurrentState();
-                    break;
-                }
-                default:
-                    break;
-                }
+//                    break;
+//                }
+//                default:
+//                    break;
+//                }
 
             }
             break;
@@ -1591,6 +1612,7 @@ void Service::keyPressed(UI_Key key)
             {
 #ifndef PORT__PCSIMULATOR
                 voice_service->TurnGuc();
+                redrawMessage(callSubMenu[0],EndCmd);
 #else
                 guiTree.resetCurrentState();
 #endif
@@ -1614,6 +1636,7 @@ void Service::keyPressed(UI_Key key)
                 if (key == keyEnter)
                 {
 #ifndef _DEBUG_
+                	updateAleState(Multiradio::MainServiceInterface::AleState_IDLE);
                     multiradio_service->startAleRx();
 #endif
                     menu->putOffVoiceStatus++;
@@ -1654,7 +1677,7 @@ void Service::keyPressed(UI_Key key)
             }
             case 4:
             {
-                // � ІС‹� ±СЂ� °С‚СЊ � є� °� Ѕ� °� » � І� ѕСЃ� їСЂ� ѕ� ё� ·� І� µ� ґ� µ� Ѕ� ёСЏ
+                // выбрать канал воспроизведения
                 if ( key > 5 && key < 16 && menu->channalNum.size() < 2 )
                 {
                     menu->channalNum.push_back((char)(42+key));
@@ -1753,13 +1776,24 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyRight || key == keyLeft )
             {
-                menu->supressStatus = menu->supressStatus ? false : true;
-                menu->inclStatus = menu->inclStatus ? false : true;
+
+                if (menu->supressStatus <= 24 && key == keyRight)
+                    ++menu->supressStatus;
+                if (menu->supressStatus >= 6 && key == keyLeft)
+                    --menu->supressStatus;
+                if (menu->supressStatus > 24 || menu->supressStatus <6)
+                    menu->supressStatus = 6;
 
                 int value = 0;
-                if (menu->supressStatus == false) value =  12;
+                value =  menu->supressStatus;
                 voice_service->tuneSquelch(value);
             }
+            if (key == keyDown)
+            {
+                menu->supressStatus = 0;
+                voice_service->tuneSquelch(menu->supressStatus);
+            }
+
             if ( key == keyBack)
             {
                 guiTree.backvard();
@@ -2048,7 +2082,7 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::editRnKey:
         {
-            // � ІС‹� ±СЂ� °С‚СЊ � є� °� Ѕ� °� » � І� ѕСЃ� їСЂ� ѕ� ё� ·� І� µ� ґ� µ� Ѕ� ёСЏ
+            // выбрать канал воспроизведения
             if ( key > 5 && key < 16 && menu->RN_KEY.size() < 3 )
             {
                 menu->RN_KEY.push_back((char)(42+key));
@@ -2183,6 +2217,13 @@ void Service::keyPressed(UI_Key key)
 int Service::getLanguage()
 {
     return 0;
+}
+
+void Service::redrawMessage( const char* title,const  char* message)
+{
+    guiTree.resetCurrentState();
+    guiTree.append(messangeWindow,title,message);
+    msgBox(title,message);
 }
 
 void Service::FirstPacketPSWFRecieved(int packet)
@@ -2350,7 +2391,7 @@ void Service::drawMenu()
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
         //
-        // � їС—� …� їС—� …� їС—� …� їС—� …� їС—� …� їС—� …� їС—� …� їС—� …� їС—� …
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         //        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
 
         for (auto &k: st.nextState)
@@ -2441,7 +2482,7 @@ void Service::drawMenu()
                 if (menu->smsStage == 0)
                 {
                     fieldStr.clear();
-                    fieldStr.append(startAleTxVoiceMailStr);
+                    fieldStr.append(startStr);
                 }
                 if (menu->smsStage == 0x0F)
                 {
@@ -2572,7 +2613,7 @@ void Service::drawMenu()
         case GuiWindowsSubType::suppress:
         {
             menu->inclStatus = menu->supressStatus;
-            menu->initIncludeDialog();
+            menu->initSuppressDialog();
             break;
         }
         case GuiWindowsSubType::aruarmaus:
@@ -2773,6 +2814,7 @@ void Service::smsMessage()
     for(int i = 0; i<50;++i) sym[i] = '0';
 
     memcpy(sym, voice_service->getSmsContent(), 50);
+    for(int i = 1; i<5;i++) { sym[i*10]  == '\n'; }
     sym[49] = '\0';
 
     guiTree.append(messangeWindow, "Recieved SMS ", sym);

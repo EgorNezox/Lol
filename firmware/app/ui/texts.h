@@ -123,12 +123,23 @@ extern const char* NoGucCoord;
 extern const char* StartGucTx;
 extern const char* GucIndivid;
 extern const char* GucGroup;
-extern const char* Zond;
 extern const char* Zond_label;
+
+extern const char* startStr;
+
+extern const char* atumalfunction_title_str;
+extern const char* atumalfunction_text_str;
 
 extern const char* dsphardwarefailure_7_5_title_str;
 extern const char* dsphardwarefailure_7_5_text_str;
 extern const char* dsphardwarefailure_unknown_title_str;
 extern const char* dsphardwarefailure_unknown_text_str;
+
+extern const char *smsDataInformDx[];
+
+extern const char *zondSubMenu[];
+
+extern const char *StartCmd;
+extern const char *EndCmd;
 
 #endif /* TEXTS_H_ */

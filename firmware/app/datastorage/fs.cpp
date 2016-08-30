@@ -1,5 +1,5 @@
 #include "qm.h"
-#include <qmfile.h>
+
 #include "fs.h"
 
 #include "../../../sazhenn.h"
@@ -99,10 +99,10 @@ bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
 
 	//УКВ
 	ch_entry.type = Multiradio::channelOpen;
-	ch_entry.frequency = 30050000;
+	ch_entry.frequency = 26000000;
 	data.push_back(ch_entry);
 	ch_entry.type = Multiradio::channelClose;
-	ch_entry.frequency = 30050000;
+	ch_entry.frequency = 26000000;
 	data.push_back(ch_entry);
 	ch_entry.type = Multiradio::channelOpen;
 	ch_entry.frequency = 33500000;

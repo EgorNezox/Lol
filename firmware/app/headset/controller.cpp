@@ -50,7 +50,8 @@ Controller::Controller(int rs232_uart_resource, int ptt_iopin_resource) :
 	hs_state(SmartHSState_SMART_NOT_CONNECTED),
 	message_record_data_ready(false),
 	message_to_play_data_packets_sent(0),
-	message_to_play_last_packet_data_size(0)
+	message_to_play_last_packet_data_size(0),
+	minimal_activity_mode(false)
 {
 	ptt_key = new QmPushButtonKey(ptt_iopin_resource);
 	ptt_debounce_timer = new QmTimer(true, this);
@@ -768,6 +769,15 @@ uint16_t Controller::calcPacketCrc(uint8_t* data, int data_len) {
 	result = (result >> 8) & 0x00FF;
 	result |= (least << 8) & 0xFF00;
 	return result;
+}
+
+void Controller::setMinimalActivityMode(bool enabled) {
+	minimal_activity_mode = enabled;
+	if (enabled) {
+		poll_timer->stop();
+	} else {
+		poll_timer->start();
+	}
 }
 
 } /* namespace Headset */

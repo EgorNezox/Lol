@@ -171,6 +171,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     ContentPSWF.RN_KEY = DefkeyValue;
     ContentSms.RN_KEY = DefkeyValue;
 
+    retranslation_active = false;
+
 }
 DspController::~DspController()
 
@@ -208,7 +210,18 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 	QM_ASSERT(is_ready);
 	switch (radio_state) {
 	case radiostateSync: {
-		radio_state = radiostateCmdTxPower;
+		switch (current_radio_operation) {
+		case RadioOperationOff:
+			radio_state = radiostateCmdRxFreq;
+			break;
+		case RadioOperationRxMode:
+			radio_state = radiostateCmdModeOffRx;
+			break;
+		case RadioOperationTxMode:
+		case RadioOperationCarrierTx:
+			radio_state = radiostateCmdModeOffTx;
+			break;
+		}
 		break;
 	}
 	case radiostateCmdRxOff:
@@ -222,6 +235,7 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 		radio_state = radiostateCmdModeOffRx;
 		break;
 	}
+	case radiostateCmdTxPower:
 	case radiostateCmdTxMode:
 	case radiostateCmdCarrierTx: {
 		radio_state = radiostateCmdModeOffTx;
@@ -521,12 +535,13 @@ void DspController::transmitPswf()
     {
         qmDebugMessage(QmDebug::Dump, "PSWF trinsmitting finished");
         command_tx30 = 0;
-        if (pswf_ack) {
+        if (pswf_ack || (ContentPSWF.RET_end_adr > 0)) {
             startPSWFReceiving(false);
             state_pswf = true;
         } else {
         	qmDebugMessage(QmDebug::Dump, "radio_state = radiostateSync");
         	radio_state = radiostateSync;
+        	goToVoice();
         }
         return;
     }
@@ -565,6 +580,7 @@ void DspController::changePswfRxFrequency()
 			} else {
 				qmDebugMessage(QmDebug::Dump, "radio_state = radiostateSync");
 				radio_state = radiostateSync;
+				started();
 			}
 			return;
 		}
@@ -582,6 +598,7 @@ void DspController::changePswfRxFrequency()
 void DspController::changeSmsRxFrequency()
 {
 	getDataTime();
+	//if ((retranslation_active) && (ContentSms.stage == StageRx_data)) {addSeconds(date_time);}
     ContentSms.Frequency =  getFrequencySms();
 
 	ParameterValue param;
@@ -627,6 +644,7 @@ void DspController::RecievedPswf()
     }
 
     if (pswf_rec == 3) firstPacket(ContentPSWF.COM_N);
+    if ((pswf_ack == false) && (command_rx30 == 30)) {radio_state = radiostateSync;}
 
     ++command_rx30;
 }
@@ -803,6 +821,9 @@ bool DspController::startRadioOff() {
 	case radiostateCmdRxMode:
 		radio_state = radiostateCmdRxOff;
 		break;
+	case radiostateCmdTxPower:
+		radio_state = radiostateSync;
+		break;
 	case radiostateCmdTxMode:
 	case radiostateCmdCarrierTx:
 		radio_state = radiostateCmdTxOff;
@@ -825,6 +846,7 @@ bool DspController::startRadioRxMode() {
 		break;
 	case radiostateCmdRxOff:
 	case radiostateCmdTxOff:
+	case radiostateCmdTxPower:
 		radio_state = radiostateCmdRxMode;
 		break;
 	default:
@@ -838,14 +860,14 @@ bool DspController::startRadioTxMode() {
 	case radiostateSync:
 	case radiostateCmdRxMode:
 		if (current_radio_operation == RadioOperationOff)
-			radio_state = radiostateCmdTxMode;
+			radio_state = radiostateCmdTxPower;
 		else
 			radio_state = radiostateCmdRxOff;
 		break;
 	case radiostateCmdRxOff:
 	case radiostateCmdTxOff:
 	case radiostateCmdCarrierTx:
-		radio_state = radiostateCmdTxMode;
+		radio_state = radiostateCmdTxPower;
 		break;
 	default:
 		return false;
@@ -858,14 +880,14 @@ bool DspController::startRadioCarrierTx() {
 	case radiostateSync:
 	case radiostateCmdRxMode:
 		if (current_radio_operation == RadioOperationOff)
-			radio_state = radiostateCmdCarrierTx;
+			radio_state = radiostateCmdTxPower;
 		else
 			radio_state = radiostateCmdRxOff;
 		break;
 	case radiostateCmdRxOff:
 	case radiostateCmdTxOff:
 	case radiostateCmdTxMode:
-		radio_state = radiostateCmdCarrierTx;
+		radio_state = radiostateCmdTxPower;
 		break;
 	default:
 		return false;
@@ -880,14 +902,6 @@ void DspController::processRadioState() {
 	switch (radio_state) {
 	case radiostateSync:
 		break;
-	case radiostateCmdTxPower: {
-		if (current_radio_frequency >= 30000000)
-			command_value.power = 80;
-		else
-			command_value.power = 100;
-		sendCommand(TxRadiopath, TxPower, command_value);
-		break;
-	}
 	case radiostateCmdRxFreq: {
 		command_value.frequency = current_radio_frequency;
 		sendCommand(RxRadiopath, RxFrequency, command_value);
@@ -915,6 +929,18 @@ void DspController::processRadioState() {
 		sendCommand(RxRadiopath, RxRadioMode, command_value);
 		break;
 	}
+	case radiostateCmdTxPower: {
+		if (current_radio_operation != RadioOperationCarrierTx) {
+			if (current_radio_frequency >= 30000000)
+				command_value.power = 80;
+			else
+				command_value.power = 100;
+		} else {
+			command_value.power = 80;
+		}
+		sendCommand(TxRadiopath, TxPower, command_value);
+		break;
+	}
 	case radiostateCmdTxMode: {
 		command_value.radio_mode = current_radio_mode;
 		sendCommand(TxRadiopath, TxRadioMode, command_value);
@@ -934,21 +960,6 @@ void DspController::syncNextRadioState() {
 	case radiostateSync:
 		QM_ASSERT(0);
 		break;
-	case radiostateCmdTxPower: {
-		switch (current_radio_operation) {
-		case RadioOperationOff:
-			radio_state = radiostateCmdRxFreq;
-			break;
-		case RadioOperationRxMode:
-			radio_state = radiostateCmdModeOffRx;
-			break;
-		case RadioOperationTxMode:
-		case RadioOperationCarrierTx:
-			radio_state = radiostateCmdModeOffTx;
-			break;
-		}
-		break;
-	}
 	case radiostateCmdModeOffRx:
 	case radiostateCmdModeOffTx: {
 		radio_state = radiostateCmdRxFreq;
@@ -969,15 +980,30 @@ void DspController::syncNextRadioState() {
 			radio_state = radiostateCmdRxMode;
 			break;
 		case RadioOperationTxMode:
+		case RadioOperationCarrierTx:
+			radio_state = radiostateCmdTxPower;
+			break;
+		}
+		break;
+	}
+	case radiostateCmdRxMode: {
+		radio_state = radiostateSync;
+		break;
+	}
+	case radiostateCmdTxPower: {
+		switch (current_radio_operation) {
+		case RadioOperationTxMode:
 			radio_state = radiostateCmdTxMode;
 			break;
 		case RadioOperationCarrierTx:
 			radio_state = radiostateCmdCarrierTx;
 			break;
+		default:
+			radio_state = radiostateSync;
+			break;
 		}
 		break;
 	}
-	case radiostateCmdRxMode:
 	case radiostateCmdTxMode:
 	case radiostateCmdCarrierTx: {
 		radio_state = radiostateSync;
@@ -1514,11 +1540,16 @@ void DspController::sendGuc()
         }
     }
     else
-    for(int i = 0; i < crc32_len;i++)
+    //for(int i = 0; i < crc32_len;i++)
     {
-    	int sdvig  = (i+1) % 8;
-    	if (sdvig != 0)
-    	ContentGuc.command[i] = (ContentGuc.command[i] << sdvig) + (ContentGuc.command[i+1] >> (7 -  sdvig));
+
+    	std::vector<bool> data;
+    	for(int i = 0; i<ContentGuc.NUM_com;i++) pack_manager->addBytetoBitsArray(ContentGuc.command[i],data,7);
+    	for(int i = 0; i<crc32_len;i++) pack_manager->getArrayByteFromBit(data,ContentGuc.command);
+
+//    	int sdvig  = (i+1) % 8;
+//    	if (sdvig != 0)
+//    	ContentGuc.command[i] = (ContentGuc.command[i] << sdvig) + (ContentGuc.command[i+1] >> (7 -  sdvig));
     }
 
     if (!isGpsGuc)
@@ -1697,6 +1728,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                count_clear += 7;
                for(int i = count_clear - 7; i<count_clear;i++)
                rs_data_clear[i] = 1; //REVIEW: count_clear может быть 259? тогда выход за границы rs_data_clear
+
+               std::vector<uint8_t> sms_data;
+               for(int i = 8;i<15;i++) { sms_data.push_back(data[i]);}
+               if (counterSms[StageRx_data] < 37)
+               recievedSmsBuffer.push_back(sms_data);
             }
         } else if (indicator == 30) {
         	qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");
@@ -1758,9 +1794,10 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 ContentPSWF.S_ADR = data[8];
                 pswf_data.push_back(data[9]);
                 pswf_data.push_back(data[10]);
+                if (ContentPSWF.R_ADR > 32) pswf_ack = true;
                 recievedPswfBuffer.push_back(pswf_data);
                 getDataTime();
-                if (state_pswf == 0)
+               // if (state_pswf == 0)
                 RecievedPswf();
             }
         }
@@ -1798,6 +1835,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             recGuc();
         	else
         	{
+                //initResetState();
         		radio_state = radiostateSync;
         	}
 
@@ -1816,7 +1854,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             	ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
                 isGpsGuc = data[5] & 0x1; // TODO: требуется проверить в реальных условиях
 
-                if (ContentGuc.stage == GucTxQuit){ ContentGuc.S_ADR = (data[2] & 0x1F);  recievedGucQuitForTransm(ContentGuc.S_ADR); ContentGuc.stage = GucNone;}
+                if (ContentGuc.stage == GucTxQuit){ ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);  recievedGucQuitForTransm(ContentGuc.S_ADR); ContentGuc.stage = GucNone;}
             	else{
             		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
             		std::vector<uint8_t> guc;
@@ -2046,6 +2084,7 @@ void DspController::recSms()
                 smsFailed(0);
                 radio_state = radiostateSync;
                 ContentSms.stage = StageNone;
+                goToVoice();
             }
             counterSms[StageTx_call_ack] = 18;
             pswf_first_packet_received = false;
@@ -2072,19 +2111,40 @@ void DspController::recSms()
                     if (getSmsRetranslation() != 0)
                     {
                         // требуется, чтобы здесь происходил запуск приема,
-                        initResetState();
-                		startSMSRecieving();
+                    	//ContentSms.stage = StageNone;
+                        //initResetState();
+                		//startSMSRecieving(StageRx_call);
+                    	retranslation_active = true;
+                    	radio_state = radiostateSmsRxPrepare;
+                    	smsRxStateSync = 0;
+                    	ContentSms.stage = StageRx_call;
                 	}
+                    else
+                    {
+                    	// если нет ретрансляции, то выключить
+                    	radio_state = radiostateSync;
+                    	ContentSms.stage = StageNone;
+                    	goToVoice();
+                    }
                 }
                 else
+                {
+                	// если нет совпадений, то выход
                     smsFailed(0);
+                    radio_state = radiostateSync;
+                    ContentSms.stage = StageNone;
+                    goToVoice();
+                }
 
             } else {
                 qmDebugMessage(QmDebug::Dump, "recSms() smsFailed, radio_state = radiostateSync");
                 smsFailed(1);
+                // если нет в буфере значений, то выход
+                radio_state = radiostateSync;
+                ContentSms.stage = StageNone;
+                goToVoice();
             }
-            radio_state = radiostateSync;
-            ContentSms.stage = StageNone;
+
             counterSms[StageTx_quit] = 6;
             pswf_first_packet_received = false;
         }
@@ -2201,7 +2261,7 @@ void DspController::generateSmsReceived()
 	{
 		ack = 73;
 		for(int i = 0; i < 99; i++) sms_content[i] = str[i];
-		sms_content[99] = '\0'; //REVIEW: начиная c sms_content[90] по sms_content[98] будет мусор
+		sms_content[99] = '\0';
         qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
 		smsPacketMessage();
     }
@@ -2623,6 +2683,8 @@ void DspController::startGucRecieving()
     qmDebugMessage(QmDebug::Dump, "startGucRecieving");
     QM_ASSERT(is_ready);
 
+    initResetState();
+
     ParameterValue comandValue;
     comandValue.radio_mode = RadioModeOff;// отключили радиорежим
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
@@ -2731,6 +2793,10 @@ uint8_t* DspController::get_guc_vector()
         // записали в выходной массив преобразованные данные из битового массива по анологии с формирование пакета для CRC32 на передаче
         crc_coord_len = data.size() / 8;
         // получили длинну пакета
+
+        for(int i = 1;i<9; i++)  guc_text[num+i] = guc_text[i]; // после данных передадим координаты
+        for(int i = 0;i<num;i++) guc_text[i+1] = guc_text[9+i+1];
+
     }
 
     else
@@ -2738,7 +2804,8 @@ uint8_t* DspController::get_guc_vector()
     	std::vector<bool> data;
         for(int i = 0; i<num;i++) pack_manager->addBytetoBitsArray(guc_vector.at(0).at(7+i),data,7);
         for(int i = 0; i<count;i++) pack_manager->getArrayByteFromBit(data,out);
-
+        guc_text[0] = num;
+        for(int i = 0; i<num;i++) guc_text[i+1] = guc_vector.at(0).at(7+i);
 //        for(int i = 0;  i< count;i++){
 //            int sdvig  = (i+1) % 8;
 //            if (sdvig != 0)
@@ -2930,6 +2997,13 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 	QM_ASSERT(data_len > 0);
 	payload.insert(std::end(payload), data, data + data_len);
 	transport->transmitFrame(0x7E, &payload[0], payload.size());
+}
+
+void DspController::goToVoice(){
+	ParameterValue comandValue;
+	comandValue.radio_mode = RadioModeOff;
+	sendCommandEasy(RxRadiopath,2,comandValue);
+	sendCommandEasy(TxRadiopath,2,comandValue);
 }
 
 

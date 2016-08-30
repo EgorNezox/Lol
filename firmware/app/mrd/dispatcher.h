@@ -16,6 +16,7 @@
 #include "../dsp/dspcontroller.h"
 #include "../atu/atucontroller.h"
 #include "../datastorage/fs.h"
+#include "../power/battery.h"
 
 namespace Multiradio {
 
@@ -26,7 +27,7 @@ class Dispatcher : public QmObject
 {
 public:
 	Dispatcher(int dsp_uart_resource, int dspreset_iopin_resource, int atu_uart_resource, int atu_iopin_resource,
-			Headset::Controller *headset_controller, Navigation::Navigator *navigator, DataStorage::FS *data_storage_fs);
+			Headset::Controller *headset_controller, Navigation::Navigator *navigator, DataStorage::FS *data_storage_fs, Power::Battery *power_battery);
 	~Dispatcher();
 	void startServicing(const Multiradio::voice_channels_table_t &voice_channels_table);
 	MainServiceInterface* getMainServiceInterface();
@@ -58,6 +59,7 @@ private:
 	DspController *dsp_controller;
 	AtuController *atu_controller;
 	Headset::Controller *headset_controller;
+	Navigation::Navigator *navigator;
 	MainServiceInterface *main_service;
 	VoiceServiceInterface *voice_service;
 	voice_channels_table_t voice_channels_table;
@@ -66,6 +68,7 @@ private:
 	voice_emission_t voice_manual_emission_type;
 	voice_channel_speed_t voice_manual_channel_speed;
 	DataStorage::FS *data_storage_fs;
+	Power::Battery *power_battery;
 
     uint32_t prevFrequency = 0;
 

@@ -81,7 +81,7 @@ public:
     void parsingGucCommand(uint8_t *str);
     void setCoordDate(Navigation::Coord_Date);
     void gucFrame(int value);
-    void errorMessage();
+    void showAtuMalfunction();
     void showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
     void errorGucCrc();
     void setFreqLabelValue(int value);
@@ -93,6 +93,7 @@ private:
     void msgBox(const char*, const char*);
     void msgBox(const char*, const int);
     void msgBox(const char*, const int, const int, const int);
+    void redrawMessage(const char *title,const char *message);
 
     matrix_keyboard_t matrix_kb;
     aux_keyboard_t aux_kb;
@@ -126,6 +127,7 @@ private:
     Multiradio::VoiceServiceInterface* pGetVoiceService();
     Power::Battery * pGetPowerBattery();
     int getLanguage();
+
 
     void GucCoord();
 
@@ -161,7 +163,6 @@ private:
     //
     std::vector<int> guc_command_vector;
     int position = 0;
-
     int zond_position = 0;
     std::vector<std::string> zond_data;
 };

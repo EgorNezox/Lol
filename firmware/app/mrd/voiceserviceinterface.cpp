@@ -166,7 +166,7 @@ void VoiceServiceInterface::tuneEmissionType(voice_emission_t type) {
 }
 
 void VoiceServiceInterface::tuneSquelch(uint8_t value) {
-	if (value != 0 && (value < 6 || value > 24)) {
+	if (/*value != 0 &&*/ (value < 0 || value > 24)) {
 		return;
 	}
 	dispatcher->dsp_controller->setRadioSquelch(value);
@@ -206,11 +206,6 @@ const char* VoiceServiceInterface::ReturnSwfStatus()
         text = true_SWF;
 
     return text;
-}
-
-void VoiceServiceInterface::rerror()
-{
-    errorAsu();
 }
 
 void VoiceServiceInterface::getSmsForUiStage(int value)

@@ -141,6 +141,8 @@ public:
 	 */
 	void setSmartMessageToPlay(Multiradio::voice_message_t data);
 
+	void setMinimalActivityMode(bool enabled);
+
 	/*!
 	 * \brief Сигнал изменения статуса подключения гарнитуры
 	 * \param new_status статус подключения гарнитуры
@@ -329,6 +331,8 @@ private:
 	std::vector<Multiradio::voice_message_t> message_to_play_data_packets;
 	uint16_t message_to_play_data_packets_sent;
 	uint8_t message_to_play_last_packet_data_size;
+
+	bool minimal_activity_mode;
 };
 
 } /* namespace Headset */

@@ -226,7 +226,6 @@ void CGuiTree::init()
     settings.nextState.push_back(&sttScan);
     settings.nextState.push_back(&sttSound);
     settings.nextState.push_back(&sttSuppress);
-    settings.nextState.push_back(&sttZond);
     // 4.1 - Дата/время
     sttDateTime.setType(GuiWindowTypes::menuWindow);
     sttDateTime.prevState = &settings;
@@ -312,10 +311,6 @@ void CGuiTree::init()
     sttSuppress.subType = GuiWindowsSubType::suppress;
     sttSuppress.prevState = &settings;
     sttSuppress.nextState.clear();
-    // 4.7  - Конфигуратор
-    sttZond.subType     = GuiWindowsSubType::zond;
-    sttZond.prevState    = &settings;
-    sttZond.nextState.clear();
 
     currentState = &MainWindow;
     statesStack.clear();

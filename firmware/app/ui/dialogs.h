@@ -54,7 +54,7 @@ public:
     bool editing;
     std::string nFreq, oFreq;
 
-    void returnFreqStatus(bool (*f)(int)){  f(freq->transparent);}
+
 
 private:
     GUI_EL_Window *window;

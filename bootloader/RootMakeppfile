@@ -14,6 +14,7 @@ include misc/target_build_subproject_header.mk
 # оптимизация компиляции для достижения минимально возможного размера бинарника при сохранении более-менее нормальной отладки,
 # иначе программа не влезает с адекватным запасом в отведенную для нее область памяти
 # (проверено на "GNU Tools for ARM Embedded Processors 4.9", с версией 5.3 еще хуже)
+COMPILE_OPT_FLAGS_LTO_ENABLED := 1
 COMPILE_OPT_FLAGS = -Og -flto -fno-fat-lto-objects
 C_EXTRA_FLAGS += $(COMPILE_OPT_FLAGS)
 CXX_EXTRA_FLAGS += $(COMPILE_OPT_FLAGS)

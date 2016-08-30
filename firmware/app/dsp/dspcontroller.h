@@ -185,6 +185,7 @@ public:
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> hardwareFailed;
 
     PackageManager *pack_manager;
+    bool retranslation_active = false;
 
 private:
     friend struct DspCommand;
@@ -315,7 +316,7 @@ private:
 
     } ContentGuc;
 
-
+    void goToVoice();
     void initResetState();
     void processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version);
     void processStartupTimeout();
@@ -383,12 +384,12 @@ private:
         radiostateSync,
         radiostateCmdModeOffRx,
         radiostateCmdModeOffTx,
-		radiostateCmdTxPower,
         radiostateCmdRxFreq,
         radiostateCmdTxFreq,
         radiostateCmdRxOff,
         radiostateCmdTxOff,
         radiostateCmdRxMode,
+		radiostateCmdTxPower,
         radiostateCmdTxMode,
         radiostateCmdCarrierTx,
 		radiostatePswfTxPrepare,
