@@ -107,7 +107,7 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 	case Headset::Controller::StatusSmartOk: {
 		if (headset_status == Headset::Controller::StatusSmartOk) {
 			int smart_ch_number = 1;
-			Multiradio::voice_channel_t smart_ch_type = Multiradio::channelInvalid;
+			voice_channel_t smart_ch_type = Multiradio::channelInvalid;
 			headset_controller->getSmartCurrentChannel(smart_ch_number, smart_ch_type);
 			setSmartChannelMicLevel(smart_ch_type);
 			if (!changeVoiceChannel(smart_ch_number, smart_ch_type))
@@ -210,12 +210,17 @@ void Dispatcher::setVoiceChannel() {
 }
 
 bool Dispatcher::changeVoiceChannel(int number, voice_channel_t type) {
-	voice_channel = voice_channels_table.begin() + number - 1;
-	if (!(((number-1) < (int)voice_channels_table.size()) && (voice_channels_table[number-1].type == type))) {
+	if (((number-1) < (int)voice_channels_table.size()) && (voice_channels_table[number-1].type == type)) {
+		voice_channel = voice_channels_table.begin() + number - 1;
+	} else {
+		voice_channel = voice_channels_table.end();
 		voice_service->setCurrentChannel(VoiceServiceInterface::ChannelInvalid);
-		if (main_service->current_mode == MainServiceInterface::VoiceModeAuto)
+		if (main_service->current_mode == MainServiceInterface::VoiceModeAuto) {
 			startIdle();
-		return false;
+			return false;
+		} else {
+			return true;
+		}
 	}
 	if (main_service->current_mode == MainServiceInterface::VoiceModeAuto)
 		headset_controller->setSmartCurrentChannelSpeed(voice_channels_table[number-1].speed);
@@ -231,12 +236,16 @@ void Dispatcher::updateVoiceChannel() {
 		setVoiceDirection(ptt_state);
 	}
 	if (isVoiceMode()) {
-		if ((main_service->current_mode == MainServiceInterface::VoiceModeAuto)
-				|| ((main_service->current_mode == MainServiceInterface::VoiceModeManual)
-						&& (headset_controller->getStatus() == Headset::Controller::StatusSmartOk)))
-			voice_service->setCurrentChannel(VoiceServiceInterface::ChannelActive);
-		else
-			voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
+		if (voice_channel != voice_channels_table.end()) {
+			if ((main_service->current_mode == MainServiceInterface::VoiceModeAuto)
+					|| ((main_service->current_mode == MainServiceInterface::VoiceModeManual)
+							&& (headset_controller->getStatus() == Headset::Controller::StatusSmartOk)))
+				voice_service->setCurrentChannel(VoiceServiceInterface::ChannelActive);
+			else
+				voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
+		} else {
+			voice_service->setCurrentChannel(VoiceServiceInterface::ChannelInvalid);
+		}
 	}
 }
 

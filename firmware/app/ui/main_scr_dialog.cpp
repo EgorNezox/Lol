@@ -68,7 +68,7 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
 
   if (cur_ch_invalid)
   {
-      groundrect(2,30,52,31,0,GFRAME);
+      groundrect(2,15,52,16,0,GFRAME);
   }
 
   //mode_text->transparent = false;

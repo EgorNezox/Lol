@@ -49,9 +49,23 @@ VoiceServiceInterface::ChannelStatus VoiceServiceInterface::getCurrentChannelSta
 
 int VoiceServiceInterface::getCurrentChannelNumber()
 {
-	if (current_channel_status == ChannelDisabled)
-		return 0;
-    return (dispatcher->voice_channel - dispatcher->voice_channels_table.begin() + 1);
+    int number = 0;
+    switch (current_channel_status) {
+    case ChannelDisabled:
+    	break;
+    case ChannelActive:
+    case ChannelInvalid:
+    	if (dispatcher->voice_channel != dispatcher->voice_channels_table.end()) {
+    		number = dispatcher->voice_channel - dispatcher->voice_channels_table.begin() + 1;
+    	} else {
+    		int smart_ch_number;
+    		voice_channel_t smart_ch_type;
+    		if (dispatcher->headset_controller->getSmartCurrentChannel(smart_ch_number, smart_ch_type))
+    			number = smart_ch_number;
+    	}
+    	break;
+    }
+    return number;
 }
 
 int VoiceServiceInterface::getCurrentChannelFrequency()
