@@ -1400,3 +1400,57 @@ void CGuiMenu::initGroupCondCmd( CEndState state )
 
 
 
+
+void CGuiMenu::initSelectVoiceModeParameters(bool use)
+{
+    MoonsGeometry labelArea = {  5,  21, 150,  51 };
+    MoonsGeometry valueArea = {  7,  52, 150,  85 };
+
+    LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
+
+    param[0].transparent = true;
+    param[1].transparent = false;
+
+    param[0].element.align = {alignHCenter, alignVCenter};
+    param[1].element.align = {alignHCenter, alignVCenter};
+
+    GUI_EL_Window   window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
+    GUI_EL_Label    label  ( &param[0],                  &labelArea,  (char*)setConnParam[3],  (GUI_Obj*)this );
+    GUI_EL_TextArea value  ( &param[1],                  &valueArea,  (char*)"\0",             (GUI_Obj*)this );
+
+    if (use)
+        value.SetText(mode_txt[0]);
+    else
+        value.SetText(mode_txt[1]);
+
+    window.Draw();
+    label.Draw();
+    value.Draw();
+}
+
+void CGuiMenu::initSelectChEmissTypeParameters(bool use)
+{
+    MoonsGeometry labelArea = {  5,  21, 150,  51 };
+    MoonsGeometry valueArea = {  7,  52, 150,  85 };
+
+    LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
+
+    param[0].transparent = true;
+    param[1].transparent = false;
+
+    param[0].element.align = {alignHCenter, alignVCenter};
+    param[1].element.align = {alignHCenter, alignVCenter};
+
+    GUI_EL_Window   window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                        (GUI_Obj*)this );
+    GUI_EL_Label    label  ( &param[0],                  &labelArea, (char*)setConnParam[2], (GUI_Obj*)this );
+    GUI_EL_TextArea value  ( &param[1],                  &valueArea, (char*)"\0",            (GUI_Obj*)this );
+
+    if (use)
+        value.SetText((char*)ch_em_type_str[0]);
+    else
+        value.SetText((char*)ch_em_type_str[1]);
+
+    window.Draw();
+    label.Draw();
+    value.Draw();
+}

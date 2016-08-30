@@ -60,6 +60,8 @@ public:
     void initSetParametersDialog(std::string);
     void initSetDateOrTimeDialog(std::string);
     void initSetSpeedDialog();
+    void initSelectVoiceModeParameters(bool);
+    void initSelectChEmissTypeParameters(bool);
 
     void initSmsStageDialog(std::string);
 
@@ -156,6 +158,10 @@ public:
     void initZondDialog(int focus, std::vector<std::string> &data);
     int32_t scrollIndex = 0;
     int32_t scrollIndexMax = 0;
+
+    //
+    bool useMode = false;
+    bool ch_emiss_type = false;
 
 private:
     GUI_Obj obj;

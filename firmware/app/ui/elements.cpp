@@ -11,6 +11,7 @@
 //----------INCLUDES-----------
 
 #include <string.h>
+#include <stdio.h>
 #include "elements.h"
 #include "all_sym_indicators.h"
 #include <stdio.h>

@@ -17,6 +17,7 @@
 
 #include "mainserviceinterface.h"
 #include "dispatcher.h"
+#include "voiceserviceinterface.h"
 
 #include "ale_param_defs.h"
 
@@ -99,7 +100,9 @@ namespace Multiradio {
 MainServiceInterface::MainServiceInterface(Dispatcher *dispatcher) :
 	QmObject(dispatcher),
 	current_status(StatusNotReady),
-	dispatcher(dispatcher)
+	current_mode(VoiceModeManual),
+	dispatcher(dispatcher),
+	data_storage_fs(dispatcher->data_storage_fs), dsp_controller(dispatcher->dsp_controller), navigator(navigator), headset_controller(dispatcher->headset_controller)
 {
 	ale.f_state = alefunctionIdle;
 	ale.state = AleState_IDLE;
@@ -219,6 +222,20 @@ MainServiceInterface::~MainServiceInterface()
 
 MainServiceInterface::Status MainServiceInterface::getStatus() {
 	return current_status;
+}
+
+void MainServiceInterface::setVoiceMode(VoiceMode mode) {
+	if (mode == current_mode)
+		return;
+	current_mode = mode;
+	if ((mode == VoiceModeAuto) && !dispatcher->isVoiceMode())
+		return;
+	dispatcher->updateVoiceChannel();
+	headset_controller->setSmartCurrentChannelSpeed(dispatcher->voice_service->getCurrentChannelSpeed());
+}
+
+MainServiceInterface::VoiceMode MainServiceInterface::getVoiceMode() {
+	return current_mode;
 }
 
 void MainServiceInterface::setStatus(Status value) {

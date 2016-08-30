@@ -73,7 +73,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     this->multiradio_service->aleStateChanged.connect(sigc::mem_fun(this, &Service::updateAleState));
     this->multiradio_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &Service::updateAleVmProgress));
-    //this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::));
+    this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateHeadset));
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
 
@@ -277,6 +277,9 @@ void Service::updateMultiradio(Multiradio::MainServiceInterface::Status status)
 {
     indicator->UpdateMultiradio(status);
     drawIndicator();
+    CState state = guiTree.getCurrentState();
+    if ( state.getType() == mainWindow)
+    	drawMainWindow();
 }
 
 void Service::setFreqLabelValue(int value)
@@ -350,12 +353,15 @@ void Service::setNotification(NotificationType type)
     switch(type)
     {
     case NotificationMissingVoiceChannelsTable:
-        guiTree.append(messangeWindow, missing_ch_table_txt[getLanguage()]);
+        msgBox(missing_ch_table_txt[getLanguage()]);
+    	guiTree.append(messangeWindow, missing_ch_table_txt[getLanguage()]);
         break;
     case NotificationMissingOpenVoiceChannels:
+        msgBox(missing_open_ch_txt[getLanguage()]);
         guiTree.append(messangeWindow, missing_open_ch_txt[getLanguage()]);
         break;
     case NotificationMismatchVoiceChannelsTable:
+        msgBox(ch_table_mismatch_txt[getLanguage()]);
         guiTree.append(messangeWindow, ch_table_mismatch_txt[getLanguage()]);
         break;
     default:
@@ -459,9 +465,9 @@ void Service::chPrevHandler()
 
 void Service::voiceChannelChanged()
 {
-    char mas[11];
+    char mas[9];
     sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
-    mas[11] = '\0';
+    mas[8] = '\0';
     main_scr->oFreq.clear(); main_scr->oFreq.append(mas);
     main_scr->setFreq(mas);
     CState state = guiTree.getCurrentState();
@@ -504,7 +510,7 @@ void Service::keyPressed(UI_Key key)
                     main_scr->oFreq.clear();
                     main_scr->oFreq.append(main_scr->nFreq.c_str());
                     int freq = atoi(main_scr->nFreq.c_str());
-                    voice_service->TuneFrequency(freq);
+                    voice_service->tuneFrequency(freq);
                 }
                 // ? пїЅпїЅпїЅ
                 switch ( main_scr->mainWindowModeId )
@@ -524,11 +530,17 @@ void Service::keyPressed(UI_Key key)
                 break;
             case keyLeft:
                 if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
+                {
                     main_scr->mainWindowModeId--;
+                    this->multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode(main_scr->mainWindowModeId));
+                }
                 break;
             case keyRight:
-                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 2)
+                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 1)
+                {
                     main_scr->mainWindowModeId++;
+                    this->multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode(main_scr->mainWindowModeId));
+                }
                 break;
             default:
                 if ( main_scr->mwFocus == 0 )
@@ -567,7 +579,9 @@ void Service::keyPressed(UI_Key key)
                     guiTree.advance(0);
                 if (main_scr->mwFocus >= 0)
                 {
-                    main_scr->editing = true;
+                    if (this->multiradio_service->getVoiceMode() == Multiradio::MainServiceInterface::VoiceModeManual)
+                        main_scr->editing = true;
+
                     if (main_scr->mwFocus == 0)
                         main_scr->nFreq.clear();
                 }
@@ -630,6 +644,30 @@ void Service::keyPressed(UI_Key key)
         {
             guiTree.advance(menu->focus);
             menu->focus = 0;
+
+            auto type = guiTree.getCurrentState().getType();
+            if ( type == GuiWindowTypes::endMenuWindow )
+            {
+                CEndState estate = (CEndState&)guiTree.getCurrentState();
+                if ( estate.subType == GuiWindowsSubType::setSpeed )
+                {
+                    currentSpeed = /*Multiradio::voice_channel_speed_t(4);*/voice_service->getCurrentChannelSpeed();
+                }
+                else if (estate.subType == GuiWindowsSubType::voiceMode)
+                {
+                    if (multiradio_service->getVoiceMode() == Multiradio::MainServiceInterface::VoiceModeAuto)
+                        menu->useMode = true;
+                    else
+                        menu->useMode = false;
+                }
+                else if (estate.subType == GuiWindowsSubType::channelEmissionType)
+                {
+                    if ( voice_service->getCurrentChannelEmissionType() == Multiradio::voiceemissionFM)
+                        menu->ch_emiss_type = true;
+                    else
+                        menu->ch_emiss_type = false;
+                }
+            }
             menu->offset = 0;
         }
         if ( key == keyBack)
@@ -1058,6 +1096,10 @@ void Service::keyPressed(UI_Key key)
                             }
                         }
                     }
+                }
+                if ( menu->groupCondCommStage == 0 && menu->focus == 1 )
+                {
+                    menu->useSndCoord = menu->useSndCoord ? false : true;
                 }
 
                 if ( menu->groupCondCommStage == 3 )
@@ -1932,17 +1974,14 @@ void Service::keyPressed(UI_Key key)
             {
             case keyEnter:
             {
-                if (estate.subType == GuiWindowsSubType::setFreq)
-                {
-                    auto iter = estate.listItem.begin();
-                    main_scr->oFreq.clear();
-                    main_scr->oFreq.append( (*iter)->inputStr.c_str() );
-                    int freq = atoi(main_scr->nFreq.c_str());
-                    voice_service->TuneFrequency(freq);
+                auto iter = estate.listItem.begin();
+                main_scr->oFreq.clear();
+                main_scr->oFreq.append( (*iter)->inputStr.c_str() );
+                int freq = atoi(main_scr->nFreq.c_str());
+                voice_service->tuneFrequency(freq);
 
-                    guiTree.resetCurrentState();
-                    menu->focus = 0;
-                }
+                guiTree.resetCurrentState();
+                menu->focus = 0;
             }
                 break;
             case keyBack:
@@ -2009,64 +2048,35 @@ void Service::keyPressed(UI_Key key)
             {
             case keyEnter:
             {
+                voice_service->setCurrentChannelSpeed(currentSpeed);
                 break;
             }
             case keyBack:
             {
-                int i = 0;
-                for (auto &k: estate.listItem)
+                guiTree.backvard();
+                menu->focus = 0;
+                break;
+            }
+            case keyUp:
+            {
+                if ( currentSpeed > Multiradio::voice_channel_speed_t(1) )
                 {
-                    if (menu->focus == i)
-                    {
-                        if (k->inputStr.size() > 0)
-                        {
-                            k->inputStr.pop_back();
-                        }
-                        else
-                        {
-                            guiTree.backvard();
-                            menu->focus = 0;
-                            break;
-                        }
-                    }
-                    i++;
+                    int i = currentSpeed;
+                    currentSpeed = Multiradio::voice_channel_speed_t(--i);
                 }
-                if ( menu->focus == estate.listItem.size() )
+                break;
+            }
+            case keyDown:
+            {
+                if ( currentSpeed < Multiradio::voice_channel_speed_t(4) )
                 {
-                    guiTree.backvard();
-                    menu->focus = 0;
+                    int i = currentSpeed;
+                    currentSpeed = Multiradio::voice_channel_speed_t(++i);
                 }
                 break;
             }
             default:
-            {
-                if ( key > 5 && key < 16)
-                {
-                    menu->setSttParam(estate, key);
-                }
-                else if ( key == 1)
-                {
-                    int i = 0;
-                    for (auto &k: estate.listItem)
-                    {
-                        if (menu->focus == i)
-                        {
-                            if (k->inputStr.size() > 0)
-                            {
-                                k->inputStr.pop_back();
-                            }
-                            else
-                            {
-                                guiTree.backvard();
-                                menu->focus = 0;
-                                break;
-                            }
-                        }
-                        i++;
-                    }
-                }
                 break;
-            }
             }
             break;
         }
@@ -2141,6 +2151,55 @@ void Service::keyPressed(UI_Key key)
                 if (menu->focus + 1 == menu->offset) menu->offset = menu->focus;
             }
              break;
+        }
+        case GuiWindowsSubType::voiceMode:
+        {
+            if ( key == keyEnter)
+            {
+                if (menu->useMode)
+                    multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode::VoiceModeAuto);
+                else
+                    multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode::VoiceModeManual);
+
+//                guiTree.advance(menu->focus);
+//                menu->focus = 0;
+            }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+                menu->offset = 0;
+            }
+            if (key == keyUp || key == keyDown)
+            {
+                menu->useMode = menu->useMode ? false : true;
+            }
+
+            break;
+        }
+        case GuiWindowsSubType::channelEmissionType:
+        {
+            if ( key == keyEnter)
+            {
+                if (menu->ch_emiss_type)
+                    voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionFM);
+                else
+                    voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionUSB);
+
+//                guiTree.advance(menu->focus);
+//                menu->focus = 0;
+            }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+                menu->offset = 0;
+            }
+            if (key == keyUp || key == keyDown)
+            {
+                menu->ch_emiss_type = menu->ch_emiss_type ? false : true;
+            }
+            break;
         }
         default:
             break;
@@ -2243,13 +2302,39 @@ void Service::msgBox(const char *title, const int condCmd, const int size, const
 
 void Service::drawMainWindow()
 {
-    main_scr->setModeText(mode_txt[main_scr->mainWindowModeId]);
 
     Multiradio::VoiceServiceInterface *voice_service = pGetVoiceService();
 
+    Multiradio::voice_emission_t emission_type = voice_service->getCurrentChannelEmissionType();
+
+    std::string str;
+    switch (emission_type)
+    {
+    case Multiradio::voice_emission_t::voiceemissionFM:
+        str.append(ch_em_type_str[0]);
+        break;
+    case Multiradio::voice_emission_t::voiceemissionUSB:
+        str.append(ch_em_type_str[1]);
+        break;
+    default:
+        str.append((char*)"--\0");
+        break;
+    }
+
+
+    main_scr->setModeText(str.c_str());
+
+    auto status = multiradio_service->getStatus();
+
+    bool valid_freq = true;
+    if ( status == Multiradio::MainServiceInterface::StatusNotReady || status == Multiradio::MainServiceInterface::StatusIdle )
+        valid_freq = false;
+
     main_scr->Draw(voice_service->getCurrentChannelStatus(),
                    voice_service->getCurrentChannelNumber(),
-                   voice_service->getCurrentChannelType());
+                   voice_service->getCurrentChannelType(),
+                   valid_freq
+                   );
 
 
     //main_scr->oFreq.clear();
@@ -2488,7 +2573,34 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::setSpeed:
         {
-            std::string str; str.append(st.listItem.front()->inputStr); if ( str.size() >= 5 ){ str.push_back('\n');} str.append(" ").append(speed_bit);
+            bool f_error = false;
+            std::string str;
+
+            switch (currentSpeed)
+            {
+            case Multiradio::voice_channel_speed_t::voicespeed600:
+            { str.append("600"); break;}
+            case Multiradio::voice_channel_speed_t::voicespeed1200:
+            { str.append("1200"); break;}
+            case Multiradio::voice_channel_speed_t::voicespeed2400:
+            { str.append("2400"); break;}
+            case Multiradio::voice_channel_speed_t::voicespeed4800:
+            { str.append("4800"); break;}
+            case Multiradio::voice_channel_speed_t::voicespeedInvalid:
+            { str.append(errorStr); break;}
+            default:
+            {
+                str.append(errorStr);
+                f_error = true;
+                break;
+            }
+            }
+
+            if (currentSpeed != Multiradio::voice_channel_speed_t::voicespeedInvalid && !f_error)
+            {   str.push_back('\n'); str.append(" ").append(speed_bit); }
+
+            str.push_back('\0');
+
             menu->initSetSpeedDialog();
             break;
         }
@@ -2521,8 +2633,17 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::zond:
         {
-
             menu->initZondDialog(menu->focus,zond_data);
+            break;
+        }
+        case GuiWindowsSubType::voiceMode:
+        {
+            menu->initSelectVoiceModeParameters(menu->useMode);
+            break;
+        }
+        case GuiWindowsSubType::channelEmissionType:
+        {
+            menu->initSelectChEmissTypeParameters(menu->ch_emiss_type);
             break;
         }
         default:

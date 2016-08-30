@@ -100,7 +100,12 @@ public:
 	 * \return статус операции
 	 */
 	bool getSmartCurrentChannel(int &number, Multiradio::voice_channel_t &type);
-
+	/*!
+	 * \brief РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ СЃРєРѕСЂРѕСЃС‚СЊ С‚РµРєСѓС‰РµРіРѕ РєР°РЅР°Р»Р° РіР°СЂРЅРёС‚СѓСЂС‹ РЎРљР—Р
+	 * \param speed СЃРєРѕСЂРѕСЃС‚СЊ
+	 * \return СЃС‚Р°С‚СѓСЃ РѕРїРµСЂР°С†РёРё
+	 */
+	bool setSmartCurrentChannelSpeed(Multiradio::voice_channel_speed_t speed);
 	/*!
 	 * \brief Инициирует воспроизведение сообщения на гарнитуре СКЗИ
 	 * \detailed Воспроизводимое сообщение должно быть предварительно установлено вызовом \a setSmartMessageToPlay()
@@ -136,8 +141,6 @@ public:
 	 */
 	void setSmartMessageToPlay(Multiradio::voice_message_t data);
 
-	bool smartChannelType();
-
 	void setMinimalActivityMode(bool enabled);
 
 	/*!
@@ -163,9 +166,6 @@ public:
 	 * \param new_state состояние функции отложенный речи рагнитуры СКЗИ
 	 */
 	sigc::signal<void, SmartHSState/*new_state*/> smartHSStateChanged;
-
-    bool getMainLabelStatus(int);
-    bool statusMainLabel = false;
 
 private:
 	/*!< Состояние подключения гарнитуры */
@@ -315,9 +315,11 @@ private:
 	QmTimer* cmd_resp_timer;
 	int cmd_repeats_counter;
 
+	SmartStatusDescription smart_status_description;
 	const Multiradio::voice_channels_table_t* ch_table;
 	uint16_t ch_number;
 	Multiradio::voice_channel_t ch_type;
+	Multiradio::voice_channel_speed_t ch_speed;
 	bool indication_enable;
 	bool squelch_enable;
 

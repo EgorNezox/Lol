@@ -15,8 +15,17 @@ public:
 	bool getAleStationAddress(uint8_t &data);
 	bool getFhssKey(uint8_t &data);
 	void setFhssKey(uint8_t data);
+	bool getVoiceFrequency(uint32_t &data);
+	void setVoiceFrequency(uint32_t data);
+	bool getVoiceEmissionType(Multiradio::voice_emission_t &data);
+	void setVoiceEmissionType(Multiradio::voice_emission_t data);
+	bool getVoiceChannelSpeed(Multiradio::voice_channel_speed_t &data);
+	void setVoiceChannelSpeed(Multiradio::voice_channel_speed_t data);
 private:
     uint8_t RnKey;
+    uint32_t voice_frequency;
+    Multiradio::voice_emission_t voice_emission_type;
+    Multiradio::voice_channel_speed_t voice_channel_speed;
 };
 
 } /* namespace DataStorage */
