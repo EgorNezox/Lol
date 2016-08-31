@@ -232,12 +232,13 @@ void AtuController::tryRepeatCommand() {
 	}
 }
 
-void AtuController::processReceivedTuningFrame(uint8_t id) {
+void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data, int data_len) {
+	if ((id == frameid_A) && (data_len >= 1))
+		qmDebugMessage(QmDebug::Info, "received unexpected state message with error_code = %u", data[0]);
 	if (mode == modeStartTuning) {
 		switch (id) {
 		case frameid_A:
 			finishCommand();
-			qmDebugMessage(QmDebug::Info, "got unexpected state frame");
 			setMode(modeMalfunction);
 			break;
 		case frameid_U:
@@ -303,6 +304,7 @@ void AtuController::processReceivedStateMessage(uint8_t *data, int data_len) {
 		startCommand(commandEnterBypassMode, &antenna, 1, 2);
 		setMode(modeStartingBypass);
 	} else if ((mode != modeMalfunction) && (error_code != 0)) {
+		qmDebugMessage(QmDebug::Info, "received state message with non-zero error_code = %u", error_code);
 		setMode(modeMalfunction);
 	}
 }
@@ -325,6 +327,7 @@ void AtuController::processReceivedTWFMessage(uint8_t *data, int data_len) {
 	}
 	finishCommand();
 	uint8_t value = data[0];
+	qmDebugMessage(QmDebug::Info, "received TWF = %u%%", value);
 	if (mode == modeTestTuning) {
 		if (value < 60) {
 			setRadioPowerOff(true);
@@ -354,7 +357,7 @@ void AtuController::processReceivedFrame(uint8_t id, uint8_t *data, int data_len
 	switch (mode) {
 	case modeStartTuning:
 	case modeTuning: {
-		processReceivedTuningFrame(id);
+		processReceivedTuningFrame(id, data, data_len);
 		break;
 	}
 	default: {

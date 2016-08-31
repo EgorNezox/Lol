@@ -73,7 +73,7 @@ private:
 	void startCommand(CommandId id, const uint8_t *data, int data_len, int repeat_count, int timeout = 10);
 	void finishCommand();
 	void tryRepeatCommand();
-	void processReceivedTuningFrame(uint8_t id);
+	void processReceivedTuningFrame(uint8_t id, uint8_t *data, int data_len);
 	void processTxTuneTimeout();
 	void processReceivedStateMessage(uint8_t *data, int data_len);
 	void processReceivedBypassModeMessage();
