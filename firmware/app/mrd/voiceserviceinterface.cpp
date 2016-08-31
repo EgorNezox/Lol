@@ -142,7 +142,7 @@ void VoiceServiceInterface::tuneNextChannel() {
 		if ((*dispatcher->voice_channel).type == channelOpen)
 			break;
 	}
-	dispatcher->updateVoiceChannel();
+	dispatcher->updateVoiceChannel(true);
 }
 
 void VoiceServiceInterface::tunePreviousChannel() {
@@ -159,7 +159,7 @@ void VoiceServiceInterface::tunePreviousChannel() {
 		if ((*dispatcher->voice_channel).type == channelOpen)
 			break;
 	}
-    dispatcher->updateVoiceChannel();
+    dispatcher->updateVoiceChannel(true);
 }
 
 void VoiceServiceInterface::tuneFrequency(int frequency)
@@ -168,7 +168,7 @@ void VoiceServiceInterface::tuneFrequency(int frequency)
 	dispatcher->voice_manual_frequency = frequency;
 	if (dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
 		return;
-    dispatcher->updateVoiceChannel();
+    dispatcher->updateVoiceChannel(true);
 }
 
 void VoiceServiceInterface::tuneEmissionType(voice_emission_t type) {
@@ -176,7 +176,7 @@ void VoiceServiceInterface::tuneEmissionType(voice_emission_t type) {
 	dispatcher->voice_manual_emission_type = type;
 	if (dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
 		return;
-    dispatcher->updateVoiceChannel();
+    dispatcher->updateVoiceChannel(false);
 }
 
 void VoiceServiceInterface::tuneSquelch(uint8_t value) {

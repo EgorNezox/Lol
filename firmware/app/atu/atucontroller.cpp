@@ -25,7 +25,7 @@ namespace Multiradio {
 
 AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *parent) :
 	QmObject(parent),
-	mode(modeNone), antenna(1),
+	mode(modeNone), next_tunetx_ignores_malfunction(false), antenna(1),
 	minimal_activity_mode(false)
 {
 	command.id = commandInactive;
@@ -93,8 +93,12 @@ bool AtuController::enterBypassMode(uint32_t frequency) {
 
 bool AtuController::tuneTxMode(uint32_t frequency) {
 	setAntenna(frequency);
-	if (!((mode == modeBypass) || (mode == modeActiveTx)) || (antenna == 0))
+	if (antenna == 0)
 		return false;
+	if (!((mode == modeBypass) || (mode == modeActiveTx)
+			|| ((mode == modeMalfunction) && next_tunetx_ignores_malfunction)))
+		return false;
+	next_tunetx_ignores_malfunction = false;
 	tunetx_frequency = frequency;
 	if (command.id != commandInactive) {
 		deferred_tunetx_active = true;
@@ -102,6 +106,10 @@ bool AtuController::tuneTxMode(uint32_t frequency) {
 	}
 	executeTuneTxMode();
 	return true;
+}
+
+void AtuController::setNextTuningParams(bool ignore_malfunction) {
+	next_tunetx_ignores_malfunction = ignore_malfunction;
 }
 
 void AtuController::acknowledgeTxRequest() {

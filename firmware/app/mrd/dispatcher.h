@@ -45,7 +45,7 @@ private:
 	voice_emission_t getVoiceEmissionFromFrequency(uint32_t frequency);
 	void setVoiceChannel();
 	bool changeVoiceChannel(int number, voice_channel_t type);
-	void updateVoiceChannel();
+	void updateVoiceChannel(bool user_request_frequency);
 	void setVoiceDirection(bool ptt_state);
 	bool isVoiceMode();
 	bool isVoiceChannelTunable();

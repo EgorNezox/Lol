@@ -96,7 +96,7 @@ void Dispatcher::processHeadsetSmartCurrentChannelChange(int new_channel_number,
 	setSmartChannelMicLevel(new_channel_type);
 	if (!changeVoiceChannel(new_channel_number, new_channel_type))
 		return;
-	updateVoiceChannel();
+	updateVoiceChannel((main_service->current_mode == MainServiceInterface::VoiceModeAuto));
 }
 
 void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
@@ -124,7 +124,7 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 				}
 			}
 		}
-		updateVoiceChannel();
+		updateVoiceChannel(true);
 		break;
 	}
 	default: {
@@ -227,7 +227,9 @@ bool Dispatcher::changeVoiceChannel(int number, voice_channel_t type) {
 	return true;
 }
 
-void Dispatcher::updateVoiceChannel() {
+void Dispatcher::updateVoiceChannel(bool user_request_frequency) {
+	if (atu_controller->isDeviceOperational() && user_request_frequency)
+		atu_controller->setNextTuningParams(true);
 	setVoiceChannel();
 	if ((main_service->current_status == MainServiceInterface::StatusNotReady)
 			|| (main_service->current_status == MainServiceInterface::StatusIdle)) {
