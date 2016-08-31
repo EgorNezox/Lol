@@ -36,7 +36,7 @@ public:
 	AtuController(int uart_resource, int iopin_resource, QmObject *parent);
 	~AtuController();
 	void startServicing();
-	bool isDeviceOperational();
+	bool isDeviceConnected();
 	Mode getMode();
 	bool enterBypassMode(uint32_t frequency);
 	bool tuneTxMode(uint32_t frequency);
@@ -74,6 +74,7 @@ private:
 	void finishCommand();
 	void tryRepeatCommand();
 	void processReceivedTuningFrame(uint8_t id, uint8_t *data, int data_len);
+	void processReceivedTuneTestingFrame(uint8_t id, uint8_t *data, int data_len);
 	void processTxTuneTimeout();
 	void processReceivedStateMessage(uint8_t *data, int data_len);
 	void processReceivedBypassModeMessage();

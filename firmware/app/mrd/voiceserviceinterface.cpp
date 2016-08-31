@@ -288,6 +288,19 @@ void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
     currentChannelChanged();
 }
 
+void VoiceServiceInterface::updateChannel() {
+	if (dispatcher->voice_channel != dispatcher->voice_channels_table.end()) {
+		if ((dispatcher->main_service->current_mode == MainServiceInterface::VoiceModeAuto)
+				|| ((dispatcher->main_service->current_mode == MainServiceInterface::VoiceModeManual)
+						&& (dispatcher->headset_controller->getStatus() == Headset::Controller::StatusSmartOk)))
+			setCurrentChannel(ChannelActive);
+		else
+			setCurrentChannel(ChannelDisabled);
+	} else {
+		setCurrentChannel(ChannelInvalid);
+	}
+}
+
 void VoiceServiceInterface::fistPacketRecieve(int packet)
 {
     firstPacket(packet);

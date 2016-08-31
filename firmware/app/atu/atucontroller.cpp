@@ -71,8 +71,8 @@ void AtuController::startServicing() {
 	scan_timer->start();
 }
 
-bool AtuController::isDeviceOperational() {
-	return (!((mode == modeNone) || (mode == modeMalfunction)));
+bool AtuController::isDeviceConnected() {
+	return (mode != modeNone);
 }
 
 AtuController::Mode AtuController::getMode() {
@@ -113,8 +113,6 @@ void AtuController::setNextTuningParams(bool ignore_malfunction) {
 }
 
 void AtuController::acknowledgeTxRequest() {
-	if (mode != modeTuning)
-		return;
 	uint8_t frameid = tx_tuning_state?frameid_U:frameid_D;
 	sendFrame(frameid, 0, 0);
 	tx_tuning_state = !tx_tuning_state;
@@ -268,7 +266,6 @@ void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data, int da
 			if (!tx_tuning_state)
 				break;
 			tx_tune_timer->stop();
-//			requestTx(true);
 			setRadioPowerOff(false);
 			acknowledgeTxRequest();
 			break;
@@ -276,7 +273,6 @@ void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data, int da
 			if (tx_tuning_state)
 				break;
 			tx_tune_timer->stop();
-//			requestTx(false);
 			setRadioPowerOff(true);
 			acknowledgeTxRequest();
 			break;
@@ -284,6 +280,28 @@ void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data, int da
 			processReceivedUnexpectedFrame(id);
 			break;
 		}
+	}
+}
+
+void AtuController::processReceivedTuneTestingFrame(uint8_t id, uint8_t *data, int data_len) {
+	if ((id == frameid_A) && (data_len >= 1))
+		qmDebugMessage(QmDebug::Info, "received unexpected state message with error_code = %u", data[0]);
+	switch (id) {
+	case frameid_A:
+		setMode(modeMalfunction);
+		break;
+	case frameid_U:
+	case frameid_D:
+		tx_tuning_state = (id == frameid_U)?true:false;
+		setRadioPowerOff(!tx_tuning_state);
+		sendFrame(id, 0, 0);
+		break;
+	case frameid_K:
+		processReceivedTWFMessage(data, data_len);
+		break;
+	default:
+		processReceivedUnexpectedFrame(id);
+		break;
 	}
 }
 
@@ -355,6 +373,9 @@ void AtuController::processReceivedUnexpectedFrame(uint8_t id) {
 
 void AtuController::processReceivedFrame(uint8_t id, uint8_t *data, int data_len) {
 	switch (mode) {
+	case modeTestTuning:
+		processReceivedTuneTestingFrame(id, data, data_len);
+		break;
 	case modeStartTuning:
 	case modeTuning: {
 		processReceivedTuningFrame(id, data, data_len);
@@ -473,9 +494,9 @@ void AtuController::executeEnterBypassMode() {
 
 void AtuController::executeTuneTxMode() {
 	setMode(modeTestTuning);
-	setRadioPowerOff(false);
-	QmThread::msleep(20);
-	startCommand(commandRequestTWF, 0, 0, 2);
+//	setRadioPowerOff(false);
+//	QmThread::msleep(20);
+	startCommand(commandRequestTWF, 0, 0, 2, 50);
 }
 
 } /* namespace Multiradio */
