@@ -239,10 +239,6 @@ private:
 	Status current_status;
 	VoiceMode current_mode;
 	Dispatcher *dispatcher;
-	DataStorage::FS *data_storage_fs;
-	DspController *dsp_controller;
-	Navigation::Navigator *navigator;
-	Headset::Controller *headset_controller;
 	struct {
 		AleFunctionalState f_state;
 		AleState state;
