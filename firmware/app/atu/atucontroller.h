@@ -27,6 +27,7 @@ public:
 		modeMalfunction,
 		modeStartingBypass,
 		modeBypass,
+		modeTestTuning,
 		modeStartTuning,
 		modeTuning,
 		modeActiveTx
@@ -52,7 +53,8 @@ private:
 		commandInactive = 0,
 		commandRequestState = 0x41,
 		commandEnterBypassMode = 0x59,
-		commandEnterTuningMode = 0x46
+		commandEnterTuningMode = 0x46,
+		commandRequestTWF = 0x4B
 	};
 	enum FrameId {
 		frameid_NAK = 0x15,
@@ -60,6 +62,7 @@ private:
 		frameid_D = 0x44,
 		frameid_f = 0x66,
 		frameid_F = 0x46,
+		frameid_K = 0x4B,
 		frameid_U = 0x55,
 		frameid_Y = 0x59
 	};
@@ -73,6 +76,7 @@ private:
 	void processTxTuneTimeout();
 	void processReceivedStateMessage(uint8_t *data, int data_len);
 	void processReceivedBypassModeMessage();
+	void processReceivedTWFMessage(uint8_t *data, int data_len);
 	void processReceivedUnexpectedFrame(uint8_t id);
 	void processReceivedFrame(uint8_t id, uint8_t *data, int data_len);
 	void sendFrame(uint8_t id, const uint8_t *data, int data_len);
@@ -81,11 +85,10 @@ private:
 	void setAntenna(uint32_t frequency);
 	void processDeferred();
 	void executeEnterBypassMode();
-	void executeTuneTxMode(uint32_t frequency);
+	void executeTuneTxMode();
 
 
 	Mode mode;
-	bool tx_tuning_state;
 	struct {
 		CommandId id;
 		uint8_t *data_buf;
@@ -106,11 +109,9 @@ private:
 	} uart_rx_frame;
 	uint8_t antenna;
 	QmIopin *poff_iopin;
-	bool deferred_enterbypass_active;
-	struct {
-		bool active;
-		uint32_t frequency;
-	} deferred_tunetx;
+	bool deferred_enterbypass_active, deferred_tunetx_active;
+	bool tx_tuning_state;
+	uint32_t tunetx_frequency;
 
 	bool minimal_activity_mode;
 };

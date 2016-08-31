@@ -25,7 +25,7 @@ namespace Multiradio {
 
 AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *parent) :
 	QmObject(parent),
-	mode(modeNone), tx_tuning_state(false), antenna(1),
+	mode(modeNone), antenna(1),
 	minimal_activity_mode(false)
 {
 	command.id = commandInactive;
@@ -33,7 +33,7 @@ AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *pa
 	uart_rx_state = uartrxNone;
 	uart_rx_frame.data_buf = new uint8_t[MAX_FRAME_DATA_SIZE];
 	deferred_enterbypass_active = false;
-	deferred_tunetx.active = false;
+	deferred_tunetx_active = false;
 	QmUart::ConfigStruct uart_config;
 	uart_config.baud_rate = 115200;
 	uart_config.stop_bits = QmUart::StopBits_1;
@@ -95,12 +95,12 @@ bool AtuController::tuneTxMode(uint32_t frequency) {
 	setAntenna(frequency);
 	if (!((mode == modeBypass) || (mode == modeActiveTx)) || (antenna == 0))
 		return false;
+	tunetx_frequency = frequency;
 	if (command.id != commandInactive) {
-		deferred_tunetx.active = true;
-		deferred_tunetx.frequency = frequency;
+		deferred_tunetx_active = true;
 		return true;
 	}
-	executeTuneTxMode(frequency);
+	executeTuneTxMode();
 	return true;
 }
 
@@ -154,12 +154,15 @@ void AtuController::setMode(Mode mode) {
 		qmDebugMessage(QmDebug::Info, "bypass mode");
 		scan_timer->start();
 		break;
-	case modeStartTuning:
-		qmDebugMessage(QmDebug::Info, "start tuning tx...");
+	case modeTestTuning:
+		qmDebugMessage(QmDebug::Info, "test TWF for tuning tx...");
 		scan_timer->stop();
 		break;
+	case modeStartTuning:
+		qmDebugMessage(QmDebug::Info, "start tuning tx...");
+		break;
 	case modeTuning:
-		qmDebugMessage(QmDebug::Info, "tuning...");
+		qmDebugMessage(QmDebug::Info, "tuning tx...");
 		break;
 	case modeActiveTx:
 		qmDebugMessage(QmDebug::Info, "active tx mode");
@@ -200,7 +203,7 @@ void AtuController::tryRepeatCommand() {
 	qmDebugMessage(QmDebug::Info, "command failed (no response)");
 	command.id = commandInactive;
 	deferred_enterbypass_active = false;
-	deferred_tunetx.active = false;
+	deferred_tunetx_active = false;
 	if (mode == modeNone) {
 		if (!scan_timer->isActive())
 			scan_timer->start();
@@ -210,6 +213,7 @@ void AtuController::tryRepeatCommand() {
 		startCommand(commandEnterBypassMode, &antenna, 1, 2, 10);
 	switch (mode) {
 	case modeStartingBypass:
+	case modeTestTuning:
 	case modeStartTuning:
 	case modeTuning:
 		setMode(modeMalfunction);
@@ -306,6 +310,31 @@ void AtuController::processReceivedBypassModeMessage() {
 	setMode(modeBypass);
 }
 
+void AtuController::processReceivedTWFMessage(uint8_t *data, int data_len) {
+	if (!((data_len >= 1) && (command.id == commandRequestTWF))) {
+		sendNak();
+		return;
+	}
+	finishCommand();
+	uint8_t value = data[0];
+	if (mode == modeTestTuning) {
+		if (value < 60) {
+			setRadioPowerOff(true);
+			setMode(modeStartTuning);
+			tx_tuning_state = false;
+			uint32_t encoded_freq = tunetx_frequency/10;
+			uint8_t command_data[4];
+			command_data[0] = (encoded_freq >> 16) & 0xFF;
+			command_data[1] = (encoded_freq >> 8) & 0xFF;
+			command_data[2] = (encoded_freq) & 0xFF;
+			command_data[3] = antenna;
+			startCommand(commandEnterTuningMode, command_data, sizeof(command_data), 2);
+		} else {
+			setMode(modeActiveTx);
+		}
+	}
+}
+
 void AtuController::processReceivedUnexpectedFrame(uint8_t id) {
 	if (id != frameid_NAK)
 		sendNak();
@@ -327,6 +356,9 @@ void AtuController::processReceivedFrame(uint8_t id, uint8_t *data, int data_len
 			break;
 		case frameid_Y:
 			processReceivedBypassModeMessage();
+			break;
+		case frameid_K:
+			processReceivedTWFMessage(data, data_len);
 			break;
 		default:
 			processReceivedUnexpectedFrame(id);
@@ -417,9 +449,9 @@ void AtuController::processDeferred() {
 		deferred_enterbypass_active = false;
 		executeEnterBypassMode();
 	}
-	if (deferred_tunetx.active) {
-		deferred_tunetx.active = false;
-		executeTuneTxMode(deferred_tunetx.frequency);
+	if (deferred_tunetx_active) {
+		deferred_tunetx_active = false;
+		executeTuneTxMode();
 	}
 }
 
@@ -428,15 +460,11 @@ void AtuController::executeEnterBypassMode() {
 	setMode(modeStartingBypass);
 }
 
-void AtuController::executeTuneTxMode(uint32_t frequency) {
-	setMode(modeStartTuning);
-	uint32_t encoded_freq = frequency/10;
-	uint8_t command_data[4];
-	command_data[0] = (encoded_freq >> 16) & 0xFF;
-	command_data[1] = (encoded_freq >> 8) & 0xFF;
-	command_data[2] = (encoded_freq) & 0xFF;
-	command_data[3] = antenna;
-	startCommand(commandEnterTuningMode, command_data, sizeof(command_data), 2);
+void AtuController::executeTuneTxMode() {
+	setMode(modeTestTuning);
+	setRadioPowerOff(false);
+	QmThread::msleep(20);
+	startCommand(commandRequestTWF, 0, 0, 2);
 }
 
 } /* namespace Multiradio */
