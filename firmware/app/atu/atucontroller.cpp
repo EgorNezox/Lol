@@ -347,7 +347,7 @@ void AtuController::processReceivedTWFMessage(uint8_t *data, int data_len) {
 	uint8_t value = data[0];
 	qmDebugMessage(QmDebug::Info, "received TWF = %u%%", value);
 	if (mode == modeTestTuning) {
-		if (value < 60) {
+		if (value < 30) {
 			setRadioPowerOff(true);
 			setMode(modeStartTuning);
 			tx_tuning_state = false;
