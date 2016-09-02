@@ -25,7 +25,7 @@ namespace Multiradio {
 
 AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *parent) :
 	QmObject(parent),
-	mode(modeNone), force_next_tunetx_full(false), antenna(1),
+	mode(modeNone), force_next_tunetx_full(false), antenna(1), last_tune_setup_valid(false),
 	minimal_activity_mode(false)
 {
 	command.id = commandInactive;
@@ -109,6 +109,8 @@ bool AtuController::tuneTxMode(uint32_t frequency) {
 
 void AtuController::setNextTuningParams(bool force_full) {
 	force_next_tunetx_full = force_full;
+	if (force_full)
+		last_tune_setup_valid = false;
 }
 
 void AtuController::acknowledgeTxRequest() {
@@ -155,12 +157,12 @@ void AtuController::setMode(Mode mode) {
 		qmDebugMessage(QmDebug::Info, "bypass mode");
 		scan_timer->start();
 		break;
-	case modeTestTuning:
-		qmDebugMessage(QmDebug::Info, "test TWF for tuning tx...");
+	case modePrepareTuning:
+		qmDebugMessage(QmDebug::Info, "prepare tuning tx...");
 		scan_timer->stop();
 		break;
-	case modeStartTuning:
-		qmDebugMessage(QmDebug::Info, "start tuning tx...");
+	case modeStartFullTuning:
+		qmDebugMessage(QmDebug::Info, "start full tuning tx...");
 		break;
 	case modeTuning:
 		qmDebugMessage(QmDebug::Info, "tuning tx...");
@@ -218,8 +220,8 @@ void AtuController::tryRepeatCommand() {
 		startCommand(commandEnterBypassMode, &antenna, 1, 2, 10);
 	switch (mode) {
 	case modeStartingBypass:
-	case modeTestTuning:
-	case modeStartTuning:
+	case modePrepareTuning:
+	case modeStartFullTuning:
 	case modeTuning:
 		setMode(modeMalfunction);
 		break;
@@ -232,7 +234,7 @@ void AtuController::tryRepeatCommand() {
 void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data, int data_len) {
 	if ((id == frameid_A) && (data_len >= 1))
 		qmDebugMessage(QmDebug::Info, "received unexpected state message with error_code = %u", data[0]);
-	if (mode == modeStartTuning) {
+	if (mode == modeStartFullTuning) {
 		switch (id) {
 		case frameid_A:
 			finishCommand();
@@ -257,7 +259,17 @@ void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data, int da
 			setMode(modeMalfunction);
 			break;
 		case frameid_f:
+			finishCommand();
+			setMode(modeActiveTx);
+			break;
 		case frameid_F:
+			if (data_len != 5) {
+				sendNak();
+				break;
+			}
+			finishCommand();
+			memcpy(last_tune_setup, data, sizeof(last_tune_setup));
+			last_tune_setup_valid = true;
 			tx_tune_timer->stop();
 			setMode(modeActiveTx);
 			break;
@@ -282,7 +294,7 @@ void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data, int da
 	}
 }
 
-void AtuController::processReceivedTuneTestingFrame(uint8_t id, uint8_t *data, int data_len) {
+void AtuController::processReceivedPrepareTuningFrame(uint8_t id, uint8_t *data, int data_len) {
 	if ((id == frameid_A) && (data_len >= 1))
 		qmDebugMessage(QmDebug::Info, "received unexpected state message with error_code = %u", data[0]);
 	switch (id) {
@@ -345,10 +357,10 @@ void AtuController::processReceivedTWFMessage(uint8_t *data, int data_len) {
 	finishCommand();
 	uint8_t value = data[0];
 	qmDebugMessage(QmDebug::Info, "received TWF = %u%%", value);
-	if (mode == modeTestTuning) {
-		if (force_next_tunetx_full || (value < 30)) {
+	if (mode == modePrepareTuning) {
+		if (force_next_tunetx_full || !last_tune_setup_valid || (value < 30)) {
 			setRadioPowerOff(true);
-			setMode(modeStartTuning);
+			setMode(modeStartFullTuning);
 			tx_tuning_state = false;
 			uint32_t encoded_freq = tunetx_frequency/10;
 			uint8_t command_data[4];
@@ -356,9 +368,10 @@ void AtuController::processReceivedTWFMessage(uint8_t *data, int data_len) {
 			command_data[1] = (encoded_freq >> 8) & 0xFF;
 			command_data[2] = (encoded_freq) & 0xFF;
 			command_data[3] = antenna;
-			startCommand(commandEnterTuningMode, command_data, sizeof(command_data), 2);
+			startCommand(commandEnterFullTuningMode, command_data, sizeof(command_data), 2);
 		} else {
-			setMode(modeActiveTx);
+			setMode(modeTuning);
+			startCommand(commandEnterQuickTuningMode, last_tune_setup, sizeof(last_tune_setup), 2, 20);
 		}
 	}
 }
@@ -372,10 +385,10 @@ void AtuController::processReceivedUnexpectedFrame(uint8_t id) {
 
 void AtuController::processReceivedFrame(uint8_t id, uint8_t *data, int data_len) {
 	switch (mode) {
-	case modeTestTuning:
-		processReceivedTuneTestingFrame(id, data, data_len);
+	case modePrepareTuning:
+		processReceivedPrepareTuningFrame(id, data, data_len);
 		break;
-	case modeStartTuning:
+	case modeStartFullTuning:
 	case modeTuning: {
 		processReceivedTuningFrame(id, data, data_len);
 		break;
@@ -492,7 +505,7 @@ void AtuController::executeEnterBypassMode() {
 }
 
 void AtuController::executeTuneTxMode() {
-	setMode(modeTestTuning);
+	setMode(modePrepareTuning);
 //	setRadioPowerOff(false);
 //	QmThread::msleep(20);
 	startCommand(commandRequestTWF, 0, 0, 2, 50);

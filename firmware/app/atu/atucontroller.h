@@ -27,8 +27,8 @@ public:
 		modeMalfunction,
 		modeStartingBypass,
 		modeBypass,
-		modeTestTuning,
-		modeStartTuning,
+		modePrepareTuning,
+		modeStartFullTuning,
 		modeTuning,
 		modeActiveTx
 	};
@@ -54,7 +54,8 @@ private:
 		commandInactive = 0,
 		commandRequestState = 0x41,
 		commandEnterBypassMode = 0x59,
-		commandEnterTuningMode = 0x46,
+		commandEnterFullTuningMode = 0x46,
+		commandEnterQuickTuningMode = 0x66,
 		commandRequestTWF = 0x4B
 	};
 	enum FrameId {
@@ -74,7 +75,7 @@ private:
 	void finishCommand();
 	void tryRepeatCommand();
 	void processReceivedTuningFrame(uint8_t id, uint8_t *data, int data_len);
-	void processReceivedTuneTestingFrame(uint8_t id, uint8_t *data, int data_len);
+	void processReceivedPrepareTuningFrame(uint8_t id, uint8_t *data, int data_len);
 	void processTxTuneTimeout();
 	void processReceivedStateMessage(uint8_t *data, int data_len);
 	void processReceivedBypassModeMessage();
@@ -115,6 +116,8 @@ private:
 	bool deferred_enterbypass_active, deferred_tunetx_active;
 	bool tx_tuning_state;
 	uint32_t tunetx_frequency;
+	bool last_tune_setup_valid;
+	uint8_t last_tune_setup[5];
 
 	bool minimal_activity_mode;
 };
