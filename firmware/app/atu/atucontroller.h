@@ -40,7 +40,7 @@ public:
 	Mode getMode();
 	bool enterBypassMode(uint32_t frequency);
 	bool tuneTxMode(uint32_t frequency);
-	void setNextTuningParams(bool ignore_malfunction);
+	void setNextTuningParams(bool force_full);
 	void acknowledgeTxRequest();
 	void setRadioPowerOff(bool enable);
 
@@ -91,7 +91,7 @@ private:
 
 
 	Mode mode;
-	bool next_tunetx_ignores_malfunction;
+	bool force_next_tunetx_full;
 	struct {
 		CommandId id;
 		uint8_t *data_buf;

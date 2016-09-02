@@ -25,7 +25,7 @@ namespace Multiradio {
 
 AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *parent) :
 	QmObject(parent),
-	mode(modeNone), next_tunetx_ignores_malfunction(false), antenna(1),
+	mode(modeNone), force_next_tunetx_full(false), antenna(1),
 	minimal_activity_mode(false)
 {
 	command.id = commandInactive;
@@ -96,9 +96,8 @@ bool AtuController::tuneTxMode(uint32_t frequency) {
 	if (antenna == 0)
 		return false;
 	if (!((mode == modeBypass) || (mode == modeActiveTx)
-			|| ((mode == modeMalfunction) && next_tunetx_ignores_malfunction)))
+			|| ((mode == modeMalfunction) && force_next_tunetx_full)))
 		return false;
-	next_tunetx_ignores_malfunction = false;
 	tunetx_frequency = frequency;
 	if (command.id != commandInactive) {
 		deferred_tunetx_active = true;
@@ -108,8 +107,8 @@ bool AtuController::tuneTxMode(uint32_t frequency) {
 	return true;
 }
 
-void AtuController::setNextTuningParams(bool ignore_malfunction) {
-	next_tunetx_ignores_malfunction = ignore_malfunction;
+void AtuController::setNextTuningParams(bool force_full) {
+	force_next_tunetx_full = force_full;
 }
 
 void AtuController::acknowledgeTxRequest() {
@@ -138,10 +137,6 @@ void AtuController::setMinimalActivityMode(bool enabled) {
 }
 
 void AtuController::setMode(Mode mode) {
-	if (this->mode != mode) {
-		this->mode = mode;
-		modeChanged(mode);
-	}
 	switch (mode) {
 	case modeNone:
 		qmDebugMessage(QmDebug::Info, "no ATU mode");
@@ -174,6 +169,10 @@ void AtuController::setMode(Mode mode) {
 		qmDebugMessage(QmDebug::Info, "active tx mode");
 		scan_timer->start();
 		break;
+	}
+	if (this->mode != mode) {
+		this->mode = mode;
+		modeChanged(mode);
 	}
 }
 
@@ -347,7 +346,7 @@ void AtuController::processReceivedTWFMessage(uint8_t *data, int data_len) {
 	uint8_t value = data[0];
 	qmDebugMessage(QmDebug::Info, "received TWF = %u%%", value);
 	if (mode == modeTestTuning) {
-		if (value < 30) {
+		if (force_next_tunetx_full || (value < 30)) {
 			setRadioPowerOff(true);
 			setMode(modeStartTuning);
 			tx_tuning_state = false;

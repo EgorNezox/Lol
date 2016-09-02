@@ -288,6 +288,10 @@ void Dispatcher::prepareTuningTx() {
 
 void Dispatcher::processAtuModeChange(AtuController::Mode new_mode) {
 	switch (new_mode) {
+	case AtuController::modeNone: {
+		atu_controller->setNextTuningParams(true);
+		break;
+	}
 	case AtuController::modeBypass: {
 		switch (main_service->current_status) {
 		case MainServiceInterface::StatusVoiceTx:
@@ -301,6 +305,7 @@ void Dispatcher::processAtuModeChange(AtuController::Mode new_mode) {
 		break;
 	}
 	case AtuController::modeActiveTx: {
+		atu_controller->setNextTuningParams(false);
 		switch (main_service->current_status) {
 		case MainServiceInterface::StatusTuningTx:
 			startVoiceTx();
@@ -314,6 +319,7 @@ void Dispatcher::processAtuModeChange(AtuController::Mode new_mode) {
 	}
     case AtuController::modeMalfunction:
     {
+        atu_controller->setNextTuningParams(false);
         voice_service->atuMalfunction();
         /* no break */
     }
