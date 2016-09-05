@@ -77,9 +77,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
 
-    guiTree.append(messangeWindow, (char*)test_Pass, (char*)error_SWF/*voice_service->ReturnSwfStatus()*/);
-    msgBox( guiTree.getCurrentState().getName(), guiTree.getCurrentState().getText() );
-
     //    guc_command_vector.push_back(2);
     //    guc_command_vector.push_back(15);
     //    guc_command_vector.push_back(54);
@@ -119,6 +116,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     menu->supressStatus = 0;
 
+    draw();
 }
 
 
