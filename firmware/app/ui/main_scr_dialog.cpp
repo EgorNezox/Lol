@@ -43,7 +43,6 @@ GUI_Dialog_MainScr::GUI_Dialog_MainScr(MoonsGeometry *area):GUI_Obj(area),
   ch_num_label->SetText((char*)"--\0");
   cur_ch_invalid = false;
 
-  oFreq.append("2500000");
   setFreq(oFreq.c_str());
 }
 
