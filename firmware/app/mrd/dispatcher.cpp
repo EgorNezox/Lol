@@ -117,8 +117,8 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 			voice_channel = std::find_if( std::begin(voice_channels_table), std::end(voice_channels_table),
 					[&](const voice_channel_entry_t entry){ return (entry.type == channelOpen); } );
 			if (voice_channel == voice_channels_table.end()) {
-				voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
 				if (main_service->current_mode == MainServiceInterface::VoiceModeAuto) {
+					voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
 					startIdle();
 					break;
 				}

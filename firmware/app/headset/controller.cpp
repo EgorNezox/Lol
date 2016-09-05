@@ -287,12 +287,27 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 	switch (state) {
 	case StateNone: {
 		poll_timer->stop();
+		ch_number = qmFromLittleEndian<uint16_t>(data + 4);
+		uint8_t ch_mask = data[8];
+		switch (ch_mask & 0x03) {
+		case 0: ch_type = Multiradio::channelOpen; break;
+		case 1: ch_type = Multiradio::channelClose; break;
+		default: ch_type = Multiradio::channelOpen;
+		}
+		switch((ch_mask & 0x1C) >> 2) {
+		case 1: ch_speed = Multiradio::voicespeed600; break;
+		case 3: ch_speed = Multiradio::voicespeed1200; break;
+		case 4: ch_speed = Multiradio::voicespeed2400; break;
+		case 5: ch_speed = Multiradio::voicespeed4800; break;
+		default: ch_speed = Multiradio::voicespeed1200;
+		}
 		updateState(StateSmartInitChList);
 		transmitCmd(HS_CMD_CH_LIST, NULL, 0);
 		break;
 	}
 	case StateSmartInitHSModeSetting: {
 //		poll_timer->start();
+		smartCurrentChannelChanged(ch_number, ch_type);
 //		no break;
 	}
 	case StateSmartOk: {
