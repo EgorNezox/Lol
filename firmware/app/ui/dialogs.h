@@ -32,7 +32,8 @@ public:
     virtual ~GUI_Dialog_MainScr();
     virtual void Draw( Multiradio::VoiceServiceInterface::ChannelStatus status,
                        int ch_num,
-                       Multiradio::voice_channel_t channel_type
+                       Multiradio::voice_channel_t channel_type,
+                       bool valid_freq
                        );
     void setModeText(const char*);
     void setFocus(int newFocus)
@@ -44,6 +45,7 @@ public:
         std::string str;
         str.append(fr);
         str.append(freq_hz);
+        str.push_back('\0');
         freq->SetText((char*)str.c_str());
     }
     void editingFreq(UI_Key);
@@ -52,12 +54,13 @@ public:
     bool editing;
     std::string nFreq, oFreq;
 
-    void returnFreqStatus(bool (*f)(int)){  f(freq->transparent);}
+
 
 private:
     GUI_EL_Window *window;
-    GUI_EL_Label *ch_num_label;
-    GUI_EL_Label *freq;
+    GUI_EL_Label  *ch_num_label;
+    GUI_EL_Label  *mode_text;
+    GUI_EL_Label  *freq;
     bool cur_ch_invalid;
     int focus = -2;
 

@@ -82,30 +82,66 @@ bool FS::getFhssKey(uint8_t& data) {
 
 void FS::setFhssKey(uint8_t data) {
 	QmFile file(dir, "FhssKey");
-	if (!file.open(QmFile::WriteOnly | QmFile::Append))
+	if (!file.open(QmFile::WriteOnly))
 		return;
 	file.write((uint8_t *)&data, 1);
 }
 
-void FS::setChannelStation(uint8_t number)
-{
-    QmFile file(dir,"ChanVal");
-    if (file.open(QmFile::WriteOnly))
-    	return;
-    file.write((uint8_t*)&number,1);
+bool FS::getVoiceFrequency(uint32_t &data) {
+	data = 0;
+	QmFile file(dir, "VoiceFrequency");
+	if (!file.open(QmFile::ReadOnly))
+		return false;
+	int64_t file_size = file.size();
+	if (!(file_size == 4))
+		return false;
+	file.read((uint8_t *)&data, 4);
+	return true;
 }
 
-bool FS::getChannelStation(uint8_t &number)
-{
-    QmFile file(dir, "ChanVal");
-    if (!file.open(QmFile::ReadOnly))
-        return false;
+void FS::setVoiceFrequency(uint32_t data) {
+	QmFile file(dir, "VoiceFrequency");
+	if (!file.open(QmFile::WriteOnly))
+		return;
+	file.write((uint8_t *)&data, 4);
+}
 
-    int64_t file_size = file.size();
-    if (!(file_size == 1))
-        return false;
-    file.read((uint8_t *)&number, 1);
-    return true;
+bool FS::getVoiceEmissionType(Multiradio::voice_emission_t &data) {
+	data = Multiradio::voiceemissionInvalid;
+	QmFile file(dir, "VoiceEmissionType");
+	if (!file.open(QmFile::ReadOnly))
+		return false;
+	int64_t file_size = file.size();
+	if (!(file_size == 1))
+		return false;
+	file.read((uint8_t *)&data, 1);
+	return true;
+}
+
+void FS::setVoiceEmissionType(Multiradio::voice_emission_t data) {
+	QmFile file(dir, "VoiceEmissionType");
+	if (!file.open(QmFile::WriteOnly))
+		return;
+	file.write((uint8_t *)&data, 1);
+}
+
+bool FS::getVoiceChannelSpeed(Multiradio::voice_channel_speed_t &data) {
+	data = Multiradio::voicespeedInvalid;
+	QmFile file(dir, "VoiceChannelSpeed");
+	if (!file.open(QmFile::ReadOnly))
+		return false;
+	int64_t file_size = file.size();
+	if (!(file_size == 1))
+		return false;
+	file.read((uint8_t *)&data, 1);
+	return true;
+}
+
+void FS::setVoiceChannelSpeed(Multiradio::voice_channel_speed_t data) {
+	QmFile file(dir, "VoiceChannelSpeed");
+	if (!file.open(QmFile::WriteOnly))
+		return;
+	file.write((uint8_t *)&data, 1);
 }
 
 } /* namespace DataStorage */

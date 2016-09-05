@@ -11,6 +11,7 @@
 //----------INCLUDES-----------
 
 #include <string.h>
+#include <stdio.h>
 #include "elements.h"
 #include "all_sym_indicators.h"
 #include <stdio.h>
@@ -159,12 +160,13 @@ void GUI_EL_Label::Draw(){
             gsetmode(COMMON_ELEMENT_VP_MODE | GTRANSPERANT);
 			skipflags = GFILL;
 		}
-		if (!skip_text_bg_filling)
-			groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,skipflags);
-		else
-			gsetmode(COMMON_ELEMENT_VP_MODE);
-		gsetpos(content.x, CONTENT_YE(content));
-		gputs(text.c_str());
+
+        if (!skip_text_bg_filling)
+            groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,skipflags);
+        else
+            gsetmode(COMMON_ELEMENT_VP_MODE);
+        gsetpos(content.x, CONTENT_YE(content));
+        gputs(text.c_str());
 		if(transparent){
 			gsetmode(COMMON_ELEMENT_VP_MODE);
 		}
@@ -209,13 +211,13 @@ void GUI_EL_TextArea::SetText(char *text){
 void GUI_EL_TextArea::Draw(){
 	if(text!=0){
 		int32_t i=0, j=0,k=0,str_width=0, last_space=0, sym_to_cp=0;
-		MoonsGeometry local_content, line_geom;
+        MoonsGeometry local_content, line_geom;
 		char line_str[MAX_LABEL_LENGTH];
 		LabelParams label_params=params;
 		label_params.element.align.align_v=alignTop;
 		label_params.element.margins={0,0,0,0};
-		PrepareContent();
-		PrepareViewport();
+        PrepareContent();
+        PrepareViewport();
 		local_content=GetContentGeomOnElem();
 		line_geom=local_content;
 		line_geom.ye=line_geom.ys+line_height-1;
@@ -224,84 +226,84 @@ void GUI_EL_TextArea::Draw(){
 				if(text[k]=='\n' || text[k]==0){
 					strncpy(line_str,&text[k-j],j);
 					line_str[j]=0;
-					++k;
-					break;
-				}
-				else{
+                    ++k;
+                    break;
+                }
+                else{
 					if(text[k]==' '){
 						last_space=k;
-					}
+                    }
 					str_width+=ggetsymw(text[k]);
 					if(str_width>GEOM_W(el_geom)){
 						if(last_space==0 || text[k]==' '){
 							sym_to_cp=j;
 							strncpy(line_str,&text[k-j],sym_to_cp);
 							line_str[sym_to_cp]=0;
-							++k;
-							break;
-						}
-						else{
+                            ++k;
+                            break;
+                        }
+                        else{
 							sym_to_cp=j-(k-last_space);
 							strncpy(line_str,&text[k-j],sym_to_cp);
 							line_str[sym_to_cp]=0;
 							k=last_space+1;
-							break;
-						}
+                            break;
+                        }
 
-					}
-				}
-			}
-			GUI_EL_Label text_line(&label_params,&line_geom,line_str,parent_obj);
-			text_line.Draw();
-		}
+                    }
+                }
+            }
+                GUI_EL_Label text_line(&label_params,&line_geom,line_str,parent_obj);
+                text_line.Draw();
+            }
 
-	}
+        }
 }
 
 //-----------------------------
 
 void GUI_EL_TextArea::CalcContentGeom(){
-	int32_t i = 0, lf_count=0, max_str_width=0, str_width=0, size=strlen(text), last_space=0, last_str_with=0;
-	content.W=0;
-	content.H=0;
-	gselfont(params.font);
-	for(i=0;i<=size;++i){ //	подсчет количества строк
-		if(text[i]==' '){
-			last_space=i;
-			last_str_with=str_width;
-		}
-		if(text[i]=='\n' || text[i]==0){
-			++lf_count;
-			if(str_width>max_str_width){
-				max_str_width=str_width;
-			}
-			str_width=0;
-		}
-		else {
-			str_width+=ggetsymw(text[i]);
-			if(str_width>GEOM_W(el_geom)){		//если строка длиннее чем область элемента
-				++lf_count;						//cчитаем перенос строки
-				if(last_space==0 || text[i]==' '){
-					str_width-=ggetsymw(text[i]);	//и отменяем сложение длины этого символа
-				}
-				else{
-					str_width=last_str_with;
-					i=last_space;
-				}
+    int32_t i = 0, lf_count=0, max_str_width=0, str_width=0, size=strlen(text), last_space=0, last_str_with=0;
+    content.W=0;
+    content.H=0;
+    gselfont(params.font);
+    for(i=0;i<=size;++i){ //	подсчет количества строк
+        if(text[i]==' '){
+            last_space=i;
+            last_str_with=str_width;
+        }
+        if(text[i]=='\n' || text[i]==0){
+            ++lf_count;
+            if(str_width>max_str_width){
+                max_str_width=str_width;
+            }
+            str_width=0;
+        }
+        else {
+            str_width+=ggetsymw(text[i]);
+            if(str_width>GEOM_W(el_geom)){		//если строка длиннее чем область элемента
+                ++lf_count;						//cчитаем перенос строки
+                if(last_space==0 || text[i]==' '){
+                    str_width-=ggetsymw(text[i]);	//и отменяем сложение длины этого символа
+                }
+                else{
+                    str_width=last_str_with;
+                    i=last_space;
+                }
 
-				if(str_width>max_str_width){
-					max_str_width=str_width;
-				}
-				str_width=0;
-				last_space=0;
-				last_str_with=0;
-			}
-		}
-	}
-	lines_count=lf_count;
-	line_height=ggetfh();
+                if(str_width>max_str_width){
+                    max_str_width=str_width;
+                }
+                str_width=0;
+                last_space=0;
+                last_str_with=0;
+            }
+        }
+    }
+    lines_count=lf_count;
+    line_height=ggetfh();
 	content.H=ggetfh()*lines_count;
-	content.W=max_str_width;
+    content.W=max_str_width;
 }
 
 

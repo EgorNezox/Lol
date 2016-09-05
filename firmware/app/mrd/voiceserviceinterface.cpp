@@ -11,8 +11,10 @@
 #include "qm.h"
 
 #include "voiceserviceinterface.h"
+#include "mainserviceinterface.h"
 #include "dispatcher.h"
 #include <math.h>
+#include "../datastorage/fs.h"
 
 
 namespace Multiradio {
@@ -47,20 +49,83 @@ VoiceServiceInterface::ChannelStatus VoiceServiceInterface::getCurrentChannelSta
 
 int VoiceServiceInterface::getCurrentChannelNumber()
 {
-    return (dispatcher->voice_channel - dispatcher->voice_channels_table.begin() + 1);
+    int number = 0;
+    switch (current_channel_status) {
+    case ChannelDisabled:
+    	break;
+    case ChannelActive:
+    case ChannelInvalid:
+    	if (dispatcher->voice_channel != dispatcher->voice_channels_table.end()) {
+    		number = dispatcher->voice_channel - dispatcher->voice_channels_table.begin() + 1;
+    	} else {
+    		int smart_ch_number;
+    		voice_channel_t smart_ch_type;
+    		if (dispatcher->headset_controller->getSmartCurrentChannel(smart_ch_number, smart_ch_type))
+    			number = smart_ch_number;
+    	}
+    	break;
+    }
+    return number;
 }
 
 int VoiceServiceInterface::getCurrentChannelFrequency()
 {
-	if (current_channel_status == ChannelDisabled)
-		return 0;
-    return dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).frequency;
+	switch (dispatcher->main_service->current_mode) {
+	case MainServiceInterface::VoiceModeAuto: {
+		if (current_channel_status != ChannelDisabled)
+			return dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).frequency;
+		break;
+	}
+	case MainServiceInterface::VoiceModeManual: {
+		return dispatcher->voice_manual_frequency;
+	}
+	}
+	return 0;
+}
+
+voice_emission_t VoiceServiceInterface::getCurrentChannelEmissionType() {
+	switch (dispatcher->main_service->current_mode) {
+	case MainServiceInterface::VoiceModeAuto: {
+		if (current_channel_status != ChannelDisabled) {
+			uint32_t frequency = dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).frequency;
+			return dispatcher->getVoiceEmissionFromFrequency(frequency);
+		}
+		break;
+	}
+	case MainServiceInterface::VoiceModeManual: {
+		return dispatcher->voice_manual_emission_type;
+	}
+	}
+	return voiceemissionInvalid;
 }
 
 voice_channel_t VoiceServiceInterface::getCurrentChannelType() {
-	if (current_channel_status == ChannelDisabled)
+	if (current_channel_status != ChannelActive)
 		return channelInvalid;
 	return (*(dispatcher->voice_channel)).type;
+}
+
+voice_channel_speed_t VoiceServiceInterface::getCurrentChannelSpeed() {
+	switch (dispatcher->main_service->current_mode) {
+	case MainServiceInterface::VoiceModeAuto: {
+		if (current_channel_status != ChannelDisabled)
+			return dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).speed;
+		break;
+	}
+	case MainServiceInterface::VoiceModeManual: {
+		return dispatcher->voice_manual_channel_speed;
+	}
+	}
+	return voicespeedInvalid;
+}
+
+void VoiceServiceInterface::setCurrentChannelSpeed(voice_channel_speed_t speed) {
+	dispatcher->data_storage_fs->setVoiceChannelSpeed(speed);
+	dispatcher->voice_manual_channel_speed = speed;
+	if (!((dispatcher->main_service->current_mode == MainServiceInterface::VoiceModeManual)
+			&& (dispatcher->headset_controller->getStatus() == Headset::Controller::StatusSmartOk)))
+		return;
+	dispatcher->headset_controller->setSmartCurrentChannelSpeed(speed);
 }
 
 void VoiceServiceInterface::tuneNextChannel() {
@@ -97,18 +162,25 @@ void VoiceServiceInterface::tunePreviousChannel() {
     dispatcher->updateVoiceChannel();
 }
 
-void VoiceServiceInterface::TuneFrequency(int Frequency)
+void VoiceServiceInterface::tuneFrequency(int frequency)
 {
+	dispatcher->data_storage_fs->setVoiceFrequency(frequency);
+	dispatcher->voice_manual_frequency = frequency;
+	if (dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
+		return;
+    dispatcher->updateVoiceChannel();
+}
 
-    if (Frequency >= 30000000)
-        dispatcher->dsp_controller->setRadioParameters(DspController::RadioModeFM,Frequency);
-    else
-        dispatcher->dsp_controller->setRadioParameters(DspController::RadioModeUSB,Frequency);
-    dispatcher->dsp_controller->setRadioOperation(DspController::RadioOperationRxMode);
+void VoiceServiceInterface::tuneEmissionType(voice_emission_t type) {
+	dispatcher->data_storage_fs->setVoiceEmissionType(type);
+	dispatcher->voice_manual_emission_type = type;
+	if (dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
+		return;
+    dispatcher->updateVoiceChannel();
 }
 
 void VoiceServiceInterface::tuneSquelch(uint8_t value) {
-	if (value != 0 && (value < 6 || value > 24)) {
+	if (/*value != 0 &&*/ (value < 0 || value > 24)) {
 		return;
 	}
 	dispatcher->dsp_controller->setRadioSquelch(value);

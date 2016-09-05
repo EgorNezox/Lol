@@ -34,6 +34,10 @@ public:
 		StatusVoiceTx,
 		StatusTuningTx
 	};
+	enum VoiceMode {
+		VoiceModeAuto,
+		VoiceModeManual
+	};
 	enum AleResult {
 		AleResultNone,
 		AleResultVoiceMail
@@ -63,6 +67,8 @@ public:
 	};
 
 	Status getStatus();
+	void setVoiceMode(VoiceMode mode);
+	VoiceMode getVoiceMode();
 
 	void startAleRx();
 	void startAleTxVoiceMail(uint8_t address);
@@ -79,6 +85,7 @@ public:
 
 private:
 	friend class Dispatcher;
+	friend class VoiceServiceInterface;
 
 	enum AleFunctionalState {
 		alefunctionIdle,
@@ -230,6 +237,7 @@ private:
 	void aleprocessPacketRoffHshakeTExpired();
 
 	Status current_status;
+	VoiceMode current_mode;
 	Dispatcher *dispatcher;
 	struct {
 		AleFunctionalState f_state;

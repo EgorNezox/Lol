@@ -1,13 +1,16 @@
 #include "texts.h"
 
-const char *test_Pass = {"Тестирование\0"};
-const char* exitStr = "Выход\0";
-char *mode_txt[] = {(char *)"Речь\0", (char*)"АУС\0", (char*)"ГрупУК\0"};
+const char *errorStr = "Ошибка\0";
+char *mode_txt[] = {" Авто\0", "Ручн.\0"};
 char *disabled_ch_txt = (char *)"--";
 char ch_open_letter='О';
 char ch_zero_letter='0';
 char ch_closed_letter='З';
-char ch_invalid_letter='!';
+char ch_invalid_letter='x';
+
+const char* ch_em_type_str[] = {(char *)"ЧМ\0", (char*)"ВБП\0"};
+
+const char* exitStr = "Выход\0";
 
 const char* freq_khz = "кГц\0";
 const char* freq_hz = "Гц\0";
@@ -20,9 +23,9 @@ const char* trans = "Отправить\0";
 const char* callTitle[2] = {"Команда\0", "Адрес\0"};
 
 char * ok_texts[LANG_COUNT]={(char *)"Ок"};
-char * missing_ch_table_txt[LANG_COUNT]={(char *)"Отсутствует таблица речевых каналов\0"};
-char * missing_open_ch_txt[LANG_COUNT]={(char *)"Отсутствуют открытые речевые каналы\0"};
-char * ch_table_mismatch_txt[LANG_COUNT]={(char *)"Несоответствие таблицы речевых каналов списку каналов гарнитуры\0"};
+char * missing_ch_table_txt[LANG_COUNT]={(char *)"Отсутствует таблица\nречевых каналов\0"};
+char * missing_open_ch_txt[LANG_COUNT]={(char *)"Отсутствуют открытые\nречевые каналы\0"};
+char * ch_table_mismatch_txt[LANG_COUNT]={(char *)"Несоответствие\nтаблицы речевых\nканалов списку\nканалов гарнитуры\0"};
 
 const char* receiveStr = "Принять\0";
 const char* continueStr = "Продолжить\0";
@@ -46,7 +49,7 @@ const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0", 
 const char *settingsSubMenu[] = {" ДВ\0", " Связь\0", " Скан\0", " Усиление\0", " Громкость\0", " Шумодав\0"," Время ГУК\0", " КР"," Конфигур"}; //TODO:
     const char *dateAndTimeSubMenu[] = {" СИНХРО\0", " РУЧНОЙ\0"};
         const char *setDateOrTime[] = {" Ввод даты\0", " Ввод время\0"};
-    const char *setConnParam[] = {" Частота\0", " Скорость\0"};
+    const char *setConnParam[] = {" Частота\0", " Скорость\0", "Тип излуч\0", "Реч. реж.\0"};
 
 const char *coordinateStr = "Координаты\0";
 const char *useScanMenu[] = {"ВКЛ\0", "ВЫКЛ\0", "МАЛ","СРЕД","ВЫС"};
@@ -151,12 +154,20 @@ const char *txSmsResultStatus[] = {
     "Квитанция\0"
 };
 
+const char *smsDataInformDx[] = {
+    "Неизвестное сообщение\0",
+    "Начат вызов\0",
+    "Ответ от станции\0",
+    "Отправка данных\0",
+    "Данные переданы (отправка квитанции)\0",
+};
 const char *rxSmsResultStatus[] = {
     "Ожидание вызова\0",
     "Получение ответа\0",
     "Прием данных\0",
     "Ожидание квитанции\0"
 };
+
 
 const char* voiceRxStr[] = {"Нажмите Ввод для\nзапуска приема\0", "От: \0", "Нажмите ввод\0"};
 const char* voiceRxTxLabelStr[] = {"Канал записи\0", "Канал воспр.\0", "Запись речи\0", "Воспр. речи\0", "Получатель\0", "Получена гол.поч.\0"};
@@ -193,3 +204,6 @@ const char* dsphardwarefailure_7_5_title_str = "Авария АФУ";
 const char* dsphardwarefailure_7_5_text_str = "0";
 const char* dsphardwarefailure_unknown_title_str = "Аппаратный сбой DSP";
 const char* dsphardwarefailure_unknown_text_str = "Устр. %d, код %d";
+
+const char *StartCmd = "Передача...\0";
+const char *EndCmd   = "Прием...\0";

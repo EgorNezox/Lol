@@ -15,8 +15,12 @@ public:
 	bool getAleStationAddress(uint8_t &data);
 	bool getFhssKey(uint8_t &data);
 	void setFhssKey(uint8_t data);
-    void setChannelStation(uint8_t number);
-    bool getChannelStation(uint8_t &number);
+	bool getVoiceFrequency(uint32_t &data);
+	void setVoiceFrequency(uint32_t data);
+	bool getVoiceEmissionType(Multiradio::voice_emission_t &data);
+	void setVoiceEmissionType(Multiradio::voice_emission_t data);
+	bool getVoiceChannelSpeed(Multiradio::voice_channel_speed_t &data);
+	void setVoiceChannelSpeed(Multiradio::voice_channel_speed_t data);
 private:
 	std::string dir;
 };

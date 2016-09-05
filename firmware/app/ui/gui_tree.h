@@ -22,11 +22,10 @@ enum GuiWindowTypes
 
 enum GuiWindowsSubType
 {
-    //call,
     condCommand,\
     txGroupCondCmd,\
     txPutOffVoice,\
-    txSmsMessage,
+    txSmsMessage,\
     recv,\
     recvVoice,\
     rxSmsMessage,\
@@ -49,7 +48,9 @@ enum GuiWindowsSubType
     twoState,\
     volume,\
     editRnKey,\
-    zond
+    zond,\
+    channelEmissionType,\
+    voiceMode \
 };
 
 enum modeCall
@@ -206,6 +207,7 @@ private:
     // 4.1 - 4.3
     CState sttDateTime, sttConnParam;
     CEndState sttScan, swAruArm, sttSound, sttSuppress, sttWaitGuk, sttEditRnKey,sttZond;
+       // CEndState sttZond1,sttZond2,sttZond3,sttZond4;
     // 4.1.1 - 4.1.2
     CState sttConnParamHand;
     CEndState sttConnParamGPS;
@@ -217,6 +219,9 @@ private:
     CEndState sttSetFreq, sttSetSpeed;
     SInputItemParameters freqParameters {(char*)setConnParam[0], "1", 2, 0, 31} ,
                          speedParameters{(char*)setConnParam[1], "25000", 2, 0, 31};
+
+    CEndState sttChannelEmissionType, sttVoiceMode;
+
 
     void init();
 

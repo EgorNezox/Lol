@@ -23,7 +23,7 @@
 #include "../navigation/navigator.h"
 #include <qmtimer.h>
 #include <string.h>
-
+#include <time.h>
 
 #include "gui_obj.h"
 #include "menu.h"
@@ -93,6 +93,7 @@ private:
     void msgBox(const char*, const char*);
     void msgBox(const char*, const int);
     void msgBox(const char*, const int, const int, const int);
+    void redrawMessage(const char *title,const char *message);
 
     matrix_keyboard_t matrix_kb;
     aux_keyboard_t aux_kb;
@@ -127,6 +128,7 @@ private:
     Power::Battery * pGetPowerBattery();
     int getLanguage();
 
+
     void GucCoord();
 
     void FirstPacketPSWFRecieved(int packet);
@@ -146,7 +148,9 @@ private:
     std::string coord_lat;
     std::string coord_log;
     std::string date;
-    std::string time;
+    std::string timeStr;
+
+    Multiradio::voice_channel_speed_t currentSpeed = Multiradio::voice_channel_speed_t(0);
 
     int RN_KEY = 1;
     int mainWindowModeId;
@@ -159,7 +163,6 @@ private:
     //
     std::vector<int> guc_command_vector;
     int position = 0;
-
     int zond_position = 0;
     std::vector<std::string> zond_data;
 };

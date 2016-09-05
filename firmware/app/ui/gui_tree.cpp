@@ -13,7 +13,8 @@ void CGuiTree::init()
     groupCondCommand.setName(callSubMenu[3]);
     // 1.2.1 - 1.2.2
 //    condCmdSimpl.setName(commandsSubMenu[0]); condCmdDupl.setName(commandsSubMenu[1]);
-//    // 1.2.1.1 - 1.2.1.2
+//    condCmdSimpl.setName(commandsSubMenu[0]); condCmdDupl.setName(commandsSubMenu[1]);
+    // 1.2.1.1 - 1.2.1.2
 //    condCmdSimplGroupCall.setName(smplSubMenu[0]); condCmdSimplIndivCall.setName(smplSubMenu[1]);
     // 1.5.1 - 1.5.2
     groupCondCommandSimpl.setName(groupCommandsSubMenu[0]); groupCondCommandDupl.setName(groupCommandsSubMenu[1]);
@@ -44,6 +45,9 @@ void CGuiTree::init()
     sttSetDate.setName(setDateOrTime[0]); sttSetTime.setName(setDateOrTime[1]);
     // 4.2.1 - 4.2.2
     sttSetFreq.setName(setConnParam[0]); sttSetSpeed.setName(setConnParam[1]);
+    // 4.2.6 -4.2.7
+    sttChannelEmissionType.setName(setConnParam[2]);
+    sttVoiceMode.setName(setConnParam[3]);
 
     MainWindow.prevState = nullptr;
     MainWindow.nextState.push_back(&main);
@@ -111,7 +115,7 @@ void CGuiTree::init()
     groupCondCommand.listItem.push_back(&groupCondCommandParameters1);
     groupCondCommand.listItem.push_back(&groupCondCommandParameters2);
     groupCondCommand.listItem.push_back(&groupCondCommandParameters3);
-//    groupCondCommand.listItem.push_back(&groupCondCommandParameters4);
+    groupCondCommand.listItem.push_back(&groupCondCommandParameters4);
 //    groupCondCommand.nextState.push_back(&groupCondCommandSimpl);k
 //    groupCondCommand.nextState.push_back(&groupCondCommandDupl);
     // 1.4.1 - Односторонняя связь
@@ -215,49 +219,60 @@ void CGuiTree::init()
     dataGps.prevState = &data;
     dataGps.nextState.clear();
     // 4 - Настройки
+    settings.setType(GuiWindowTypes::menuWindow);
     settings.prevState = &main;
     settings.nextState.push_back(&sttDateTime);
     settings.nextState.push_back(&sttConnParam);
     settings.nextState.push_back(&sttScan);
     settings.nextState.push_back(&sttSound);
     settings.nextState.push_back(&sttSuppress);
-    settings.nextState.push_back(&sttZond);
     // 4.1 - Дата/время
+    sttDateTime.setType(GuiWindowTypes::menuWindow);
     sttDateTime.prevState = &settings;
     sttDateTime.nextState.push_back(&sttConnParamGPS);
     sttDateTime.nextState.push_back(&sttConnParamHand);
     // 4.1.1 - GPS синх-ция
+    sttConnParamGPS.setType(GuiWindowTypes::menuWindow);
     sttConnParamGPS.subType = GuiWindowsSubType::gpsSync;
     sttConnParamGPS.prevState = &sttDateTime;
     sttConnParamGPS.nextState.clear();
     sttConnParamGPS.listItem.push_back(&gpsSynchronization);
     // 4.1.2 - Ручная установка
+    sttConnParamHand.setType(GuiWindowTypes::menuWindow);
     sttConnParamHand.prevState = &sttDateTime;
     sttConnParamHand.nextState.push_back(&sttSetDate);
     sttConnParamHand.nextState.push_back(&sttSetTime);
     // 4.1.2.1 - Установить дату
+    sttSetDate.setType(GuiWindowTypes::endMenuWindow);
     sttSetDate.subType = GuiWindowsSubType::setDate;
     sttSetDate.prevState = &sttConnParamHand;
     sttSetDate.nextState.clear();
     sttSetDate.listItem.push_back(&dateParameters);
     // 4.1.2.2 - Установить время
+    sttSetTime.setType(GuiWindowTypes::endMenuWindow);
     sttSetTime.subType = GuiWindowsSubType::setTime;
     sttSetTime.prevState = &sttConnParamHand;
     sttSetTime.nextState.clear();
     sttSetTime.listItem.push_back(&timeParameters);
     // 4.2 - Параметры связи
+    sttConnParam.setType(GuiWindowTypes::menuWindow);
     sttConnParam.prevState = &settings;
     sttConnParam.nextState.push_back(&sttSetFreq);
     sttConnParam.nextState.push_back(&sttSetSpeed);
     sttConnParam.nextState.push_back(&swAruArm);
     sttConnParam.nextState.push_back(&sttWaitGuk);
     sttConnParam.nextState.push_back(&sttEditRnKey);
+    sttConnParam.nextState.push_back(&sttChannelEmissionType);
+    sttConnParam.nextState.push_back(&sttVoiceMode);
+
     // 4.2.1 - Частота
+    sttSetFreq.setType(GuiWindowTypes::endMenuWindow);
     sttSetFreq.subType = GuiWindowsSubType::setFreq;
     sttSetFreq.prevState = &sttConnParam;
     sttSetFreq.nextState.clear();
     sttSetFreq.listItem.push_back(&freqParameters);
     // 4.2.2 - Скорость
+    sttSetSpeed.setType(GuiWindowTypes::endMenuWindow);
     sttSetSpeed.subType = GuiWindowsSubType::setSpeed;
     sttSetSpeed.prevState = &sttConnParam;
     sttSetSpeed.nextState.clear();
@@ -274,6 +289,16 @@ void CGuiTree::init()
     sttEditRnKey.subType = GuiWindowsSubType::editRnKey;
     sttEditRnKey.prevState = &sttConnParam;
     sttEditRnKey.nextState.clear();
+    // 4.2.6 - Режим передачи
+    sttChannelEmissionType.subType = GuiWindowsSubType::channelEmissionType;
+    sttChannelEmissionType.prevState = &sttConnParam;
+    sttChannelEmissionType.nextState.clear();
+
+    // 4.2.7 - Тип излучения
+    sttVoiceMode.subType = GuiWindowsSubType::voiceMode;
+    sttVoiceMode.prevState = &sttConnParam;
+    sttVoiceMode.nextState.clear();
+
     // 4.3 - Сканирование
     sttScan.subType = GuiWindowsSubType::scan;
     sttScan.prevState = &settings;
@@ -286,10 +311,6 @@ void CGuiTree::init()
     sttSuppress.subType = GuiWindowsSubType::suppress;
     sttSuppress.prevState = &settings;
     sttSuppress.nextState.clear();
-    // 4.7  - Конфигуратор
-    sttZond.subType     = GuiWindowsSubType::zond;
-    sttZond.prevState    = &settings;
-    sttZond.nextState.clear();
 
     currentState = &MainWindow;
     statesStack.clear();

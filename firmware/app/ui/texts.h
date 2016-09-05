@@ -15,7 +15,7 @@
 #define SETTINGS_LIST_SIZE 2
 
 extern const char *test_Pass;
-
+extern const char *errorStr;
 extern const char* exitStr;
 extern char *mode_txt[];
 extern char *disabled_ch_txt;
@@ -24,9 +24,12 @@ extern char ch_open_letter;
 extern char ch_closed_letter;
 extern char ch_invalid_letter;
 
+extern const char* ch_em_type_str[];
+
 extern const char* freq_khz;
 extern const char* freq_hz;
 
+extern const char* exitStr;
 extern const char* speed_bit;
 
 extern const char proc;
@@ -120,7 +123,6 @@ extern const char* NoGucCoord;
 extern const char* StartGucTx;
 extern const char* GucIndivid;
 extern const char* GucGroup;
-extern const char* Zond;
 extern const char* Zond_label;
 
 extern const char* startStr;
@@ -132,5 +134,12 @@ extern const char* dsphardwarefailure_7_5_title_str;
 extern const char* dsphardwarefailure_7_5_text_str;
 extern const char* dsphardwarefailure_unknown_title_str;
 extern const char* dsphardwarefailure_unknown_text_str;
+
+extern const char *smsDataInformDx[];
+
+extern const char *zondSubMenu[];
+
+extern const char *StartCmd;
+extern const char *EndCmd;
 
 #endif /* TEXTS_H_ */

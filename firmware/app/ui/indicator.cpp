@@ -30,7 +30,7 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
     icon_geom = {5, 35, 154, 60};
     LabelParams p_label = GUI_EL_TEMP_LabelMode;
     p_label.element.align = {alignHCenter, alignVCenter};
-    date_time = new GUI_EL_Label(&p_label, &icon_geom, (char*)"15.06 10:59", (GUI_Obj *)this);
+    date_time = new GUI_EL_Label(&p_label, &icon_geom, (char*)"", (GUI_Obj *)this);
 
     icon_geom = {12+3*ICON_SIZE, 6, 12+4*ICON_SIZE-1, 32};
     gpsLabel = new GUI_EL_Icon(&GUI_EL_TEMP_CommonIcon, &icon_geom, sym_gps_unlock, (GUI_Obj *)this);
@@ -97,7 +97,7 @@ void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
             ind_headset->icon = sym_headphones_analog;
             break;
         case Headset::Controller::StatusSmartOk:
-            ind_headset->icon = sym_headphones_smart;
+            ind_headset->icon = sym_headphones_analog;
             break;
         case Headset::Controller::StatusSmartMalfunction:
             ind_headset->icon = sym_headphones_broken;
