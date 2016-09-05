@@ -21,6 +21,8 @@ public:
 	void setVoiceEmissionType(Multiradio::voice_emission_t data);
 	bool getVoiceChannelSpeed(Multiradio::voice_channel_speed_t &data);
 	void setVoiceChannelSpeed(Multiradio::voice_channel_speed_t data);
+	bool getAnalogHeadsetChannel(uint8_t &data);
+	void setAnalogHeadsetChannel(uint8_t data);
 private:
 	std::string dir;
 };

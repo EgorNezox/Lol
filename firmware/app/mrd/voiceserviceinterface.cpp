@@ -143,6 +143,7 @@ void VoiceServiceInterface::tuneNextChannel() {
 			break;
 	}
 	dispatcher->updateVoiceChannel();
+	dispatcher->saveAnalogHeadsetChannel();
 }
 
 void VoiceServiceInterface::tunePreviousChannel() {
@@ -159,7 +160,8 @@ void VoiceServiceInterface::tunePreviousChannel() {
 		if ((*dispatcher->voice_channel).type == channelOpen)
 			break;
 	}
-    dispatcher->updateVoiceChannel();
+	dispatcher->updateVoiceChannel();
+	dispatcher->saveAnalogHeadsetChannel();
 }
 
 void VoiceServiceInterface::tuneFrequency(int frequency)

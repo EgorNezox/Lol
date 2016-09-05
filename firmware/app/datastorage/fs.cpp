@@ -144,4 +144,23 @@ void FS::setVoiceChannelSpeed(Multiradio::voice_channel_speed_t data) {
 	file.write((uint8_t *)&data, 1);
 }
 
+bool FS::getAnalogHeadsetChannel(uint8_t& data) {
+	data = 0;
+	QmFile file(dir, "AnalogHeadsetChannel");
+	if (!file.open(QmFile::ReadOnly))
+		return false;
+	int64_t file_size = file.size();
+	if (!(file_size == 1))
+		return false;
+	file.read((uint8_t *)&data, 1);
+	return true;
+}
+
+void FS::setAnalogHeadsetChannel(uint8_t data) {
+	QmFile file(dir, "AnalogHeadsetChannel");
+	if (!file.open(QmFile::WriteOnly))
+		return;
+	file.write((uint8_t *)&data, 1);
+}
+
 } /* namespace DataStorage */

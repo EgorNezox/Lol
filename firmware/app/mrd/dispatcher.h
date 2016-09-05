@@ -46,6 +46,7 @@ private:
 	void setVoiceChannel();
 	bool changeVoiceChannel(int number, voice_channel_t type);
 	void updateVoiceChannel();
+	void saveAnalogHeadsetChannel();
 	void setVoiceDirection(bool ptt_state);
 	bool isVoiceMode();
 	bool isVoiceChannelTunable();
