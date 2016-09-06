@@ -122,7 +122,7 @@ void AtuController::acknowledgeTxRequest() {
 
 void AtuController::setRadioPowerOff(bool enable) {
 	poff_iopin->writeOutput(enable ? QmIopin::Level_High : QmIopin::Level_Low);
-	QmThread::msleep(2);
+	QmThread::msleep(3);
 }
 
 void AtuController::setMinimalActivityMode(bool enabled) {
