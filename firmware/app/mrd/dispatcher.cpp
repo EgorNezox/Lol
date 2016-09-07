@@ -160,8 +160,6 @@ void Dispatcher::setVoiceDirection(bool ptt_state) {
 		}
 	} else {
 		dsp_controller->setRadioOperation(DspController::RadioOperationRxMode);
-		if (atu_controller->isDeviceConnected())
-			atu_controller->enterBypassMode(voice_service->getCurrentChannelFrequency());
 		main_service->setStatus(MainServiceInterface::StatusVoiceRx);
 	}
 }
@@ -204,8 +202,6 @@ void Dispatcher::setVoiceChannel() {
 	}
 	if ((main_service->current_status == MainServiceInterface::StatusVoiceTx) && atu_controller->isDeviceConnected())
 		prepareTuningTx();
-	if ((main_service->current_status == MainServiceInterface::StatusVoiceRx) && atu_controller->isDeviceConnected())
-		atu_controller->enterBypassMode(frequency);
 	dsp_controller->setRadioParameters(mode, frequency);
 }
 
@@ -252,15 +248,20 @@ bool Dispatcher::isVoiceChannelTunable() {
 }
 
 void Dispatcher::processDspSetRadioCompletion() {
-	if (main_service->current_status == MainServiceInterface::StatusTuningTx) {
+	switch (main_service->current_status) {
+	case MainServiceInterface::StatusTuningTx:
 		if (atu_controller->getMode() != AtuController::modeTuning) {
 			if (!atu_controller->tuneTxMode(voice_service->getCurrentChannelFrequency())) {
 				startVoiceTx();
 				voice_service->updateChannel();
 			}
 		}
-//		else
-//			atu_controller->acknowledgeTxRequest();
+		break;
+	case MainServiceInterface::StatusVoiceRx:
+		atu_controller->enterBypassMode(voice_service->getCurrentChannelFrequency());
+		break;
+	default:
+		break;
 	}
 }
 
