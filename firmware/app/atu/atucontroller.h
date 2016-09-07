@@ -27,8 +27,6 @@ public:
 		modeMalfunction,
 		modeStartingBypass,
 		modeBypass,
-		modePrepareTuning,
-		modeStartFullTuning,
 		modeTuning,
 		modeActiveTx
 	};
@@ -75,11 +73,9 @@ private:
 	void finishCommand();
 	void tryRepeatCommand();
 	void processReceivedTuningFrame(uint8_t id, uint8_t *data, int data_len);
-	void processReceivedPrepareTuningFrame(uint8_t id, uint8_t *data, int data_len);
 	void processTxTuneTimeout();
 	void processReceivedStateMessage(uint8_t *data, int data_len);
 	void processReceivedBypassModeMessage();
-	void processReceivedTWFMessage(uint8_t *data, int data_len);
 	void processReceivedUnexpectedFrame(uint8_t id);
 	void processReceivedFrame(uint8_t id, uint8_t *data, int data_len);
 	void sendFrame(uint8_t id, const uint8_t *data, int data_len);
@@ -89,6 +85,7 @@ private:
 	void processDeferred();
 	void executeEnterBypassMode();
 	void executeTuneTxMode();
+	void startFullTuning();
 
 
 	Mode mode;
@@ -114,7 +111,7 @@ private:
 	uint8_t antenna;
 	QmIopin *poff_iopin;
 	bool deferred_enterbypass_active, deferred_tunetx_active;
-	bool tx_tuning_state;
+	bool tx_tuning_power_state, tx_quick_tuning_attempt;
 	uint32_t tunetx_frequency;
 	bool last_tune_setup_valid;
 	uint8_t last_tune_setup[5];
