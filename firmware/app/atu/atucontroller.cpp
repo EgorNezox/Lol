@@ -416,17 +416,21 @@ void AtuController::processReceivedFrame(uint8_t id, uint8_t *data, int data_len
 }
 
 void AtuController::sendFrame(uint8_t id, const uint8_t *data, int data_len) {
-	uint8_t eot = FRAME_SYMBOL_EOT;
+	if (!(data_len <= MAX_FRAME_DATA_SIZE)) {
+		QM_ASSERT(0);
+		return;
+	}
 	qmDebugMessage(QmDebug::Info, "transmitting frame (id=0x%02X, data_len=%d)", id, data_len);
 	if (qmDebugIsVerbose() && (data_len > 0)) {
 		QM_ASSERT(data != 0);
 		for (int i = 0; i < data_len; i++)
 			qmDebugMessage(QmDebug::Dump, "frame data: 0x%02X", data[i]);
 	}
-	int64_t written = 0;
-	written += uart->writeData(&id, 1);
-	written += uart->writeData(data, data_len);
-	written += uart->writeData(&eot, 1);
+	uint8_t frame_buf[2 + MAX_FRAME_DATA_SIZE];
+	frame_buf[0] = id;
+	memcpy(frame_buf + 1, data, data_len);
+	frame_buf[1 + data_len] = FRAME_SYMBOL_EOT;
+	int64_t written = uart->writeData(frame_buf, (2 + data_len));
 	QM_ASSERT(written == (2 + data_len));
 }
 
