@@ -323,11 +323,12 @@ void AtuController::processTxTuneTimeout() {
 }
 
 void AtuController::processReceivedStateMessage(uint8_t *data, int data_len) {
-	if (!((data_len >= 1) && (command.id == commandRequestState))) {
+	if (!(data_len >= 1)) {
 		sendNak();
 		return;
 	}
-	finishCommand();
+	if (command.id == commandRequestState)
+		finishCommand();
 	uint8_t error_code = data[0];
 	if ((mode == modeNone) && (error_code == 0)) {
 		startCommand(commandEnterBypassMode, &antenna, 1, 2);
