@@ -229,7 +229,7 @@ void MainServiceInterface::setVoiceMode(VoiceMode mode) {
 	current_mode = mode;
 	if ((mode == VoiceModeAuto) && !dispatcher->isVoiceMode())
 		return;
-	dispatcher->updateVoiceChannel();
+	dispatcher->updateVoiceChannel(true);
 	dispatcher->headset_controller->setSmartCurrentChannelSpeed(dispatcher->voice_service->getCurrentChannelSpeed());
 }
 
