@@ -113,7 +113,7 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 			if (!changeVoiceChannel(smart_ch_number, smart_ch_type))
 				break;
 		} else {
-			dsp_controller->setAudioMicLevel(14);
+			dsp_controller->setAudioMicLevel(24);
 			voice_channel = std::find_if( std::begin(voice_channels_table), std::end(voice_channels_table),
 					[&](const voice_channel_entry_t entry){ return (entry.type == channelOpen); } );
 			if (voice_channel == voice_channels_table.end()) {
