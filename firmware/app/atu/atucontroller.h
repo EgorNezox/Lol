@@ -64,7 +64,8 @@ private:
 		frameid_F = 0x46,
 		frameid_K = 0x4B,
 		frameid_U = 0x55,
-		frameid_Y = 0x59
+		frameid_Y = 0x59,
+		frameid_V = 0x56
 	};
 
 	void setMode(Mode mode);
@@ -72,12 +73,12 @@ private:
 	void startCommand(CommandId id, const uint8_t *data, int data_len, int repeat_count, int timeout = 10);
 	void finishCommand();
 	void tryRepeatCommand();
-	void processReceivedTuningFrame(uint8_t id, uint8_t *data, int data_len);
+	void processReceivedTuningFrame(uint8_t id, uint8_t *data);
 	void processTxTuneTimeout();
-	void processReceivedStateMessage(uint8_t *data, int data_len);
+	void processReceivedStateMessage(uint8_t *data);
 	void processReceivedBypassModeMessage();
 	void processReceivedUnexpectedFrame(uint8_t id);
-	void processReceivedFrame(uint8_t id, uint8_t *data, int data_len);
+	void processReceivedFrame(uint8_t id, uint8_t *data);
 	void sendFrame(uint8_t id, const uint8_t *data, int data_len);
 	void sendNak();
 	void processUartReceivedData();
@@ -105,8 +106,7 @@ private:
 	struct {
 		uint8_t id;
 		uint8_t *data_buf;
-		int data_len;
-		bool truncated;
+		int data_len, data_pos;
 	} uart_rx_frame;
 	uint8_t antenna;
 	QmIopin *poff_iopin;

@@ -224,8 +224,8 @@ void AtuController::tryRepeatCommand() {
 	}
 }
 
-void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data, int data_len) {
-	if ((id == frameid_A) && (data_len >= 1))
+void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data) {
+	if (id == frameid_A)
 		qmDebugMessage(QmDebug::Info, "received unexpected state message with error_code = %u", data[0]);
 	switch (command.id) {
 	case commandEnterFullTuningMode: {
@@ -242,11 +242,6 @@ void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data, int da
 			acknowledgeTxRequest();
 			break;
 		case frameid_F:
-			if (data_len != 5) {
-				sendNak();
-				setMode(modeMalfunction);
-				break;
-			}
 			tx_tune_timer->stop();
 			finishCommand();
 			memcpy(last_tune_setup, data, sizeof(last_tune_setup));
@@ -280,11 +275,6 @@ void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data, int da
 			break;
 		}
 		case frameid_K: {
-			if (!(data_len >= 1)) {
-				sendNak();
-				setMode(modeMalfunction);
-				break;
-			}
 			finishCommand();
 			uint8_t value = data[0];
 			qmDebugMessage(QmDebug::Info, "received TWF = %u%%", value);
@@ -313,11 +303,7 @@ void AtuController::processTxTuneTimeout() {
 	setMode(modeMalfunction);
 }
 
-void AtuController::processReceivedStateMessage(uint8_t *data, int data_len) {
-	if (!(data_len >= 1)) {
-		sendNak();
-		return;
-	}
+void AtuController::processReceivedStateMessage(uint8_t *data) {
 	if (command.id == commandRequestState)
 		finishCommand();
 	uint8_t error_code = data[0];
@@ -348,16 +334,16 @@ void AtuController::processReceivedUnexpectedFrame(uint8_t id) {
 		tryRepeatCommand();
 }
 
-void AtuController::processReceivedFrame(uint8_t id, uint8_t *data, int data_len) {
+void AtuController::processReceivedFrame(uint8_t id, uint8_t *data) {
 	switch (mode) {
 	case modeTuning: {
-		processReceivedTuningFrame(id, data, data_len);
+		processReceivedTuningFrame(id, data);
 		break;
 	}
 	default: {
 		switch (id) {
 		case frameid_A:
-			processReceivedStateMessage(data, data_len);
+			processReceivedStateMessage(data);
 			break;
 		case frameid_Y:
 			processReceivedBypassModeMessage();
@@ -407,35 +393,70 @@ void AtuController::processUartReceivedData() {
 	qmDebugMessage(QmDebug::Dump, "uart rx data...");
 	while (uart->readData(&byte, 1)) {
 		switch (uart_rx_state) {
-		case uartrxNone:
+		case uartrxNone: {
 			if (byte == FRAME_SYMBOL_EOT) {
 				qmDebugMessage(QmDebug::Dump, "uart rx: - ignoring EOT");
 				break;
 			}
-			qmDebugMessage(QmDebug::Dump, "uart rx: - frame id 0x%02X", byte);
 			uart_rx_frame.id = byte;
-			uart_rx_frame.data_len = 0;
-			uart_rx_frame.truncated = false;
+			switch (uart_rx_frame.id) {
+			case frameid_NAK:
+				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id NAK");
+				uart_rx_frame.data_len = 0;
+				break;
+			case frameid_A:
+				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id A");
+				uart_rx_frame.data_len = 1;
+				break;
+			case frameid_D:
+				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id D");
+				uart_rx_frame.data_len = 0;
+				break;
+			case frameid_F:
+				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id F");
+				uart_rx_frame.data_len = 5;
+				break;
+			case frameid_K:
+				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id K");
+				uart_rx_frame.data_len = 1;
+				break;
+			case frameid_U:
+				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id U");
+				uart_rx_frame.data_len = 0;
+				break;
+			case frameid_Y:
+				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id Y");
+				uart_rx_frame.data_len = 0;
+				break;
+			case frameid_V:
+				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id V");
+				uart_rx_frame.data_len = 2;
+				break;
+			default:
+				qmDebugMessage(QmDebug::Warning, "uart rx: - UNKNOWN FRAME ID 0x%02X, frame sync may be broken !", uart_rx_frame.id);
+				uart_rx_frame.data_len = 0;
+				sendNak();
+				break;
+			}
+			uart_rx_frame.data_pos = 0;
 			uart_rx_state = uartrxFrame;
 			break;
-		case uartrxFrame:
-			if (byte != FRAME_SYMBOL_EOT) {
+		}
+		case uartrxFrame: {
+			if (uart_rx_frame.data_pos < uart_rx_frame.data_len) {
 				qmDebugMessage(QmDebug::Dump, "uart rx: - frame data 0x%02X", byte);
-				if (uart_rx_frame.data_len < MAX_FRAME_DATA_SIZE) {
-					uart_rx_frame.data_buf[uart_rx_frame.data_len++] = byte;
-				} else {
-					if (!uart_rx_frame.truncated) {
-						qmDebugMessage(QmDebug::Warning, "uart rx: - too long frame");
-						uart_rx_frame.truncated = true;
-					}
-				}
-			} else {
+				uart_rx_frame.data_buf[uart_rx_frame.data_pos++] = byte;
+			} else if (byte == FRAME_SYMBOL_EOT) {
 				qmDebugMessage(QmDebug::Dump, "uart rx: - frame EOT");
-				qmDebugMessage(QmDebug::Info, "received frame (id=0x%02X, data_len=%u%s)", uart_rx_frame.id, uart_rx_frame.data_len, (uart_rx_frame.truncated?"TRUNCATED":""));
+				qmDebugMessage(QmDebug::Info, "received frame (id=0x%02X, data_len=%u)", uart_rx_frame.id, uart_rx_frame.data_len);
 				uart_rx_state = uartrxNone;
-				processReceivedFrame(uart_rx_frame.id, uart_rx_frame.data_buf, uart_rx_frame.data_len);
+				processReceivedFrame(uart_rx_frame.id, uart_rx_frame.data_buf);
+			} else {
+				qmDebugMessage(QmDebug::Warning, "uart rx: - unexpected symbol in frame EOT position !");
+				uart_rx_state = uartrxNone;
 			}
 			break;
+		}
 		}
 	}
 }
