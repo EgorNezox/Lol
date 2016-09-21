@@ -202,7 +202,8 @@ void AtuController::tryRepeatCommand() {
 		command.repeat_count--;
 		return;
 	}
-	qmDebugMessage(QmDebug::Info, "command failed (no response)");
+	if (mode != modeNone)
+		qmDebugMessage(QmDebug::Info, "command failed (no response)");
 	command.id = commandInactive;
 	deferred_enterbypass_active = false;
 	deferred_tunetx_active = false;
@@ -364,7 +365,7 @@ void AtuController::sendFrame(uint8_t id, const uint8_t *data, int data_len) {
 		QM_ASSERT(0);
 		return;
 	}
-	qmDebugMessage(QmDebug::Info, "transmitting frame (id=0x%02X, data_len=%d)", id, data_len);
+	qmDebugMessage(QmDebug::Dump, "transmitting frame (id=0x%02X, data_len=%d)", id, data_len);
 	if (qmDebugIsVerbose() && (data_len > 0)) {
 		QM_ASSERT(data != 0);
 		for (int i = 0; i < data_len; i++)
@@ -448,7 +449,7 @@ void AtuController::processUartReceivedData() {
 				uart_rx_frame.data_buf[uart_rx_frame.data_pos++] = byte;
 			} else if (byte == FRAME_SYMBOL_EOT) {
 				qmDebugMessage(QmDebug::Dump, "uart rx: - frame EOT");
-				qmDebugMessage(QmDebug::Info, "received frame (id=0x%02X, data_len=%u)", uart_rx_frame.id, uart_rx_frame.data_len);
+				qmDebugMessage(QmDebug::Dump, "received frame (id=0x%02X, data_len=%u)", uart_rx_frame.id, uart_rx_frame.data_len);
 				uart_rx_state = uartrxNone;
 				processReceivedFrame(uart_rx_frame.id, uart_rx_frame.data_buf);
 			} else {
