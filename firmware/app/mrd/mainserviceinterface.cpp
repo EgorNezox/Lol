@@ -742,10 +742,10 @@ bool MainServiceInterface::checkDwellStart(int &freq_idx) {
 
 int MainServiceInterface::convertSnrFromPacket(uint8_t value) {
 	if (value == 0)
-		return -19;
+		return -21;
 	if (value == 63)
 		return 42;
-	return (-20 + ((value - 1)/(62-1))*(20 + 41));
+	return (-20 + ((float)(value - 1)/(62-1))*(20 + 41));
 }
 
 uint8_t MainServiceInterface::convertSnrToPacket(int value) {
@@ -909,12 +909,14 @@ void MainServiceInterface::aleprocessModemPacketFailedTx() {
 }
 
 void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPacketType type, uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len) {
+	int8_t snr_db_value = convertSnrFromPacket(snr);
+	qmDebugMessage(QmDebug::Info, "ale received modem packet (type = %u, bandwidth = %u) with SNR = %d dB", type, bandwidth, snr_db_value);
 	switch (type) {
 	case DspController::modempacket_HshakeReceiv: {
 		switch (ale.phase) {
 		case ALE_TX_CALL_RX_HSHAKE: {
 			ale.timerCallRoffHshakeR->stop();
-			if (evaluatePacketSNR(convertSnrFromPacket(snr))) {
+			if (evaluatePacketSNR(snr_db_value)) {
 				dispatcher->dsp_controller->enableModemTransmitter();
 				setAlePhase(ALE_TX_CALL_TX_HSHAKE);
 			} else {
@@ -1014,8 +1016,8 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 			break;
 		}
 		ale.supercycle = call_packet.cycleNum;
-		if (!evaluatePacketSNR(convertSnrFromPacket(snr))) {
-			qmDebugMessage(QmDebug::Info, "ale rejecting Call due to bad SNR (%u)", snr);
+		if (!evaluatePacketSNR(snr_db_value)) {
+			qmDebugMessage(QmDebug::Info, "ale rejecting Call due to bad SNR = %d dB", snr_db_value);
 			dispatcher->dsp_controller->disableModemReceiver();
 			proceedRxScanning();
 			break;
@@ -1137,22 +1139,24 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 }
 
 void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len) {
+	int8_t snr_db_value = convertSnrFromPacket(snr);
+	qmDebugMessage(QmDebug::Info, "ale received modem VM packHead (bandwidth = %u, signForm = %u, param_packCode = %u) with SNR = %d dB", bandwidth, param_signForm, param_packCode, snr_db_value);
 #ifdef ALE_OPTION_DISABLE_ADAPTATION
 	if (!(param_signForm == ALE_VM_INITIAL_SFORM)) {
-		qmDebugMessage(QmDebug::Info, "ale received VM packHead with unsupported signForm (%u)", param_signForm);
+		qmDebugMessage(QmDebug::Info, "...rejecting due to unsupported signForm");
 		dispatcher->dsp_controller->disableModemReceiver();
 		return;
 	}
 #endif
 	if (!(param_packCode == 0)) {
-		qmDebugMessage(QmDebug::Info, "ale received VM packHead with unsupported packCode (%u)", param_packCode);
+		qmDebugMessage(QmDebug::Info, "...rejecting due to unsupported packCode");
 		dispatcher->dsp_controller->disableModemReceiver();
 		return;
 	}
 	switch (ale.phase) {
 	case ALE_RX_VM_RX_MSGHEAD: {
 		if (!(ale.vm_msg_cycle > 1)) {
-			qmDebugMessage(QmDebug::Info, "ale received unexpected VM packHead during first cycle");
+			qmDebugMessage(QmDebug::Info, "...rejecting impossible case (unexpected during first cycle)");
 			dispatcher->dsp_controller->disableModemReceiver();
 			return;
 		}
@@ -1165,7 +1169,6 @@ void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(uint8_t snr, D
 		break;
 	}
 	default:
-		qmDebugMessage(QmDebug::Info, "ale received unexpected VM packHead");
 		dispatcher->dsp_controller->disableModemReceiver();
 		return;
 	}
@@ -1394,8 +1397,9 @@ void MainServiceInterface::aleprocessTxPacketSync() {
 }
 
 void MainServiceInterface::processPacketTxResponse(bool p_result, uint8_t p_snr) {
+	int snr_db_value = convertSnrFromPacket(p_snr);
+	qmDebugMessage(QmDebug::Info, "processing ale packet response (RespPackQual) with result = %s and SNR = %d dB", (p_result)?"OK":"FAIL", snr_db_value);
 	ale.timerPacketRoffRespPackQual->stop();
-	int snr = convertSnrFromPacket(p_snr);
 	if ((ale.vm_f_idx == (ale.vm_f_count - 1)) && (p_result != false)) {
 		qmDebugMessage(QmDebug::Info, "ale vm last packet response is bad");
 		dispatcher->dsp_controller->disableModemReceiver();
@@ -1405,13 +1409,13 @@ void MainServiceInterface::processPacketTxResponse(bool p_result, uint8_t p_snr)
 	if (p_result) {
 		ale.vm_f_idx++;
 		setAleVmProgress((int)(100*ale.vm_f_idx/ale.vm_f_count));
-		ale.vm_snr_ack[ale.vm_ack_count] = snr;
+		ale.vm_snr_ack[ale.vm_ack_count] = snr_db_value;
 		ale.vm_nack_count = 0;
 		ale.vm_ack_count++;
 		if (ale.vm_ack_count == 3)
 			ale.vm_adaptation = alevmadaptationUp;
 	} else {
-		ale.vm_snr_nack[ale.vm_nack_count] = snr;
+		ale.vm_snr_nack[ale.vm_nack_count] = snr_db_value;
 		ale.vm_ack_count = 0;
 		ale.vm_nack_count++;
 		if (ale.vm_nack_count == 2)
@@ -1435,7 +1439,7 @@ void MainServiceInterface::processFailedPacketTxCycle() {
 
 void MainServiceInterface::startNextPacketTxCycle() {
 //	int sform = (ale.vm_sform_p > ale.vm_sform_c)?ale.vm_sform_p:ale.vm_sform_c;
-	int sform = ale.vm_sform_c;
+	int sform = ale.vm_sform_p;
 	ale.timerTxPacketSync->start(ale.tPacketSync, TIMER_VALUE_tDataCycle(sform));
 	ale.tPacketSync.shift(TIMER_VALUE_tDataCycle(sform));
 }
@@ -1708,15 +1712,15 @@ void MainServiceInterface::processPacketReceivedAck() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	ale.vm_adaptation = alevmadaptationNone;
-	int snr = convertSnrFromPacket(ale.vm_packet_snr);
+	int snr_db_value = convertSnrFromPacket(ale.vm_packet_snr);
 	if (ale.vm_packet_result) {
-		ale.vm_snr_ack[ale.vm_ack_count] = snr;
+		ale.vm_snr_ack[ale.vm_ack_count] = snr_db_value;
 		ale.vm_nack_count = 0;
 		ale.vm_ack_count++;
 		if (ale.vm_ack_count == 3)
 			ale.vm_adaptation = alevmadaptationUp;
 	} else {
-		ale.vm_snr_nack[ale.vm_nack_count] = snr;
+		ale.vm_snr_nack[ale.vm_nack_count] = snr_db_value;
 		ale.vm_ack_count = 0;
 		ale.vm_nack_count++;
 		if (ale.vm_nack_count == 2)
