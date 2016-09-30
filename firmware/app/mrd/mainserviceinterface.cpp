@@ -91,9 +91,7 @@ struct resppackqual_packet_t {
 
 typedef QmCrc<uint32_t, 32, 0x04c11db7, 0xffffffff, true, 0xffffffff> CRC32;
 
-#ifndef ALE_OPTION_DISABLE_ADAPTATION
 static int ale_vm_snr_table[] = ALE_VM_SNR_TABLE_VALUES;
-#endif
 
 namespace Multiradio {
 
@@ -279,12 +277,8 @@ void MainServiceInterface::printDebugAleTimings() {
 	qmDebugMessage(QmDebug::Dump, " dTCodec = %u", ALE_TIME_dTCodec);
 	qmDebugMessage(QmDebug::Dump, " dTSynPacket = %u/%u", ALE_TIME_dTSynPacket(-1), ALE_TIME_dTSynPacket(0));
 	qmDebugMessage(QmDebug::Dump, " THeadL = %u/%u", ALE_TIME_THeadL(-1), ALE_TIME_THeadL(0));
-#ifndef ALE_OPTION_DISABLE_ADAPTATION
 	for (int i = 0; i < 8; i++)
 		qmDebugMessage(QmDebug::Dump, " TDataL (sform %u) = %u", i, ALE_TIME_TDataL(i));
-#else
-	qmDebugMessage(QmDebug::Dump, " TDataL = %u", ALE_TIME_TDataL(ALE_VM_INITIAL_SFORM));
-#endif
 	qmDebugMessage(QmDebug::Dump, "ALE Session timings (call dwell phase):");
 	qmDebugMessage(QmDebug::Dump, " tTxCall = %u", TIMER_VALUE_tTxCall);
 	qmDebugMessage(QmDebug::Dump, " tRoffSyncCall = %u", TIMER_VALUE_tRoffSyncCall);
@@ -320,12 +314,7 @@ void MainServiceInterface::printDebugAleTimings() {
 	qmDebugMessage(QmDebug::Dump, " tMsgTxHshakeT = %u", TIMER_VALUE_tDataTxHshakeTDelay(-1));
 	qmDebugMessage(QmDebug::Dump, " tMsgRoffHshakeT = %u", TIMER_VALUE_tDataRoffHshakeTDelay(-1));
 	qmDebugMessage(QmDebug::Dump, " tMsgCycle = %u", TIMER_VALUE_tDataCycle(-1));
-#ifndef ALE_OPTION_DISABLE_ADAPTATION
 	for (int i = 0; i < 8; i++) {
-#else
-	{
-		int i = ALE_VM_INITIAL_SFORM;
-#endif
 		qmDebugMessage(QmDebug::Dump, "ALE Session timings (VM packet phase (sform = %u)):", i);
 		qmDebugMessage(QmDebug::Dump, " tDataTxHeadDelay(%u) = %u", i, TIMER_VALUE_tDataTxHeadDelay(i));
 		qmDebugMessage(QmDebug::Dump, " tDataRoffSyncHeadDelay(%u) = %u", i, TIMER_VALUE_tDataRoffSyncHeadDelay(i));
@@ -786,12 +775,8 @@ void MainServiceInterface::proceedTxCalling() {
 }
 
 bool MainServiceInterface::evaluatePacketSNR(int8_t snr) {
-#ifndef ALE_OPTION_IGNORE_SNR
 	int8_t snr_threshold = (ale.supercycle == 1)?ALE_CALL_SNR_HIGH:ALE_CALL_SNR_LOW;
 	return (snr >= snr_threshold);
-#else
-	return true;
-#endif
 }
 
 void MainServiceInterface::aleprocessRadioReady() {
@@ -1141,13 +1126,6 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len) {
 	int8_t snr_db_value = convertSnrFromPacket(snr);
 	qmDebugMessage(QmDebug::Info, "ale received modem VM packHead (bandwidth = %u, signForm = %u, param_packCode = %u) with SNR = %d dB", bandwidth, param_signForm, param_packCode, snr_db_value);
-#ifdef ALE_OPTION_DISABLE_ADAPTATION
-	if (!(param_signForm == ALE_VM_INITIAL_SFORM)) {
-		qmDebugMessage(QmDebug::Info, "...rejecting due to unsupported signForm");
-		dispatcher->dsp_controller->disableModemReceiver();
-		return;
-	}
-#endif
 	if (!(param_packCode == 0)) {
 		qmDebugMessage(QmDebug::Info, "...rejecting due to unsupported packCode");
 		dispatcher->dsp_controller->disableModemReceiver();
@@ -1445,7 +1423,6 @@ void MainServiceInterface::startNextPacketTxCycle() {
 }
 
 void MainServiceInterface::adaptPacketTxUp() {
-#ifndef ALE_OPTION_DISABLE_ADAPTATION
 	int snr_e = qmMin(qmMin(ale.vm_snr_ack[0], ale.vm_snr_ack[1]), ale.vm_snr_ack[2]);
 	if (!(snr_e <= ale_vm_snr_table[ale.vm_sform_c])) {
 		int sform = (ale.vm_sform_c < 4)?0:4;
@@ -1460,13 +1437,9 @@ void MainServiceInterface::adaptPacketTxUp() {
 	ale.vm_ack_count--;
 	ale.vm_snr_ack[0] = ale.vm_snr_ack[1];
 	ale.vm_snr_ack[1] = ale.vm_snr_ack[2];
-#else
-	ale.vm_ack_count = 0;
-#endif
 }
 
 bool MainServiceInterface::adaptPacketTxDown() {
-#ifndef ALE_OPTION_DISABLE_ADAPTATION
 	if (ale.vm_sform_c == 7) {
 		ale.vm_nack_count--;
 		return false;
@@ -1480,10 +1453,6 @@ bool MainServiceInterface::adaptPacketTxDown() {
 			ale.vm_sform_c = 3;
 	}
 	return true;
-#else
-	ale.vm_nack_count--;
-	return false;
-#endif
 }
 
 void MainServiceInterface::aleprocessTimerPacketTxHeadDataExpired() {
