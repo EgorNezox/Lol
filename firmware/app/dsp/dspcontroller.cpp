@@ -202,7 +202,7 @@ void DspController::startServicing() {
 	QmThread::msleep(10);
 	transport->enable();
 	reset_iopin->writeOutput(QmIopin::Level_High);
-	startup_timer->start(5000);
+	startup_timer->start(10000);
 }
 
 void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
