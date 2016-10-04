@@ -27,7 +27,6 @@ public:
 		modeMalfunction,
 		modeStartingBypass,
 		modeBypass,
-		modeStartTuning,
 		modeTuning,
 		modeActiveTx
 	};
@@ -35,10 +34,11 @@ public:
 	AtuController(int uart_resource, int iopin_resource, QmObject *parent);
 	~AtuController();
 	void startServicing();
-	bool isDeviceOperational();
+	bool isDeviceConnected();
 	Mode getMode();
 	bool enterBypassMode(uint32_t frequency);
 	bool tuneTxMode(uint32_t frequency);
+	void setNextTuningParams(bool force_full);
 	void acknowledgeTxRequest();
 	void setRadioPowerOff(bool enable);
 
@@ -52,7 +52,9 @@ private:
 		commandInactive = 0,
 		commandRequestState = 0x41,
 		commandEnterBypassMode = 0x59,
-		commandEnterTuningMode = 0x46
+		commandEnterFullTuningMode = 0x46,
+		commandEnterQuickTuningMode = 0x66,
+		commandRequestTWF = 0x4B
 	};
 	enum FrameId {
 		frameid_NAK = 0x15,
@@ -60,8 +62,10 @@ private:
 		frameid_D = 0x44,
 		frameid_f = 0x66,
 		frameid_F = 0x46,
+		frameid_K = 0x4B,
 		frameid_U = 0x55,
-		frameid_Y = 0x59
+		frameid_Y = 0x59,
+		frameid_V = 0x56
 	};
 
 	void setMode(Mode mode);
@@ -69,23 +73,24 @@ private:
 	void startCommand(CommandId id, const uint8_t *data, int data_len, int repeat_count, int timeout = 10);
 	void finishCommand();
 	void tryRepeatCommand();
-	void processReceivedTuningFrame(uint8_t id);
+	void processReceivedTuningFrame(uint8_t id, uint8_t *data);
 	void processTxTuneTimeout();
-	void processReceivedStateMessage(uint8_t *data, int data_len);
+	void processReceivedStateMessage(uint8_t *data);
 	void processReceivedBypassModeMessage();
 	void processReceivedUnexpectedFrame(uint8_t id);
-	void processReceivedFrame(uint8_t id, uint8_t *data, int data_len);
+	void processReceivedFrame(uint8_t id, uint8_t *data);
 	void sendFrame(uint8_t id, const uint8_t *data, int data_len);
 	void sendNak();
 	void processUartReceivedData();
 	void setAntenna(uint32_t frequency);
 	void processDeferred();
 	void executeEnterBypassMode();
-	void executeTuneTxMode(uint32_t frequency);
+	void executeTuneTxMode();
+	void startFullTuning();
 
 
 	Mode mode;
-	bool tx_tuning_state;
+	bool force_next_tunetx_full;
 	struct {
 		CommandId id;
 		uint8_t *data_buf;
@@ -101,16 +106,15 @@ private:
 	struct {
 		uint8_t id;
 		uint8_t *data_buf;
-		int data_len;
-		bool truncated;
+		int data_len, data_pos;
 	} uart_rx_frame;
 	uint8_t antenna;
 	QmIopin *poff_iopin;
-	bool deferred_enterbypass_active;
-	struct {
-		bool active;
-		uint32_t frequency;
-	} deferred_tunetx;
+	bool deferred_enterbypass_active, deferred_tunetx_active;
+	bool tx_tuning_power_state, tx_quick_tuning_attempt;
+	uint32_t tunetx_frequency;
+	bool last_tune_setup_valid;
+	uint8_t last_tune_setup[5];
 
 	bool minimal_activity_mode;
 };

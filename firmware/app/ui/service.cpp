@@ -67,7 +67,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
         menu = new CGuiMenu(&ui_menu_msg_box_area, mainMenu[0], {alignHCenter,alignTop});
     }
 
-    this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
 

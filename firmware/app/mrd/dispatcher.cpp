@@ -96,7 +96,7 @@ void Dispatcher::processHeadsetSmartCurrentChannelChange(int new_channel_number,
 	setSmartChannelMicLevel(new_channel_type);
 	if (!changeVoiceChannel(new_channel_number, new_channel_type))
 		return;
-	updateVoiceChannel();
+	updateVoiceChannel((main_service->current_mode == MainServiceInterface::VoiceModeAuto));
 }
 
 void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
@@ -113,7 +113,7 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 			if (!changeVoiceChannel(smart_ch_number, smart_ch_type))
 				break;
 		} else {
-			dsp_controller->setAudioMicLevel(14);
+			dsp_controller->setAudioMicLevel(24);
 			voice_channel = voice_channels_table.end();
 			uint8_t analog_ch_number;
 			if (data_storage_fs->getAnalogHeadsetChannel(analog_ch_number))
@@ -123,14 +123,14 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 				voice_channel = std::find_if( std::begin(voice_channels_table), std::end(voice_channels_table),
 						[&](const voice_channel_entry_t entry){ return (entry.type == channelOpen); } );
 			if (voice_channel == voice_channels_table.end()) {
-				voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
 				if (main_service->current_mode == MainServiceInterface::VoiceModeAuto) {
+					voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
 					startIdle();
 					break;
 				}
 			}
 		}
-		updateVoiceChannel();
+		updateVoiceChannel(true);
 		break;
 	}
 	default: {
@@ -159,15 +159,13 @@ void Dispatcher::setSmartChannelMicLevel(voice_channel_t type) {
 
 void Dispatcher::setVoiceDirection(bool ptt_state) {
 	if (ptt_state) {
-		if (!atu_controller->isDeviceOperational()) {
+		if (!atu_controller->isDeviceConnected()) {
 			startVoiceTx();
 		} else {
 			prepareTuningTx();
 		}
 	} else {
 		dsp_controller->setRadioOperation(DspController::RadioOperationRxMode);
-		if (atu_controller->isDeviceOperational())
-			atu_controller->enterBypassMode(voice_service->getCurrentChannelFrequency());
 		main_service->setStatus(MainServiceInterface::StatusVoiceRx);
 	}
 }
@@ -208,10 +206,8 @@ void Dispatcher::setVoiceChannel() {
 		mode = DspController::RadioModeOff;
 		break;
 	}
-	if ((main_service->current_status == MainServiceInterface::StatusVoiceTx) && atu_controller->isDeviceOperational())
+	if ((main_service->current_status == MainServiceInterface::StatusVoiceTx) && atu_controller->isDeviceConnected())
 		prepareTuningTx();
-	if ((main_service->current_status == MainServiceInterface::StatusVoiceRx) && atu_controller->isDeviceOperational())
-		atu_controller->enterBypassMode(frequency);
 	dsp_controller->setRadioParameters(mode, frequency);
 }
 
@@ -233,7 +229,9 @@ bool Dispatcher::changeVoiceChannel(int number, voice_channel_t type) {
 	return true;
 }
 
-void Dispatcher::updateVoiceChannel() {
+void Dispatcher::updateVoiceChannel(bool user_request_frequency) {
+	if (user_request_frequency)
+		atu_controller->setNextTuningParams(true);
 	setVoiceChannel();
 	if ((main_service->current_status == MainServiceInterface::StatusNotReady)
 			|| (main_service->current_status == MainServiceInterface::StatusIdle)) {
@@ -241,18 +239,8 @@ void Dispatcher::updateVoiceChannel() {
 		headset_controller->getPTTState(ptt_state);
 		setVoiceDirection(ptt_state);
 	}
-	if (isVoiceMode()) {
-		if (voice_channel != voice_channels_table.end()) {
-			if ((main_service->current_mode == MainServiceInterface::VoiceModeAuto)
-					|| ((main_service->current_mode == MainServiceInterface::VoiceModeManual)
-							&& (headset_controller->getStatus() == Headset::Controller::StatusSmartOk)))
-				voice_service->setCurrentChannel(VoiceServiceInterface::ChannelActive);
-			else
-				voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
-		} else {
-			voice_service->setCurrentChannel(VoiceServiceInterface::ChannelInvalid);
-		}
-	}
+	if (isVoiceMode())
+		voice_service->updateChannel();
 }
 
 void Dispatcher::saveAnalogHeadsetChannel() {
@@ -272,15 +260,20 @@ bool Dispatcher::isVoiceChannelTunable() {
 }
 
 void Dispatcher::processDspSetRadioCompletion() {
-	if (main_service->current_status == MainServiceInterface::StatusTuningTx) {
+	switch (main_service->current_status) {
+	case MainServiceInterface::StatusTuningTx:
 		if (atu_controller->getMode() != AtuController::modeTuning) {
 			if (!atu_controller->tuneTxMode(voice_service->getCurrentChannelFrequency())) {
 				startVoiceTx();
-				voice_service->setCurrentChannel(VoiceServiceInterface::ChannelActive);
+				voice_service->updateChannel();
 			}
 		}
-//		else
-//			atu_controller->acknowledgeTxRequest();
+		break;
+	case MainServiceInterface::StatusVoiceRx:
+		atu_controller->enterBypassMode(voice_service->getCurrentChannelFrequency());
+		break;
+	default:
+		break;
 	}
 }
 
@@ -304,11 +297,14 @@ void Dispatcher::prepareTuningTx() {
 	atu_controller->setRadioPowerOff(true);
 	dsp_controller->setRadioOperation(DspController::RadioOperationCarrierTx);
 	main_service->setStatus(MainServiceInterface::StatusTuningTx);
-	voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
 }
 
 void Dispatcher::processAtuModeChange(AtuController::Mode new_mode) {
 	switch (new_mode) {
+	case AtuController::modeNone: {
+		atu_controller->setNextTuningParams(true);
+		break;
+	}
 	case AtuController::modeBypass: {
 		switch (main_service->current_status) {
 		case MainServiceInterface::StatusVoiceTx:
@@ -322,10 +318,11 @@ void Dispatcher::processAtuModeChange(AtuController::Mode new_mode) {
 		break;
 	}
 	case AtuController::modeActiveTx: {
+		atu_controller->setNextTuningParams(false);
 		switch (main_service->current_status) {
 		case MainServiceInterface::StatusTuningTx:
 			startVoiceTx();
-			voice_service->setCurrentChannel(VoiceServiceInterface::ChannelActive);
+			voice_service->updateChannel();
 			break;
 		default:
 			atu_controller->enterBypassMode(voice_service->getCurrentChannelFrequency());
@@ -335,13 +332,15 @@ void Dispatcher::processAtuModeChange(AtuController::Mode new_mode) {
 	}
     case AtuController::modeMalfunction:
     {
+        atu_controller->setNextTuningParams(false);
         voice_service->atuMalfunction();
         /* no break */
     }
 	default: {
-		if ((main_service->current_status == MainServiceInterface::StatusTuningTx) && !atu_controller->isDeviceOperational()) {
+		if ((main_service->current_status == MainServiceInterface::StatusTuningTx)
+				&& ((new_mode == AtuController::modeMalfunction) || !atu_controller->isDeviceConnected())) {
 			startVoiceTx();
-			voice_service->setCurrentChannel(VoiceServiceInterface::ChannelActive);
+			voice_service->updateChannel();
 		}
 		break;
 	}

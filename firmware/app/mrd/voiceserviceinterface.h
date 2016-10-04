@@ -83,6 +83,7 @@ private:
 	VoiceServiceInterface(Dispatcher *dispatcher);
 	~VoiceServiceInterface();
 	void setCurrentChannel(ChannelStatus status);
+	void updateChannel();
 
 
     void fistPacketRecieve(int packet);
