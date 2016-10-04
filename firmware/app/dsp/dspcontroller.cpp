@@ -24,10 +24,6 @@
 #include <string.h>
 #include "..\dsp\rs_tms.h"
 
-#include "../../../sazhenn.h"
-
-
-#define PSWF_SELF_ADR	SAZHEN_NETWORK_ADDRESS
 
 #define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
 
@@ -87,7 +83,7 @@ static int frequence_bandwidth[34] =
 
 };
 
-DspController::DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, QmObject *parent) :
+DspController::DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, DataStorage::FS *data_storage_fs, QmObject *parent) :
 	QmObject(parent),
 	is_ready(false)
 {
@@ -107,6 +103,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     	this->navigator = navigator;
     	navigator->syncPulse.connect(sigc::mem_fun(this, &DspController::syncPulseDetected));
     }
+    this->data_storage_fs = data_storage_fs;
 
 	sync_pulse_delay_timer = new QmTimer(true, this);
 	sync_pulse_delay_timer->setInterval(500);
@@ -163,8 +160,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     sms_call_received = false;
     for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
 
-    ContentSms.S_ADR = PSWF_SELF_ADR;
-    ContentPSWF.S_ADR = PSWF_SELF_ADR;
+    data_storage_fs->getAleStationAddress(ContentSms.S_ADR);
+    data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
     QNB = 0;
     pswf_rec = 0;
 
@@ -637,7 +634,7 @@ void DspController::RecievedPswf()
     	{
     		ContentPSWF.COM_N = recievedPswfBuffer.at(recievedPswfBuffer.size()-1).at(0);
     		ContentPSWF.R_ADR = ContentPSWF.S_ADR;
-    		ContentPSWF.S_ADR = PSWF_SELF_ADR;
+    		data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
     		if (ContentPSWF.R_ADR > 32) ContentPSWF.R_ADR = ContentPSWF.R_ADR - 32;
     		qmDebugMessage(QmDebug::Dump, "r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
     	}
@@ -2331,7 +2328,7 @@ void DspController::startPSWFReceiving(bool ack) {
     ContentPSWF.Frequency = getFrequencyPswf();
 
 	ParameterValue param;
-	param.pswf_r_adr = PSWF_SELF_ADR;
+	data_storage_fs->getAleStationAddress(param.pswf_r_adr);
 	sendCommand(PSWFReceiver, PswfRxRAdr, param);
 
 	ParameterValue comandValue;
@@ -2363,7 +2360,7 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
     ContentPSWF.COM_N = cmd;
     ContentPSWF.R_ADR = r_adr;
     if (pswf_retranslator > 0) ContentPSWF.R_ADR += 32;
-    ContentPSWF.S_ADR = PSWF_SELF_ADR;
+    data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
 
     ParameterValue comandValue;
     comandValue.radio_mode = RadioModeOff;
@@ -2388,7 +2385,7 @@ void DspController::startSMSRecieving(SmsStage stage)
     quit_vector.erase(quit_vector.begin(),quit_vector.end());
 
     ParameterValue param;
-    param.pswf_r_adr = PSWF_SELF_ADR;
+    data_storage_fs->getAleStationAddress(param.pswf_r_adr);
     sendCommand(PSWFReceiver, PswfRxRAdr, param);
 
     ParameterValue comandValue;
@@ -2466,7 +2463,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
 
     ContentSms.R_ADR = r_adr;
-    ContentSms.S_ADR = PSWF_SELF_ADR;
+    data_storage_fs->getAleStationAddress(ContentSms.S_ADR);
 
 
     ParameterValue comandValue;
@@ -2498,7 +2495,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     ContentGuc.type = 1;
     ContentGuc.chip_time = 2;
     ContentGuc.WIDTH_SIGNAL = 1;
-    ContentGuc.S_ADR = SAZHEN_NETWORK_ADDRESS;
+    data_storage_fs->getAleStationAddress(ContentGuc.S_ADR);
     ContentGuc.R_ADR = r_adr;
 
     uint8_t num_cmd = command.size();
@@ -2599,7 +2596,7 @@ void DspController::sendGucQuit()
 	ContentGuc.type = 4;
 	ContentGuc.chip_time = 2;
 	ContentGuc.WIDTH_SIGNAL = 1;
-	ContentGuc.S_ADR = SAZHEN_NETWORK_ADDRESS;
+	data_storage_fs->getAleStationAddress(ContentGuc.S_ADR);
 
 
 	ContentGuc.ckk = 0;
@@ -2690,7 +2687,7 @@ void DspController::startGucRecieving()
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     comandValue.guc_mode = 3;
     sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
-    comandValue.guc_mode = SAZHEN_NETWORK_ADDRESS;
+    data_storage_fs->getAleStationAddress(comandValue.guc_mode);
     sendCommandEasy(RadioLineNotPswf, 3 ,comandValue); // отключить низкоскоростной модем
 
     // TODO: установка полосы частот 3,1 кГц

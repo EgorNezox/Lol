@@ -19,7 +19,5 @@ typedef uint16_t u16_t;
 typedef int16_t s16_t;
 typedef uint32_t u32_t;
 typedef int32_t s32_t;
-// alignment
-#define SPIFFS_ALIGNED_OBJECT_INDEX_TABLES	0
 
 #endif /* SPIFFS_CONFIG_PLATFORM_H_ */

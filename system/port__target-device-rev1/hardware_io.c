@@ -321,6 +321,7 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		break;
 	case platformhwDataFlashCsPin:
 		params.mode = hgpioMode_Out;
+		hal_gpio_set_output((hal_gpio_pin_t){hgpioPD, 2}, hgpioHigh);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPD, 2}, &params);
 		break;
 	case platformhwMatrixKeyboard:

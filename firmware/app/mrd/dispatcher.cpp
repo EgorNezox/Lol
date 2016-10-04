@@ -40,7 +40,7 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 	headset_controller->statusChanged.connect(sigc::mem_fun(this, &Dispatcher::setupVoiceMode));
 	headset_controller->pttStateChanged.connect(sigc::mem_fun(this, &Dispatcher::processHeadsetPttStateChange));
 	headset_controller->smartCurrentChannelChanged.connect(sigc::mem_fun(this, &Dispatcher::processHeadsetSmartCurrentChannelChange));
-	dsp_controller = new DspController(dsp_uart_resource, dspreset_iopin_resource, navigator, this);
+	dsp_controller = new DspController(dsp_uart_resource, dspreset_iopin_resource, navigator, data_storage_fs, this);
 	dsp_controller->started.connect(sigc::mem_fun(this, &Dispatcher::processDspStartup));
 	dsp_controller->setRadioCompleted.connect(sigc::mem_fun(this, &Dispatcher::processDspSetRadioCompletion));
 	atu_controller = new AtuController(atu_uart_resource, atu_iopin_resource, this);
@@ -49,11 +49,11 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 	main_service = new MainServiceInterface(this);
 	voice_service = new VoiceServiceInterface(this);
 	if (!data_storage_fs->getVoiceFrequency(voice_manual_frequency))
-		voice_manual_frequency = 0;
+		voice_manual_frequency = 10000000;
 	if (!data_storage_fs->getVoiceEmissionType(voice_manual_emission_type))
-		voice_manual_emission_type = voiceemissionInvalid;
+		voice_manual_emission_type = voiceemissionUSB;
 	if (!data_storage_fs->getVoiceChannelSpeed(voice_manual_channel_speed))
-		voice_manual_channel_speed = voicespeedInvalid;
+		voice_manual_channel_speed = voicespeed1200;
 }
 
 Dispatcher::~Dispatcher()
@@ -114,8 +114,14 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status) {
 				break;
 		} else {
 			dsp_controller->setAudioMicLevel(24);
-			voice_channel = std::find_if( std::begin(voice_channels_table), std::end(voice_channels_table),
-					[&](const voice_channel_entry_t entry){ return (entry.type == channelOpen); } );
+			voice_channel = voice_channels_table.end();
+			uint8_t analog_ch_number;
+			if (data_storage_fs->getAnalogHeadsetChannel(analog_ch_number))
+				if (((analog_ch_number-1) < (int)voice_channels_table.size()) && (voice_channels_table[analog_ch_number-1].type == channelOpen))
+					voice_channel = voice_channels_table.begin() + analog_ch_number - 1;
+			if (voice_channel == voice_channels_table.end())
+				voice_channel = std::find_if( std::begin(voice_channels_table), std::end(voice_channels_table),
+						[&](const voice_channel_entry_t entry){ return (entry.type == channelOpen); } );
 			if (voice_channel == voice_channels_table.end()) {
 				if (main_service->current_mode == MainServiceInterface::VoiceModeAuto) {
 					voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
@@ -235,6 +241,12 @@ void Dispatcher::updateVoiceChannel(bool user_request_frequency) {
 	}
 	if (isVoiceMode())
 		voice_service->updateChannel();
+}
+
+void Dispatcher::saveAnalogHeadsetChannel() {
+	if (voice_channel == voice_channels_table.end())
+		return;
+	data_storage_fs->setAnalogHeadsetChannel(voice_channel - voice_channels_table.begin() + 1);
 }
 
 bool Dispatcher::isVoiceMode() {

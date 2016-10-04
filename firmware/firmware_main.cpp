@@ -15,6 +15,9 @@
 #include "qmdebug.h"
 #include "qmapplication.h"
 #include "qmiopin.h"
+#include "qmspibus.h"
+#include "qmspiffs.h"
+#include "qmm25pdevice.h"
 
 #include "multiradio.h"
 #include "datastorage/fs.h"
@@ -37,9 +40,32 @@ void qmMain() {
 
 	Power::Battery power_battery(platformhwBatterySmbusI2c);
 
+	QmSPIBus::enable(platformhwDataFlashSpi);
+	QmM25PDevice::Config data_flash_config;
+	data_flash_config.sector_size = 64*1024;
+	data_flash_config.sectors_count = 32;
+	data_flash_config.speed = 75000000;
+	data_flash_config.idle_clock_low = false;
+	QmM25PDevice data_flash_device(data_flash_config, platformhwDataFlashSpi, platformhwDataFlashCsPin);
+	QmSpiffs::Config data_fs_config;
+	data_fs_config.device = &data_flash_device;
+	data_fs_config.physical_address = 0;
+	data_fs_config.physical_size = 4*64*1024;
+	data_fs_config.logical_block_size = 64*1024;
+	data_fs_config.logical_page_size = data_flash_device.getPageSize();
+	data_fs_config.max_opened_files = 10;
+#if 0
+	{
+		volatile bool do_format = false;
+		QM_DEBUG_BREAK;
+		if (do_format)
+			QmSpiffs::format(data_fs_config);
+	}
+#endif
+	QmSpiffs::mount("data", data_fs_config);
+
 	Multiradio::voice_channels_table_t mr_channels_table;
-	DataStorage::FS data_storage_fs(platformhwDataFlashSpi);
-	data_storage_fs.init();
+	DataStorage::FS data_storage_fs("data");
 	QmIopin enrxrs232_iopin(platformhwEnRxRs232Iopin);
 	QmIopin entxrs232_iopin(platformhwEnTxRs232Iopin);
 	Headset::Controller headset_controller(platformhwHeadsetUart, platformhwHeadsetPttIopin);
