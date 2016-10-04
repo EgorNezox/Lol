@@ -8,6 +8,7 @@
   */
 
 #include "qmessagebox.h"
+#include "qfile.h"
 
 #include "hardware_emulation.h"
 #include "../platform_hw_map.h"
@@ -21,6 +22,7 @@
 #include "port_hardwareio/spibus.h"
 #include "port_keysinput/pushbuttonkeyinterface.h"
 #include "port_keysinput/matrixkeyboardinterface.h"
+#include "devices/flashm25pdevice.h"
 
 namespace QtHwEmu {
 
@@ -29,6 +31,8 @@ static DspDevice *dsp_device = 0;
 static AtuDevice *atu_device = 0;
 static I2CBus *battery_smbus = 0;
 static SPIBus *data_flash_spibus = 0;
+static FlashM25PDevice *data_flash_device = 0;
+static const QString DATA_FLASH_DEVICE_IMAGE_PATH = "data-flash.bin";
 
 void init() {
 	main_widget = new MainWidget(platformhwMatrixKeyboard);
@@ -43,6 +47,12 @@ void init() {
 	main_widget->raise();
 	battery_smbus = I2CBus::openInstance(platformhwBatterySmbusI2c);
 	data_flash_spibus = SPIBus::openInstance(platformhwDataFlashSpi);
+	FlashM25PDevice::Config data_flash_config;
+	data_flash_config.memory_capacity_id = 0x15;
+	data_flash_config.sector_size = 64*1024;
+	data_flash_config.sectors_count = 32;
+	QFile(DATA_FLASH_DEVICE_IMAGE_PATH).open(QFile::WriteOnly);
+	data_flash_device = new FlashM25PDevice(DATA_FLASH_DEVICE_IMAGE_PATH, data_flash_config, platformhwDataFlashSpi, platformhwDataFlashCsPin);
 	PushbuttonkeyInterface::createInstance(platformhwHeadsetPttIopin); // TODO: emulate HeadsetPttIopin
 	IopinInterface::createInstance(platformhwKeyboardsLightIopin); // TODO: emulate KeyboardsLightIopin
 	IopinInterface::createInstance(platformhwEnRxRs232Iopin); // TODO: emulate EnRxRs232Iopin
@@ -56,6 +66,7 @@ void deinit() {
 	delete dsp_device;
 	delete atu_device;
 	I2CBus::closeInstance(battery_smbus);
+	delete data_flash_device;
 	SPIBus::closeInstance(data_flash_spibus);
 }
 

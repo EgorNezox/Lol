@@ -2095,7 +2095,7 @@ void Service::keyPressed(UI_Key key)
                     menu->RN_KEY.pop_back();
                 else
                 {
-                    uint8_t t; storageFs->getFhssKey(t);
+                    uint16_t t; storageFs->getFhssKey(t);
                     char ch[4]; sprintf(ch, "%d", t); ch[3] = '\0';
                     menu->RN_KEY.append(ch);
                     menu->focus = 4;
@@ -2104,7 +2104,7 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyEnter)
             {
-                storageFs->setFhssKey((uint8_t)atoi(menu->RN_KEY.c_str()));
+                storageFs->setFhssKey((uint16_t)atoi(menu->RN_KEY.c_str()));
                 voice_service->setRnKey(atoi(menu->RN_KEY.c_str()));
                 menu->focus = 4;
                 guiTree.backvard();

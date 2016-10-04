@@ -36,6 +36,8 @@ typedef u16_t spiffs_page_ix;
 typedef u16_t spiffs_obj_id;
 // "Object span index type."
 typedef u16_t spiffs_span_ix;
+// alignment
+#define SPIFFS_ALIGNED_OBJECT_INDEX_TABLES	1
 
 /* File systems cache disabled */
 #define SPIFFS_CACHE					0
