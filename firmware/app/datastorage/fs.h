@@ -13,8 +13,8 @@ public:
 	bool getVoiceChannelsTable(Multiradio::voice_channels_table_t &data);
 	bool getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data);
 	bool getAleStationAddress(uint8_t &data);
-	bool getFhssKey(uint8_t &data);
-	void setFhssKey(uint8_t data);
+	bool getFhssKey(uint16_t &data);
+	void setFhssKey(uint16_t data);
 	bool getVoiceFrequency(uint32_t &data);
 	void setVoiceFrequency(uint32_t data);
 	bool getVoiceEmissionType(Multiradio::voice_emission_t &data);

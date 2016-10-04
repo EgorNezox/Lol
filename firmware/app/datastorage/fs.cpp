@@ -68,23 +68,23 @@ bool FS::getAleStationAddress(uint8_t& data) {
 	return true;
 }
 
-bool FS::getFhssKey(uint8_t& data) {
+bool FS::getFhssKey(uint16_t& data) {
 	data = 0;
 	QmFile file(dir, "FhssKey");
 	if (!file.open(QmFile::ReadOnly))
 		return false;
 	int64_t file_size = file.size();
-	if (!(file_size == 1))
+	if (!(file_size == 2))
 		return false;
-	file.read((uint8_t *)&data, 1);
+	file.read((uint8_t *)&data, 2);
 	return true;
 }
 
-void FS::setFhssKey(uint8_t data) {
+void FS::setFhssKey(uint16_t data) {
 	QmFile file(dir, "FhssKey");
 	if (!file.open(QmFile::WriteOnly))
 		return;
-	file.write((uint8_t *)&data, 1);
+	file.write((uint8_t *)&data, 2);
 }
 
 bool FS::getVoiceFrequency(uint32_t &data) {
