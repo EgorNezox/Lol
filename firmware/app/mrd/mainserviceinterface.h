@@ -151,7 +151,6 @@ private:
 	~MainServiceInterface();
 	void setStatus(Status value);
 	void forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
-	void printDebugAleTimings();
 	void printDebugVmMessage(int groups, int packets, voice_message_t &message);
 	void setAleState(AleState value);
 	void setAlePhase(AlePhase value);
