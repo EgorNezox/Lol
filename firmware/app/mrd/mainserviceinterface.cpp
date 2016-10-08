@@ -893,9 +893,9 @@ void MainServiceInterface::aleprocessModemPacketFailedTx() {
 	stopAleSession();
 }
 
-void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPacketType type, uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len) {
+void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPacketType type, uint8_t snr, uint8_t errors, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len) {
 	int8_t snr_db_value = convertSnrFromPacket(snr);
-	qmDebugMessage(QmDebug::Info, "ale received modem packet (type = %u, bandwidth = %u) with SNR = %d dB", type, bandwidth, snr_db_value);
+	qmDebugMessage(QmDebug::Info, "ale received modem packet (type = %u, bandwidth = %u) with SNR = %d dB and errors %u%%", type, bandwidth, snr_db_value, errors);
 	switch (type) {
 	case DspController::modempacket_HshakeReceiv: {
 		switch (ale.phase) {
@@ -1123,9 +1123,9 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 	}
 }
 
-void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len) {
+void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(uint8_t snr, uint8_t errors, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len) {
 	int8_t snr_db_value = convertSnrFromPacket(snr);
-	qmDebugMessage(QmDebug::Info, "ale received modem VM packHead (bandwidth = %u, signForm = %u, param_packCode = %u) with SNR = %d dB", bandwidth, param_signForm, param_packCode, snr_db_value);
+	qmDebugMessage(QmDebug::Info, "ale received modem VM packHead (bandwidth = %u, signForm = %u, param_packCode = %u) with SNR = %d dB and errors %u%%", bandwidth, param_signForm, param_packCode, snr_db_value, errors);
 	if (!(param_packCode == 0)) {
 		qmDebugMessage(QmDebug::Info, "...rejecting due to unsupported packCode");
 		dispatcher->dsp_controller->disableModemReceiver();

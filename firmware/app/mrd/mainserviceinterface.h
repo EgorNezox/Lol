@@ -175,8 +175,8 @@ private:
 	void aleprocessRadioReady();
 	void aleprocessModemPacketTransmitted(DspController::ModemPacketType type);
 	void aleprocessModemPacketFailedTx();
-	void aleprocessModemPacketReceived(DspController::ModemPacketType type, uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len);
-	void aleprocessModemPacketStartedRxPackHead(uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len);
+	void aleprocessModemPacketReceived(DspController::ModemPacketType type, uint8_t snr, uint8_t errors, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len);
+	void aleprocessModemPacketStartedRxPackHead(uint8_t snr, uint8_t errors, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len);
 	void aleprocessModemPacketFailedRx(DspController::ModemPacketType type);
 	void aleprocess1PPS();
 	void aleprocessTimerDataStartExpired();
