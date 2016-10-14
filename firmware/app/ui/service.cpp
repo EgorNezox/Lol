@@ -1550,7 +1550,7 @@ void Service::keyPressed(UI_Key key)
                         // параметр ответа определяется по получению кадра на адрес 0x63
                         // в первой стадии вызова
                         // if (ContentSms.R_ADR > 32) pswf_ack = true;
-                        redrawMessage(callSubMenu[0],EndCmd);
+                        //redrawMessage(callSubMenu[0],EndCmd);
 
 #endif
                     //                    menu->rxCondCmdStatus = 1;
@@ -1576,7 +1576,7 @@ void Service::keyPressed(UI_Key key)
 //                    menu->recvStage = 1;
 #ifndef PORT__PCSIMULATOR
                     voice_service->TurnSMSMode();
-                    redrawMessage(callSubMenu[1],EndCmd);
+                    //redrawMessage(callSubMenu[1],EndCmd);
 #endif
 //                    break;
 //                }
@@ -1609,7 +1609,7 @@ void Service::keyPressed(UI_Key key)
             {
 #ifndef PORT__PCSIMULATOR
                 voice_service->TurnGuc();
-                redrawMessage(callSubMenu[0],EndCmd);
+                //redrawMessage(callSubMenu[0],EndCmd);
 #else
                 guiTree.resetCurrentState();
 #endif
@@ -2227,6 +2227,9 @@ void Service::FirstPacketPSWFRecieved(int packet)
 {
     if ( packet >= 0 && packet < 100 )
     {
+//    	guiTree.resetCurrentState();
+//    	drawMainWindow();
+
         char sym[64];
         sprintf(sym,"%d",packet);
         guiTree.append(messangeWindow, "Recieved packet ", sym);
