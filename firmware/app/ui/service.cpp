@@ -892,7 +892,7 @@ void Service::keyPressed(UI_Key key)
                     for(auto &k: estate.listItem)
                         k->inputStr.clear();
 
-                    redrawMessage(callSubMenu[0],StartCmd);
+                    //redrawMessage(callSubMenu[0],StartCmd);
 
 #else
                     menu->txCondCmdStage = 0;
@@ -1486,7 +1486,7 @@ void Service::keyPressed(UI_Key key)
                                 for(auto &k: estate.listItem)
                                     k->inputStr.clear();
 
-                                redrawMessage(callSubMenu[1],StartCmd);
+                                //redrawMessage(callSubMenu[1],StartCmd);
 
                             }
                         }

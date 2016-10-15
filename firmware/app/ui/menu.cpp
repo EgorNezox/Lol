@@ -632,8 +632,11 @@ void CGuiMenu::initSetDateOrTimeDialog(std::string text)
 
 void CGuiMenu::inputGroupCondCmd( CEndState state )
 {
+	auto item = state.listItem.begin(); item++; item++;
     auto elem = state.listItem.back();
     auto newTime = std::chrono::steady_clock::now();
+
+    auto command = (*item);
 
     if ( ( newTime - ct ).count() < 900*(1000000) )
     {
@@ -641,14 +644,19 @@ void CGuiMenu::inputGroupCondCmd( CEndState state )
             if ( keyPressCount > 1 )
                 keyPressCount = 0;
 
+            if (elem->inputStr.size() > 0)
             elem->inputStr.pop_back();
             elem->inputStr.push_back(ch_key0[keyPressCount]);
+            command->inputStr.push_back(ch_key0[keyPressCount]);
         }
     else
     {
         keyPressCount = 0;
         elem->inputStr.push_back(ch_key0[keyPressCount]);
+        command->inputStr.push_back(ch_key0[keyPressCount]);
     }
+
+
 
     ct = std::chrono::steady_clock::now();
 }
