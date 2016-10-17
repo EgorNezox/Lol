@@ -209,8 +209,6 @@ MainServiceInterface::MainServiceInterface(Dispatcher *dispatcher) :
 	dispatcher->dsp_controller->receivedModemPacket.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessModemPacketReceived));
 	dispatcher->dsp_controller->startedRxModemPacket_packHead.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessModemPacketStartedRxPackHead));
 	dispatcher->dsp_controller->failedRxModemPacket.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessModemPacketFailedRx));
-
-	printDebugAleTimings();
 }
 
 MainServiceInterface::~MainServiceInterface()
@@ -244,88 +242,6 @@ void MainServiceInterface::setStatus(Status value) {
 
 void MainServiceInterface::forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code) {
 	dspHardwareFailed.emit(subdevice_code, error_code);
-}
-
-void MainServiceInterface::printDebugAleTimings() {
-	qmDebugMessage(QmDebug::Dump, "ALE Session timings (parameters):");
-	qmDebugMessage(QmDebug::Dump, " TTuneTx = %u", ALE_TIME_TTuneTx);
-	qmDebugMessage(QmDebug::Dump, " TOpenTx = %u", ALE_TIME_TOpenTx);
-	qmDebugMessage(QmDebug::Dump, " TTuneRx = %u", ALE_TIME_TTuneRx);
-	qmDebugMessage(QmDebug::Dump, " TEthTx = %u", ALE_TIME_TEthTx);
-	qmDebugMessage(QmDebug::Dump, " TEthRx = %u", ALE_TIME_TEthRx);
-	qmDebugMessage(QmDebug::Dump, " TRChan = %u", ALE_TIME_TRChan);
-	qmDebugMessage(QmDebug::Dump, " DTMistiming = %u", ALE_TIME_DTMistiming);
-	qmDebugMessage(QmDebug::Dump, " dTCommand = %u", ALE_TIME_dTCommand);
-	qmDebugMessage(QmDebug::Dump, " THshakeTransMode = %u", ALE_TIME_THshakeTransMode);
-	qmDebugMessage(QmDebug::Dump, " TRespCallQual = %u", ALE_TIME_TRespCallQual);
-	qmDebugMessage(QmDebug::Dump, " THshakeReceiv = %u", ALE_TIME_THshakeReceiv);
-	qmDebugMessage(QmDebug::Dump, " THshakeTrans = %u", ALE_TIME_THshakeTrans);
-	qmDebugMessage(QmDebug::Dump, "ALE Session timings (aux constants):");
-	qmDebugMessage(QmDebug::Dump, " TMaxEthX = %u", ALE_TIME_TMaxEthX);
-	qmDebugMessage(QmDebug::Dump, " TMaxOpenTuneX = %u", ALE_TIME_TMaxOpenTuneX);
-	qmDebugMessage(QmDebug::Dump, "ALE Session timings (sync-dependent constants):");
-	qmDebugMessage(QmDebug::Dump, " dTSyn = %u", ALE_TIME_dTSyn);
-	qmDebugMessage(QmDebug::Dump, " Tdwell = %u", ALE_TIME_Tdwell);
-	qmDebugMessage(QmDebug::Dump, " dTDwellLeft = %u", ALE_TIME_dTDwellLeft);
-	qmDebugMessage(QmDebug::Dump, " TCall = %u", ALE_TIME_TCall);
-	qmDebugMessage(QmDebug::Dump, "ALE Session timings (VM packet constants):");
-	qmDebugMessage(QmDebug::Dump, " TmsgHeadL = %u", ALE_TIME_TmsgHeadL);
-	qmDebugMessage(QmDebug::Dump, " TpackHeadL = %u", ALE_TIME_TpackHeadL);
-	qmDebugMessage(QmDebug::Dump, " TRespPackQualL = %u", ALE_TIME_TRespPackQualL);
-	qmDebugMessage(QmDebug::Dump, " TLinkReleaseL = %u", ALE_TIME_TLinkReleaseL);
-	qmDebugMessage(QmDebug::Dump, " dTInit = %u", ALE_TIME_dTInit);
-	qmDebugMessage(QmDebug::Dump, " dTCodec = %u", ALE_TIME_dTCodec);
-	qmDebugMessage(QmDebug::Dump, " dTSynPacket = %u/%u", ALE_TIME_dTSynPacket(-1), ALE_TIME_dTSynPacket(0));
-	qmDebugMessage(QmDebug::Dump, " THeadL = %u/%u", ALE_TIME_THeadL(-1), ALE_TIME_THeadL(0));
-	for (int i = 0; i < 8; i++)
-		qmDebugMessage(QmDebug::Dump, " TDataL (sform %u) = %u", i, ALE_TIME_TDataL(i));
-	qmDebugMessage(QmDebug::Dump, "ALE Session timings (call dwell phase):");
-	qmDebugMessage(QmDebug::Dump, " tTxCall = %u", TIMER_VALUE_tTxCall);
-	qmDebugMessage(QmDebug::Dump, " tRoffSyncCall = %u", TIMER_VALUE_tRoffSyncCall);
-	qmDebugMessage(QmDebug::Dump, " tCallRonHshakeR_offset = %u", TIMER_VALUE_tCallRonHshakeR_offset);
-	qmDebugMessage(QmDebug::Dump, " tCallTxHshakeR_offset = %u", TIMER_VALUE_tCallTxHshakeR_offset);
-	qmDebugMessage(QmDebug::Dump, " tCallRoffHshakeR_offset = %u", TIMER_VALUE_tCallRoffHshakeR_offset);
-	qmDebugMessage(QmDebug::Dump, " tCallRonHshakeT_offset = %u", TIMER_VALUE_tCallRonHshakeT_offset);
-	qmDebugMessage(QmDebug::Dump, " tCallTxHshakeT_offset = %u", TIMER_VALUE_tCallTxHshakeT_offset);
-	qmDebugMessage(QmDebug::Dump, " tCallRoffHshakeT_offset = %u", TIMER_VALUE_tCallRoffHshakeT_offset);
-	qmDebugMessage(QmDebug::Dump, "ALE Session timings (negotiation phase):");
-	qmDebugMessage(QmDebug::Dump, " tNegStart = %u", TIMER_VALUE_tNegStart(0));
-	qmDebugMessage(QmDebug::Dump, " tNegTxRespCallQual_offset = %u", TIMER_VALUE_tNegTxRespCallQual_offset);
-	qmDebugMessage(QmDebug::Dump, " tNegRoffRespCallQual_offset = %u", TIMER_VALUE_tNegRoffRespCallQual_offset);
-	qmDebugMessage(QmDebug::Dump, " tNegRonHshakeTransMode_offset = %u", TIMER_VALUE_tNegRonHshakeTransMode_offset);
-	qmDebugMessage(QmDebug::Dump, " tNegTxHshakeTransMode_offset = %u", TIMER_VALUE_tNegTxHshakeTransMode_offset);
-	qmDebugMessage(QmDebug::Dump, " tNegRoffHshakeTransMode_offset = %u", TIMER_VALUE_tNegRoffHshakeTransMode_offset);
-	qmDebugMessage(QmDebug::Dump, " tNegRonHshakeReceiv_offset = %u", TIMER_VALUE_tNegRonHshakeReceiv_offset);
-	qmDebugMessage(QmDebug::Dump, " tNegTxHshakeReceiv_offset = %u", TIMER_VALUE_tNegTxHshakeReceiv_offset);
-	qmDebugMessage(QmDebug::Dump, " tNegRoffHshakeReceiv_offset = %u", TIMER_VALUE_tNegRoffHshakeReceiv_offset);
-	qmDebugMessage(QmDebug::Dump, " tNegRonHshakeTrans_offset = %u", TIMER_VALUE_tNegRonHshakeTrans_offset);
-	qmDebugMessage(QmDebug::Dump, " tNegTxHshakeTrans_offset = %u", TIMER_VALUE_tNegTxHshakeTrans_offset);
-	qmDebugMessage(QmDebug::Dump, " tNegRoffHshakeTrans_offset = %u", TIMER_VALUE_tNegRoffHshakeTrans_offset);
-	qmDebugMessage(QmDebug::Dump, " tNegCycle = %u", TIMER_VALUE_tNegCycle);
-	qmDebugMessage(QmDebug::Dump, "ALE Session timings (VM data transfer):");
-	qmDebugMessage(QmDebug::Dump, " tDataStart_offset = %u", TIMER_VALUE_tDataStart_offset(0));
-	qmDebugMessage(QmDebug::Dump, "ALE Session timings (VM msg phase):");
-	qmDebugMessage(QmDebug::Dump, " tMsgTxHead = %u", TIMER_VALUE_tDataTxHeadDelay(-1));
-	qmDebugMessage(QmDebug::Dump, " tMsgRoffSyncHead = %u", TIMER_VALUE_tDataRoffSyncHeadDelay(-1));
-	qmDebugMessage(QmDebug::Dump, " tMsgRonRespPackQual = %u", TIMER_VALUE_tDataRonRespPackQualDelay(-1));
-	qmDebugMessage(QmDebug::Dump, " tMsgTxRespPackQual = %u", TIMER_VALUE_tDataTxRespPackQualDelay(-1));
-	qmDebugMessage(QmDebug::Dump, " tMsgRoffRespPackQual = %u", TIMER_VALUE_tDataRoffRespPackQualDelay(-1));
-	qmDebugMessage(QmDebug::Dump, " tMsgRonHshakeT = %u", TIMER_VALUE_tDataRonHshakeTDelay(-1));
-	qmDebugMessage(QmDebug::Dump, " tMsgTxHshakeT = %u", TIMER_VALUE_tDataTxHshakeTDelay(-1));
-	qmDebugMessage(QmDebug::Dump, " tMsgRoffHshakeT = %u", TIMER_VALUE_tDataRoffHshakeTDelay(-1));
-	qmDebugMessage(QmDebug::Dump, " tMsgCycle = %u", TIMER_VALUE_tDataCycle(-1));
-	for (int i = 0; i < 8; i++) {
-		qmDebugMessage(QmDebug::Dump, "ALE Session timings (VM packet phase (sform = %u)):", i);
-		qmDebugMessage(QmDebug::Dump, " tDataTxHeadDelay(%u) = %u", i, TIMER_VALUE_tDataTxHeadDelay(i));
-		qmDebugMessage(QmDebug::Dump, " tDataRoffSyncHeadDelay(%u) = %u", i, TIMER_VALUE_tDataRoffSyncHeadDelay(i));
-		qmDebugMessage(QmDebug::Dump, " tDataRonRespPackQualDelay(%u) = %u", i, TIMER_VALUE_tDataRonRespPackQualDelay(i));
-		qmDebugMessage(QmDebug::Dump, " tDataTxRespPackQualDelay(%u) = %u", i, TIMER_VALUE_tDataTxRespPackQualDelay(i));
-		qmDebugMessage(QmDebug::Dump, " tDataRoffRespPackQualDelay(%u) = %u", i, TIMER_VALUE_tDataRoffRespPackQualDelay(i));
-		qmDebugMessage(QmDebug::Dump, " tDataRonHshakeTDelay(%u) = %u", i, TIMER_VALUE_tDataRonHshakeTDelay(i));
-		qmDebugMessage(QmDebug::Dump, " tDataTxHshakeTDelay(%u) = %u", i, TIMER_VALUE_tDataTxHshakeTDelay(i));
-		qmDebugMessage(QmDebug::Dump, " tDataRoffHshakeTDelay(%u) = %u", i, TIMER_VALUE_tDataRoffHshakeTDelay(i));
-		qmDebugMessage(QmDebug::Dump, " tDataCycle(%u) = %u", i, TIMER_VALUE_tDataCycle(i));
-	}
 }
 
 void MainServiceInterface::printDebugVmMessage(int groups, int packets, voice_message_t &message) {
@@ -559,7 +475,6 @@ bool MainServiceInterface::startAleSession() {
 	qmDebugMessage(QmDebug::Info, "ale station address = %02u", ale.station_address);
 	dispatcher->dsp_controller->setRadioOperation(DspController::RadioOperationOff);
 	dispatcher->atu_controller->setMinimalActivityMode(true);
-	dispatcher->headset_controller->setMinimalActivityMode(true);
 	dispatcher->power_battery->setMinimalActivityMode(true);
 	return true;
 }
@@ -589,7 +504,6 @@ void MainServiceInterface::stopAleSession() {
 	dispatcher->dsp_controller->disableModemReceiver();
 	dispatcher->dsp_controller->disableModemTransmitter();
 	dispatcher->atu_controller->setMinimalActivityMode(false);
-	dispatcher->headset_controller->setMinimalActivityMode(false);
 	dispatcher->power_battery->setMinimalActivityMode(false);
 	dispatcher->navigator->setMinimalActivityMode(false);
 }
@@ -893,9 +807,9 @@ void MainServiceInterface::aleprocessModemPacketFailedTx() {
 	stopAleSession();
 }
 
-void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPacketType type, uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len) {
+void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPacketType type, uint8_t snr, uint8_t errors, DspController::ModemBandwidth bandwidth, uint8_t* data, int data_len) {
 	int8_t snr_db_value = convertSnrFromPacket(snr);
-	qmDebugMessage(QmDebug::Info, "ale received modem packet (type = %u, bandwidth = %u) with SNR = %d dB", type, bandwidth, snr_db_value);
+	qmDebugMessage(QmDebug::Info, "ale received modem packet (type = %u, bandwidth = %u) with SNR = %d dB and errors %u%%", type, bandwidth, snr_db_value, errors);
 	switch (type) {
 	case DspController::modempacket_HshakeReceiv: {
 		switch (ale.phase) {
@@ -1123,9 +1037,9 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 	}
 }
 
-void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(uint8_t snr, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len) {
+void MainServiceInterface::aleprocessModemPacketStartedRxPackHead(uint8_t snr, uint8_t errors, DspController::ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, uint8_t* data, int data_len) {
 	int8_t snr_db_value = convertSnrFromPacket(snr);
-	qmDebugMessage(QmDebug::Info, "ale received modem VM packHead (bandwidth = %u, signForm = %u, param_packCode = %u) with SNR = %d dB", bandwidth, param_signForm, param_packCode, snr_db_value);
+	qmDebugMessage(QmDebug::Info, "ale received modem VM packHead (bandwidth = %u, signForm = %u, param_packCode = %u) with SNR = %d dB and errors %u%%", bandwidth, param_signForm, param_packCode, snr_db_value, errors);
 	if (!(param_packCode == 0)) {
 		qmDebugMessage(QmDebug::Info, "...rejecting due to unsupported packCode");
 		dispatcher->dsp_controller->disableModemReceiver();

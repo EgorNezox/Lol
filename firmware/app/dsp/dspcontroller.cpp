@@ -1879,8 +1879,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		else
     			data_offset = 4;
     		uint8_t snr = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
+    		uint8_t errors = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+3);
     		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
-    		receivedModemPacket.emit(type, snr, bandwidth, value_ptr + data_offset, value_len - data_offset);
+    		receivedModemPacket.emit(type, snr, errors, bandwidth, value_ptr + data_offset, value_len - data_offset);
     		break;
     	}
     	case 31: {
@@ -1898,13 +1899,14 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		else
     			data_offset = 4;
     		uint8_t snr = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
+    		uint8_t errors = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+3);
     		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
     		if (type == modempacket_packHead) {
     			uint8_t param_signForm = qmFromBigEndian<uint8_t>(value_ptr+4);
     			uint8_t param_packCode = qmFromBigEndian<uint8_t>(value_ptr+5);
-        		startedRxModemPacket_packHead.emit(snr, bandwidth, param_signForm, param_packCode, value_ptr + data_offset, value_len - data_offset);
+        		startedRxModemPacket_packHead.emit(snr, errors, bandwidth, param_signForm, param_packCode, value_ptr + data_offset, value_len - data_offset);
     		} else {
-        		startedRxModemPacket.emit(type, snr, bandwidth, value_ptr + data_offset, value_len - data_offset);
+        		startedRxModemPacket.emit(type, snr, errors, bandwidth, value_ptr + data_offset, value_len - data_offset);
     		}
     		break;
     	}
