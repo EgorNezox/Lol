@@ -475,7 +475,6 @@ bool MainServiceInterface::startAleSession() {
 	qmDebugMessage(QmDebug::Info, "ale station address = %02u", ale.station_address);
 	dispatcher->dsp_controller->setRadioOperation(DspController::RadioOperationOff);
 	dispatcher->atu_controller->setMinimalActivityMode(true);
-	dispatcher->headset_controller->setMinimalActivityMode(true);
 	dispatcher->power_battery->setMinimalActivityMode(true);
 	return true;
 }
@@ -505,7 +504,6 @@ void MainServiceInterface::stopAleSession() {
 	dispatcher->dsp_controller->disableModemReceiver();
 	dispatcher->dsp_controller->disableModemTransmitter();
 	dispatcher->atu_controller->setMinimalActivityMode(false);
-	dispatcher->headset_controller->setMinimalActivityMode(false);
 	dispatcher->power_battery->setMinimalActivityMode(false);
 	dispatcher->navigator->setMinimalActivityMode(false);
 }

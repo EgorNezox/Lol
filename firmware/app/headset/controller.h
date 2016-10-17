@@ -141,7 +141,6 @@ public:
 	 */
 	void setSmartMessageToPlay(Multiradio::voice_message_t data);
 
-	void setMinimalActivityMode(bool enabled);
 
 	/*!
 	 * \brief Сигнал изменения статуса подключения гарнитуры
