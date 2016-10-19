@@ -12,6 +12,7 @@
 #include <iostream>
 #include <string.h>
 #include <string>
+#include "../../../system/reset.h"
 
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
@@ -1767,6 +1768,12 @@ void Service::keyPressed(UI_Key key)
                 guiTree.backvard();
                 menu->focus = 0;
             }
+            if (key == keyEnter)
+            {
+            	//resethost();
+            	navigator->coldStart();
+            	guiTree.resetCurrentState();
+            }
             break;
         }
         case GuiWindowsSubType::suppress:
@@ -2743,18 +2750,21 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     }
 
     std::string str;
-    str.push_back((char)date.data[0]);
-    str.push_back((char)date.data[1]);
-    str.push_back('.');
-    str.push_back((char)date.data[2]);
-    str.push_back((char)date.data[3]);
-
-    str.push_back((char)' ');
+//    str.push_back((char)date.data[0]);
+//    str.push_back((char)date.data[1]);
+//    str.push_back('.');
+//    str.push_back((char)date.data[2]);
+//    str.push_back((char)date.data[3]);
+//
+//    str.push_back((char)' ');
     str.push_back((char)date.time[0]);
     str.push_back((char)date.time[1]);
     str.push_back((char)':');
     str.push_back((char)date.time[2]);
     str.push_back((char)date.time[3]);
+    str.push_back((char)':');
+    str.push_back((char)date.time[4]);
+    str.push_back((char)date.time[5]);
 
     qmDebugMessage(QmDebug::Dump, "DATE TIME %s :", str.c_str());
     indicator->date_time->SetText((char *)str.c_str());

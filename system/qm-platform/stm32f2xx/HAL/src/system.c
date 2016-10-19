@@ -18,6 +18,7 @@
 #include "system.h"
 #include "system_hw_io.h"
 #include "sys_internal.h"
+#include "../../../../reset.h"
 
 #define MPU_REGION_SIZE(n)	((n-1) << MPU_RASR_SIZE_Pos) // size = 2^n
 #define SYSTEM_BOOT_ADDRESS	0x1fff0000
@@ -176,4 +177,9 @@ void stm32f2_enter_bootloader(void) {
 	SCB->VTOR = SYSTEM_BOOT_ADDRESS;
 	__asm volatile("mov sp, %0\n" : : "r" (*(uint32_t *)SYSTEM_BOOT_ADDRESS) : "sp");
 	__asm volatile("bx %0" :: "r" (*(uint32_t *)(SYSTEM_BOOT_ADDRESS + 4)));
+}
+
+void resethost(void)
+{
+	NVIC_SystemReset();
 }
