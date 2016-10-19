@@ -496,6 +496,7 @@ void DspController::transmitSMS()
             ContentSms.stage = StageNone;
             radio_state = radiostateSync;
             qmDebugMessage(QmDebug::Dump, "Sms receiving finished");
+            goToVoice();
             return;
         }
         else
@@ -617,6 +618,7 @@ void DspController::RecievedPswf()
     if (command_rx30 == 30) {
         command_rx30 = 0;
         recievedPswfBuffer.erase(recievedPswfBuffer.begin());
+        if (!pswf_ack) goToVoice();
     }
 
 
@@ -1584,6 +1586,7 @@ void DspController::recGuc()
         startGucTransmitting();
         guc_timer->start();
     }
+
 }
 
 void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len) {
@@ -1833,9 +1836,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         	else
         	{
                 //initResetState();
+        		goToVoice();
         		radio_state = radiostateSync;
         	}
-
         }
         break;
     }
