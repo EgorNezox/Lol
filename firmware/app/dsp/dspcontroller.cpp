@@ -143,7 +143,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     for(int i = 0; i<18;i++)
     {
-        syncro_recieve.push_back(0);
+        syncro_recieve.push_back(99);
     }
 
     ContentGuc.stage = GucNone;
@@ -459,6 +459,7 @@ void DspController::transmitSMS()
             ContentSms.stage = StageRx_data;
             //radio_state = radiostateSmsTxRxSwitch;
             radio_state = radiostateSmsRxPrepare;
+            for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
             startSMSRecieving(ContentSms.stage);
             updateSmsStatus(getSmsForUiStage());
             return;
@@ -738,11 +739,13 @@ int DspController::CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, in
     if (ContentSms.stage == StageTx_data ||(ContentSms.stage == StageRx_data) ||
        (ContentSms.stage == StageTx_quit)||(ContentSms.stage == StageRx_quit))
     {
-    	if  (SEC_MLT >=0   && SEC_MLT <6 ) wzn = 0;
-    	if  (SEC_MLT > 5   && SEC_MLT <12) wzn = 1;
-    	if  (SEC_MLT >= 12 && SEC_MLT <18) wzn = 2;
-    	if  (SEC_MLT >=18  && SEC_MLT <24) wzn = 3;
-    	if  (SEC_MLT >= 24 && SEC_MLT <30) wzn = 4;
+//    	if  (SEC_MLT >=0   && SEC_MLT <6 ) wzn = 0;
+//    	if  (SEC_MLT > 5   && SEC_MLT <12) wzn = 1;
+//    	if  (SEC_MLT >= 12 && SEC_MLT <18) wzn = 2;
+//    	if  (SEC_MLT >=18  && SEC_MLT <24) wzn = 3;
+//    	if  (SEC_MLT >= 24 && SEC_MLT <30) wzn = 4;
+
+    	wzn = wzn_value;
 
     	if (wzn > 0) wz_base = 6*wzn;
     	else wzn  = 0;
@@ -1713,7 +1716,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             if (ContentSms.stage == StageRx_call)
             {
                 syncro_recieve.erase(syncro_recieve.begin());
-                syncro_recieve.push_back(0);
+                syncro_recieve.push_back(99);
 
                 if (check_rx_call()) {
                 	sms_call_received = true;
@@ -1769,7 +1772,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                         qmDebugMessage(QmDebug::Dump, "sms call received");
                         syncro_recieve.clear();
                         for(int i = 0; i<18;i++)
-                            syncro_recieve.push_back(0);
+                            syncro_recieve.push_back(99);
                     }
                 }
 
@@ -2156,6 +2159,8 @@ void DspController::recSms()
     if (ContentSms.stage == StageRx_call)
     {
     	if (sms_call_received) {
+    		getZone();
+    		wzn_value = wzn_change(syncro_recieve);
     		syncro_recieve.clear();
     		for(int i = 0; i < 18; i++)
     		syncro_recieve.push_back(0);
@@ -2192,6 +2197,20 @@ void DspController::recSms()
         }
     }
 
+}
+
+
+void DspController::getZone()
+{
+	for(int i = 0; i<syncro_recieve.size();i++)
+	{
+		if  (syncro_recieve.at(i) >=0   && syncro_recieve.at(i) <6 ) syncro_recieve[i] = 0;
+		if  (syncro_recieve.at(i) > 5   && syncro_recieve.at(i) <12) syncro_recieve[i] = 1;
+		if  (syncro_recieve.at(i) >= 12 && syncro_recieve.at(i) <18) syncro_recieve[i] = 2;
+		if  (syncro_recieve.at(i) >=18  && syncro_recieve.at(i) <24) syncro_recieve[i] = 3;
+		if  (syncro_recieve.at(i) >= 24 && syncro_recieve.at(i) <30) syncro_recieve[i] = 4;
+
+	}
 }
 
 void DspController::generateSmsReceived()
@@ -2275,10 +2294,9 @@ int DspController::wzn_change(std::vector<int> &vect)
     int index = 0;
     for(int i = 0; i<4;i++)
     {
-        if (wzn_mas[i] > wzn_mas[i+1]) index = i + 1;
-        else index = i;
+        if (wzn_mas[index] < wzn_mas[i]) index = i;
     }
-    return wzn_mas[index];
+    return index;
 }
 
 int DspController::calcFstn(int R_ADR, int S_ADR, int RN_KEY, int SEC, int MIN, int HRS, int DAY, int QNB)
@@ -3001,6 +3019,7 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 void DspController::goToVoice(){
 	ParameterValue comandValue;
 	comandValue.radio_mode = RadioModeOff;
+	radio_state = radiostateSync;
 	sendCommandEasy(RxRadiopath,2,comandValue);
 	sendCommandEasy(TxRadiopath,2,comandValue);
 }
@@ -3009,5 +3028,5 @@ void DspController::goToVoice(){
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"

@@ -8,7 +8,7 @@ char ch_zero_letter='0';
 char ch_closed_letter='З';
 char ch_invalid_letter='x';
 
-const char* ch_em_type_str[] = {(char *)"ЧМ\0", (char*)"ВБП\0"};
+const char* ch_em_type_str[] = {(char *)"ЧМ\0", (char*)"ВБП\0",(char*)"В_П\0",(char*)"Ч_П\0"};
 
 const char* exitStr = "Выход\0";
 
@@ -206,4 +206,4 @@ const char* dsphardwarefailure_unknown_title_str = "Аппаратный сбой DSP";
 const char* dsphardwarefailure_unknown_text_str = "Устр. %d, код %d";
 
 const char *StartCmd = "Передача...\0";
-const char *EndCmd   = "Прием...\0";
+const char *EndCmd   = "Прием\0";

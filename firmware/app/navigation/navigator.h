@@ -35,6 +35,7 @@ public:
 
     sigc::signal<void> CoordinateUpdated;
 	sigc::signal<void> syncPulse;
+	sigc::signal<void,bool> PswfSignal;
 	Coord_Date getCoordDate();
 
 	void setMinimalActivityMode(bool enabled);

@@ -94,6 +94,10 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->gucCrcFailed.connect(sigc::mem_fun(this,&Service::errorGucCrc));
     voice_service->gucCoord.connect(sigc::mem_fun(this,&Service::GucCoord));
 
+    pswf_status = false;
+
+    navigator->PswfSignal.connect(sigc::mem_fun(this,&Service::setPswfStatus));
+
 #ifndef PORT__PCSIMULATOR
     systemTimeTimer = new QmTimer(true); // TODO:
     systemTimeTimer->setInterval(1000);
@@ -190,6 +194,11 @@ void Service::updateSmsStatus(int value)
         }
         }
     }
+}
+
+void Service::setPswfStatus(bool var)
+{
+		pswf_status = var;
 }
 
 //void Service::errorMessage()
@@ -1766,12 +1775,12 @@ void Service::keyPressed(UI_Key key)
             if ( key == keyBack)
             {
                 guiTree.backvard();
+                voice_service->goToVoice();
                 menu->focus = 0;
             }
             if (key == keyEnter)
             {
-            	//resethost();
-            	navigator->coldStart();
+            	voice_service->goToVoice();
             	guiTree.resetCurrentState();
             }
             break;
@@ -2318,9 +2327,11 @@ void Service::drawMainWindow()
     switch (emission_type)
     {
     case Multiradio::voice_emission_t::voiceemissionFM:
+    	if (pswf_status == true)  str.append(ch_em_type_str[2]); else
         str.append(ch_em_type_str[0]);
         break;
     case Multiradio::voice_emission_t::voiceemissionUSB:
+    	if (pswf_status == true)  str.append(ch_em_type_str[3]); else
         str.append(ch_em_type_str[1]);
         break;
     default:
@@ -2824,11 +2835,20 @@ void Service::smsMessage()
     for(int i = 0; i<50;++i) sym[i] = '0';
 
     memcpy(sym, voice_service->getSmsContent(), 50);
-    for(int i = 1; i<5;i++) { sym[i*10]  == '\n'; }
+    int index = 0;
+
+    for(int i = 0; i<50;i++) if (sym[i]  == ' ')
+    {
+    	sym[i] = '\r';sym[i+1] = '\n'; index = i;
+    	//for(int j = index+2;j<50;j++) sym[j] = sym[j-1];
+    }
     sym[49] = '\0';
 
-    guiTree.append(messangeWindow, "Recieved SMS ", sym);
-    msgBox( "Recieved SMS", sym );
+    const char *text;
+    text = &sym[0];
+
+    msgBox( EndCmd, text );
+    guiTree.append(messangeWindow, "Recieved SMS\0", "SMS\0");
 }
 
 void Service::updateAleVmProgress(uint8_t t)

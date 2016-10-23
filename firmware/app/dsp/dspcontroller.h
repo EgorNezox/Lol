@@ -188,6 +188,8 @@ public:
     PackageManager *pack_manager;
     bool retranslation_active = false;
 
+    void goToVoice();
+
 private:
     friend struct DspCommand;
 
@@ -317,7 +319,6 @@ private:
 
     } ContentGuc;
 
-    void goToVoice();
     void initResetState();
     void processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version);
     void processStartupTimeout();
@@ -369,6 +370,8 @@ private:
     int check_rx_call();
 
     uint8_t calc_ack_code(uint8_t ack);
+
+    void getZone();
 
     Navigation::Navigator *navigator;
     DataStorage::FS *data_storage_fs;

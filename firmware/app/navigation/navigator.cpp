@@ -185,7 +185,7 @@ void Navigator::parsingData(uint8_t data[])
 
     }
 
-    if ((parse_elem.size() > 2) /*&& (parse_elem.at(1).compare("V") != 0)*/)
+    if ((parse_elem.size() > 2) && (parse_elem.at(1).compare("A") == 0))
     { // проверка по статусу gps
         if (parse_elem.size() > 3){
             memcpy(&CoordDate.latitude,parse_elem.at(2).c_str(),parse_elem.at(2).size());
@@ -200,7 +200,11 @@ void Navigator::parsingData(uint8_t data[])
         }
         if (parse_elem.size() > 8)
             memcpy(&CoordDate.data,parse_elem.at(8).c_str(),parse_elem.at(8).size());
+
+        PswfSignal(true);
     }
+
+    else {PswfSignal(false);}
     qmDebugMessage(QmDebug::Dump, "parsing result:  %s %s %s %s", (char*)CoordDate.time,(char*)CoordDate.data,(char*)CoordDate.latitude,(char*)CoordDate.longitude);
 
 }

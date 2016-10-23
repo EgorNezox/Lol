@@ -77,6 +77,8 @@ public:
     sigc::signal<void> gucCrcFailed;
     sigc::signal<void> gucCoord;
 
+    void goToVoice();
+
 private:
 	friend class Dispatcher;
 

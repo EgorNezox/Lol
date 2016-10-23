@@ -327,4 +327,9 @@ void VoiceServiceInterface::gucCoordRec(){
 	gucCoord();
 }
 
+void VoiceServiceInterface::goToVoice()
+{
+	dispatcher->dsp_controller->goToVoice();
+}
+
 } /* namespace Multiradio */

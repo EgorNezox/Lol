@@ -86,7 +86,7 @@ public:
     void errorGucCrc();
     void setFreqLabelValue(int value);
     void updateSmsStatus(int value);
-
+    void setPswfStatus(bool var);
 
 private:
     void msgBox(const char*);
@@ -165,6 +165,7 @@ private:
     int position = 0;
     int zond_position = 0;
     std::vector<std::string> zond_data;
+    bool pswf_status;
 };
 
 } /* namespace Ui */
