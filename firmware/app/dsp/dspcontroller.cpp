@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "..\dsp\rs_tms.h"
+#include <cstring>
 
 
 #define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
@@ -1725,6 +1726,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             }
             if (ContentSms.stage == StageRx_data){
             	// todo: massive clear
+               if (count_clear + 7 < 255)
                count_clear += 7;
                for(int i = count_clear - 7; i<count_clear;i++)
                rs_data_clear[i] = 1; //REVIEW: count_clear может быть 259? тогда выход за границы rs_data_clear
@@ -2199,73 +2201,83 @@ void DspController::recSms()
 
 void DspController::generateSmsReceived()
 {
-	int count = 0;
-	int data[255];
-	for(int i = 0;i<255;i++) data[i] = 0;
-	uint8_t packed[100];
+    // 1. params for storage operation
+    int data[255];
+    uint8_t crc_calcs[100];
+    uint8_t packet[100];
 
-	for(int j = 0;j<=recievedSmsBuffer.size()-1;j++){
-		for(int i = 0; i<7;i++)
-		{
-			if (count < 255){
-				data[count] = recievedSmsBuffer.at(j).at(i);
-				++count;
-			}
-		}
-	}
+    std::memset(data,0,sizeof(data));
+    std::memset(crc_calcs,0,sizeof(crc_calcs));
+    std::memset(packet,0, sizeof(packet));
 
+    int count  = 0;
+
+    // 2. copy data in int mas
+    for(int i = 0; i<  recievedSmsBuffer.size();i++,count+=7)
+        if (count == 252)
+            std::copy(recievedSmsBuffer.at(i).begin(),recievedSmsBuffer.at(i).begin()+3,&data[count]);
+        else
+            std::copy(recievedSmsBuffer.at(i).begin(),recievedSmsBuffer.at(i).end(),&data[count]);
+    recievedSmsBuffer.erase(recievedSmsBuffer.begin());
+
+    // 3. get a weight for data
     int temp = eras_dec_rs(data,rs_data_clear,&rs_255_93);
 
-    uint8_t crc_chk[100];
-    uint8_t calcs_crc[100];
-    for(int i = 0;i<89;i++) calcs_crc[i] = data[i];
-    uint32_t crc_calc = pack_manager->CRC32(calcs_crc,89);
+    // 4. check valid value
+    if (temp >= 0)
+    {
+        // 5. copy 89 bytes for  crc_calcs massive
+        std::copy(&data[0],&data[89],crc_calcs);
+        // 6. calculate CRC32 for 89 bytes
+        uint32_t code_calc = pack_manager->CRC32(crc_calcs,89);
 
+        // 7. calculate crc code for crc get and crc calculate
+        uint32_t code_get = 0;
+        int k = 0;
 
-	for(int i = 0;i<100;i++) packed[i] = 0;
-    for(int i = 0;i<87;i++) crc_chk[i] = data[i];
+        while(k >=0){
+            code_get += (data[89+k] & 0xFF) << (8*k);
+            k--;
+        }
 
-    pack_manager->decompressMass(crc_chk,87,packed,100,7); // todo: not work
+        if (code_get != code_calc)
+        {
+            smsFailed(3);
+            ack = 99;
+        }
 
-    pack_manager->to_Win1251(packed); //test
+        else
+        {
+          // 8. calculate text without CRC32 code
+          pack_manager->decompressMass(crc_calcs,89,packet,100,7);
+          // 9. interpretate to Win1251 encode
+          pack_manager->to_Win1251(packet);
+          // 10. create str consist data split ''
+          std::string str;
+          for(int i = 0; i<100;i++){
+          if ((i % 10 == 0) && (i>0)){
+             str.push_back('\r');
+             str.push_back('\n');
+            }
+             str.push_back(packet[i]);
+          }
 
+          int len = str.length();
+          QM_ASSERT(len == 0);
+          if (len < 150)
+          std::copy(str.begin(),str.end(),sms_content);
+          str.erase(str.begin());
+          sms_content[len] = '\0';
+          // return sms status and signal(len, sms_content)
+          smsPacketMessage(len);
+        }
 
-    std::string str;
-    str.push_back(packed[0]);
-    for(int i = 1; i<100;i++){
-    	str.push_back(packed[i]);
-    	if (str[i-1] == ' ' && str[i] ==' ')
-    		str.pop_back();
     }
-
-    if (str.length() > 0)
-    for(int i = 0; i<str.length();i++){
-    	packed[i] = str[i];
-    }
-
-   str.push_back('\0');
-
-	recievedSmsBuffer.clear();
-
-	uint32_t crc_packet = 0;
-	int k = 3;
-	while(k >=0){
-		crc_packet += (data[89+k] & 0xFF) << (8*k);
-		k--;
-	}
-
-	if (crc_packet != crc_calc)
-	{
-		smsFailed(3);
-		ack = 99;
-	}
-	else
-	{
-		ack = 73;
-		for(int i = 0; i < 99; i++) sms_content[i] = str[i];
-		sms_content[99] = '\0';
-        qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
-		smsPacketMessage();
+    else
+    {
+        // wrong params
+        smsFailed(3);
+        ack = 99;
     }
 }
 

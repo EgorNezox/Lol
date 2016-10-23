@@ -318,9 +318,9 @@ void VoiceServiceInterface::responseGuc(int value)
     respGuc(value);
 }
 
-void VoiceServiceInterface::smsMessage()
+void VoiceServiceInterface::smsMessage(int value)
 {
-	smsMess();
+	smsMess(value);
 }
 
 void VoiceServiceInterface::gucCoordRec(){

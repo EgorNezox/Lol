@@ -69,7 +69,7 @@ public:
     sigc::signal<void> PswfRead;
     sigc::signal<void,int> firstPacket;
     sigc::signal<void,int> smsFailed;
-    sigc::signal<void> smsMess;
+    sigc::signal<void,int> smsMess;
     sigc::signal<void,int> respGuc;
     sigc::signal<void> atuMalfunction;
 	sigc::signal<void,int> getSmsStageUi;
@@ -88,7 +88,7 @@ private:
 
     void fistPacketRecieve(int packet);
     void responseGuc(int value);
-    void smsMessage();
+    void smsMessage(int value);
 
 	Dispatcher *dispatcher;
     ChannelStatus current_channel_status;

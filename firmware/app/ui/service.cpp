@@ -2808,14 +2808,13 @@ void Service::updateSystemTime()
     systemTimeTimer->start();
 }
 
-void Service::smsMessage()
+void Service::smsMessage(int value)
 {
-    char sym[50];//TODO:
-    for(int i = 0; i<50;++i) sym[i] = '0';
+    char sym[value];//TODO:
+    for(int i = 0; i<value;++i) sym[i] = '0';
 
     memcpy(sym, voice_service->getSmsContent(), 50);
-    for(int i = 1; i<5;i++) { sym[i*10]  == '\n'; }
-    sym[49] = '\0';
+    sym[value-1] = '\0';
 
     guiTree.append(messangeWindow, "Recieved SMS ", sym);
     msgBox( "Recieved SMS", sym );

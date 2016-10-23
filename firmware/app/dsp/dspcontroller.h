@@ -171,7 +171,7 @@ public:
     sigc::signal<void,int> firstPacket;     // получен первый пакет в УК
     sigc::signal<void> smsReceived;         // принято СМС
     sigc::signal<void,int> smsFailed;       // ошибка приема СМС
-    sigc::signal<void> smsPacketMessage;    // вывод сообщения на экран
+    sigc::signal<void,int> smsPacketMessage;    // вывод сообщения на экран
     sigc::signal<void, ModemPacketType/*type*/> transmittedModemPacket;
     sigc::signal<void> failedTxModemPacket;
     sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, uint8_t/*errors*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> receivedModemPacket;
