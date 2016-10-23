@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "..\dsp\rs_tms.h"
+#include <cstring>
 
 
 #define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
@@ -1725,6 +1726,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             }
             if (ContentSms.stage == StageRx_data){
             	// todo: massive clear
+               if (count_clear + 7 < 255)
                count_clear += 7;
                for(int i = count_clear - 7; i<count_clear;i++)
                rs_data_clear[i] = 1; //REVIEW: count_clear может быть 259? тогда выход за границы rs_data_clear
@@ -2199,53 +2201,50 @@ void DspController::recSms()
 
 void DspController::generateSmsReceived()
 {
-	int count = 0;
-	int data[255];
-	for(int i = 0;i<255;i++) data[i] = 0;
-	uint8_t packed[100];
+	int data[255];  uint8_t packed[100]; uint32_t count  = 0; // объявили переменные
+	std::memset(data,0,sizeof(data));				     // заполнили нулями массив
+	for(uint32_t j = 0; j < recievedSmsBuffer.size(); j++,count += 7)  if (count < 255)
+	std::copy( recievedSmsBuffer.at(j).begin(),recievedSmsBuffer.at(j).end(), &data[count]);  // копируем пакеты в массив
+	recievedSmsBuffer.clear();		// очищаем вектор
 
-	for(int j = 0;j<=recievedSmsBuffer.size()-1;j++){
-		for(int i = 0; i<7;i++)
-		{
-			if (count < 255){
-				data[count] = recievedSmsBuffer.at(j).at(i);
-				++count;
-			}
-		}
+	int temp = eras_dec_rs(data,rs_data_clear,&rs_255_93); // получаем раскодировку рид-соломона
+
+	uint8_t crc_check[100];
+    uint8_t crc_calcs[100];
+
+	std::copy( &data[0],&data[88],crc_calcs);    // копируем данные в массив для рассчета crc32
+
+	uint32_t crc_calc = pack_manager->CRC32(crc_calcs,89); // получаем crc32
+
+
+	std::copy( &data[0],&data[86],crc_check); // копируем данные
+
+	pack_manager->decompressMass(crc_check,87,packed,100,7); // раскодируем данные
+
+	pack_manager->to_Win1251(packed); //  кодировка для отображения
+
+
+	std::string str;
+    str.push_back(packed[0]);
+
+	for(int i = 1; i< 100; i++)
+	{
+		if (str[i] == ' ' && str[i+1] != ' ') { str.push_back('\r'); str.push_back('\n'); }
+		str.push_back(packed[i]);
 	}
 
-    int temp = eras_dec_rs(data,rs_data_clear,&rs_255_93);
+	//  скопировали в строку раскодированные элементы, добавив вместо пробелов переводы строки
 
-    uint8_t crc_chk[100];
-    uint8_t calcs_crc[100];
-    for(int i = 0;i<89;i++) calcs_crc[i] = data[i];
-    uint32_t crc_calc = pack_manager->CRC32(calcs_crc,89);
+	str.push_back('\0');
 
 
-	for(int i = 0;i<100;i++) packed[i] = 0;
-    for(int i = 0;i<87;i++) crc_chk[i] = data[i];
+	int index = 0;
+	if (str.length() > 0)
+	{
+		index = (str.length() >= 100) ? 99 : str.length();
+		std::copy(&str[0],&str[index],packed);
+	}
 
-    pack_manager->decompressMass(crc_chk,87,packed,100,7); // todo: not work
-
-    pack_manager->to_Win1251(packed); //test
-
-
-    std::string str;
-    str.push_back(packed[0]);
-    for(int i = 1; i<100;i++){
-    	str.push_back(packed[i]);
-    	if (str[i-1] == ' ' && str[i] ==' ')
-    		str.pop_back();
-    }
-
-    if (str.length() > 0)
-    for(int i = 0; i<str.length();i++){
-    	packed[i] = str[i];
-    }
-
-   str.push_back('\0');
-
-	recievedSmsBuffer.clear();
 
 	uint32_t crc_packet = 0;
 	int k = 3;
@@ -2253,6 +2252,7 @@ void DspController::generateSmsReceived()
 		crc_packet += (data[89+k] & 0xFF) << (8*k);
 		k--;
 	}
+
 
 	if (crc_packet != crc_calc)
 	{
@@ -2262,7 +2262,7 @@ void DspController::generateSmsReceived()
 	else
 	{
 		ack = 73;
-		for(int i = 0; i < 99; i++) sms_content[i] = str[i];
+		std::copy(&str[0],&str[index],sms_content);
 		sms_content[99] = '\0';
         qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
 		smsPacketMessage();
