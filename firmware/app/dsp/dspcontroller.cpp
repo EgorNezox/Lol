@@ -2220,71 +2220,83 @@ void DspController::getZone()
 
 void DspController::generateSmsReceived()
 {
-	int data[255];  uint8_t packed[100]; uint32_t count  = 0; // объявили переменные
-	std::memset(data,0,sizeof(data));				     // заполнили нулями массив
-	for(uint32_t j = 0; j < recievedSmsBuffer.size(); j++,count += 7)  if (count < 255)
-	std::copy( recievedSmsBuffer.at(j).begin(),recievedSmsBuffer.at(j).end(), &data[count]);  // копируем пакеты в массив
-	recievedSmsBuffer.clear();		// очищаем вектор
-
-	int temp = eras_dec_rs(data,rs_data_clear,&rs_255_93); // получаем раскодировку рид-соломона
-
-	uint8_t crc_check[100];
+    // 1. params for storage operation
+    int data[255];
     uint8_t crc_calcs[100];
+    uint8_t packet[100];
 
-	std::copy( &data[0],&data[88],crc_calcs);    // копируем данные в массив для рассчета crc32
+    std::memset(data,0,sizeof(data));
+    std::memset(crc_calcs,0,sizeof(crc_calcs));
+    std::memset(packet,0, sizeof(packet));
 
-	uint32_t crc_calc = pack_manager->CRC32(crc_calcs,89); // получаем crc32
+    int count  = 0;
 
+    // 2. copy data in int mas
+    for(int i = 0; i<  recievedSmsBuffer.size();i++,count+=7)
+        if (count == 252)
+            std::copy(recievedSmsBuffer.at(i).begin(),recievedSmsBuffer.at(i).begin()+3,&data[count]);
+        else
+            std::copy(recievedSmsBuffer.at(i).begin(),recievedSmsBuffer.at(i).end(),&data[count]);
+    recievedSmsBuffer.erase(recievedSmsBuffer.begin());
 
-	std::copy( &data[0],&data[86],crc_check); // копируем данные
+    // 3. get a weight for data
+    int temp = eras_dec_rs(data,rs_data_clear,&rs_255_93);
 
-	pack_manager->decompressMass(crc_check,87,packed,100,7); // раскодируем данные
+    // 4. check valid value
+    if (temp >= 0)
+    {
+        // 5. copy 89 bytes for  crc_calcs massive
+        std::copy(&data[0],&data[89],crc_calcs);
+        // 6. calculate CRC32 for 89 bytes
+        uint32_t code_calc = pack_manager->CRC32(crc_calcs,89);
 
-	pack_manager->to_Win1251(packed); //  кодировка для отображения
+        // 7. calculate crc code for crc get and crc calculate
+        uint32_t code_get = 0;
+        int k = 0;
 
+        while(k >=0){
+            code_get += (data[89+k] & 0xFF) << (8*k);
+            k--;
+        }
 
-	std::string str;
-    str.push_back(packed[0]);
+        if (code_get != code_calc)
+        {
+            smsFailed(3);
+            ack = 99;
+        }
 
-	for(int i = 1; i< 100; i++)
-	{
-		if (str[i] == ' ' && str[i+1] != ' ') { str.push_back('\r'); str.push_back('\n'); }
-		str.push_back(packed[i]);
-	}
+        else
+        {
+          // 8. calculate text without CRC32 code
+          pack_manager->decompressMass(crc_calcs,89,packet,100,7);
+          // 9. interpretate to Win1251 encode
+          pack_manager->to_Win1251(packet);
+          // 10. create str consist data split ''
+          std::string str;
+          for(int i = 0; i<100;i++){
+          if ((i % 10 == 0) && (i>0)){
+             str.push_back('\r');
+             str.push_back('\n');
+            }
+             str.push_back(packet[i]);
+          }
 
-	//  скопировали в строку раскодированные элементы, добавив вместо пробелов переводы строки
+          int len = str.length();
+          QM_ASSERT(len == 0);
+          if (len < 150)
+          std::copy(str.begin(),str.end(),sms_content);
+          str.erase(str.begin());
+          sms_content[len] = '\0';
+          // return sms status and signal(len, sms_content)
+          smsPacketMessage(len);
+        }
 
-	str.push_back('\0');
-
-
-	int index = 0;
-	if (str.length() > 0)
-	{
-		index = (str.length() >= 100) ? 99 : str.length();
-		std::copy(&str[0],&str[index],packed);
-	}
-
-
-	uint32_t crc_packet = 0;
-	int k = 3;
-	while(k >=0){
-		crc_packet += (data[89+k] & 0xFF) << (8*k);
-		k--;
-	}
-
-
-	if (crc_packet != crc_calc)
-	{
-		smsFailed(3);
-		ack = 99;
-	}
-	else
-	{
-		ack = 73;
-		std::copy(&str[0],&str[index],sms_content);
-		sms_content[99] = '\0';
-        qmDebugMessage(QmDebug::Dump, "generateSmsReceived() sms_content = %s", sms_content);
-		smsPacketMessage();
+    }
+    else
+    {
+        // wrong params
+        smsFailed(3);
+        ack = 99;
     }
 }
 

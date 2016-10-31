@@ -132,7 +132,7 @@ private:
     void GucCoord();
 
     void FirstPacketPSWFRecieved(int packet);
-    void smsMessage();
+    void smsMessage(int value);
 
     void drawMainWindow();
 

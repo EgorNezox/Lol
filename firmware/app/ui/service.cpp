@@ -2829,20 +2829,13 @@ void Service::updateSystemTime()
     systemTimeTimer->start();
 }
 
-void Service::smsMessage()
+void Service::smsMessage(int value)
 {
-    char sym[50];//TODO:
-    for(int i = 0; i<50;++i) sym[i] = '0';
+    char sym[value];//TODO:
+    for(int i = 0; i<value;++i) sym[i] = '0';
 
     memcpy(sym, voice_service->getSmsContent(), 50);
-    int index = 0;
-
-    for(int i = 0; i<50;i++) if (sym[i]  == ' ')
-    {
-    	sym[i] = '\r';sym[i+1] = '\n'; index = i;
-    	//for(int j = index+2;j<50;j++) sym[j] = sym[j-1];
-    }
-    sym[49] = '\0';
+    sym[value-1] = '\0';
 
     const char *text;
     text = &sym[0];
