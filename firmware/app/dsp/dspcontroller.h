@@ -193,6 +193,8 @@ public:
 private:
     friend struct DspCommand;
 
+    int sms_data_count = 0;
+
     // перечисления для адресов передачи к DSP
     enum  Module {
         RxRadiopath,

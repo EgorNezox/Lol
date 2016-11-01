@@ -604,10 +604,10 @@ void DspController::changeSmsRxFrequency()
 	ParameterValue param;
 	param.frequency = ContentSms.Frequency;
 	if (ContentSms.stage == StageRx_data){
-		sendCommand(PSWFReceiver, 3, param);
+		sendCommandEasy(PSWFReceiver, 3, param);
 	}
 	else
-		sendCommand(PSWFReceiver, PswfRxFrequency, param);
+		sendCommandEasy(PSWFReceiver, PswfRxFrequency, param);
 
 		recSms();
 }
@@ -1153,9 +1153,13 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 			tx_data_len += 4;
 			if (ContentSms.stage == StageRx_data)
 			{
-				qmToBigEndian(value.frequency, tx_data+tx_data_len);
-				tx_data_len += 4;
-				qmToBigEndian(0, tx_data+tx_data_len);
+				uint8_t fstn = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],QNB_RX); // TODO: fix that;
+				QNB_RX++;
+				qmDebugMessage(QmDebug::Dump, "FSTN: %d", fstn);
+				uint32_t abc = (fstn << 24);
+				//qmToBigEndian(value.frequency, tx_data+tx_data_len);
+				//tx_data_len += 4;
+				qmToBigEndian(abc, tx_data+tx_data_len);
 				tx_data_len += 1;
 
 			}
@@ -1726,18 +1730,21 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 	sms_call_received = true;
                 	qmDebugMessage(QmDebug::Dump, "sms call received");
                 }
+
+                sms_data_count = 0;
             }
             if (ContentSms.stage == StageRx_data){
+            	sms_data_count++;
             	// todo: massive clear
-               if (count_clear + 7 < 255)
-               count_clear += 7;
+               if (count_clear + 7 < 255)  count_clear += 7;
+               if (count_clear < 255){
                for(int i = count_clear - 7; i<count_clear;i++)
                rs_data_clear[i] = 1; //REVIEW: count_clear может быть 259? тогда выход за границы rs_data_clear
 
                std::vector<uint8_t> sms_data;
                for(int i = 8;i<15;i++) { sms_data.push_back(data[i]);}
                if (counterSms[StageRx_data] < 37)
-               recievedSmsBuffer.push_back(sms_data);
+               recievedSmsBuffer.push_back(sms_data);}
             }
         } else if (indicator == 30) {
         	qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");
@@ -1783,6 +1790,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 
                 if (ContentSms.stage == StageTx_quit)
                 {
+                	qmDebugMessage(QmDebug::Info, "recieve count sms = %d", sms_data_count);
                 	getDataTime();
                 	uint8_t ack_code_calc = calc_ack_code(data[9]);
                 	if ((ack_code_calc == (data[10] + 1)) && (data[9] != 99))
@@ -2129,6 +2137,9 @@ void DspController::recSms()
                     else
                     {
                     	// если нет ретрансляции, то выключить
+                    	navigator->setMinimalActivityMode(true);
+                    	QmThread::msleep(1000);
+                    	navigator->setMinimalActivityMode(false);
                     	radio_state = radiostateSync;
                     	ContentSms.stage = StageNone;
                     	goToVoice();
@@ -2223,7 +2234,7 @@ void DspController::generateSmsReceived()
     // 1. params for storage operation
     int data[255];
     uint8_t crc_calcs[100];
-    uint8_t packet[100];
+    uint8_t packet[110];
 
     std::memset(data,0,sizeof(data));
     std::memset(crc_calcs,0,sizeof(crc_calcs));
@@ -2237,7 +2248,7 @@ void DspController::generateSmsReceived()
             std::copy(recievedSmsBuffer.at(i).begin(),recievedSmsBuffer.at(i).begin()+3,&data[count]);
         else
             std::copy(recievedSmsBuffer.at(i).begin(),recievedSmsBuffer.at(i).end(),&data[count]);
-    recievedSmsBuffer.erase(recievedSmsBuffer.begin());
+    recievedSmsBuffer.clear();
 
     // 3. get a weight for data
     int temp = eras_dec_rs(data,rs_data_clear,&rs_255_93);
@@ -2252,7 +2263,7 @@ void DspController::generateSmsReceived()
 
         // 7. calculate crc code for crc get and crc calculate
         uint32_t code_get = 0;
-        int k = 0;
+        int k = 3;
 
         while(k >=0){
             code_get += (data[89+k] & 0xFF) << (8*k);
@@ -2268,7 +2279,7 @@ void DspController::generateSmsReceived()
         else
         {
           // 8. calculate text without CRC32 code
-          pack_manager->decompressMass(crc_calcs,89,packet,100,7);
+          pack_manager->decompressMass(crc_calcs,89,packet,110,7);
           // 9. interpretate to Win1251 encode
           pack_manager->to_Win1251(packet);
           // 10. create str consist data split ''
@@ -2282,7 +2293,7 @@ void DspController::generateSmsReceived()
           }
 
           int len = str.length();
-          QM_ASSERT(len == 0);
+//          QM_ASSERT(len == 0);
           if (len < 150)
           std::copy(str.begin(),str.end(),sms_content);
           str.erase(str.begin());
@@ -2511,9 +2522,10 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     }else
     {
     comandValue.radio_mode = RadioModeOff;
-    sendCommand(RxRadiopath, RxRadioMode, comandValue);
+    sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
     comandValue.pswf_indicator = RadioModePSWF;
-    sendCommand(TxRadiopath, TxRadioMode, comandValue);}
+    QmThread::msleep(100);
+    sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);}
     smsTxStateSync = 0;
     radio_state = radiostateSmsTxPrepare;
     ContentSms.stage = stage;
@@ -3043,5 +3055,5 @@ void DspController::goToVoice(){
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelInfo)
 #include "qmdebug_domains_end.h"

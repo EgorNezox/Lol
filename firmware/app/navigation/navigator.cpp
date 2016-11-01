@@ -148,6 +148,23 @@ void Navigator::parsingData(uint8_t data[])
 
     memcpy(&CoordDate.time,&zda_text,6);
 
+    char* zda_data[3]; char* dat;
+    dat = strstr((const char*)zda_dubl,(const char*)",");
+    if (dat != NULL){
+    	dat++; if (dat == NULL) return;
+    	for(int i = 0; i<3;i++)
+    	{
+    		dat = strstr((const char*)dat,(const char*)","); if (dat == NULL) return;
+    		dat++;
+    		if (dat == NULL) return;
+    		zda_data[i] = dat;
+    		if (i < 2)
+    			memcpy(&CoordDate.data[i*2],zda_data[i],2); else
+    				memcpy(&CoordDate.data[4],zda_data[i],4);
+    	}
+
+    }
+
     if (rmc_dubl == nullptr)
         return;
 
@@ -198,8 +215,8 @@ void Navigator::parsingData(uint8_t data[])
             memcpy(&CoordDate.longitude[parse_elem.at(4).size()],parse_elem.at(5).c_str(),parse_elem.at(5).size());
             redactCoordForSpec(CoordDate.longitude,6);
         }
-        if (parse_elem.size() > 8)
-            memcpy(&CoordDate.data,parse_elem.at(8).c_str(),parse_elem.at(8).size());
+//        if (parse_elem.size() > 8)
+//            memcpy(&CoordDate.data,parse_elem.at(8).c_str(),parse_elem.at(8).size());
 
         PswfSignal(true);
     }

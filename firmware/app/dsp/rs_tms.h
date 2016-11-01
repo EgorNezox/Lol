@@ -108,6 +108,25 @@ int eras_dec_rs(int* data, int* erase, rs_settings* settings)
     int i, j, r;
 	int u,q,tmp,num1,num2,den,discr_r;
 
+	for(i=0;i<MAX_CODE_LENGTH;i++)
+	{
+		erase_pos[i]=0;
+		recd[i]=0;
+		lambda[i]=0;
+		s[i]=0;  // Err+Eras Locator poly
+										// and syndrome poly
+		b[i]=0;
+		t[i]=0;
+		omega[i]=0;
+		root[i]=0;
+		reg[i]=0;
+		loc[i]=0;
+
+		temp_data[i]=0;
+		temp_data_clear[i]=0;
+	}
+
+
 	int syn_error, count, ret;
 	int Nerase = 0;
     for(i=0; i < settings->code_length; i++) {

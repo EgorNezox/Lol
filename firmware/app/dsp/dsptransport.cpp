@@ -112,7 +112,7 @@ void DspTransport::processUartReceivedData() {
 		}
 		case rxstateSync: {
 			if (byte == FRAME_START_DELIMITER) {
-				qmDebugMessage(QmDebug::Info, "uart rx: - frame start");
+				//qmDebugMessage(QmDebug::Info, "uart rx: - frame start");
 				rx_state = rxstateFrame;
 				rx_frame_size = 0;
 			} else {
@@ -136,7 +136,7 @@ void DspTransport::processUartReceivedData() {
 				rx_frame_buf[rx_frame_size++] = byte;
 			} else {
 				if (byte == FRAME_END_DELIMITER) {
-					qmDebugMessage(QmDebug::Info, "uart rx: - frame end");
+					//qmDebugMessage(QmDebug::Info, "uart rx: - frame end");
 					rx_state = rxstateSync;
 					uint8_t rx_address = qmFromBigEndian<uint8_t>(rx_frame_buf+1);
 					uint8_t *rx_data = rx_frame_buf + 2;
