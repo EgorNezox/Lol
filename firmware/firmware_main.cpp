@@ -40,6 +40,7 @@ void qmMain() {
 
 	Power::Battery power_battery(platformhwBatterySmbusI2c);
 
+#if defined (PORT__TARGET_DEVICE_REV1)
 	QmSPIBus::enable(platformhwDataFlashSpi);
 	QmM25PDevice::Config data_flash_config;
 	data_flash_config.sector_size = 64*1024;
@@ -62,7 +63,9 @@ void qmMain() {
 			QmSpiffs::format(data_fs_config);
 	}
 #endif
-	QmSpiffs::mount("data", data_fs_config);
+    QmSpiffs::mount("data", data_fs_config);
+
+ #endif
 
 	Multiradio::voice_channels_table_t mr_channels_table;
 	DataStorage::FS data_storage_fs("data");
@@ -130,7 +133,7 @@ void qmMain() {
 #endif
 
 
-	kb_light_iopin.writeOutput(QmIopin::Level_Low);
+    kb_light_iopin.writeOutput(QmIopin::Level_Low);
 	data_storage_fs.getVoiceChannelsTable(mr_channels_table);
 
     if (mr_channels_table.empty())

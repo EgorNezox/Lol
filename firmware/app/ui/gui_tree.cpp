@@ -38,6 +38,7 @@ void CGuiTree::init()
     sttWaitGuk.setName(settingsSubMenu[6]);
     sttEditRnKey.setName(settingsSubMenu[7]);
     sttZond.setName(settingsSubMenu[8]);
+    stCoord.setName(settingsSubMenu[9]);
 
     // 4.1.1 - 4.1.2
     sttConnParamGPS.setName(dateAndTimeSubMenu[0]); sttConnParamHand.setName(dateAndTimeSubMenu[1]);
@@ -260,6 +261,7 @@ void CGuiTree::init()
     sttConnParam.nextState.push_back(&sttSetFreq);
     sttConnParam.nextState.push_back(&sttSetSpeed);
     sttConnParam.nextState.push_back(&swAruArm);
+    sttConnParam.nextState.push_back(&stCoord);
     sttConnParam.nextState.push_back(&sttWaitGuk);
     sttConnParam.nextState.push_back(&sttEditRnKey);
     sttConnParam.nextState.push_back(&sttChannelEmissionType);
@@ -281,6 +283,10 @@ void CGuiTree::init()
     swAruArm.subType = GuiWindowsSubType::aruarmaus;
     swAruArm.prevState = &sttConnParam;
     swAruArm.nextState.clear();
+    // 4.2.4
+    stCoord.subType = GuiWindowsSubType::gpsCoord;
+    stCoord.prevState = &sttConnParam;
+    stCoord.nextState.clear();
     // 4.2.4 - Ожидание ГУК
     sttWaitGuk.subType = GuiWindowsSubType::waitGuk;
     sttWaitGuk.prevState = &sttConnParam;
