@@ -1085,19 +1085,27 @@ void CGuiMenu::inputSmsAddr(std::string *field, UI_Key key)
 
 void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 {
-
+    GUI_EL_Window   window (&GUI_EL_TEMP_WindowGeneral, &windowArea,         (GUI_Obj *)this);
     MoonsGeometry title_geom = {  5,   5, 150,  20 };
     MoonsGeometry field_geom  = {  7,  40, 147,  60 };
+    MoonsGeometry length_geom = { 110,  5,  160,  20};
+    MoonsGeometry sliderArea  = { 150, 25, 157, 110};
 
     LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelMode};
     param[0].element.align = {alignHCenter, alignTop};
     param[1].element.align = {alignHCenter, alignVCenter};
 
+    std::string length_message;
 
     switch(smsTxStage)
     {
     case 1:
     {
+        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
+        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
+        window.Draw();
+        title.Draw();
+        field.Draw();
         break;
     }
     case 2:
@@ -1111,6 +1119,12 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 //        }
         else
             fieldStr.append(fieldStr);
+
+        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
+        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
+        window.Draw();
+        title.Draw();
+        field.Draw();
 
         break;
     }
@@ -1126,43 +1140,72 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 //        else
 //            fieldStr.append(fieldStr);
 
+        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
+        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
+        window.Draw();
+        title.Draw();
+        field.Draw();
+
         break;
     }
     case 4:
     {
+        int32_t all_line = 1;
         std::string str;
+
         for (uint8_t i = 0; i < fieldStr.size(); i++)
         {
-            if ( (i%15 == 0) && (i != 0) )
+            if ( (i%8 == 0) && (i != 0) )
+            {
                 str.push_back('\n');
+                all_line++;                 // кол-во строк
+            }
 
             str.push_back( fieldStr[i] );
         }
 
-        GUI_EL_Window   window (&GUI_EL_TEMP_WindowGeneral, &windowArea,         (GUI_Obj *)this);
-        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
         field_geom  = {  7,  20, 158,  120 };
-        param[1] = GUI_EL_TEMP_CommonTextAreaLT;
+        param[1].element.align = {alignLeft, alignTop};
+        sprintf ( (char*)length_message.c_str(), "%i", fieldStr.size() );
+        char size[3] = {0,0,0};
+        sprintf(size,"%i",fieldStr.size());
+        length_message.append(size);
+        length_message.append( "/100" );
+        char* pointer = (char*)str.c_str();
+        max_line = all_line;
+        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
+        SliderParams  sliderParams;
+
+        if(all_line <= 4)
+        {
+            sliderParams = { (int32_t)1, (int32_t)1, (int32_t)1 };                      // { из какого количества элементов, 1, позиция }
+        }
+        else
+        {
+            str = (char*)&pointer[9*focus_line];
+            sliderParams = { (int32_t)all_line-4, (int32_t)1, (int32_t)focus_line};      // { из какого количества элементов, 1, позиция с прокруткой }
+        }
+
         GUI_EL_TextArea field  (&param[1], &field_geom, (char*)str.c_str(), (GUI_Obj *)this);
+        GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
+        GUI_EL_TextArea length (&param[0], &length_geom, (char*)length_message.c_str(), (GUI_Obj *)this);
         window.Draw();
         title.Draw();
         field.Draw();
+        slider.Draw();
+        length.Draw();
         break;
     }
     case 5:
     {
+        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
+        window.Draw();
+        field.Draw();
         break;
     }
     default:
     {break;}
     }
-
-    GUI_EL_Window   window (&GUI_EL_TEMP_WindowGeneral, &windowArea,         (GUI_Obj *)this);
-    GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
-    GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
-    window.Draw();
-    title.Draw();
-    field.Draw();
 }
 
 void CGuiMenu::initTxGroupCondComm(CEndState state)
