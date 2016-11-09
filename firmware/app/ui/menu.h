@@ -181,6 +181,8 @@ private:
     bool editing;
 
     uint8_t vol = 100;
+
+    std::string length_message;
 };
 
 

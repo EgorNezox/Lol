@@ -64,7 +64,7 @@ void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
     }
 }
 
-void CGuiMenu::initCondCommDialog(CEndState state)
+void CGuiMenu::initCondCommDialog(CEndState state) // УК
 {
     std::string str, labelStr;
     auto iter = state.listItem.begin();
@@ -134,7 +134,8 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     }
     case 5:
     { // send
-           labelStr.append(condCommSendStr);
+           //labelStr.append(condCommSendStr);
+           str.append(startStr);
         break;
     }
     default:
@@ -146,7 +147,7 @@ void CGuiMenu::initCondCommDialog(CEndState state)
     params.transparent = true;
 
     MoonsGeometry localLabelArea = { 7,  5, 150,  39 };
-    MoonsGeometry localFieldArea = { 7, 40, 150, 125 };
+    MoonsGeometry localFieldArea = { 7, 40, 150, 90 };
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                               (GUI_Obj *)this);
     GUI_EL_Label  label (&GUI_EL_TEMP_LabelTitle,    &localLabelArea,  (char*)labelStr.c_str(), (GUI_Obj *)this);
@@ -661,11 +662,11 @@ void CGuiMenu::inputGroupCondCmd( CEndState state )
     ct = std::chrono::steady_clock::now();
 }
 
-void CGuiMenu::initTxPutOffVoiceDialog(int status)
+void CGuiMenu::initTxPutOffVoiceDialog(int status)  //  ГП
 {
     MoonsGeometry titleArea  = { 7,  6, 147,  20 };
     MoonsGeometry labelArea  = { 7, 21, 147,  35 };
-    MoonsGeometry fieldArea  = { 30, 35, 107, 110 };
+    MoonsGeometry fieldArea  = { 5, 40, 147, 140 };
 
     LabelParams param;
 
@@ -703,8 +704,8 @@ void CGuiMenu::initTxPutOffVoiceDialog(int status)
     }
     case 2:
     {
-        param = GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignLeft, alignTop};
+        param = GUI_EL_TEMP_LabelMode;//GUI_EL_TEMP_CommonTextAreaLT;
+        param.element.align = {alignLeft,alignTop};
         param.transparent = true;
 
         GUI_EL_Label label( &titleParams, &labelArea, (char*)voiceRxTxLabelStr[2], (GUI_Obj *)this);
@@ -742,8 +743,8 @@ void CGuiMenu::initTxPutOffVoiceDialog(int status)
     }
     case 4:
     {
-        param   = GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignHCenter, alignTop};
+        param   = GUI_EL_TEMP_LabelMode;
+        param.element.align = {alignLeft, alignTop};
         param.transparent   = true;
 
         GUI_EL_Label label( &titleParams, &labelArea, (char*)"", (GUI_Obj *)this);
@@ -1095,7 +1096,8 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     param[0].element.align = {alignHCenter, alignTop};
     param[1].element.align = {alignHCenter, alignVCenter};
 
-    std::string length_message;
+
+    length_message.clear();
 
     switch(smsTxStage)
     {
@@ -1152,6 +1154,7 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     {
         int32_t all_line = 1;
         std::string str;
+        str.clear();
 
         for (uint8_t i = 0; i < fieldStr.size(); i++)
         {
@@ -1163,19 +1166,27 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 
             str.push_back( fieldStr[i] );
         }
-
         field_geom  = {  7,  20, 158,  120 };
         param[1].element.align = {alignLeft, alignTop};
-        sprintf ( (char*)length_message.c_str(), "%i", fieldStr.size() );
-        char size[3] = {0,0,0};
-        sprintf(size,"%i",fieldStr.size());
-        length_message.append(size);
-        length_message.append( "/100" );
-        char* pointer = (char*)str.c_str();
+        length_message.append(std::to_string(fieldStr.size()));
+//        sprintf ( (char*)length_message.c_str(), "%i", fieldStr.size() );
+//        char size[3] = {0,0,0};
+//        if (fieldStr.size() > 0)
+//        {
+//            sprintf(size,"%i",fieldStr.size());
+//            length_message.push_back(' ');
+//            length_message.append(size);
+            length_message.append( "/100" );
+//        }
+
+        if(all_line > max_line || focus_line > all_line-4)
+        {
+                focus_line = all_line-4;
+        }
         max_line = all_line;
+        char* pointer = (char*)str.c_str();
         GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
         SliderParams  sliderParams;
-
         if(all_line <= 4)
         {
             sliderParams = { (int32_t)1, (int32_t)1, (int32_t)1 };                      // { из какого количества элементов, 1, позиция }
@@ -1183,9 +1194,9 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
         else
         {
             str = (char*)&pointer[9*focus_line];
-            sliderParams = { (int32_t)all_line-4, (int32_t)1, (int32_t)focus_line};      // { из какого количества элементов, 1, позиция с прокруткой }
+            strncpy((char*)str.c_str(),(char*)str.c_str(),(9*focus_line));
+            sliderParams = { (int32_t)all_line-3, (int32_t)1, (int32_t)focus_line};      // { из какого количества элементов, 1, позиция с прокруткой }
         }
-
         GUI_EL_TextArea field  (&param[1], &field_geom, (char*)str.c_str(), (GUI_Obj *)this);
         GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
         GUI_EL_TextArea length (&param[0], &length_geom, (char*)length_message.c_str(), (GUI_Obj *)this);
@@ -1305,7 +1316,7 @@ void CGuiMenu::initRxSmsDialog(std::string str)
     ok_button.Draw();
 }
 
-void CGuiMenu::initRxCondCmdDialog()
+void CGuiMenu::initRxCondCmdDialog()        // Прием УК
 {
     titleArea   = { 5,  5, 150, 20 };
 
@@ -1344,7 +1355,7 @@ void CGuiMenu::initRxCondCmdDialog()
 
 }
 
-void CGuiMenu::initGroupCondCmd( CEndState state )
+void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
 {
     std::string labelStr, valueStr;
 

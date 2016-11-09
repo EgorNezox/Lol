@@ -1443,7 +1443,7 @@ void Service::keyPressed(UI_Key key)
                 }
                 case keyDown:
                 {
-                    if (menu->focus_line+4 < menu->max_line)
+                    if (menu->focus_line + 4 < menu->max_line)
                         menu->focus_line++;
                     break;
                 }
