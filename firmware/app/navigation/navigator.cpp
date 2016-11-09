@@ -30,7 +30,7 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 	reset_iopin = new QmIopin(reset_iopin_resource, this);
 	reset_iopin->writeOutput(QmIopin::Level_Low);
 	QmUart::ConfigStruct uart_config;
-	uart_config.baud_rate = 57600;
+	uart_config.baud_rate = 115200;
 	uart_config.stop_bits = QmUart::StopBits_1;
 	uart_config.parity = QmUart::Parity_None;
 	uart_config.flow_control = QmUart::FlowControl_None;
@@ -251,9 +251,22 @@ void Navigator::redactCoordForSpec(uint8_t *input, int val){
 
 
 void Navigator::processConfig() {
-    const char * const config_sentences ="$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n"; // "$PKON1,0,2,, ,0000,A*68\r\n" "$PONME,2,4,1*42\r\n"
-    qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
-    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
+
+	const char * const pps =    "$PSTMGETPAR,1301,0.005*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+	uart->writeData((uint8_t *)pps, strlen(pps));
+
+	const char * const start =     "$PSTMSETPAR,1201,01184360*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+    uart->writeData((uint8_t *)start, strlen(start));
+
+//    const char * const start1 =     "$PSTMSAVEPAR\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+//        uart->writeData((uint8_t *)start1, strlen(start1));
+
+//    const char * const start1 =    "$PSTMGETPAR,1301*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+//        uart->writeData((uint8_t *)start1, strlen(start1));
+
+//    const char * const config_sentences ="$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n"; // "$PKON1,0,2,, ,0000,A*68\r\n" "$PONME,2,4,1*42\r\n"
+//    qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
+//    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
 }
 
 void Navigator::processSyncPulse(bool overflow) {

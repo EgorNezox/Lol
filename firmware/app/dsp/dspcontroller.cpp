@@ -632,7 +632,7 @@ void DspController::RecievedPswf()
     qmDebugMessage(QmDebug::Dump, "private_lcode = %d,lcode = %d", private_lcode,recievedPswfBuffer.at(recievedPswfBuffer.size()-1).at(1));
 
 
-    if (recievedPswfBuffer.at(recievedPswfBuffer.size()-1).at(1) == private_lcode){
+    if (recievedPswfBuffer.at(recievedPswfBuffer.size()-1).at(1) == private_lcode-1){
     	++pswf_rec;
     	if (pswf_rec == 1)
     	{
@@ -3055,5 +3055,5 @@ void DspController::goToVoice(){
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelInfo)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"
