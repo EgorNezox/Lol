@@ -95,10 +95,11 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->gucCoord.connect(sigc::mem_fun(this,&Service::GucCoord));
 
     pswf_status = false;
-
-    navigator->PswfSignal.connect(sigc::mem_fun(this,&Service::setPswfStatus));
+ #if defined (PORT__TARGET_DEVICE_REV1)
+ #endif
 
 #ifndef PORT__PCSIMULATOR
+    navigator->PswfSignal.connect(sigc::mem_fun(this,&Service::setPswfStatus));
     systemTimeTimer = new QmTimer(true); // TODO:
     systemTimeTimer->setInterval(1000);
     systemTimeTimer->start();
@@ -1435,6 +1436,18 @@ void Service::keyPressed(UI_Key key)
                         menu->smsTxStage++;
                     break;
                 }
+                case keyUp:
+                {
+                    if(menu->focus_line > 0)
+                        menu->focus_line--;
+                    break;
+                }
+                case keyDown:
+                {
+                    if (menu->focus_line + 4 < menu->max_line)
+                        menu->focus_line++;
+                    break;
+                }
                 default:
                 {
                     if ((*iter)->inputStr.size() < 100)
@@ -1496,7 +1509,7 @@ void Service::keyPressed(UI_Key key)
                                 for(auto &k: estate.listItem)
                                     k->inputStr.clear();
 
-                                //redrawMessage(callSubMenu[1],StartCmd);
+                                guiTree.resetCurrentState();
 
                             }
                         }
@@ -1579,31 +1592,11 @@ void Service::keyPressed(UI_Key key)
             }
             if ( key == keyEnter)
             {
-//                switch(menu->recvStage)
-//                {
-//                case 0:
-//                {
-//                    menu->recvStage = 1;
+
 #ifndef PORT__PCSIMULATOR
-                    voice_service->TurnSMSMode();
-                    //redrawMessage(callSubMenu[1],EndCmd);
+                voice_service->TurnSMSMode();
 #endif
-//                    break;
-//                }
-//                case 1:
-//                {
-//                    //
-//                    break;
-//                }
-//                case 2:
-//                {
-//                    menu->recvStage = 0;
-                    guiTree.resetCurrentState();
-//                    break;
-//                }
-//                default:
-//                    break;
-//                }
+                guiTree.resetCurrentState();
 
             }
             break;
@@ -2355,18 +2348,6 @@ void Service::drawMainWindow()
                    );
 
 
-    //main_scr->oFreq.clear();
-    //    char mas[11];
-
-    //#ifdef _DEBUG_
-    //    sprintf(mas,"%d",1);
-    //#else
-    //    sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
-    //#endif
-
-    //std::string freq(mas);
-    //main_scr->oFreq.append(freq);
-    //main_scr->setFreq(freq.c_str());
 
     bool gpsStatus = false;
 
