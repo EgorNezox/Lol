@@ -96,10 +96,10 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     pswf_status = false;
  #if defined (PORT__TARGET_DEVICE_REV1)
-    navigator->PswfSignal.connect(sigc::mem_fun(this,&Service::setPswfStatus));
  #endif
 
 #ifndef PORT__PCSIMULATOR
+    navigator->PswfSignal.connect(sigc::mem_fun(this,&Service::setPswfStatus));
     systemTimeTimer = new QmTimer(true); // TODO:
     systemTimeTimer->setInterval(1000);
     systemTimeTimer->start();
@@ -1434,6 +1434,18 @@ void Service::keyPressed(UI_Key key)
                 {
                     if ((*iter)->inputStr.size() > 0)
                         menu->smsTxStage++;
+                    break;
+                }
+                case keyUp:
+                {
+                    if(menu->focus_line > 0)
+                        menu->focus_line--;
+                    break;
+                }
+                case keyDown:
+                {
+                    if (menu->focus_line + 4 < menu->max_line)
+                        menu->focus_line++;
                     break;
                 }
                 default:

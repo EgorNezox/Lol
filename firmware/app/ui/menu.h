@@ -105,6 +105,8 @@ public:
 
     // message ( SMS )
     uint8_t smsTxStage = 1;
+    uint8_t focus_line = 1;
+    uint8_t max_line = 1;
     bool useSmsRetrans = false;
     void initTxSmsDialog(std::string, std::string);
     void inputSmsMessage(std::string*, UI_Key );
@@ -179,6 +181,8 @@ private:
     bool editing;
 
     uint8_t vol = 100;
+
+    std::string length_message;
 };
 
 
