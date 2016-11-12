@@ -190,6 +190,15 @@ public:
 
     void goToVoice();
 
+    enum SmsRole
+	{
+    	SmsRoleTx = 0,
+		SmsRoleRx = 1
+	};
+
+    uint8_t SmsLogicRole;
+    uint8_t sms_counter;
+
 private:
     friend struct DspCommand;
 
@@ -365,7 +374,6 @@ private:
     void changeSmsFrequency();
     void startSMSCmdTransmitting(SmsStage stage);
 
-    uint8_t sms_counter;
 
     void generateSmsReceived();
     int wzn_change(std::vector<int> &vect);

@@ -1502,6 +1502,7 @@ void Service::keyPressed(UI_Key key)
                             if (atoi(ch) > 0)
                             {
                                 voice_service->defaultSMSTrans();
+
                                 if (param[2] > 0)
                                     voice_service->TurnSMSMode(param[2], (char*)msg.c_str(),atoi(dstAddr.c_str())); //retr,msg,radr
                                 else

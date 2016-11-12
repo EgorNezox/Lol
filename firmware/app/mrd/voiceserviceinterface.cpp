@@ -242,11 +242,15 @@ void VoiceServiceInterface::defaultSMSTrans()
 void VoiceServiceInterface::TurnSMSMode(int r_adr, char *message, uint8_t retr)
 {
    dispatcher->dsp_controller->setSmsRetranslation(retr);
+   dispatcher->dsp_controller->sms_counter = 0;
+   dispatcher->dsp_controller->SmsLogicRole = dispatcher->dsp_controller->SmsRoleTx;
    dispatcher->dsp_controller->startSMSTransmitting(r_adr,(uint8_t*)message);
 }
 
 void VoiceServiceInterface::TurnSMSMode()
 {
+	dispatcher->dsp_controller->sms_counter = 0;
+	dispatcher->dsp_controller->SmsLogicRole = dispatcher->dsp_controller->SmsRoleRx;
     dispatcher->dsp_controller->startSMSRecieving();
 }
 
