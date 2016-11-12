@@ -362,8 +362,10 @@ private:
     void sendGucQuit();                                                                             // функция отправки квитанции в группе УК
     uint8_t *getGpsGucCoordinat(uint8_t *coord);                                                    // функция получения координат в группе УК
 
-    void changeSmsRxFrequency();
+    void changeSmsFrequency();
     void startSMSCmdTransmitting(SmsStage stage);
+
+    uint8_t sms_counter;
 
     void generateSmsReceived();
     int wzn_change(std::vector<int> &vect);
@@ -405,6 +407,7 @@ private:
         radiostatePswfRx,
         radiostateSmsTx,
         radiostateSmsRx,
+		radiostateSms,
         radiostateSmsRxPrepare,
         radiostateSmsTxPrepare,
 		radiostateSmsTxRxSwitch,

@@ -345,22 +345,27 @@ void DspController::processSyncPulse(){
         transmitPswf();
         break;
 	}
-    case radiostateSmsRx:{
-        qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostateSmsRx");
-        changeSmsRxFrequency();
-        break;
-    }
-    case radiostateSmsTx:{
-        qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostateSmsTx");
-        transmitSMS();
-        break;
-    }
-    case radiostateSmsTxRxSwitch: {
-    	qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostateSmsTxRxSwitch");
-    	radio_state = radiostateSmsRxPrepare;
-    	startSMSRecieving(ContentSms.stage);
-    	break;
-    }
+	case radiostateSms:
+	{
+		changeSmsFrequency();
+		break;
+	}
+//    case radiostateSmsRx:{
+//        qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostateSmsRx");
+//        changeSmsFrequency();
+//        break;
+//    }
+//    case radiostateSmsTx:{
+//        qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostateSmsTx");
+//        transmitSMS();
+//        break;
+//    }
+//    case radiostateSmsTxRxSwitch: {
+//    	qmDebugMessage(QmDebug::Dump, "processSyncPulse() radiostateSmsTxRxSwitch");
+//    	radio_state = radiostateSmsRxPrepare;
+//    	startSMSRecieving(ContentSms.stage);
+//    	break;
+//    }
     case radiostateGucTx:{
     	if (trans_guc == 1){
     	 sendGuc();
@@ -412,7 +417,7 @@ void DspController::getDataTime()
 
 void DspController::transmitSMS()
 {
-    getDataTime();
+    //getDataTime();
 
     ContentSms.CYC_N += 1;
 
@@ -439,7 +444,7 @@ void DspController::transmitSMS()
             counterSms[StageTx_call] = 18;
             qmDebugMessage(QmDebug::Dump, "ContentSms.stage = StageTx_call_ack");
             ContentSms.stage = StageTx_call_ack;
-            radio_state = radiostateSmsTxRxSwitch;
+            startSMSRecieving(ContentSms.stage);
             updateSmsStatus(getSmsForUiStage());
             return;
         }
@@ -458,8 +463,6 @@ void DspController::transmitSMS()
             qmDebugMessage(QmDebug::Dump, "ContentSms.stage = StageRx_data");
             QNB_RX = 0;
             ContentSms.stage = StageRx_data;
-            //radio_state = radiostateSmsTxRxSwitch;
-            radio_state = radiostateSmsRxPrepare;
             for(int i = 0;i<255;i++) rs_data_clear[i] = 0;
             startSMSRecieving(ContentSms.stage);
             updateSmsStatus(getSmsForUiStage());
@@ -479,7 +482,7 @@ void DspController::transmitSMS()
     		counterSms[StageTx_data] = 37;
     		qmDebugMessage(QmDebug::Dump, "ContentSms.stage = StageTx_quit");
     		ContentSms.stage = StageTx_quit;
-    		radio_state = radiostateSmsTxRxSwitch;
+    		startSMSRecieving(ContentSms.stage);
             updateSmsStatus(getSmsForUiStage());
     		QNB = 0;
     	}
@@ -595,21 +598,30 @@ void DspController::changePswfRxFrequency()
 }
 
 
-void DspController::changeSmsRxFrequency()
+void DspController::changeSmsFrequency()
 {
 	getDataTime();
-	//if ((retranslation_active) && (ContentSms.stage == StageRx_data)) {addSeconds(date_time);}
+
+	++sms_counter;
+
+    if ( ContentSms.stage ==  StageTx_call    || ContentSms.stage == StageTx_data   ||
+		 ContentSms.stage == StageRx_call_ack ||  ContentSms.stage == StageRx_quit   )
+    	transmitSMS();
+
+    if ( ContentSms.stage ==  StageRx_call    || ContentSms.stage == StageRx_data   ||
+		 ContentSms.stage == StageTx_call_ack ||  ContentSms.stage == StageTx_quit   )
+    	recSms();
+
     ContentSms.Frequency =  getFrequencySms();
 
-	ParameterValue param;
-	param.frequency = ContentSms.Frequency;
-	if (ContentSms.stage == StageRx_data){
-		sendCommandEasy(PSWFReceiver, 3, param);
-	}
-	else
-		sendCommandEasy(PSWFReceiver, PswfRxFrequency, param);
+    ParameterValue param;
+    param.frequency = ContentSms.Frequency;
+    if (ContentSms.stage == StageRx_data){
+    	sendCommandEasy(PSWFReceiver, 3, param);
+    }
+    else
+    	sendCommandEasy(PSWFReceiver, PswfRxFrequency, param);
 
-		recSms();
 }
 
 
@@ -2422,8 +2434,8 @@ void DspController::startSMSRecieving(SmsStage stage)
     qmDebugMessage(QmDebug::Dump, "startSmsReceiving");
     QM_ASSERT(is_ready);
 
-    getDataTime();
-    ContentSms.Frequency = getFrequencySms();
+    //getDataTime();
+    //ContentSms.Frequency = getFrequencySms();
 
     for(int i = 0; i<255; i++) rs_data_clear[i] = 0;
 
@@ -2446,7 +2458,7 @@ void DspController::startSMSRecieving(SmsStage stage)
         comandValue.pswf_indicator = RadioModePSWF;
         sendCommand(RxRadiopath, RxRadioMode, comandValue);}
     smsRxStateSync = 0;
-    radio_state = radiostateSmsRxPrepare;
+    radio_state = radiostateSms;
     ContentSms.stage = stage;
 
 }
@@ -2463,8 +2475,6 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     qmDebugMessage(QmDebug::Dump, "SMS tranmit (%d, %s)",r_adr, message);
     QM_ASSERT(is_ready);
 
-    getDataTime();
-    ContentSms.Frequency =  getFrequencySms();
     ContentSms.indicator = 20;
     ContentSms.TYPE = 0;
     ContentSms.R_ADR = r_adr;
@@ -2527,7 +2537,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     QmThread::msleep(100);
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);}
     smsTxStateSync = 0;
-    radio_state = radiostateSmsTxPrepare;
+    radio_state = radiostateSms;
     ContentSms.stage = stage;
 
     updateSmsStatus(getSmsForUiStage());
@@ -2910,7 +2920,7 @@ void DspController::startSMSCmdTransmitting(SmsStage stage)
     qmDebugMessage(QmDebug::Dump, "startSMSCmdTransmitting(%d)", stage);
     QM_ASSERT(is_ready);
 
-    getDataTime();
+    //getDataTime();
     ContentSms.Frequency =   getFrequencySms();
     ContentSms.indicator = 20;
     ContentSms.TYPE = 0;
@@ -2928,7 +2938,7 @@ void DspController::startSMSCmdTransmitting(SmsStage stage)
     	sendCommand(TxRadiopath, TxRadioMode, comandValue);
     }
     smsTxStateSync = 0;
-    radio_state = radiostateSmsTxPrepare;
+    radio_state = radiostateSms;
     ContentSms.stage = stage;
 }
 
