@@ -415,6 +415,24 @@ void DspController::getDataTime()
     addSeconds(date_time);
 }
 
+void DspController::setRx()
+{
+    ParameterValue comandValue;
+    comandValue.radio_mode = RadioModeOff;
+    sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
+    comandValue.pswf_indicator = RadioModePSWF;
+    sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
+}
+
+void DspController::setTx()
+{
+	ParameterValue comandValue;
+	comandValue.radio_mode = RadioModeOff;
+	sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
+	comandValue.pswf_indicator = RadioModePSWF;
+	sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
+}
+
 void DspController::transmitSMS()
 {
     //getDataTime();
@@ -457,7 +475,7 @@ void DspController::transmitSMS()
             return;
         }
 
-    	if (sms_counter == 78)
+    	if (sms_counter == 78 && SmsLogicRole == SmsRoleTx)
     	{
     		qmDebugMessage(QmDebug::Dump, "ContentSms.stage = StageTx_quit");
     		ContentSms.stage = StageTx_quit;
@@ -562,46 +580,70 @@ void DspController::changePswfRxFrequency()
 }
 
 
+void DspController::RxSmsWork()
+{
+	if (smsFind)
+	{
+		++sms_counter;
+
+		if (sms_counter < 38) sendSms(PSWFTransmitter);
+		if (sms_counter == 39)
+		{
+			setRx();
+			setrRxFreq();
+		}
+		if (sms_counter == 78)
+		{
+			setTx();
+			sendSms(PSWFTransmitter);
+		}
+		if (sms_counter > 78 && sms_counter < 84)
+		{
+			sendSms();
+		}
+
+		if (sms_counter == 85)
+		{
+			sms_counter = 0;
+			// TODO: recieved
+		}
+	}
+	else
+	{
+		if (sms_call_received)
+		{
+			smsFind  = true; sms_call_received = false;
+			sms_counter = 18;
+			setTx();
+			sendSms(PSWFTransmitter);
+		}
+
+		else
+		{
+			setrRxFreq();
+		}
+	}
+}
+
 void DspController::changeSmsFrequency()
 {
 	getDataTime();
 
-	if (SmsLogicRole == SmsRoleRx && sms_counter >= 19) ++sms_counter;
-	if (SmsLogicRole == SmsRoleRx && sms_call_received == true) {
-		sms_counter = 19; sms_call_received = false;
-	}
-
-	if (SmsLogicRole == SmsRoleTx)
-	++sms_counter;
-
-
 	if (SmsLogicRole == SmsRoleTx)
 	{
 
-		if (sms_counter == 39) recSms();
-
-		if (sms_counter == 78) recSms();
-
-		if ((sms_counter <= 19) || (sms_counter > 38 && sms_counter < 77))
-			transmitSMS();
-
-		if ((sms_counter > 19 && sms_counter < 38) || (sms_counter > 77 && sms_counter < 84))
-			recSms();
 	}
 
 	if (SmsLogicRole == SmsRoleRx)
 	{
-		if (sms_counter == 39) transmitSMS();
 
-		if ((sms_counter <= 19)  || (sms_counter > 38 && sms_counter < 77))
-			recSms();
-
-		if ((sms_counter > 19 && sms_counter < 38) || (sms_counter > 77 && sms_counter < 84))
-			transmitSMS();
 	}
 
+	////////////////////////////////////
+}
 
-
+void DspController::setrRxFreq()
+{
     ContentSms.Frequency =  getFrequencySms();
 
     ParameterValue param;
@@ -611,7 +653,6 @@ void DspController::changeSmsFrequency()
     }
     else
     	sendCommandEasy(PSWFReceiver, PswfRxFrequency, param);
-
 }
 
 
@@ -2170,7 +2211,7 @@ void DspController::recSms()
     		pswf_first_packet_received = false;
     	}
 
-        if (sms_counter == 76)
+        if (sms_counter == 78)
         {
             qmDebugMessage(QmDebug::Dump, "recSms() recievedSmsBuffer.size() =  %d", recievedSmsBuffer.size());
             if (recievedSmsBuffer.size() > 10) { //TODO:

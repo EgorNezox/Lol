@@ -383,6 +383,14 @@ private:
 
     uint8_t calc_ack_code(uint8_t ack);
 
+    void setRx();
+    void setTx();
+    void setrRxFreq();
+    void RxSmsWork();
+    void TxSmsWork();
+
+    bool smsFind;
+
     void getZone();
 
     Navigation::Navigator *navigator;
