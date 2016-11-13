@@ -12,7 +12,7 @@
 #include <iostream>
 #include <string.h>
 #include <string>
-#include "../../../system/reset.h"
+//#include "../../../system/reset.h"
 
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };

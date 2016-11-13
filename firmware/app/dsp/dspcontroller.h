@@ -139,11 +139,11 @@ public:
     void startGucRecieving();           // запуск приема групп ук
     void GucSwichRxTxAndViewData();     // переход от Tx к Rx, или от Rx к Tx в группах УК
 
-    void *getContentPSWF();             // функция получения структуры ППРЧ
+    void *getContentPSWF();             // функция получения структуры ПП� Ч
     char *getSmsContent();              // функция получения структуры СМС
     void setRnKey(int keyValue);        // выполняет сохранения значения ключа радиосети
-    void resetContentStructState();     // сброс логических состояний для ППРЧ-режимов
-    void processSyncPulse();            // функция, вызываемая по секундной метке -  способ отсчета времени для ППРЧ-режимов
+    void resetContentStructState();     // сброс логических состояний для ПП� Ч-режимов
+    void processSyncPulse();            // функция, вызываемая по секундной метке -  способ отсчета времени для ПП� Ч-режимов
     uint8_t* get_guc_vector();          // функция доступа к структуре УК
 
 	void tuneModemFrequency(uint32_t value);
@@ -353,6 +353,8 @@ private:
 
     int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);                              // функция рассчета частоты смещения для УК
     int CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);                        // функция рассчета частоты смещения для СМС
+    int CalcSmsTransmitRxRoleFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
+    int CalcSmsTransmitTxRoleFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int prevSecond(int second);                                                                     // функция получения предыдущей секунды
 
     void RecievedPswf();                                                                            // функция проверки для lcode
