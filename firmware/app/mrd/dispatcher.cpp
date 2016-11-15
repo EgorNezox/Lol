@@ -81,6 +81,7 @@ VoiceServiceInterface* Dispatcher::getVoiceServiceInterface() {
 
 void Dispatcher::processDspStartup() {
 	setupVoiceMode(headset_controller->getStatus());
+	dsp_controller->setAdr();
 }
 
 bool Dispatcher::processHeadsetPttStateChange(bool new_state) {

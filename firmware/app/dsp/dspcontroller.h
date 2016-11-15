@@ -190,8 +190,11 @@ public:
 
     void goToVoice();
 
+    void prevTime();
+
     enum SmsRole
 	{
+    	SmsRoleIdle = 2,
     	SmsRoleTx = 0,
 		SmsRoleRx = 1
 	};
@@ -199,8 +202,13 @@ public:
     uint8_t SmsLogicRole;
     uint8_t sms_counter;
 
+    void setAdr();
+
 private:
     friend struct DspCommand;
+
+    void checkForTxAction();
+    void checkForRxAction();
 
     int sms_data_count = 0;
 
