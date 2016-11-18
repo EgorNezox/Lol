@@ -66,7 +66,7 @@ void DspTransport::transmitFrame(uint8_t address, uint8_t* data, int data_len) {
 	uint8_t frame_header[3];
 	CRC16arc crc;
 	uint8_t frame_footer[3];
-	qmDebugMessage(QmDebug::Info, "transmitting frame (address=0x%02X, data_len=%d)", address, data_len);
+	//qmDebugMessage(QmDebug::Info, "transmitting frame (address=0x%02X, data_len=%d)", address, data_len);
 	qmToBigEndian((uint8_t)FRAME_START_DELIMITER, frame_header+0);
 	qmToBigEndian((uint8_t)(4 + data_len), frame_header+1);
 	qmToBigEndian((uint8_t)address, frame_header+2);
@@ -76,7 +76,7 @@ void DspTransport::transmitFrame(uint8_t address, uint8_t* data, int data_len) {
 	qmToBigEndian((uint16_t)0, frame_footer+0);
 	qmToBigEndian((uint8_t)FRAME_END_DELIMITER, frame_footer+2);
 	int64_t written = 0;
-	if (qmDebugIsVerbose()) {
+	/*if (qmDebugIsVerbose()) {
 		qmDebugMessage(QmDebug::Dump, "uart tx: - frame start");
 		for (unsigned int i = 1; i < sizeof(frame_header); i++)
 			qmDebugMessage(QmDebug::Dump, "uart tx: - frame data 0x%02X", frame_header[i]);
@@ -85,7 +85,7 @@ void DspTransport::transmitFrame(uint8_t address, uint8_t* data, int data_len) {
 		for (unsigned int i = 0; i < (sizeof(frame_footer) - 1); i++)
 			qmDebugMessage(QmDebug::Dump, "uart tx: - frame data 0x%02X", frame_footer[i]);
 		qmDebugMessage(QmDebug::Dump, "uart tx: - frame end");
-	}
+	}*/
 	written += uart->writeData(frame_header, sizeof(frame_header));
 	written += uart->writeData(data, data_len);
 	written += uart->writeData(frame_footer, sizeof(frame_footer));
@@ -94,19 +94,19 @@ void DspTransport::transmitFrame(uint8_t address, uint8_t* data, int data_len) {
 
 void DspTransport::processUartReceivedData() {
 	uint8_t byte;
-	qmDebugMessage(QmDebug::Dump, "uart rx data...");
+	//qmDebugMessage(QmDebug::Dump, "uart rx data...");
 	while (uart->readData(&byte, 1)) {
 		switch (rx_state) {
 		case rxstateNoSync: {
 			if (byte == FRAME_START_DELIMITER) {
-				qmDebugMessage(QmDebug::Info, "uart rx: - frame start synchronized");
+				//qmDebugMessage(QmDebug::Info, "uart rx: - frame start synchronized");
 				rx_state = rxstateFrame;
 				rx_frame_size = 0;
 			} else if (byte == FRAME_END_DELIMITER) {
-				qmDebugMessage(QmDebug::Info, "uart rx: - (possible) frame end synchronized");
+				//qmDebugMessage(QmDebug::Info, "uart rx: - (possible) frame end synchronized");
 				rx_state = rxstateSync;
 			} else {
-				qmDebugMessage(QmDebug::Dump, "uart rx: - ignoring out-of-sync byte 0x%02X", byte);
+				//qmDebugMessage(QmDebug::Dump, "uart rx: - ignoring out-of-sync byte 0x%02X", byte);
 			}
 			break;
 		}
@@ -126,13 +126,13 @@ void DspTransport::processUartReceivedData() {
 				rx_frame_buf[rx_frame_size++] = byte;
 				rx_frame_expected_size = byte;
 				if ((4 <= rx_frame_expected_size) && (rx_frame_expected_size <= MAX_FRAME_SIZE)) {
-					qmDebugMessage(QmDebug::Dump, "uart rx: - frame size %u bytes", rx_frame_expected_size);
+					//qmDebugMessage(QmDebug::Dump, "uart rx: - frame size %u bytes", rx_frame_expected_size);
 				} else {
-					qmDebugMessage(QmDebug::Warning, "uart rx: - wrong frame size (%u bytes), dropping frame and synchronization", rx_frame_expected_size);
+					//qmDebugMessage(QmDebug::Warning, "uart rx: - wrong frame size (%u bytes), dropping frame and synchronization", rx_frame_expected_size);
 					rx_state = rxstateNoSync;
 				}
 			} else if (rx_frame_size < rx_frame_expected_size) {
-				qmDebugMessage(QmDebug::Dump, "uart rx: - frame data 0x%02X", byte);
+				//qmDebugMessage(QmDebug::Dump, "uart rx: - frame data 0x%02X", byte);
 				rx_frame_buf[rx_frame_size++] = byte;
 			} else {
 				if (byte == FRAME_END_DELIMITER) {
@@ -145,13 +145,13 @@ void DspTransport::processUartReceivedData() {
 					CRC16arc crc;
 					crc.update(rx_frame_buf, (rx_frame_size - 2));
 					if (!((rx_data_len > 0)/* && (crc.result() == crc_value)*/)) {
-						qmDebugMessage(QmDebug::Warning, "uart rx: - bad frame, dropping");
+						//qmDebugMessage(QmDebug::Warning, "uart rx: - bad frame, dropping");
 						break;
 					}
-					qmDebugMessage(QmDebug::Info, "received frame (address=0x%02X, data_len=%u)", rx_address, rx_data_len);
+					//qmDebugMessage(QmDebug::Info, "received frame (address=0x%02X, data_len=%u)", rx_address, rx_data_len);
 					receivedFrame(rx_address, rx_data, rx_data_len);
 				} else {
-					qmDebugMessage(QmDebug::Warning, "uart rx: - sync lost (unexpected frame end 0x%02X)", byte);
+					//qmDebugMessage(QmDebug::Warning, "uart rx: - sync lost (unexpected frame end 0x%02X)", byte);
 					rx_state = rxstateNoSync;
 				}
 			}

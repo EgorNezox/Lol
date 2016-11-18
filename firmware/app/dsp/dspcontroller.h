@@ -190,6 +190,8 @@ public:
 
     void goToVoice();
 
+    void resetSmsState();
+
     void prevTime();
 
     enum SmsRole
@@ -207,7 +209,7 @@ public:
 private:
     friend struct DspCommand;
 
-    void checkForTxAction();
+    bool checkForTxAnswer();
     void checkForRxAction();
 
     int sms_data_count = 0;
@@ -385,7 +387,7 @@ private:
     void startSMSCmdTransmitting(SmsStage stage);
 
 
-    void generateSmsReceived();
+    bool generateSmsReceived();
     int wzn_change(std::vector<int> &vect);
     int calcFstn(int R_ADR, int S_ADR, int RN_KEY, int SEC, int MIN, int HRS, int DAY, int QNB);
 
@@ -508,6 +510,8 @@ bool modem_rx_on, modem_tx_on;
     uint8_t guc_text[120];                                      // массив хранения и вывода на экран команд и коодинат для режима групп ук
     uint8_t guc_coord[10];                                      // массив для хранения координат в гук
     int  freqGucValue = 0;                                      // частота для установки в гук
+
+    uint8_t smsDataPacket[255];
 };
 
 
