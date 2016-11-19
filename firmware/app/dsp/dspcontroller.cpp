@@ -642,9 +642,14 @@ void DspController::TxSmsWork()
         sendSms(PSWFTransmitter);
     }
 
-    if (sms_counter > 19 && sms_counter < 38)
+    if (sms_counter == 20)
     {
-        setRx();
+    	setRx();
+    	 setrRxFreq();
+    }
+
+    if (sms_counter > 20 && sms_counter < 38)
+    {
         setrRxFreq();
     }
 
