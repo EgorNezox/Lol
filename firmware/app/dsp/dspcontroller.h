@@ -139,11 +139,11 @@ public:
     void startGucRecieving();           // запуск приема групп ук
     void GucSwichRxTxAndViewData();     // переход от Tx к Rx, или от Rx к Tx в группах УК
 
-    void *getContentPSWF();             // функция получения структуры ПП� Ч
+    void *getContentPSWF();             // функция получения структуры ПП� Ч
     char *getSmsContent();              // функция получения структуры СМС
     void setRnKey(int keyValue);        // выполняет сохранения значения ключа радиосети
-    void resetContentStructState();     // сброс логических состояний для ПП� Ч-режимов
-    void processSyncPulse();            // функция, вызываемая по секундной метке -  способ отсчета времени для ПП� Ч-режимов
+    void resetContentStructState();     // сброс логических состояний для ПП� Ч-режимов
+    void processSyncPulse();            // функция, вызываемая по секундной метке -  способ отсчета времени для ПП� Ч-режимов
     uint8_t* get_guc_vector();          // функция доступа к структуре УК
 
 	void tuneModemFrequency(uint32_t value);
@@ -201,6 +201,14 @@ public:
 		SmsRoleRx = 1
 	};
 
+    enum CondComRole
+	{
+    	CondComTx = 0,
+		CondComRx = 1
+	};
+
+
+    uint8_t CondComLogicRole;
     uint8_t SmsLogicRole;
     uint8_t sms_counter;
 
@@ -210,7 +218,6 @@ private:
     friend struct DspCommand;
 
     bool checkForTxAnswer();
-    void checkForRxAction();
 
     int sms_data_count = 0;
 
@@ -372,20 +379,16 @@ private:
     int getFrequencySms();                                                                          // функция рассчета СЛЕДУЮЩЕЙ ЧАСТОЫТ В СМС
 
     void getSwr();                                                                                  // функция настройки шумоподавителя
-    void transmitPswf();                                                                            // функция отправки УК
+    void sendPswf();                                                                            // функция отправки УК
     void addSeconds(int *date_time);                                                                // функция добавления секунды к текущей секунде
     void changePswfRxFrequency();                                                                   // функция приема УК
     void syncPulseDetected();                                                                       // функция выполения задач по секундной метке
     void getDataTime();                                                                             // функция получения времени
-    void transmitSMS();                                                                             // функция обработки состояний СМС-передачи
     void sendSms(Module module);                                                                    // функция отправки СМС
-    void recSms();                                                                                  // функция обработки состояний СМС-приема
     void sendGucQuit();                                                                             // функция отправки квитанции в группе УК
     uint8_t *getGpsGucCoordinat(uint8_t *coord);                                                    // функция получения координат в группе УК
 
     void changeSmsFrequency();
-    void startSMSCmdTransmitting(SmsStage stage);
-
 
     bool generateSmsReceived();
     int wzn_change(std::vector<int> &vect);
@@ -400,6 +403,10 @@ private:
     void setrRxFreq();
     void RxSmsWork();
     void TxSmsWork();
+
+    void setPswfRx();
+    void setPswfTx();
+    void setPswfRxFreq();
 
     bool smsFind;
 
@@ -432,6 +439,7 @@ private:
 		radiostatePswfTxPrepare,
 		radiostatePswfTx,
         radiostatePswfRxPrepare,
+		radiostatePswf,
         radiostatePswfRx,
         radiostateSmsTx,
         radiostateSmsRx,
