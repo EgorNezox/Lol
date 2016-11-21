@@ -88,11 +88,13 @@ public:
     void updateSmsStatus(int value);
     void setPswfStatus(bool var);
 
+
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
     void msgBox(const char*, const int);
     void msgBox(const char*, const int, const int, const int);
+    void msgBoxSms(const char *text);
     void redrawMessage(const char *title,const char *message);
 
     matrix_keyboard_t matrix_kb;
@@ -166,6 +168,9 @@ private:
     int zond_position = 0;
     std::vector<std::string> zond_data;
     bool pswf_status;
+
+    int cntSmsRx = 0;
+    bool isSmsMessageRec = false;
 };
 
 } /* namespace Ui */

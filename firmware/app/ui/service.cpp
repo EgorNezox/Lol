@@ -120,6 +120,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     }
 
     menu->supressStatus = 0;
+    cntSmsRx = 0;
 
     draw();
 }
@@ -313,7 +314,7 @@ void Service::FailedSms(int stage)
     {
     case -1:
     {
-        guiTree.append(messangeWindow, "Sucsess Sms", "Sms Sucsess");
+        guiTree.append(messangeWindow, "Sucsess Sms", EndSms);
         msgBox( "Recieved packet ", "Sms Sucsess" );
         break;
     }
@@ -1586,21 +1587,61 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::rxSmsMessage:
         {
-            if ( key == keyBack)
-            {
-                guiTree.backvard();
-                menu->focus = 0;
-            }
-            if ( key == keyEnter)
-            {
+        	if ( key == keyBack)
+        	{
+        		guiTree.backvard();
+        		menu->focus = 0;
+        	}
+        	if ( key == keyEnter)
+        	{
+            	++cntSmsRx;
 
-#ifndef PORT__PCSIMULATOR
-                voice_service->TurnSMSMode();
-#endif
-                guiTree.resetCurrentState();
+        	  if (cntSmsRx == 1)
+        	  {
+        		menu->initRxSmsDialog("start");
+        		menu->focus_line  = 1;
+        		isSmsMessageRec = false;
+        	  }
+        	  if (cntSmsRx == 2)
+        	  {
+				#ifndef PORT__PCSIMULATOR
+        		voice_service->TurnSMSMode();
+				#endif
+        		menu->initRxSmsDialog("...");
+        	  }
 
-            }
-            break;
+        	  if (cntSmsRx == 3)
+        	  {
+        		  guiTree.resetCurrentState();
+        		  menu->focus_line = 1;
+        		  isSmsMessageRec = false;
+        		  menu->smsStage = 0;
+        		  cntSmsRx = 0;
+        	  }
+        	}
+
+        	if ( key == keyUp)
+        	{
+        		if (menu->focus_line > 1) --menu->focus_line;
+
+        		if (cntSmsRx >= 2 && isSmsMessageRec == true)
+        		{
+        			//msgBoxSms(voice_service->getSmsContent());
+        			 menu->initTxSmsDialog((char*)"CKC",voice_service->getSmsContent());
+        		}
+
+        	}
+        	if ( key == keyDown)
+        	{
+        		++menu->focus_line;
+
+        		if (cntSmsRx >= 2 && isSmsMessageRec == true)
+        		{
+        			//msgBoxSms(voice_service->getSmsContent());
+        			 menu->initTxSmsDialog((char*)"CKC",voice_service->getSmsContent());
+        		}
+        	}
+        	break;
         }
         case GuiWindowsSubType::recvGroupCondCmd:
         {
@@ -2512,7 +2553,7 @@ void Service::drawMenu()
         case GuiWindowsSubType::recvVoice:
         case GuiWindowsSubType::rxSmsMessage:
         {
-            //menu->initRxSmsDialog();
+
             break;
         }
         case GuiWindowsSubType::rxPutOffVoice:
@@ -2816,14 +2857,18 @@ void Service::smsMessage(int value)
     char sym[value];//TODO:
     for(int i = 0; i<value;++i) sym[i] = '0';
 
-    memcpy(sym, voice_service->getSmsContent(), 50);
+    memcpy(sym, voice_service->getSmsContent(), value);
     sym[value-1] = '\0';
 
     const char *text;
     text = &sym[0];
 
-    msgBox( EndCmd, text );
-    guiTree.append(messangeWindow, "Recieved SMS\0", "SMS\0");
+    isSmsMessageRec = true;
+
+    std::string title = "";
+    std::string text_str = text;
+    menu->smsTxStage = 4;
+    menu->initTxSmsDialog(title,text_str);
 }
 
 void Service::updateAleVmProgress(uint8_t t)
@@ -2840,6 +2885,24 @@ void Service::updateAleVmProgress(uint8_t t)
             drawMenu();
     }
 }
+
+void Service::msgBoxSms(const char *text)
+{
+
+	Alignment align007 = {alignHCenter,alignTop};
+	MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+	if(msg_box == nullptr)
+	{
+		msg_box = new GUI_Dialog_MsgBox(&area007, (char*)"SMS",(char*)text, align007);
+	}
+
+
+
+	msg_box->Draw_Sms();
+
+}
+
+
 
 void Service::updateAleState(Multiradio::MainServiceInterface::AleState state)
 {

@@ -120,6 +120,7 @@ public:
     void Draws();
     void keyPressed(UI_Key);
     void setCmd(int cmd);
+    void Draw_Sms();
 
 protected:
     MoonsGeometry window_geom;
@@ -133,6 +134,9 @@ protected:
 public:
     uint32_t list_size;
     uint32_t position;
+
+    uint8_t focus_rxline = 1;
+    uint8_t max_line = 1;
 
 private:
     MoonsGeometry title_area_geom;

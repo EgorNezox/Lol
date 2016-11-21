@@ -141,5 +141,6 @@ extern const char *zondSubMenu[];
 
 extern const char *StartCmd;
 extern const char *EndCmd;
+extern const char *EndSms;
 
 #endif /* TEXTS_H_ */
