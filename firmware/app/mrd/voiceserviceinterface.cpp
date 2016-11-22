@@ -39,6 +39,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 
 VoiceServiceInterface::~VoiceServiceInterface()
 {
+
 }
 
 void VoiceServiceInterface::messageGucQuit(int ans){

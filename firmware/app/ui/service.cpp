@@ -77,7 +77,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateHeadset));
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
-    voice_service->command_tx30.connect(sigc::mem_fun(menu, &Service::TxCondCmdPackage));
+    voice_service->command_tx30.connect(sigc::mem_fun(this, &Service::TxCondCmdPackage));
 
 
     //    guc_command_vector.push_back(2);
@@ -981,8 +981,10 @@ void Service::keyPressed(UI_Key key)
                 {
                     menu->txCondCmdStage--;
                 }
-                break;
-                menu->txCondCmdStage--;
+                    break;
+                {
+                    menu->txCondCmdStage--;
+                }
             }
             default:
                 break;
@@ -2961,6 +2963,22 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
         GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
         if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 2)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 5)))
             drawMenu();
+    }
+}
+
+void Service::TxCondCmdPackage(int value)
+{
+    if (value == 30)
+    {
+        guiTree.resetCurrentState();
+        menu->TxCondCmdPackage(0);
+        menu->txCondCmdStage = 0;
+        draw();
+    }
+    else
+    {
+        menu->TxCondCmdPackage(value);
+        menu->initCondCommDialog((CEndState&)guiTree.getCurrentState());
     }
 }
 

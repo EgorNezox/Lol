@@ -138,11 +138,23 @@ void CGuiMenu::initCondCommDialog(CEndState state) // УК
            str.append(startStr);
         break;
     }
+    case 6:
+    { //stage send
+        char pac[] = {0,0};
+        sprintf(pac,"%i",command_tx30);
+        str.append(pac);
+        str.append("/30");
+        break;
+    }
     default:
     {break;}
     }
 
-    LabelParams params = GUI_EL_TEMP_LabelMode;
+    LabelParams params;
+    if (txCondCmdStage == 4)
+    params = GUI_EL_TEMP_LabelChannel;
+    else
+    params = GUI_EL_TEMP_LabelMode;
     params.element.align = {alignHCenter, alignVCenter};
     params.transparent = true;
 
@@ -1521,4 +1533,9 @@ void CGuiMenu::initSelectChEmissTypeParameters(bool use)
     window.Draw();
     label.Draw();
     value.Draw();
+}
+
+void CGuiMenu::TxCondCmdPackage(int value)  // Передача УК  пакеты
+{
+   command_tx30 = value;
 }
