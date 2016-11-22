@@ -14,7 +14,7 @@ extern char stm32f2cube_hal_active;
 
 void init_stm32f2cube_hal() {
 	stm32f2cube_hal_active = 1;
-//	HAL_Init();
+	HAL_Init();
 //	__enable_irq();
 }
 

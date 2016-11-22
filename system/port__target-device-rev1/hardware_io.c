@@ -34,6 +34,7 @@ extern void init_stm32f2cube_hal();
 extern void deinit_stm32f2cube_hal();
 extern void tune_frequency_generator(void);
 extern void init_sky72310(void);
+extern void init_rtc(void);
 
 char stm32f2_ext_sram_test(void) __attribute__((optimize("-O0")));
 
@@ -292,6 +293,7 @@ void target_device_multiradio_init(void) {
 	init_stm32f2cube_hal();
 	tune_frequency_generator();
 	init_sky72310();
+	init_rtc();
 	deinit_stm32f2cube_hal();
 }
 
