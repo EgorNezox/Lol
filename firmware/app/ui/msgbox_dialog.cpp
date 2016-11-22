@@ -156,6 +156,62 @@ void GUI_Dialog_MsgBox::Draws(){
   ok_button.Draw();
 }
 
+
+void GUI_Dialog_MsgBox::Draw_Sms()
+{
+    text_area_geom  = { (GXT)(window_geom.xs + MARGIN), (GYT)(window_geom.ys + 10*MARGIN + 1), (GXT)(window_geom.xe - MARGIN), (GYT)( window_geom.ye - (MARGIN + BUTTON_HEIGHT) ) };
+    MoonsGeometry sliderArea  = { 150, 25, 157, 110};
+    int32_t all_line = 1;
+    std::string str;
+    str = text;
+
+    TextAreaParams text_area_params = GUI_EL_TEMP_LabelMode;
+    Alignment align007 = {alignLeft,alignTop};
+    text_area_params.element.align = align007;
+
+    for (uint8_t i = 0; i < str.size(); i++)
+    {
+        if ( (i%8 == 0) && (i != 0) )
+        {
+            str.push_back('\n');
+            all_line++;                 // кол-во строк
+        }
+    }
+    int len = str.size();
+    char str_len[] = {0,0,0,0};
+    sprintf(str_len,"%d",len);
+    if(all_line > max_line || focus_rxline > all_line-4)
+    {
+    	focus_rxline = all_line-4;
+    }
+    max_line = all_line;
+
+    if (focus_rxline > max_line) focus_rxline = max_line;
+
+    char* pointer = (char*)str.c_str();
+    SliderParams  sliderParams;
+    if(all_line <= 4)
+    {
+        sliderParams = { (int32_t)1, (int32_t)1, (int32_t)1 };                      // { из какого количества элементов, 1, позиция }
+    }
+    else
+    {
+        str = (char*)&pointer[9*focus_rxline];
+        strncpy((char*)str.c_str(),(char*)str.c_str(),(9*focus_rxline));
+        sliderParams = { (int32_t)all_line-3, (int32_t)1, (int32_t)focus_rxline};      // { из какого количества элементов, 1, позиция с прокруткой }
+    }
+
+
+    GUI_EL_Window   window( &GUI_EL_TEMP_WindowGeneral, &window_geom, (GUI_Obj *)this );
+    GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
+    GUI_EL_TextArea text_area ( &text_area_params,  &text_area_geom,  (char*)str.c_str(),  (GUI_Obj *)this );
+
+    window.Draw();
+    text_area.Draw();
+    slider.Draw();
+}
+
+
 void GUI_Dialog_MsgBox::keyPressed(UI_Key key)
 {
     if (key == keyUp && position > 0)

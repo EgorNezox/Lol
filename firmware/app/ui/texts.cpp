@@ -207,3 +207,4 @@ const char* dsphardwarefailure_unknown_text_str = "Устр. %d, код %d";
 
 const char *StartCmd = "Передача...\0";
 const char *EndCmd   = "Прием\0";
+const char *EndSms   = "Принята квитаниция\0";

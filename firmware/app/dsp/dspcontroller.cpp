@@ -2,7 +2,7 @@
  ******************************************************************************
  * @file    dspcontroller.cpp
  * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
- * @author  неизвестные
+ * @author  РЅРµРёР·РІРµСЃС‚РЅС‹Рµ
  * @date    22.12.2015
  *
  ******************************************************************************
@@ -26,7 +26,7 @@
 #include <cstring>
 
 
-#define DEFAULT_PACKET_HEADER_LEN	2 // индикатор кадра + код параметра ("адрес" на самом деле не входит сюда, это "адрес назначения" из канального уровня)
+#define DEFAULT_PACKET_HEADER_LEN	2 // РёРЅРґРёРєР°С‚РѕСЂ РєР°РґСЂР° + РєРѕРґ РїР°СЂР°РјРµС‚СЂР° ("Р°РґСЂРµСЃ" РЅР° СЃР°РјРѕРј РґРµР»Рµ РЅРµ РІС…РѕРґРёС‚ СЃСЋРґР°, СЌС‚Рѕ "Р°РґСЂРµСЃ РЅР°Р·РЅР°С‡РµРЅРёСЏ" РёР· РєР°РЅР°Р»СЊРЅРѕРіРѕ СѓСЂРѕРІРЅСЏ)
 
 #define DefkeyValue 631
 
@@ -95,7 +95,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	command_timer->setInterval(50); //50
 	command_timer->timeout.connect(sigc::mem_fun(this, &DspController::processCommandTimeout));
 	reset_iopin = new QmIopin(reset_iopin_resource, this);
-	// max_tx_queue_size: 1 команда радиотракта + 1 запас
+	// max_tx_queue_size: 1 РєРѕРјР°РЅРґР° СЂР°РґРёРѕС‚СЂР°РєС‚Р° + 1 Р·Р°РїР°СЃ
 	transport = new DspTransport(uart_resource, 2, this);
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 	initResetState();
@@ -761,7 +761,7 @@ int DspController::getFrequencyPswf()
 	int fr_sh = CalcShiftFreq(ContentPSWF.RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
 	fr_sh += 1622;
 
-	fr_sh = fr_sh * 1000; // Гц
+	fr_sh = fr_sh * 1000; // Р“С†
 
 	for(int i = 0; i<32;i+=2)
 	{
@@ -783,7 +783,7 @@ int DspController::getFrequencySms()
     int fr_sh = CalcSmsTransmitFreq(ContentSms.RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
     fr_sh += 1622;
 
-    fr_sh = fr_sh * 1000; // Гц
+    fr_sh = fr_sh * 1000; // Р“С†
 
     for(int i = 0; i<32;i+=2)
     {
@@ -811,14 +811,14 @@ void DspController::resetContentStructState()
 {
     ContentGuc.stage = GucNone;
     ContentSms.stage = StageNone;
-    // добавить определение других функций
+    // РґРѕР±Р°РІРёС‚СЊ РѕРїСЂРµРґРµР»РµРЅРёРµ РґСЂСѓРіРёС… С„СѓРЅРєС†РёР№
 }
 
 int DspController::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
 {
-    int TOT_W = 6671; // ширина разрешенных участков
+    int TOT_W = 6671; // С€РёСЂРёРЅР° СЂР°Р·СЂРµС€РµРЅРЅС‹С… СѓС‡Р°СЃС‚РєРѕРІ
 
-    int SEC_MLT = value_sec[SEC]; // SEC_MLT выбираем в массиве
+    int SEC_MLT = value_sec[SEC]; // SEC_MLT РІС‹Р±РёСЂР°РµРј РІ РјР°СЃСЃРёРІРµ
 
     int FR_SH = (RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY)% TOT_W;
 
@@ -1175,8 +1175,8 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 	uint8_t tx_address;
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 	int tx_data_len = DEFAULT_PACKET_HEADER_LEN;
-	qmToBigEndian((uint8_t)2, tx_data+0); // индикатор: "команда (установка)"
-	qmToBigEndian((uint8_t)code, tx_data+1); // код параметра
+	qmToBigEndian((uint8_t)2, tx_data+0); // РёРЅРґРёРєР°С‚РѕСЂ: "РєРѕРјР°РЅРґР° (СѓСЃС‚Р°РЅРѕРІРєР°)"
+	qmToBigEndian((uint8_t)code, tx_data+1); // РєРѕРґ РїР°СЂР°РјРµС‚СЂР°
 	switch (module) {
 	case RxRadiopath:
 	case TxRadiopath: {
@@ -1231,7 +1231,7 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 		}
 		break;
 	}
-	// для ПП� Ч
+	// РґР»СЏ РџРџпїЅ Р§
 	case PSWFTransmitter: {
 		QM_ASSERT(0);
 		break;
@@ -1327,8 +1327,8 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 		uint8_t tx_address;
 		uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 		int tx_data_len = DEFAULT_PACKET_HEADER_LEN;
-		qmToBigEndian((uint8_t)2, tx_data+0); // индикатор: "команда (установка)"
-		qmToBigEndian((uint8_t)code, tx_data+1); // код параметра
+		qmToBigEndian((uint8_t)2, tx_data+0); // РёРЅРґРёРєР°С‚РѕСЂ: "РєРѕРјР°РЅРґР° (СѓСЃС‚Р°РЅРѕРІРєР°)"
+		qmToBigEndian((uint8_t)code, tx_data+1); // РєРѕРґ РїР°СЂР°РјРµС‚СЂР°
 		switch (module) {
 		case RxRadiopath:
 		case TxRadiopath: {
@@ -1383,7 +1383,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 			}
 			break;
 		}
-		// для ПП� Ч
+		// РґР»СЏ РџРџпїЅ Р§
 		case PSWFTransmitter: {
 			QM_ASSERT(0);
 			break;
@@ -1491,7 +1491,7 @@ void DspController::sendGuc()
 
     ContentGuc.Coord = (isGpsGuc == true) ? 1 : 0;
 
-    // заполнение чвс для основных данных пакета
+    // Р·Р°РїРѕР»РЅРµРЅРёРµ С‡РІСЃ РґР»СЏ РѕСЃРЅРѕРІРЅС‹С… РґР°РЅРЅС‹С… РїР°РєРµС‚Р°
     uint8_t pack[5] = {0, 0, 0, 0, 0};
     pack[4] = (ContentGuc.S_ADR & 0x1F) << 3;
     pack[4] |= (ContentGuc.R_ADR & 0x1F) >> 2;
@@ -1509,10 +1509,10 @@ void DspController::sendGuc()
     	++tx_data_len;
     }
 
-    int crc32_len = ContentGuc.NUM_com; // реальное количество команд
+    int crc32_len = ContentGuc.NUM_com; // СЂРµР°Р»СЊРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ РєРѕРјР°РЅРґ
     int real_len = crc32_len;
 
-    // Выбор количества передаваемых байтов с координатами или без по регламенту
+    // Р’С‹Р±РѕСЂ РєРѕР»РёС‡РµСЃС‚РІР° РїРµСЂРµРґР°РІР°РµРјС‹С… Р±Р°Р№С‚РѕРІ СЃ РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё РёР»Рё Р±РµР· РїРѕ СЂРµРіР»Р°РјРµРЅС‚Сѓ
     if (isGpsGuc){
         if (ContentGuc.NUM_com <= 6) ContentGuc.NUM_com = 6;
         if ((ContentGuc.NUM_com > 6) && (ContentGuc.NUM_com <= 10))    ContentGuc.NUM_com = 10;
@@ -1533,7 +1533,7 @@ void DspController::sendGuc()
         ++tx_data_len;
     }
 
-    // обработка и получение координат, добавление в исходный массив для защиты  crc32 сумой (ДАННЫЕ + КООДИНАТЫ)
+    // РѕР±СЂР°Р±РѕС‚РєР° Рё РїРѕР»СѓС‡РµРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚, РґРѕР±Р°РІР»РµРЅРёРµ РІ РёСЃС…РѕРґРЅС‹Р№ РјР°СЃСЃРёРІ РґР»СЏ Р·Р°С‰РёС‚С‹  crc32 СЃСѓРјРѕР№ (Р”РђРќРќР«Р• + РљРћРћР”Р�РќРђРўР«)
     if (isGpsGuc)
     {
        uint8_t coord[9] = {0,0,0,0,0,0,0,0,0};
@@ -1545,7 +1545,7 @@ void DspController::sendGuc()
        }
     }
 
-    // выбор длинны кодируемого массива
+    // РІС‹Р±РѕСЂ РґР»РёРЅРЅС‹ РєРѕРґРёСЂСѓРµРјРѕРіРѕ РјР°СЃСЃРёРІР°
      crc32_len = (isGpsGuc == true) ? (ContentGuc.NUM_com + 9) : (ContentGuc.NUM_com);
 
      std::vector<bool> data_guc;
@@ -1581,7 +1581,7 @@ void DspController::sendGuc()
          }
      }
 
-    // сдвиг массива для crc32-суммы
+    // СЃРґРІРёРі РјР°СЃСЃРёРІР° РґР»СЏ crc32-СЃСѓРјРјС‹
     if (isGpsGuc){
         pack_manager->getArrayByteFromBit(data_guc,ContentGuc.command);
         crc32_len = data_guc.size() / 8;
@@ -1616,7 +1616,7 @@ void DspController::sendGuc()
     	}
 
     }
-     // добавление crc32 к пакету данных
+     // РґРѕР±Р°РІР»РµРЅРёРµ crc32 Рє РїР°РєРµС‚Сѓ РґР°РЅРЅС‹С…
      uint32_t crc = pack_manager->CRC32(ContentGuc.command, crc32_len);
      qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
      tx_data_len += 4;
@@ -1674,13 +1674,13 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 
 	switch (address) {
 	case 0x11: {
-		if ((indicator == 5) && (code == 2) && (value_len == 6)) // инициативное сообщение с цифровой информацией о прошивке ?
+		if ((indicator == 5) && (code == 2) && (value_len == 6)) // РёРЅРёС†РёР°С‚РёРІРЅРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ СЃ С†РёС„СЂРѕРІРѕР№ РёРЅС„РѕСЂРјР°С†РёРµР№ Рѕ РїСЂРѕС€РёРІРєРµ ?
 			processStartup(qmFromBigEndian<uint16_t>(value_ptr+0), qmFromBigEndian<uint16_t>(value_ptr+2), qmFromBigEndian<uint16_t>(value_ptr+4));
 		break;
 	}
 	case 0x31: {
-    	value_ptr -= 1; // костылное превращение в нестандартный формат кадра
-    	value_len += 1; // костылное превращение в нестандартный формат кадра
+    	value_ptr -= 1; // РєРѕСЃС‚С‹Р»РЅРѕРµ РїСЂРµРІСЂР°С‰РµРЅРёРµ РІ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РѕСЂРјР°С‚ РєР°РґСЂР°
+    	value_len += 1; // РєРѕСЃС‚С‹Р»РЅРѕРµ РїСЂРµРІСЂР°С‰РµРЅРёРµ РІ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РѕСЂРјР°С‚ РєР°РґСЂР°
     	if (indicator == 5) {
     		uint8_t subdevice_code = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+0);
     		uint8_t error_code = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
@@ -1690,7 +1690,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	}
 	case 0x51:
 	case 0x81: {
-		if ((indicator == 3) || (indicator == 4)) { // "команда выполнена", "команда не выполнена" ?
+		if ((indicator == 3) || (indicator == 4)) { // "РєРѕРјР°РЅРґР° РІС‹РїРѕР»РЅРµРЅР°", "РєРѕРјР°РЅРґР° РЅРµ РІС‹РїРѕР»РЅРµРЅР°" ?
 			ParameterValue value;
 			if ((code == 1) && (value_len == 4)) {
 				value.frequency = qmFromBigEndian<uint32_t>(value_ptr+0);
@@ -1867,7 +1867,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             if (indicator == 30) {
                 ContentGuc.R_ADR = ((data[2] & 0xF8) >> 3);
             	ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
-                isGpsGuc = data[5] & 0x1; // TODO: требуется проверить в реальных условиях
+                isGpsGuc = data[5] & 0x1; // TODO: С‚СЂРµР±СѓРµС‚СЃСЏ РїСЂРѕРІРµСЂРёС‚СЊ РІ СЂРµР°Р»СЊРЅС‹С… СѓСЃР»РѕРІРёСЏС…
 
                 if (ContentGuc.stage == GucTxQuit){ ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);  recievedGucQuitForTransm(ContentGuc.S_ADR); ContentGuc.stage = GucNone;}
             	else{
@@ -1875,7 +1875,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             		std::vector<uint8_t> guc;
             		for(int i = 0;i<data_len;i++){
             			qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , num %d", data[i],i);
-            			guc.push_back(data[i]); // по N едениц данных
+            			guc.push_back(data[i]); // РїРѕ N РµРґРµРЅРёС† РґР°РЅРЅС‹С…
             		}
                     guc_vector.push_back(guc);
             		recGuc();
@@ -1886,8 +1886,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     }
     case 0x6F:
     {
-    	value_ptr -= 1; // костылное превращение в нестандартный формат кадра
-    	value_len += 1; // костылное превращение в нестандартный формат кадра
+    	value_ptr -= 1; // РєРѕСЃС‚С‹Р»РЅРѕРµ РїСЂРµРІСЂР°С‰РµРЅРёРµ РІ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РѕСЂРјР°С‚ РєР°РґСЂР°
+    	value_len += 1; // РєРѕСЃС‚С‹Р»РЅРѕРµ РїСЂРµРІСЂР°С‰РµРЅРёРµ РІ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РѕСЂРјР°С‚ РєР°РґСЂР°
     	switch (indicator) {
     	case 30: {
     		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
@@ -1935,8 +1935,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     }
     case 0x7F:
     {
-    	value_ptr -= 1; // костылное превращение в нестандартный формат кадра
-    	value_len += 1; // костылное превращение в нестандартный формат кадра
+    	value_ptr -= 1; // РєРѕСЃС‚С‹Р»РЅРѕРµ РїСЂРµРІСЂР°С‰РµРЅРёРµ РІ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РѕСЂРјР°С‚ РєР°РґСЂР°
+    	value_len += 1; // РєРѕСЃС‚С‹Р»РЅРѕРµ РїСЂРµРІСЂР°С‰РµРЅРёРµ РІ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РѕСЂРјР°С‚ РєР°РґСЂР°
     	switch (indicator) {
     	case 22: {
     		if (!(value_len >= 1))
@@ -2066,7 +2066,7 @@ void DspController::sendSms(Module module)
     	++tx_data_len;
     	qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);
     	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len); // todo: поменял местами
+    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len); // todo: РїРѕРјРµРЅСЏР» РјРµСЃС‚Р°РјРё
     	++tx_data_len;
     	qmToBigEndian((uint8_t)wzn, tx_data+tx_data_len);
     	++tx_data_len;
@@ -2148,7 +2148,7 @@ bool DspController::generateSmsReceived()
 {
     // 1. params for storage operation
 
-	qmDebugMessage(QmDebug::Dump,"Количество пакетов sms data %d:",  recievedSmsBuffer.size());
+	qmDebugMessage(QmDebug::Dump,"РљРѕР»РёС‡РµСЃС‚РІРѕ РїР°РєРµС‚РѕРІ sms data %d:",  recievedSmsBuffer.size());
 
     int data[255];
     uint8_t crc_calcs[100];
@@ -2204,8 +2204,8 @@ bool DspController::generateSmsReceived()
           // 10. create str consist data split ''
           std::string str;
           for(int i = 0; i<100;i++){
-          if ((i % 10 == 0) && (i>0)){
-             str.push_back('\r');
+          if ((i % 8 == 0) && (i>0)){
+             //str.push_back('\r');
              str.push_back('\n');
             }
              str.push_back(packet[i]);
@@ -2460,9 +2460,9 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
 
 
     ParameterValue comandValue;
-    comandValue.radio_mode = RadioModeOff;// отключили прием
+    comandValue.radio_mode = RadioModeOff;// РѕС‚РєР»СЋС‡РёР»Рё РїСЂРёРµРј
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
-    comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
+    comandValue.guc_mode = RadioModeSazhenData; // РІРєР»СЋС‡РёР»Рё 11 СЂРµР¶РёРј
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     if (freqGucValue != 0)
     comandValue.frequency =  freqGucValue;//3000000;
@@ -2509,9 +2509,9 @@ void DspController::startGucTransmitting()
     QM_ASSERT(is_ready);
 
     ParameterValue comandValue;
-    comandValue.radio_mode = RadioModeOff;// отключили прием
+    comandValue.radio_mode = RadioModeOff;// РѕС‚РєР»СЋС‡РёР»Рё РїСЂРёРµРј
     sendCommand(RxRadiopath, RxRadioMode, comandValue);
-    comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
+    comandValue.guc_mode = RadioModeSazhenData; // РІРєР»СЋС‡РёР»Рё 11 СЂРµР¶РёРј
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     comandValue.frequency = freqGucValue;//3000000;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
@@ -2554,11 +2554,11 @@ void DspController::sendGucQuit()
 
 
 	uint8_t pack[3] = {0, 0, 0};
-	pack[2] = (ContentGuc.R_ADR & 0x1F) << 3;  // 5 бит
-	pack[2] |= (ContentGuc.S_ADR & 0x1F) >> 2; // 3 бита
-	pack[1] |= (ContentGuc.S_ADR & 0x1F) << 6; // 2 бита
-	pack[1] |= (ContentGuc.uin >> 2) & 0x3F;   // 6 бит
-	pack[0] = (ContentGuc.uin << 6) & 0xC0;    // 2 бита
+	pack[2] = (ContentGuc.R_ADR & 0x1F) << 3;  // 5 Р±РёС‚
+	pack[2] |= (ContentGuc.S_ADR & 0x1F) >> 2; // 3 Р±РёС‚Р°
+	pack[1] |= (ContentGuc.S_ADR & 0x1F) << 6; // 2 Р±РёС‚Р°
+	pack[1] |= (ContentGuc.uin >> 2) & 0x3F;   // 6 Р±РёС‚
+	pack[0] = (ContentGuc.uin << 6) & 0xC0;    // 2 Р±РёС‚Р°
 
     for(int i = 2; i >= 0; --i) {
     	qmToBigEndian((uint8_t)pack[i], tx_data + tx_data_len);
@@ -2623,20 +2623,20 @@ void DspController::startGucRecieving()
     initResetState();
 
     ParameterValue comandValue;
-    comandValue.radio_mode = RadioModeOff;// отключили радиорежим
+    comandValue.radio_mode = RadioModeOff;// РѕС‚РєР»СЋС‡РёР»Рё СЂР°РґРёРѕСЂРµР¶РёРј
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     comandValue.guc_mode = 3;
     sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
     data_storage_fs->getAleStationAddress(comandValue.guc_mode);
-    sendCommandEasy(RadioLineNotPswf, 3 ,comandValue); // отключить низкоскоростной модем
+    sendCommandEasy(RadioLineNotPswf, 3 ,comandValue); // РѕС‚РєР»СЋС‡РёС‚СЊ РЅРёР·РєРѕСЃРєРѕСЂРѕСЃС‚РЅРѕР№ РјРѕРґРµРј
 
-    // TODO: установка полосы частот 3,1 кГц
+    // TODO: СѓСЃС‚Р°РЅРѕРІРєР° РїРѕР»РѕСЃС‹ С‡Р°СЃС‚РѕС‚ 3,1 РєР“С†
     comandValue.guc_mode = 3;
    sendCommandEasy(RadioLineNotPswf, 1, comandValue);
    QmThread::msleep(100);
     //-----------------------------------
 
-    comandValue.guc_mode = RadioModeSazhenData; // включили 11 режим
+    comandValue.guc_mode = RadioModeSazhenData; // РІРєР»СЋС‡РёР»Рё 11 СЂРµР¶РёРј
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
     comandValue.frequency = freqGucValue;//3000000;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
@@ -2649,7 +2649,7 @@ void DspController::startGucRecieving()
 
 void DspController::GucSwichRxTxAndViewData()
 {
-    guc_timer->setInterval(GUC_TIMER_INTERVAL); // TODO: возможно изменение интервала
+    guc_timer->setInterval(GUC_TIMER_INTERVAL); // TODO: РІРѕР·РјРѕР¶РЅРѕ РёР·РјРµРЅРµРЅРёРµ РёРЅС‚РµСЂРІР°Р»Р°
     int size = guc_vector.size();
 
     qmDebugMessage(QmDebug::Dump, "size guc command %d", guc_vector.size());
@@ -2675,14 +2675,14 @@ uint8_t* DspController::get_guc_vector()
 	int num = (guc_vector.at(0).at(3) & 0x3f) << 1;
 	num +=    (guc_vector.at(0).at(4) & 0x80) >> 7;
 
-	//получение количества элементов в векторе
+	//РїРѕР»СѓС‡РµРЅРёРµ РєРѕР»РёС‡РµСЃС‚РІР° СЌР»РµРјРµРЅС‚РѕРІ РІ РІРµРєС‚РѕСЂРµ
 	guc_text[0] = num;
 
     uint8_t out[120];
     for(int i = 0; i<120;i++) out[i] = 0;
     int crc_coord_len = 0;
 
-    // если с координатами, то выборка по одному алгоритму, иначе по другому
+    // РµСЃР»Рё СЃ РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё, С‚Рѕ РІС‹Р±РѕСЂРєР° РїРѕ РѕРґРЅРѕРјСѓ Р°Р»РіРѕСЂРёС‚РјСѓ, РёРЅР°С‡Рµ РїРѕ РґСЂСѓРіРѕРјСѓ
 	int count = 0;
     if (isGpsGuc == 0)
     {
@@ -2707,31 +2707,31 @@ uint8_t* DspController::get_guc_vector()
         {
             guc_text[i+1] = guc_vector.at(0).at(7+i+count);
         }
-        // -- Записали координаты, начиная с первой позиции массива guc_text
+        // -- Р—Р°РїРёСЃР°Р»Рё РєРѕРѕСЂРґРёРЅР°С‚С‹, РЅР°С‡РёРЅР°СЏ СЃ РїРµСЂРІРѕР№ РїРѕР·РёС†РёРё РјР°СЃСЃРёРІР° guc_text
         for(int i = 0; i< count;i++){
         	if (i < num)
         		guc_text[9 + i+1] = guc_vector.at(0).at(7+i);
         	else
         		guc_text[9 + i+1] = 0;
         }
-        // -- Запиcали данные, начиная с 10-й позиции нашего массива
+        // -- Р—Р°РїРёcР°Р»Рё РґР°РЅРЅС‹Рµ, РЅР°С‡РёРЅР°СЏ СЃ 10-Р№ РїРѕР·РёС†РёРё РЅР°С€РµРіРѕ РјР°СЃСЃРёРІР°
         std::vector<bool> data;
         for(int i = 0; i< 8; i++) pack_manager->addBytetoBitsArray(guc_text[i+1],data,8);
-        // добавили координаты к битовому вектору
+        // РґРѕР±Р°РІРёР»Рё РєРѕРѕСЂРґРёРЅР°С‚С‹ Рє Р±РёС‚РѕРІРѕРјСѓ РІРµРєС‚РѕСЂСѓ
 
         bool quadrant = guc_text[9] & (1 << 7);
         data.push_back(quadrant);
         quadrant = guc_text[9] & (1 >> 6);
         data.push_back(quadrant);
-        // добавили к битовому вектору квадрант
+        // РґРѕР±Р°РІРёР»Рё Рє Р±РёС‚РѕРІРѕРјСѓ РІРµРєС‚РѕСЂСѓ РєРІР°РґСЂР°РЅС‚
         for(int i = 0; i<num;i++) pack_manager->addBytetoBitsArray(guc_text[9 + i+1],data,7);
-        // добавили к битовому вектору данные по 7 бит
+        // РґРѕР±Р°РІРёР»Рё Рє Р±РёС‚РѕРІРѕРјСѓ РІРµРєС‚РѕСЂСѓ РґР°РЅРЅС‹Рµ РїРѕ 7 Р±РёС‚
         pack_manager->getArrayByteFromBit(data,out);
-        // записали в выходной массив преобразованные данные из битового массива по анологии с формирование пакета для CRC32 на передаче
+        // Р·Р°РїРёСЃР°Р»Рё РІ РІС‹С…РѕРґРЅРѕР№ РјР°СЃСЃРёРІ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРЅС‹Рµ РґР°РЅРЅС‹Рµ РёР· Р±РёС‚РѕРІРѕРіРѕ РјР°СЃСЃРёРІР° РїРѕ Р°РЅРѕР»РѕРіРёРё СЃ С„РѕСЂРјРёСЂРѕРІР°РЅРёРµ РїР°РєРµС‚Р° РґР»СЏ CRC32 РЅР° РїРµСЂРµРґР°С‡Рµ
         crc_coord_len = data.size() / 8;
-        // получили длинну пакета
+        // РїРѕР»СѓС‡РёР»Рё РґР»РёРЅРЅСѓ РїР°РєРµС‚Р°
 
-        for(int i = 1;i<9; i++)  guc_text[num+i] = guc_text[i]; // после данных передадим координаты
+        for(int i = 1;i<9; i++)  guc_text[num+i] = guc_text[i]; // РїРѕСЃР»Рµ РґР°РЅРЅС‹С… РїРµСЂРµРґР°РґРёРј РєРѕРѕСЂРґРёРЅР°С‚С‹
         for(int i = 0;i<num;i++) guc_text[i+1] = guc_text[9+i+1];
 
     }
@@ -2755,7 +2755,7 @@ uint8_t* DspController::get_guc_vector()
     }
 
 
-	// достаем crc32 сумму из конца пакета
+	// РґРѕСЃС‚Р°РµРј crc32 СЃСѓРјРјСѓ РёР· РєРѕРЅС†Р° РїР°РєРµС‚Р°
 	int m = 3;
 	uint32_t crc_packet = 0;
 	int l = 0;
@@ -2766,10 +2766,10 @@ uint8_t* DspController::get_guc_vector()
 		m--;
 	}
 
-	// считаем crc32 сумму
+	// СЃС‡РёС‚Р°РµРј crc32 СЃСѓРјРјСѓ
     uint32_t crc = 0;
     int value  = (isGpsGuc) ? crc_coord_len : num;
-    // выбрали длинну, исходя из режима передачи
+    // РІС‹Р±СЂР°Р»Рё РґР»РёРЅРЅСѓ, РёСЃС…РѕРґСЏ РёР· СЂРµР¶РёРјР° РїРµСЂРµРґР°С‡Рё
 
     if (!isGpsGuc) {value = ((num*7)/8); uint8_t ost = (num*7)% 8;
 
