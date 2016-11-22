@@ -2,7 +2,7 @@
  ******************************************************************************
  * @file    dspcontroller.h
  * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
- * @author  РЅРµРёР·РІРµСЃС‚РЅС‹Рµ
+ * @author  неизвестные
  * @date    22.12.2015
  *
  ******************************************************************************
@@ -33,11 +33,11 @@ struct DspCommand;
 
 /**
  @file
- @brief РљР»Р°СЃСЃ РїСЂРµРґРЅР°Р·РЅР°С‡РµРЅ РґР»СЏ РІС‹РїРѕР»РµРЅРёСЏ РѕРїРµСЂР°С†РёР№ РѕР±РјРµРЅР° РјРµР¶РґСѓ DSP Рё HOST
+ @brief Класс предназначен для выполения операций обмена между DSP и HOST
  @version 0.5
  @date 29.07.2015
- РћРїРёСЃС‹РІР°РµС‚ Р°Р±СЃС‚Р°РєС†РёРё РїСЂРѕС‚РѕРєРѕР»Р° РѕР±РјРµРЅР° РЅР° РєР°РЅР°Р»СЊРЅРѕРј СѓСЂРѕРІРЅРµ, С„РѕСЂРјРёСЂСѓРµС‚ РїР°РєРµС‚С‹, РїСЂРёРЅРёРјР°РµС‚ Рё СЂР°Р·Р±РёСЂР°РµС‚ РѕС‚РІРµС‚С‹ РѕС‚ DSP, РѕС‚СЃС‹Р»Р°РµС‚ РєРѕРјР°РЅРґС‹ РЅР° СѓСЃС‚Р°РЅРѕРІРєСѓ
- СЂР°Р·Р»РёС‡РЅС‹С… СЂРµР¶РёРјРѕРІ РґР»СЏ С†РёС„СЂРѕРІС‹С… Рё Р°РЅР°Р»РѕРіРѕРІС‹С… С„СѓРЅРєС†РёР№ СЃС‚Р°РЅС†РёРё
+ Описывает абстакции протокола обмена на канальном уровне, формирует пакеты, принимает и разбирает ответы от DSP, отсылает команды на установку
+ различных режимов для цифровых и аналоговых функций станции
 */
 
 class DspController : public QmObject
@@ -128,23 +128,23 @@ public:
     void setAudioMicLevel(uint8_t value);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
 
-    void startPSWFReceiving();   // Р·Р°РїСѓСЃРєР°РµС‚ РїСЂРёРµРј  СѓСЃР»РѕРІРЅС‹С… РєРѕРјР°РЅРґ(РЈРљ)
-    void startPSWFTransmitting(bool ack,  uint8_t r_adr, uint8_t cmd,int retr); // Р·Р°РїСѓСЃРєР°РµС‚ РѕС‚РїСЂР°РІРєСѓ РіСЂСѓРїРї СѓРє
+    void startPSWFReceiving();   // запускает прием  условных команд(УК)
+    void startPSWFTransmitting(bool ack,  uint8_t r_adr, uint8_t cmd,int retr); // запускает отправку групп ук
 
-    void startSMSRecieving(SmsStage stage = StageRx_call);  // Р·Р°РїСѓСЃРєР°РµС‚ РїСЂРёРј СЃРјСЃ
-    void startSMSTransmitting(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call); // Р·Р°РїСѓСЃРєР°РµС‚ РѕС‚РїСЂР°РІРєСѓ СЃРјСЃ
+    void startSMSRecieving(SmsStage stage = StageRx_call);  // запускает прим смс
+    void startSMSTransmitting(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call); // запускает отправку смс
 
-    void startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command,bool isGps); // Р·Р°РїСѓСЃРєР°РµС‚ РѕС‚РїСЂР°РІРєСѓ РіСЂСѓРїРї
-    void startGucTransmitting();        // Р·Р°РїСѓСЃРє РѕС‚РїСЂР°РІРєРё РіСЂСѓРїРї СѓРє - РїРµСЂРµРіСЂСѓР¶РµРЅРЅС‹Р№ РјРµС‚РѕРґ
-    void startGucRecieving();           // Р·Р°РїСѓСЃРє РїСЂРёРµРјР° РіСЂСѓРїРї СѓРє
-    void GucSwichRxTxAndViewData();     // РїРµСЂРµС…РѕРґ РѕС‚ Tx Рє Rx, РёР»Рё РѕС‚ Rx Рє Tx РІ РіСЂСѓРїРїР°С… РЈРљ
+    void startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command,bool isGps); // запускает отправку групп
+    void startGucTransmitting();        // запуск отправки групп ук - перегруженный метод
+    void startGucRecieving();           // запуск приема групп ук
+    void GucSwichRxTxAndViewData();     // переход от Tx к Rx, или от Rx к Tx в группах УК
 
-    void *getContentPSWF();             // С„СѓРЅРєС†РёСЏ РїРѕР»СѓС‡РµРЅРёСЏ СЃС‚СЂСѓРєС‚СѓСЂС‹ РџРџпїЅ Р§
-    char *getSmsContent();              // С„СѓРЅРєС†РёСЏ РїРѕР»СѓС‡РµРЅРёСЏ СЃС‚СЂСѓРєС‚СѓСЂС‹ РЎРњРЎ
-    void setRnKey(int keyValue);        // РІС‹РїРѕР»РЅСЏРµС‚ СЃРѕС…СЂР°РЅРµРЅРёСЏ Р·РЅР°С‡РµРЅРёСЏ РєР»СЋС‡Р° СЂР°РґРёРѕСЃРµС‚Рё
-    void resetContentStructState();     // СЃР±СЂРѕСЃ Р»РѕРіРёС‡РµСЃРєРёС… СЃРѕСЃС‚РѕСЏРЅРёР№ РґР»СЏ РџРџпїЅ Р§-СЂРµР¶РёРјРѕРІ
-    void processSyncPulse();            // С„СѓРЅРєС†РёСЏ, РІС‹Р·С‹РІР°РµРјР°СЏ РїРѕ СЃРµРєСѓРЅРґРЅРѕР№ РјРµС‚РєРµ -  СЃРїРѕСЃРѕР± РѕС‚СЃС‡РµС‚Р° РІСЂРµРјРµРЅРё РґР»СЏ РџРџпїЅ Р§-СЂРµР¶РёРјРѕРІ
-    uint8_t* get_guc_vector();          // С„СѓРЅРєС†РёСЏ РґРѕСЃС‚СѓРїР° Рє СЃС‚СЂСѓРєС‚СѓСЂРµ РЈРљ
+    void *getContentPSWF();             // функция получения структуры ПП? Ч
+    char *getSmsContent();              // функция получения структуры СМС
+    void setRnKey(int keyValue);        // выполняет сохранения значения ключа радиосети
+    void resetContentStructState();     // сброс логических состояний для ПП? Ч-режимов
+    void processSyncPulse();            // функция, вызываемая по секундной метке -  способ отсчета времени для ПП? Ч-режимов
+    uint8_t* get_guc_vector();          // функция доступа к структуре УК
 
 	void tuneModemFrequency(uint32_t value);
     void enableModemReceiver();
@@ -158,32 +158,33 @@ public:
     void sendModemPacket(ModemPacketType type, ModemBandwidth bandwidth, const uint8_t *data, int data_len);
     void sendModemPacket_packHead(ModemBandwidth bandwidth, uint8_t param_signForm, uint8_t param_packCode, const uint8_t *data, int data_len);
 
-    void defaultSMSTransmit();              // СЃР±СЂРѕСЃ С‚РµРєСЃС‚Р° СЃРѕРѕР±С‰РµРЅРёСЏ
-    void setSmsRetranslation(uint8_t retr); // СЃРѕС…СЂР°РЅРµРЅРёСЏ РїР°СЂР°РјРµС‚СЂР° СЂРµС‚СЂР°РЅСЃР»СЏС†РёРё
-    uint8_t getSmsRetranslation();          // С„СѓРЅРєС†РёСЏ РїРѕР»СѓС‡РµРЅРёСЏ СЃС‚Р°С‚СѓСЃР° СЂРµС‚СЂР°РЅСЃР»СЏС†РёРё
-    void setFreq(int value);                // С„СѓРЅРєС†РёСЏ РїРѕР»СѓС‡РµРЅРёСЏ С‡Р°СЃС‚РѕС‚С‹ РёР· РјРѕРґСѓР»СЏ ui/service
-    int getSmsForUiStage();                 // С„СѓРЅРєС†РёСЏ РѕР±РЅРѕРІР»РµРЅРёСЏ СЃС‚Р°С‚СѓСЃР° РґР»СЏ Sms-СЂРµР¶РёРјР°
-    uint8_t* getGucCoord();                 // РїРѕР»СѓС‡РµРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РЅР° СЌРєСЂР°РЅРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РІ СЂРµР¶РёРјРµ РіСЂСѓРїРї СѓРє
+    void defaultSMSTransmit();              // сброс текста сообщения
+    void setSmsRetranslation(uint8_t retr); // сохранения параметра ретрансляции
+    uint8_t getSmsRetranslation();          // функция получения статуса ретрансляции
+    void setFreq(int value);                // функция получения частоты из модуля ui/service
+    int getSmsForUiStage();                 // функция обновления статуса для Sms-режима
+    uint8_t* getGucCoord();                 // получение координат для отображения на экране пользователя в режиме групп ук
 
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
-    sigc::signal<void,int> firstPacket;     // РїРѕР»СѓС‡РµРЅ РїРµСЂРІС‹Р№ РїР°РєРµС‚ РІ РЈРљ
-    sigc::signal<void> smsReceived;         // РїСЂРёРЅСЏС‚Рѕ РЎРњРЎ
-    sigc::signal<void,int> smsFailed;       // РѕС€РёР±РєР° РїСЂРёРµРјР° РЎРњРЎ
-    sigc::signal<void,int> smsPacketMessage;    // РІС‹РІРѕРґ СЃРѕРѕР±С‰РµРЅРёСЏ РЅР° СЌРєСЂР°РЅ
+    sigc::signal<void,int> firstPacket;     // получен первый пакет в УК
+    sigc::signal<void> smsReceived;         // принято СМС
+    sigc::signal<void,int> smsFailed;       // ошибка приема СМС
+    sigc::signal<void,int> smsPacketMessage;    // вывод сообщения на экран
     sigc::signal<void, ModemPacketType/*type*/> transmittedModemPacket;
     sigc::signal<void> failedTxModemPacket;
     sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, uint8_t/*errors*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> receivedModemPacket;
     sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, uint8_t/*errors*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket;
     sigc::signal<void, uint8_t/*snr*/, uint8_t/*errors*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket_packHead;
     sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
-    sigc::signal<void,int> recievedGucResp;    // РѕС‚РІРµС‚ РЅР° РіСЂСѓРїРїСѓ СѓРє
-    sigc::signal<void,int> recievedGucQuitForTransm; // РїСЂРёРµРј РєРІРёС‚Р°РЅС†РёРё РіСЂСѓРїРї СѓРє
-    sigc::signal<void,int> updateSmsStatus;          // СЃС‚Р°С‚СѓСЃ РЎРњРЎ
-    sigc::signal<void> updateGucGpsStatus;    float swf_res = 2; // РЅР°РґРѕ РёР·РјРµРЅРёС‚СЊ Р·РЅР°С‡РµРЅРёРµ РЅР° РЅРёР¶РЅРµРµ РїСЂРµРґРµР»СЊРЅРѕРµ
-    sigc::signal<void> gucCrcFailed;                 // РѕС€РёР±РєР° crc-СЃСѓРјРјС‹
+    sigc::signal<void,int> recievedGucResp;    // ответ на группу ук
+    sigc::signal<void,int> recievedGucQuitForTransm; // прием квитанции групп ук
+    sigc::signal<void,int> updateSmsStatus;          // статус СМС
+    sigc::signal<void> updateGucGpsStatus;    float swf_res = 2; // надо изменить значение на нижнее предельное
+    sigc::signal<void> gucCrcFailed;                 // ошибка crc-суммы
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> hardwareFailed;
+    sigc::signal<void> smsCounterChanged;
 
     PackageManager *pack_manager;
     bool retranslation_active = false;
@@ -221,7 +222,7 @@ private:
 
     int sms_data_count = 0;
 
-    // РїРµСЂРµС‡РёСЃР»РµРЅРёСЏ РґР»СЏ Р°РґСЂРµСЃРѕРІ РїРµСЂРµРґР°С‡Рё Рє DSP
+    // перечисления для адресов передачи к DSP
     enum  Module {
         RxRadiopath,
         TxRadiopath,
@@ -360,32 +361,32 @@ private:
     void processCommandResponse(bool success, Module module, int code, ParameterValue value);
     void syncPendingCommand();
     bool resyncPendingCommand();
-    void sendCommand(Module module, int code, ParameterValue value,bool state = 0);                 // С„СѓРЅРєС†РёСЏ РѕС‚РїСЂР°РІРєРё РїР°РєРµС‚РѕРІ РґР»СЏ dsp СЃ Р±СѓС„РµСЂРѕРј
-    void sendCommandEasy(Module module, int code, ParameterValue value);                            // С„СѓРЅРєС†РёСЏ РѕС‚РїСЂР°РІРєРё РїР°РєРµС‚РѕРІ РґР»СЏ dsp Р±РµР· Р±СѓС„РµСЂР°
-    void sendGuc();                                                                                 // С„СѓРЅРєС†РёСЏ РѕС‚РїСЂР°РІРєРё РіСЂСѓРїРї РЈРљ
-    void recGuc();                                                                                  // С„СѓРЅРєС†РёСЏ РїРµСЂРµРєР»СЋС‡РµРЅРёСЏ RX->TX | TX->RX РґР»СЏ РіСЂСѓРїРї РЈРљ
-    void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);                        // С„СѓРЅРєС†РёСЏ РїСЂРёРµРјР° РєР°РґСЂРѕРІ РѕС‚ DSP
+    void sendCommand(Module module, int code, ParameterValue value,bool state = 0);                 // функция отправки пакетов для dsp с буфером
+    void sendCommandEasy(Module module, int code, ParameterValue value);                            // функция отправки пакетов для dsp без буфера
+    void sendGuc();                                                                                 // функция отправки групп УК
+    void recGuc();                                                                                  // функция переключения RX->TX | TX->RX для групп УК
+    void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);                        // функция приема кадров от DSP
 
 
-    int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);                              // С„СѓРЅРєС†РёСЏ СЂР°СЃСЃС‡РµС‚Р° С‡Р°СЃС‚РѕС‚С‹ СЃРјРµС‰РµРЅРёСЏ РґР»СЏ РЈРљ
-    int CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);                        // С„СѓРЅРєС†РёСЏ СЂР°СЃСЃС‡РµС‚Р° С‡Р°СЃС‚РѕС‚С‹ СЃРјРµС‰РµРЅРёСЏ РґР»СЏ РЎРњРЎ
+    int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);                              // функция рассчета частоты смещения для УК
+    int CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);                        // функция рассчета частоты смещения для СМС
     int CalcSmsTransmitRxRoleFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int CalcSmsTransmitTxRoleFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
-    int prevSecond(int second);                                                                     // С„СѓРЅРєС†РёСЏ РїРѕР»СѓС‡РµРЅРёСЏ РїСЂРµРґС‹РґСѓС‰РµР№ СЃРµРєСѓРЅРґС‹
+    int prevSecond(int second);                                                                     // функция получения предыдущей секунды
 
-    void recPswf(uint8_t data,uint8_t code);                                                       // С„СѓРЅРєС†РёСЏ РїСЂРѕРІРµСЂРєРё РґР»СЏ lcode
-    int getFrequencyPswf();                                                                         // С„СѓРЅРєС†РёСЏ СЂР°СЃСЃС‡РµС‚Р° РЎР›Р•Р”РЈР®Р©Р•Р™ Р§РђРЎРўРћРўР« Р’ РЈРљ
-    int getFrequencySms();                                                                          // С„СѓРЅРєС†РёСЏ СЂР°СЃСЃС‡РµС‚Р° РЎР›Р•Р”РЈР®Р©Р•Р™ Р§РђРЎРўРћР«Рў Р’ РЎРњРЎ
+    void recPswf(uint8_t data,uint8_t code);                                                       // функция проверки для lcode
+    int getFrequencyPswf();                                                                         // функция рассчета СЛЕДУЮЩЕЙ ЧАСТОТЫ В УК
+    int getFrequencySms();                                                                          // функция рассчета СЛЕДУЮЩЕЙ ЧАСТОЫТ В СМС
 
-    void getSwr();                                                                                  // С„СѓРЅРєС†РёСЏ РЅР°СЃС‚СЂРѕР№РєРё С€СѓРјРѕРїРѕРґР°РІРёС‚РµР»СЏ
-    void sendPswf();                                                                            // С„СѓРЅРєС†РёСЏ РѕС‚РїСЂР°РІРєРё РЈРљ
-    void addSeconds(int *date_time);                                                                // С„СѓРЅРєС†РёСЏ РґРѕР±Р°РІР»РµРЅРёСЏ СЃРµРєСѓРЅРґС‹ Рє С‚РµРєСѓС‰РµР№ СЃРµРєСѓРЅРґРµ
-    void changePswfFrequency();                                                                   // С„СѓРЅРєС†РёСЏ РїСЂРёРµРјР° РЈРљ
-    void syncPulseDetected();                                                                       // С„СѓРЅРєС†РёСЏ РІС‹РїРѕР»РµРЅРёСЏ Р·Р°РґР°С‡ РїРѕ СЃРµРєСѓРЅРґРЅРѕР№ РјРµС‚РєРµ
-    void getDataTime();                                                                             // С„СѓРЅРєС†РёСЏ РїРѕР»СѓС‡РµРЅРёСЏ РІСЂРµРјРµРЅРё
-    void sendSms(Module module);                                                                    // С„СѓРЅРєС†РёСЏ РѕС‚РїСЂР°РІРєРё РЎРњРЎ
-    void sendGucQuit();                                                                             // С„СѓРЅРєС†РёСЏ РѕС‚РїСЂР°РІРєРё РєРІРёС‚Р°РЅС†РёРё РІ РіСЂСѓРїРїРµ РЈРљ
-    uint8_t *getGpsGucCoordinat(uint8_t *coord);                                                    // С„СѓРЅРєС†РёСЏ РїРѕР»СѓС‡РµРЅРёСЏ РєРѕРѕСЂРґРёРЅР°С‚ РІ РіСЂСѓРїРїРµ РЈРљ
+    void getSwr();                                                                                  // функция настройки шумоподавителя
+    void sendPswf();                                                                            // функция отправки УК
+    void addSeconds(int *date_time);                                                                // функция добавления секунды к текущей секунде
+    void changePswfFrequency();                                                                   // функция приема УК
+    void syncPulseDetected();                                                                       // функция выполения задач по секундной метке
+    void getDataTime();                                                                             // функция получения времени
+    void sendSms(Module module);                                                                    // функция отправки СМС
+    void sendGucQuit();                                                                             // функция отправки квитанции в группе УК
+    uint8_t *getGpsGucCoordinat(uint8_t *coord);                                                    // функция получения координат в группе УК
 
     void changeSmsFrequency();
 
@@ -467,10 +468,10 @@ private:
     int fwd_wave;
     int ref_wave;
 
-    int command_tx30;                                           // СЃС‡РµС‚С‡РёРє РґР»СЏ tx РІ sms
-    int command_rx30;                                           // СЃС‡РµС‚С‡РёРє РґР»СЏ rx РІ sms
+    int command_tx30;                                           // счетчик для tx в sms
+    int command_rx30;                                           // счетчик для rx в sms
 
-    // РїРµСЂРµРјРµРЅРЅС‹Рµ, РѕС‚РІРµС‡Р°СЋС‰РёРµ Р·Р° СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёСЋ РѕР±РјРµРЅР° СЃ DSP-РєРѕРЅС‚СЂРѕР»Р»РµСЂРѕРј
+    // переменные, отвечающие за синхронизацию обмена с DSP-контроллером
     int pswfRxStateSync;
     int pswfTxStateSync;
     int smsRxStateSync;
@@ -479,53 +480,55 @@ private:
     int gucTxStateSync;
     //-------------------
 
-    int success_pswf;                                           // С„Р»Р°Рі СѓСЃРїРµС€РЅРѕР№ РґРѕСЃС‚Р°РІРєРё СѓРє
-    bool pswf_first_packet_received;                            // С„Р»Р°Рі, РїСЂРёРµРј  РјРёРЅРёРјСѓРј 3 РїР°РєРµС‚РѕРІ РІ С„Р°Р·Рµ РІС‹Р·РѕРІР°
-    bool pswf_ack;                                              // С„Р»Р°Рі, РѕР·РЅР°С‡Р°СЋС‰РёР№ РЅР°Р»РёС‡РёРµ РєРІРёС‚Р°РЅС†РёРё РІ РЈРљ
+    int success_pswf;                                           // флаг успешной доставки ук
+    bool pswf_first_packet_received;                            // флаг, прием  минимум 3 пакетов в фазе вызова
+    bool pswf_ack;                                              // флаг, означающий наличие квитанции в УК
 
-    int date_time[4];                                           // РјР°СЃСЃРёРІ РґР°С‚С‹-РІСЂРµРјРµРЅРё РґР»СЏ РѕР±РјРµРЅР° Рё РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ
-    char private_lcode;                                         // РїРµСЂРµРјРµРЅРЅР°СЏ - С…СЂР°РЅРёС‚ С‚РµРєСѓС‰РёР№ lcode РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ СЃ РїРѕР»СѓС‡РµРЅРЅС‹Рј
-    int pswf_retranslator = 0;                                  // РЅР°Р»РёС‡РёРµ СЂРµС‚СЂР°РЅСЃР»СЏС†РёРё
+    int date_time[4];                                           // массив даты-времени для обмена и отображения
+    char private_lcode;                                         // переменная - хранит текущий lcode для сравнения с полученным
+    int pswf_retranslator = 0;                                  // наличие ретрансляции
 
-    std::vector< std::vector<char> > recievedPswfBuffer;        // Р±СѓС„РµСЂ РїСЂРёРµРјР° РґР»СЏ РЈРљ
-    std::vector< std::vector<uint8_t> > recievedSmsBuffer;      // Р±СѓС„РµСЂ РїСЂРёРµРјР° РґР»СЏ РЎРњРЎ
+    std::vector< std::vector<char> > recievedPswfBuffer;        // буфер приема для УК
+    std::vector< std::vector<uint8_t> > recievedSmsBuffer;      // буфер приема для СМС
 
-    std::vector<int> syncro_recieve;                            // Р±СѓС„РµСЂ РґР»СЏ РїСЂРёРµРјР° CYC_N  РІ РЎРњРЎ
-    std::vector<int> tx_call_ask_vector;                        // Р±СѓС„РµСЂ РґР»СЏ РїСЂРёРµРјР° Р·РЅР°С‡РµРЅРёР№ WZN
-    std::vector<int> quit_vector;                               // Р±СѓС„РµСЂ РґР»СЏ РїСЂРёРµРјР° РєРІРёС‚Р°РЅС†РёРё РІ РЎРњРЎ
+    std::vector<int> syncro_recieve;                            // буфер для приема CYC_N  в СМС
+    std::vector<int> tx_call_ask_vector;                        // буфер для приема значений WZN
+    std::vector<int> quit_vector;                               // буфер для приема квитанции в СМС
     std::vector<std::vector<uint8_t>> guc_vector;
 
-    int QNB = 0;                                                // СЃС‡РµС‚С‡РёРє РґР»СЏ fstn-РїР°СЂР°РјРµС‚СЂР° SMS Tx
-    int QNB_RX = 0;                                             // СЃС‡РµС‚С‡РёРє РґР»СЏ fstn-РїР°СЂР°РјРµС‚СЂР° SMS Rx
-    int count_clear = 0;                                        // СЃС‡РµС‚С‡РёРє РґР»СЏ РјР°СЃСЃРёРІР° СЃС‚РёСЂР°РЅРёР№ (РЅРµРґРѕСЃС‚РѕРІРµСЂРЅС‹Рµ СЌР»РµРјРµРЅС‚С‹)
-    int rs_data_clear[255];                                     // РјР°СЃСЃРёРІ СЃС‚РёСЂР°РЅРёР№ РґР»СЏ РєРѕРґР° СЂРёРґР°-СЃРѕР»РѕРјРѕРЅР°
-    int cntChvc = 7;                                            // СЃС‡РµС‚С‡РёРє РїР°РєРµС‚РѕРІ РїРµСЂРµРґР°С‡Рё РґР»СЏ
+    int QNB = 0;                                                // счетчик для fstn-параметра SMS Tx
+    int QNB_RX = 0;                                             // счетчик для fstn-параметра SMS Rx
+    int count_clear = 0;                                        // счетчик для массива стираний (недостоверные элементы)
+    int rs_data_clear[255];                                     // массив стираний для кода рида-соломона
+    int cntChvc = 7;                                            // счетчик пакетов передачи для
 
-
-    char sms_content[100];                                      // РїСЂРѕРјРµР¶СѓС‚РѕС‡РЅС‹Р№ РјР°СЃСЃРёРІ РґР»СЏ СЂРµР¶РёРјР° СЃРјСЃ РґР»СЏ РїРѕРґРіРѕС‚РѕРІРєРё РІС‹РІРѕРґР°
-    uint8_t ack;                                                // РїРµСЂРµРјРµРЅРЅР°СЏ РґР»СЏ sms, С…СЂР°РЅРёС‚ РєРѕРґ СѓСЃРїРµС€РЅРѕР№ РёР»Рё РїРѕС‚РµСЂСЏРЅРЅРѕР№ РїРµСЂРµРґР°С‡Рё 73 | 99
-    int ok_quit = 0;                                            // С„Р»Р°Рі РґР»СЏ РєРІРёС‚Р°РЅС†РёРё РЎРњРЎ
+    char sms_content[100];                                      // промежуточный массив для режима смс для подготовки вывода
+    uint8_t ack;                                                // переменная для sms, хранит код успешной или потерянной передачи 73 | 99
+    int ok_quit = 0;                                            // флаг для квитанции СМС
 bool modem_rx_on, modem_tx_on;
 
-    int trans_guc;                                              // С„Р»Р°Рі РѕС‚РїСЂР°РІРєРё РіСЂСѓРїРї СѓРє
-    int pswf_rec = 0;                                           // С„Р»Р°Рі РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РїСЂРёРЅСЏС‚РѕРіРѕ СЃРѕРѕР±С‰РµРЅРёСЏ РІ РЈРљ
+    int trans_guc;                                              // флаг отправки групп ук
+    int pswf_rec = 0;                                           // флаг для отображения принятого сообщения в УК
     bool state_pswf = 0;                                        // ?
 
-    int wzn_value;                                              // Р·РЅР°С‡РµРЅРёРµ РІС‹Р·С‹РІРЅРѕР№ Р·РѕРЅС‹ (РѕС‚ 1 РґРѕ 4) СЂРµР¶РёРјР° СЃРјСЃ
-    uint8_t sms_retranslation;                                  // С„Р»Р°Рі СЂРµС‚СЂР°РЅСЃР»СЏС†РёРё РґР»СЏ СЂРµР¶РёРјР° СЃРјСЃ
-    bool sms_call_received;                                     // С„Р»Р°Рі СѓСЃРїРµС€РЅРѕРіРѕ РїСЂРѕС…РѕР¶РґРµРЅРёСЏ РІС‹Р·РѕРІР° РґР»СЏ СЃРјСЃ
+    int wzn_value;                                              // значение вызывной зоны (от 1 до 4) режима смс
+    uint8_t sms_retranslation;                                  // флаг ретрансляции для режима смс
+    bool sms_call_received;                                     // флаг успешного прохождения вызова для смс
 
-    bool isGpsGuc = false;                                      // РЅР°Р»РёС‡РёРµ РєРѕРѕСЂРґРёРЅР°С‚ РІ РїСЂРёРµРјРµ
-    bool unblockGucTx = false;                                  // С„Р»Р°Рі РґР»СЏ Р·Р°РґРµСЂР¶РєРё - РєРѕСЃС‚С‹Р»СЊ(СЃРїР°СЃРµРЅРёРµ РѕС‚ sendCommand)
-    bool failQuitGuc = false;                                   // С„Р»Р°Рі, true РµСЃР»Рё crc РЅРµ СЃРѕС€Р»РѕСЃСЊ, РїРµСЂРµС…РѕРґРёС‚ РІ СЃРѕСЃС‚РѕСЏРЅРёРµ РїСЂРѕСЃС‚РѕСЏ
-    uint8_t guc_text[120];                                      // РјР°СЃСЃРёРІ С…СЂР°РЅРµРЅРёСЏ Рё РІС‹РІРѕРґР° РЅР° СЌРєСЂР°РЅ РєРѕРјР°РЅРґ Рё РєРѕРѕРґРёРЅР°С‚ РґР»СЏ СЂРµР¶РёРјР° РіСЂСѓРїРї СѓРє
-    uint8_t guc_coord[10];                                      // РјР°СЃСЃРёРІ РґР»СЏ С…СЂР°РЅРµРЅРёСЏ РєРѕРѕСЂРґРёРЅР°С‚ РІ РіСѓРє
-    int  freqGucValue = 0;                                      // С‡Р°СЃС‚РѕС‚Р° РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё РІ РіСѓРє
+    bool isGpsGuc = false;                                      // наличие координат в приеме
+    bool unblockGucTx = false;                                  // флаг для задержки - костыль(спасение от sendCommand)
+    bool failQuitGuc = false;                                   // флаг, true если crc не сошлось, переходит в состояние простоя
+    uint8_t guc_text[120];                                      // массив хранения и вывода на экран команд и коодинат для режима групп ук
+    uint8_t guc_coord[10];                                      // массив для хранения координат в гук
+    int  freqGucValue = 0;                                      // частота для установки в гук
 
     uint8_t smsDataPacket[255];
     uint8_t pswfDataPacket[30];
 
     int CondCmdRxIndexer = 0;
+
+public:
+    uint8_t getSmsCounter();
 };
 
 

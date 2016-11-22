@@ -49,6 +49,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     ginit();
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
+    voice_service->smsCounterChanged.connect(sigc::mem_fun(this,&Service::onSmsCounterChange));
 
     keyboard = new QmMatrixKeyboard(matrix_kb.resource);
     keyboard->keyAction.connect(sigc::mem_fun(this, &Service::keyHandler));
@@ -1510,8 +1511,8 @@ void Service::keyPressed(UI_Key key)
                                     voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
                                 for(auto &k: estate.listItem)
                                     k->inputStr.clear();
-
-                                guiTree.resetCurrentState();
+                                menu->smsTxStage++;
+                                //guiTree.resetCurrentState();
 
                             }
                         }
@@ -1522,6 +1523,14 @@ void Service::keyPressed(UI_Key key)
                 default:{break;}
                 }
                 break;
+            }
+            case 6:
+            {
+            case keyEnter:
+            {
+                menu->smsTxStage = 1;
+                guiTree.resetCurrentState();
+            }
             }
             default:
             {break;}
@@ -1587,6 +1596,7 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::rxSmsMessage:
         {
+
         	if ( key == keyBack)
         	{
         		guiTree.backvard();
@@ -1612,11 +1622,12 @@ void Service::keyPressed(UI_Key key)
 
         	  if (cntSmsRx == 3)
         	  {
-        		  guiTree.resetCurrentState();
-        		  menu->focus_line = 1;
-        		  isSmsMessageRec = false;
-        		  menu->smsStage = 0;
-        		  cntSmsRx = 0;
+                  //smsMessage(13);
+                  guiTree.resetCurrentState();
+                  menu->focus_line = 1;
+                  isSmsMessageRec = false;
+                  menu->smsStage = 0;
+                  cntSmsRx = 0;
         	  }
         	}
 
@@ -2267,6 +2278,12 @@ int Service::getLanguage()
     return 0;
 }
 
+void Service::onSmsCounterChange()
+{
+    menu->smsTxStage = 6;
+    drawMenu();
+}
+
 void Service::redrawMessage( const char* title,const  char* message)
 {
     guiTree.resetCurrentState();
@@ -2520,28 +2537,36 @@ void Service::drawMenu()
             }
             case 5:
             {
-                if (menu->smsStage == 0)
-                {
-                    fieldStr.clear();
-                    fieldStr.append(startStr);
+                fieldStr.clear();
+                fieldStr.append(startStr);
+                break;
+            }
+            case 6:
+            {
+                uint8_t counter = voice_service->getSmsCounter();
+
+                if (counter == 78)
+                    isSmsCounterFull = true;
+
+                if (isSmsCounterFull){
+                     guiTree.resetCurrentState();
+                     isSmsCounterFull = false;
                 }
-                if (menu->smsStage == 0x0F)
-                {
-                    fieldStr.clear();
-                    fieldStr.append( menu->smsValueStrStatus );
-                }
-                if (menu->smsStage == 0xF0)
-                {
-                    fieldStr.clear();
-                    fieldStr.append(exitStr);
-                }
+
+                char pac[2];
+                sprintf(pac,"%i", counter);
+
+                fieldStr.clear();
+                fieldStr.append(pac);
+                fieldStr.append("/79");
+
                 break;
             }
             default:
             { break; }
             }
-
-            menu->initTxSmsDialog( titleStr, fieldStr );
+            if (!isSmsCounterFull)
+                menu->initTxSmsDialog( titleStr, fieldStr );
             break;
         }
         case GuiWindowsSubType::recvCondCmd:
@@ -2855,8 +2880,10 @@ void Service::updateSystemTime()
 void Service::smsMessage(int value)
 {
     char sym[value];//TODO:
-    for(int i = 0; i<value;++i) sym[i] = '0';
+    for(int i = 0; i<value;++i) sym[i] = '\0';
 
+    //std::string test = "azbuka morze";
+   // memcpy(sym, &test[0] , 12);
     memcpy(sym, voice_service->getSmsContent(), value);
     sym[value-1] = '\0';
 

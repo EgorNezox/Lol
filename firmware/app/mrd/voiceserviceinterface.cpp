@@ -32,6 +32,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 	dispatcher->dsp_controller->updateSmsStatus.connect(sigc::mem_fun(this,&VoiceServiceInterface::getSmsForUiStage));
     dispatcher->dsp_controller->gucCrcFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCrcFail));
     dispatcher->dsp_controller->updateGucGpsStatus.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCoordRec));
+    dispatcher->dsp_controller->smsCounterChanged.connect(sigc::mem_fun(this,&VoiceServiceInterface::onSmsCounterChange));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
@@ -331,7 +332,18 @@ void VoiceServiceInterface::gucCoordRec(){
 
 void VoiceServiceInterface::goToVoice()
 {
-	dispatcher->dsp_controller->goToVoice();
+    dispatcher->dsp_controller->goToVoice();
+}
+
+uint8_t VoiceServiceInterface::getSmsCounter()
+{
+   return dispatcher->dsp_controller->getSmsCounter();
+
+}
+
+void VoiceServiceInterface::onSmsCounterChange()
+{
+   smsCounterChanged();
 }
 
 } /* namespace Multiradio */

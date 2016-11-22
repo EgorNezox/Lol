@@ -731,6 +731,10 @@ void DspController::changeSmsFrequency()
         RxSmsWork();
 	}
 
+    static uint8_t tempCounter = sms_counter;
+    if (tempCounter != sms_counter && sms_counter % 11 == 0 )
+      smsCounterChanged();
+
     //setrRxFreq();
 
 	////////////////////////////////////
@@ -2210,7 +2214,12 @@ void DspController::getZone()
 		if  (syncro_recieve.at(i) >=18  && syncro_recieve.at(i) <24) syncro_recieve[i] = 3;
 		if  (syncro_recieve.at(i) >= 24 && syncro_recieve.at(i) <30) syncro_recieve[i] = 4;
 
-	}
+    }
+}
+
+uint8_t DspController::getSmsCounter()
+{
+    return sms_counter;
 }
 
 bool DspController::generateSmsReceived()

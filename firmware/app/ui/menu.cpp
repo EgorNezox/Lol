@@ -1212,6 +1212,14 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
         field.Draw();
         break;
     }
+    case 6:
+    {
+
+        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
+        window.Draw();
+        field.Draw();
+        break;
+    }
     default:
     {break;}
     }
