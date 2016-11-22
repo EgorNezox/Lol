@@ -200,11 +200,9 @@ void VoiceServiceInterface::TurnAGCMode(uint8_t mode, int radio_path)
 
 void VoiceServiceInterface::TurnPSWFMode(uint8_t mode, int cmd, int r_adr, int retr)
 {
-    if ((r_adr == 0) && (cmd ==0)) {
-    	if (mode == 0)
-    		dispatcher->dsp_controller->startPSWFReceiving(false);
-    	else
-    		dispatcher->dsp_controller->startPSWFReceiving(true);
+    if ((r_adr == 0) && (cmd ==0))
+    {
+      dispatcher->dsp_controller->startPSWFReceiving();
     } else {
     	if (mode == 0)
     		dispatcher->dsp_controller->startPSWFTransmitting(false, r_adr, cmd,retr);

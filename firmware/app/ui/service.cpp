@@ -2896,8 +2896,6 @@ void Service::msgBoxSms(const char *text)
 		msg_box = new GUI_Dialog_MsgBox(&area007, (char*)"SMS",(char*)text, align007);
 	}
 
-
-
 	msg_box->Draw_Sms();
 
 }

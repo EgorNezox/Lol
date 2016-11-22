@@ -128,7 +128,7 @@ public:
     void setAudioMicLevel(uint8_t value);
     void setAGCParameters(uint8_t agc_mode,int RadioPath);
 
-    void startPSWFReceiving(bool ack);   // запускает прием  условных команд(УК)
+    void startPSWFReceiving();   // запускает прием  условных команд(УК)
     void startPSWFTransmitting(bool ack,  uint8_t r_adr, uint8_t cmd,int retr); // запускает отправку групп ук
 
     void startSMSRecieving(SmsStage stage = StageRx_call);  // запускает прим смс
@@ -362,7 +362,6 @@ private:
     bool resyncPendingCommand();
     void sendCommand(Module module, int code, ParameterValue value,bool state = 0);                 // функция отправки пакетов для dsp с буфером
     void sendCommandEasy(Module module, int code, ParameterValue value);                            // функция отправки пакетов для dsp без буфера
-    void sendPswf(Module module);                                                                   // функция отправки УК
     void sendGuc();                                                                                 // функция отправки групп УК
     void recGuc();                                                                                  // функция переключения RX->TX | TX->RX для групп УК
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);                        // функция приема кадров от DSP
@@ -374,14 +373,14 @@ private:
     int CalcSmsTransmitTxRoleFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int prevSecond(int second);                                                                     // функция получения предыдущей секунды
 
-    void RecievedPswf();                                                                            // функция проверки для lcode
+    void recPswf(uint8_t data,uint8_t code);                                                       // функция проверки для lcode
     int getFrequencyPswf();                                                                         // функция рассчета СЛЕДУЮЩЕЙ ЧАСТОТЫ В УК
     int getFrequencySms();                                                                          // функция рассчета СЛЕДУЮЩЕЙ ЧАСТОЫТ В СМС
 
     void getSwr();                                                                                  // функция настройки шумоподавителя
     void sendPswf();                                                                            // функция отправки УК
     void addSeconds(int *date_time);                                                                // функция добавления секунды к текущей секунде
-    void changePswfRxFrequency();                                                                   // функция приема УК
+    void changePswfFrequency();                                                                   // функция приема УК
     void syncPulseDetected();                                                                       // функция выполения задач по секундной метке
     void getDataTime();                                                                             // функция получения времени
     void sendSms(Module module);                                                                    // функция отправки СМС
@@ -407,6 +406,10 @@ private:
     void setPswfRx();
     void setPswfTx();
     void setPswfRxFreq();
+
+    void LogicPswfTx();
+    void LogicPswfRx();
+
 
     bool smsFind;
 
@@ -520,6 +523,9 @@ bool modem_rx_on, modem_tx_on;
     int  freqGucValue = 0;                                      // частота для установки в гук
 
     uint8_t smsDataPacket[255];
+    uint8_t pswfDataPacket[30];
+
+    int CondCmdRxIndexer = 0;
 };
 
 
