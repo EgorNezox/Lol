@@ -78,6 +78,9 @@ public:
     sigc::signal<void> gucCoord;
     sigc::signal<void> smsCounterChanged;
 
+    sigc::signal<void, int> command_tx30;   // Передача УК  пакеты
+    void TxCondCmdTransmit(int value);
+
     void goToVoice();
     uint8_t getSmsCounter();
 

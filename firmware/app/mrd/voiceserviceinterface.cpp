@@ -33,6 +33,8 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     dispatcher->dsp_controller->gucCrcFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCrcFail));
     dispatcher->dsp_controller->updateGucGpsStatus.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCoordRec));
     dispatcher->dsp_controller->smsCounterChanged.connect(sigc::mem_fun(this,&VoiceServiceInterface::onSmsCounterChange));
+
+    dispatcher->dsp_controller->TxCondCmdPackageTransmit.connect(sigc::mem_fun(this,&VoiceServiceInterface::TxCondCmdTransmit));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
@@ -339,6 +341,11 @@ uint8_t VoiceServiceInterface::getSmsCounter()
 {
    return dispatcher->dsp_controller->getSmsCounter();
 
+}
+
+void VoiceServiceInterface::TxCondCmdTransmit(int value)
+{
+    command_tx30(value);
 }
 
 void VoiceServiceInterface::onSmsCounterChange()

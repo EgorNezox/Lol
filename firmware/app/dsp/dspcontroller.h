@@ -186,6 +186,8 @@ public:
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> hardwareFailed;
     sigc::signal<void> smsCounterChanged;
 
+    sigc::signal<void, int/*command_tx30*/> TxCondCmdPackageTransmit;   // Передача УК  пакеты
+
     PackageManager *pack_manager;
     bool retranslation_active = false;
 

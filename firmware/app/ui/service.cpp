@@ -77,6 +77,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateHeadset));
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
+    voice_service->command_tx30.connect(sigc::mem_fun(menu, &Service::TxCondCmdPackage));
+
 
     //    guc_command_vector.push_back(2);
     //    guc_command_vector.push_back(15);
@@ -809,7 +811,7 @@ void Service::keyPressed(UI_Key key)
             {
             case keyEnter:
             {
-                int size = 5;
+                int size = 6;
 
                 // next field
                 if (menu->txCondCmdStage <= size )
@@ -874,13 +876,14 @@ void Service::keyPressed(UI_Key key)
                     if ( menu->txCondCmdStage == 2 ||
                          menu->txCondCmdStage == 3 ||
                          menu->txCondCmdStage == 4 ||
-                         menu->txCondCmdStage == 5
+                         menu->txCondCmdStage == 5 ||
+                         menu->txCondCmdStage == 6
                          )
                      menu->txCondCmdStage++;
                 }
 
                 // send
-                if ( menu->txCondCmdStage > size )
+                if ( menu->txCondCmdStage == size )
                 {
 #ifndef _DEBUG_
 
@@ -974,10 +977,12 @@ void Service::keyPressed(UI_Key key)
                         }
                     }
                 }
-                else
+                else if(menu->txCondCmdStage == 5)
                 {
                     menu->txCondCmdStage--;
                 }
+                break;
+                menu->txCondCmdStage--;
             }
             default:
                 break;

@@ -503,6 +503,9 @@ void DspController::LogicPswfTx()
 {
 	++command_tx30;
 
+    if ((command_tx30 > 0) && (command_tx30 % 3 == 0))
+    TxCondCmdPackageTransmit(command_tx30);
+
 	if (command_tx30 >= 30)
 		sendPswf();
 
@@ -525,7 +528,7 @@ void DspController::LogicPswfTx()
 
 void DspController::LogicPswfRx()
 {
-	if (command_rx30 > 0)
+    if (command_rx30 > 0)
 	{
 		++CondCmdRxIndexer;
 
