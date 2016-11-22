@@ -119,6 +119,7 @@ public:
     std::string smsValueStrStatus;
     uint8_t smsStage = 0;
 
+
     // recv
     bool recvStatus = false;
     uint8_t recvStage = 0;

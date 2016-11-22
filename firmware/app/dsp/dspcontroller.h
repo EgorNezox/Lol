@@ -184,6 +184,7 @@ public:
     sigc::signal<void> updateGucGpsStatus;    float swf_res = 2; // надо изменить значение на нижнее предельное
     sigc::signal<void> gucCrcFailed;                 // ошибка crc-суммы
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> hardwareFailed;
+    sigc::signal<void> smsCounterChanged;
 
     PackageManager *pack_manager;
     bool retranslation_active = false;
@@ -490,7 +491,6 @@ private:
     int rs_data_clear[255];                                     // массив стираний для кода рида-соломона
     int cntChvc = 7;                                            // счетчик пакетов передачи для
 
-
     char sms_content[100];                                      // промежуточный массив для режима смс для подготовки вывода
     uint8_t ack;                                                // переменная для sms, хранит код успешной или потерянной передачи 73 | 99
     int ok_quit = 0;                                            // флаг для квитанции СМС
@@ -512,6 +512,9 @@ bool modem_rx_on, modem_tx_on;
     int  freqGucValue = 0;                                      // частота для установки в гук
 
     uint8_t smsDataPacket[255];
+
+public:
+    uint8_t getSmsCounter();
 };
 
 

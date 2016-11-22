@@ -709,6 +709,10 @@ void DspController::changeSmsFrequency()
         RxSmsWork();
 	}
 
+    static uint8_t tempCounter = sms_counter;
+    if (tempCounter != sms_counter && sms_counter % 11 == 0 )
+      smsCounterChanged();
+
     //setrRxFreq();
 
 	////////////////////////////////////
@@ -2340,7 +2344,12 @@ void DspController::getZone()
 		if  (syncro_recieve.at(i) >=18  && syncro_recieve.at(i) <24) syncro_recieve[i] = 3;
 		if  (syncro_recieve.at(i) >= 24 && syncro_recieve.at(i) <30) syncro_recieve[i] = 4;
 
-	}
+    }
+}
+
+uint8_t DspController::getSmsCounter()
+{
+    return sms_counter;
 }
 
 bool DspController::generateSmsReceived()
@@ -2401,20 +2410,22 @@ bool DspController::generateSmsReceived()
           pack_manager->to_Win1251(packet);
 
           // 10. create str consist data split ''
-          std::string str;
-          for(int i = 0; i<100;i++){
-          if ((i % 8 == 0) && (i>0)){
-             //str.push_back('\r');
-             str.push_back('\n');
-            }
-             str.push_back(packet[i]);
-          }
+//          std::string str;
+//          for(int i = 0; i<100;i++){
+//          if ((i % 8 == 0) && (i>0)){
+//             //str.push_back('\r');
+//             str.push_back('\n');
+//            }
+//             str.push_back(packet[i]);
+//          }
 
-          int len = str.length();
+         // int len = str.length();
+          int len = 100;
 //          QM_ASSERT(len == 0);
-          if (len < 150)
-          std::copy(str.begin(),str.end(),sms_content);
-          str.erase(str.begin());
+          //if (len < 150)
+         // std::copy(str.begin(),str.end(),sms_content);
+          std::copy(&packet[0],&packet[99],sms_content);
+          //str.erase(str.begin());
           sms_content[len] = '\0';
           // return sms status and signal(len, sms_content)
           smsPacketMessage(len);

@@ -88,7 +88,6 @@ public:
     void updateSmsStatus(int value);
     void setPswfStatus(bool var);
 
-
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
@@ -130,6 +129,8 @@ private:
     Power::Battery * pGetPowerBattery();
     int getLanguage();
 
+    void onSmsCounterChange();
+     bool isSmsCounterFull = false;
 
     void GucCoord();
 
