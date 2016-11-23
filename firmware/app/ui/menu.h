@@ -70,6 +70,9 @@ public:
     void keyPressed(UI_Key);
     bool isEditing(){ return editing; }
 
+    void TxCondCmdPackage(int value);    // Передача УК  пакеты
+    int command_tx30 = 0;
+
     std::string dstAddr, newDstAddr;
     std::string message, newMessage;
 

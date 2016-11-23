@@ -138,11 +138,23 @@ void CGuiMenu::initCondCommDialog(CEndState state) // УК
            str.append(startStr);
         break;
     }
+    case 6:
+    { //stage send
+        char pac[] = {0,0};
+        sprintf(pac,"%i",command_tx30);
+        str.append(pac);
+        str.append("/30");
+        break;
+    }
     default:
     {break;}
     }
 
-    LabelParams params = GUI_EL_TEMP_LabelMode;
+    LabelParams params;
+    if (txCondCmdStage == 4)
+    params = GUI_EL_TEMP_LabelChannel;
+    else
+    params = GUI_EL_TEMP_LabelMode;
     params.element.align = {alignHCenter, alignVCenter};
     params.transparent = true;
 
@@ -1092,9 +1104,10 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     MoonsGeometry length_geom = { 110,  5,  160,  20};
     MoonsGeometry sliderArea  = { 150, 25, 157, 110};
 
-    LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelMode};
+    LabelParams param[3] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelMode,GUI_EL_TEMP_LabelChannel};
     param[0].element.align = {alignHCenter, alignTop};
     param[1].element.align = {alignHCenter, alignVCenter};
+    param[2].element.align = {alignHCenter, alignVCenter};
 
 
     length_message.clear();
@@ -1114,11 +1127,6 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     {
         if (fieldStr.size() == 0)
             fieldStr.append("--");
-//        else if (fieldStr.size() == 1)
-//        {
-//            fieldStr.push_back('-');
-//            fieldStr.append(fieldStr);
-//        }
         else
             fieldStr.append(fieldStr);
 
@@ -1134,16 +1142,9 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     {
         if (fieldStr.size() == 0)
             fieldStr.append("--");
-//        else if (fieldStr.size() == 1)
-//        {
-//            fieldStr.push_back('--');
-//            fieldStr.append(fieldStr);
-//        }
-//        else
-//            fieldStr.append(fieldStr);
 
         GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
-        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
+        GUI_EL_TextArea field  (&param[2], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
         window.Draw();
         title.Draw();
         field.Draw();
@@ -1558,4 +1559,9 @@ void CGuiMenu::initFailedSms(int stage)
 	window.Draw();
 	field.Draw();
 
+}
+
+void CGuiMenu::TxCondCmdPackage(int value)  // Передача УК  пакеты
+{
+   command_tx30 = value;
 }

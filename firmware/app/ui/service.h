@@ -87,6 +87,7 @@ public:
     void setFreqLabelValue(int value);
     void updateSmsStatus(int value);
     void setPswfStatus(bool var);
+    void TxCondCmdPackage(int value);
 
 private:
     void msgBox(const char*);

@@ -77,6 +77,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateHeadset));
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
+    voice_service->command_tx30.connect(sigc::mem_fun(this, &Service::TxCondCmdPackage));
+
 
     //    guc_command_vector.push_back(2);
     //    guc_command_vector.push_back(15);
@@ -817,7 +819,7 @@ void Service::keyPressed(UI_Key key)
             {
             case keyEnter:
             {
-                int size = 5;
+                int size = 6;
 
                 // next field
                 if (menu->txCondCmdStage <= size )
@@ -882,13 +884,14 @@ void Service::keyPressed(UI_Key key)
                     if ( menu->txCondCmdStage == 2 ||
                          menu->txCondCmdStage == 3 ||
                          menu->txCondCmdStage == 4 ||
-                         menu->txCondCmdStage == 5
+                         menu->txCondCmdStage == 5 ||
+                         menu->txCondCmdStage == 6
                          )
                      menu->txCondCmdStage++;
                 }
 
                 // send
-                if ( menu->txCondCmdStage > size )
+                if ( menu->txCondCmdStage == size )
                 {
 #ifndef _DEBUG_
 
@@ -982,7 +985,11 @@ void Service::keyPressed(UI_Key key)
                         }
                     }
                 }
-                else
+                else if(menu->txCondCmdStage == 5)
+                {
+                    menu->txCondCmdStage--;
+                }
+                    break;
                 {
                     menu->txCondCmdStage--;
                 }
@@ -1675,7 +1682,6 @@ void Service::keyPressed(UI_Key key)
             {
 #ifndef PORT__PCSIMULATOR
                 voice_service->TurnGuc();
-                //redrawMessage(callSubMenu[0],EndCmd);
 #else
                 guiTree.resetCurrentState();
 #endif
@@ -1718,7 +1724,6 @@ void Service::keyPressed(UI_Key key)
                 }
                 if (key == keyEnter)
                 {
-                    // multiradio_service->getStatus();
                     uint8_t rxAddr = multiradio_service->getAleRxAddress();
                     char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
                     menu->voiceAddr.append(ch);
@@ -2392,18 +2397,15 @@ void Service::drawMainWindow()
     switch (emission_type)
     {
     case Multiradio::voice_emission_t::voiceemissionFM:
-    	if (pswf_status == true)  str.append(ch_em_type_str[2]); else
         str.append(ch_em_type_str[0]);
         break;
     case Multiradio::voice_emission_t::voiceemissionUSB:
-    	if (pswf_status == true)  str.append(ch_em_type_str[3]); else
         str.append(ch_em_type_str[1]);
         break;
     default:
         str.append((char*)"--\0");
         break;
     }
-
 
     main_scr->setModeText(str.c_str());
 
@@ -2420,17 +2422,12 @@ void Service::drawMainWindow()
                    );
 
 
-
     bool gpsStatus = false;
 
-    if (navigator != 0){
+    if (navigator != 0)
+    {
         Navigation::Coord_Date date = navigator->getCoordDate();
-        char ch[10];
-        memcpy(&ch,&date.data,10);
-        if (atoi((const char*)ch) != 0)
-        {
-            gpsStatus = true;
-        }
+        if (date.status == true) gpsStatus = true; else gpsStatus = false;
     }
 
     indicator->Draw(pGetMultitradioService()->getStatus(),
@@ -2609,12 +2606,6 @@ void Service::drawMenu()
             }
 
             menu->initRxPutOffVoiceDialog(status);
-            break;
-        }
-        case GuiWindowsSubType::recvSilence:
-        {
-            guiTree.resetCurrentState();
-            drawMainWindow();
             break;
         }
         case GuiWindowsSubType::gpsCoord:
@@ -2970,6 +2961,22 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
         GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
         if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 2)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 5)))
             drawMenu();
+    }
+}
+
+void Service::TxCondCmdPackage(int value)
+{
+    if (value == 30)
+    {
+        guiTree.resetCurrentState();
+        menu->TxCondCmdPackage(0);
+        menu->txCondCmdStage = 0;
+        draw();
+    }
+    else
+    {
+        menu->TxCondCmdPackage(value);
+        menu->initCondCommDialog((CEndState&)guiTree.getCurrentState());
     }
 }
 
