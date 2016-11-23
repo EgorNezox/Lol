@@ -26,6 +26,7 @@ struct Coord_Date
 	uint8_t time[10];
 	uint8_t latitude[11];
 	uint8_t longitude[12];
+    bool   status;
 };
 
 class Navigator : public QmObject {

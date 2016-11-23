@@ -2573,19 +2573,23 @@ void DspController::startGucTransmitting()
     QM_ASSERT(is_ready);
 
     ParameterValue comandValue;
-    comandValue.radio_mode = RadioModeOff;// РѕС‚РєР»СЋС‡РёР»Рё РїСЂРёРµРј
-    sendCommand(RxRadiopath, RxRadioMode, comandValue);
-    comandValue.guc_mode = RadioModeSazhenData; // РІРєР»СЋС‡РёР»Рё 11 СЂРµР¶РёРј
+    comandValue.radio_mode = RadioModeOff;
+    sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
+
+    comandValue.guc_mode = RadioModeSazhenData; // mode 11
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
-    comandValue.frequency = freqGucValue;//3000000;
-    sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
+
+    comandValue.frequency = freqGucValue;
+    sendCommandEasy(RxRadiopath, RxFrequency, comandValue); //  зачем здесь впринципе ..
     sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
     radio_state = radiostateGucTxPrepare;
     gucTxStateSync = 0;
+
+
     if (ContentGuc.stage == GucRxQuit)
-    	ContentGuc.stage = GucNone;
+        ContentGuc.stage = GucNone;
     else
-    	ContentGuc.stage =  GucRxQuit;
+        ContentGuc.stage =  GucRxQuit;
 }
 
 void DspController::sendGucQuit()
@@ -2687,28 +2691,29 @@ void DspController::startGucRecieving()
     initResetState();
 
     ParameterValue comandValue;
-    comandValue.radio_mode = RadioModeOff;// РѕС‚РєР»СЋС‡РёР»Рё СЂР°РґРёРѕСЂРµР¶РёРј
+    comandValue.radio_mode = RadioModeOff;
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     comandValue.guc_mode = 3;
+
     sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
     data_storage_fs->getAleStationAddress(comandValue.guc_mode);
-    sendCommandEasy(RadioLineNotPswf, 3 ,comandValue); // РѕС‚РєР»СЋС‡РёС‚СЊ РЅРёР·РєРѕСЃРєРѕСЂРѕСЃС‚РЅРѕР№ РјРѕРґРµРј
+    sendCommandEasy(RadioLineNotPswf, 3 ,comandValue);
 
-    // TODO: СѓСЃС‚Р°РЅРѕРІРєР° РїРѕР»РѕСЃС‹ С‡Р°СЃС‚РѕС‚ 3,1 РєР“С†
+
     comandValue.guc_mode = 3;
-   sendCommandEasy(RadioLineNotPswf, 1, comandValue);
-   QmThread::msleep(100);
+    sendCommandEasy(RadioLineNotPswf, 1, comandValue);
+    QmThread::msleep(100);
     //-----------------------------------
 
-    comandValue.guc_mode = RadioModeSazhenData; // РІРєР»СЋС‡РёР»Рё 11 СЂРµР¶РёРј
+    comandValue.guc_mode = RadioModeSazhenData; // 11 mode
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
-    comandValue.frequency = freqGucValue;//3000000;
+
+    comandValue.frequency = freqGucValue;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
 
     radio_state = radiostateGucRxPrepare;
     gucRxStateSync = 0;
-    if (ContentGuc.stage != GucTxQuit)
-    	ContentGuc.stage =  GucRx;
+    if (ContentGuc.stage != GucTxQuit) ContentGuc.stage =  GucRx;
 }
 
 void DspController::GucSwichRxTxAndViewData()

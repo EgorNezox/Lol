@@ -1672,7 +1672,6 @@ void Service::keyPressed(UI_Key key)
             {
 #ifndef PORT__PCSIMULATOR
                 voice_service->TurnGuc();
-                //redrawMessage(callSubMenu[0],EndCmd);
 #else
                 guiTree.resetCurrentState();
 #endif
@@ -1715,7 +1714,6 @@ void Service::keyPressed(UI_Key key)
                 }
                 if (key == keyEnter)
                 {
-                    // multiradio_service->getStatus();
                     uint8_t rxAddr = multiradio_service->getAleRxAddress();
                     char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
                     menu->voiceAddr.append(ch);
@@ -2386,18 +2384,15 @@ void Service::drawMainWindow()
     switch (emission_type)
     {
     case Multiradio::voice_emission_t::voiceemissionFM:
-    	if (pswf_status == true)  str.append(ch_em_type_str[2]); else
         str.append(ch_em_type_str[0]);
         break;
     case Multiradio::voice_emission_t::voiceemissionUSB:
-    	if (pswf_status == true)  str.append(ch_em_type_str[3]); else
         str.append(ch_em_type_str[1]);
         break;
     default:
         str.append((char*)"--\0");
         break;
     }
-
 
     main_scr->setModeText(str.c_str());
 
@@ -2414,17 +2409,12 @@ void Service::drawMainWindow()
                    );
 
 
-
     bool gpsStatus = false;
 
-    if (navigator != 0){
+    if (navigator != 0)
+    {
         Navigation::Coord_Date date = navigator->getCoordDate();
-        char ch[10];
-        memcpy(&ch,&date.data,10);
-        if (atoi((const char*)ch) != 0)
-        {
-            gpsStatus = true;
-        }
+        if (date.status == true) gpsStatus = true; else gpsStatus = false;
     }
 
     indicator->Draw(pGetMultitradioService()->getStatus(),
@@ -2602,12 +2592,6 @@ void Service::drawMenu()
             }
 
             menu->initRxPutOffVoiceDialog(status);
-            break;
-        }
-        case GuiWindowsSubType::recvSilence:
-        {
-            guiTree.resetCurrentState();
-            drawMainWindow();
             break;
         }
         case GuiWindowsSubType::gpsCoord:

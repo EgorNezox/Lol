@@ -41,13 +41,13 @@ const char *callSubMenu[] = {" УК\0", " СМС\0", " ГП\0", " ГУК\0"};
     const char *groupCommandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
         const char *groupCommandsSimplSubMenu[] = {" Групповой вызов\0", " Индивидуальный\0"};
 
-const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " ГП\0", " УК\0", " ГУК\0", " Тишина\0"};
+const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " ГП\0", " УК\0", " ГУК\0"};
 
 const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0", " GPS координаты\0"};
     const char *dataSubSubMenu[] = {" Условные команды\0", " СМС\0", " Головая почта\0", " Группа усл.команд\0"};
 
 const char *settingsSubMenu[] = {" ДВ\0", " Пар. связи\0", " Скан\0", " Режим\0", " Звук\0", " Шум\0"," Время ГУК\0", " Кл. сети"," Конфигур"," Коорд"}; //TODO:
-    const char *dateAndTimeSubMenu[] = {" СИНХРО\0", " РУЧНОЙ\0"};
+    const char *dateAndTimeSubMenu[] = {" Синхро\0", " Ручной\0"};
         const char *setDateOrTime[] = {" Ввод даты\0", " Ввод время\0"};
     const char *setConnParam[] = {" Частота\0", " Скорость\0", " Тип изл.\0", " Реч. реж.\0"};
 

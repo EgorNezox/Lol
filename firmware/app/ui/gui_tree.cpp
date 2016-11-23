@@ -21,7 +21,7 @@ void CGuiTree::init()
     // 1.5.1.1 - 1.5.1.2
     groupCondCommandSimplGroupCall.setName(groupCommandsSimplSubMenu[0]); groupCondCommandSimplIndivCall.setName(groupCommandsSimplSubMenu[1]);
     // 2.1 - 2.3
-    recvVoice.setName(reciveSubMenu[0]); recvSms.setName(reciveSubMenu[1]); rxPutOffVoice.setName(reciveSubMenu[2]); recvCondCommand.setName(reciveSubMenu[3]); recvGroupCondCommsnds.setName(reciveSubMenu[4]); recvSilence.setName(reciveSubMenu[5]);
+    recvVoice.setName(reciveSubMenu[0]); recvSms.setName(reciveSubMenu[1]); rxPutOffVoice.setName(reciveSubMenu[2]); recvCondCommand.setName(reciveSubMenu[3]); recvGroupCondCommsnds.setName(reciveSubMenu[4]);
     // 3.1 - 3.3
     dataRecv.setName(dataSubMenu[0]), dataSend.setName(dataSubMenu[1]), dataGps.setName(dataSubMenu[3]);
     // 3.1.1 - 3.1.4
@@ -149,7 +149,6 @@ void CGuiTree::init()
     recv.nextState.push_back(&recvCondCommand);
     recv.nextState.push_back(&recvGroupCondCommsnds);
     recv.nextState.push_back(&rxPutOffVoice);
-    recv.nextState.push_back(&recvSilence);
     // 2.3 - Речь
     recvVoice.prevState = &recv;
     recvVoice.nextState.clear();
@@ -169,11 +168,6 @@ void CGuiTree::init()
     recvGroupCondCommsnds.subType = GuiWindowsSubType::recvGroupCondCmd;
     recvGroupCondCommsnds.prevState = &recv;
     recvGroupCondCommsnds.nextState.clear();
-    // 2.9 - Режим радиомолчания
-
-    recvSilence.subType = GuiWindowsSubType::recvSilence;
-    recvSilence.prevState = &recv;
-    recvSilence.nextState.clear();
     // 3 - Данные
     data.prevState = &main;
 //    data.nextState.push_back(&dataRecv);

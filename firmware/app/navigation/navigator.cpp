@@ -45,12 +45,11 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 	sync_pulse_iopin = new QmIopin(sync_pulse_iopin_resource, this);
 	sync_pulse_iopin->inputTriggerOnce.connect(sigc::mem_fun(this, &Navigator::processSyncPulse));
-//#else
-//	QM_UNUSED(uart_resource);
-//	QM_UNUSED(reset_iopin_resource);
-//#endif /* PORT__TARGET_DEVICE_REV1 */
+
 
 	setMinimalActivityMode(false);
+
+    CoordDate.status = false;
 
     config_timer = new QmTimer(true, this);
     config_timer->timeout.connect(sigc::mem_fun(this, &Navigator::processConfig));
@@ -101,7 +100,6 @@ void Navigator::processUartReceivedData() {
 	while ((data_read = uart->readData(data, 1024 - 1))) {
 		data[data_read] = '\0';
 		parsingData(data);
-//		qmDebugMessage(QmDebug::Dump, "uart dump %s", (char*)data);
 	}
 	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 }
@@ -204,6 +202,8 @@ void Navigator::parsingData(uint8_t data[])
 
     if ((parse_elem.size() > 2) && (parse_elem.at(1).compare("A") == 0))
     { // проверка по статусу gps
+        CoordDate.status = true;
+
         if (parse_elem.size() > 3){
             memcpy(&CoordDate.latitude,parse_elem.at(2).c_str(),parse_elem.at(2).size());
             memcpy(&CoordDate.latitude[parse_elem.at(2).size()],parse_elem.at(3).c_str(),parse_elem.at(3).size());
@@ -219,7 +219,7 @@ void Navigator::parsingData(uint8_t data[])
         PswfSignal(true);
     }
 
-    else {PswfSignal(false);}
+    else {PswfSignal(false); CoordDate.status = false;}
     qmDebugMessage(QmDebug::Dump, "parsing result:  %s %s %s %s", (char*)CoordDate.time,(char*)CoordDate.data,(char*)CoordDate.latitude,(char*)CoordDate.longitude);
 
 }

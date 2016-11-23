@@ -82,7 +82,7 @@ void GUI_Indicator::UpdateGpsStatus(bool status){
     if ( status )
         gpsLabel->icon = sym_gps;
     else
-        gpsLabel->icon = sym_gps_unlock;
+        gpsLabel->icon = sym_blank;
 }
 
 //-----------------------------
