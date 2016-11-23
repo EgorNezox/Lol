@@ -1522,3 +1522,40 @@ void CGuiMenu::initSelectChEmissTypeParameters(bool use)
     label.Draw();
     value.Draw();
 }
+void CGuiMenu::initFailedSms(int stage)
+{
+	std::string str;
+	switch(stage)
+	{
+		case 0:
+		{
+			str.append(sms_quit_fail1);
+			break;
+		}
+		case 1:
+		{
+			str.append(sms_quit_fail2);
+			break;
+		}
+		case 3:
+		{
+			str.append(sms_crc_fail);
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
+	LabelParams params = GUI_EL_TEMP_LabelMode;
+	params.element.align = {alignHCenter, alignVCenter};
+	MoonsGeometry fieldArea = { 7, 40, 150, 90 };
+
+	GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                               (GUI_Obj *)this);
+	GUI_EL_Label  field (&params,                    &fieldArea,  (char*)str.c_str(),      (GUI_Obj *)this);
+
+	window.Draw();
+	field.Draw();
+
+}

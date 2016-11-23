@@ -503,7 +503,7 @@ void DspController::LogicPswfTx()
 {
 	++command_tx30;
 
-	if (command_tx30 >= 30)
+	if (command_tx30 <= 30)
 		sendPswf();
 
 	if (command_tx30 == 31)
@@ -536,6 +536,7 @@ void DspController::LogicPswfRx()
 			if (pswf_rec >= 3)
 			{
 				pswf_rec = 0;
+				command_rx30 = 0;
 
 				for(int i = 0; i<30;i++)
 				{
@@ -546,6 +547,10 @@ void DspController::LogicPswfRx()
 				{
 					CondComLogicRole = CondComTx;
 					pswf_ack = false;
+					uint8_t radr = ContentPSWF.R_ADR;
+					if (radr > 32) radr = radr - 32;
+					ContentPSWF.R_ADR = ContentPSWF.S_ADR;
+					ContentPSWF.S_ADR = radr;
 					setPswfTx();
 				}
 
@@ -572,9 +577,9 @@ void DspController::changePswfFrequency()
 	if (CondComLogicRole == CondComRx)
 	{
 		LogicPswfRx();
-	}
 
-	setPswfRxFreq();
+		setPswfRxFreq();
+	}
 }
 
 void DspController::setPswfRxFreq()
@@ -733,7 +738,7 @@ void DspController::changeSmsFrequency()
 
     static uint8_t tempCounter = sms_counter;
     if (tempCounter != sms_counter && sms_counter % 11 == 0 )
-      smsCounterChanged();
+      smsCounterChanged(sms_counter);
 
     //setrRxFreq();
 
@@ -789,7 +794,7 @@ void DspController::recPswf(uint8_t data,uint8_t code)
     date_time[0],
 	date_time[1],
 	date_time[2],
-	date_time[3]);
+	prevSecond(date_time[3]));
 
 
     qmDebugMessage(QmDebug::Dump, "private_lcode = %d,lcode = %d", private_lcode,code);
@@ -801,14 +806,15 @@ void DspController::recPswf(uint8_t data,uint8_t code)
     	if (pswf_rec == 1)
     	{
     		ContentPSWF.COM_N = data;
-    		ContentPSWF.R_ADR = ContentPSWF.S_ADR;
-    		data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
     		if (ContentPSWF.R_ADR > 32)
     		{
     			pswf_ack = true;
     			ContentPSWF.R_ADR = ContentPSWF.R_ADR - 32;
     			qmDebugMessage(QmDebug::Dump, "r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
     		}
+
+    		//ContentPSWF.R_ADR = ContentPSWF.S_ADR;
+    		data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
     	}
 
     }
@@ -1869,11 +1875,12 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             }
             else
             {
-                ContentPSWF.R_ADR =  data[7];
-                ContentPSWF.S_ADR = data[8];
-                // data[9]  - COM_N
-                // data[10] - LCODE
-                recPswf(data[9],data[10]);
+
+            	ContentPSWF.R_ADR =  data[7];
+            	ContentPSWF.S_ADR = data[8];
+            	// data[9]  - COM_N
+            	// data[10] - LCODE
+            	recPswf(data[9],data[10]);
             }
         }
         break;

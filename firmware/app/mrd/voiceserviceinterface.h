@@ -76,13 +76,13 @@ public:
     sigc::signal<void,int> messageGucTxQuit;
     sigc::signal<void> gucCrcFailed;
     sigc::signal<void> gucCoord;
-    sigc::signal<void> smsCounterChanged;
+    sigc::signal<void,int> smsCounterChanged;
 
     void goToVoice();
     uint8_t getSmsCounter();
 
 private:
-    void onSmsCounterChange();
+    void onSmsCounterChange(int param);
 	friend class Dispatcher;
 
 	VoiceServiceInterface(Dispatcher *dispatcher);

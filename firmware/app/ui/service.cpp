@@ -311,30 +311,38 @@ void Service::drawIndicator()
 
 void Service::FailedSms(int stage)
 {
+	UI_Key key;
     switch(stage)
     {
     case -1:
     {
         guiTree.append(messangeWindow, "Sucsess Sms", EndSms);
         msgBox( "Recieved packet ", "Sms Sucsess" );
+        failFlag = true;
         break;
     }
     case 0:
     {
         guiTree.append(messangeWindow, "Failed Sms\0", sms_quit_fail1);
         msgBox( "Recieved packet \0", sms_quit_fail1 );
+    	//menu->initFailedSms(stage);
+        failFlag = true;
         break;
     }
     case 1:
     {
         guiTree.append(messangeWindow, "Failed Sms\0", sms_quit_fail2);
         msgBox( "Recieved packet \0", sms_quit_fail2);
+    	//menu->initFailedSms(stage);
+        failFlag = true;
         break;
     }
     case 3:
     {
         guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
         msgBox( "Failed Sms", sms_crc_fail);
+    	//menu->initFailedSms(stage);
+        failFlag = true;
         break;
     }
     default:
@@ -1504,6 +1512,7 @@ void Service::keyPressed(UI_Key key)
                             if (atoi(ch) > 0)
                             {
                                 voice_service->defaultSMSTrans();
+                                failFlag = false;
 
                                 if (param[2] > 0)
                                     voice_service->TurnSMSMode(param[2], (char*)msg.c_str(),atoi(dstAddr.c_str())); //retr,msg,radr
@@ -1580,6 +1589,7 @@ void Service::keyPressed(UI_Key key)
 #ifdef _DEBUG_
                     guiTree.resetCurrentState();
 #else
+                    failFlag = false;
                         voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
                         // параметр ответа определяется по получению кадра на адрес 0x63
                         // в первой стадии вызова
@@ -2278,10 +2288,13 @@ int Service::getLanguage()
     return 0;
 }
 
-void Service::onSmsCounterChange()
+void Service::onSmsCounterChange(int param)
 {
     menu->smsTxStage = 6;
+    if ((param > 0 && param < 77) && (failFlag == false))
     drawMenu();
+    else
+    menu->smsTxStage = 1;
 }
 
 void Service::redrawMessage( const char* title,const  char* message)
@@ -2545,12 +2558,13 @@ void Service::drawMenu()
             {
                 uint8_t counter = voice_service->getSmsCounter();
 
-                if (counter == 78)
+                if (counter == 77)
                     isSmsCounterFull = true;
 
                 if (isSmsCounterFull){
-                     guiTree.resetCurrentState();
+                     //guiTree.resetCurrentState();
                      isSmsCounterFull = false;
+                     //drawMainWindow();
                 }
 
                 char pac[2];

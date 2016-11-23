@@ -129,7 +129,7 @@ private:
     Power::Battery * pGetPowerBattery();
     int getLanguage();
 
-    void onSmsCounterChange();
+    void onSmsCounterChange(int param);
      bool isSmsCounterFull = false;
 
     void GucCoord();
@@ -172,6 +172,7 @@ private:
 
     int cntSmsRx = 0;
     bool isSmsMessageRec = false;
+    bool failFlag;
 };
 
 } /* namespace Ui */

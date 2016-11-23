@@ -341,9 +341,9 @@ uint8_t VoiceServiceInterface::getSmsCounter()
 
 }
 
-void VoiceServiceInterface::onSmsCounterChange()
+void VoiceServiceInterface::onSmsCounterChange(int param)
 {
-   smsCounterChanged();
+   smsCounterChanged(param);
 }
 
 } /* namespace Multiradio */

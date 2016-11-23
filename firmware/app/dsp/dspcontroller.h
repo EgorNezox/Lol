@@ -184,7 +184,7 @@ public:
     sigc::signal<void> updateGucGpsStatus;    float swf_res = 2; // надо изменить значение на нижнее предельное
     sigc::signal<void> gucCrcFailed;                 // ошибка crc-суммы
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> hardwareFailed;
-    sigc::signal<void> smsCounterChanged;
+    sigc::signal<void,int> smsCounterChanged;
 
     PackageManager *pack_manager;
     bool retranslation_active = false;

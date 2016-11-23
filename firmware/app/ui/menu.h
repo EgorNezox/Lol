@@ -62,6 +62,7 @@ public:
     void initSetSpeedDialog();
     void initSelectVoiceModeParameters(bool);
     void initSelectChEmissTypeParameters(bool);
+    void initFailedSms(int stage);
 
     void initSmsStageDialog(std::string);
 
