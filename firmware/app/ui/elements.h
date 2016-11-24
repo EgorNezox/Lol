@@ -328,6 +328,101 @@ class GUI_EL_MarkLvlBar: public GUI_EL_Bar{
 
 };
 
+//-----------------------------
+
+enum ColorSchemeType {CST_DEFAULT = 0, CST_INVERSE = 1};
+enum RectDrawMode {RDM_LINE = 0, RDM_FRAME = 1, RDM_FILL = 2};
+enum DrawMode {DM_NORMAL = 0, DM_TRANSPARENT = 1, DM_INVERSE = 2};
+
+struct GPoint{
+    GXT x;
+    GYT y;
+};
+
+class GUI_Painter{
+    public:
+        GUI_Painter();
+//               inline void setFont(PGFONT font);
+//               inline void setColorSheme(ColorSchemeType color_scheme);
+//               inline void setDrawMode(DrawMode drawMode);
+//               inline void setRectDrawMode(RectDrawMode rectDrawMode);
+//               inline void drawLine(GXT xs,
+//                                    GYT ys,
+//                                    GXT xe,
+//                                    GYT ye);
+//               inline void drawRect(GXT xs,
+//                                    GYT ys,
+//                                    GXT xe,
+//                                    GYT ye,
+//                                    RectDrawMode drm,
+//                                    ColorSchemeType color_scheme = CST_DEFAULT,
+//                                    GXYT radius = 0);
+
+// ----------  static -------------------------------------------------------
+
+                static void SetMode(DrawMode drawMode);
+
+          static void ClearViewPort();
+
+         static void SetColorScheme(ColorSchemeType colorScheme);
+
+         static void SelectViewPort(SGUCHAR vp);
+
+             static void SelectFont(PGFONT font);
+
+            static void SetViewPort(GXT xs,
+                                    GYT ys,
+                                    GXT xe,
+                                    GYT ye);
+
+        inline static void DrawLine(GXT xs,
+                                    GYT ys,
+                                    GXT xe,
+                                    GYT ye,
+                                    ColorSchemeType color_scheme = CST_DEFAULT);
+
+               static void DrawLine(GPoint start,
+                                    GPoint end,
+                                    ColorSchemeType color_scheme = CST_DEFAULT);
+
+               static void DrawLine(MoonsGeometry coord,
+                                    ColorSchemeType color_scheme = CST_DEFAULT);
+
+        inline static void DrawRect(GXT xs,
+                                    GYT ys,
+                                    GXT xe,
+                                    GYT ye,
+                                    RectDrawMode drm,
+                                    ColorSchemeType color_scheme = CST_DEFAULT,
+                                    GXYT radius = 0);
+
+               static void DrawRect(MoonsGeometry rect,
+                                    RectDrawMode drm,
+                                    ColorSchemeType color_scheme = CST_DEFAULT,
+                                    GXYT radius = 0);
+
+               static void DrawText(GXT x,
+                                    GYT y,
+                                    PGFONT font,
+                                    char* text,
+                                    ColorSchemeType color_scheme = CST_DEFAULT,
+                                    DrawMode drawMode = DM_TRANSPARENT);
+
+//        inline static void DrawText(GXT x,
+//                                    GYT y,
+//                                    PGFONT font,
+//                                    char* text,
+//                                    ColorSchemeType color_scheme = CST_DEFAULT,
+//                                    DrawMode drawMode = DM_TRANSPARENT);
+
+//               static void DrawText(MoonsGeometry vp,
+//                                    GPoint coord,
+//                                    PGFONT font,
+//                                    char *text,
+//                                    ColorSchemeType color_scheme = CST_DEFAULT,
+//                                    DrawMode drawMode = DM_TRANSPARENT);
+};
+
 #include "element_templates.h"
 
 #endif /* ELEMENTS_H_ */
