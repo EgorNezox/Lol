@@ -2369,7 +2369,7 @@ void Service::msgBox(const char *title, const int condCmd)
 }
 
 
-void Service::msgBox(const char *title, const int condCmd, const int size, const int pos)
+void Service::msgBox(const char *title, const int condCmd, const int size, const int pos, uint8_t* coord = 0)
 {
     Alignment align007 = {alignHCenter,alignTop};
     MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
@@ -2383,7 +2383,8 @@ void Service::msgBox(const char *title, const int condCmd, const int size, const
         msg_box->setCmd(condCmd);
         msg_box->position = pos;
     }
-    msg_box->Draws();
+    //msg_box->Draws();
+    msg_box->DrawWithCoord(coord);
 }
 
 void Service::drawMainWindow()
@@ -2840,15 +2841,46 @@ void Service::setCoordDate(Navigation::Coord_Date date)
 void Service::gucFrame(int value)
 {
     const char *sym = "Recieved packet for station\0";
-    vect = voice_service->getGucCommand();
-    if (vect[0] != '\0')
-    {
-    	char ch[3]; sprintf(ch, "%d", vect[position]); ch[2] = '\0';
-    	guiTree.append(messangeWindow, sym, ch);
-    	msgBox( titleGuc, vect[position], vect[0], position);
+   // vect = voice_service->getGucCommand();
 
+    //test
+    //  uint8_t test[19] = {10,1,2,3,4,5,6,7,8,9,10,90,55,46,100,30,34,42,100};
+   // vect = (uint8_t*)&test;
+
+     bool isCoord = voice_service->getIsGucCoord();
+   // bool isCoord = false;
+    uint8_t size = vect[0];
+
+    char longitude[14]; longitude[12] = '\n';
+    char latitude[14]; latitude[12] = '\0';
+    char coords[26];
+    if (isCoord)
+    {
+        // uint8_t coord[9] = {0,0,0,0,0,0,0,0,0};
+        // getGpsGucCoordinat(coord);
+        sprintf(longitude, "%02d.%02d.%02d.%03d", vect[size+1],vect[size+2],vect[size+3],vect[size+4]);
+        sprintf(latitude, "%02d.%02d.%02d.%03d", vect[size+5],vect[size+6],vect[size+7],vect[size+8]);
+        memcpy(&coords[0],&longitude[0],13);
+        memcpy(&coords[13],&latitude[0],13);
+        coords[12] = '\n';
+    }
+    else
+    {
+        std::string str = std::string(coordNotExistStr);
+        memcpy(&coords[0],&str[0],str.size());
+       // memcpy(&coords[0],&coordNotExistStr[0],25);
+       // coords[25]='\0';
     }
 
+    if (vect[0] != '\0')
+    {
+        char ch[3];
+        sprintf(ch, "%d", vect[position]);
+        ch[2] = '\0';
+
+        guiTree.append(messangeWindow, sym, ch);
+        msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
+    }
 }
 
 

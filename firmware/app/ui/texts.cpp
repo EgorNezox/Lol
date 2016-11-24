@@ -52,6 +52,7 @@ const char *settingsSubMenu[] = {" ДВ\0", " Пар. связи\0", " Скан\0", " Режим\0"
     const char *setConnParam[] = {" Частота\0", " Скорость\0", " Тип изл.\0", " Реч. реж.\0"};
 
 const char *coordinateStr = "Координаты\0";
+const char *coordNotExistStr = "Координаты\n отсутствуют\0";
 const char *useScanMenu[] = {"ВКЛ\0", "ВЫКЛ\0", "МАЛ","СРЕД","ВЫС"};
 const char *aruStr = "АРУ\0";
 const char *armStr = "АРМ\0";

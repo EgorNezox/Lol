@@ -166,6 +166,7 @@ public:
     uint8_t* getGucCoord();                 // получение координат для отображения на экране пользователя в режиме групп ук
 
 
+
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void,int> firstPacket;     // получен первый пакет в УК
@@ -531,6 +532,7 @@ bool modem_rx_on, modem_tx_on;
 
 public:
     uint8_t getSmsCounter();
+    bool getIsGucCoord();
 };
 
 

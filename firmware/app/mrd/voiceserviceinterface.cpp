@@ -352,4 +352,9 @@ void VoiceServiceInterface::onSmsCounterChange(int param){
    smsCounterChanged(param);
 }
 
+bool VoiceServiceInterface::getIsGucCoord()
+{
+    return dispatcher->dsp_controller->getIsGucCoord();
+}
+
 } /* namespace Multiradio */
