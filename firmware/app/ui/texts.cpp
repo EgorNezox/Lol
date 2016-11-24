@@ -35,7 +35,7 @@ const char *mainMenu[] = {"ГЛАВНОЕ МЕНЮ\0", " Передача\0", " Прием\0", " Данные\
 
 const char *callSubMenu[] = {" УК\0", " СМС\0", " ГП\0", " ГУК\0"};
     const char *commandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
-        const char *smplSubMenu[] = {" Груп.\0", " Индивид.\0", "С квит.\0"};
+        const char *smplSubMenu[] = {" Групповой.\0", " Индивид.\0", "Инд. с квит.\0"};
         const char *twSubMenu[] = {" Без ретранслятора\0", " С ретранслятором\0"};
     const char *smsSubMenu[] = {" Без ретранслятора\0", " С ретранслятором\0"};
     const char *groupCommandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
