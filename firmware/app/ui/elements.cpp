@@ -822,3 +822,143 @@ void GUI_EL_MarkLvlBar::CalcContentGeom(){
 }
 
 //-----------------------------
+
+GUI_Painter::GUI_Painter()
+{
+
+}
+
+void GUI_Painter::SetMode(DrawMode drawMode)
+{
+    GMODE mode;
+    switch (drawMode){
+        case DM_NORMAL:      mode = GNORMAL; break;
+        case DM_TRANSPARENT: mode = GTRANSPERANT; break;
+    }
+    gsetmode(mode);
+}
+
+void GUI_Painter::ClearViewPort()
+{
+    gclrvp();
+}
+
+void GUI_Painter::SetColorScheme(ColorSchemeType colorScheme)
+{
+    switch (colorScheme){
+        case CST_DEFAULT: gsetcolorb(GENERAL_BACK_COLOR); gsetcolorf(GENERAL_FORE_COLOR); break;
+        case CST_INVERSE: gsetcolorb(GENERAL_FORE_COLOR); gsetcolorf(GENERAL_BACK_COLOR); break;
+    }
+}
+
+void GUI_Painter::SelectViewPort(unsigned char vp)
+{
+    gselvp(vp);
+}
+
+void GUI_Painter::SelectFont(PGFONT font)
+{
+    gselfont(font);
+}
+
+void GUI_Painter::SetViewPort(unsigned char xs, unsigned char ys, unsigned char xe, unsigned char ye)
+{
+    gsetvp(xs, ys, xe, ye);
+}
+
+void GUI_Painter::DrawLine(unsigned char xs,
+                           unsigned char ys,
+                           unsigned char xe,
+                           unsigned char ye,
+                           ColorSchemeType color_scheme)
+{
+    switch (color_scheme){
+        case CST_DEFAULT: gsetcolorb(GENERAL_BACK_COLOR); gsetcolorf(GENERAL_FORE_COLOR); break;
+        case CST_INVERSE: gsetcolorb(GENERAL_FORE_COLOR); gsetcolorf(GENERAL_BACK_COLOR); break;
+    }
+    gmoveto(xs,ys);
+    glineto(xe,ye);
+}
+
+void GUI_Painter::DrawLine(GPoint start,
+                           GPoint end,
+                           ColorSchemeType color_scheme)
+{
+
+    DrawLine(start.x,start.y,end.x,end.y,color_scheme);
+}
+
+void GUI_Painter::DrawLine(MoonsGeometry coord,
+                           ColorSchemeType color_scheme)
+{
+    DrawLine(coord.xs,coord.ys,coord.xe,coord.ye,color_scheme);
+}
+
+void GUI_Painter::DrawRect(unsigned char xs,
+                           unsigned char ys,
+                           unsigned char xe,
+                           unsigned char ye,
+                           RectDrawMode drm,
+                           ColorSchemeType color_scheme,
+                           unsigned char radius)
+{
+    SGUCHAR mode;
+    switch (drm){
+        case RDM_LINE :  mode = GLINE; break;
+        case RDM_FRAME : mode = GFRAME; break;
+        case RDM_FILL :  mode = GFILL; break;
+    }
+
+    switch (color_scheme){
+        case CST_DEFAULT: gsetcolorb(GENERAL_BACK_COLOR); gsetcolorf(GENERAL_TEXT_COLOR); break;
+        case CST_INVERSE: gsetcolorb(GENERAL_TEXT_COLOR); gsetcolorf(GENERAL_BACK_COLOR); break;
+    }
+
+    groundrect(xs,ys,xe,ye,radius,mode);
+}
+
+void GUI_Painter::DrawRect(MoonsGeometry rect,
+                           RectDrawMode drm,
+                           ColorSchemeType color_scheme,
+                           unsigned char radius)
+{
+    DrawRect(rect.xs,rect.ys,rect.xe,rect.ye,drm,color_scheme,radius);
+}
+
+void GUI_Painter::DrawText( unsigned char x,
+                           unsigned char y,
+                           PGFONT font,
+                           char *text,
+                           ColorSchemeType color_scheme,
+                           DrawMode drawMode)
+{
+
+    switch (color_scheme){
+        case CST_DEFAULT: gsetcolorb(GENERAL_BACK_COLOR); gsetcolorf(GENERAL_TEXT_COLOR); break;
+        case CST_INVERSE: gsetcolorb(GENERAL_TEXT_COLOR); gsetcolorf(GENERAL_BACK_COLOR); break;
+    }
+
+    GMODE mode;
+    switch (drawMode){
+        case DM_NORMAL:      mode = GNORMAL; break;
+        case DM_TRANSPARENT: mode = GTRANSPERANT; break;
+        case DM_INVERSE:     mode = GINVERSE; break;
+    }
+
+    gsetmode(mode);
+    gselfont(font);
+    gsetvp(0, 0, 159, 127);
+    gsetpos(x, y + font->symheight - 2);
+    gputs(text);
+}
+
+
+//void GUI_Painter::DrawText(MoonsGeometry vp,
+//                           GPoint coord,
+//                           PGFONT font,
+//                           char *text,
+//                           ColorSchemeType color_scheme,
+//                           DrawMode drawMode)
+//{
+//    DrawText(vp.xs,vp.ys,vp.xe,vp.ye,coord.x,coord.y,font,text,color_scheme,drawMode);
+//}

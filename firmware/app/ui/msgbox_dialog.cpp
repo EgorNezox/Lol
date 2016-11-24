@@ -156,6 +156,44 @@ void GUI_Dialog_MsgBox::Draws(){
   ok_button.Draw();
 }
 
+void GUI_Dialog_MsgBox::DrawWithCoord(uint8_t* coord){
+  title_area_geom = { (GXT)(window_geom.xs + MARGIN), (GYT)(window_geom.ys + MARGIN), (GXT)(window_geom.xe - MARGIN), (GYT)( window_geom.ys + 5*MARGIN) };
+  uint8_t coord_h = 30;
+   text_area_geom  = { (GXT)(window_geom.xs + MARGIN),
+                                    (GYT)(window_geom.ys + 10*MARGIN + 1),
+                                    (GXT)(window_geom.xe - MARGIN),
+                                    (GYT)( window_geom.ye - (MARGIN + BUTTON_HEIGHT + coord_h) ) };
+ MoonsGeometry coord_area_geom  = { (GXT)(window_geom.xs + 2),
+                                    (GYT)(text_area_geom.ye + 5),
+                                    (GXT)(window_geom.xe - BUTTON_WIDTH - 30),
+                                    (GYT)( window_geom.ye - (MARGIN)) };
+
+  button_geom.xs = (GXT)(coord_area_geom.xe + 5);
+  button_geom.ys = coord_area_geom.ys + 20 ;
+  button_geom.xe = button_geom.xs + BUTTON_WIDTH - 1;
+  button_geom.ye = button_geom.ys + BUTTON_HEIGHT;
+
+  text_area_params.transparent = true;
+  LabelParams coord_area_params = GUI_EL_TEMP_LabelCoords;
+
+  GUI_EL_Window   window( &GUI_EL_TEMP_WindowGeneral, &window_geom, (GUI_Obj *)this );
+  GUI_EL_TextArea title_area( &title_area_params, &title_area_geom, (char*)title.c_str(), (GUI_Obj *)this );
+  GUI_EL_TextArea text_area ( &text_area_params,  &text_area_geom,  (char*)text,  (GUI_Obj *)this );
+
+  GUI_EL_Label coord_area ( &coord_area_params,  &coord_area_geom,  (char*)coord,  (GUI_Obj *)this );
+  GUI_EL_Button ok_button( &GUI_EL_TEMP_LabelButton, &button_geom, ok_texts[/*service->getLanguage()*/0], bs_unselected, (GUI_Obj *)this);
+
+  MoonsGeometry sliderArea  = { (uint8_t)(window_geom.xe - 4*MARGIN), title_area_geom.ye, (uint8_t)(window_geom.xe - 2*MARGIN), (uint8_t)(button_geom.ys-10)};
+  SliderParams sliderParams = {(int32_t)list_size, (int32_t)1, (int32_t)position};
+  GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
+
+  window.Draw();
+  title_area.Draw();
+  text_area.Draw();
+  coord_area.Draw();
+  slider.Draw();
+  ok_button.Draw();
+}
 
 void GUI_Dialog_MsgBox::Draw_Sms()
 {

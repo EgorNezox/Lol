@@ -663,7 +663,10 @@ void Service::keyPressed(UI_Key key)
         if ( key == keyEnter)
         {
             guiTree.advance(menu->focus);
+            menu->isNeedClearWindow  = true;
+            menu->oldFocus = menu->focus;
             menu->focus = 0;
+            menu->offset = 0;
 
             auto type = guiTree.getCurrentState().getType();
             if ( type == GuiWindowTypes::endMenuWindow )
@@ -688,28 +691,36 @@ void Service::keyPressed(UI_Key key)
                         menu->ch_emiss_type = false;
                 }
             }
-            menu->offset = 0;
+
         }
         if ( key == keyBack)
         {
             guiTree.backvard();
-            menu->focus = 0;
-            menu->offset = 0;
+              menu->isNeedClearWindow  = true;
+              menu->oldFocus = menu->focus;
+              menu->focus = 0;
+              menu->offset = 0;
         }
         if (key == keyUp)
         {
-            if ( menu->focus > 0 )
+            if ( menu->focus > 0 ){
+             menu->oldFocus = menu->focus;
                 menu->focus--;
+            }
         }
         if (key == keyDown)
         {
             if ( state.nextState.size() != 0 )
             {
                 if ( menu->focus < state.nextState.size()-1 )
+                {
+                    menu->oldFocus = menu->focus;
                     menu->focus++;
+                }
             }
         }
 
+        menu->oldOffset = menu->offset;
         if ( menu->focus == 3 && menu->offset == 0) menu->offset = 1;
         if ( menu->focus == 4 && menu->offset == 1) menu->offset = 2;
         if ( menu->focus == 5 && menu->offset == 2) menu->offset = 3;
@@ -1040,6 +1051,8 @@ void Service::keyPressed(UI_Key key)
                 else
                 {
                     menu->groupCondCommStage--;
+                    if (menu->groupCondCommStage == 1)
+                        menu->groupCondCommStage--;
                 }
                 break;
             }
@@ -1078,6 +1091,8 @@ void Service::keyPressed(UI_Key key)
 #endif
                 }
                 else
+                    menu->groupCondCommStage++;
+                if (menu->groupCondCommStage == 1)
                     menu->groupCondCommStage++;
 
                 break;
@@ -1179,6 +1194,7 @@ void Service::keyPressed(UI_Key key)
 
                     if ( (rc < 1 || rc > 98) && (menu->channalNum.size() > 1))
                     { menu->channalNum.clear(); }
+                    menu->inVoiceMail = true;
                 }
                 if (key == keyBack)
                 {
@@ -1188,13 +1204,17 @@ void Service::keyPressed(UI_Key key)
                     {
                         guiTree.backvard();
                         menu->focus = 0;
+                        menu->inVoiceMail = false;
+                        menu->toVoiceMail = false;
                     }
                 }
 #ifdef _DEBUG_
                 if (key == keyEnter)
                 {
-                    if (menu->channalNum.size() > 0)
+                    if (menu->channalNum.size() > 0){
                         menu->putOffVoiceStatus++;
+                        menu->inVoiceMail = true;
+                    }
                 }
 #else
                 if (key == keyEnter && menu->channalNum.size() > 0)
@@ -1331,7 +1351,10 @@ void Service::keyPressed(UI_Key key)
 #ifndef _DEBUG_
                     menu->focus = 0;
                     guiTree.resetCurrentState();
+                    menu->inVoiceMail = false;
+                    menu->toVoiceMail = false;
 #endif
+                    guiTree.resetCurrentState();
                 }
                 break;
             }
@@ -1698,6 +1721,8 @@ void Service::keyPressed(UI_Key key)
                 {
                     menu->focus = 0;
                     guiTree.backvard();
+                    menu->inVoiceMail = false;
+                    menu->toVoiceMail = false;
 #ifndef _DEBUG_
                     multiradio_service->stopAle();
 #endif
@@ -1708,6 +1733,7 @@ void Service::keyPressed(UI_Key key)
                 	updateAleState(Multiradio::MainServiceInterface::AleState_IDLE);
                     multiradio_service->startAleRx();
 #endif
+                    menu->inVoiceMail = true;
                     menu->putOffVoiceStatus++;
                 }
                 break;
@@ -1794,6 +1820,8 @@ void Service::keyPressed(UI_Key key)
 #ifndef _DEBUG_
                     menu->focus = 0;
                     guiTree.resetCurrentState();
+                    menu->inVoiceMail = false;
+                    menu->toVoiceMail = false;
 #endif
 
                 }
@@ -2369,7 +2397,7 @@ void Service::msgBox(const char *title, const int condCmd)
 }
 
 
-void Service::msgBox(const char *title, const int condCmd, const int size, const int pos)
+void Service::msgBox(const char *title, const int condCmd, const int size, const int pos, uint8_t* coord = 0)
 {
     Alignment align007 = {alignHCenter,alignTop};
     MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
@@ -2383,7 +2411,8 @@ void Service::msgBox(const char *title, const int condCmd, const int size, const
         msg_box->setCmd(condCmd);
         msg_box->position = pos;
     }
-    msg_box->Draws();
+    //msg_box->Draws();
+    msg_box->DrawWithCoord(coord);
 }
 
 void Service::drawMainWindow()
@@ -2500,7 +2529,8 @@ void Service::drawMenu()
                 menu->vmProgress = multiradio_service->getAleVmProgress();
             }
 
-            menu->initTxPutOffVoiceDialog(status);
+            menu->initTxPutOffVoiceDialogTest(status);
+            //menu->initTxPutOffVoiceDialog(status);
             break;
         }
         case GuiWindowsSubType::txSmsMessage:
@@ -2605,7 +2635,8 @@ void Service::drawMenu()
                 menu->vmProgress = multiradio_service->getAleVmProgress();
             }
 
-            menu->initRxPutOffVoiceDialog(status);
+            menu->initRxPutOffVoiceDialogTest(status);
+           // menu->initRxPutOffVoiceDialog(status);
             break;
         }
         case GuiWindowsSubType::gpsCoord:
@@ -2840,15 +2871,46 @@ void Service::setCoordDate(Navigation::Coord_Date date)
 void Service::gucFrame(int value)
 {
     const char *sym = "Recieved packet for station\0";
-    vect = voice_service->getGucCommand();
-    if (vect[0] != '\0')
-    {
-    	char ch[3]; sprintf(ch, "%d", vect[position]); ch[2] = '\0';
-    	guiTree.append(messangeWindow, sym, ch);
-    	msgBox( titleGuc, vect[position], vect[0], position);
+   // vect = voice_service->getGucCommand();
 
+    //test
+    //  uint8_t test[19] = {10,1,2,3,4,5,6,7,8,9,10,90,55,46,100,30,34,42,100};
+   // vect = (uint8_t*)&test;
+
+     bool isCoord = voice_service->getIsGucCoord();
+   // bool isCoord = false;
+    uint8_t size = vect[0];
+
+    char longitude[14]; longitude[12] = '\n';
+    char latitude[14]; latitude[12] = '\0';
+    char coords[26];
+    if (isCoord)
+    {
+        // uint8_t coord[9] = {0,0,0,0,0,0,0,0,0};
+        // getGpsGucCoordinat(coord);
+        sprintf(longitude, "%02d.%02d.%02d.%03d", vect[size+1],vect[size+2],vect[size+3],vect[size+4]);
+        sprintf(latitude, "%02d.%02d.%02d.%03d", vect[size+5],vect[size+6],vect[size+7],vect[size+8]);
+        memcpy(&coords[0],&longitude[0],13);
+        memcpy(&coords[13],&latitude[0],13);
+        coords[12] = '\n';
+    }
+    else
+    {
+        std::string str = std::string(coordNotExistStr);
+        memcpy(&coords[0],&str[0],str.size());
+       // memcpy(&coords[0],&coordNotExistStr[0],25);
+       // coords[25]='\0';
     }
 
+    if (vect[0] != '\0')
+    {
+        char ch[3];
+        sprintf(ch, "%d", vect[position]);
+        ch[2] = '\0';
+
+        guiTree.append(messangeWindow, sym, ch);
+        msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
+    }
 }
 
 

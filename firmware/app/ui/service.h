@@ -88,12 +88,13 @@ public:
     void updateSmsStatus(int value);
     void setPswfStatus(bool var);
     void TxCondCmdPackage(int value);
+    uint8_t* getGpsGucCoordinat(uint8_t *coord);
 
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
     void msgBox(const char*, const int);
-    void msgBox(const char*, const int, const int, const int);
+    void msgBox(const char*, const int, const int, const int, uint8_t*);
     void msgBoxSms(const char *text);
     void redrawMessage(const char *title,const char *message);
 

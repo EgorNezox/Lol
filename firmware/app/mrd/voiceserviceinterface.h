@@ -84,6 +84,8 @@ public:
     void goToVoice();
     uint8_t getSmsCounter();
 
+
+    bool getIsGucCoord();
 private:
     void onSmsCounterChange(int param);
 	friend class Dispatcher;

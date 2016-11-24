@@ -405,10 +405,20 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
 
     titleParams.element.align = {alignHCenter, alignTop};
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
-    GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
+   // GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
 
-    window.Draw();
-    title.Draw();
+//    window.Draw();
+//    title.Draw();
+
+    bool isRepaintItem = false;
+
+    if (isNeedClearWindow){
+     window.Draw();
+     isNeedClearWindow = false;
+     isRepaintItem = true;
+    }
+
+    GUI_Painter::DrawText(30,5,titleParams.font,(char*)titleStr.c_str());
 
     itemParams.label_params.transparent = true;
     itemParams.label_params.element.align = {alignHCenter, alignVCenter};
@@ -427,13 +437,16 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
                         (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
                        };
 
-            if (i == focusItem)
-                itemParams.label_params.color_sch = {GENERAL_BACK_COLOR, GENERAL_TEXT_COLOR};
-            else
-                itemParams.label_params.color_sch = {GENERAL_TEXT_COLOR, GENERAL_BACK_COLOR};
+            if (i == focusItem){
+              GUI_Painter::DrawRect( itemArea, RDM_FILL, CST_INVERSE);
+              GUI_Painter::DrawText(itemArea.xs,itemArea.ys,itemParams.label_params.font,(char*)k.c_str(),CST_INVERSE);
+            }
+            else if (i == oldFocus || isRepaintItem){
+              GUI_Painter::DrawRect( itemArea, RDM_FILL, CST_DEFAULT);
+              GUI_Painter::DrawRect(itemArea, RDM_LINE, CST_DEFAULT);
+              GUI_Painter::DrawText(itemArea.xs,itemArea.ys,itemParams.label_params.font,(char*)k.c_str());
+            }
 
-            GUI_EL_MenuItem item(&itemParams, &itemArea, (char*)k.c_str(), false, true, (GUI_Obj*)this);
-            item.Draw();
             i++;
         }
     }
@@ -442,6 +455,7 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
         MoonsGeometry sliderArea  = { 150, 25, 157, 110};
         SliderParams  sliderParams = {(int32_t)text.size(), (int32_t)1, (int32_t)focusItem};
         GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
+        GUI_Painter::DrawRect(152, 30, 155, 100, RDM_FILL); //clear slider
                       slider.Draw();
 
         for (auto &k: text)
@@ -796,6 +810,387 @@ void CGuiMenu::initTxPutOffVoiceDialog(int status)  //  ГП
         break;
     }
 }
+
+//--------------------------------------------------------------------
+
+void CGuiMenu::VoiceDialogClearWindow()
+{
+    if (!toVoiceMail){
+        GUI_Painter::SelectViewPort(0);
+        GUI_Painter::SetColorScheme(CST_DEFAULT);
+        GUI_Painter::SetViewPort(0,0,159,128);
+        GUI_Painter::SetMode(DM_NORMAL);
+
+        GUI_Painter::ClearViewPort();
+
+//        GUI_Painter::DrawRect(5, 15, 150, 128, RDM_FILL); // clear label
+//        GUI_Painter::DrawRect(45, 5, 110, 15, RDM_FILL); // clear menuitems
+//        GUI_Painter::DrawRect(150, 25, 158, 112, RDM_FILL); //clear slider
+
+        toVoiceMail = true;
+    }
+    GUI_Painter::SetMode(DM_TRANSPARENT);
+    GUI_Painter::SelectFont(voiceFont);
+}
+
+void CGuiMenu::TxVoiceDialogInitPaint(bool isClear)
+{
+    GUI_Painter::SelectViewPort(0);
+    if (!toVoiceMail){
+        if (!isClear)
+            GUI_Painter::SetColorScheme(CST_DEFAULT);
+        else
+            GUI_Painter::SetColorScheme(CST_INVERSE);
+    }
+}
+
+void CGuiMenu::TxVoiceDialogStatus1(int status, bool isClear)
+{
+    static std::string str;
+    static std::string strOld;
+    str = "";
+    ColorSchemeType cst;
+
+    if (!isClear){
+        cst = CST_DEFAULT;
+        if (channalNum.size() == 0)
+            str.append("__");
+        else if (channalNum.size() == 1){
+            str.push_back('_');
+            str.append(channalNum);
+        }
+        else
+            str.append(channalNum);
+
+        str.push_back('\0');
+        strOld = str;
+    }
+    else{
+        str = strOld;
+        cst = CST_INVERSE;
+    }
+
+
+    GUI_Painter::DrawText(15,35,voiceFont,(char*)voiceRxTxLabelStr[0],cst);
+    GUI_Painter::DrawText(55,75,voiceDigitFont,(char*)str.c_str(),cst);
+}
+
+void CGuiMenu::TxVoiceDialogStatus2(int status, bool isClear)
+{
+    static int oldStatus;
+    ColorSchemeType cst;
+    int curStatus;
+    if (!isClear){
+        cst = CST_DEFAULT;
+        curStatus = status;
+        oldStatus = status;
+    }
+    else
+    {
+        curStatus = oldStatus;
+        cst = CST_INVERSE;
+    }
+
+    GUI_Painter::DrawText(12,25,voiceFont,(char*)voiceRxTxLabelStr[2],cst);
+    GUI_Painter::DrawLine(0,50,159,50,cst);
+    GUI_Painter::DrawText(3,48,voiceFont,(char*)smatrHSStateStr[curStatus],cst);
+}
+
+void CGuiMenu::TxVoiceDialogStatus3(int status, bool isClear)
+{
+    static std::string str;
+    static std::string strOld;
+    ColorSchemeType cst;
+    str = "";
+
+    if (!isClear){
+        cst = CST_DEFAULT;
+    if (voiceAddr.size() == 0)
+        str.append("__");
+    else if (voiceAddr.size() == 1){
+        str.push_back('_');
+        str.append(voiceAddr);
+    }
+    else
+        str.append(voiceAddr);
+
+    str.push_back('\0');
+    strOld = str;
+    }
+    else{
+    str = strOld;
+    cst = CST_INVERSE;
+    }
+    GUI_Painter::DrawText(15,27,voiceFont,(char*)voiceRxTxLabelStr[4],cst);
+    GUI_Painter::DrawText(50,75,voiceDigitFont,(char*)str.c_str(),cst);
+}
+
+void CGuiMenu::TxVoiceDialogStatus4(int status, bool isClear)
+{
+    ColorSchemeType cst;
+    if (!isClear)
+        cst = CST_DEFAULT;
+    else
+        cst = CST_INVERSE;
+
+    GUI_Painter::DrawText(3,35,voiceFont,(char*)startAleTxVoiceMailStr,cst);
+}
+
+void CGuiMenu::TxVoiceDialogStatus5(int status, bool isClear )
+{
+    static std::string str;
+    static std::string strOld;
+    static std::string strDigit;
+    static std::string strDigitOld;
+    str = "";
+    strDigit = "";
+
+    ColorSchemeType cst;
+
+    if (!isClear){
+        cst = CST_DEFAULT;
+
+         str.append(aleStateStr[status]);
+        if (status == 13){
+            char ch[10];
+            sprintf(ch, "%3d%", vmProgress);
+            strDigit.append(ch).append(" %");
+        }
+        strOld = str;
+        strDigitOld = strDigit;
+    }
+    else{
+        strDigit = strDigitOld;
+        str = strOld;
+        cst = CST_INVERSE;
+}
+    if (status != 13)
+        GUI_Painter::DrawText(10,25,voiceFont,(char*)str.c_str(),cst);
+    GUI_Painter::DrawText(40,50,voiceDigitFont,(char*)strDigit.c_str(),cst);
+}
+
+void CGuiMenu::initTxPutOffVoiceDialogTest(int status)
+{
+    static int voiceStatusOld;
+    static int statusOld;
+    int voiceStatusCur = putOffVoiceStatus;
+    int statusCur = status;
+    int paintCount = 1;
+    int voiceStatus[2];
+    int argStatus[2];
+
+    bool isClear[2];
+    //GUI_Painter::ClearViewPort();
+    VoiceDialogClearWindow();
+
+    GUI_Painter::DrawText(15,0,voiceFont,(char*)voicePostTitleStr[0],CST_DEFAULT);
+    GUI_Painter::DrawLine(0,27,159,27,CST_DEFAULT);
+
+
+    if (inVoiceMail){
+        paintCount = 2;
+        isClear[0] = true;
+        isClear[1] = false;
+        voiceStatus[0] = voiceStatusOld;
+        voiceStatus[1] = voiceStatusCur;
+        argStatus[0] = statusOld;
+        argStatus[1] = statusCur;
+    }
+    else{
+        voiceStatus[0] = voiceStatusCur;
+        argStatus[0] = statusCur;
+        isClear[0] = false;
+    }
+
+    for (int i = 0; i < paintCount; i++){
+        switch (voiceStatus[i])
+        {
+            case 1: { TxVoiceDialogStatus1(argStatus[i], isClear[i]); break; }
+            case 2: { TxVoiceDialogStatus2(argStatus[i], isClear[i]); break; }
+            case 3: { TxVoiceDialogStatus3(argStatus[i], isClear[i]); break; }
+            case 4: { TxVoiceDialogStatus4(argStatus[i], isClear[i]); break; }
+            case 5: { TxVoiceDialogStatus5(argStatus[i], isClear[i]); break; }
+            default: { break; }
+        }
+    }
+    voiceStatusOld = voiceStatusCur;
+    statusOld = statusCur;
+
+}
+
+//----------------------------------------------------------------------
+
+void CGuiMenu::initRxPutOffVoiceDialogTest(int status)
+{
+    static int voiceStatusOld;
+    static int statusOld;
+    int voiceStatusCur = putOffVoiceStatus;
+    int statusCur = status;
+    int paintCount = 1;
+    int voiceStatus[2];
+    int argStatus[2];
+    bool isClear[2];
+
+    VoiceDialogClearWindow();
+
+    GUI_Painter::DrawText(15,0,voiceFont,(char*)voicePostTitleStr[1],CST_DEFAULT);
+    GUI_Painter::DrawLine(0,27,159,27,CST_DEFAULT);
+
+    if (inVoiceMail){
+        paintCount = 2;
+        isClear[0] = true;
+        isClear[1] = false;
+        voiceStatus[0] = voiceStatusOld;
+        voiceStatus[1] = voiceStatusCur;
+        argStatus[0] = statusOld;
+        argStatus[1] = statusCur;
+    }
+    else{
+        voiceStatus[0] = voiceStatusCur;
+        argStatus[0] = statusCur;
+        isClear[0] = false;
+    }
+
+    for (int i = 0; i < paintCount; i++){
+        switch (voiceStatus[i])
+        {
+            case 1: { RxVoiceDialogStatus1(argStatus[i], isClear[i]); break; }
+            case 2: { RxVoiceDialogStatus2(argStatus[i], isClear[i]); break; }
+            case 3: { RxVoiceDialogStatus3(argStatus[i], isClear[i]); break; }
+            case 4: { RxVoiceDialogStatus4(argStatus[i], isClear[i]); break; }
+            case 5: { RxVoiceDialogStatus5(argStatus[i], isClear[i]); break; }
+            default: { break; }
+        }
+    }
+    voiceStatusOld = voiceStatusCur;
+    statusOld = statusCur;
+
+}
+
+void CGuiMenu::RxVoiceDialogStatus1(int status, bool isClear )
+{
+    ColorSchemeType cst;
+
+    if (!isClear)
+        cst = CST_DEFAULT;
+    else
+        cst = CST_INVERSE;
+
+     GUI_Painter::DrawText(5,28,voiceFont,(char*)voiceRxStr[0],cst);
+}
+
+void CGuiMenu::RxVoiceDialogStatus2(int status, bool isClear )
+{
+    static std::string str;
+    static std::string strOld;
+    static std::string strDigit;
+    static std::string strDigitOld;
+    str = "";
+    strDigit = "";
+
+    ColorSchemeType cst;
+
+    if (!isClear){
+        cst = CST_DEFAULT;
+
+        str.append(aleStateStr[status]);
+        if (status == 9)
+        {
+            char ch[100];
+            sprintf(ch, "%3d%", vmProgress);
+            strDigit.append(ch).append(" %");
+        }
+        strOld = str;
+        strDigitOld = strDigit;
+    }
+    else
+    {
+        strDigit = strDigitOld;
+        str = strOld;
+        cst = CST_INVERSE;
+    }
+
+    GUI_Painter::DrawText(40,50,voiceDigitFont,(char*)str.c_str(),cst);
+
+}
+
+void CGuiMenu::RxVoiceDialogStatus3(int status, bool isClear )
+{
+    static std::string strDigit;
+    static std::string strDigitOld;
+    strDigit = "";
+    ColorSchemeType cst;
+
+    if (!isClear){
+        cst = CST_DEFAULT;
+
+    if (voiceAddr.size() < 1)
+        strDigit.append("--\0");
+    else
+        strDigit.append(voiceAddr);
+
+    strDigitOld = strDigit;
+    }
+    else{
+        strDigit = strDigitOld;
+        cst = CST_INVERSE;
+    }
+
+    GUI_Painter::DrawText(10,28,voiceFont,(char*)voiceRxTxLabelStr[5],cst);
+    GUI_Painter::DrawText(20,70,voiceFont,(char*)voiceRxStr[1],cst);
+    GUI_Painter::DrawText(70,65,voiceDigitFont,(char*)strDigit.c_str(),cst);
+    GUI_Painter::DrawText(5,100,voiceFont,(char*)voiceRxStr[2],cst);
+
+}
+
+void CGuiMenu::RxVoiceDialogStatus4(int status, bool isClear )
+{
+    static std::string strDigit;
+    static std::string strDigitOld;
+    strDigit = "";
+    ColorSchemeType cst;
+
+    if (!isClear){
+        cst = CST_DEFAULT;
+
+    if (channalNum.size() == 0)
+        strDigit.append("__");
+    else if (channalNum.size() == 1)
+    {
+        strDigit.push_back('_');
+        strDigit.append(channalNum);
+    }
+    else
+        strDigit.append(channalNum);
+
+    strDigit.push_back('\0');
+
+    strDigitOld = strDigit;
+    }
+    else{
+        strDigit = strDigitOld;
+        cst = CST_INVERSE;
+    }
+
+    GUI_Painter::DrawText(5,30,voiceFont,(char*)voiceRxTxLabelStr[1],cst);
+    GUI_Painter::DrawText(60,87,voiceDigitFont,(char*)strDigit.c_str(),cst);
+}
+
+void CGuiMenu::RxVoiceDialogStatus5(int status, bool isClear )
+{
+
+    ColorSchemeType cst;
+
+    if (!isClear)
+        cst = CST_DEFAULT;
+    else
+         cst = CST_INVERSE;
+
+    GUI_Painter::DrawText(0,25,voiceFont,(char*)voiceRxTxLabelStr[3],cst);
+    GUI_Painter::DrawText(0,48,voiceFont,(char*)smatrHSStateStr[status],cst);
+}
+
+//-----------------------------------------------------------
 
 void CGuiMenu::initRxPutOffVoiceDialog(int status)
 {

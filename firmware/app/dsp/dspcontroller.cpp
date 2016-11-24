@@ -2992,6 +2992,10 @@ void DspController::goToVoice(){
 	sendCommandEasy(TxRadiopath,2,comandValue);
 }
 
+bool DspController::getIsGucCoord()
+{
+    return isGpsGuc;
+}
 
 } /* namespace Multiradio */
 

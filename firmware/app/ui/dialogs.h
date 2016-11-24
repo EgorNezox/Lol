@@ -138,6 +138,7 @@ public:
     uint8_t focus_rxline = 1;
     uint8_t max_line = 1;
 
+    void DrawWithCoord(uint8_t *coord);
 private:
     MoonsGeometry title_area_geom;
     MoonsGeometry text_area_geom;

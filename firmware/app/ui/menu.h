@@ -31,7 +31,6 @@ public:
     CGuiDialog(MoonsGeometry* area):GUI_Obj(area){}
     virtual ~CGuiDialog(){}
     void Draw();
-
     MoonsGeometry windowArea;
     MoonsGeometry titleArea;
     LabelParams   titleParams;
@@ -77,6 +76,7 @@ public:
     std::string message, newMessage;
 
     uint8_t offset = 0;
+    uint8_t oldOffset = 0;
 
     // tx cond cmd
     bool useCmdRetrans = false;
@@ -170,6 +170,32 @@ public:
     //
     bool useMode = false;
     bool ch_emiss_type = false;
+
+    bool isNeedClearWindow  = true;
+    int oldFocus = 0;
+
+    int8_t oldVoiceStatus = 1;
+    bool toVoiceMail = false;
+    bool inVoiceMail = false;
+    PGFONT voiceFont = GUI_EL_TEMP_LabelMode.font;
+    PGFONT voiceDigitFont = GUI_EL_TEMP_LabelChannel.font;
+
+    void TxVoiceDialogInitPaint(bool isClear = false);
+    void VoiceDialogClearWindow();
+
+    void TxVoiceDialogStatus5(int status, bool isClear = false);
+    void TxVoiceDialogStatus4(int status, bool isClear = false);
+    void TxVoiceDialogStatus3(int status, bool isClear = false);
+    void TxVoiceDialogStatus2(int status, bool isClear = false);
+    void TxVoiceDialogStatus1(int status, bool isClear = false);
+    void initTxPutOffVoiceDialogTest(int status);
+
+    void RxVoiceDialogStatus5(int status, bool isClear = false);
+    void RxVoiceDialogStatus4(int status, bool isClear = false);
+    void RxVoiceDialogStatus3(int status, bool isClear = false);
+    void RxVoiceDialogStatus2(int status, bool isClear = false);
+    void RxVoiceDialogStatus1(int status, bool isClear = false);
+    void initRxPutOffVoiceDialogTest(int status);
 
 private:
     GUI_Obj obj;
