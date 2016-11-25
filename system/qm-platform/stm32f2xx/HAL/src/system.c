@@ -46,6 +46,7 @@ void  __attribute__((constructor)) hal_system_init(void) {
 	halinternal_uart_init();
 	halinternal_i2c_init();
 	halinternal_spi_init();
+	halinternal_rtc_init();
 	/* Общая инициализация ввода/вывода аппаратной платформы системы */
 	stm32f2_hardware_io_init();
 }

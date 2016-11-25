@@ -18,6 +18,7 @@
 #include "qmspibus.h"
 #include "qmspiffs.h"
 #include "qmm25pdevice.h"
+#include "qmrtc.h"
 
 #include "multiradio.h"
 #include "datastorage/fs.h"
@@ -30,6 +31,8 @@
 
 void qmMain() {
 	QmApplication app;
+
+	QmRtc rtc(platformhwRtc);
 
 	target_device_multiradio_init();
 
