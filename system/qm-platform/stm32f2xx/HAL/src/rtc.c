@@ -22,6 +22,9 @@ static hal_timer_handle_t rtc_timer;
 
 static bool hal_rcc_osc_config(void);
 static bool hal_rccex_periph_clk_config(void);
+static bool hal_rtc_enter_init_mode(void);
+static bool hal_rtcex_deactivate_wakeup_timer(void);
+static bool hal_rtcex_set_wakeup_timer_it(uint32_t WakeUpCounter, uint32_t WakeUpClock);
 
 
 void halinternal_rtc_init(void) {
@@ -32,16 +35,58 @@ void halinternal_rtc_init(void) {
 }
 
 void hal_rtc_init(void) {
-	bool success = false;
-	success = hal_rcc_osc_config();
-	success = hal_rccex_periph_clk_config();
+	if(!hal_rcc_osc_config())
+		return;
+	if(!hal_rccex_periph_clk_config())
+		return;
 
 	/* Enable RTC Clock */
 	__HAL_RCC_RTC_ENABLE();
+
+//	HAL_NVIC_SetPriority(RTC_WKUP_IRQn, 0x0F, 0);
+//	HAL_NVIC_EnableIRQ(RTC_WKUP_IRQn);
+
+	/* Disable the write protection for RTC registers */
+	__HAL_RTC_WRITEPROTECTION_DISABLE();
+
+	/* Set Initialization mode */
+	if (!hal_rtc_enter_init_mode()) {
+		/* Enable the write protection for RTC registers */
+		__HAL_RTC_WRITEPROTECTION_ENABLE();
+		return;
+	}
+
+	/* Clear RTC_CR FMT, OSEL and POL Bits */
+	RTC->CR &= ((uint32_t)~(RTC_CR_FMT | RTC_CR_OSEL | RTC_CR_POL));
+	/* Set RTC_CR register */
+	RTC->CR |= (uint32_t)(RTC_HOURFORMAT_24 | RTC_OUTPUT_DISABLE | RTC_OUTPUT_POLARITY_HIGH);
+
+	/* Configure the RTC PRER */
+	RTC->PRER = (uint32_t)(RTC_SYNCH_PREDIV);
+	RTC->PRER |= (uint32_t)(RTC_ASYNCH_PREDIV << 16);
+
+	/* Exit Initialization mode */
+	RTC->ISR &= (uint32_t)~RTC_ISR_INIT;
+
+	RTC->TAFCR &= (uint32_t)~RTC_TAFCR_ALARMOUTTYPE;
+	RTC->TAFCR |= (uint32_t)(RTC_OUTPUT_TYPE_OPENDRAIN);
+
+	/* Enable the write protection for RTC registers */
+	__HAL_RTC_WRITEPROTECTION_ENABLE();
+
+	if(!hal_rtcex_deactivate_wakeup_timer())
+		return;
+	if(!hal_rtcex_set_wakeup_timer_it(32768/16, RTC_WAKEUPCLOCK_RTCCLK_DIV16))
+		return;
 }
 
 void hal_rtc_deinit(void) {
 	//TODO
+}
+
+void hal_rtc_clear_wakeup_it_pending_bit(void) {
+	/* Clear the WAKEUPTIMER interrupt pending bit */
+	__HAL_RTC_WAKEUPTIMER_CLEAR_FLAG(RTC_FLAG_WUTF);
 }
 
 static bool hal_rcc_osc_config(void) {
@@ -141,5 +186,110 @@ static bool hal_rccex_periph_clk_config(void) {
 		}
 		__HAL_RCC_RTC_CONFIG(RCC_RTCCLKSOURCE_LSE);
 	}
+	return true;
+}
+
+static bool hal_rtc_enter_init_mode(void) {
+	/* Check if the Initialization mode is set */
+	if((RTC->ISR & RTC_ISR_INITF) == (uint32_t)RESET)
+	{
+		/* Set the Initialization mode */
+		RTC->ISR = (uint32_t)RTC_INIT_MASK;
+
+		/* Wait till RTC is in INIT state and if Time out is reached exit */
+		hal_timer_start(rtc_timer, RTC_TIMEOUT_VALUE, 0);
+		while((RTC->ISR & RTC_ISR_INITF) == (uint32_t)RESET) {
+			if (hal_timer_check_timeout(rtc_timer)) {
+				return false;
+			}
+		}
+		hal_timer_stop(rtc_timer);
+	}
+	return true;
+}
+
+static bool hal_rtcex_deactivate_wakeup_timer(void) {
+	/* Disable the write protection for RTC registers */
+	__HAL_RTC_WRITEPROTECTION_DISABLE();
+
+	/* Disable the Wake-up Timer */
+	__HAL_RTC_WAKEUPTIMER_DISABLE();
+
+	/* In case of interrupt mode is used, the interrupt source must disabled */
+	__HAL_RTC_WAKEUPTIMER_DISABLE_IT(RTC_IT_WUT);
+
+	/* Wait till RTC WUTWF flag is set and if Time out is reached exit */
+	hal_timer_start(rtc_timer, RTC_TIMEOUT_VALUE, 0);
+	while(__HAL_RTC_WAKEUPTIMER_GET_FLAG(RTC_FLAG_WUTWF) == RESET) {
+		if (hal_timer_check_timeout(rtc_timer)) {
+			/* Enable the write protection for RTC registers */
+			__HAL_RTC_WRITEPROTECTION_ENABLE();
+			return false;
+		}
+	}
+	hal_timer_stop(rtc_timer);
+
+	/* Enable the write protection for RTC registers */
+	__HAL_RTC_WRITEPROTECTION_ENABLE();
+
+	return true;
+}
+
+static bool hal_rtcex_set_wakeup_timer_it(uint32_t WakeUpCounter, uint32_t WakeUpClock) {
+	/* Disable the write protection for RTC registers */
+	__HAL_RTC_WRITEPROTECTION_DISABLE();
+
+	/*Check RTC WUTWF flag is reset only when wake up timer enabled*/
+	if((RTC->CR & RTC_CR_WUTE) != RESET)
+	{
+		/* Wait till RTC WUTWF flag is reset and if Time out is reached exit */
+		hal_timer_start(rtc_timer, RTC_TIMEOUT_VALUE, 0);
+		while(__HAL_RTC_WAKEUPTIMER_GET_FLAG(RTC_FLAG_WUTWF) == SET) {
+			if (hal_timer_check_timeout(rtc_timer)) {
+				/* Enable the write protection for RTC registers */
+				__HAL_RTC_WRITEPROTECTION_ENABLE();
+				return false;
+			}
+		}
+		hal_timer_stop(rtc_timer);
+	}
+
+	/* Disable the Wake-up Timer */
+	__HAL_RTC_WAKEUPTIMER_DISABLE();
+
+	/* Wait till RTC WUTWF flag is set and if Time out is reached exit */
+	hal_timer_start(rtc_timer, RTC_TIMEOUT_VALUE, 0);
+	while(__HAL_RTC_WAKEUPTIMER_GET_FLAG(RTC_FLAG_WUTWF) == RESET) {
+		if (hal_timer_check_timeout(rtc_timer)) {
+			/* Enable the write protection for RTC registers */
+			__HAL_RTC_WRITEPROTECTION_ENABLE();
+			return false;
+		}
+	}
+	hal_timer_stop(rtc_timer);
+
+	/* Configure the Wake-up Timer counter */
+	RTC->WUTR = (uint32_t)WakeUpCounter;
+
+	/* Clear the Wake-up Timer clock source bits in CR register */
+	RTC->CR &= (uint32_t)~RTC_CR_WUCKSEL;
+
+	/* Configure the clock source */
+	RTC->CR |= (uint32_t)WakeUpClock;
+
+	/* RTC WakeUpTimer Interrupt Configuration: EXTI configuration */
+//	__HAL_RTC_WAKEUPTIMER_EXTI_ENABLE_IT();
+
+//	EXTI->RTSR |= RTC_EXTI_LINE_WAKEUPTIMER_EVENT;
+
+	/* Configure the Interrupt in the RTC_CR register */
+	__HAL_RTC_WAKEUPTIMER_ENABLE_IT(RTC_IT_WUT);
+
+	/* Enable the Wake-up Timer */
+	__HAL_RTC_WAKEUPTIMER_ENABLE();
+
+	/* Enable the write protection for RTC registers */
+	__HAL_RTC_WRITEPROTECTION_ENABLE();
+
 	return true;
 }

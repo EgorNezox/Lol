@@ -17,10 +17,12 @@ extern "C" {
 void hal_rtc_init(void);
 void hal_rtc_deinit(void);
 
-void hal_rtc_set_time(void);
-void hal_rtc_get_time(void);
-void hal_rtc_set_date(void);
-void hal_rtc_get_date(void);
+void hal_rtc_clear_wakeup_it_pending_bit(void);
+
+//void hal_rtc_set_time(void);
+//void hal_rtc_get_time(void);
+//void hal_rtc_set_date(void);
+//void hal_rtc_get_date(void);
 
 #ifdef __cplusplus
 }

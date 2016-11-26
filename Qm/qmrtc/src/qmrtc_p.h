@@ -14,7 +14,6 @@
 #include "qmrtc.h"
 
 #ifdef QM_PLATFORM_STM32F2XX
-//#include "hal_gpio.h"
 #include "hal_exti.h"
 #include "hal_rtc.h"
 #include "../../qmcore/src/qm_core.h"

@@ -71,9 +71,9 @@ void Error_Handler(void)
   }
 }
 
-void RTC_WKUP_IRQHandler(void) {
-	HAL_RTCEx_WakeUpTimerIRQHandler(&RtcHandle);
-}
+//void RTC_WKUP_IRQHandler(void) {
+//	HAL_RTCEx_WakeUpTimerIRQHandler(&RtcHandle);
+//}
 
 void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
 {

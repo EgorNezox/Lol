@@ -79,4 +79,53 @@
 #define __HAL_RCC_RTC_ENABLE() (*(__IO uint32_t *) RCC_BDCR_RTCEN_BB = ENABLE)
 #define __HAL_RCC_RTC_DISABLE() (*(__IO uint32_t *) RCC_BDCR_RTCEN_BB = DISABLE)
 
+/* RTC */
+#define RTC_INIT_MASK           ((uint32_t)0xFFFFFFFF)
+
+#define RTC_TIMEOUT_VALUE       1000
+
+#define RTC_HOURFORMAT_24              ((uint32_t)0x00000000)
+#define RTC_OUTPUT_DISABLE             ((uint32_t)0x00000000)
+#define RTC_OUTPUT_POLARITY_HIGH       ((uint32_t)0x00000000)
+#define RTC_OUTPUT_TYPE_OPENDRAIN      ((uint32_t)0x00000000)
+
+#define RTC_IT_WUT                        ((uint32_t)0x00004000)
+#define RTC_FLAG_WUTWF                    ((uint32_t)0x00000004)
+#define RTC_FLAG_WUTF                     ((uint32_t)0x00000400)
+
+#define RTC_WAKEUPCLOCK_RTCCLK_DIV16        ((uint32_t)0x00000000)
+#define RTC_WAKEUPCLOCK_RTCCLK_DIV8         ((uint32_t)0x00000001)
+#define RTC_WAKEUPCLOCK_RTCCLK_DIV4         ((uint32_t)0x00000002)
+#define RTC_WAKEUPCLOCK_RTCCLK_DIV2         ((uint32_t)0x00000003)
+
+#define RTC_EXTI_LINE_WAKEUPTIMER_EVENT       ((uint32_t)EXTI_IMR_MR22)  /*!< External interrupt line 22 Connected to the RTC Wake-up event */
+
+#define __HAL_RTC_WRITEPROTECTION_DISABLE()             \
+                        do{                                       \
+                            RTC->WPR = 0xCA;   \
+                            RTC->WPR = 0x53;   \
+                          } while(0)
+
+#define __HAL_RTC_WRITEPROTECTION_ENABLE()              \
+                        do{                                       \
+                            RTC->WPR = 0xFF;   \
+                          } while(0)
+
+#define __HAL_RTC_WAKEUPTIMER_ENABLE()                      (RTC->CR |= (RTC_CR_WUTE))
+#define __HAL_RTC_WAKEUPTIMER_DISABLE()                     (RTC->CR &= ~(RTC_CR_WUTE))
+
+#define __HAL_RTC_WAKEUPTIMER_ENABLE_IT(__INTERRUPT__)    (RTC->CR |= (__INTERRUPT__))
+#define __HAL_RTC_WAKEUPTIMER_DISABLE_IT(__INTERRUPT__)   (RTC->CR &= ~(__INTERRUPT__))
+
+#define __HAL_RTC_WAKEUPTIMER_GET_FLAG(__FLAG__)          ((((RTC->ISR) & (__FLAG__)) != RESET)? SET : RESET)
+#define __HAL_RTC_WAKEUPTIMER_CLEAR_FLAG(__FLAG__)            (RTC->ISR) = (~((__FLAG__) | RTC_ISR_INIT)|(RTC->ISR & RTC_ISR_INIT))
+
+//#define __HAL_RTC_WAKEUPTIMER_EXTI_ENABLE_IT()       (EXTI->IMR |= RTC_EXTI_LINE_WAKEUPTIMER_EVENT)
+//#define __HAL_RTC_WAKEUPTIMER_EXTI_DISABLE_IT()      (EXTI->IMR &= ~(RTC_EXTI_LINE_WAKEUPTIMER_EVENT))
+
+
+/* Manual config */
+#define RTC_ASYNCH_PREDIV  0x7F   /* LSE as RTC clock */
+#define RTC_SYNCH_PREDIV   0x00FF /* LSE as RTC clock */
+
 #endif /* HAL_SRC_RTC_PRIVATE_H_ */

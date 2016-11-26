@@ -293,7 +293,7 @@ void target_device_multiradio_init(void) {
 	init_stm32f2cube_hal();
 	tune_frequency_generator();
 	init_sky72310();
-	init_rtc();
+//	init_rtc();
 	deinit_stm32f2cube_hal();
 }
 

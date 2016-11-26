@@ -226,6 +226,6 @@ void OTG_HS_WKUP_IRQHandler(void) {
 void TAMP_STAMP_IRQHandler(void) {
 	exti_irq_handler(&exti_pcbs[21]);
 }
-//void RTC_WKUP_IRQHandler(void) {
-//	exti_irq_handler(&exti_pcbs[22]);
-//}
+void RTC_WKUP_IRQHandler(void) {
+	exti_irq_handler(&exti_pcbs[22]);
+}
