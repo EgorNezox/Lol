@@ -173,6 +173,7 @@ private:
     bool pswf_status;
 
     int cntSmsRx = 0;
+    int cntGucRx = 0;
     bool isSmsMessageRec = false;
     bool failFlag;
 };

@@ -30,7 +30,7 @@
 
 #define DefkeyValue 631
 
-#define GUC_TIMER_INTERVAL 2000
+#define GUC_TIMER_INTERVAL 5000
 #define GUC_TIMER_INTERVAL_REC 30000
 
 namespace Multiradio {
@@ -170,6 +170,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     ContentSms.RN_KEY = DefkeyValue;
 
     retranslation_active = false;
+
 
 }
 DspController::~DspController()
@@ -503,7 +504,7 @@ void DspController::LogicPswfTx()
 {
 	++command_tx30;
 
-    if ((command_tx30 < 0) && (command_tx30 % 3 == 0))
+    if ((command_tx30 > 0) && (command_tx30 % 3 == 0))
     TxCondCmdPackageTransmit(command_tx30);
 	if (command_tx30 <= 30)
 		sendPswf();
@@ -1914,12 +1915,18 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         break;
     }
     case 0x7B:{
+    	qmDebugMessage(QmDebug::Dump, "processReceivedFrame() 0x7B received, %d" ,indicator);
+
         if (indicator == 22) {
         	if (ContentGuc.stage != GucNone)
             recGuc();
         	else
         	{
                 //initResetState();
+        		ContentGuc.stage = GucNone;
+        		ParameterValue comandValue;
+        		comandValue.radio_mode = RadioModeOff;
+        		sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
         		goToVoice();
         		radio_state = radiostateSync;
         	}
@@ -1938,7 +1945,12 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             	ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
                 isGpsGuc = data[5] & 0x1; // TODO: С‚СЂРµР±СѓРµС‚СЃСЏ РїСЂРѕРІРµСЂРёС‚СЊ РІ СЂРµР°Р»СЊРЅС‹С… СѓСЃР»РѕРІРёСЏС…
 
-                if (ContentGuc.stage == GucTxQuit){ ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);  recievedGucQuitForTransm(ContentGuc.S_ADR); ContentGuc.stage = GucNone;}
+                if (ContentGuc.stage == GucTxQuit)
+                {
+                	ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);
+                	recievedGucQuitForTransm(ContentGuc.S_ADR); ContentGuc.stage = GucNone;
+                	goToVoice();
+                }
             	else{
             		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
             		std::vector<uint8_t> guc;
@@ -2590,17 +2602,17 @@ void DspController::startGucTransmitting()
     sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
     radio_state = radiostateGucTxPrepare;
     gucTxStateSync = 0;
-
-
-    if (ContentGuc.stage == GucRxQuit)
-        ContentGuc.stage = GucNone;
-    else
-        ContentGuc.stage =  GucRxQuit;
+//    if (ContentGuc.stage == GucRxQuit)
+//    	ContentGuc.stage = GucNone;
+//    else
+//    	ContentGuc.stage =  GucRxQuit;
 }
 
 void DspController::sendGucQuit()
 {
 	qmDebugMessage(QmDebug::Dump, "sendGucQuit");
+
+	ContentGuc.stage = GucNone;
 
 	uint8_t tx_address = 0x7A;
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
@@ -2720,29 +2732,32 @@ void DspController::startGucRecieving()
     radio_state = radiostateGucRxPrepare;
     gucRxStateSync = 0;
     if (ContentGuc.stage != GucTxQuit) ContentGuc.stage =  GucRx;
+
+    guc_vector.clear();
 }
 
 void DspController::GucSwichRxTxAndViewData()
 {
     guc_timer->setInterval(GUC_TIMER_INTERVAL); // TODO: РІРѕР·РјРѕР¶РЅРѕ РёР·РјРµРЅРµРЅРёРµ РёРЅС‚РµСЂРІР°Р»Р°
-    int size = guc_vector.size();
+    if (guc_vector.size() > 0)
+    {
+    int size = guc_vector[0][0];
 
     qmDebugMessage(QmDebug::Dump, "size guc command %d", guc_vector.size());
 
-    if (size > 0){
-        (isGpsGuc) ? recievedGucResp(1) : recievedGucResp(0);
-        if (ContentGuc.stage != GucTxQuit)
-        startGucTransmitting();
-        if (!failQuitGuc)
-        sendGucQuit();
-        else failQuitGuc = false;
+    (isGpsGuc) ? recievedGucResp(1) : recievedGucResp(0);
+    if (ContentGuc.stage != GucTxQuit)
+    	startGucTransmitting();
+    //if (!failQuitGuc)
+    sendGucQuit();
+    //else failQuitGuc = false;
     }
     else
     {
         radio_state = radiostateSync;
         if (ContentGuc.stage == GucTxQuit) recievedGucQuitForTransm(-1);
     }
-    guc_vector.clear();
+
 }
 
 uint8_t* DspController::get_guc_vector()
@@ -2806,8 +2821,11 @@ uint8_t* DspController::get_guc_vector()
         crc_coord_len = data.size() / 8;
         // РїРѕР»СѓС‡РёР»Рё РґР»РёРЅРЅСѓ РїР°РєРµС‚Р°
 
-        for(int i = 1;i<9; i++)  guc_text[num+i] = guc_text[i]; // РїРѕСЃР»Рµ РґР°РЅРЅС‹С… РїРµСЂРµРґР°РґРёРј РєРѕРѕСЂРґРёРЅР°С‚С‹
+        uint8_t cord[9];
+
+        for(int i = 1; i<9;i++) cord[i] = guc_text[i];
         for(int i = 0;i<num;i++) guc_text[i+1] = guc_text[9+i+1];
+        for(int i = 1;i<9; i++)  guc_text[num+i] = cord[i];
 
     }
 

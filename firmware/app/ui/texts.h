@@ -144,4 +144,6 @@ extern const char *StartCmd;
 extern const char *EndCmd;
 extern const char *EndSms;
 
+extern const char *STARTS;
+
 #endif /* TEXTS_H_ */

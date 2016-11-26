@@ -124,6 +124,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     menu->supressStatus = 0;
     cntSmsRx = 0;
+    cntGucRx = 0;
 
     draw();
 }
@@ -318,8 +319,8 @@ void Service::FailedSms(int stage)
     {
     case -1:
     {
-        guiTree.append(messangeWindow, "Sucsess Sms", EndSms);
-        msgBox( "Recieved packet ", "Sms Sucsess" );
+        guiTree.append(messangeWindow, callSubMenu[1], EndSms);
+        msgBox( "Recieved packet ", EndSms);
         failFlag = true;
         break;
     }
@@ -911,8 +912,8 @@ void Service::keyPressed(UI_Key key)
                         voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
                     }
 
-                    menu->txCondCmdStage = 0;
-                    guiTree.resetCurrentState();
+                    //menu->txCondCmdStage = 0;
+                    //guiTree.resetCurrentState();
                     for(auto &k: estate.listItem)
                         k->inputStr.clear();
 
@@ -1003,6 +1004,8 @@ void Service::keyPressed(UI_Key key)
         {
             std::list<SInputItemParameters*>::iterator iter = estate.listItem.begin();
 
+            int freqs = 0;
+
             switch ( key )
             {
             case keyBack:
@@ -1066,10 +1069,11 @@ void Service::keyPressed(UI_Key key)
                         i++;
                     }
                     int r_adr = mas[1];
+                    freqs = mas[0];
                     int speed = 0;//atoi(mas[1]);
                     guc_command_vector.clear();
                     parsingGucCommand((uint8_t*)str);
-                    voice_service->saveFreq(getFreq());
+                    voice_service->saveFreq(freqs);
                     voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
 #else
                     for (auto &k: estate.listItem)
@@ -1680,11 +1684,27 @@ void Service::keyPressed(UI_Key key)
             }
             if ( key == keyEnter)
             {
-#ifndef PORT__PCSIMULATOR
-                voice_service->TurnGuc();
-#else
-                guiTree.resetCurrentState();
-#endif
+            	++cntGucRx;
+
+            	if (cntGucRx == 1)
+            	{
+            		menu->initRxSmsDialog(STARTS);
+            	}
+            	if (cntGucRx == 2)
+            	{
+            		menu->initRxSmsDialog("...");
+					#ifndef PORT__PCSIMULATOR
+					voice_service->saveFreq(getFreq());
+					voice_service->TurnGuc();
+					#else
+	                guiTree.resetCurrentState();
+					#endif
+            	}
+            	if (cntGucRx == 3)
+            	{
+            		cntGucRx = 0;
+            		guiTree.resetCurrentState();
+            	}
             }
             break;
         }
@@ -2840,47 +2860,43 @@ void Service::setCoordDate(Navigation::Coord_Date date)
 
 void Service::gucFrame(int value)
 {
-    const char *sym = "Recieved packet for station\0";
-   // vect = voice_service->getGucCommand();
+	const char *sym = "Recieved packet for station\0";
+	vect = voice_service->getGucCommand();
 
-    //test
-    //  uint8_t test[19] = {10,1,2,3,4,5,6,7,8,9,10,90,55,46,100,30,34,42,100};
-   // vect = (uint8_t*)&test;
 
-     bool isCoord = voice_service->getIsGucCoord();
-   // bool isCoord = false;
-    uint8_t size = vect[0];
+	bool isCoord = voice_service->getIsGucCoord();
+	uint8_t size = vect[0];
 
-    char longitude[14]; longitude[12] = '\n';
-    char latitude[14]; latitude[12] = '\0';
-    char coords[26];
-    if (isCoord)
-    {
-        // uint8_t coord[9] = {0,0,0,0,0,0,0,0,0};
-        // getGpsGucCoordinat(coord);
-        sprintf(longitude, "%02d.%02d.%02d.%03d", vect[size+1],vect[size+2],vect[size+3],vect[size+4]);
-        sprintf(latitude, "%02d.%02d.%02d.%03d", vect[size+5],vect[size+6],vect[size+7],vect[size+8]);
-        memcpy(&coords[0],&longitude[0],13);
-        memcpy(&coords[13],&latitude[0],13);
-        coords[12] = '\n';
-    }
-    else
-    {
-        std::string str = std::string(coordNotExistStr);
-        memcpy(&coords[0],&str[0],str.size());
-       // memcpy(&coords[0],&coordNotExistStr[0],25);
-       // coords[25]='\0';
-    }
+	char longitude[14]; longitude[12] = '\n';
+	char latitude[14]; latitude[12] = '\0';
+	char coords[26];
+	if (isCoord)
+	{
+		// uint8_t coord[9] = {0,0,0,0,0,0,0,0,0};
+		// getGpsGucCoordinat(coord);
+		sprintf(longitude, "%02d.%02d.%02d.%03d", vect[size+1],vect[size+2],vect[size+3],vect[size+4]);
+		sprintf(latitude, "%02d.%02d.%02d.%03d", vect[size+5],vect[size+6],vect[size+7],vect[size+8]);
+		memcpy(&coords[0],&longitude[0],13);
+		memcpy(&coords[13],&latitude[0],13);
+		coords[12] = '\n';
+	}
+	else
+	{
+		std::string str = std::string(coordNotExistStr);
+		memcpy(&coords[0],&str[0],str.size());
+		// memcpy(&coords[0],&coordNotExistStr[0],25);
+		// coords[25]='\0';
+	}
 
-    if (vect[0] != '\0')
-    {
-        char ch[3];
-        sprintf(ch, "%d", vect[position]);
-        ch[2] = '\0';
+	if (vect[0] != '\0')
+	{
+		char ch[3];
+		sprintf(ch, "%d", vect[position]);
+		ch[2] = '\0';
 
-        guiTree.append(messangeWindow, sym, ch);
-        msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
-    }
+		guiTree.append(messangeWindow, sym, ch);
+		msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
+	}
 }
 
 
@@ -3008,6 +3024,7 @@ void Service::TxCondCmdPackage(int value)
     else
     {
         menu->TxCondCmdPackage(value);
+        menu->txCondCmdStage = 6;
         menu->initCondCommDialog((CEndState&)guiTree.getCurrentState());
     }
 }
