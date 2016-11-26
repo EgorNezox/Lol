@@ -179,6 +179,7 @@ public:
     bool inVoiceMail = false;
     PGFONT voiceFont = GUI_EL_TEMP_LabelMode.font;
     PGFONT voiceDigitFont = GUI_EL_TEMP_LabelChannel.font;
+    //PGFONT voiceDigitFont = GUI_EL_TEMP_LabelMode.font;
 
     void TxVoiceDialogInitPaint(bool isClear = false);
     void VoiceDialogClearWindow();

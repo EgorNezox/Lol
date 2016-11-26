@@ -1054,8 +1054,8 @@ void Service::keyPressed(UI_Key key)
                 else
                 {
                     menu->groupCondCommStage--;
-                    if (menu->groupCondCommStage == 1)
-                        menu->groupCondCommStage--;
+  //                  if (menu->groupCondCommStage == 1)
+ //                       menu->groupCondCommStage--;
                 }
                 break;
             }
@@ -1096,8 +1096,8 @@ void Service::keyPressed(UI_Key key)
                 }
                 else
                     menu->groupCondCommStage++;
-                if (menu->groupCondCommStage == 1)
-                    menu->groupCondCommStage++;
+//                if (menu->groupCondCommStage == 1)
+ //                   menu->groupCondCommStage++;
 
                 break;
             }
@@ -2912,8 +2912,9 @@ void Service::gucFrame(int value)
 	}
 	else
 	{
-		std::string str = std::string(coordNotExistStr);
-		memcpy(&coords[0],&str[0],str.size());
+		//std::string str = std::string(coordNotExistStr);
+		//memcpy(&coords[0],&str[0],str.size());
+
 		// memcpy(&coords[0],&coordNotExistStr[0],25);
 		// coords[25]='\0';
 	}

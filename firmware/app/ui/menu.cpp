@@ -827,6 +827,8 @@ void CGuiMenu::VoiceDialogClearWindow()
 //        GUI_Painter::DrawRect(45, 5, 110, 15, RDM_FILL); // clear menuitems
 //        GUI_Painter::DrawRect(150, 25, 158, 112, RDM_FILL); //clear slider
 
+
+
         toVoiceMail = true;
     }
     GUI_Painter::SetMode(DM_TRANSPARENT);
@@ -892,7 +894,7 @@ void CGuiMenu::TxVoiceDialogStatus2(int status, bool isClear)
     }
 
     GUI_Painter::DrawText(12,25,voiceFont,(char*)voiceRxTxLabelStr[2],cst);
-    GUI_Painter::DrawLine(0,50,159,50,cst);
+   // GUI_Painter::DrawLine(0,50,159,50,cst);
     GUI_Painter::DrawText(3,48,voiceFont,(char*)smatrHSStateStr[curStatus],cst);
 }
 
@@ -953,7 +955,7 @@ void CGuiMenu::TxVoiceDialogStatus5(int status, bool isClear )
          str.append(aleStateStr[status]);
         if (status == 13){
             char ch[10];
-            sprintf(ch, "%3d%", vmProgress);
+            sprintf(ch, "%3d", vmProgress);
             strDigit.append(ch).append(" %");
         }
         strOld = str;
@@ -984,7 +986,7 @@ void CGuiMenu::initTxPutOffVoiceDialogTest(int status)
     VoiceDialogClearWindow();
 
     GUI_Painter::DrawText(15,0,voiceFont,(char*)voicePostTitleStr[0],CST_DEFAULT);
-    GUI_Painter::DrawLine(0,27,159,27,CST_DEFAULT);
+   // GUI_Painter::DrawLine(0,27,159,27,CST_DEFAULT);
 
 
     if (inVoiceMail){
@@ -1032,9 +1034,10 @@ void CGuiMenu::initRxPutOffVoiceDialogTest(int status)
     bool isClear[2];
 
     VoiceDialogClearWindow();
+    //GUI_Painter::ClearViewPort();
 
-    GUI_Painter::DrawText(15,0,voiceFont,(char*)voicePostTitleStr[1],CST_DEFAULT);
-    GUI_Painter::DrawLine(0,27,159,27,CST_DEFAULT);
+   // GUI_Painter::DrawLine(0,27,159,27,CST_DEFAULT);
+    GUI_Painter::DrawText(30,0,voiceFont,(char*)voicePostTitleStr[1],CST_DEFAULT);
 
     if (inVoiceMail){
         paintCount = 2;
@@ -1096,8 +1099,8 @@ void CGuiMenu::RxVoiceDialogStatus2(int status, bool isClear )
         str.append(aleStateStr[status]);
         if (status == 9)
         {
-            char ch[100];
-            sprintf(ch, "%3d%", vmProgress);
+            char ch[3];
+            sprintf(ch, "%3d", vmProgress);
             strDigit.append(ch).append(" %");
         }
         strOld = str;
@@ -1110,7 +1113,10 @@ void CGuiMenu::RxVoiceDialogStatus2(int status, bool isClear )
         cst = CST_INVERSE;
     }
 
-    GUI_Painter::DrawText(40,50,voiceDigitFont,(char*)str.c_str(),cst);
+    if (status == 9)
+        GUI_Painter::DrawText(40,50,voiceDigitFont,(char*)strDigit.c_str(),cst);
+    else
+    	GUI_Painter::DrawText(10,50,voiceFont,(char*)str.c_str(),cst);
 
 }
 
