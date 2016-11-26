@@ -664,7 +664,10 @@ void Service::keyPressed(UI_Key key)
         if ( key == keyEnter)
         {
             guiTree.advance(menu->focus);
+            menu->isNeedClearWindow  = true;
+            menu->oldFocus = menu->focus;
             menu->focus = 0;
+            menu->offset = 0;
 
             auto type = guiTree.getCurrentState().getType();
             if ( type == GuiWindowTypes::endMenuWindow )
@@ -689,28 +692,36 @@ void Service::keyPressed(UI_Key key)
                         menu->ch_emiss_type = false;
                 }
             }
-            menu->offset = 0;
+
         }
         if ( key == keyBack)
         {
             guiTree.backvard();
-            menu->focus = 0;
-            menu->offset = 0;
+              menu->isNeedClearWindow  = true;
+              menu->oldFocus = menu->focus;
+              menu->focus = 0;
+              menu->offset = 0;
         }
         if (key == keyUp)
         {
-            if ( menu->focus > 0 )
+            if ( menu->focus > 0 ){
+             menu->oldFocus = menu->focus;
                 menu->focus--;
+            }
         }
         if (key == keyDown)
         {
             if ( state.nextState.size() != 0 )
             {
                 if ( menu->focus < state.nextState.size()-1 )
+                {
+                    menu->oldFocus = menu->focus;
                     menu->focus++;
+                }
             }
         }
 
+        menu->oldOffset = menu->offset;
         if ( menu->focus == 3 && menu->offset == 0) menu->offset = 1;
         if ( menu->focus == 4 && menu->offset == 1) menu->offset = 2;
         if ( menu->focus == 5 && menu->offset == 2) menu->offset = 3;
@@ -1043,6 +1054,8 @@ void Service::keyPressed(UI_Key key)
                 else
                 {
                     menu->groupCondCommStage--;
+                    if (menu->groupCondCommStage == 1)
+                        menu->groupCondCommStage--;
                 }
                 break;
             }
@@ -1082,6 +1095,8 @@ void Service::keyPressed(UI_Key key)
 #endif
                 }
                 else
+                    menu->groupCondCommStage++;
+                if (menu->groupCondCommStage == 1)
                     menu->groupCondCommStage++;
 
                 break;
@@ -1183,6 +1198,7 @@ void Service::keyPressed(UI_Key key)
 
                     if ( (rc < 1 || rc > 98) && (menu->channalNum.size() > 1))
                     { menu->channalNum.clear(); }
+                    menu->inVoiceMail = true;
                 }
                 if (key == keyBack)
                 {
@@ -1192,13 +1208,17 @@ void Service::keyPressed(UI_Key key)
                     {
                         guiTree.backvard();
                         menu->focus = 0;
+                        menu->inVoiceMail = false;
+                        menu->toVoiceMail = false;
                     }
                 }
 #ifdef _DEBUG_
                 if (key == keyEnter)
                 {
-                    if (menu->channalNum.size() > 0)
+                    if (menu->channalNum.size() > 0){
                         menu->putOffVoiceStatus++;
+                        menu->inVoiceMail = true;
+                    }
                 }
 #else
                 if (key == keyEnter && menu->channalNum.size() > 0)
@@ -1335,7 +1355,10 @@ void Service::keyPressed(UI_Key key)
 #ifndef _DEBUG_
                     menu->focus = 0;
                     guiTree.resetCurrentState();
+                    menu->inVoiceMail = false;
+                    menu->toVoiceMail = false;
 #endif
+                    guiTree.resetCurrentState();
                 }
                 break;
             }
@@ -1718,6 +1741,8 @@ void Service::keyPressed(UI_Key key)
                 {
                     menu->focus = 0;
                     guiTree.backvard();
+                    menu->inVoiceMail = false;
+                    menu->toVoiceMail = false;
 #ifndef _DEBUG_
                     multiradio_service->stopAle();
 #endif
@@ -1728,6 +1753,7 @@ void Service::keyPressed(UI_Key key)
                 	updateAleState(Multiradio::MainServiceInterface::AleState_IDLE);
                     multiradio_service->startAleRx();
 #endif
+                    menu->inVoiceMail = true;
                     menu->putOffVoiceStatus++;
                 }
                 break;
@@ -1814,6 +1840,8 @@ void Service::keyPressed(UI_Key key)
 #ifndef _DEBUG_
                     menu->focus = 0;
                     guiTree.resetCurrentState();
+                    menu->inVoiceMail = false;
+                    menu->toVoiceMail = false;
 #endif
 
                 }
@@ -2521,7 +2549,8 @@ void Service::drawMenu()
                 menu->vmProgress = multiradio_service->getAleVmProgress();
             }
 
-            menu->initTxPutOffVoiceDialog(status);
+            menu->initTxPutOffVoiceDialogTest(status);
+            //menu->initTxPutOffVoiceDialog(status);
             break;
         }
         case GuiWindowsSubType::txSmsMessage:
@@ -2626,7 +2655,8 @@ void Service::drawMenu()
                 menu->vmProgress = multiradio_service->getAleVmProgress();
             }
 
-            menu->initRxPutOffVoiceDialog(status);
+            menu->initRxPutOffVoiceDialogTest(status);
+           // menu->initRxPutOffVoiceDialog(status);
             break;
         }
         case GuiWindowsSubType::gpsCoord:
