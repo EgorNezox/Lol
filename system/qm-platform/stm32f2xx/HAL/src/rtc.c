@@ -26,10 +26,15 @@ static bool hal_rtc_enter_init_mode(void);
 static bool hal_rtcex_deactivate_wakeup_timer(void);
 static bool hal_rtcex_set_wakeup_timer_it(uint32_t WakeUpCounter, uint32_t WakeUpClock);
 
+static bool hal_rtc_wait_for_synchro(void);
+
+static uint8_t hal_rtc_byte_to_bcd2(uint8_t Value);
+static uint8_t hal_rtc_bcd2_to_byte(uint8_t Value);
+
 
 void halinternal_rtc_init(void) {
 	hal_timer_params_t timer_params;
-	timer_params.userid = (void *)&rtc_timer;
+	timer_params.userid = (void *)RTC;
 	timer_params.callbackTimeout = NULL;
 	rtc_timer = hal_timer_create(&timer_params);
 }
@@ -87,6 +92,123 @@ void hal_rtc_deinit(void) {
 void hal_rtc_clear_wakeup_it_pending_bit(void) {
 	/* Clear the WAKEUPTIMER interrupt pending bit */
 	__HAL_RTC_WAKEUPTIMER_CLEAR_FLAG(RTC_FLAG_WUTF);
+}
+
+void hal_rtc_set_time(hal_rtc_time_t time) {
+	uint32_t tmpreg = 0;
+
+    tmpreg = (uint32_t)(((uint32_t)hal_rtc_byte_to_bcd2(time.hours) << 16) | \
+                        ((uint32_t)hal_rtc_byte_to_bcd2(time.minutes) << 8) | \
+                        ((uint32_t)hal_rtc_byte_to_bcd2(time.seconds)) | \
+                        ((/*(uint32_t)time.TimeFormat*/0) << 16));
+
+    /* Disable the write protection for RTC registers */
+    __HAL_RTC_WRITEPROTECTION_DISABLE();
+
+    /* Set Initialization mode */
+    if (!hal_rtc_enter_init_mode()) {
+    	/* Enable the write protection for RTC registers */
+    	__HAL_RTC_WRITEPROTECTION_ENABLE();
+    	return;
+    }
+
+    /* Set the RTC_TR register */
+    RTC->TR = (uint32_t)(tmpreg & RTC_TR_RESERVED_MASK);
+
+    /* Clear the bits to be configured */
+    RTC->CR &= (uint32_t)~RTC_CR_BCK;
+
+    /* Configure the RTC_CR register */
+//    RTC->CR |= (uint32_t)(sTime->DayLightSaving | sTime->StoreOperation);
+
+    /* Exit Initialization mode */
+    RTC->ISR &= (uint32_t)~RTC_ISR_INIT;
+
+    if (!hal_rtc_wait_for_synchro()) {
+    	/* Enable the write protection for RTC registers */
+    	__HAL_RTC_WRITEPROTECTION_ENABLE();
+    	return;
+    }
+
+    /* Enable the write protection for RTC registers */
+    __HAL_RTC_WRITEPROTECTION_ENABLE();
+}
+
+hal_rtc_time_t hal_rtc_get_time() {
+	/* Get the TR register */
+	uint32_t tmpreg = (uint32_t)(RTC->TR & RTC_TR_RESERVED_MASK);
+
+	hal_rtc_time_t time;
+	/* Fill the structure fields with the read parameters */
+	time.hours = (uint8_t)((tmpreg & (RTC_TR_HT | RTC_TR_HU)) >> 16);
+	time.minutes = (uint8_t)((tmpreg & (RTC_TR_MNT | RTC_TR_MNU)) >>8);
+	time.seconds = (uint8_t)(tmpreg & (RTC_TR_ST | RTC_TR_SU));
+//	time->TimeFormat = (uint8_t)((tmpreg & (RTC_TR_PM)) >> 16);
+
+	/* Convert the time structure parameters to Binary format */
+	time.hours = hal_rtc_bcd2_to_byte(time.hours);
+	time.minutes = hal_rtc_bcd2_to_byte(time.minutes);
+	time.seconds = hal_rtc_bcd2_to_byte(time.seconds);
+
+	return time;
+}
+
+void hal_rtc_set_date(hal_rtc_date_t date) {
+	uint32_t datetmpreg = 0;
+
+	if(/*(Format == RTC_FORMAT_BIN) &&*/ ((date.month & 0x10) == 0x10))
+	{
+		date.month = (uint8_t)((date.month & (uint8_t)~(0x10)) + (uint8_t)0x0A);
+	}
+
+	datetmpreg = (((uint32_t)hal_rtc_byte_to_bcd2(date.year) << 16) | \
+			((uint32_t)hal_rtc_byte_to_bcd2(date.month) << 8) | \
+			((uint32_t)hal_rtc_byte_to_bcd2(date.day)) | \
+			((uint32_t)date.weekday << 13));
+
+    /* Disable the write protection for RTC registers */
+    __HAL_RTC_WRITEPROTECTION_DISABLE();
+
+    /* Set Initialization mode */
+    if (!hal_rtc_enter_init_mode()) {
+    	/* Enable the write protection for RTC registers */
+    	__HAL_RTC_WRITEPROTECTION_ENABLE();
+    	return;
+    }
+
+    /* Set the RTC_DR register */
+    RTC->DR = (uint32_t)(datetmpreg & RTC_DR_RESERVED_MASK);
+
+    /* Exit Initialization mode */
+    RTC->ISR &= (uint32_t)~RTC_ISR_INIT;
+
+    if (!hal_rtc_wait_for_synchro()) {
+    	/* Enable the write protection for RTC registers */
+    	__HAL_RTC_WRITEPROTECTION_ENABLE();
+    	return;
+    }
+
+    /* Enable the write protection for RTC registers */
+    __HAL_RTC_WRITEPROTECTION_ENABLE();
+}
+
+hal_rtc_date_t hal_rtc_get_date(void) {
+	/* Get the DR register */
+	uint32_t datetmpreg = (uint32_t)(RTC->DR & RTC_DR_RESERVED_MASK);
+
+	hal_rtc_date_t date;
+	/* Fill the structure fields with the read parameters */
+	date.year = (uint8_t)((datetmpreg & (RTC_DR_YT | RTC_DR_YU)) >> 16);
+	date.month = (uint8_t)((datetmpreg & (RTC_DR_MT | RTC_DR_MU)) >> 8);
+	date.day = (uint8_t)(datetmpreg & (RTC_DR_DT | RTC_DR_DU));
+	date.weekday = (uint8_t)((datetmpreg & (RTC_DR_WDU)) >> 13);
+
+	/* Convert the date structure parameters to Binary format */
+	date.year = hal_rtc_bcd2_to_byte(date.year);
+	date.month = hal_rtc_bcd2_to_byte(date.month);
+	date.day = hal_rtc_bcd2_to_byte(date.day);
+
+	return date;
 }
 
 static bool hal_rcc_osc_config(void) {
@@ -292,4 +414,38 @@ static bool hal_rtcex_set_wakeup_timer_it(uint32_t WakeUpCounter, uint32_t WakeU
 	__HAL_RTC_WRITEPROTECTION_ENABLE();
 
 	return true;
+}
+
+static bool hal_rtc_wait_for_synchro(void) {
+	/* Clear RSF flag */
+	RTC->ISR &= (uint32_t)RTC_RSF_MASK;
+
+	/* Wait the registers to be synchronised */
+	hal_timer_start(rtc_timer, RTC_TIMEOUT_VALUE, 0);
+	while((RTC->ISR & RTC_ISR_RSF) == (uint32_t)RESET) {
+		if (hal_timer_check_timeout(rtc_timer)) {
+			return false;
+		}
+	}
+	hal_timer_stop(rtc_timer);
+
+	return true;
+}
+
+static uint8_t hal_rtc_byte_to_bcd2(uint8_t Value) {
+	uint32_t bcdhigh = 0;
+
+	while(Value >= 10)
+	{
+		bcdhigh++;
+		Value -= 10;
+	}
+
+	return  ((uint8_t)(bcdhigh << 4) | Value);
+}
+
+static uint8_t hal_rtc_bcd2_to_byte(uint8_t Value) {
+	uint32_t tmp = 0;
+	tmp = ((uint8_t)(Value & (uint8_t)0xF0) >> (uint8_t)0x4) * 10;
+	return (tmp + (Value & (uint8_t)0x0F));
 }

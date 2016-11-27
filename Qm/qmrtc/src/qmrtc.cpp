@@ -21,13 +21,3 @@ QmRtc::~QmRtc() {
 	QM_D(QmRtc);
 	d->deinit();
 }
-
-void QmRtc::init() {
-	QM_D(QmRtc);
-	d->init();
-}
-
-void QmRtc::deinit() {
-	QM_D(QmRtc);
-	d->deinit();
-}

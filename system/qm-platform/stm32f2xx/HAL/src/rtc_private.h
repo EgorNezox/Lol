@@ -128,4 +128,9 @@
 #define RTC_ASYNCH_PREDIV  0x7F   /* LSE as RTC clock */
 #define RTC_SYNCH_PREDIV   0x00FF /* LSE as RTC clock */
 
+/* RTC time date */
+#define RTC_TR_RESERVED_MASK    ((uint32_t)0x007F7F7F)
+#define RTC_DR_RESERVED_MASK    ((uint32_t)0x00FFFF3F)
+#define RTC_RSF_MASK            ((uint32_t)0xFFFFFF5F)
+
 #endif /* HAL_SRC_RTC_PRIVATE_H_ */
