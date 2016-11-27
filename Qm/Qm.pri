@@ -14,7 +14,9 @@ INCLUDEPATH += \
 	$$PWD/qmhardwareio/include \
 	$$PWD/qmconsole/include \
 	$$PWD/qmstorage/include \
-	$$PWD/qmkeysinput/include
+        $$PWD/qmkeysinput/include \
+        $$PWD/qmrtc/include
+
 DEFINES += QM_PLATFORM_QT
 
 contains(QM_BUILD_MODULES,core) {
@@ -78,4 +80,12 @@ contains(QM_BUILD_MODULES,keysinput) {
 contains(QM_BUILD_MODULES,console) {
     SOURCES += \
         $$PWD/qmconsole/src/qmconsolescreen.cpp
+}
+
+contains(QM_BUILD_MODULES,rtc) {
+    HEADERS += \
+        $$PWD/qmrtc/src/qmrtc_p.h
+    SOURCES += \
+        $$PWD/qmrtc/src/qmrtc.cpp \
+        $$PWD/qmrtc/src/qmrtc_qt.cpp
 }
