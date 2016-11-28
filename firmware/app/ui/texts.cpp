@@ -50,6 +50,7 @@ const char *settingsSubMenu[] = {" ДВ\0", " Пар. связи\0", " Скан\0", " Режим\0"
     const char *dateAndTimeSubMenu[] = {" Синхро\0", " Ручной\0"};
         const char *setDateOrTime[] = {" Ввод даты\0", " Ввод время\0"};
     const char *setConnParam[] = {" Частота\0", " Скорость\0", " Тип изл.\0", " Реч. реж.\0"};
+const char *files[] = {" Файлы\0"};
 
 const char *coordinateStr = "Координаты\0";
 const char *coordNotExistStr = "Координаты\n отсутствуют\0";

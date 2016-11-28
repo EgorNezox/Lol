@@ -142,6 +142,13 @@ void GUI_EL_Label::SetText(char *text){
     }
 }
 
+void GUI_EL_Label::SetParams(LabelParams *params)
+{
+    font = params->font;
+    transparent = params->transparent;
+    color_sch = params->color_sch;
+}
+
 //-----------------------------
 
 void GUI_EL_Label::Draw(){
@@ -188,7 +195,9 @@ void GUI_EL_Label::CalcContentGeom(){
 
 }
 
-
+void GUI_EL_Label::SetInputFocus(bool isFocus)
+{
+}
 
 //+++++++++++++TextArea+++++++++++++++++++++
 
@@ -306,6 +315,9 @@ void GUI_EL_TextArea::CalcContentGeom(){
     content.W=max_str_width;
 }
 
+void GUI_EL_TextArea::SetInputFocus(bool isFocus)
+{
+}
 
 
 
@@ -328,6 +340,10 @@ void GUI_EL_Icon::CalcContentGeom(){
 void GUI_EL_Icon::Draw(){
 	PrepareViewport();
 	gputsym(content.x,content.y, icon);
+}
+
+void GUI_EL_Icon::SetInputFocus(bool isFocus)
+{
 }
 
 //-----------------------------
@@ -386,6 +402,10 @@ void GUI_EL_Battery::CalcContentGeom(){
 	content.W=BATTERY_W;
 }
 
+void GUI_EL_Battery::SetInputFocus(bool isFocus)
+{
+}
+
 //+++++++++++++VolumeTuner+++++++++++++++++++++
 
 GUI_EL_VolumeTuner::GUI_EL_VolumeTuner(VolumeTunerParams* params, MoonsGeometry* geom, GUI_Obj* parent_obj, uint8_t level) :
@@ -437,6 +457,10 @@ void GUI_EL_VolumeTuner::Draw(){
 void GUI_EL_VolumeTuner::CalcContentGeom(){
 	content.H = GEOM_H(el_geom);
 	content.W = GEOM_W(el_geom);
+}
+
+void GUI_EL_VolumeTuner::SetInputFocus(bool isFocus)
+{
 }
 
 
@@ -542,7 +566,9 @@ void GUI_EL_SpinBox::CalcContentGeom(){
 	content.H=label_h+gsymh(up_arrow)+gsymh(down_arrow)+4;//+4 это марджины иконок
 }
 
-
+void GUI_EL_SpinBox::SetInputFocus(bool isFocus)
+{
+}
 
 
 //+++++++++++++Window+++++++++++++++++++++
@@ -585,7 +611,9 @@ void GUI_EL_Window::CalcContentGeom()
     content.W = GEOM_W(el_geom);
 }
 
-
+void GUI_EL_Window::SetInputFocus(bool isFocus)
+{
+}
 
 
 //+++++++++++++Menu Item+++++++++++++++++++++
@@ -623,7 +651,23 @@ void GUI_EL_MenuItem::CalcContentGeom()
     content.H = GEOM_H(el_geom) - margins.Top-margins.Bottom;
 }
 
-
+void GUI_EL_MenuItem::SetInputFocus(bool isFocus)
+{
+    MenuItemParams *item_params;
+    if (isFocus)
+    {
+         item_params =&GUI_EL_TEMP_ActiveMenuItem;
+         GUI_EL_Label::SetParams(&item_params->label_params);
+    }
+    else
+    {
+        item_params =&GUI_EL_TEMP_DefaultMenuItem;
+        item_params->label_params.element.align = {alignHCenter, alignVCenter};
+        item_params->label_params.transparent = true;
+        item_params->icon_params.icon = sym_blank;
+        GUI_EL_Label::SetParams(&item_params->label_params);
+    }
+}
 
 
 //+++++++++++++Slider+++++++++++++++++++++
@@ -696,6 +740,10 @@ void GUI_EL_Slider::CalcContentGeom(){
 	content.H=GEOM_H(el_geom)- margins.Top-margins.Bottom;
 }
 
+void GUI_EL_Slider::SetInputFocus(bool isFocus)
+{
+}
+
 //-----------------------------
 
 GUI_EL_InputString::GUI_EL_InputString(LabelParams *params, MoonsGeometry *geom, char *text, int length, int position, GUI_Obj *parrent_obj):GUI_EL_Label(params, geom, text, parrent_obj){
@@ -730,9 +778,6 @@ void GUI_EL_InputString::Draw(){
 void GUI_EL_InputString::CalcContentGeom(){
 	GUI_EL_Label::CalcContentGeom();
 }
-
-
-
 
 //+++++++++++++Button+++++++++++++++++++++
 
@@ -781,7 +826,6 @@ void GUI_EL_Bar::Draw(){
 	if(bar_len>0){
 		groundrect(content.x+2,content.y+2,content.x+2+bar_len,CONTENT_YE(content)-2,0,GFILL);
 	}
-
 }
 
 //-----------------------------
@@ -797,6 +841,9 @@ void GUI_EL_Bar::CalcContentGeom(){
 	content.H=GEOM_H(el_geom)- margins.Top-margins.Bottom;
 }
 
+void GUI_EL_Bar::SetInputFocus(bool isFocus)
+{
+}
 
 //+++++++++++++Bar with marked lvl+++++++++++++++++++++
 
@@ -962,3 +1009,223 @@ void GUI_Painter::DrawText( unsigned char x,
 //{
 //    DrawText(vp.xs,vp.ys,vp.xe,vp.ye,coord.x,coord.y,font,text,color_scheme,drawMode);
 //}
+
+//-------------------------------------------------------
+
+GUI_EL_ScrollArea::GUI_EL_ScrollArea(MoonsGeometry *geom,
+                                     Alignment *align,
+                                     Margins *margins,
+                                     GUI_Obj *parent_obj
+                                     ):
+                                        GUI_Element(geom,
+                                                    align,
+                                                    margins,
+                                                    parent_obj){
+visibleElemsCount = 0;
+visElemInd.begin = 0;
+visElemInd.end = 0;
+focus = 0;
+isVScroll = false;
+PrepareContent();
+}
+
+GUI_EL_ScrollArea::~GUI_EL_ScrollArea()
+{
+    for (uint16_t i = 0; i < elements.size(); i++)
+        delete elements[i];
+}
+
+void GUI_EL_ScrollArea::Draw(){
+
+
+    PrepareContent();
+    PrepareViewport();
+    for (uint16_t i = visElemInd.begin, c = 0; i < visElemInd.end; i++, c++ )
+    {
+        MoonsGeometry geom_prev;
+        if (i == visElemInd.begin)
+        {
+           geom_prev = {el_geom.xs,0,el_geom.xe,el_geom.ys};
+        }
+        else
+        {
+           GUI_Element *elemPrev = elements[i-1];
+           geom_prev = elemPrev->el_geom;
+        }
+        GUI_Element *elem = elements[i];
+        if (elem)
+          {
+            int32_t h = GEOM_H(elem->el_geom);
+            elem->el_geom.xs = geom_prev.xs;
+            elem->el_geom.xe = geom_prev.xe;
+            elem->el_geom.ys = geom_prev.ye;
+            elem->el_geom.ye = elem->el_geom.ys + h;
+            elem->Draw();
+          }
+    }
+
+   // vector<GUI_Element>::iterator i = elements[visElemInd.begin];
+
+    //GUI_Element* i = elements[visElemInd.begin];
+ //   while(i != elements[visElemInd.end])
+  //  {
+        //GUI_Element* el = ((GUI_Element*)*i);
+//        i->Draw();
+ //       i++;
+ //   }
+    if (isVScroll)
+    {
+        MoonsGeometry sliderArea  = { el_geom.xe,el_geom.ys , el_geom.xe + 10, el_geom.ye};
+        SliderParams  sliderParams = {(int32_t)elements.size(), (int32_t)1, (int32_t)focus};
+        GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this->parent_obj);
+        slider.Draw();
+    }
+}
+
+void GUI_EL_ScrollArea::ClearCanvas()
+{
+ //ClearCanvasFull();
+}
+
+void GUI_EL_ScrollArea::SetInputFocus(bool isFocus)
+{
+
+}
+
+void GUI_EL_ScrollArea::CalcContentGeom(){
+    content.W = GEOM_W(el_geom) - margins.Left-margins.Right;
+    content.H = GEOM_H(el_geom) - margins.Top-margins.Bottom;
+
+    allContent.H = 0;
+    allContent.W = 0;
+
+    std::vector<GUI_Element*>::iterator i = elements.begin();
+    while(i != elements.end())
+    {
+        GUI_Element*  el = ((GUI_Element*)*i);
+
+        MoonsGeometry geom = el->el_geom;
+        allContent.H += GEOM_H(geom);
+        allContent.W += GEOM_W(geom);
+
+        i++;
+    }
+    if (allContent.H > GEOM_H(el_geom) && !isVScroll)
+    {
+        el_geom.xe -= 10;
+        isVScroll = true;
+    }
+    visibleElemsCount = getVisElemCount();
+//    if (focus >= visibleElemsCount)
+//    {
+//        if (focus < elements.size() - visibleElemsCount)
+//        {
+//            visElemInd.end = focus;
+//             visElemInd.begin = visElemInd.end - visibleElemsCount;
+//        }
+//       else
+//        {
+//            visElemInd.end = elements.size();
+//            visElemInd.begin = visElemInd.end - visibleElemsCount;
+//        }
+//    }
+//    else
+//    {
+//        visElemInd.begin = 0;
+//        visElemInd.end = visibleElemsCount;
+//    }
+
+    visElemInd.end = visElemInd.begin + visibleElemsCount;
+}
+
+int32_t GUI_EL_ScrollArea::getVisElemCount(){
+    int32_t h = el_geom.ys, visCount = 0;
+    for (int32_t i = 0 ; i < elements.size() ; i++)
+    {
+        GUI_Element *elem = elements[i];
+
+        if (h + GEOM_H(elem->el_geom) < el_geom.ye)
+        {
+            h += GEOM_H(elem->el_geom);
+            visCount++;
+        }
+        else
+            break;
+    }
+    return visCount;
+}
+
+int32_t GUI_EL_ScrollArea::setFirstVisElem(const int32_t elemIndex)
+{
+
+    if (elemIndex >= 0 && elemIndex < elements.size() - visibleElemsCount)
+    {
+        visElemInd.begin = elemIndex;
+        visElemInd.end = visElemInd.begin + visibleElemsCount;
+    }
+    else
+    {
+        if (elemIndex < 0 )
+            visElemInd.begin = 0;
+        if (elemIndex > elements.size() - visibleElemsCount)
+            visElemInd.begin = elements.size() - visibleElemsCount;
+    }
+    return visElemInd.begin;
+}
+
+int32_t GUI_EL_ScrollArea::getFirstVisElem()
+{
+    return visElemInd.begin;
+}
+
+void  GUI_EL_ScrollArea::addGuiElement(GUI_Element *element){
+    elements.push_back(element);
+    CalcContentGeom();
+}
+
+void  GUI_EL_ScrollArea::removeGuiElement(GUI_Element *element){
+    //elements.erase(element);
+}
+
+int GUI_EL_ScrollArea::incFocus(){
+ setFocus(++focus);
+ return focus;
+}
+
+int GUI_EL_ScrollArea::decFocus(){
+  setFocus(--focus);
+  return focus;
+}
+
+void GUI_EL_ScrollArea::setFocus(const int32_t elemIndex){
+    PrepareContent();
+    if (elemIndex >= 0 && elemIndex < elements.size())
+    {
+            if (elemIndex >= visElemInd.end)
+            {
+                visElemInd.end = elemIndex;
+                visElemInd.begin = visElemInd.end - visibleElemsCount + 1;
+            }
+            if (elemIndex < visElemInd.begin)
+            {
+                visElemInd.begin = elemIndex;
+                visElemInd.end = visElemInd.begin + visibleElemsCount;
+            }
+
+        GUI_Element* elem = (GUI_Element*)elements[focus];
+        elem->SetInputFocus(false);
+        focus  = elemIndex;
+        elem = (GUI_Element*)elements[focus];
+        elem->SetInputFocus();
+
+    //Draw();
+    }
+}
+
+void GUI_EL_ScrollArea::activateElement(const int32_t elemIndex){
+
+}
+
+void GUI_EL_ScrollArea::activateFocusElement(){
+
+}

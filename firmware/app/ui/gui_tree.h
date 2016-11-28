@@ -50,7 +50,8 @@ enum GuiWindowsSubType
     editRnKey,\
     zond,\
     channelEmissionType,\
-    voiceMode \
+    voiceMode, \
+    filetree
 };
 
 enum modeCall
@@ -207,7 +208,7 @@ private:
     // 4.1 - 4.3
     CState sttDateTime, sttConnParam;
     CEndState sttScan, swAruArm, sttSound, sttSuppress, sttWaitGuk, sttEditRnKey,sttZond, stCoord;
-       // CEndState sttZond1,sttZond2,sttZond3,sttZond4;
+
     // 4.1.1 - 4.1.2
     CState sttConnParamHand;
     CEndState sttConnParamGPS;
@@ -221,7 +222,7 @@ private:
                          speedParameters{(char*)setConnParam[1], "25000", 2, 0, 31};
 
     CEndState sttChannelEmissionType, sttVoiceMode;
-
+    CEndState sttFileManager;
 
     void init();
 
