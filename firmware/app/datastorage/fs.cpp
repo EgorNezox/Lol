@@ -298,12 +298,28 @@ void FS::updateFileTree()
         fileName = generateFileNameByNumber((FileType)fileType, fileNum);
         if (existFile(fileName))
             files.push_back(fileName);
+        else
+            break;
     }
 }
 
 std::vector<std::string>* FS::getFileTree()
 {
     return &files;
+}
+
+void FS::getFileNamesByType(std::vector<std::string> *typeFiles, FS::FileType fileType)
+{
+    typeFiles->clear();
+    std::string fileName;
+    for (uint8_t fileNum = 0; fileNum < 10; fileNum++)
+    {
+        fileName = generateFileNameByNumber(fileType, fileNum);
+        if (existFile(fileName))
+            typeFiles->push_back(fileName);
+        else
+            break;
+    }
 }
 
 uint8_t FS::getFreeFileSlotCount()

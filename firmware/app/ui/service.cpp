@@ -68,6 +68,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     {
         menu = new CGuiMenu(&ui_menu_msg_box_area, mainMenu[0], {alignHCenter,alignTop});
     }
+    menu->setFS(storageFs);
 
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
@@ -2323,6 +2324,49 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::filetree:
+        {
+            if ( key == keyEnter)
+            {
+                if (menu->filesStage == 0)
+                    menu->fileType = (DataStorage::FS::FileType)menu->filesStageFocus[0];
+
+                if (menu->filesStage < 3)
+                    menu->filesStage++;
+
+            }
+            if ( key == keyBack)
+            {
+                if (menu->filesStage > 0)
+                   menu->filesStage--;
+                else
+                {
+                   guiTree.backvard();
+                   menu->focus = 8;
+                   menu->offset = 6;
+                }
+            }
+            if (key == keyUp)
+            {
+                if (menu->filesStageFocus[menu->filesStage] > 0)
+                    menu->filesStageFocus[menu->filesStage] = menu->filesStageFocus[menu->filesStage] - 1;
+            }
+            if (key == keyDown)
+            {
+                switch (menu->filesStage){
+                case 0:
+                    if (menu->filesStageFocus[menu->filesStage] < 3)
+                        menu->filesStageFocus[menu->filesStage] = menu->filesStageFocus[menu->filesStage] + 1;
+                    break;
+                case 1:
+                    if (menu->filesStageFocus[menu->filesStage] < menu->tFiles[menu->fileType].size()-1)
+                        menu->filesStageFocus[menu->filesStage]+=1;
+                    break;
+                }
+            }
+            break;
+        }
+
         default:
             break;
         }
@@ -2769,6 +2813,11 @@ void Service::drawMenu()
         case GuiWindowsSubType::channelEmissionType:
         {
             menu->initSelectChEmissTypeParameters(menu->ch_emiss_type);
+            break;
+        }
+        case GuiWindowsSubType::filetree:
+        {
+            menu->initFileManagerDialog(menu->filesStage);
             break;
         }
         default:

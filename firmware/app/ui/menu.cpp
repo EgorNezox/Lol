@@ -25,6 +25,15 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, Alignment align):CGui
     tx = new char[100];
 
     GUI_EL_TEMP_WindowGeneral.frame_thick = 0;
+
+    tFiles[0].push_back("SMS0");
+    tFiles[0].push_back("SMS1");
+    tFiles[0].push_back("SMS2");
+    tFiles[0].push_back("SMS3");
+    tFiles[0].push_back("SMS4");
+    tFiles[0].push_back("SMS5");
+    tFiles[0].push_back("SMS6");
+    tFiles[0].push_back("SMS7");
 }
 
 void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
@@ -537,6 +546,11 @@ void CGuiMenu::keyPressed(UI_Key key)
     }else if( focus == 1 ){
         newMessage.push_back( value );
     }
+}
+
+void CGuiMenu::setFS(DataStorage::FS *fs)
+{
+    storageFs = fs;
 }
 
 void CGuiMenu::setSttParam(CEndState state, UI_Key key)
@@ -1965,4 +1979,86 @@ void CGuiMenu::initFailedSms(int stage)
 void CGuiMenu::TxCondCmdPackage(int value)  // Передача УК  пакеты
 {
    command_tx30 = value;
+}
+
+void CGuiMenu::initFileManagerDialog(uint8_t stage)
+{
+    MoonsGeometry window_geom = {0, 0, 159, 127};
+    GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneralBack, &window_geom, (GUI_Obj*)this);
+
+    MoonsGeometry label_geom  = { 2, 6, 157, 20};
+    LabelParams   label_params = GUI_EL_TEMP_LabelTitle;
+
+    Margins margins = {0,0,0,0};
+    MoonsGeometry scroll_geom = {0, 25, 159, 112};
+
+    Alignment align = { alignHCenter, alignVCenter};
+    GUI_EL_ScrollArea ScrollArea(&scroll_geom, &align, &margins, (GUI_Obj*)this);
+
+    MoonsGeometry  item_geom;
+    item_geom = {(GXT)(0),(GYT)(0),(GXT)(145),(GYT)(16)};
+
+    MenuItemParams item_param = GUI_EL_TEMP_DefaultMenuItem;
+    item_param.label_params.element.align = {alignHCenter, alignVCenter};
+    item_param.label_params.transparent = true;
+    item_param.icon_params.icon = sym_blank;
+
+    window.Draw();
+    const char* titleChar;
+
+
+    switch(stage){
+    case 0:
+
+        titleChar = files[0];
+
+        for (uint8_t subMenu = 0; subMenu < 4; subMenu++)
+        {
+            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)reciveSubMenu[subMenu + 1], true, true, (GUI_Obj*)this );
+            ScrollArea.addGuiElement(item);
+        }
+
+        ScrollArea.setFirstVisElem(0);
+        ScrollArea.setFocus(filesStageFocus[stage]);
+        ScrollArea.Draw();
+
+        break;
+
+    case 1:
+
+        titleChar = reciveSubMenu[fileType + 1];
+
+      // при записи файлов обновлять по сигналу
+      //  if (storageFs > 0)
+      //      storageFs->getFileNamesByType(&tFiles[fileType], fileType);
+
+        if (tFiles[fileType].size() > 0){
+            for (int8_t file = 0; file < tFiles[fileType].size(); file++)
+            {
+                std::string fileName = tFiles[fileType].at(file);
+
+                GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)fileName.c_str(), true, true, (GUI_Obj*)this );
+                ScrollArea.addGuiElement(item);
+            }
+            ScrollArea.setFirstVisElem(firstVisFileElem);
+            ScrollArea.setFocus(filesStageFocus[stage]);
+            firstVisFileElem = ScrollArea.getFirstVisElem();
+            ScrollArea.Draw();
+        }
+
+        break;
+
+   // case 2:
+        //std::string title;
+//        switch (filesStage1Focus){
+//            case 1:
+//            case 3:
+//            case 4:
+//            case 2: //гп
+//        }
+   //     break;
+    }
+
+    GUI_EL_Label title( &label_params, &label_geom, (char*)titleChar, (GUI_Obj *)this);
+    title.Draw();
 }
