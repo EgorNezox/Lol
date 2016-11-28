@@ -145,10 +145,9 @@ private:
 		alevmadaptationDown
 	};
 
-
-
 	MainServiceInterface(Dispatcher *dispatcher);
 	~MainServiceInterface();
+    void setFS(DataStorage::FS* fs);
 	void setStatus(Status value);
 	void forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
 	void printDebugVmMessage(int groups, int packets, voice_message_t &message);
@@ -237,6 +236,7 @@ private:
 
 	Status current_status;
 	VoiceMode current_mode;
+    DataStorage::FS* storageFs = 0;
 	Dispatcher *dispatcher;
 	struct {
 		AleFunctionalState f_state;

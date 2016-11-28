@@ -47,6 +47,7 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 	atu_controller->modeChanged.connect(sigc::mem_fun(this, &Dispatcher::processAtuModeChange));
 	atu_controller->requestTx.connect(sigc::mem_fun(this, &Dispatcher::processAtuRequestTx));
 	main_service = new MainServiceInterface(this);
+    main_service->setFS(data_storage_fs);
 	voice_service = new VoiceServiceInterface(this);
 	if (!data_storage_fs->getVoiceFrequency(voice_manual_frequency))
 		voice_manual_frequency = 10000000;
@@ -54,6 +55,7 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 		voice_manual_emission_type = voiceemissionUSB;
 	if (!data_storage_fs->getVoiceChannelSpeed(voice_manual_channel_speed))
 		voice_manual_channel_speed = voicespeed1200;
+
 }
 
 Dispatcher::~Dispatcher()

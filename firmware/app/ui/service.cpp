@@ -2368,6 +2368,9 @@ void Service::FirstPacketPSWFRecieved(int packet)
         sprintf(sym,"%d",packet);
         guiTree.append(messangeWindow, "Recieved packet ", sym);
         msgBox( "Recieved packet ", (int)packet );
+
+        if (storageFs > 0)
+            storageFs->setCondCommand((uint8_t)packet);
     }
     else if ( packet > 99)
     {
@@ -2893,7 +2896,6 @@ void Service::gucFrame(int value)
 	const char *sym = "Recieved packet for station\0";
 	vect = voice_service->getGucCommand();
 
-
 	bool isCoord = voice_service->getIsGucCoord();
 	uint8_t size = vect[0];
 
@@ -2927,6 +2929,8 @@ void Service::gucFrame(int value)
 
 		guiTree.append(messangeWindow, sym, ch);
 		msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
+        if (storageFs > 0)
+            storageFs->setGroupCondCommand(vect, vect[0]);
 	}
 }
 
@@ -2980,6 +2984,9 @@ void Service::smsMessage(int value)
     std::string text_str = text;
     menu->smsTxStage = 4;
     menu->initTxSmsDialog(title,text_str);
+
+    if (storageFs > 0)
+        storageFs->setSms((uint8_t*)&sym[0], value);
 }
 
 void Service::updateAleVmProgress(uint8_t t)
