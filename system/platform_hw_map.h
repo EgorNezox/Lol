@@ -13,6 +13,7 @@
 
 enum platformhw_resource_t {
 	platformhwInvalidResource = 0,
+	platformhwRtc,						// RTC модуль
 	platformhwHeadsetUart,				// UART RS-232 гарнитуры
 	platformhwHeadsetPttIopin,			// I/O-пин тангенты гарнитуры
 	platformhwDataFlashSpi,				// SPI-шина Data-Flash

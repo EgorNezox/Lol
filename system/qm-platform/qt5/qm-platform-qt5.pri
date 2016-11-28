@@ -30,7 +30,9 @@ HEADERS += \
     $$PWD/port_keysinput/matrixkeyboardwidget.h \
     $$PWD/port_keysinput/matrixkeyboardinterface.h \
     $$PWD/port_ramtex_s6d0129_cfg_seps525/qt/ramtexdisplaywidget.h \
-    $$PWD/devices/flashm25pdevice.h
+    $$PWD/devices/flashm25pdevice.h \
+    $$PWD/port_rtc/rtc.h \
+    $$PWD/port_rtc/rtcinterface.h
 SOURCES += \
     $$PWD/hardware_resources.cpp \
     $$wildcardSources(port_hardwareio, *.cpp) \
@@ -39,7 +41,9 @@ SOURCES += \
     $$PWD/port_ramtex_s6d0129_cfg_seps525/ccfg0129/ghwinit.c \
     $$PWD/port_ramtex_s6d0129_cfg_seps525/cfgio/ghwioini.c \
     $$PWD/port_ramtex_s6d0129_cfg_seps525/qt/ramtexdisplaywidget.cpp \
-    $$PWD/devices/flashm25pdevice.cpp
+    $$PWD/devices/flashm25pdevice.cpp \
+    $$PWD/port_rtc/rtc.cpp \
+    $$PWD/port_rtc/rtcinterface.cpp
 FORMS += \
     $$PWD/port_hardwareio/uartconsolewidget.ui \
     $$PWD/port_keysinput/matrixkeyboardwidget.ui
