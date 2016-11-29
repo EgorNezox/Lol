@@ -125,7 +125,7 @@ class GUI_EL_TextArea: public GUI_Element{
     protected:
         void CalcContentGeom();
         char* text;
-        std::vector<uint8_t>* data;
+        std::vector<uint8_t>* data = 0;
         //char* text[MAX_TEXT_AREA_LENGTH];
 };
 

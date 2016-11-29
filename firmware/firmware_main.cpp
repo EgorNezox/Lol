@@ -128,7 +128,7 @@ void qmMain() {
                              mr_dispatcher.getVoiceServiceInterface(),
                             &power_battery,
                              0,
-                            &data_storage_fs
+                            0
                           );
 #endif
 

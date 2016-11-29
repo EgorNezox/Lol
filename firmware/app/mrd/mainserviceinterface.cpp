@@ -368,7 +368,19 @@ voice_message_t MainServiceInterface::getAleRxVmMessage() {
 			message_bits_offset++;
 		}
 	}
-	return vm_rx_message;
+    return vm_rx_message;
+}
+
+bool MainServiceInterface::playVoiceMessage(uint8_t fileNumber)
+{
+    bool result = false;
+    if (storageFs > 0){
+        voice_message_t msg;
+        result = storageFs->getVoiceMail(&msg, fileNumber);
+        dispatcher->headset_controller->setSmartMessageToPlay(msg);
+        dispatcher->headset_controller->startSmartPlay(2);
+    }
+    return result;
 }
 
 void MainServiceInterface::setAleState(AleState value) {

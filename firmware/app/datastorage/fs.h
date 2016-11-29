@@ -8,10 +8,10 @@ namespace DataStorage {
 
 class FS {
 public:
-    enum FileType {FT_CND = 0,
-                   FT_GRP = 1,
-                   FT_SMS = 2,
-                   FT_VM  = 3};
+    enum FileType { FT_SMS = 0,
+                    FT_VM  = 1,
+                    FT_GRP = 2,
+                    FT_CND = 3};
 
     struct FileTypeInfo {uint8_t count = 0;
                          uint8_t maxCount = 10;
@@ -32,12 +32,13 @@ public:
 	void setVoiceChannelSpeed(Multiradio::voice_channel_speed_t data);
 	bool getAnalogHeadsetChannel(uint8_t &data);
 	void setAnalogHeadsetChannel(uint8_t data);
-    bool getCondCommand(uint8_t data, uint8_t number);
+
+    bool getCondCommand(std::vector<uint8_t>* data, uint8_t number);
     void setCondCommand(uint8_t data);
-    bool getGroupCondCommand(uint8_t *data, uint8_t number);
+    bool getGroupCondCommand(std::vector<uint8_t> *data, uint8_t number);
     void setGroupCondCommand(uint8_t *data, uint16_t size);
-    bool getSms(uint8_t *data, uint8_t number);
-    void setSms(uint8_t *data, uint16_t size);
+    bool getSms(std::vector<uint8_t> *data, uint8_t number);
+    void setSms(uint8_t* data, uint16_t size);
     bool getVoiceMail(std::vector<uint8_t> *data, uint8_t number);
     void setVoiceMail(std::vector<uint8_t> *data);
     void updateFileTree();

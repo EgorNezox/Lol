@@ -264,7 +264,7 @@ uint32_t GUI_EL_TextArea::getDataSize()
 //-----------------------------
 
 void GUI_EL_TextArea::Draw(){
-    if(text !=0 ){
+    if((text !=0 && !isData) || (data != 0 && isData)){
         int32_t i = 0, j = 0, k = 0, str_width = 0, last_space = 0, sym_to_cp = 0;
         MoonsGeometry local_content, line_geom;
         char line_str[MAX_LABEL_LENGTH];

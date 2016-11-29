@@ -8,7 +8,7 @@ namespace DataStorage {
 FS::FS(const std::string &dir) :
 	dir(dir)
 {
-    updateFileTree();
+    //updateFileTree();
 }
 
 FS::~FS()
@@ -166,11 +166,9 @@ void FS::setAnalogHeadsetChannel(uint8_t data) {
 
 //-----------------------------------------------------
 
-bool FS::getCondCommand(uint8_t data, uint8_t number)
+bool FS::getCondCommand(std::vector<uint8_t>* data, uint8_t number)
 {
     if (number > maxFilesCount - 1) return false;
-
-    data = 0;
     std::string fileName = generateFileNameByNumber(FT_CND, number);
     QmFile file(dir, fileName);
     if (!file.open(QmFile::ReadOnly))
@@ -178,7 +176,8 @@ bool FS::getCondCommand(uint8_t data, uint8_t number)
     int64_t file_size = file.size();
     if (!(file_size == 1))
         return false;
-    file.read(&data, 1);
+    data->resize(file_size);
+    file.read(data->data(), file_size);
     return true;
 }
 
@@ -193,7 +192,7 @@ void FS::setCondCommand(uint8_t data)
         fileTypeInfo[FT_CND].count++;
 }
 
-bool FS::getGroupCondCommand(uint8_t* data, uint8_t number)
+bool FS::getGroupCondCommand(std::vector<uint8_t>* data, uint8_t number)
 {
     if (number > maxFilesCount - 1) return false;
 
@@ -202,9 +201,8 @@ bool FS::getGroupCondCommand(uint8_t* data, uint8_t number)
     if (!file.open(QmFile::ReadOnly))
         return false;
     int64_t file_size = file.size();
-   // if (!(file_size == 1))
-   //     return false;
-    file.read(data, file_size);
+    data->resize(file_size);
+    file.read(data->data(), file_size);
     return true;
 }
 
@@ -219,7 +217,7 @@ void FS::setGroupCondCommand(uint8_t* data, uint16_t size)
         fileTypeInfo[FT_GRP].count++;
 }
 
-bool FS::getSms(uint8_t* data, uint8_t number)
+bool FS::getSms(std::vector<uint8_t>* data, uint8_t number)
 {
     if (number > maxFilesCount - 1) return false;
 
@@ -230,7 +228,8 @@ bool FS::getSms(uint8_t* data, uint8_t number)
     int64_t file_size = file.size();
     if (file_size > 100)
         return false;
-    file.read(data, file_size);
+    data->resize(file_size);
+    file.read(data->data(), file_size);
     return true;
 }
 

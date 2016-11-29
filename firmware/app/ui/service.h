@@ -24,6 +24,7 @@
 #include <qmtimer.h>
 #include <string.h>
 #include <time.h>
+#include <sigc++/sigc++.h>
 
 #include "gui_obj.h"
 #include "menu.h"
@@ -90,6 +91,8 @@ public:
     void TxCondCmdPackage(int value);
     uint8_t* getGpsGucCoordinat(uint8_t *coord);
 
+    std::vector<uint8_t>* onLoadVoiceMail(uint8_t fileNumber);
+    std::vector<uint8_t>* onLoadMessage(DataStorage::FS::FileType typeF, uint8_t fileNumber);
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
@@ -113,7 +116,7 @@ private:
     GUI_Indicator       *indicator;
     GUI_Dialog_MsgBox   *msg_box;
 
-    DataStorage::FS *storageFs;
+    DataStorage::FS *storageFs = 0;
 
     QmTimer *systemTimeTimer;
 
@@ -176,6 +179,9 @@ private:
     int cntGucRx = 0;
     bool isSmsMessageRec = false;
     bool failFlag;
+
+    std::vector<uint8_t> fileMessage;
+
 };
 
 } /* namespace Ui */

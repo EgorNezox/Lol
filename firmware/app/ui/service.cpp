@@ -70,6 +70,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     }
     menu->setFS(storageFs);
 
+    menu->loadVoiceMail.connect(sigc::mem_fun(this, &Service::onLoadVoiceMail));
+    menu->loadMessage.connect(sigc::mem_fun(this, &Service::onLoadMessage));
+
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
 
@@ -2328,12 +2331,37 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyEnter)
             {
-                if (menu->filesStage == 0)
+                if (menu->filesStage == 0){
                     menu->fileType = (DataStorage::FS::FileType)menu->filesStageFocus[0];
+                    // при записи файлов обновлять по сигналу
+                     if (storageFs > 0)
+                          storageFs->getFileNamesByType(&menu->tFiles[menu->fileType], menu->fileType);
+                }
 
-                if (menu->filesStage < 3)
-                    menu->filesStage++;
+                if (menu->filesStage == 1){
+                    switch (menu->fileType) {
+                    case DataStorage::FS::FT_SMS:
+                    case DataStorage::FS::FT_CND:
+                    case DataStorage::FS::FT_GRP:
+                        if (menu->tFiles[menu->fileType].size() > 0)
+                            menu->fileMessage = onLoadMessage(menu->fileType, menu->filesStageFocus[1]);
+                        break;
+                    case DataStorage::FS::FT_VM:
+                        if (menu->tFiles[menu->fileType].size() > 0)
+                            menu->fileMessage = onLoadVoiceMail(menu->filesStageFocus[1]);
+                    default:
+                        break;
+                    }
+                }
 
+                switch (menu->filesStage){
+                case 0:
+                    menu->filesStage++; break;
+                case 1:
+                    if (menu->tFiles[menu->fileType].size() > 0)
+                        menu->filesStage++;
+                    break;
+                }
             }
             if ( key == keyBack)
             {
@@ -2348,19 +2376,30 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyUp)
             {
-                if (menu->filesStageFocus[menu->filesStage] > 0)
-                    menu->filesStageFocus[menu->filesStage] = menu->filesStageFocus[menu->filesStage] - 1;
+                switch(menu->filesStage){
+                case 0:
+                case 1:
+                    if (menu->filesStageFocus[menu->filesStage] > 0)
+                        menu->filesStageFocus[menu->filesStage]--;
+                    break;
+                case 2:
+                    menu->textAreaScrollIndex--;
+                    break;
+                }
             }
             if (key == keyDown)
             {
                 switch (menu->filesStage){
                 case 0:
                     if (menu->filesStageFocus[menu->filesStage] < 3)
-                        menu->filesStageFocus[menu->filesStage] = menu->filesStageFocus[menu->filesStage] + 1;
+                        menu->filesStageFocus[menu->filesStage]++;
                     break;
                 case 1:
                     if (menu->filesStageFocus[menu->filesStage] < menu->tFiles[menu->fileType].size()-1)
-                        menu->filesStageFocus[menu->filesStage]+=1;
+                        menu->filesStageFocus[menu->filesStage]++;
+                    break;
+                case 2:
+                    menu->textAreaScrollIndex++;
                     break;
                 }
             }
@@ -3114,6 +3153,47 @@ void Service::TxCondCmdPackage(int value)
         menu->txCondCmdStage = 6;
         menu->initCondCommDialog((CEndState&)guiTree.getCurrentState());
     }
+}
+
+std::vector<uint8_t>* Service::onLoadVoiceMail(uint8_t fileNumber)
+{
+    bool result = false;
+    if (storageFs > 0){
+        fileMessage.clear();
+        result = multiradio_service->playVoiceMessage(fileNumber);
+    }
+
+    if (!result)
+    {
+        std::string errorStr = "Error read file\0";
+        fileMessage.resize(errorStr.size());
+        memcpy(fileMessage.data(),&errorStr[0],errorStr.size());
+    }
+    return &fileMessage;
+}
+
+std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, uint8_t fileNumber)
+{
+    bool result = false;
+    if (storageFs > 0){
+        fileMessage.clear();
+        switch (typeF){
+            case DataStorage::FS::FT_SMS:
+                result = storageFs->getSms(&fileMessage, fileNumber); break;
+            case DataStorage::FS::FT_CND:
+                result = storageFs->getCondCommand(&fileMessage, fileNumber); break;
+            case DataStorage::FS::FT_GRP:
+                result = storageFs->getGroupCondCommand(&fileMessage, fileNumber); break;
+        }
+    }
+    if (!result)
+    {
+        std::string errorStr = "Error read file";
+        fileMessage.resize(errorStr.size());
+        memcpy(fileMessage.data(),&errorStr[0],errorStr.size());
+    }
+    return &fileMessage;
+
 }
 
 void Service::msgGucTXQuit(int ans)

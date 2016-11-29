@@ -10,6 +10,7 @@
 #include <chrono>
 #include <ctime>
 #include <map>
+#include <sigc++/sigc++.h>
 
 #include "gui_tree.h"
 //#include "service.h"
@@ -44,6 +45,9 @@ public:
     CGuiMenu(MoonsGeometry* area, const char *title, Alignment align);
     virtual ~CGuiMenu();
     void Draw();
+
+    sigc::signal<std::vector<uint8_t>*, uint8_t /*םמלונ פאיכא*/> loadVoiceMail;
+    sigc::signal<std::vector<uint8_t>*, DataStorage::FS::FileType /*עטן פאיכא*/, uint8_t /*םמלונ פאיכא*/> loadMessage;
 
     uint8_t focus;
     void initItems(std::list<std::string>, const char*, int);
@@ -176,6 +180,9 @@ public:
     DataStorage::FS::FileType fileType;
 
     std::vector<std::string> tFiles[4];
+    uint16_t textAreaScrollIndex;
+
+
 
     //
     bool useMode = false;
@@ -209,6 +216,8 @@ public:
 
     void initFileManagerDialog(uint8_t stage);
     uint8_t filesStageFocus[3] = {0,0,0};
+
+    std::vector<uint8_t>* fileMessage;
 private:
     GUI_Obj obj;
     MoonsGeometry menuArea;
