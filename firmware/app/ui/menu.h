@@ -71,7 +71,7 @@ public:
     void initIncludeDialog();
     void initSuppressDialog();
     void initTwoStateDialog();
-    void initGpsCoordinateDialog(std::string, std::string);
+    void initGpsCoordinateDialog(char*, char*);
     void initSetParametersDialog(std::string);
     void initSetDateOrTimeDialog(std::string);
     void initSetSpeedDialog();
@@ -159,8 +159,8 @@ public:
     uint8_t inclStatus = 1;
 
     // gps coordinate
-    std::string coord_lat;
-    std::string coord_log;
+    char coord_lat[11];
+    char coord_log[12];
     std::string date;
     std::string time;
 

@@ -357,7 +357,7 @@ void CGuiMenu::initSuppressDialog()
 
 
 
-void CGuiMenu::initGpsCoordinateDialog(std::string coord_lat, std::string coord_log)
+void CGuiMenu::initGpsCoordinateDialog(char* coord_lat, char* coord_log)
 {
     MoonsGeometry volume_geom[2];
     volume_geom[0]  = {  5,  30,  140,  60 };
@@ -368,14 +368,15 @@ void CGuiMenu::initGpsCoordinateDialog(std::string coord_lat, std::string coord_
     volume[0] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[0],  NULL, (GUI_Obj*)this);
     volume[1] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[1],  NULL, (GUI_Obj*)this);
 
-    if (coord_lat.size() == 0)
+    if (atoi(coord_lat) == 0)
     {
-        coord_lat.append("0000.0000,N");
-        coord_log.append("0000.0000,N");
+        coord_lat =  "0000.0000,N";
+        coord_log =  "0000.0000,N";
     }
 
-    volume[0]->SetText((char *)coord_lat.c_str());
-    volume[1]->SetText((char *)coord_log.c_str());
+    coord_lat[11] = '\0';
+    volume[1]->SetText(coord_log);
+    volume[0]->SetText(coord_lat);
     volume[0]->transparent = true;
     volume[1]->transparent = true;
     // title
@@ -1741,10 +1742,10 @@ void CGuiMenu::initRxSmsDialog(std::string str)
     param.transparent = false;
 
     GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
-    GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
+    GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)"CMC", (GUI_Obj *)this);
 
     window.Draw();
-    //title.Draw();
+    title.Draw();
 
     if (recvStage == 0)
     {
@@ -1770,9 +1771,11 @@ void CGuiMenu::initRxCondCmdDialog()        // Прием УК
     param.transparent = false;
 
     GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                    (GUI_Obj *)this);
-    //GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)ticketStr[0], (GUI_Obj *)this);
+    GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)ticketStr[0], (GUI_Obj *)this);
 
     window.Draw();
+
+
 
 
     //    if (rxCondCmdStatus == 1)
@@ -1786,16 +1789,16 @@ void CGuiMenu::initRxCondCmdDialog()        // Прием УК
     //    }
     //    else
     {
-        //title.SetText((char*)callSubMenu[0]);
-       // title.Draw();
-        if (recvStage == 0)
-            param.transparent = false;
-        else
-            param.transparent = true;
+        title.SetText((char*)callSubMenu[0]);
+        title.Draw();
+//        if (recvStage == 0)
+//            param.transparent = false;
+//        else
+//            param.transparent = true;
 
-        MoonsGeometry buttonArea  = { 29, 40, 129, 80 };
-        //GUI_EL_Label button ( &param, &buttonArea, (char*)receiveStatusStr[recvStage], (GUI_Obj *)this);
-        GUI_EL_Label button ( &param, &buttonArea, (char*)startStr, (GUI_Obj *)this);
+        MoonsGeometry buttonArea  = { 5, 30, 150, 80 };
+        GUI_EL_Label button ( &param, &buttonArea, (char*)receiveStatusStr[recvStage], (GUI_Obj *)this);
+        //GUI_EL_Label button ( &param, &buttonArea, (char*)receiveStatusStr[0], (GUI_Obj *)this);
         button.Draw();
     }
 

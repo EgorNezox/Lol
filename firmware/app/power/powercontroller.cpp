@@ -16,7 +16,7 @@
 
 namespace Power {
 
-#define CTRL_PULSE_DURATION		1000
+#define CTRL_PULSE_DURATION		3000
 
 Controller::Controller(int hscontrol_iopin_resource, int controller_iopin_resource, int offint_iopin_resource, int source_iopin_resource) {
 	hscontrol_iopin = new QmIopin(hscontrol_iopin_resource);

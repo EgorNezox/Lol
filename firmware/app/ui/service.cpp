@@ -1609,6 +1609,7 @@ void Service::keyPressed(UI_Key key)
                 //                if (menu->rxCondCmdStatus == 2)
                 //                    menu->rxCondCmdStatus--;
                 //                else
+            	menu->recvStage = 0;
                 guiTree.backvard();
             }
             if ( key == keyEnter)
@@ -3015,6 +3016,8 @@ void Service::drawMenu()
         case GuiWindowsSubType::recvCondCmd:
         {
             menu->initRxCondCmdDialog();
+            if (menu->recvStage == 0)
+            menu->recvStage = (++menu->recvStage) % 2;
             break;
         }
         case GuiWindowsSubType::recvGroupCondCmd:
@@ -3045,7 +3048,10 @@ void Service::drawMenu()
 #if !defined(PORT__PCSIMULATOR)
             setCoordDate(navigator->getCoordDate());
 #endif
-            menu->initGpsCoordinateDialog( menu->coord_lat, menu->coord_log );
+            if (menu->coord_log[0] == '0')
+            menu->initGpsCoordinateDialog( menu->coord_lat, &menu->coord_log[1]);
+            else
+            	menu->initGpsCoordinateDialog( menu->coord_lat, menu->coord_log);
             break;
         }
         case GuiWindowsSubType::gpsSync:
@@ -3249,22 +3255,18 @@ void Service::parsingGucCommand(uint8_t *str)
 
 void Service::setCoordDate(Navigation::Coord_Date date)
 {
-    menu->coord_lat.clear();
-    menu->coord_log.clear();
+//    menu->coord_lat.clear();
+//    menu->coord_log.clear();
     menu->date.clear();
     menu->time.clear();
 
-    menu->coord_lat.append((char *)date.latitude);
-
-    date.longitude[11] = '\0';
-
-    uint8_t *abc;
-    if (date.longitude[0] == '0') {
-        abc = &(date.longitude[1]);
-        menu->coord_log.append((char*)abc);
-    } else {
-        menu->coord_log.append((char*)date.longitude);
+    if (atoi((char*)date.latitude) > 0)
+    {
+    	memcpy(menu->coord_lat,date.latitude,11);
+    	memcpy(menu->coord_log,date.longitude,12);
     }
+
+
 
     std::string str;
 //    str.push_back((char)date.data[0]);
