@@ -2,6 +2,8 @@
 #define RTCINTERFACE_H
 
 #include <QObject>
+#include "rtc.h"
+#include "port_hardwareio/i2cbus.h"
 
 class RtcInterface : public QObject
 {
@@ -19,12 +21,15 @@ Q_SIGNALS:
     void wakeup();
 
 private Q_SLOTS:
-    void processWakeup();
+    void processWakeup()
+    {
+
+    }
 
 private:
     friend class QmRtcPrivateAdapter;
 
-    RtcInterface();
+    RtcInterface(QObject *parent);
     virtual ~RtcInterface();
 
 

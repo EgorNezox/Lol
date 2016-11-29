@@ -18,7 +18,7 @@ RTC::~RTC()
     delete date;
 }
 
-void RTC::setTime(QTime time)
+void RTC::setTime(QTime *time)
 {
     this->time = time;
 }
@@ -28,7 +28,7 @@ QTime RTC::getTime()
     return *time;
 }
 
-void RTC::setDate(QDate date)
+void RTC::setDate(QDate *date)
 {
     this->date = date;
 }

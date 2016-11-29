@@ -2,7 +2,7 @@
  ******************************************************************************
  * @file    dspcontroller.cpp
  * @author  Artem Pisarenko, PMR dept. software team, ONIIP, PJSC
- * @author  РЅРµРёР·РІРµСЃС‚РЅС‹Рµ
+ * @author  � � � …� � Вµ� � С‘� � В·� � � � � � Вµ� Ў� ѓ� ЎвЂљ� � � …� ЎвЂ№� � Вµ
  * @date    22.12.2015
  *
  ******************************************************************************
@@ -24,10 +24,10 @@
 #include <string.h>
 #include "..\dsp\rs_tms.h"
 #include <cstring>
+#include "../synchro/virtual_timer.h"
 
-
-#define DEFAULT_PACKET_HEADER_LEN	2 // РёРЅРґРёРєР°С‚РѕСЂ РєР°РґСЂР° + РєРѕРґ РїР°СЂР°РјРµС‚СЂР° ("Р°РґСЂРµСЃ" РЅР° СЃР°РјРѕРј РґРµР»Рµ РЅРµ РІС…РѕРґРёС‚ СЃСЋРґР°, СЌС‚Рѕ "Р°РґСЂРµСЃ РЅР°Р·РЅР°С‡РµРЅРёСЏ" РёР· РєР°РЅР°Р»СЊРЅРѕРіРѕ СѓСЂРѕРІРЅСЏ)
-
+#define DEFAULT_PACKET_HEADER_LEN	2 // � � С‘� � � …� � Т‘� � С‘� � С”� � В°� ЎвЂљ� � С•� Ў� ‚ � � С”� � В°� � Т‘� Ў� ‚� � В° + � � С”� � С•� � Т‘ � � С—� � В°� Ў� ‚� � В°� � С�� � Вµ� ЎвЂљ� Ў� ‚� � В° ("� � В°� � Т‘� Ў� ‚� � Вµ� Ў� ѓ" � � � …� � В° � Ў� ѓ� � В°� � С�� � С•� � С� � � Т‘� � Вµ� � В»� � Вµ � � � …� � Вµ � � � � � ЎвЂ¦� � С•� � Т‘� � С‘� ЎвЂљ � Ў� ѓ� Ў� ‹� � Т‘� � В°, � Ў� Њ� ЎвЂљ� � С• "� � В°� � Т‘� Ў� ‚� � Вµ� Ў� ѓ � � � …� � В°� � В·� � � …� � В°� ЎвЂЎ� � Вµ� � � …� � С‘� Ў� Џ" � � С‘� � В· � � С”� � В°� � � …� � В°� � В»� Ў� Љ� � � …� � С•� � С–� � С• � ЎС“� Ў� ‚� � С•� � � � � � � …� Ў� Џ)
+#define hw_rtc                      1
 #define DefkeyValue 631
 
 #define GUC_TIMER_INTERVAL 5000
@@ -95,10 +95,15 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	command_timer->setInterval(50); //50
 	command_timer->timeout.connect(sigc::mem_fun(this, &DspController::processCommandTimeout));
 	reset_iopin = new QmIopin(reset_iopin_resource, this);
-	// max_tx_queue_size: 1 РєРѕРјР°РЅРґР° СЂР°РґРёРѕС‚СЂР°РєС‚Р° + 1 Р·Р°РїР°СЃ
+	// max_tx_queue_size: 1 � � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � Ў� ‚� � В°� � Т‘� � С‘� � С•� ЎвЂљ� Ў� ‚� � В°� � С”� ЎвЂљ� � В° + 1 � � В·� � В°� � С—� � В°� Ў� ѓ
 	transport = new DspTransport(uart_resource, 2, this);
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 	initResetState();
+
+#ifndef PORT__PCSIMULATOR
+    rtc = new QmRtc(hw_rtc);
+	rtc->wakeup.connect(sigc::mem_fun(this,&DspController::wakeUpTimer));
+#endif
 
     if (navigator != 0) {
     	this->navigator = navigator;
@@ -171,7 +176,6 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     retranslation_active = false;
 
-
 }
 DspController::~DspController()
 
@@ -187,6 +191,7 @@ DspController::~DspController()
     delete guc_timer;
     delete guc_rx_quit_timer;
     delete cmd_queue;
+    delete rtc;
 }
 
 
@@ -840,7 +845,7 @@ int DspController::getFrequencyPswf()
 	int fr_sh = CalcShiftFreq(ContentPSWF.RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
 	fr_sh += 1622;
 
-	fr_sh = fr_sh * 1000; // Р“С†
+	fr_sh = fr_sh * 1000; // � � вЂњ� ЎвЂ�
 
 	for(int i = 0; i<32;i+=2)
 	{
@@ -862,7 +867,7 @@ int DspController::getFrequencySms()
     int fr_sh = CalcSmsTransmitFreq(ContentSms.RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
     fr_sh += 1622;
 
-    fr_sh = fr_sh * 1000; // Р“С†
+    fr_sh = fr_sh * 1000; // � � вЂњ� ЎвЂ�
 
     for(int i = 0; i<32;i+=2)
     {
@@ -890,14 +895,14 @@ void DspController::resetContentStructState()
 {
     ContentGuc.stage = GucNone;
     ContentSms.stage = StageNone;
-    // РґРѕР±Р°РІРёС‚СЊ РѕРїСЂРµРґРµР»РµРЅРёРµ РґСЂСѓРіРёС… С„СѓРЅРєС†РёР№
+    // � � Т‘� � С•� � В±� � В°� � � � � � С‘� ЎвЂљ� Ў� Љ � � С•� � С—� Ў� ‚� � Вµ� � Т‘� � Вµ� � В»� � Вµ� � � …� � С‘� � Вµ � � Т‘� Ў� ‚� ЎС“� � С–� � С‘� ЎвЂ¦ � ЎвЂћ� ЎС“� � � …� � С”� ЎвЂ� � � С‘� � в„–
 }
 
 int DspController::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
 {
-    int TOT_W = 6671; // С€РёСЂРёРЅР° СЂР°Р·СЂРµС€РµРЅРЅС‹С… СѓС‡Р°СЃС‚РєРѕРІ
+    int TOT_W = 6671; // � Ўв‚¬� � С‘� Ў� ‚� � С‘� � � …� � В° � Ў� ‚� � В°� � В·� Ў� ‚� � Вµ� Ўв‚¬� � Вµ� � � …� � � …� ЎвЂ№� ЎвЂ¦ � ЎС“� ЎвЂЎ� � В°� Ў� ѓ� ЎвЂљ� � С”� � С•� � � �
 
-    int SEC_MLT = value_sec[SEC]; // SEC_MLT РІС‹Р±РёСЂР°РµРј РІ РјР°СЃСЃРёРІРµ
+    int SEC_MLT = value_sec[SEC]; // SEC_MLT � � � � � ЎвЂ№� � В±� � С‘� Ў� ‚� � В°� � Вµ� � С� � � � �  � � С�� � В°� Ў� ѓ� Ў� ѓ� � С‘� � � � � � Вµ
 
     int FR_SH = (RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY)% TOT_W;
 
@@ -1254,8 +1259,8 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 	uint8_t tx_address;
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 	int tx_data_len = DEFAULT_PACKET_HEADER_LEN;
-	qmToBigEndian((uint8_t)2, tx_data+0); // РёРЅРґРёРєР°С‚РѕСЂ: "РєРѕРјР°РЅРґР° (СѓСЃС‚Р°РЅРѕРІРєР°)"
-	qmToBigEndian((uint8_t)code, tx_data+1); // РєРѕРґ РїР°СЂР°РјРµС‚СЂР°
+	qmToBigEndian((uint8_t)2, tx_data+0); // � � С‘� � � …� � Т‘� � С‘� � С”� � В°� ЎвЂљ� � С•� Ў� ‚: "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° (� ЎС“� Ў� ѓ� ЎвЂљ� � В°� � � …� � С•� � � � � � С”� � В°)"
+	qmToBigEndian((uint8_t)code, tx_data+1); // � � С”� � С•� � Т‘ � � С—� � В°� Ў� ‚� � В°� � С�� � Вµ� ЎвЂљ� Ў� ‚� � В°
 	switch (module) {
 	case RxRadiopath:
 	case TxRadiopath: {
@@ -1310,7 +1315,7 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 		}
 		break;
 	}
-	// РґР»СЏ РџРџпїЅ Р§
+	// � � Т‘� � В»� Ў� Џ � � Сџ� � Сџ� їС—� … � � В§
 	case PSWFTransmitter: {
 		QM_ASSERT(0);
 		break;
@@ -1406,8 +1411,8 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 		uint8_t tx_address;
 		uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 		int tx_data_len = DEFAULT_PACKET_HEADER_LEN;
-		qmToBigEndian((uint8_t)2, tx_data+0); // РёРЅРґРёРєР°С‚РѕСЂ: "РєРѕРјР°РЅРґР° (СѓСЃС‚Р°РЅРѕРІРєР°)"
-		qmToBigEndian((uint8_t)code, tx_data+1); // РєРѕРґ РїР°СЂР°РјРµС‚СЂР°
+		qmToBigEndian((uint8_t)2, tx_data+0); // � � С‘� � � …� � Т‘� � С‘� � С”� � В°� ЎвЂљ� � С•� Ў� ‚: "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° (� ЎС“� Ў� ѓ� ЎвЂљ� � В°� � � …� � С•� � � � � � С”� � В°)"
+		qmToBigEndian((uint8_t)code, tx_data+1); // � � С”� � С•� � Т‘ � � С—� � В°� Ў� ‚� � В°� � С�� � Вµ� ЎвЂљ� Ў� ‚� � В°
 		switch (module) {
 		case RxRadiopath:
 		case TxRadiopath: {
@@ -1462,7 +1467,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 			}
 			break;
 		}
-		// РґР»СЏ РџРџпїЅ Р§
+		// � � Т‘� � В»� Ў� Џ � � Сџ� � Сџ� їС—� … � � В§
 		case PSWFTransmitter: {
 			QM_ASSERT(0);
 			break;
@@ -1566,7 +1571,7 @@ void DspController::sendGuc()
 
     ContentGuc.Coord = (isGpsGuc == true) ? 1 : 0;
 
-    // Р·Р°РїРѕР»РЅРµРЅРёРµ С‡РІСЃ РґР»СЏ РѕСЃРЅРѕРІРЅС‹С… РґР°РЅРЅС‹С… РїР°РєРµС‚Р°
+    // � � В·� � В°� � С—� � С•� � В»� � � …� � Вµ� � � …� � С‘� � Вµ � ЎвЂЎ� � � � � Ў� ѓ � � Т‘� � В»� Ў� Џ � � С•� Ў� ѓ� � � …� � С•� � � � � � � …� ЎвЂ№� ЎвЂ¦ � � Т‘� � В°� � � …� � � …� ЎвЂ№� ЎвЂ¦ � � С—� � В°� � С”� � Вµ� ЎвЂљ� � В°
     uint8_t pack[5] = {0, 0, 0, 0, 0};
     pack[4] = (ContentGuc.S_ADR & 0x1F) << 3;
     pack[4] |= (ContentGuc.R_ADR & 0x1F) >> 2;
@@ -1584,10 +1589,10 @@ void DspController::sendGuc()
     	++tx_data_len;
     }
 
-    int crc32_len = ContentGuc.NUM_com; // СЂРµР°Р»СЊРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ РєРѕРјР°РЅРґ
+    int crc32_len = ContentGuc.NUM_com; // � Ў� ‚� � Вµ� � В°� � В»� Ў� Љ� � � …� � С•� � Вµ � � С”� � С•� � В»� � С‘� ЎвЂЎ� � Вµ� Ў� ѓ� ЎвЂљ� � � � � � С• � � С”� � С•� � С�� � В°� � � …� � Т‘
     int real_len = crc32_len;
 
-    // Р’С‹Р±РѕСЂ РєРѕР»РёС‡РµСЃС‚РІР° РїРµСЂРµРґР°РІР°РµРјС‹С… Р±Р°Р№С‚РѕРІ СЃ РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё РёР»Рё Р±РµР· РїРѕ СЂРµРіР»Р°РјРµРЅС‚Сѓ
+    // � � вЂ™� ЎвЂ№� � В±� � С•� Ў� ‚ � � С”� � С•� � В»� � С‘� ЎвЂЎ� � Вµ� Ў� ѓ� ЎвЂљ� � � � � � В° � � С—� � Вµ� Ў� ‚� � Вµ� � Т‘� � В°� � � � � � В°� � Вµ� � С�� ЎвЂ№� ЎвЂ¦ � � В±� � В°� � в„–� ЎвЂљ� � С•� � � �  � Ў� ѓ � � С”� � С•� � С•� Ў� ‚� � Т‘� � С‘� � � …� � В°� ЎвЂљ� � В°� � С�� � С‘ � � С‘� � В»� � С‘ � � В±� � Вµ� � В· � � С—� � С• � Ў� ‚� � Вµ� � С–� � В»� � В°� � С�� � Вµ� � � …� ЎвЂљ� ЎС“
     if (isGpsGuc){
         if (ContentGuc.NUM_com <= 6) ContentGuc.NUM_com = 6;
         if ((ContentGuc.NUM_com > 6) && (ContentGuc.NUM_com <= 10))    ContentGuc.NUM_com = 10;
@@ -1608,7 +1613,7 @@ void DspController::sendGuc()
         ++tx_data_len;
     }
 
-    // РѕР±СЂР°Р±РѕС‚РєР° Рё РїРѕР»СѓС‡РµРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚, РґРѕР±Р°РІР»РµРЅРёРµ РІ РёСЃС…РѕРґРЅС‹Р№ РјР°СЃСЃРёРІ РґР»СЏ Р·Р°С‰РёС‚С‹  crc32 СЃСѓРјРѕР№ (Р”РђРќРќР«Р• + РљРћРћР”Р�РќРђРўР«)
+    // � � С•� � В±� Ў� ‚� � В°� � В±� � С•� ЎвЂљ� � С”� � В° � � С‘ � � С—� � С•� � В»� ЎС“� ЎвЂЎ� � Вµ� � � …� � С‘� � Вµ � � С”� � С•� � С•� Ў� ‚� � Т‘� � С‘� � � …� � В°� ЎвЂљ, � � Т‘� � С•� � В±� � В°� � � � � � В»� � Вµ� � � …� � С‘� � Вµ � � � �  � � С‘� Ў� ѓ� ЎвЂ¦� � С•� � Т‘� � � …� ЎвЂ№� � в„– � � С�� � В°� Ў� ѓ� Ў� ѓ� � С‘� � � �  � � Т‘� � В»� Ў� Џ � � В·� � В°� ЎвЂ°� � С‘� ЎвЂљ� ЎвЂ№  crc32 � Ў� ѓ� ЎС“� � С�� � С•� � в„– (� � вЂќ� � С’� � Сњ� � Сњ� � В«� � вЂў + � � С™� � С›� � С›� � вЂќ� � пїЅ� � Сњ� � С’� � Сћ� � В«)
     if (isGpsGuc)
     {
        uint8_t coord[9] = {0,0,0,0,0,0,0,0,0};
@@ -1620,7 +1625,7 @@ void DspController::sendGuc()
        }
     }
 
-    // РІС‹Р±РѕСЂ РґР»РёРЅРЅС‹ РєРѕРґРёСЂСѓРµРјРѕРіРѕ РјР°СЃСЃРёРІР°
+    // � � � � � ЎвЂ№� � В±� � С•� Ў� ‚ � � Т‘� � В»� � С‘� � � …� � � …� ЎвЂ№ � � С”� � С•� � Т‘� � С‘� Ў� ‚� ЎС“� � Вµ� � С�� � С•� � С–� � С• � � С�� � В°� Ў� ѓ� Ў� ѓ� � С‘� � � � � � В°
      crc32_len = (isGpsGuc == true) ? (ContentGuc.NUM_com + 9) : (ContentGuc.NUM_com);
 
      std::vector<bool> data_guc;
@@ -1656,7 +1661,7 @@ void DspController::sendGuc()
          }
      }
 
-    // СЃРґРІРёРі РјР°СЃСЃРёРІР° РґР»СЏ crc32-СЃСѓРјРјС‹
+    // � Ў� ѓ� � Т‘� � � � � � С‘� � С– � � С�� � В°� Ў� ѓ� Ў� ѓ� � С‘� � � � � � В° � � Т‘� � В»� Ў� Џ crc32-� Ў� ѓ� ЎС“� � С�� � С�� ЎвЂ№
     if (isGpsGuc){
         pack_manager->getArrayByteFromBit(data_guc,ContentGuc.command);
         crc32_len = data_guc.size() / 8;
@@ -1691,7 +1696,7 @@ void DspController::sendGuc()
     	}
 
     }
-     // РґРѕР±Р°РІР»РµРЅРёРµ crc32 Рє РїР°РєРµС‚Сѓ РґР°РЅРЅС‹С…
+     // � � Т‘� � С•� � В±� � В°� � � � � � В»� � Вµ� � � …� � С‘� � Вµ crc32 � � С” � � С—� � В°� � С”� � Вµ� ЎвЂљ� ЎС“ � � Т‘� � В°� � � …� � � …� ЎвЂ№� ЎвЂ¦
      uint32_t crc = pack_manager->CRC32(ContentGuc.command, crc32_len);
      qmToBigEndian((uint32_t)crc, tx_data + tx_data_len);
      tx_data_len += 4;
@@ -1749,13 +1754,13 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 
 	switch (address) {
 	case 0x11: {
-		if ((indicator == 5) && (code == 2) && (value_len == 6)) // РёРЅРёС†РёР°С‚РёРІРЅРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ СЃ С†РёС„СЂРѕРІРѕР№ РёРЅС„РѕСЂРјР°С†РёРµР№ Рѕ РїСЂРѕС€РёРІРєРµ ?
+		if ((indicator == 5) && (code == 2) && (value_len == 6)) // � � С‘� � � …� � С‘� ЎвЂ� � � С‘� � В°� ЎвЂљ� � С‘� � � � � � � …� � С•� � Вµ � Ў� ѓ� � С•� � С•� � В±� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � Ў� ѓ � ЎвЂ� � � С‘� ЎвЂћ� Ў� ‚� � С•� � � � � � С•� � в„– � � С‘� � � …� ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂ� � � С‘� � Вµ� � в„– � � С• � � С—� Ў� ‚� � С•� Ўв‚¬� � С‘� � � � � � С”� � Вµ ?
 			processStartup(qmFromBigEndian<uint16_t>(value_ptr+0), qmFromBigEndian<uint16_t>(value_ptr+2), qmFromBigEndian<uint16_t>(value_ptr+4));
 		break;
 	}
 	case 0x31: {
-    	value_ptr -= 1; // РєРѕСЃС‚С‹Р»РЅРѕРµ РїСЂРµРІСЂР°С‰РµРЅРёРµ РІ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РѕСЂРјР°С‚ РєР°РґСЂР°
-    	value_len += 1; // РєРѕСЃС‚С‹Р»РЅРѕРµ РїСЂРµРІСЂР°С‰РµРЅРёРµ РІ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РѕСЂРјР°С‚ РєР°РґСЂР°
+    	value_ptr -= 1; // � � С”� � С•� Ў� ѓ� ЎвЂљ� ЎвЂ№� � В»� � � …� � С•� � Вµ � � С—� Ў� ‚� � Вµ� � � � � Ў� ‚� � В°� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � � � �  � � � …� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � � …� � Т‘� � В°� Ў� ‚� ЎвЂљ� � � …� ЎвЂ№� � в„– � ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂљ � � С”� � В°� � Т‘� Ў� ‚� � В°
+    	value_len += 1; // � � С”� � С•� Ў� ѓ� ЎвЂљ� ЎвЂ№� � В»� � � …� � С•� � Вµ � � С—� Ў� ‚� � Вµ� � � � � Ў� ‚� � В°� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � � � �  � � � …� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � � …� � Т‘� � В°� Ў� ‚� ЎвЂљ� � � …� ЎвЂ№� � в„– � ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂљ � � С”� � В°� � Т‘� Ў� ‚� � В°
     	if (indicator == 5) {
     		uint8_t subdevice_code = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+0);
     		uint8_t error_code = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
@@ -1765,7 +1770,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	}
 	case 0x51:
 	case 0x81: {
-		if ((indicator == 3) || (indicator == 4)) { // "РєРѕРјР°РЅРґР° РІС‹РїРѕР»РЅРµРЅР°", "РєРѕРјР°РЅРґР° РЅРµ РІС‹РїРѕР»РЅРµРЅР°" ?
+		if ((indicator == 3) || (indicator == 4)) { // "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � � � � � ЎвЂ№� � С—� � С•� � В»� � � …� � Вµ� � � …� � В°", "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � � � …� � Вµ � � � � � ЎвЂ№� � С—� � С•� � В»� � � …� � Вµ� � � …� � В°" ?
 			ParameterValue value;
 			if ((code == 1) && (value_len == 4)) {
 				value.frequency = qmFromBigEndian<uint32_t>(value_ptr+0);
@@ -1943,7 +1948,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             if (indicator == 30) {
                 ContentGuc.R_ADR = ((data[2] & 0xF8) >> 3);
             	ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
-                isGpsGuc = data[5] & 0x1; // TODO: С‚СЂРµР±СѓРµС‚СЃСЏ РїСЂРѕРІРµСЂРёС‚СЊ РІ СЂРµР°Р»СЊРЅС‹С… СѓСЃР»РѕРІРёСЏС…
+                isGpsGuc = data[5] & 0x1; // TODO: � ЎвЂљ� Ў� ‚� � Вµ� � В±� ЎС“� � Вµ� ЎвЂљ� Ў� ѓ� Ў� Џ � � С—� Ў� ‚� � С•� � � � � � Вµ� Ў� ‚� � С‘� ЎвЂљ� Ў� Љ � � � �  � Ў� ‚� � Вµ� � В°� � В»� Ў� Љ� � � …� ЎвЂ№� ЎвЂ¦ � ЎС“� Ў� ѓ� � В»� � С•� � � � � � С‘� Ў� Џ� ЎвЂ¦
 
                 if (ContentGuc.stage == GucTxQuit)
                 {
@@ -1956,7 +1961,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             		std::vector<uint8_t> guc;
             		for(int i = 0;i<data_len;i++){
             			qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , num %d", data[i],i);
-            			guc.push_back(data[i]); // РїРѕ N РµРґРµРЅРёС† РґР°РЅРЅС‹С…
+            			guc.push_back(data[i]); // � � С—� � С• N � � Вµ� � Т‘� � Вµ� � � …� � С‘� ЎвЂ�  � � Т‘� � В°� � � …� � � …� ЎвЂ№� ЎвЂ¦
             		}
                     guc_vector.push_back(guc);
             		recGuc();
@@ -1967,8 +1972,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     }
     case 0x6F:
     {
-    	value_ptr -= 1; // РєРѕСЃС‚С‹Р»РЅРѕРµ РїСЂРµРІСЂР°С‰РµРЅРёРµ РІ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РѕСЂРјР°С‚ РєР°РґСЂР°
-    	value_len += 1; // РєРѕСЃС‚С‹Р»РЅРѕРµ РїСЂРµРІСЂР°С‰РµРЅРёРµ РІ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РѕСЂРјР°С‚ РєР°РґСЂР°
+    	value_ptr -= 1; // � � С”� � С•� Ў� ѓ� ЎвЂљ� ЎвЂ№� � В»� � � …� � С•� � Вµ � � С—� Ў� ‚� � Вµ� � � � � Ў� ‚� � В°� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � � � �  � � � …� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � � …� � Т‘� � В°� Ў� ‚� ЎвЂљ� � � …� ЎвЂ№� � в„– � ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂљ � � С”� � В°� � Т‘� Ў� ‚� � В°
+    	value_len += 1; // � � С”� � С•� Ў� ѓ� ЎвЂљ� ЎвЂ№� � В»� � � …� � С•� � Вµ � � С—� Ў� ‚� � Вµ� � � � � Ў� ‚� � В°� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � � � �  � � � …� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � � …� � Т‘� � В°� Ў� ‚� ЎвЂљ� � � …� ЎвЂ№� � в„– � ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂљ � � С”� � В°� � Т‘� Ў� ‚� � В°
     	switch (indicator) {
     	case 30: {
     		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
@@ -2016,8 +2021,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     }
     case 0x7F:
     {
-    	value_ptr -= 1; // РєРѕСЃС‚С‹Р»РЅРѕРµ РїСЂРµРІСЂР°С‰РµРЅРёРµ РІ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РѕСЂРјР°С‚ РєР°РґСЂР°
-    	value_len += 1; // РєРѕСЃС‚С‹Р»РЅРѕРµ РїСЂРµРІСЂР°С‰РµРЅРёРµ РІ РЅРµСЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ С„РѕСЂРјР°С‚ РєР°РґСЂР°
+    	value_ptr -= 1; // � � С”� � С•� Ў� ѓ� ЎвЂљ� ЎвЂ№� � В»� � � …� � С•� � Вµ � � С—� Ў� ‚� � Вµ� � � � � Ў� ‚� � В°� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � � � �  � � � …� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � � …� � Т‘� � В°� Ў� ‚� ЎвЂљ� � � …� ЎвЂ№� � в„– � ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂљ � � С”� � В°� � Т‘� Ў� ‚� � В°
+    	value_len += 1; // � � С”� � С•� Ў� ѓ� ЎвЂљ� ЎвЂ№� � В»� � � …� � С•� � Вµ � � С—� Ў� ‚� � Вµ� � � � � Ў� ‚� � В°� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � � � �  � � � …� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � � …� � Т‘� � В°� Ў� ‚� ЎвЂљ� � � …� ЎвЂ№� � в„– � ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂљ � � С”� � В°� � Т‘� Ў� ‚� � В°
     	switch (indicator) {
     	case 22: {
     		if (!(value_len >= 1))
@@ -2038,6 +2043,39 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     	break;
     }
 
+    case 0x65:
+    {
+    	// get number of the catch packet ...
+#ifndef PORT__PCSIMULATOR
+    	RtcFirstCatch = data[3];
+    	RtcRxCounter = RtcFirstCatch;
+
+    	if (RtcTxRole)changeVirtualFreq();
+
+    	// correction time
+    	t = rtc->getTime();
+
+        int res = RtcRxCounter - RtcFirstCatch;
+
+        if (RtcRxCounter == RtcFirstCatch) return;
+
+        int t_in_sec = t.hours * 3600 + t.minutes * 60 + t.seconds;
+
+        if (t.seconds == 0 && t.minutes == 0 && t.seconds == 0)
+        {
+        	t.hours = 11; t.minutes = 59; t.seconds = 48;
+        }
+
+    	t_in_sec = t_in_sec + 12*res - 12;
+
+        t.hours   = t_in_sec / 3600;   t_in_sec -= t.hours;
+        t.minutes = t_in_sec / 60;     t_in_sec -= t.minutes;
+        t.seconds = t_in_sec;
+
+        rtc->setTime(t);
+#endif
+    	break;
+    }
 	default: break;
     }
 	if (!cmd_queue->empty()) {
@@ -2160,7 +2198,7 @@ void DspController::sendSms(Module module)
     	++tx_data_len;
     	qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);
     	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len); // todo: РїРѕРјРµРЅСЏР» РјРµСЃС‚Р°РјРё
+    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len); // todo: � � С—� � С•� � С�� � Вµ� � � …� Ў� Џ� � В» � � С�� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � С�� � С‘
     	++tx_data_len;
     	qmToBigEndian((uint8_t)wzn, tx_data+tx_data_len);
     	++tx_data_len;
@@ -2247,7 +2285,7 @@ bool DspController::generateSmsReceived()
 {
     // 1. params for storage operation
 
-	qmDebugMessage(QmDebug::Dump,"РљРѕР»РёС‡РµСЃС‚РІРѕ РїР°РєРµС‚РѕРІ sms data %d:",  recievedSmsBuffer.size());
+	qmDebugMessage(QmDebug::Dump,"� � С™� � С•� � В»� � С‘� ЎвЂЎ� � Вµ� Ў� ѓ� ЎвЂљ� � � � � � С• � � С—� � В°� � С”� � Вµ� ЎвЂљ� � С•� � � �  sms data %d:",  recievedSmsBuffer.size());
 
     int data[255];
     uint8_t crc_calcs[100];
@@ -2542,9 +2580,9 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
 
 
     ParameterValue comandValue;
-    comandValue.radio_mode = RadioModeOff;// РѕС‚РєР»СЋС‡РёР»Рё РїСЂРёРµРј
+    comandValue.radio_mode = RadioModeOff;// � � С•� ЎвЂљ� � С”� � В»� Ў� ‹� ЎвЂЎ� � С‘� � В»� � С‘ � � С—� Ў� ‚� � С‘� � Вµ� � С�
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
-    comandValue.guc_mode = RadioModeSazhenData; // РІРєР»СЋС‡РёР»Рё 11 СЂРµР¶РёРј
+    comandValue.guc_mode = RadioModeSazhenData; // � � � � � � С”� � В»� Ў� ‹� ЎвЂЎ� � С‘� � В»� � С‘ 11 � Ў� ‚� � Вµ� � В¶� � С‘� � С�
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     if (freqGucValue != 0)
     comandValue.frequency =  freqGucValue;//3000000;
@@ -2598,7 +2636,7 @@ void DspController::startGucTransmitting()
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
 
     comandValue.frequency = freqGucValue;
-    sendCommandEasy(RxRadiopath, RxFrequency, comandValue); //  зачем здесь впринципе ..
+    sendCommandEasy(RxRadiopath, RxFrequency, comandValue); //  � ·� °С‡� µ� ј � ·� ґ� µСЃСЊ � І� їСЂ� ё� ЅС� � ё� ї� µ ..
     sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
     radio_state = radiostateGucTxPrepare;
     gucTxStateSync = 0;
@@ -2640,11 +2678,11 @@ void DspController::sendGucQuit()
 
 
 	uint8_t pack[3] = {0, 0, 0};
-	pack[2] = (ContentGuc.R_ADR & 0x1F) << 3;  // 5 Р±РёС‚
-	pack[2] |= (ContentGuc.S_ADR & 0x1F) >> 2; // 3 Р±РёС‚Р°
-	pack[1] |= (ContentGuc.S_ADR & 0x1F) << 6; // 2 Р±РёС‚Р°
-	pack[1] |= (ContentGuc.uin >> 2) & 0x3F;   // 6 Р±РёС‚
-	pack[0] = (ContentGuc.uin << 6) & 0xC0;    // 2 Р±РёС‚Р°
+	pack[2] = (ContentGuc.R_ADR & 0x1F) << 3;  // 5 � � В±� � С‘� ЎвЂљ
+	pack[2] |= (ContentGuc.S_ADR & 0x1F) >> 2; // 3 � � В±� � С‘� ЎвЂљ� � В°
+	pack[1] |= (ContentGuc.S_ADR & 0x1F) << 6; // 2 � � В±� � С‘� ЎвЂљ� � В°
+	pack[1] |= (ContentGuc.uin >> 2) & 0x3F;   // 6 � � В±� � С‘� ЎвЂљ
+	pack[0] = (ContentGuc.uin << 6) & 0xC0;    // 2 � � В±� � С‘� ЎвЂљ� � В°
 
     for(int i = 2; i >= 0; --i) {
     	qmToBigEndian((uint8_t)pack[i], tx_data + tx_data_len);
@@ -2738,7 +2776,7 @@ void DspController::startGucRecieving()
 
 void DspController::GucSwichRxTxAndViewData()
 {
-    guc_timer->setInterval(GUC_TIMER_INTERVAL); // TODO: РІРѕР·РјРѕР¶РЅРѕ РёР·РјРµРЅРµРЅРёРµ РёРЅС‚РµСЂРІР°Р»Р°
+    guc_timer->setInterval(GUC_TIMER_INTERVAL); // TODO: � � � � � � С•� � В·� � С�� � С•� � В¶� � � …� � С• � � С‘� � В·� � С�� � Вµ� � � …� � Вµ� � � …� � С‘� � Вµ � � С‘� � � …� ЎвЂљ� � Вµ� Ў� ‚� � � � � � В°� � В»� � В°
     if (guc_vector.size() > 0)
     {
     int size = guc_vector[0][0];
@@ -2765,14 +2803,14 @@ uint8_t* DspController::get_guc_vector()
 	int num = (guc_vector.at(0).at(3) & 0x3f) << 1;
 	num +=    (guc_vector.at(0).at(4) & 0x80) >> 7;
 
-	//РїРѕР»СѓС‡РµРЅРёРµ РєРѕР»РёС‡РµСЃС‚РІР° СЌР»РµРјРµРЅС‚РѕРІ РІ РІРµРєС‚РѕСЂРµ
+	//� � С—� � С•� � В»� ЎС“� ЎвЂЎ� � Вµ� � � …� � С‘� � Вµ � � С”� � С•� � В»� � С‘� ЎвЂЎ� � Вµ� Ў� ѓ� ЎвЂљ� � � � � � В° � Ў� Њ� � В»� � Вµ� � С�� � Вµ� � � …� ЎвЂљ� � С•� � � �  � � � �  � � � � � � Вµ� � С”� ЎвЂљ� � С•� Ў� ‚� � Вµ
 	guc_text[0] = num;
 
     uint8_t out[120];
     for(int i = 0; i<120;i++) out[i] = 0;
     int crc_coord_len = 0;
 
-    // РµСЃР»Рё СЃ РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё, С‚Рѕ РІС‹Р±РѕСЂРєР° РїРѕ РѕРґРЅРѕРјСѓ Р°Р»РіРѕСЂРёС‚РјСѓ, РёРЅР°С‡Рµ РїРѕ РґСЂСѓРіРѕРјСѓ
+    // � � Вµ� Ў� ѓ� � В»� � С‘ � Ў� ѓ � � С”� � С•� � С•� Ў� ‚� � Т‘� � С‘� � � …� � В°� ЎвЂљ� � В°� � С�� � С‘, � ЎвЂљ� � С• � � � � � ЎвЂ№� � В±� � С•� Ў� ‚� � С”� � В° � � С—� � С• � � С•� � Т‘� � � …� � С•� � С�� ЎС“ � � В°� � В»� � С–� � С•� Ў� ‚� � С‘� ЎвЂљ� � С�� ЎС“, � � С‘� � � …� � В°� ЎвЂЎ� � Вµ � � С—� � С• � � Т‘� Ў� ‚� ЎС“� � С–� � С•� � С�� ЎС“
 	int count = 0;
     if (isGpsGuc == 0)
     {
@@ -2797,29 +2835,29 @@ uint8_t* DspController::get_guc_vector()
         {
             guc_text[i+1] = guc_vector.at(0).at(7+i+count);
         }
-        // -- Р—Р°РїРёСЃР°Р»Рё РєРѕРѕСЂРґРёРЅР°С‚С‹, РЅР°С‡РёРЅР°СЏ СЃ РїРµСЂРІРѕР№ РїРѕР·РёС†РёРё РјР°СЃСЃРёРІР° guc_text
+        // -- � � вЂ”� � В°� � С—� � С‘� Ў� ѓ� � В°� � В»� � С‘ � � С”� � С•� � С•� Ў� ‚� � Т‘� � С‘� � � …� � В°� ЎвЂљ� ЎвЂ№, � � � …� � В°� ЎвЂЎ� � С‘� � � …� � В°� Ў� Џ � Ў� ѓ � � С—� � Вµ� Ў� ‚� � � � � � С•� � в„– � � С—� � С•� � В·� � С‘� ЎвЂ� � � С‘� � С‘ � � С�� � В°� Ў� ѓ� Ў� ѓ� � С‘� � � � � � В° guc_text
         for(int i = 0; i< count;i++){
         	if (i < num)
         		guc_text[9 + i+1] = guc_vector.at(0).at(7+i);
         	else
         		guc_text[9 + i+1] = 0;
         }
-        // -- Р—Р°РїРёcР°Р»Рё РґР°РЅРЅС‹Рµ, РЅР°С‡РёРЅР°СЏ СЃ 10-Р№ РїРѕР·РёС†РёРё РЅР°С€РµРіРѕ РјР°СЃСЃРёРІР°
+        // -- � � вЂ”� � В°� � С—� � С‘c� � В°� � В»� � С‘ � � Т‘� � В°� � � …� � � …� ЎвЂ№� � Вµ, � � � …� � В°� ЎвЂЎ� � С‘� � � …� � В°� Ў� Џ � Ў� ѓ 10-� � в„– � � С—� � С•� � В·� � С‘� ЎвЂ� � � С‘� � С‘ � � � …� � В°� Ўв‚¬� � Вµ� � С–� � С• � � С�� � В°� Ў� ѓ� Ў� ѓ� � С‘� � � � � � В°
         std::vector<bool> data;
         for(int i = 0; i< 8; i++) pack_manager->addBytetoBitsArray(guc_text[i+1],data,8);
-        // РґРѕР±Р°РІРёР»Рё РєРѕРѕСЂРґРёРЅР°С‚С‹ Рє Р±РёС‚РѕРІРѕРјСѓ РІРµРєС‚РѕСЂСѓ
+        // � � Т‘� � С•� � В±� � В°� � � � � � С‘� � В»� � С‘ � � С”� � С•� � С•� Ў� ‚� � Т‘� � С‘� � � …� � В°� ЎвЂљ� ЎвЂ№ � � С” � � В±� � С‘� ЎвЂљ� � С•� � � � � � С•� � С�� ЎС“ � � � � � � Вµ� � С”� ЎвЂљ� � С•� Ў� ‚� ЎС“
 
         bool quadrant = guc_text[9] & (1 << 7);
         data.push_back(quadrant);
         quadrant = guc_text[9] & (1 >> 6);
         data.push_back(quadrant);
-        // РґРѕР±Р°РІРёР»Рё Рє Р±РёС‚РѕРІРѕРјСѓ РІРµРєС‚РѕСЂСѓ РєРІР°РґСЂР°РЅС‚
+        // � � Т‘� � С•� � В±� � В°� � � � � � С‘� � В»� � С‘ � � С” � � В±� � С‘� ЎвЂљ� � С•� � � � � � С•� � С�� ЎС“ � � � � � � Вµ� � С”� ЎвЂљ� � С•� Ў� ‚� ЎС“ � � С”� � � � � � В°� � Т‘� Ў� ‚� � В°� � � …� ЎвЂљ
         for(int i = 0; i<num;i++) pack_manager->addBytetoBitsArray(guc_text[9 + i+1],data,7);
-        // РґРѕР±Р°РІРёР»Рё Рє Р±РёС‚РѕРІРѕРјСѓ РІРµРєС‚РѕСЂСѓ РґР°РЅРЅС‹Рµ РїРѕ 7 Р±РёС‚
+        // � � Т‘� � С•� � В±� � В°� � � � � � С‘� � В»� � С‘ � � С” � � В±� � С‘� ЎвЂљ� � С•� � � � � � С•� � С�� ЎС“ � � � � � � Вµ� � С”� ЎвЂљ� � С•� Ў� ‚� ЎС“ � � Т‘� � В°� � � …� � � …� ЎвЂ№� � Вµ � � С—� � С• 7 � � В±� � С‘� ЎвЂљ
         pack_manager->getArrayByteFromBit(data,out);
-        // Р·Р°РїРёСЃР°Р»Рё РІ РІС‹С…РѕРґРЅРѕР№ РјР°СЃСЃРёРІ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРЅС‹Рµ РґР°РЅРЅС‹Рµ РёР· Р±РёС‚РѕРІРѕРіРѕ РјР°СЃСЃРёРІР° РїРѕ Р°РЅРѕР»РѕРіРёРё СЃ С„РѕСЂРјРёСЂРѕРІР°РЅРёРµ РїР°РєРµС‚Р° РґР»СЏ CRC32 РЅР° РїРµСЂРµРґР°С‡Рµ
+        // � � В·� � В°� � С—� � С‘� Ў� ѓ� � В°� � В»� � С‘ � � � �  � � � � � ЎвЂ№� ЎвЂ¦� � С•� � Т‘� � � …� � С•� � в„– � � С�� � В°� Ў� ѓ� Ў� ѓ� � С‘� � � �  � � С—� Ў� ‚� � Вµ� � С•� � В±� Ў� ‚� � В°� � В·� � С•� � � � � � В°� � � …� � � …� ЎвЂ№� � Вµ � � Т‘� � В°� � � …� � � …� ЎвЂ№� � Вµ � � С‘� � В· � � В±� � С‘� ЎвЂљ� � С•� � � � � � С•� � С–� � С• � � С�� � В°� Ў� ѓ� Ў� ѓ� � С‘� � � � � � В° � � С—� � С• � � В°� � � …� � С•� � В»� � С•� � С–� � С‘� � С‘ � Ў� ѓ � ЎвЂћ� � С•� Ў� ‚� � С�� � С‘� Ў� ‚� � С•� � � � � � В°� � � …� � С‘� � Вµ � � С—� � В°� � С”� � Вµ� ЎвЂљ� � В° � � Т‘� � В»� Ў� Џ CRC32 � � � …� � В° � � С—� � Вµ� Ў� ‚� � Вµ� � Т‘� � В°� ЎвЂЎ� � Вµ
         crc_coord_len = data.size() / 8;
-        // РїРѕР»СѓС‡РёР»Рё РґР»РёРЅРЅСѓ РїР°РєРµС‚Р°
+        // � � С—� � С•� � В»� ЎС“� ЎвЂЎ� � С‘� � В»� � С‘ � � Т‘� � В»� � С‘� � � …� � � …� ЎС“ � � С—� � В°� � С”� � Вµ� ЎвЂљ� � В°
 
         uint8_t cord[9];
 
@@ -2848,7 +2886,7 @@ uint8_t* DspController::get_guc_vector()
     }
 
 
-	// РґРѕСЃС‚Р°РµРј crc32 СЃСѓРјРјСѓ РёР· РєРѕРЅС†Р° РїР°РєРµС‚Р°
+	// � � Т‘� � С•� Ў� ѓ� ЎвЂљ� � В°� � Вµ� � С� crc32 � Ў� ѓ� ЎС“� � С�� � С�� ЎС“ � � С‘� � В· � � С”� � С•� � � …� ЎвЂ� � � В° � � С—� � В°� � С”� � Вµ� ЎвЂљ� � В°
 	int m = 3;
 	uint32_t crc_packet = 0;
 	int l = 0;
@@ -2859,10 +2897,10 @@ uint8_t* DspController::get_guc_vector()
 		m--;
 	}
 
-	// СЃС‡РёС‚Р°РµРј crc32 СЃСѓРјРјСѓ
+	// � Ў� ѓ� ЎвЂЎ� � С‘� ЎвЂљ� � В°� � Вµ� � С� crc32 � Ў� ѓ� ЎС“� � С�� � С�� ЎС“
     uint32_t crc = 0;
     int value  = (isGpsGuc) ? crc_coord_len : num;
-    // РІС‹Р±СЂР°Р»Рё РґР»РёРЅРЅСѓ, РёСЃС…РѕРґСЏ РёР· СЂРµР¶РёРјР° РїРµСЂРµРґР°С‡Рё
+    // � � � � � ЎвЂ№� � В±� Ў� ‚� � В°� � В»� � С‘ � � Т‘� � В»� � С‘� � � …� � � …� ЎС“, � � С‘� Ў� ѓ� ЎвЂ¦� � С•� � Т‘� Ў� Џ � � С‘� � В· � Ў� ‚� � Вµ� � В¶� � С‘� � С�� � В° � � С—� � Вµ� Ў� ‚� � Вµ� � Т‘� � В°� ЎвЂЎ� � С‘
 
     if (!isGpsGuc) {value = ((num*7)/8); uint8_t ost = (num*7)% 8;
 
@@ -3014,6 +3052,91 @@ bool DspController::getIsGucCoord()
 {
     return isGpsGuc;
 }
+
+
+void DspController::startVirtualPpsModeTx()
+{
+	setPswfTx();
+	ParameterValue comandValue;
+	comandValue.radio_mode = RadioModeOff;
+	sendCommandEasy(VirtualPps,2,comandValue);
+	virtual_mode = true;
+	RtcTxCounter = 0;
+}
+
+void DspController::startVirtualPpsModeRx()
+{
+	setPswfRx();
+
+	ParameterValue comandValue;
+	comandValue.radio_mode = RadioModeOff;
+	sendCommandEasy(VirtualPps,2,comandValue);
+	virtual_mode = true;
+	RtcRxCounter = 0;
+
+}
+
+void DspController::changeVirtualFreq()
+{
+	int freq = 0;
+#ifndef PORT__PCSIMULATOR
+	freq = getCommanderFreq(ContentPSWF.RN_KEY,date_time[0],date_time[3],date_time[2],date_time[1]);
+#endif
+	if (RtcTxRole)	{
+		static int cnt_synchro = 0;
+		if (cnt_synchro > 10) cnt_synchro = 0;
+		++cnt_synchro;
+		uint8_t tx_address = 0x72;
+		uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
+		int tx_data_len = 0;
+		qmToBigEndian((uint8_t)2, tx_data + tx_data_len);
+		++tx_data_len;
+		qmToBigEndian((uint32_t)freq, tx_data + tx_data_len);
+		++tx_data_len;
+		qmToBigEndian((uint8_t)1, tx_data + tx_data_len);
+		++tx_data_len;
+		qmToBigEndian((uint8_t)cnt_synchro, tx_data + tx_data_len);
+		++tx_data_len;
+
+		transport->transmitFrame(tx_address,tx_data,tx_data_len);
+	}
+	else
+	{
+		ParameterValue param;
+		param.frequency = freq;
+		sendCommandEasy(PSWFReceiver, PswfRxFrequency, param);
+	}
+}
+
+
+void DspController::wakeUpTimer()
+{
+#ifndef PORT__PCSIMULATOR
+	if (virtual_mode)
+	{
+		t = rtc->getTime();
+		uint8_t sec = t.seconds+1; // на следующую секунду
+
+		if ( sec % 12 == 0)
+		{
+			changeVirtualFreq();
+
+			if (RtcRxCounter == 10 || RtcTxCounter == 10)
+			{
+				virtual_mode = false;
+				RtcRxCounter = 0;
+				RtcTxCounter = 0;
+			}
+			else
+			{
+				if (RtcRxRole) ++RtcRxCounter;
+				if (RtcTxRole) ++RtcTxCounter;
+			}
+		}
+	}
+#endif
+}
+
 
 } /* namespace Multiradio */
 

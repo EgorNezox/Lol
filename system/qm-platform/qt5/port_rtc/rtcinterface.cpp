@@ -6,7 +6,12 @@ RtcInterface::RtcInterface(QObject *parent) : QObject(parent)
 
 }
 
-RtcInterface *RtcInterface::getInstance(int hw_resource) {
+RtcInterface::~RtcInterface()
+{
+
+}
+
+/*RtcInterface *RtcInterface::getInstance(int hw_resource) {
     RtcInterface *instance = qobject_cast<RtcInterface *>(QtHwEmu::getResourceInterface(hw_resource));
     Q_ASSERT(instance);
     return instance;
@@ -42,3 +47,4 @@ QDate RtcInterface::getDate()
 {
 
 }
+*/

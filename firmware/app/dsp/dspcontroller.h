@@ -19,6 +19,7 @@
 #include <list>
 #include <vector>
 #include "packagemanager.h"
+#include "qmrtc.h"
 
 
 class QmTimer;
@@ -234,7 +235,8 @@ private:
         PSWFTransmitter,    //0x72
         RadioLineNotPswf,   // 0x68
         GucPath,            // 0x7A
-		ModemReceiver
+		ModemReceiver,
+		VirtualPps         // 0x64
     };
     enum RxParameterCode {
         RxFrequency = 1,
@@ -414,6 +416,10 @@ private:
     void LogicPswfTx();
     void LogicPswfRx();
 
+    void startVirtualPpsModeTx();
+    void startVirtualPpsModeRx();
+    void changeVirtualFreq();
+    void wakeUpTimer();
 
     bool smsFind;
 
@@ -529,6 +535,18 @@ bool modem_rx_on, modem_tx_on;
     uint8_t pswfDataPacket[30];
 
     int CondCmdRxIndexer = 0;
+
+    //----------- RTC LOGIC
+    QmRtc *rtc;
+    QmRtc::Time t;
+    bool RtcTxRole;
+    bool RtcRxRole;
+    uint8_t RtcRxCounter;
+    uint8_t RtcTxCounter;
+    uint8_t RtcFirstCatch;
+    bool virtual_mode;
+
+
 
 public:
     uint8_t getSmsCounter();

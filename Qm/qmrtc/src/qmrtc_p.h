@@ -72,4 +72,4 @@ private:
 #endif /* QM_PLATFORM_QT */
 };
 
-#endif /* QM_QMRTC_SRC_QMRTC_P_H_ */
+/* QM_QMRTC_SRC_QMRTC_P_H_ */
