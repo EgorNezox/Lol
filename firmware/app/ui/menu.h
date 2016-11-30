@@ -198,6 +198,11 @@ public:
     void RxVoiceDialogStatus1(int status, bool isClear = false);
     void initRxPutOffVoiceDialogTest(int status);
 
+    uint8_t cmdCount = 0;
+     uint8_t spCount = 0;
+     uint8_t dgCount = 0;
+
+    bool getIsInRepeatInterval();
 private:
     GUI_Obj obj;
     MoonsGeometry menuArea;

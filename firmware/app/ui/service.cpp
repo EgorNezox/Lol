@@ -1037,13 +1037,39 @@ void Service::keyPressed(UI_Key key)
 
                     if ( menu->groupCondCommStage == 3 )
                         (*iter)++;
-                    if ( menu->groupCondCommStage == 4 )
-                        (*iter)++; (*iter)++;
+                    if ( menu->groupCondCommStage == 4 ){
+                        (*iter)++;(*iter)++;
+                        std::string* commands;
+                        commands = &(*iter)->inputStr;
 
-                    if ( (*iter)->inputStr.size() > 0 )
-                    {
-                           (*iter)->inputStr.pop_back();
+                        bool isDecComCount = true;
+
+                        if (cmdDigitCount == 0 && commands->size() > 0){
+                            commands->pop_back();
+                            cmdDigitCount = cmdDigitCountLast;
                         }
+                        if (cmdDigitCount == 1){
+                            commands->pop_back();
+                            cmdDigitCount--;
+                            isDecComCount = false;
+                        } else if (cmdDigitCount == 2){
+                            commands->pop_back();
+                            commands->pop_back();
+                           // if (commands->size() > 0)
+                           //     commands->pop_back();
+                            cmdDigitCount = 0;
+                        }
+
+                        if (cmdDigitCount == 0 && menu->cmdCount && isDecComCount){
+                            menu->cmdCount--;
+                        }
+                    }
+                    //(*iter)--;
+
+//                    if ( (*iter)->inputStr.size() > 0 )
+//                    {
+//                           (*iter)->inputStr.pop_back();
+//                    }
                     else
                     {
                         menu->groupCondCommStage--;
@@ -1162,23 +1188,70 @@ void Service::keyPressed(UI_Key key)
 
                 if ( menu->groupCondCommStage == 4 )
                 {
-                    std::string* commands;
-                    (*iter)++; (*iter)++;
+                    std::string* commands; (*iter)++; (*iter)++;
                     commands = &(*iter)->inputStr;
 
-                    if ( key > 5 && key < 17 && commands->size() < 100 )
+                    if ( key > 5 && key < 17 && menu->cmdCount < 100 )
                     {
                         if ( key != key0 )
                         {
-                            commands->push_back( (char)(42 + key) );
-                            }
-                        else
-                        {
-                            menu->inputGroupCondCmd(estate);
-                            }
-                           }
-                                }
+                            if (cmdSpaceCount == 2)
+                               commands->pop_back();                               
 
+                            commands->push_back( (char)(42 + key) );
+                            cmdDigitCount++;
+                            cmdSpaceCount = 0;
+                            if (cmdDigitCount == 1)
+                                menu->cmdCount++;                              // inc comCount
+                        }
+                        else  // key0
+                        {
+                            bool isRepeat = menu->getIsInRepeatInterval();
+                            if (cmdSpaceCount == 0 ||
+                               (cmdSpaceCount == 1 && cmdDigitCount == 0 && !isRepeat) ||
+                               (cmdDigitCountLast == 2 && cmdSpaceCount == 1 && isRepeat))
+                            isRepeat = false;
+                            bool isFirst = !isRepeat;
+
+                            if (isFirst){                                             //if first time key0
+                               if (cmdSpaceCount < 2){                              // if spaces < 2
+                                   commands->push_back(ch_key0[0]);                     // write space
+                                   cmdSpaceCount++;                                     // inc spaceCount
+                                   if (cmdDigitCount == 1){                             // if DigitCount == 1
+                                       cmdDigitCountLast = cmdDigitCount;                   // remember DigitCount
+                                       cmdDigitCount = 0;                                   // DigitCount = 0
+                                   }
+                               }
+                            }
+                            if (isRepeat){                                     // if Repeat key0
+                                commands->pop_back();                               // delete space
+                                commands->push_back(ch_key0[1]);                    // write 0
+
+                                if (cmdSpaceCount == 2 || (menu->cmdCount == 0 && cmdSpaceCount == 1))
+                                    menu->cmdCount++;
+                                cmdSpaceCount = 0;                                  // spaceCount = 0
+                                cmdDigitCount++;                                    // inc DigitCount
+
+                                if (cmdDigitCountLast == 1){                    // if DigitCountLast == 1
+                                    commands->push_back(ch_key0[0]);                 // write space
+                                    cmdDigitCountLast = 2;                          // DigitCountLast = 2
+                                    cmdDigitCount = 0;                              // DigitCount = 0;
+                                    cmdSpaceCount = 1;
+                                }
+                           }
+                        }
+
+                        if (cmdDigitCount == 2){                        // if DigitCount == 2
+                          commands->push_back(ch_key0[0]);                  // write space
+                          cmdSpaceCount = 1;                                // spaceCount = 1
+                          cmdDigitCountLast = cmdDigitCount;                // remember DigitCount
+                          cmdDigitCount = 0;                                // DigitCount = 0
+
+                        }
+                        menu->spCount = cmdSpaceCount;
+                        menu->dgCount = cmdDigitCount;
+                    }
+                }
                 break;
             }
             }
