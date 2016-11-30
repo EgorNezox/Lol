@@ -1891,6 +1891,7 @@ void Service::keyPressed(UI_Key key)
             {
             	voice_service->goToVoice();
             	guiTree.resetCurrentState();
+            	voice_service->turnVirtualPswfTx();
             }
             break;
         }

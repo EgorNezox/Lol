@@ -219,6 +219,9 @@ public:
 
     void setAdr();
 
+    void startVirtualPpsModeTx();
+    void startVirtualPpsModeRx();
+
 private:
     friend struct DspCommand;
 
@@ -386,6 +389,7 @@ private:
     void getSwr();                                                                                  // функция настройки шумоподавителя
     void sendPswf();                                                                            // функция отправки УК
     void addSeconds(int *date_time);                                                                // функция добавления секунды к текущей секунде
+    void addSeconds(QmRtc::Time *t);
     void changePswfFrequency();                                                                   // функция приема УК
     void syncPulseDetected();                                                                       // функция выполения задач по секундной метке
     void getDataTime();                                                                             // функция получения времени
@@ -416,10 +420,11 @@ private:
     void LogicPswfTx();
     void LogicPswfRx();
 
-    void startVirtualPpsModeTx();
-    void startVirtualPpsModeRx();
+
     void changeVirtualFreq();
     void wakeUpTimer();
+    void correctTime();
+    void LogicPswfModes(uint8_t* data, uint8_t indicator, int data_len); // func for 0x63 cadr from dsp
 
     bool smsFind;
 
@@ -543,7 +548,7 @@ bool modem_rx_on, modem_tx_on;
     bool RtcRxRole;
     uint8_t RtcRxCounter;
     uint8_t RtcTxCounter;
-    uint8_t RtcFirstCatch;
+    int8_t RtcFirstCatch;
     bool virtual_mode;
 
 

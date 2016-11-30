@@ -236,6 +236,11 @@ void VoiceServiceInterface::gucCrcFail()
     gucCrcFailed();
 }
 
+void VoiceServiceInterface::turnVirtualPswfTx()
+{
+	dispatcher->dsp_controller->startVirtualPpsModeTx();
+}
+
 void VoiceServiceInterface::defaultSMSTrans()
 {
 	dispatcher->dsp_controller->defaultSMSTransmit();

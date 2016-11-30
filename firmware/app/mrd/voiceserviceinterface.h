@@ -63,6 +63,8 @@ public:
     void gucCrcFail();
     void gucCoordRec();
 
+    void turnVirtualPswfTx();
+
     uint8_t* requestGucCoord();
 
 	sigc::signal<void> currentChannelChanged;
