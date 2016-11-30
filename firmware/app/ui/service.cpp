@@ -1282,7 +1282,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 3:
-            {// ввод адреса олучатель
+            {// ввод адреса получатель
                 if ( key > 5 && key < 16 && menu->voiceAddr.size() < 2 )
                 {
                     menu->voiceAddr.push_back((char)(42+key));
@@ -3157,17 +3157,31 @@ void Service::TxCondCmdPackage(int value)
 
 std::vector<uint8_t>* Service::onLoadVoiceMail(uint8_t fileNumber)
 {
-    bool result = false;
+    uint8_t result = 0; // ok
     if (storageFs > 0){
         fileMessage.clear();
         result = multiradio_service->playVoiceMessage(fileNumber);
     }
 
-    if (!result)
+    std::string stateStr;
+    std::string errorReadStr(errorReadFile);
+    std::string errorSpeakerOffStr(smatrHSStateStr[1]);
+
+    switch (result){
+        case 1: stateStr = errorReadStr; break;
+        case 2: stateStr = errorSpeakerOffStr; break;
+    }
+
+    if (result != 0)
     {
-        std::string errorStr = "Error read file\0";
-        fileMessage.resize(errorStr.size());
-        memcpy(fileMessage.data(),&errorStr[0],errorStr.size());
+        fileMessage.resize(stateStr.size());
+        memcpy(fileMessage.data(),&stateStr[0],stateStr.size());
+    }
+    else
+    {
+        stateStr = (std::string)smatrHSStateStr[5];
+        fileMessage.resize(stateStr.size());
+        memcpy(fileMessage.data(),&stateStr[0],stateStr.size());
     }
     return &fileMessage;
 }
@@ -3188,9 +3202,9 @@ std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, ui
     }
     if (!result)
     {
-        std::string errorStr = "Error read file";
-        fileMessage.resize(errorStr.size());
-        memcpy(fileMessage.data(),&errorStr[0],errorStr.size());
+        std::string errorReadStr(errorReadFile);
+        fileMessage.resize(errorReadStr.size());
+        memcpy(fileMessage.data(),&errorReadStr[0],errorReadStr.size());
     }
     return &fileMessage;
 

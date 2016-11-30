@@ -371,14 +371,20 @@ voice_message_t MainServiceInterface::getAleRxVmMessage() {
     return vm_rx_message;
 }
 
-bool MainServiceInterface::playVoiceMessage(uint8_t fileNumber)
+uint8_t MainServiceInterface::playVoiceMessage(uint8_t fileNumber)
 {
-    bool result = false;
+    Headset::Controller::Status status;
+    uint8_t result = 1; // error read
     if (storageFs > 0){
         voice_message_t msg;
-        result = storageFs->getVoiceMail(&msg, fileNumber);
+        if (storageFs->getVoiceMail(&msg, fileNumber))
+           result = 0;
         dispatcher->headset_controller->setSmartMessageToPlay(msg);
-        dispatcher->headset_controller->startSmartPlay(2);
+        status = dispatcher->headset_controller->getStatus();
+        if (status == Headset::Controller::Status::StatusNone)
+            result = 2;
+        else
+            dispatcher->headset_controller->startSmartPlay(2);
     }
     return result;
 }

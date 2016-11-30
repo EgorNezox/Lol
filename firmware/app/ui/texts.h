@@ -147,4 +147,6 @@ extern const char *EndSms;
 
 extern const char *STARTS;
 
+extern const char *errorReadFile;
+
 #endif /* TEXTS_H_ */
