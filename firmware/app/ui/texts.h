@@ -124,7 +124,7 @@ extern const char* NoGucCoord;
 extern const char* StartGucTx;
 extern const char* GucIndivid;
 extern const char* GucGroup;
-extern const char* Zond_label;
+extern const char* Sheldure_label;
 
 extern const char* startStr;
 
@@ -138,7 +138,7 @@ extern const char* dsphardwarefailure_unknown_text_str;
 
 extern const char *smsDataInformDx[];
 
-extern const char *zondSubMenu[];
+extern const char *sheldureSubMenu[];
 
 extern const char *StartCmd;
 extern const char *EndCmd;

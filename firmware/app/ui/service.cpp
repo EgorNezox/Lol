@@ -119,7 +119,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
         sprintf(str2,"%i",i*210000);
         s.append(str2);
         s.append(freq_hz);
-        zond_data.push_back(s);
+        sheldure_data.push_back(s);
     }
 
     menu->supressStatus = 0;
@@ -1892,7 +1892,6 @@ void Service::keyPressed(UI_Key key)
             	//voice_service->goToVoice();
             	//guiTree.resetCurrentState();
 #if    1
-            	voice_service->turnVirtualPswfTx();
 #else
             	voice_service->turnVirtualPswfRx();
 #endif
@@ -2242,7 +2241,7 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
-        case  GuiWindowsSubType::zond:
+        case  GuiWindowsSubType::sheldure:
         {
             if ( key == keyEnter)
             {
@@ -2262,9 +2261,9 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyDown)
             {
-                if ( zond_data.size() != 0 )
+                if ( sheldure_data.size() != 0 )
                 {
-                    if ( menu->focus < zond_data.size()-1)
+                    if ( menu->focus < sheldure_data.size()-1)
                         menu->focus++;
                 }
             }
@@ -2758,9 +2757,9 @@ void Service::drawMenu()
             menu->initEditRnKeyDialog();
             break;
         }
-        case GuiWindowsSubType::zond:
+        case GuiWindowsSubType::sheldure:
         {
-            menu->initZondDialog(menu->focus,zond_data);
+            menu->initSheldureDialog(menu->focus,sheldure_data);
             break;
         }
         case GuiWindowsSubType::voiceMode:

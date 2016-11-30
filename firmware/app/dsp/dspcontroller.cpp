@@ -3052,8 +3052,8 @@ void DspController::startVirtualPpsModeRx()
 void DspController::changeVirtualFreq()
 {
 	int freq = 0;
-	QmRtc::Date d =  rtc->getDate();
 #ifndef PORT__PCSIMULATOR
+	QmRtc::Date d =  rtc->getDate();
 	freq = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
 	qmDebugMessage(QmDebug::Dump, "freq virtual %d", freq);
 #endif

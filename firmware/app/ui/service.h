@@ -168,8 +168,8 @@ private:
     //
     std::vector<int> guc_command_vector;
     int position = 0;
-    int zond_position = 0;
-    std::vector<std::string> zond_data;
+    int sheldure_position = 0;
+    std::vector<std::string> sheldure_data;
     bool pswf_status;
 
     int cntSmsRx = 0;

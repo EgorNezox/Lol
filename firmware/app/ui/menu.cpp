@@ -1367,7 +1367,7 @@ void CGuiMenu::initEditRnKeyDialog()
     addr.Draw();
 }
 
-void CGuiMenu::initZondDialog(int focus, std::vector<std::string> &data)
+void CGuiMenu::initSheldureDialog(int focus, std::vector<std::string> &data)
 {    
     MoonsGeometry itemArea;
     MoonsGeometry addrArea    = { 17, 5, 140, 70 };
@@ -1380,7 +1380,7 @@ void CGuiMenu::initZondDialog(int focus, std::vector<std::string> &data)
 
     GUI_EL_Window   window( &GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this );
 
-    GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)Zond_label, (GUI_Obj *)this);
+    GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)Sheldure_label, (GUI_Obj *)this);
 
     window.Draw();
     label.Draw();
