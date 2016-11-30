@@ -241,6 +241,11 @@ void VoiceServiceInterface::turnVirtualPswfTx()
 	dispatcher->dsp_controller->startVirtualPpsModeTx();
 }
 
+void VoiceServiceInterface::turnVirtualPswfRx()
+{
+	dispatcher->dsp_controller->startVirtualPpsModeRx();
+}
+
 void VoiceServiceInterface::defaultSMSTrans()
 {
 	dispatcher->dsp_controller->defaultSMSTransmit();

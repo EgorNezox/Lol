@@ -50,7 +50,8 @@ public:
         RadioModeUSB = 7,
         RadioModeFM = 9,
         RadioModeSazhenData = 11,
-        RadioModePSWF = 20
+        RadioModePSWF = 20,
+		RadioModeVirtualPpps = 5
     };
     enum RadioOperation {
         RadioOperationOff,
@@ -300,6 +301,7 @@ private:
         uint8_t swf_mode;
         uint8_t guc_mode;
  		uint8_t guc_adr;
+ 		uint8_t param;
         ModemState modem_rx_state;
         ModemBandwidth modem_rx_bandwidth;
         ModemTimeSyncMode modem_rx_time_sync_mode;
@@ -550,6 +552,7 @@ bool modem_rx_on, modem_tx_on;
     uint8_t RtcTxCounter;
     int8_t RtcFirstCatch;
     bool virtual_mode;
+    uint8_t txrtx = 0;
 
 
 

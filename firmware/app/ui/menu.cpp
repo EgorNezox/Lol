@@ -151,7 +151,7 @@ void CGuiMenu::initCondCommDialog(CEndState state) // УК
     }
 
     LabelParams params;
-    if (txCondCmdStage == 4)
+    if (txCondCmdStage == 4 || txCondCmdStage == 3)
     params = GUI_EL_TEMP_LabelChannel;
     else
     params = GUI_EL_TEMP_LabelMode;

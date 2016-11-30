@@ -1652,7 +1652,7 @@ void Service::keyPressed(UI_Key key)
 
         	  if (cntSmsRx == 1)
         	  {
-        		menu->initRxSmsDialog("start");
+        		menu->initRxSmsDialog(startStr);
         		menu->focus_line  = 1;
         		isSmsMessageRec = false;
         	  }
@@ -1889,9 +1889,13 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyEnter)
             {
-            	voice_service->goToVoice();
-            	guiTree.resetCurrentState();
+            	//voice_service->goToVoice();
+            	//guiTree.resetCurrentState();
+#if    1
             	voice_service->turnVirtualPswfTx();
+#else
+            	voice_service->turnVirtualPswfRx();
+#endif
             }
             break;
         }

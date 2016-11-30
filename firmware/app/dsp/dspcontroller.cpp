@@ -1347,14 +1347,21 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 			tx_data_len += 1;
 			break;
 		}
+		case RadioModeVirtualPpps:
+		{
+			qmToBigEndian((uint8_t)1, tx_data+tx_data_len);
+			tx_data_len += 1;
+			break;
+		}
 		case PswfRxFrequency:
 		case PswfRxFreqSignal:
 		{
+
 			qmToBigEndian(value.frequency, tx_data+tx_data_len);
 			tx_data_len += 4;
 			if (sms_counter > 38 && sms_counter < 77)
 			{
-                uint8_t fstn = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39); // TODO: fix that;
+				uint8_t fstn = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39); // TODO: fix that;
 				QNB_RX++;
 				qmDebugMessage(QmDebug::Dump, "FSTN: %d", fstn);
 				uint32_t abc = (fstn << 24);
@@ -1364,6 +1371,7 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 				tx_data_len += 1;
 
 			}
+
 			break;
 		}
 		default: break;
@@ -1405,7 +1413,13 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
     	}
     	break;
     }
-
+    case VirtualPps:
+    {
+    	tx_address = 0x64;
+    	qmToBigEndian((uint8_t)0, tx_data+tx_data_len);
+    	tx_data_len += 1;
+    	break;
+    }
 	default: QM_ASSERT(0);
 	}
 
@@ -1990,11 +2004,17 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     	qmDebugMessage(QmDebug::Dump, "0x65 recieved frame: indicator %d", indicator);
     	if (RtcTxRole)
     	{
-    		if (RtcTxCounter < 10)
+    		if (RtcTxCounter < 120)
     		{
     			RtcTxCounter++;
     			addSeconds(&t);
-    			changeVirtualFreq();
+    			if (RtcTxCounter % 12 == 0) ++txrtx;
+    			if (txrtx > 0) ++txrtx;
+    			if (txrtx == 5)
+    			{
+    				changeVirtualFreq();
+    				txrtx = 0;
+    			}
     		}
     		else
     		{
@@ -2998,15 +3018,20 @@ bool DspController::getIsGucCoord()
 void DspController::startVirtualPpsModeTx()
 {
 	setPswfTx();
-	ParameterValue comandValue;
+	ParameterValue comandValue;  //0x60 2 5 1
+	comandValue.param = 1;
+	sendCommandEasy(PSWFReceiver,5,comandValue);
 	comandValue.radio_mode = RadioModeOff;
 	sendCommandEasy(VirtualPps,2,comandValue);
 	virtual_mode = true;
+	RtcTxRole = true;
 	RtcTxCounter = 0;
+	txrtx = 0;
 #ifndef PORT__PCSIMULATOR
 	t = rtc->getTime();
 #endif
 }
+
 
 void DspController::startVirtualPpsModeRx()
 {
@@ -3017,6 +3042,7 @@ void DspController::startVirtualPpsModeRx()
 	sendCommandEasy(VirtualPps,2,comandValue);
 	virtual_mode = true;
 	RtcRxCounter = 0;
+	RtcRxRole = true;
 	RtcFirstCatch = 0;
 #ifndef PORT__PCSIMULATOR
 	t = rtc->getTime();
@@ -3026,22 +3052,26 @@ void DspController::startVirtualPpsModeRx()
 void DspController::changeVirtualFreq()
 {
 	int freq = 0;
+	QmRtc::Date d =  rtc->getDate();
 #ifndef PORT__PCSIMULATOR
-	freq = getCommanderFreq(ContentPSWF.RN_KEY,date_time[0],date_time[3],date_time[2],date_time[1]);
+	freq = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
+	qmDebugMessage(QmDebug::Dump, "freq virtual %d", freq);
 #endif
 
 	if (RtcTxRole)
 	{
 		static int cnt_synchro = 0;
-		if (cnt_synchro > 10) cnt_synchro = 0;
+		if (cnt_synchro > 120) cnt_synchro = 0;
 		++cnt_synchro;
 		uint8_t tx_address = 0x72;
 		uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 		int tx_data_len = 0;
+		qmToBigEndian((uint8_t)20, tx_data + tx_data_len);
+		++tx_data_len;
 		qmToBigEndian((uint8_t)2, tx_data + tx_data_len);
 		++tx_data_len;
 		qmToBigEndian((uint32_t)freq, tx_data + tx_data_len);
-		++tx_data_len;
+		tx_data_len = tx_data_len + 4;
 		qmToBigEndian((uint8_t)1, tx_data + tx_data_len);
 		++tx_data_len;
 		qmToBigEndian((uint8_t)cnt_synchro, tx_data + tx_data_len);
