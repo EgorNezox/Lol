@@ -181,6 +181,7 @@ private:
     bool failFlag;
 
     std::vector<uint8_t> fileMessage;
+    bool flashTestOn = false;
 
 };
 

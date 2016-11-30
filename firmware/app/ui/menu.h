@@ -20,6 +20,16 @@
 #include "texts.h"
 #include "datastorage/fs.h"
 
+#define flashTest 1
+
+#define smsflashTest_size 27
+
+#if flashTest
+    #define grpFlashTest 1 // √” 
+    #define smsFlashTest 1 // —Ã—
+    #define cndFlashTest 1 // ” 
+#endif
+
 #define MARGIN			4
 #define BUTTON_HEIGHT	33
 #define BUTTON_WIDTH	30
