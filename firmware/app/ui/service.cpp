@@ -1037,39 +1037,31 @@ void Service::keyPressed(UI_Key key)
 
                     if ( menu->groupCondCommStage == 3 )
                         (*iter)++;
-                    if ( menu->groupCondCommStage == 4 ){
+                    if ( menu->groupCondCommStage == 4 && menu->cmdCount){
                         (*iter)++;(*iter)++;
-                        std::string* commands;
-                        commands = &(*iter)->inputStr;
 
-                        bool isDecComCount = true;
+                        #define isCmdArrNotEmpty ( (*iter)->inputStr.size() > 0 )
+                        #define lastSym ( (*iter)->inputStr[ (*iter)->inputStr.size()-1 ] )
+                        #define isSpace(c) ( (c == ch_key0[0]) ? true : false )
+                        #define deleteLastSym ( (*iter)->inputStr.pop_back() )
+                        #define deleteSpace if (isCmdArrNotEmpty) { if (isSpace(lastSym)) deleteLastSym; }
 
-                        if (cmdDigitCount == 0 && commands->size() > 0){
-                            commands->pop_back();
-                            cmdDigitCount = cmdDigitCountLast;
+                        deleteSpace;
+                        uint8_t spaceCount = 0;
+                        while (spaceCount < 1) {
+                            if (isCmdArrNotEmpty) {
+                                spaceCount += isSpace(lastSym);
+                                deleteLastSym;
+                                if (!isCmdArrNotEmpty) spaceCount = 1;
+                            }
                         }
-                        if (cmdDigitCount == 1){
-                            commands->pop_back();
-                            cmdDigitCount--;
-                            isDecComCount = false;
-                        } else if (cmdDigitCount == 2){
-                            commands->pop_back();
-                            commands->pop_back();
-                           // if (commands->size() > 0)
-                           //     commands->pop_back();
-                            cmdDigitCount = 0;
-                        }
-
-                        if (cmdDigitCount == 0 && menu->cmdCount && isDecComCount){
+                        if (menu->cmdCount) {
                             menu->cmdCount--;
+                            cmdDigitCount = 0;
+                            if (menu->cmdCount == 0)
+                                cmdSpaceCount = 0;
                         }
                     }
-                    //(*iter)--;
-
-//                    if ( (*iter)->inputStr.size() > 0 )
-//                    {
-//                           (*iter)->inputStr.pop_back();
-//                    }
                     else
                     {
                         menu->groupCondCommStage--;
@@ -1248,8 +1240,6 @@ void Service::keyPressed(UI_Key key)
                           cmdDigitCount = 0;                                // DigitCount = 0
 
                         }
-                        menu->spCount = cmdSpaceCount;
-                        menu->dgCount = cmdDigitCount;
                     }
                 }
                 break;

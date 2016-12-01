@@ -1884,23 +1884,9 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
         sprintf(comCount,"%03d/100", cmdCount);
         std::string commandCountStr(comCount);
 
-        char digCount[] = {0,0};
-        sprintf(digCount,"%01d", dgCount);
-        std::string digitCountStr(digCount);
-
-        char spaCount[] = {0,0};
-        sprintf(spaCount,"%01d", spCount);
-        std::string spaceCountStr(spaCount);
-
         GUI_Painter::DrawText(110,7,titleParams.font,(char*)commandCountStr.c_str());
-         GUI_Painter::DrawText(1,1,titleParams.font,(char*)digitCountStr.c_str());
-         GUI_Painter::DrawText(1,12,titleParams.font,(char*)spaceCountStr.c_str());
     }
 }
-
-
-
-
 
 void CGuiMenu::initSelectVoiceModeParameters(bool use)
 {
