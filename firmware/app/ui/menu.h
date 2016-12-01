@@ -199,8 +199,6 @@ public:
     void initRxPutOffVoiceDialogTest(int status);
 
     uint8_t cmdCount = 0;
-     uint8_t spCount = 0;
-     uint8_t dgCount = 0;
 
     bool getIsInRepeatInterval();
 private:

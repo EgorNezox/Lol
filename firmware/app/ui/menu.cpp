@@ -1860,6 +1860,9 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
     MoonsGeometry labelArea = {  5,  21, 150,  51 };
     MoonsGeometry valueArea = {  5,  52, 150,  85 };
 
+    TextAreaParams textParams = GUI_EL_TEMP_LabelChannel;
+    MoonsGeometry textGeom = {5, 50, 150, 120};
+
     LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
 
     param[0].transparent = true;
@@ -1871,21 +1874,25 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
     GUI_EL_Window window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
     GUI_EL_Label  title  ( &titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj*)this );
     GUI_EL_Label  label  ( &param[0],                  &labelArea,  (char*)labelStr.c_str(), (GUI_Obj*)this );
-    GUI_EL_Label  value  ( &param[1],                  &valueArea,  (char*)valueStr.c_str(), (GUI_Obj*)this );
+    GUI_EL_Label  value ( &param[1],&valueArea,  (char*)valueStr.c_str(), (GUI_Obj*)this );
+
+    GUI_EL_TextArea cmdText(&textParams, &textGeom, (char*)valueStr.c_str(), (GUI_Obj*)this);
 
     window.Draw();
     title.Draw();
     label.Draw();
-    value.Draw();
 
-    if (groupCondCommStage == 4)
-    {
+    if (groupCondCommStage == 4){
+        cmdText.Draw();
+
         char comCount[] = {0,0,0};
         sprintf(comCount,"%03d/100", cmdCount);
         std::string commandCountStr(comCount);
 
         GUI_Painter::DrawText(110,7,titleParams.font,(char*)commandCountStr.c_str());
     }
+    else
+        value.Draw();
 }
 
 void CGuiMenu::initSelectVoiceModeParameters(bool use)
