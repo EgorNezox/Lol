@@ -1870,12 +1870,13 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
         break;
     }
 
-                  titleArea = {  5,   5, 150,  20 };
-    MoonsGeometry labelArea = {  5,  21, 150,  51 };
+                  titleArea = {  5,   5, 150,  18 };
+    MoonsGeometry labelArea = {  5,  18, 150,  43 };
     MoonsGeometry valueArea = {  5,  52, 150,  85 };
 
-    TextAreaParams textParams = GUI_EL_TEMP_LabelChannel;
-    MoonsGeometry textGeom = {5, 50, 150, 120};
+    TextAreaParams textParams = GUI_EL_TEMP_LabelMode;
+    textParams.element.align.align_h = alignHCenter;
+    MoonsGeometry textGeom = {3, 44, 156, 122};
 
     LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
 
@@ -1897,6 +1898,8 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
     label.Draw();
 
     if (groupCondCommStage == 4){
+        cmdText.setVisibleScroll(true);
+        cmdScrollIndex = cmdText.SetScrollIndex(cmdScrollIndex);
         cmdText.Draw();
 
         char comCount[] = {0,0,0};

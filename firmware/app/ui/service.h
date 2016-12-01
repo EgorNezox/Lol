@@ -180,7 +180,7 @@ private:
     uint8_t cmdSpaceCount = 0;
     uint8_t cmdDigitCount = 0;
     uint8_t cmdDigitCountLast = 0;
-    bool isLastDigitZero = false;
+    bool isLastFreeSym = false;
 };
 
 } /* namespace Ui */

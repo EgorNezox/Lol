@@ -1029,6 +1029,7 @@ void Service::keyPressed(UI_Key key)
 
                     guiTree.backvard();
                     menu->focus = 0;
+
                 }
                 else if ( menu->groupCondCommStage == 1 ||
                           menu->groupCondCommStage == 3 ||
@@ -1052,16 +1053,18 @@ void Service::keyPressed(UI_Key key)
                         while (spaceCount < 1) {
                             if (isCmdArrNotEmpty) {
                                 spaceCount += isSpace(lastSym);
-                                deleteLastSym;
+                                if (!spaceCount) deleteLastSym;
                                 if (!isCmdArrNotEmpty) spaceCount = 1;
                             }
                         }
                         if (menu->cmdCount) {
+                            if (menu->cmdCount == 100) isLastFreeSym = false;
                             menu->cmdCount--;
                             cmdDigitCount = 0;
                             if (menu->cmdCount == 0)
                                 cmdSpaceCount = 0;
                         }
+                        menu->cmdScrollIndex += 20;
                     }
                     else
                     {
@@ -1137,6 +1140,16 @@ void Service::keyPressed(UI_Key key)
                 }
                 break;
             }
+            case keyUp:
+            {
+               if (menu->cmdScrollIndex) menu->cmdScrollIndex--;
+               break;
+            }
+            case keyDown:
+            {
+                menu->cmdScrollIndex++;
+                break;
+            }
             default:
             {
                 // set freq
@@ -1184,9 +1197,10 @@ void Service::keyPressed(UI_Key key)
                     std::string* commands; (*iter)++; (*iter)++;
                     commands = &(*iter)->inputStr;
 
-                    if ( key > 5 && key < 17 && menu->cmdCount < 100 )
+                    //if ( key > 5 && key < 17 && (menu->cmdCount < 100 || ( menu->cmdCount == 100 && (cmdDigitCount == 1 || cmdSpaceCount == 1) )) )
+                    if ( key > 5 && key < 17 && ((menu->cmdCount < 101 && !isLastFreeSym) || (menu->cmdCount == 100 && isLastFreeSym)) )
                     {
-                        if ( key != key0 )
+                        if ( key != key0)
                         {
                             if (cmdSpaceCount == 2)
                                commands->pop_back();                               
@@ -1194,8 +1208,10 @@ void Service::keyPressed(UI_Key key)
                             commands->push_back( (char)(42 + key) );
                             cmdDigitCount++;
                             cmdSpaceCount = 0;
-                            if (cmdDigitCount == 1)
-                                menu->cmdCount++;                              // inc comCount
+                            if (cmdDigitCount == 1){
+                                menu->cmdCount++;               // inc comCount
+                                if (menu->cmdCount == 100) isLastFreeSym = true;
+                            }
                         }
                         else  // key0
                         {
@@ -1220,8 +1236,10 @@ void Service::keyPressed(UI_Key key)
                                 commands->pop_back();                               // delete space
                                 commands->push_back(ch_key0[1]);                    // write 0
 
-                                if (cmdSpaceCount == 2 || (menu->cmdCount == 0 && cmdSpaceCount == 1))
+                                if (cmdSpaceCount == 2 || (menu->cmdCount == 0 && cmdSpaceCount == 1)){
                                     menu->cmdCount++;
+                                    if (menu->cmdCount == 100) isLastFreeSym = true;
+                                }
                                 cmdSpaceCount = 0;                                  // spaceCount = 0
                                 cmdDigitCount++;                                    // inc DigitCount
 
@@ -1234,7 +1252,7 @@ void Service::keyPressed(UI_Key key)
                            }
                         }
 
-                        if (cmdDigitCount == 2){                        // if DigitCount == 2
+                        if (cmdDigitCount == 2){ // if DigitCount == 2
                           commands->push_back(ch_key0[0]);                  // write space
                           cmdSpaceCount = 1;                                // spaceCount = 1
                           cmdDigitCountLast = cmdDigitCount;                // remember DigitCount
@@ -1242,6 +1260,7 @@ void Service::keyPressed(UI_Key key)
 
                         }
                     }
+                    menu->cmdScrollIndex += 20; // with reserve to scroll max down. on set cmdScrollIndex to textarea it do correct
                 }
                 break;
             }

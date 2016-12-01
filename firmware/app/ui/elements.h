@@ -20,7 +20,7 @@
 #include <vector>
 
 //-----------------------------
-#define MAX_LABEL_LENGTH 85
+#define MAX_LABEL_LENGTH 60
 #define MAX_TEXT_AREA_LENGTH 180
 
 struct ElementParams{
@@ -28,6 +28,10 @@ struct ElementParams{
     Alignment align;
 };
 
+struct FullContentSize{
+    uint32_t H;
+    uint32_t W;
+};
 
 /*!Базовый абстрактный класс элемента*/
 class GUI_Element{
@@ -106,22 +110,25 @@ class GUI_EL_TextArea: public GUI_Element{
         void SetText(std::vector<uint8_t> *data);
         void ScrollUp();
         void ScrollDown();
-        int32_t GetScrollIndex();
-        int32_t GetMaxScrollIndex();
-        int32_t SetScrollIndex(int32_t index);
+        uint32_t GetScrollIndex();
+        uint32_t GetMaxScrollIndex();
+        uint32_t SetScrollIndex(uint32_t index);
         virtual void SetInputFocus(bool isFocus);
+        void setVisibleScroll(bool isVisible);
     private:
         void copyStrFromData(char *dest, uint32_t index, uint32_t count);
         char getChar(uint32_t index);
         uint32_t getDataSize();
-        int32_t lines_count;
+        uint32_t lines_count;
         GYT line_height;
         TextAreaParams params;
         bool isScroll = false;
-        int32_t visLineBegin = 0;
+        bool isVisibleScroll = false;
+        uint32_t visLineBegin = 0;
        // int32_t visLineBeginMax = 0;
-        int32_t visLinesCount = 0;
+        uint32_t visLinesCount = 0;
         bool isData = false;
+        FullContentSize allContent;
     protected:
         void CalcContentGeom();
         char* text;
@@ -293,9 +300,9 @@ public:
 //-----------------------------
 
 struct SliderParams{
-    int32_t list_size;
-    int32_t window_size;
-    int32_t window_offset;
+    uint32_t list_size;
+    uint32_t window_size;
+    uint32_t window_offset;
 };
 
 /*!Класс элемента бегунок*/
@@ -485,6 +492,7 @@ class GUI_Painter{
 
 //----------------------------------------------------
 
+
 /*!Класс элемента прокручиваемая зона*/
 class GUI_EL_ScrollArea: public GUI_Element{
     public:
@@ -492,11 +500,6 @@ class GUI_EL_ScrollArea: public GUI_Element{
             uint32_t begin;
             uint32_t end;
         };
-        struct FullContentSize{
-            uint32_t H;
-            uint32_t W;
-        };
-
         GUI_EL_ScrollArea(MoonsGeometry *geom, Alignment *align, Margins *margins, GUI_Obj *parent_obj);
         ~GUI_EL_ScrollArea();
         void Draw();
@@ -506,13 +509,13 @@ class GUI_EL_ScrollArea: public GUI_Element{
         void removeGuiElement(GUI_Element* element);
         int incFocus();
         int decFocus();
-        void setFocus(const int32_t elemIndex);
-        void activateElement(const int32_t elemIndex);
+        void setFocus(const uint32_t elemIndex);
+        void activateElement(const uint32_t elemIndex);
         void activateFocusElement();
         GUI_Element* getFocusElement();
-        int32_t getVisElemCount();
-        int32_t setFirstVisElem(const int32_t elemIndex);
-        int32_t getFirstVisElem();
+        uint32_t getVisElemCount();
+        uint32_t setFirstVisElem(const int32_t elemIndex);
+        uint32_t getFirstVisElem();
     protected:
         void CalcContentGeom();
         std::vector<GUI_Element*> elements;
@@ -520,7 +523,7 @@ class GUI_EL_ScrollArea: public GUI_Element{
         int visibleElemsCount; // количество отображаемых элементов из всех в данный момент
         visibleElemIndex visElemInd; // индекс отображаемого элемента
         bool isVScroll; // есть ли вертикальный скроллбар
-        int focus; // номер элемента с фокусом
+        uint16_t focus; // номер элемента с фокусом
         //GUI_EL_Slider hSlider;
 };
 

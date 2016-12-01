@@ -265,7 +265,7 @@ uint32_t GUI_EL_TextArea::getDataSize()
 
 void GUI_EL_TextArea::Draw(){
     if(text !=0 ){
-        int32_t i = 0, j = 0, k = 0, str_width = 0, last_space = 0, sym_to_cp = 0;
+        uint32_t i = 0, j = 0, k = 0, str_width = 0, last_space = 0, sym_to_cp = 0;
         MoonsGeometry local_content, line_geom;
         char line_str[MAX_LABEL_LENGTH];
 
@@ -281,7 +281,7 @@ void GUI_EL_TextArea::Draw(){
         line_geom = local_content;
         line_geom.ye = line_geom.ys + line_height-1;
 
-        int32_t curVisLine = 0;
+        uint32_t curVisLine = 0;
 
         for(i = 0; i < lines_count; ++i, ++curVisLine)
         {
@@ -327,7 +327,7 @@ void GUI_EL_TextArea::Draw(){
   //      {
         //if (direction == VDir)
         {
-            MoonsGeometry sliderArea  = { 150, 27, 157, 112};
+            MoonsGeometry sliderArea  = { (GXT)el_geom.xe, (GYT)el_geom.ys , (GXT)(el_geom.xe + 7), (GYT) el_geom.ye};
             SliderParams  sliderParams = {lines_count - visLinesCount + 1, (int32_t)1, visLineBegin};
             GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
             slider.Draw();
@@ -350,8 +350,11 @@ void GUI_EL_TextArea::CalcContentGeom(){
 
     int32_t size = getDataSize();
 
-    content.W=0;
-    content.H=0;
+    content.W = GEOM_W(el_geom);
+    content.H = GEOM_H(el_geom);
+
+    allContent.W=0;
+    allContent.H=0;
     gselfont(params.font);
 
     for( uint32_t i = 0; i <= size; ++i){ //	подсчет количества строк
@@ -364,14 +367,14 @@ void GUI_EL_TextArea::CalcContentGeom(){
             if(str_width > max_str_width){
                 max_str_width = str_width;
             }
-            str_width=0;
+            str_width =0;
         }
         else {
-            str_width+=ggetsymw(getChar(i));
-            if(str_width>GEOM_W(el_geom)){		//если строка длиннее чем область элемента
+            str_width += ggetsymw(getChar(i));
+            if(str_width > GEOM_W(el_geom)){		//если строка длиннее чем область элемента
                 ++lf_count;						//cчитаем перенос строки
-                if(last_space==0 || getChar(i)==' '){
-                    str_width-=ggetsymw(getChar(i));	//и отменяем сложение длины этого символа
+                if(last_space == 0 || getChar(i) == ' '){
+                    str_width -= ggetsymw(getChar(i));	//и отменяем сложение длины этого символа
                 }
                 else{
                     str_width=last_str_with;
@@ -387,12 +390,12 @@ void GUI_EL_TextArea::CalcContentGeom(){
             }
         }
     }
-    lines_count=lf_count;
-    line_height=ggetfh();
-    content.H=ggetfh()*lines_count;
-    content.W=max_str_width;
+    lines_count = lf_count;
+    line_height = ggetfh();
+    allContent.H = ggetfh()*lines_count;
+    allContent.W = max_str_width;
 
-    if (content.H > GEOM_H(el_geom) && !isScroll)
+    if (allContent.H > GEOM_H(el_geom) && !isScroll && isVisibleScroll)
     {
         el_geom.xe -= 10;
         isScroll = true;
@@ -415,12 +418,12 @@ void GUI_EL_TextArea::ScrollDown(){
     }
 }
 
-int32_t GUI_EL_TextArea::GetScrollIndex(){
+uint32_t GUI_EL_TextArea::GetScrollIndex(){
     return visLineBegin;
 }
 
-int32_t GUI_EL_TextArea::SetScrollIndex(int32_t index){
-    int32_t oldIndex;
+uint32_t GUI_EL_TextArea::SetScrollIndex(uint32_t index){
+    uint32_t oldIndex;
 
     if (isScroll){
         if (index <= 0 ){
@@ -442,6 +445,12 @@ int32_t GUI_EL_TextArea::SetScrollIndex(int32_t index){
 void GUI_EL_TextArea::SetInputFocus(bool isFocus)
 {
 
+}
+
+void GUI_EL_TextArea::setVisibleScroll(bool isVisible)
+{
+    isVisibleScroll = isVisible;
+    PrepareContent();
 }
 
 
@@ -1200,8 +1209,8 @@ void GUI_EL_ScrollArea::Draw(){
  //   }
     if (isVScroll)
     {
-        MoonsGeometry sliderArea  = { el_geom.xe,el_geom.ys , el_geom.xe + 10, el_geom.ye};
-        SliderParams  sliderParams = {(int32_t)elements.size(), (int32_t)1, (int32_t)focus};
+        MoonsGeometry sliderArea  = { (GXT)el_geom.xe,(GYT)el_geom.ys , (GXT)(el_geom.xe + 10), (GYT)el_geom.ye};
+        SliderParams  sliderParams = {elements.size(), 1, focus};
         GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this->parent_obj);
         slider.Draw();
     }
@@ -1263,7 +1272,7 @@ void GUI_EL_ScrollArea::CalcContentGeom(){
     visElemInd.end = visElemInd.begin + visibleElemsCount;
 }
 
-int32_t GUI_EL_ScrollArea::getVisElemCount(){
+uint32_t GUI_EL_ScrollArea::getVisElemCount(){
     int32_t h = el_geom.ys, visCount = 0;
     for (int32_t i = 0 ; i < elements.size() ; i++)
     {
@@ -1280,7 +1289,7 @@ int32_t GUI_EL_ScrollArea::getVisElemCount(){
     return visCount;
 }
 
-int32_t GUI_EL_ScrollArea::setFirstVisElem(const int32_t elemIndex)
+uint32_t GUI_EL_ScrollArea::setFirstVisElem(const int32_t elemIndex)
 {
 
     if (elemIndex >= 0 && elemIndex < elements.size() - visibleElemsCount)
@@ -1298,7 +1307,7 @@ int32_t GUI_EL_ScrollArea::setFirstVisElem(const int32_t elemIndex)
     return visElemInd.begin;
 }
 
-int32_t GUI_EL_ScrollArea::getFirstVisElem()
+uint32_t GUI_EL_ScrollArea::getFirstVisElem()
 {
     return visElemInd.begin;
 }
@@ -1322,7 +1331,7 @@ int GUI_EL_ScrollArea::decFocus(){
   return focus;
 }
 
-void GUI_EL_ScrollArea::setFocus(const int32_t elemIndex){
+void GUI_EL_ScrollArea::setFocus(const uint32_t elemIndex){
     PrepareContent();
     if (elemIndex >= 0 && elemIndex < elements.size())
     {
@@ -1347,7 +1356,7 @@ void GUI_EL_ScrollArea::setFocus(const int32_t elemIndex){
     }
 }
 
-void GUI_EL_ScrollArea::activateElement(const int32_t elemIndex){
+void GUI_EL_ScrollArea::activateElement(const uint32_t elemIndex){
 
 }
 

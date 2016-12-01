@@ -207,7 +207,8 @@ public:
     void RxVoiceDialogStatus1(int status, bool isClear = false);
     void initRxPutOffVoiceDialogTest(int status);
 
-    uint8_t cmdCount = 0;
+    uint8_t cmdCount = 98;
+    uint16_t cmdScrollIndex = 0;
 
     bool getIsInRepeatInterval();
     void initFileManagerDialog(uint8_t stage);
