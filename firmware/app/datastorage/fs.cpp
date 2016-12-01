@@ -8,6 +8,7 @@ namespace DataStorage {
 FS::FS(const std::string &dir) :
 	dir(dir)
 {
+    updateFileTree();
 }
 
 FS::~FS()
@@ -161,6 +162,196 @@ void FS::setAnalogHeadsetChannel(uint8_t data) {
 	if (!file.open(QmFile::WriteOnly))
 		return;
 	file.write((uint8_t *)&data, 1);
+}
+
+//-----------------------------------------------------
+
+bool FS::getCondCommand(uint8_t data, uint8_t number)
+{
+    if (number > maxFilesCount - 1) return false;
+
+    data = 0;
+    std::string fileName = generateFileNameByNumber(FT_CND, number);
+    QmFile file(dir, fileName);
+    if (!file.open(QmFile::ReadOnly))
+        return false;
+    int64_t file_size = file.size();
+    if (!(file_size == 1))
+        return false;
+    file.read(&data, 1);
+    return true;
+}
+
+void FS::setCondCommand(uint8_t data)
+{
+    std::string fileName = prepareFileStorageToWriting(FT_CND);
+    QmFile file(dir, fileName);
+    if (!file.open(QmFile::WriteOnly))
+        return;
+    int64_t writeSize = file.write((uint8_t*)&data, sizeof(int));
+    if (writeSize)
+        fileTypeInfo[FT_CND].count++;
+}
+
+bool FS::getGroupCondCommand(uint8_t* data, uint8_t number)
+{
+    if (number > maxFilesCount - 1) return false;
+
+    std::string fileName = generateFileNameByNumber(FT_GRP, number);
+    QmFile file(dir, fileName);
+    if (!file.open(QmFile::ReadOnly))
+        return false;
+    int64_t file_size = file.size();
+   // if (!(file_size == 1))
+   //     return false;
+    file.read(data, file_size);
+    return true;
+}
+
+void FS::setGroupCondCommand(uint8_t* data, uint16_t size)
+{
+    std::string fileName = prepareFileStorageToWriting(FT_GRP);
+    QmFile file(dir, fileName);
+    if (!file.open(QmFile::WriteOnly))
+        return;
+    int64_t writeSize = file.write(data, size);
+    if (writeSize)
+        fileTypeInfo[FT_GRP].count++;
+}
+
+bool FS::getSms(uint8_t* data, uint8_t number)
+{
+    if (number > maxFilesCount - 1) return false;
+
+    std::string fileName = generateFileNameByNumber(FT_SMS, number);
+    QmFile file(dir, fileName);
+    if (!file.open(QmFile::ReadOnly))
+        return false;
+    int64_t file_size = file.size();
+    if (file_size > 100)
+        return false;
+    file.read(data, file_size);
+    return true;
+}
+
+void FS::setSms(uint8_t* data, uint16_t size)
+{
+    std::string fileName = prepareFileStorageToWriting(FT_SMS);
+    QmFile file(dir, fileName);
+    if (!file.open(QmFile::WriteOnly))
+        return;
+    int64_t writeSize = file.write(data, size);
+    if (writeSize)
+        fileTypeInfo[FT_SMS].count++;
+}
+
+bool FS::getVoiceMail(std::vector<uint8_t>* data, uint8_t number)
+{
+    if (number > maxFilesCount - 1) return false;
+
+    std::string fileName = generateFileNameByNumber(FT_VM, number);
+    QmFile file(dir, fileName);
+    if (!file.open(QmFile::ReadOnly))
+        return false;
+    int64_t file_size = file.size();
+    if (file_size == 0)
+        return false;
+    data->resize(file_size);
+    file.read(data->data(), file_size);
+    return true;
+}
+
+void FS::setVoiceMail(std::vector<uint8_t>* data)
+{
+    std::string fileName = prepareFileStorageToWriting(FT_VM);
+    QmFile file(dir, fileName);
+    if (!file.open(QmFile::WriteOnly))
+        return;
+    int64_t writeSize = file.write(data->data(), data->size());
+    if (writeSize)
+        fileTypeInfo[FT_VM].count++;
+}
+
+bool FS::renameFile(std::string oldfileName, std::string newFileName)
+{
+    return QmFile::rename(dir, oldfileName, newFileName);
+}
+
+bool FS::deleteFile(std::string fileName)
+{
+    return QmFile::remove(dir, fileName);
+}
+
+bool FS::existFile(std::string fileName)
+{
+    return QmFile::exists(dir, fileName);
+}
+
+void FS::updateFileTree()
+{
+    files.clear();
+
+    std::string fileName;
+    for (uint8_t fileType = 0; fileType < 4; fileType++)
+    for (uint8_t fileNum = 0; fileNum < 10; fileNum++)
+    {
+        fileName = generateFileNameByNumber((FileType)fileType, fileNum);
+        if (existFile(fileName))
+            files.push_back(fileName);
+    }
+}
+
+std::vector<std::string>* FS::getFileTree()
+{
+    return &files;
+}
+
+uint8_t FS::getFreeFileSlotCount()
+{
+    uint8_t sum = 0;
+    for (uint8_t ftype = 0; ftype < 4; ftype++)
+       sum += fileTypeInfo[ftype].count;
+    return maxFilesCount - sum;
+}
+
+std::string FS::generateFileNameByNumber(FS::FileType fileType, uint8_t number)
+{
+    char n[1] = {0};
+    std::string name = fileTypeInfo[fileType].fileName;
+    sprintf(n,"%d", number);
+    return name.append(n);
+}
+
+std::string FS::prepareFreeFileSlot(FS::FileType fileType)
+{
+    deleteFile(generateFileNameByNumber(fileType, 0));
+
+    //cyclic rename file n to n-1
+    for (uint8_t fileNumber = 1; fileNumber < fileTypeInfo[fileType].count; fileNumber++)
+        renameFile(generateFileNameByNumber(fileType, fileNumber),
+                   generateFileNameByNumber(fileType, fileNumber-1));
+}
+
+std::string FS::prepareFileStorageToWriting(FS::FileType fileType)
+{
+    //is limit file count of this type
+    if (fileTypeInfo[fileType].count == fileTypeInfo[fileType].maxCount)
+    {
+        prepareFreeFileSlot(fileType);
+        return generateFileNameByNumber(fileType, fileTypeInfo[fileType].maxCount-1);
+    }
+    else if (!getFreeFileSlotCount())
+    {
+        //define type of file to delete (is type with max file count)
+        FS::FileType typeToDelete = fileType;
+        for (uint8_t typeID = 0; typeID < 4; typeID++)
+            if (fileTypeInfo[typeID].count > fileTypeInfo[fileType].count)
+                typeToDelete = (FileType)typeID;
+
+        prepareFreeFileSlot(typeToDelete);
+        return generateFileNameByNumber(fileType, fileTypeInfo[fileType].count);
+    } else
+        return "error";
 }
 
 } /* namespace DataStorage */

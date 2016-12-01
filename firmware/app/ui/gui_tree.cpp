@@ -40,6 +40,8 @@ void CGuiTree::init()
     sttZond.setName(settingsSubMenu[8]);
     stCoord.setName(settingsSubMenu[9]);
 
+    sttFileManager.setName(files[0]);
+
     // 4.1.1 - 4.1.2
     sttConnParamGPS.setName(dateAndTimeSubMenu[0]); sttConnParamHand.setName(dateAndTimeSubMenu[1]);
     // 4.1.2.1 - 4.1.2.2
@@ -260,6 +262,7 @@ void CGuiTree::init()
     sttConnParam.nextState.push_back(&sttEditRnKey);
     sttConnParam.nextState.push_back(&sttChannelEmissionType);
     sttConnParam.nextState.push_back(&sttVoiceMode);
+    sttConnParam.nextState.push_back(&sttFileManager);
 
     // 4.2.1 - Частота
     sttSetFreq.setType(GuiWindowTypes::endMenuWindow);
@@ -298,6 +301,11 @@ void CGuiTree::init()
     sttVoiceMode.subType = GuiWindowsSubType::voiceMode;
     sttVoiceMode.prevState = &sttConnParam;
     sttVoiceMode.nextState.clear();
+
+    // 4.2.8 - Файлы
+    sttFileManager.subType = GuiWindowsSubType::filetree;
+    sttFileManager.prevState = &sttConnParam;
+    sttFileManager.nextState.clear();
 
     // 4.3 - Сканирование
     sttScan.subType = GuiWindowsSubType::scan;

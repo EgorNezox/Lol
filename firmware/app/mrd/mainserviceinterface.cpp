@@ -215,6 +215,11 @@ MainServiceInterface::~MainServiceInterface()
 {
 }
 
+void MainServiceInterface::setFS(DataStorage::FS *fs)
+{
+    storageFs = fs;
+}
+
 MainServiceInterface::Status MainServiceInterface::getStatus() {
 	return current_status;
 }
@@ -487,6 +492,8 @@ void MainServiceInterface::stopAleSession() {
 		voice_message_t message = getAleRxVmMessage();
 		printDebugVmMessage(ale.vm_size, ale.vm_f_count, message);
 		dispatcher->headset_controller->setSmartMessageToPlay(message);
+        if (storageFs > 0)
+            storageFs->setVoiceMail(&message);
 		break;
 	}
 	case alefunctionTx: {

@@ -10,7 +10,7 @@
 
 
 #define LANG_COUNT 1
-#define MAIN_MENU_MAX_LIST_SIZE 6
+#define MAIN_MENU_MAX_LIST_SIZE 8
 #define _LIST_SIZE 5
 #define SETTINGS_LIST_SIZE 2
 
@@ -59,6 +59,7 @@ extern const char *setDateOrTime[];
 extern const char *setConnParam[];
 extern const char *useScanMenu[];
 extern const char *dataAndTime[];
+extern const char *files[];
 
 extern const char *aruStr;
 extern const char *armStr;
