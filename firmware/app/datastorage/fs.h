@@ -42,6 +42,7 @@ public:
     void setVoiceMail(std::vector<uint8_t> *data);
     void updateFileTree();
     std::vector<std::string> *getFileTree();
+    void getFileNamesByType(std::vector<std::string>* typeFiles, FileType fileType);
 private:
     bool renameFile(std::string oldfileName, std::string newFileName);
     bool deleteFile(std::string fileName);

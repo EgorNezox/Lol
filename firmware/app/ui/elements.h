@@ -99,19 +99,34 @@ typedef LabelParams TextAreaParams;
 class GUI_EL_TextArea: public GUI_Element{
     public:
         GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj);
+        GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, std::vector<uint8_t> *data, GUI_Obj *parent_obj);
+        ~GUI_EL_TextArea();
         void Draw();
         void SetText(char *text);
+        void SetText(std::vector<uint8_t> *data);
+        void ScrollUp();
+        void ScrollDown();
+        int32_t GetScrollIndex();
+        int32_t GetMaxScrollIndex();
+        int32_t SetScrollIndex(int32_t index);
+        virtual void SetInputFocus(bool isFocus);
     private:
+        void copyStrFromData(char *dest, uint32_t index, uint32_t count);
+        char getChar(uint32_t index);
+        uint32_t getDataSize();
         int32_t lines_count;
         GYT line_height;
         TextAreaParams params;
+        bool isScroll = false;
+        int32_t visLineBegin = 0;
+       // int32_t visLineBeginMax = 0;
+        int32_t visLinesCount = 0;
+        bool isData = false;
     protected:
         void CalcContentGeom();
-        char text[MAX_TEXT_AREA_LENGTH];
-
-        // GUI_Element interface
-public:
-        virtual void SetInputFocus(bool isFocus);
+        char* text;
+        std::vector<uint8_t>* data;
+        //char* text[MAX_TEXT_AREA_LENGTH];
 };
 
 //-----------------------------
