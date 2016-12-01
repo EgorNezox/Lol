@@ -7,7 +7,7 @@
 
 #include "virtual_timer.h"
 
-uint8_t  getInterval(uint8_t min,uint8_t sec)
+int  getInterval(uint8_t min,uint8_t sec)
 {
 	uint8_t interval = 1;
 	interval = (min  % 2 == 0) ? 1 : 6;
@@ -15,7 +15,13 @@ uint8_t  getInterval(uint8_t min,uint8_t sec)
 	uint8_t ost = sec / 12; // 0 .. 4
 	interval =  interval + ost;
 
-	return (interval * 12);
+	return interval;
+}
+
+uint8_t IsStart(uint8_t sec)
+{
+	if (sec % 12 == 0) return 1;
+	else return 0;
 }
 
 
@@ -154,7 +160,7 @@ int getCommanderFreq(uint8_t RN_KEY, uint8_t SEC, uint8_t DAY, uint8_t HRS,uint8
 	return fr_sh;
 }
 
-int CalcShiftCommandFreq(uint8_t RN_KEY, uint8_t SEC, uint8_t DAY, uint8_t HRS, uint8_t MIN,uint8_t interval)
+int CalcShiftCommandFreq(uint8_t RN_KEY, uint8_t SEC, uint8_t DAY, uint8_t HRS, uint8_t MIN,int interval)
 {
 	uint32_t tot_width_int[10] = {352,460,263,260,643,715,534,844,1314,1280};
 

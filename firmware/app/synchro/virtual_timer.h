@@ -42,10 +42,10 @@ static int fr_band_commander[46] =
 
 };
 
-uint8_t  getInterval(uint8_t min,uint8_t sec);
-int CalcShiftCommandFreq(uint8_t RN_KEY, uint8_t SEC, uint8_t DAY, uint8_t HRS, uint8_t MIN,uint8_t interval);
+int  getInterval(uint8_t min,uint8_t sec);
+int CalcShiftCommandFreq(uint8_t RN_KEY, uint8_t SEC, uint8_t DAY, uint8_t HRS, uint8_t MIN,int interval);
 int getCommanderFreq(uint8_t RN_KEY, uint8_t SEC, uint8_t DAY, uint8_t HRS, uint8_t MIN);
-
+uint8_t IsStart(uint8_t sec);
 
 #ifdef __cplusplus
 }

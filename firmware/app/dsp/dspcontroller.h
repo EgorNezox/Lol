@@ -423,7 +423,7 @@ private:
     void LogicPswfRx();
 
 
-    void changeVirtualFreq();
+    void sendSynchro(uint32_t freq, uint8_t cnt);
     void wakeUpTimer();
     void correctTime();
     void LogicPswfModes(uint8_t* data, uint8_t indicator, int data_len); // func for 0x63 cadr from dsp
@@ -553,7 +553,10 @@ bool modem_rx_on, modem_tx_on;
     int8_t RtcFirstCatch;
     bool virtual_mode;
     uint8_t txrtx = 0;
+    uint32_t freqVirtual;
+    uint8_t count_VrtualTimer = 0;
 
+    QmRtc::Date d;
 
 
 public:
