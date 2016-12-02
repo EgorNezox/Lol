@@ -131,6 +131,7 @@ void qmMain() {
                           );
 #endif
 
+    data_storage_fs.getSheldure(ui_service.setSheldure());
 
     kb_light_iopin.writeOutput(QmIopin::Level_Low);
 	data_storage_fs.getVoiceChannelsTable(mr_channels_table);

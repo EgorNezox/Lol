@@ -89,6 +89,7 @@ public:
     void setPswfStatus(bool var);
     void TxCondCmdPackage(int value);
     uint8_t* getGpsGucCoordinat(uint8_t *coord);
+    uint8_t &setSheldure();
 
 private:
     void msgBox(const char*);
@@ -176,6 +177,8 @@ private:
     int cntGucRx = 0;
     bool isSmsMessageRec = false;
     bool failFlag;
+
+    uint8_t SheldureMass[651];  // 50 сеансов по 13 байт + 1 байт кол-во сеансов
 };
 
 } /* namespace Ui */

@@ -23,6 +23,7 @@ public:
 	void setVoiceChannelSpeed(Multiradio::voice_channel_speed_t data);
 	bool getAnalogHeadsetChannel(uint8_t &data);
 	void setAnalogHeadsetChannel(uint8_t data);
+    bool getSheldure(uint8_t &data);
 private:
 	std::string dir;
 };

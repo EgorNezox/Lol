@@ -12,8 +12,7 @@
 #include <iostream>
 #include <string.h>
 #include <string>
-//#include "../../../system/reset.h"
-
+#include "../../../system/reset.h"
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
@@ -108,19 +107,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     systemTimeTimer->start();
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
 #endif
-
-    for(int i = 1; i< 10; i++)
-    {
-        std::string s(callSubMenu[i%4]);
-        char str[2];  sprintf(str,"%d",i);
-        s.append(" ").append(str).append(":00 ");
-        char str2[10];
-        s.append("\n ");
-        sprintf(str2,"%i",i*210000);
-        s.append(str2);
-        s.append(freq_hz);
-        sheldure_data.push_back(s);
-    }
 
     menu->supressStatus = 0;
     cntSmsRx = 0;
@@ -2759,6 +2745,46 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::sheldure:
         {
+            sheldure_data.clear();
+            unsigned char SheldureMass[] = {'1', '0', '1','2',':','5','6',':','0','0',0x00,0x44,0xec,0x88};
+//#if defined (PORT__TARGET_DEVICE_REV1)
+            int sheldure_size = SheldureMass[0] - 48;
+            for(int i = 0; i < sheldure_size; i++)
+            {
+                std::string s;
+                switch (SheldureMass[ 1 + (i * 13) ])   // Режим
+                {
+                case '0':
+                    s.append(callSubMenu[0]);
+                    break;
+                case '1':
+                    s.append(callSubMenu[1]);
+                    break;
+                case '2':
+                    s.append(callSubMenu[2]);
+                    break;
+                case '3':
+                    s.append(callSubMenu[3]);
+                    break;
+                }
+                (SheldureMass[1+(i * 13)] % 2 == 0) ? s.append("   ") : s.append("  ");
+
+                for(int j = 0; j < 5; j++)
+                    s.push_back(SheldureMass[ 2 + (i*13) + j]); // Время
+                s.append("\n ");
+                int frec = 0;
+                for(int k = 3; k >= 0; k--)
+                {
+                    frec += (uint8_t)(SheldureMass[ 10 + (i*13) + 3 - k]) << k*8;
+                }
+                char ch[7];
+                sprintf(ch, "%d",frec);
+                for(int j = 0; j < 7; j++)
+                	s.push_back(ch[j]);
+                s.append(freq_hz);
+                sheldure_data.push_back(s);
+            }
+//#endif
             menu->initSheldureDialog(menu->focus,sheldure_data);
             break;
         }
@@ -3062,6 +3088,11 @@ void Service::TxCondCmdPackage(int value)
         menu->txCondCmdStage = 6;
         menu->initCondCommDialog((CEndState&)guiTree.getCurrentState());
     }
+}
+
+uint8_t& Service::setSheldure()
+{
+   return SheldureMass[0];
 }
 
 void Service::msgGucTXQuit(int ans)

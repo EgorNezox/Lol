@@ -1368,7 +1368,7 @@ void CGuiMenu::initEditRnKeyDialog()
 }
 
 void CGuiMenu::initSheldureDialog(int focus, std::vector<std::string> &data)
-{    
+{
     MoonsGeometry itemArea;
     MoonsGeometry addrArea    = { 17, 5, 140, 70 };
     MoonsGeometry labelArea   = { 7, 5, 140, 70 };
