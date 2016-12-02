@@ -1,7 +1,9 @@
+
 #include "qm.h"
 #include "qmfile.h"
 
 #include "fs.h"
+
 
 namespace DataStorage {
 
@@ -9,6 +11,11 @@ FS::FS(const std::string &dir) :
 	dir(dir)
 {
     //updateFileTree();
+	fileTypeInfo[FT_SMS].fileName = "Sms";
+	fileTypeInfo[FT_VM].fileName = "Voice";
+	fileTypeInfo[FT_GRP].fileName = "Group";
+	fileTypeInfo[FT_CND].fileName = "Cond";
+	fileTypeInfo[FT_VM].maxCount = 1;
 }
 
 FS::~FS()
@@ -170,26 +177,31 @@ bool FS::getCondCommand(std::vector<uint8_t>* data, uint8_t number)
 {
     if (number > maxFilesCount - 1) return false;
     std::string fileName = generateFileNameByNumber(FT_CND, number);
-    QmFile file(dir, fileName);
-    if (!file.open(QmFile::ReadOnly))
-        return false;
-    int64_t file_size = file.size();
-    if (!(file_size == 1))
-        return false;
-    data->resize(file_size);
-    file.read(data->data(), file_size);
-    return true;
+    if (fileName != errorFileName){
+    	QmFile file(dir, fileName);
+    	if (!file.open(QmFile::ReadOnly))
+    		return false;
+    	int64_t file_size = file.size();
+    	if (!(file_size == 1))
+    		return false;
+    	data->resize(file_size);
+    	file.read(data->data(), file_size);
+    	return true;
+    } else
+    	return false;
 }
 
 void FS::setCondCommand(uint8_t data)
 {
     std::string fileName = prepareFileStorageToWriting(FT_CND);
-    QmFile file(dir, fileName);
-    if (!file.open(QmFile::WriteOnly))
-        return;
-    int64_t writeSize = file.write((uint8_t*)&data, sizeof(int));
-    if (writeSize)
-        fileTypeInfo[FT_CND].count++;
+    if (fileName != errorFileName){
+    	QmFile file(dir, fileName);
+    	if (!file.open(QmFile::WriteOnly))
+    		return;
+    	int64_t writeSize = file.write((uint8_t*)&data, sizeof(int));
+    	if (writeSize)
+    		fileTypeInfo[FT_CND].count++;
+    }
 }
 
 bool FS::getGroupCondCommand(std::vector<uint8_t>* data, uint8_t number)
@@ -197,24 +209,29 @@ bool FS::getGroupCondCommand(std::vector<uint8_t>* data, uint8_t number)
     if (number > maxFilesCount - 1) return false;
 
     std::string fileName = generateFileNameByNumber(FT_GRP, number);
-    QmFile file(dir, fileName);
-    if (!file.open(QmFile::ReadOnly))
-        return false;
-    int64_t file_size = file.size();
-    data->resize(file_size);
-    file.read(data->data(), file_size);
-    return true;
+    if (fileName != errorFileName){
+    	QmFile file(dir, fileName);
+    	if (!file.open(QmFile::ReadOnly))
+    		return false;
+    	int64_t file_size = file.size();
+    	data->resize(file_size);
+    	file.read(data->data(), file_size);
+    	return true;
+    } else
+    	return false;
 }
 
 void FS::setGroupCondCommand(uint8_t* data, uint16_t size)
 {
     std::string fileName = prepareFileStorageToWriting(FT_GRP);
-    QmFile file(dir, fileName);
-    if (!file.open(QmFile::WriteOnly))
-        return;
-    int64_t writeSize = file.write(data, size);
-    if (writeSize)
-        fileTypeInfo[FT_GRP].count++;
+    if (fileName != errorFileName){
+    	QmFile file(dir, fileName);
+    	if (!file.open(QmFile::WriteOnly))
+    		return;
+    	int64_t writeSize = file.write(data, size);
+    	if (writeSize)
+    		fileTypeInfo[FT_GRP].count++;
+    }
 }
 
 bool FS::getSms(std::vector<uint8_t>* data, uint8_t number)
@@ -222,26 +239,31 @@ bool FS::getSms(std::vector<uint8_t>* data, uint8_t number)
     if (number > maxFilesCount - 1) return false;
 
     std::string fileName = generateFileNameByNumber(FT_SMS, number);
-    QmFile file(dir, fileName);
-    if (!file.open(QmFile::ReadOnly))
-        return false;
-    int64_t file_size = file.size();
-    if (file_size > 100)
-        return false;
-    data->resize(file_size);
-    file.read(data->data(), file_size);
-    return true;
+    if (fileName != errorFileName){
+    	QmFile file(dir, fileName);
+    	if (!file.open(QmFile::ReadOnly))
+    		return false;
+    	int64_t file_size = file.size();
+    	if (file_size > 100)
+    		return false;
+    	data->resize(file_size);
+    	file.read(data->data(), file_size);
+    	return true;
+    } else
+    	return false;
 }
 
 void FS::setSms(uint8_t* data, uint16_t size)
 {
     std::string fileName = prepareFileStorageToWriting(FT_SMS);
-    QmFile file(dir, fileName);
-    if (!file.open(QmFile::WriteOnly))
-        return;
-    int64_t writeSize = file.write(data, size);
-    if (writeSize)
-        fileTypeInfo[FT_SMS].count++;
+    if (fileName != errorFileName){
+    	QmFile file(dir, fileName);
+    	if (!file.open(QmFile::WriteOnly))
+    		return;
+    	int64_t writeSize = file.write(data, size);
+    	if (writeSize)
+    		fileTypeInfo[FT_SMS].count++;
+    }
 }
 
 bool FS::getVoiceMail(std::vector<uint8_t>* data, uint8_t number)
@@ -249,26 +271,31 @@ bool FS::getVoiceMail(std::vector<uint8_t>* data, uint8_t number)
     if (number > maxFilesCount - 1) return false;
 
     std::string fileName = generateFileNameByNumber(FT_VM, number);
-    QmFile file(dir, fileName);
-    if (!file.open(QmFile::ReadOnly))
-        return false;
-    int64_t file_size = file.size();
-    if (file_size == 0)
-        return false;
-    data->resize(file_size);
-    file.read(data->data(), file_size);
-    return true;
+    if (fileName != errorFileName){
+    	QmFile file(dir, fileName);
+    	if (!file.open(QmFile::ReadOnly))
+    		return false;
+    	int64_t file_size = file.size();
+    	if (file_size == 0)
+    		return false;
+    	data->resize(file_size);
+    	file.read(data->data(), file_size);
+    	return true;
+    } else
+    	return false;
 }
 
 void FS::setVoiceMail(std::vector<uint8_t>* data)
 {
     std::string fileName = prepareFileStorageToWriting(FT_VM);
-    QmFile file(dir, fileName);
-    if (!file.open(QmFile::WriteOnly))
-        return;
-    int64_t writeSize = file.write(data->data(), data->size());
-    if (writeSize)
-        fileTypeInfo[FT_VM].count++;
+    if (fileName != errorFileName){
+    	QmFile file(dir, fileName);
+    	if (!file.open(QmFile::WriteOnly))
+    		return;
+    	int64_t writeSize = file.write(data->data(), data->size());
+    	if (writeSize)
+    		fileTypeInfo[FT_VM].count++;
+    }
 }
 
 bool FS::renameFile(std::string oldfileName, std::string newFileName)
@@ -355,7 +382,7 @@ std::string FS::prepareFileStorageToWriting(FS::FileType fileType)
         prepareFreeFileSlot(fileType);
         return generateFileNameByNumber(fileType, fileTypeInfo[fileType].maxCount-1);
     }
-    else if (!getFreeFileSlotCount())
+    else if (getFreeFileSlotCount() > 0)
     {
         //define type of file to delete (is type with max file count)
         FS::FileType typeToDelete = fileType;
@@ -366,7 +393,7 @@ std::string FS::prepareFileStorageToWriting(FS::FileType fileType)
         prepareFreeFileSlot(typeToDelete);
         return generateFileNameByNumber(fileType, fileTypeInfo[fileType].count);
     } else
-        return "error";
+        return errorFileName;
 }
 
 } /* namespace DataStorage */

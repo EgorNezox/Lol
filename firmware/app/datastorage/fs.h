@@ -2,6 +2,7 @@
 #define FIRMWARE_APP_DATASTORAGE_FS_H_
 
 #include <string>
+#include <stdio.h>
 #include "multiradio.h"
 
 namespace DataStorage {
@@ -51,7 +52,7 @@ private:
     std::string dir;
     std::vector<std::string> files;
     uint8_t maxFilesCount = 10;
-
+    std::string errorFileName = "error";
     FileTypeInfo fileTypeInfo[4];
     uint8_t getFreeFileSlotCount();
 
