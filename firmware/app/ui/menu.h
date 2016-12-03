@@ -232,6 +232,9 @@ public:
     uint8_t filesStageFocus[3] = {0,0,0};
 
     std::vector<uint8_t>* fileMessage;
+
+    uint8_t displayBrightness = 2; //2 - max, 0 - min
+    void initDisplayBrightnessDialog();
 private:
     GUI_Obj obj;
     MoonsGeometry menuArea;

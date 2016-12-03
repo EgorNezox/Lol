@@ -51,7 +51,8 @@ enum GuiWindowsSubType
     zond,\
     channelEmissionType,\
     voiceMode, \
-    filetree
+    filetree,
+    display
 };
 
 enum modeCall
@@ -207,7 +208,7 @@ private:
     CEndState dataSendCondCmd, dataSendSms, dataSendPost, dataSendGroupCondCmd;
     // 4.1 - 4.3
     CState sttDateTime, sttConnParam;
-    CEndState sttScan, swAruArm, sttSound, sttSuppress, sttWaitGuk, sttEditRnKey,sttZond, stCoord;
+    CEndState sttScan, swAruArm, sttSound, sttSuppress, sttWaitGuk, sttEditRnKey,sttZond, stCoord,  sttDisplay;
 
     // 4.1.1 - 4.1.2
     CState sttConnParamHand;

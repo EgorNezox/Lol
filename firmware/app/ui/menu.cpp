@@ -2074,3 +2074,24 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
     GUI_EL_Label title( &label_params, &label_geom, (char*)titleChar, (GUI_Obj *)this);
     title.Draw();
 }
+
+void CGuiMenu::initDisplayBrightnessDialog()
+{
+    MoonsGeometry brightness_geom  = {5,  45,  160,  70 };
+    LabelParams brightnessParams = GUI_EL_TEMP_LabelMode;
+    brightnessParams.element.align.align_h = alignHCenter;
+    GUI_EL_Label brightness(&brightnessParams, &brightness_geom,  (char*)displayBrightnessStr[displayBrightness], (GUI_Obj*)this);
+
+    titleArea = {(GXT)(windowArea.xs + MARGIN),
+                 (GYT)(windowArea.ys + MARGIN),
+                 (GXT)(windowArea.xe - MARGIN),
+                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
+                };
+
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
+    GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)displayBrightnessTitleStr, (GUI_Obj *)this);
+
+    window.Draw();
+    title.Draw();
+    brightness.Draw();
+}

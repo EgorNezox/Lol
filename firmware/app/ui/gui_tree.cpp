@@ -39,6 +39,7 @@ void CGuiTree::init()
     sttEditRnKey.setName(settingsSubMenu[7]);
     sttZond.setName(settingsSubMenu[8]);
     stCoord.setName(settingsSubMenu[9]);
+    sttDisplay.setName(settingsSubMenu[10]);
 
     sttFileManager.setName(files[0]);
 
@@ -223,6 +224,7 @@ void CGuiTree::init()
     settings.nextState.push_back(&sttScan);
     settings.nextState.push_back(&sttSound);
     settings.nextState.push_back(&sttSuppress);
+    settings.nextState.push_back(&sttDisplay);
     // 4.1 - Дата/время
     sttDateTime.setType(GuiWindowTypes::menuWindow);
     sttDateTime.prevState = &settings;
@@ -258,7 +260,7 @@ void CGuiTree::init()
     sttConnParam.nextState.push_back(&sttSetSpeed);
     sttConnParam.nextState.push_back(&swAruArm);
     sttConnParam.nextState.push_back(&stCoord);
-    sttConnParam.nextState.push_back(&sttWaitGuk);
+    //sttConnParam.nextState.push_back(&sttWaitGuk);
     sttConnParam.nextState.push_back(&sttEditRnKey);
     sttConnParam.nextState.push_back(&sttChannelEmissionType);
     sttConnParam.nextState.push_back(&sttVoiceMode);
@@ -319,6 +321,10 @@ void CGuiTree::init()
     sttSuppress.subType = GuiWindowsSubType::suppress;
     sttSuppress.prevState = &settings;
     sttSuppress.nextState.clear();
+    // 4.6 - Дисплей
+    sttDisplay.subType = GuiWindowsSubType::display;
+    sttDisplay.prevState = &settings;
+    sttDisplay.nextState.clear();
 
     currentState = &MainWindow;
     statesStack.clear();

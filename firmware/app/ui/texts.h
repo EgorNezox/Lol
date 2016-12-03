@@ -149,4 +149,7 @@ extern const char *STARTS;
 
 extern const char *errorReadFile;
 
+extern const char *displayBrightnessStr[];
+extern const char *displayBrightnessTitleStr;
+
 #endif /* TEXTS_H_ */

@@ -2011,6 +2011,33 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::display:
+        {
+            if (key == keyLeft )
+            {
+                if (menu->displayBrightness > 0)
+                menu->displayBrightness--;
+
+            }
+            if ( key == keyRight)
+            {
+                if (menu->displayBrightness < 2)
+                menu->displayBrightness++;
+
+            }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+
+            }
+            if (key == keyEnter)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+            break;
+        }
         case GuiWindowsSubType::aruarmaus:
         {
             if (key == keyUp  )
@@ -2449,8 +2476,8 @@ void Service::keyPressed(UI_Key key)
                 else
                 {
                    guiTree.backvard();
-                   menu->focus = 8;
-                   menu->offset = 6;
+                   menu->focus = 7;
+                   menu->offset = 5;
                 }
             }
             if (key == keyUp)
@@ -2932,6 +2959,11 @@ void Service::drawMenu()
         {
             menu->inclStatus = menu->supressStatus;
             menu->initSuppressDialog();
+            break;
+        }
+        case GuiWindowsSubType::display:
+        {
+            menu->initDisplayBrightnessDialog();
             break;
         }
         case GuiWindowsSubType::aruarmaus:
