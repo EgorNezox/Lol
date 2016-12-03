@@ -51,7 +51,8 @@ public:
         RadioModeFM = 9,
         RadioModeSazhenData = 11,
         RadioModePSWF = 20,
-		RadioModeVirtualPpps = 5
+		RadioModeVirtualPpps = 5,
+		RadioModeVirtualRvv = 4
     };
     enum RadioOperation {
         RadioOperationOff,
@@ -425,7 +426,7 @@ private:
 
     void sendSynchro(uint32_t freq, uint8_t cnt);
     void wakeUpTimer();
-    void correctTime();
+    void correctTime(uint8_t num);
     void LogicPswfModes(uint8_t* data, uint8_t indicator, int data_len); // func for 0x63 cadr from dsp
 
     bool smsFind;
@@ -555,6 +556,7 @@ bool modem_rx_on, modem_tx_on;
     uint8_t txrtx = 0;
     uint32_t freqVirtual;
     uint8_t count_VrtualTimer = 0;
+    bool antiSync = false;
 
     QmRtc::Date d;
 

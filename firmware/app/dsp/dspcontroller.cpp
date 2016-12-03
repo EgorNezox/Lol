@@ -1355,8 +1355,10 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 			break;
 		}
 		case RadioModeVirtualPpps:
+		case RadioModeVirtualRvv:
 		{
-			qmToBigEndian((uint8_t)1, tx_data+tx_data_len);
+
+			qmToBigEndian((uint8_t)value.param, tx_data+tx_data_len); // sync
 			tx_data_len += 1;
 			break;
 		}
@@ -2042,21 +2044,20 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 //-------- RXROLE------------------------------------
     	if (RtcRxRole)
     	{
-    		if (RtcFirstCatch > -1)
-    		{
-    			RtcFirstCatch = data[3];
-    			count_VrtualTimer = RtcFirstCatch;
-    			correctTime();
-    		}
+    		addSeconds(&t);
 
     		if (count_VrtualTimer >= 10)
     		{
     			if (radio_state != radiostateSync)
     				LogicPswfRx();
     		}
+
+    		else
+    		{
+        		if (IsStart(t.seconds))
+        			++count_VrtualTimer;
+    		}
     	}
-
-
 #endif
     	break;
     }
@@ -3045,37 +3046,64 @@ void DspController::startVirtualPpsModeTx()
 	comandValue.param = 1;
 	sendCommandEasy(PSWFReceiver,5,comandValue);
 	comandValue.radio_mode = RadioModeOff;
-	sendCommandEasy(VirtualPps,2,comandValue);
+	sendCommandEasy(VirtualPps,1,comandValue);
 	virtual_mode = true;
 	RtcTxRole = true;
 	RtcRxRole = false;
 	RtcTxCounter = 0;
 	radio_state = radiostatePswf;
 
-	count_VrtualTimer = 7;
+	d.day  = 1;
+	d.month  = 1;
+	d.weekday = 1;
+
+	t.hours = 1;
+	t.minutes = 1;
+	t.seconds = 6;
+	rtc->setDate(d);
+	rtc->setTime(t);
+
+	count_VrtualTimer = 0;
 	txrtx = 0;
 #ifndef PORT__PCSIMULATOR
-	d =  rtc->getDate();
-	t = rtc->getTime();
+//	d =  rtc->getDate();
+//	t = rtc->getTime();
 #endif
 }
 
 
 void DspController::startVirtualPpsModeRx()
 {
-	setPswfRx();
+	setRx();
 
 	ParameterValue comandValue;
-	comandValue.radio_mode = RadioModeOff;
-	sendCommandEasy(VirtualPps,2,comandValue);
+	comandValue.param = 1;
+	sendCommandEasy(PSWFReceiver,5,comandValue);
+	comandValue.param = 2;
+	sendCommandEasy(PSWFReceiver,4,comandValue);
 	virtual_mode = true;
 	RtcRxCounter = 0;
 	RtcRxRole = true;
 	RtcTxRole = false;
 	RtcFirstCatch = 0;
+
+	radio_state = radiostatePswf;
+
+	d.day  = 1;
+	d.month  = 1;
+	d.weekday = 1;
+
+	t.hours = 1;
+	t.minutes = 1;
+	t.seconds = 6;
+	rtc->setDate(d);
+	rtc->setTime(t);
+
+	antiSync = false;
+
 #ifndef PORT__PCSIMULATOR
-	d =  rtc->getDate();
-	t = rtc->getTime();
+//	d =  rtc->getDate();
+//	t = rtc->getTime();
 #endif
 }
 
@@ -3103,29 +3131,15 @@ void DspController::sendSynchro(uint32_t freq, uint8_t cnt)
 }
 
 
-void DspController::correctTime()
+void DspController::correctTime(uint8_t num)
 {
 	// correction time
 #ifndef PORT__PCSIMULATOR
 	t = rtc->getTime();
 #endif
 
-	int res = RtcRxCounter - RtcFirstCatch;
-
-	if (RtcRxCounter == RtcFirstCatch) return;
-
-	int t_in_sec = t.hours * 3600 + t.minutes * 60 + t.seconds;
-
-	if (t.seconds == 0 && t.minutes == 0 && t.seconds == 0)
-	{
-		t.hours = 11; t.minutes = 59; t.seconds = 48;
-	}
-
-	t_in_sec = t_in_sec + 12*res - 12;
-
-	t.hours   = t_in_sec / 3600;   t_in_sec -= t.hours;
-	t.minutes = t_in_sec / 60;     t_in_sec -= t.minutes;
-	t.seconds = t_in_sec;
+	t.seconds = 12 * (t.seconds / 12) + 6;
+	count_VrtualTimer = num;
 
 #ifndef PORT__PCSIMULATOR
 	rtc->setTime(t);
@@ -3138,37 +3152,20 @@ void DspController::correctTime()
 void DspController::wakeUpTimer()
 {
 #ifndef PORT__PCSIMULATOR
-	if (virtual_mode && RtcRxRole == true)
+	if ((virtual_mode) && (RtcRxRole == true) && (!antiSync))
 	{
 
-		if (count_VrtualTimer <= 10)
+		t = rtc->getTime();
+
+		if (IsStart(t.seconds))
 		{
-
-			if (IsStart(t.seconds))
-			{
-				RtcRxCounter = 1;
-				freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
-			}
-
-			if (RtcRxCounter > 0)
-			{
-				++RtcRxCounter;
-				addSeconds(&t);
-			}
-
-			if (RtcRxCounter == 5)
-			{
-				ParameterValue param;
-				param.frequency = freqVirtual;
-				sendCommandEasy(PSWFReceiver, PswfRxFrequency, param);
-				{
-					LogicPswfRx();
-				}
-				if (count_VrtualTimer > 0) ++count_VrtualTimer;
-
-			}
-
+			freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
+			ParameterValue param;
+			param.frequency = freqVirtual;
+			qmDebugMessage(QmDebug::Dump, "freq virtual %d",freqVirtual);
+			sendCommandEasy(RxRadiopath, 1, param);
 		}
+
 	}
 #endif
 }
@@ -3194,6 +3191,14 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
     }
 	else if (indicator == 30)
 	{
+
+		if (data[2] == 2)  // synchro packet
+		{
+			antiSync = true;
+			qmDebugMessage(QmDebug::Dump, "Sync anti turn on");
+			correctTime(data[8]);
+		}
+
 		qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");
 		if (SmsLogicRole != SmsRoleIdle)
 		{
