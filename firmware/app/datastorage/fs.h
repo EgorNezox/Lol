@@ -11,8 +11,8 @@ class FS {
 public:
     enum FileType { FT_SMS = 0,
                     FT_VM  = 1,
-                    FT_GRP = 2,
-                    FT_CND = 3};
+					FT_CND = 2,
+                    FT_GRP = 3};
 
     struct FileTypeInfo {uint8_t count = 0;
                          uint8_t maxCount = 10;
@@ -35,7 +35,7 @@ public:
 	void setAnalogHeadsetChannel(uint8_t data);
 
     bool getCondCommand(std::vector<uint8_t>* data, uint8_t number);
-    void setCondCommand(uint8_t data);
+    void setCondCommand(std::vector<uint8_t> *data);
     bool getGroupCondCommand(std::vector<uint8_t> *data, uint8_t number);
     void setGroupCondCommand(uint8_t *data, uint16_t size);
     bool getSms(std::vector<uint8_t> *data, uint8_t number);
@@ -58,7 +58,7 @@ private:
 
     std::string prepareFileStorageToWriting(FileType fileType);
     std::string generateFileNameByNumber(FileType fileType, uint8_t number);
-    std::string prepareFreeFileSlot(FS::FileType fileType);
+    void prepareFreeFileSlot(FS::FileType fileType);
 };
 
 } /* namespace DataStorage */

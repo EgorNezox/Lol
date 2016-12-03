@@ -10,7 +10,7 @@ namespace DataStorage {
 FS::FS(const std::string &dir) :
 	dir(dir)
 {
-    //updateFileTree();
+    updateFileTree();
 	fileTypeInfo[FT_SMS].fileName = "Sms";
 	fileTypeInfo[FT_VM].fileName = "Voice";
 	fileTypeInfo[FT_GRP].fileName = "Group";
@@ -191,14 +191,14 @@ bool FS::getCondCommand(std::vector<uint8_t>* data, uint8_t number)
     	return false;
 }
 
-void FS::setCondCommand(uint8_t data)
+void FS::setCondCommand(std::vector<uint8_t> *data)
 {
     std::string fileName = prepareFileStorageToWriting(FT_CND);
     if (fileName != errorFileName){
     	QmFile file(dir, fileName);
     	if (!file.open(QmFile::WriteOnly))
     		return;
-    	int64_t writeSize = file.write((uint8_t*)&data, sizeof(int));
+    	uint64_t writeSize = file.write(data->data(), data->size());
     	if (writeSize)
     		fileTypeInfo[FT_CND].count++;
     }
@@ -322,8 +322,10 @@ void FS::updateFileTree()
     for (uint8_t fileNum = 0; fileNum < 10; fileNum++)
     {
         fileName = generateFileNameByNumber((FileType)fileType, fileNum);
-        if (existFile(fileName))
+        if (existFile(fileName)){
             files.push_back(fileName);
+            fileTypeInfo[fileType].count++;
+        }
         else
             break;
     }
@@ -338,11 +340,14 @@ void FS::getFileNamesByType(std::vector<std::string> *typeFiles, FS::FileType fi
 {
     typeFiles->clear();
     std::string fileName;
+    uint8_t count = 0;
     for (uint8_t fileNum = 0; fileNum < 10; fileNum++)
     {
         fileName = generateFileNameByNumber(fileType, fileNum);
-        if (existFile(fileName))
+        if (existFile(fileName)){
             typeFiles->push_back(fileName);
+            fileTypeInfo[fileType].count++;
+        }
         else
             break;
     }
@@ -364,7 +369,7 @@ std::string FS::generateFileNameByNumber(FS::FileType fileType, uint8_t number)
     return name.append(n);
 }
 
-std::string FS::prepareFreeFileSlot(FS::FileType fileType)
+void FS::prepareFreeFileSlot(FS::FileType fileType)
 {
     deleteFile(generateFileNameByNumber(fileType, 0));
 
@@ -382,7 +387,7 @@ std::string FS::prepareFileStorageToWriting(FS::FileType fileType)
         prepareFreeFileSlot(fileType);
         return generateFileNameByNumber(fileType, fileTypeInfo[fileType].maxCount-1);
     }
-    else if (getFreeFileSlotCount() > 0)
+    else if (getFreeFileSlotCount() == 0)
     {
         //define type of file to delete (is type with max file count)
         FS::FileType typeToDelete = fileType;
@@ -393,7 +398,8 @@ std::string FS::prepareFileStorageToWriting(FS::FileType fileType)
         prepareFreeFileSlot(typeToDelete);
         return generateFileNameByNumber(fileType, fileTypeInfo[fileType].count);
     } else
-        return errorFileName;
+    	return generateFileNameByNumber(fileType, fileTypeInfo[fileType].count);
+       // return errorFileName;
 }
 
 } /* namespace DataStorage */

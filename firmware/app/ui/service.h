@@ -182,6 +182,7 @@ private:
 
     std::vector<uint8_t> fileMessage;
     bool flashTestOn = false;
+    std::vector<uint8_t> condMsg;
 
 };
 

@@ -26,14 +26,6 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, Alignment align):CGui
 
     GUI_EL_TEMP_WindowGeneral.frame_thick = 0;
 
-//    tFiles[0].push_back("SMS0");
-//    tFiles[0].push_back("SMS1");
-//    tFiles[0].push_back("SMS2");
-//    tFiles[0].push_back("SMS3");
-//    tFiles[0].push_back("SMS4");
-//    tFiles[0].push_back("SMS5");
-//    tFiles[0].push_back("SMS6");
-//    tFiles[0].push_back("SMS7");
 }
 
 void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)

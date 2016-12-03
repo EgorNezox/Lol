@@ -2470,11 +2470,18 @@ void Service::FirstPacketPSWFRecieved(int packet)
 
         char sym[4];
         sprintf(sym,"%d",packet);
+        if (packet < 10) sym[1] = 0;
+        sym[2] = 0;
+        condMsg.clear();
+        condMsg.push_back((uint8_t)sym[0]);
+        condMsg.push_back((uint8_t)sym[1]);
+        condMsg.push_back((uint8_t)sym[2]);
+
         guiTree.append(messangeWindow, "Recieved packet ", sym);
         msgBox( "Recieved packet ", (int)packet );
 
         if (storageFs > 0)
-            storageFs->setCondCommand((uint8_t)packet);
+            storageFs->setCondCommand(&condMsg);
     }
     else if ( packet > 99)
     {
@@ -3011,8 +3018,8 @@ void Service::gucFrame(int value)
    std::string gucText = "42 1 2 3 4 5 6 7 8 9 10 10.12.13.100 11.13.14.100";
    uint16_t size = gucText.size();
    uint8_t gucCommands[size];
-   for (uint8_t i = 0; i < size; i++)
-     gucText[i] = gucText[i] - 46;
+   //for (uint8_t i = 0; i < size; i++)
+  //   gucText[i] = gucText[i];
    memcpy(&gucCommands[0], &gucText[0], size);
 
    char ch[3];
@@ -3020,7 +3027,8 @@ void Service::gucFrame(int value)
    ch[2] = '\0';
 
    char coords[26];
-   memcpy(&coords[0], &gucText[22], 26);
+   memcpy(&coords[0], &gucText[24], 25);
+   coords[25] = 0;
 
    guiTree.append(messangeWindow, sym, ch);
    msgBox( titleGuc, gucCommands[position], size, position, (uint8_t*)&coords );
