@@ -14,13 +14,10 @@
 #include <string>
 //#include "../../../system/reset.h"
 
-
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
-
-
 
 namespace Ui {
 
@@ -69,6 +66,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
         menu = new CGuiMenu(&ui_menu_msg_box_area, mainMenu[0], {alignHCenter,alignTop});
     }
     menu->setFS(storageFs);
+
+    menu->loadVoiceMail.connect(sigc::mem_fun(this, &Service::onLoadVoiceMail));
+    menu->loadMessage.connect(sigc::mem_fun(this, &Service::onLoadMessage));
 
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
@@ -1361,7 +1361,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 3:
-            {// ввод адреса олучатель
+            {// ввод адреса получатель
                 if ( key > 5 && key < 16 && menu->voiceAddr.size() < 2 )
                 {
                     menu->voiceAddr.push_back((char)(42+key));
@@ -2410,12 +2410,37 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyEnter)
             {
-                if (menu->filesStage == 0)
+                if (menu->filesStage == 0){
                     menu->fileType = (DataStorage::FS::FileType)menu->filesStageFocus[0];
+                    // при записи файлов обновлять по сигналу
+                     if (storageFs > 0)
+                          storageFs->getFileNamesByType(&menu->tFiles[menu->fileType], menu->fileType);
+                }
 
-                if (menu->filesStage < 3)
-                    menu->filesStage++;
+                if (menu->filesStage == 1){
+                    switch (menu->fileType) {
+                    case DataStorage::FS::FT_SMS:
+                    case DataStorage::FS::FT_CND:
+                    case DataStorage::FS::FT_GRP:
+                        if (menu->tFiles[menu->fileType].size() > 0)
+                            menu->fileMessage = onLoadMessage(menu->fileType, menu->filesStageFocus[1]);
+                        break;
+                    case DataStorage::FS::FT_VM:
+                        if (menu->tFiles[menu->fileType].size() > 0)
+                            menu->fileMessage = onLoadVoiceMail(menu->filesStageFocus[1]);
+                    default:
+                        break;
+                    }
+                }
 
+                switch (menu->filesStage){
+                case 0:
+                    menu->filesStage++; break;
+                case 1:
+                    if (menu->tFiles[menu->fileType].size() > 0)
+                        menu->filesStage++;
+                    break;
+                }
             }
             if ( key == keyBack)
             {
@@ -2430,19 +2455,54 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyUp)
             {
-                if (menu->filesStageFocus[menu->filesStage] > 0)
-                    menu->filesStageFocus[menu->filesStage] = menu->filesStageFocus[menu->filesStage] - 1;
+                switch(menu->filesStage){
+                case 0:
+                case 1:
+                    if (menu->filesStageFocus[menu->filesStage] > 0)
+                        menu->filesStageFocus[menu->filesStage]--;
+                    break;
+                case 2:
+                    menu->textAreaScrollIndex--;
+                    break;
+                }
             }
             if (key == keyDown)
             {
                 switch (menu->filesStage){
                 case 0:
                     if (menu->filesStageFocus[menu->filesStage] < 3)
-                        menu->filesStageFocus[menu->filesStage] = menu->filesStageFocus[menu->filesStage] + 1;
+                        menu->filesStageFocus[menu->filesStage]++;
                     break;
                 case 1:
                     if (menu->filesStageFocus[menu->filesStage] < menu->tFiles[menu->fileType].size()-1)
-                        menu->filesStageFocus[menu->filesStage]+=1;
+                        menu->filesStageFocus[menu->filesStage]++;
+                    break;
+                case 2:
+                    menu->textAreaScrollIndex++;
+                    break;
+                }
+            }
+            if (key == keyRight)
+            {
+                if (menu->filesStage == 0)
+                switch (menu->filesStageFocus[menu->filesStage]){
+                    case 0:
+                        #if smsFlashTest
+                            flashTestOn = true;
+                            smsMessage(smsflashTest_size);
+                        #endif
+                    break;
+
+                    case 2:
+                        #if cndFlashTest
+                            FirstPacketPSWFRecieved(42);
+                        #endif
+                    break;
+
+                    case 3:
+                        #if grpFlashTest
+                            gucFrame(0);
+                        #endif
                     break;
                 }
             }
@@ -2490,13 +2550,20 @@ void Service::FirstPacketPSWFRecieved(int packet)
 //    	guiTree.resetCurrentState();
 //    	drawMainWindow();
 
-        char sym[64];
+        char sym[4];
         sprintf(sym,"%d",packet);
+        if (packet < 10) sym[1] = 0;
+        sym[2] = 0;
+        condMsg.clear();
+        condMsg.push_back((uint8_t)sym[0]);
+        condMsg.push_back((uint8_t)sym[1]);
+        condMsg.push_back((uint8_t)sym[2]);
+
         guiTree.append(messangeWindow, "Recieved packet ", sym);
         msgBox( "Recieved packet ", (int)packet );
 
         if (storageFs > 0)
-            storageFs->setCondCommand((uint8_t)packet);
+            storageFs->setCondCommand(&condMsg);
     }
     else if ( packet > 99)
     {
@@ -2899,7 +2966,9 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::filetree:
         {
-            menu->initFileManagerDialog(menu->filesStage);
+            if (!flashTestOn)
+                menu->initFileManagerDialog(menu->filesStage);
+            flashTestOn = false;
             break;
         }
         default:
@@ -3023,49 +3092,83 @@ void Service::setCoordDate(Navigation::Coord_Date date)
 }
 
 void Service::gucFrame(int value)
-{
-	const char *sym = "Recieved packet for station\0";
-	vect = voice_service->getGucCommand();
+{       
+#if grpFlashTest
 
-	bool isCoord = voice_service->getIsGucCoord();
-	uint8_t size = vect[0];
+   const char *sym = "Recieved packet for station\0";
 
-	char longitude[14]; longitude[12] = '\n';
-	char latitude[14]; latitude[12] = '\0';
-	char coords[26];
-	if (isCoord)
-	{
-		// uint8_t coord[9] = {0,0,0,0,0,0,0,0,0};
-		// getGpsGucCoordinat(coord);
-		sprintf(longitude, "%02d.%02d.%02d.%03d", vect[size+1],vect[size+2],vect[size+3],vect[size+4]);
-		sprintf(latitude, "%02d.%02d.%02d.%03d", vect[size+5],vect[size+6],vect[size+7],vect[size+8]);
-		memcpy(&coords[0],&longitude[0],13);
-		memcpy(&coords[13],&latitude[0],13);
-		coords[12] = '\n';
-	}
-	else
-	{
-		//std::string str = std::string(coordNotExistStr);
-		//memcpy(&coords[0],&str[0],str.size());
+   std::string gucText = "42 1 2 3 4 5 6 7 8 9 10 10.12.13.100 11.13.14.100";
+   uint16_t size = gucText.size();
+   uint8_t gucCommands[size];
+   //for (uint8_t i = 0; i < size; i++)
+  //   gucText[i] = gucText[i];
+   memcpy(&gucCommands[0], &gucText[0], size);
 
-		// memcpy(&coords[0],&coordNotExistStr[0],25);
-		// coords[25]='\0';
-	}
+   char ch[3];
+   sprintf(ch, "%d", gucCommands[position]);
+   ch[2] = '\0';
 
-	if (vect[0] != '\0')
-	{
-		char ch[3];
-		sprintf(ch, "%d", vect[position]);
-		ch[2] = '\0';
+   char coords[26];
+   memcpy(&coords[0], &gucText[24], 25);
+   coords[25] = 0;
 
-		guiTree.append(messangeWindow, sym, ch);
-		msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
+   guiTree.append(messangeWindow, sym, ch);
+   msgBox( titleGuc, gucCommands[position], size, position, (uint8_t*)&coords );
+   if (storageFs > 0)
+   {
+       uint16_t fullSize = size;
+       storageFs->setGroupCondCommand((uint8_t*)&gucCommands, fullSize);
+   }
+
+#else
+
+    const char *sym = "Recieved packet for station\0";
+    vect = voice_service->getGucCommand();
+
+    bool isCoord = voice_service->getIsGucCoord();
+    uint8_t size = vect[0];
+
+    char longitude[14]; longitude[12] = '\n';
+    char latitude[14]; latitude[12] = '\0';
+    char coords[26];
+    if (isCoord)
+    {
+        // uint8_t coord[9] = {0,0,0,0,0,0,0,0,0};
+        // getGpsGucCoordinat(coord);
+        sprintf(longitude, "%02d.%02d.%02d.%03d", vect[size+1],vect[size+2],vect[size+3],vect[size+4]);
+        sprintf(latitude, "%02d.%02d.%02d.%03d", vect[size+5],vect[size+6],vect[size+7],vect[size+8]);
+        memcpy(&coords[0],&longitude[0],13);
+        memcpy(&coords[13],&latitude[0],13);
+        coords[12] = '\n';
+    }
+    else
+    {
+        //std::string str = std::string(coordNotExistStr);
+        //memcpy(&coords[0],&str[0],str.size());
+
+        // memcpy(&coords[0],&coordNotExistStr[0],25);
+        // coords[25]='\0';
+    }
+
+    if (vect[0] != 0)
+    {
+        char ch[3];
+        sprintf(ch, "%d", vect[position]);
+        ch[2] = '\0';
+
+        guiTree.append(messangeWindow, sym, ch);
+        msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
         if (storageFs > 0)
-            storageFs->setGroupCondCommand(vect, vect[0]);
-	}
+        {
+            uint16_t fullSize = isCoord ? size + 26 : size;
+            uint8_t cmdv[fullSize];
+            memcpy(&cmdv, &vect[1], fullSize);
+            storageFs->setGroupCondCommand((uint8_t*)&cmdv, fullSize);
+        }
+    }
+
+#endif
 }
-
-
 
 void Service::updateSystemTime()
 {
@@ -3099,11 +3202,14 @@ void Service::updateSystemTime()
 void Service::smsMessage(int value)
 {
     char sym[value];//TODO:
-    for(int i = 0; i<value;++i) sym[i] = '\0';
+    for(int i = 0; i < value; ++i) sym[i] = '\0';
 
-    //std::string test = "azbuka morze";
-   // memcpy(sym, &test[0] , 12);
+#if smsFlashTest
+    std::string test = "test write to flash memory\0";
+    memcpy(sym, &test[0] , value);
+#else
     memcpy(sym, voice_service->getSmsContent(), value);
+#endif
     sym[value-1] = '\0';
 
     const char *text;
@@ -3148,8 +3254,6 @@ void Service::msgBoxSms(const char *text)
 	msg_box->Draw_Sms();
 
 }
-
-
 
 void Service::updateAleState(Multiradio::MainServiceInterface::AleState state)
 {
@@ -3196,6 +3300,61 @@ void Service::TxCondCmdPackage(int value)
         menu->txCondCmdStage = 6;
         menu->initCondCommDialog((CEndState&)guiTree.getCurrentState());
     }
+}
+
+std::vector<uint8_t>* Service::onLoadVoiceMail(uint8_t fileNumber)
+{
+    uint8_t result = 0; // ok
+    if (storageFs > 0){
+        fileMessage.clear();
+        result = multiradio_service->playVoiceMessage(fileNumber);
+    }
+
+    std::string stateStr;
+    std::string errorReadStr(errorReadFile);
+    std::string errorSpeakerOffStr(smatrHSStateStr[1]);
+
+    switch (result){
+        case 1: stateStr = errorReadStr; break;
+        case 2: stateStr = errorSpeakerOffStr; break;
+    }
+
+    if (result != 0)
+    {
+        fileMessage.resize(stateStr.size());
+        memcpy(fileMessage.data(),&stateStr[0],stateStr.size());
+    }
+    else
+    {
+        stateStr = (std::string)smatrHSStateStr[5];
+        fileMessage.resize(stateStr.size());
+        memcpy(fileMessage.data(),&stateStr[0],stateStr.size());
+    }
+    return &fileMessage;
+}
+
+std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, uint8_t fileNumber)
+{
+    bool result = false;
+    if (storageFs > 0){
+        fileMessage.clear();
+        switch (typeF){
+            case DataStorage::FS::FT_SMS:
+                result = storageFs->getSms(&fileMessage, fileNumber); break;
+            case DataStorage::FS::FT_CND:
+                result = storageFs->getCondCommand(&fileMessage, fileNumber); break;
+            case DataStorage::FS::FT_GRP:
+                result = storageFs->getGroupCondCommand(&fileMessage, fileNumber); break;
+        }
+    }
+    if (!result)
+    {
+        std::string errorReadStr(errorReadFile);
+        fileMessage.resize(errorReadStr.size());
+        memcpy(fileMessage.data(),&errorReadStr[0],errorReadStr.size());
+    }
+    return &fileMessage;
+
 }
 
 void Service::msgGucTXQuit(int ans)

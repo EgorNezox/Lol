@@ -368,7 +368,25 @@ voice_message_t MainServiceInterface::getAleRxVmMessage() {
 			message_bits_offset++;
 		}
 	}
-	return vm_rx_message;
+    return vm_rx_message;
+}
+
+uint8_t MainServiceInterface::playVoiceMessage(uint8_t fileNumber)
+{
+    Headset::Controller::Status status;
+    uint8_t result = 1; // error read
+    if (storageFs > 0){
+        voice_message_t msg;
+        if (storageFs->getVoiceMail(&msg, fileNumber))
+           result = 0;
+        dispatcher->headset_controller->setSmartMessageToPlay(msg);
+        status = dispatcher->headset_controller->getStatus();
+        if (status == Headset::Controller::Status::StatusNone)
+            result = 2;
+        else
+            dispatcher->headset_controller->startSmartPlay(2);
+    }
+    return result;
 }
 
 void MainServiceInterface::setAleState(AleState value) {

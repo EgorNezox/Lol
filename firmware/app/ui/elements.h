@@ -76,18 +76,16 @@ class GUI_EL_Label: public GUI_Element{
 		void SetText(char *text);
         bool transparent;
         void SetParams(LabelParams *params);
+        virtual void SetInputFocus(bool isFocus);
 	private:
 
 		PGFONT font;
 		ColorScheme color_sch;
-		bool skip_text_bg_filling;
+        bool skip_text_bg_filling;
 	protected:
 		void CalcContentGeom();
         std::string text;
 
-        // GUI_Element interface
-public:
-        virtual void SetInputFocus(bool isFocus);
 };
 
 struct IconParams{
@@ -132,7 +130,7 @@ class GUI_EL_TextArea: public GUI_Element{
     protected:
         void CalcContentGeom();
         char* text;
-        std::vector<uint8_t>* data;
+        std::vector<uint8_t>* data = 0;
         //char* text[MAX_TEXT_AREA_LENGTH];
 };
 

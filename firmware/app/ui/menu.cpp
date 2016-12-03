@@ -26,14 +26,6 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, Alignment align):CGui
 
     GUI_EL_TEMP_WindowGeneral.frame_thick = 0;
 
-    tFiles[0].push_back("SMS0");
-    tFiles[0].push_back("SMS1");
-    tFiles[0].push_back("SMS2");
-    tFiles[0].push_back("SMS3");
-    tFiles[0].push_back("SMS4");
-    tFiles[0].push_back("SMS5");
-    tFiles[0].push_back("SMS6");
-    tFiles[0].push_back("SMS7");
 }
 
 void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
@@ -2033,7 +2025,6 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
     window.Draw();
     const char* titleChar;
 
-
     switch(stage){
     case 0:
 
@@ -2044,20 +2035,14 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
             GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)reciveSubMenu[subMenu + 1], true, true, (GUI_Obj*)this );
             ScrollArea.addGuiElement(item);
         }
-
         ScrollArea.setFirstVisElem(0);
         ScrollArea.setFocus(filesStageFocus[stage]);
         ScrollArea.Draw();
-
         break;
 
     case 1:
 
         titleChar = reciveSubMenu[fileType + 1];
-
-      // при записи файлов обновлять по сигналу
-      //  if (storageFs > 0)
-      //      storageFs->getFileNamesByType(&tFiles[fileType], fileType);
 
         if (tFiles[fileType].size() > 0){
             for (int8_t file = 0; file < tFiles[fileType].size(); file++)
@@ -2072,18 +2057,18 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
             firstVisFileElem = ScrollArea.getFirstVisElem();
             ScrollArea.Draw();
         }
-
         break;
 
-   // case 2:
-        //std::string title;
-//        switch (filesStage1Focus){
-//            case 1:
-//            case 3:
-//            case 4:
-//            case 2: //гп
-//        }
-   //     break;
+    case 2:
+
+        titleChar = reciveSubMenu[fileType + 1];
+        TextAreaParams textArea_Params = GUI_EL_TEMP_LabelText;
+        MoonsGeometry textArea_Geom = {2, 30, 157, 126};
+
+        GUI_EL_TextArea textArea(&textArea_Params, &textArea_Geom, fileMessage, (GUI_Obj*)this);
+        textAreaScrollIndex = textArea.SetScrollIndex(textAreaScrollIndex);
+        textArea.Draw();
+        break;
     }
 
     GUI_EL_Label title( &label_params, &label_geom, (char*)titleChar, (GUI_Obj *)this);

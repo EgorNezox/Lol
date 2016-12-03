@@ -216,3 +216,5 @@ const char *EndCmd   = "Прием\0";
 const char *EndSms   = "Принята квитаниция\0";
 
 const char *STARTS = "Старт";
+
+const char *errorReadFile = "Ошибка чтения файла\0";

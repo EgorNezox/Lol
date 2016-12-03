@@ -2,16 +2,17 @@
 #define FIRMWARE_APP_DATASTORAGE_FS_H_
 
 #include <string>
+#include <stdio.h>
 #include "multiradio.h"
 
 namespace DataStorage {
 
 class FS {
 public:
-    enum FileType {FT_CND = 0,
-                   FT_GRP = 1,
-                   FT_SMS = 2,
-                   FT_VM  = 3};
+    enum FileType { FT_SMS = 0,
+                    FT_VM  = 1,
+					FT_CND = 2,
+                    FT_GRP = 3};
 
     struct FileTypeInfo {uint8_t count = 0;
                          uint8_t maxCount = 10;
@@ -32,12 +33,13 @@ public:
 	void setVoiceChannelSpeed(Multiradio::voice_channel_speed_t data);
 	bool getAnalogHeadsetChannel(uint8_t &data);
 	void setAnalogHeadsetChannel(uint8_t data);
-    bool getCondCommand(uint8_t data, uint8_t number);
-    void setCondCommand(uint8_t data);
-    bool getGroupCondCommand(uint8_t *data, uint8_t number);
+
+    bool getCondCommand(std::vector<uint8_t>* data, uint8_t number);
+    void setCondCommand(std::vector<uint8_t> *data);
+    bool getGroupCondCommand(std::vector<uint8_t> *data, uint8_t number);
     void setGroupCondCommand(uint8_t *data, uint16_t size);
-    bool getSms(uint8_t *data, uint8_t number);
-    void setSms(uint8_t *data, uint16_t size);
+    bool getSms(std::vector<uint8_t> *data, uint8_t number);
+    void setSms(uint8_t* data, uint16_t size);
     bool getVoiceMail(std::vector<uint8_t> *data, uint8_t number);
     void setVoiceMail(std::vector<uint8_t> *data);
     void updateFileTree();
@@ -50,13 +52,13 @@ private:
     std::string dir;
     std::vector<std::string> files;
     uint8_t maxFilesCount = 10;
-
+    std::string errorFileName = "error";
     FileTypeInfo fileTypeInfo[4];
     uint8_t getFreeFileSlotCount();
 
     std::string prepareFileStorageToWriting(FileType fileType);
     std::string generateFileNameByNumber(FileType fileType, uint8_t number);
-    std::string prepareFreeFileSlot(FS::FileType fileType);
+    void prepareFreeFileSlot(FS::FileType fileType);
 };
 
 } /* namespace DataStorage */

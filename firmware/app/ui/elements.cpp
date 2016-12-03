@@ -114,10 +114,11 @@ void GUI_Element::AlignContent(){	//В зависимости от типа вы
 //+++++++++++++Label+++++++++++++++++++++
 
 GUI_EL_Label::GUI_EL_Label(LabelParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj):GUI_Element(geom, &params->element.align, &params->element.margins, parent_obj){
-	skip_text_bg_filling = false;
-	font=params->font;
-	transparent=params->transparent;
-	color_sch=params->color_sch;
+    skip_text_bg_filling = false;
+    font = params->font;
+    transparent = params->transparent;
+    transparent =true;
+    color_sch = params->color_sch;
 	SetText(text);
 	if(text!=0)PrepareContent();
 }
@@ -161,7 +162,7 @@ void GUI_EL_Label::Draw(){
 		SGUCHAR skipflags;
 		if(!transparent){
 			gsetmode(COMMON_ELEMENT_VP_MODE);
-			skipflags = GLINE;
+            skipflags = GLINE;
 		}
 		else {
             gsetmode(COMMON_ELEMENT_VP_MODE | GTRANSPERANT);
@@ -264,7 +265,7 @@ uint32_t GUI_EL_TextArea::getDataSize()
 //-----------------------------
 
 void GUI_EL_TextArea::Draw(){
-    if(text !=0 ){
+    if((text !=0 && !isData) || (data != 0 && isData)){
         uint32_t i = 0, j = 0, k = 0, str_width = 0, last_space = 0, sym_to_cp = 0;
         MoonsGeometry local_content, line_geom;
         char line_str[MAX_LABEL_LENGTH];

@@ -77,6 +77,7 @@ public:
 	uint8_t getAleVmProgress();
 	uint8_t getAleRxAddress();
 	voice_message_t getAleRxVmMessage();
+    uint8_t playVoiceMessage(uint8_t fileNumber);
 
 	sigc::signal<void, Status/*new_status*/> statusChanged;
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> dspHardwareFailed;
