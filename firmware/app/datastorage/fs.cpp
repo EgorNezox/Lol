@@ -10,12 +10,16 @@ namespace DataStorage {
 FS::FS(const std::string &dir) :
 	dir(dir)
 {
-    updateFileTree();
+//	deleteFile("Cond0");
+//	deleteFile("Cond1");
+//	deleteFile("Cond2");
+//	deleteFile("Cond2");
 	fileTypeInfo[FT_SMS].fileName = "Sms";
 	fileTypeInfo[FT_VM].fileName = "Voice";
 	fileTypeInfo[FT_GRP].fileName = "Group";
 	fileTypeInfo[FT_CND].fileName = "Cond";
 	fileTypeInfo[FT_VM].maxCount = 1;
+    updateFileTree();
 }
 
 FS::~FS()
@@ -193,7 +197,7 @@ bool FS::getCondCommand(std::vector<uint8_t>* data, uint8_t number)
     	if (!file.open(QmFile::ReadOnly))
     		return false;
     	int64_t file_size = file.size();
-    	if (!(file_size == 1))
+    	if (file_size > 3)
     		return false;
     	data->resize(file_size);
     	file.read(data->data(), file_size);
@@ -351,7 +355,7 @@ void FS::getFileNamesByType(std::vector<std::string> *typeFiles, FS::FileType fi
 {
     typeFiles->clear();
     std::string fileName;
-    uint8_t count = 0;
+    fileTypeInfo[fileType].count = 0;
     for (uint8_t fileNum = 0; fileNum < 10; fileNum++)
     {
         fileName = generateFileNameByNumber(fileType, fileNum);
@@ -367,9 +371,12 @@ void FS::getFileNamesByType(std::vector<std::string> *typeFiles, FS::FileType fi
 uint8_t FS::getFreeFileSlotCount()
 {
     uint8_t sum = 0;
-    for (uint8_t ftype = 0; ftype < 4; ftype++)
+    for (uint8_t ftype = 0; ftype < 4; ftype++){
        sum += fileTypeInfo[ftype].count;
-    return maxFilesCount - sum;
+       if (sum > maxFilesCount) return 0;
+    }
+    uint8_t res = maxFilesCount - sum;
+    return res;
 }
 
 std::string FS::generateFileNameByNumber(FS::FileType fileType, uint8_t number)
@@ -388,6 +395,7 @@ void FS::prepareFreeFileSlot(FS::FileType fileType)
     for (uint8_t fileNumber = 1; fileNumber < fileTypeInfo[fileType].count; fileNumber++)
         renameFile(generateFileNameByNumber(fileType, fileNumber),
                    generateFileNameByNumber(fileType, fileNumber-1));
+    fileTypeInfo[fileType].count--;
 }
 
 std::string FS::prepareFileStorageToWriting(FS::FileType fileType)
@@ -403,7 +411,7 @@ std::string FS::prepareFileStorageToWriting(FS::FileType fileType)
         //define type of file to delete (is type with max file count)
         FS::FileType typeToDelete = fileType;
         for (uint8_t typeID = 0; typeID < 4; typeID++)
-            if (fileTypeInfo[typeID].count > fileTypeInfo[fileType].count)
+            if (fileTypeInfo[typeID].count > fileTypeInfo[typeToDelete].count)
                 typeToDelete = (FileType)typeID;
 
         prepareFreeFileSlot(typeToDelete);

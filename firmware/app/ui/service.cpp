@@ -3183,11 +3183,12 @@ void Service::gucFrame(int value)
    const char *sym = "Recieved packet for station\0";
 
    std::string gucText = "42 1 2 3 4 5 6 7 8 9 10 10.12.13.100 11.13.14.100";
-   uint16_t size = gucText.size();
+   uint16_t size = gucText.size() + 1;
    uint8_t gucCommands[size];
    //for (uint8_t i = 0; i < size; i++)
   //   gucText[i] = gucText[i];
    memcpy(&gucCommands[0], &gucText[0], size);
+   gucCommands[size] = 0;
 
    char ch[3];
    sprintf(ch, "%d", gucCommands[position]);
