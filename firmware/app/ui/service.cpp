@@ -2595,21 +2595,23 @@ void Service::FirstPacketPSWFRecieved(int packet)
     {
 //    	guiTree.resetCurrentState();
 //    	drawMainWindow();
-
-        char sym[4];
+        char sym[3];
         sprintf(sym,"%d",packet);
-        if (packet < 10) sym[1] = 0;
-        sym[2] = 0;
-        condMsg.clear();
-        condMsg.push_back((uint8_t)sym[0]);
-        condMsg.push_back((uint8_t)sym[1]);
-        condMsg.push_back((uint8_t)sym[2]);
 
         guiTree.append(messangeWindow, "Recieved packet ", sym);
         msgBox( "Recieved packet ", (int)packet );
 
-        if (storageFs > 0)
+        if (storageFs > 0){
+
+            if (packet < 10) sym[1] = 0;
+            sym[2] = 0;
+            condMsg.clear();
+            condMsg.push_back((uint8_t)sym[0]);
+            condMsg.push_back((uint8_t)sym[1]);
+            condMsg.push_back((uint8_t)sym[2]);
+
             storageFs->setCondCommand(&condMsg);
+        }
     }
     else if ( packet > 99)
     {
@@ -3213,7 +3215,21 @@ void Service::gucFrame(int value)
         {
             uint16_t fullSize = isCoord ? size + 26 : size;
             uint8_t cmdv[fullSize];
-            memcpy(&cmdv, &vect[1], fullSize);
+            char cmdSym[3];
+            for (uint8_t cmdCount = 1; cmdCount <= size; cmdCount++){
+
+                sprintf(cmdSym, "%d", vect[cmdCount]);
+                bool isOneSymCmd = false;
+                if (vect[cmdCount] < 10){
+                  isOneSymCmd = true;
+                  cmdSym[1] = ' ';
+                }
+                cmdSym[2] = ' ';
+                memcpy(&cmdv[cmdCount-1], &cmdSym[1], isOneSymCmd ? 2 : 3);
+            }
+
+            if (isCoord)
+                memcpy(&cmdv[size + 1], &coords[0], 26);
             storageFs->setGroupCondCommand((uint8_t*)&cmdv, fullSize);
         }
     }
