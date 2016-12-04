@@ -178,9 +178,9 @@ public:
     std::string RN_KEY;
     void initEditRnKeyDialog();
 
-    //ZOND
+    //SHELDURE
     std::map<int, std::string> sheldure;
-    void initZondDialog(int focus, std::vector<std::string> &data);
+    void initSheldureDialog(int focus, std::vector<std::string> &data);
     int32_t scrollIndex = 0;
     int32_t scrollIndexMax = 0;
 

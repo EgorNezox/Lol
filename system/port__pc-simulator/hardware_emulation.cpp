@@ -22,6 +22,7 @@
 #include "port_hardwareio/spibus.h"
 #include "port_keysinput/pushbuttonkeyinterface.h"
 #include "port_keysinput/matrixkeyboardinterface.h"
+#include "port_rtc/rtc.h"
 #include "devices/flashm25pdevice.h"
 
 namespace QtHwEmu {
@@ -33,6 +34,7 @@ static I2CBus *battery_smbus = 0;
 static SPIBus *data_flash_spibus = 0;
 static FlashM25PDevice *data_flash_device = 0;
 static const QString DATA_FLASH_DEVICE_IMAGE_PATH = "data-flash.bin";
+static RTC *rtc;
 
 void init() {
 	main_widget = new MainWidget(platformhwMatrixKeyboard);
@@ -59,6 +61,7 @@ void init() {
 	IopinInterface::createInstance(platformhwEnTxRs232Iopin); // TODO: emulate EnTxRs232Iopin
 	UartInterface::createInstance(platformhwHeadsetUart); //TODO: emulate HeadsetUart
 	IopinInterface::createInstance(platformhwAtuIopin); // TODO: emulate AtuIopin
+    //rtc = new RTC();
 }
 
 void deinit() {

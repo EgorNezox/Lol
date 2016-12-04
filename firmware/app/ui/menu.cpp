@@ -152,7 +152,7 @@ void CGuiMenu::initCondCommDialog(CEndState state) // УК
     }
 
     LabelParams params;
-    if (txCondCmdStage == 4)
+    if (txCondCmdStage == 4 || txCondCmdStage == 3)
     params = GUI_EL_TEMP_LabelChannel;
     else
     params = GUI_EL_TEMP_LabelMode;
@@ -1385,8 +1385,8 @@ void CGuiMenu::initEditRnKeyDialog()
     addr.Draw();
 }
 
-void CGuiMenu::initZondDialog(int focus, std::vector<std::string> &data)
-{    
+void CGuiMenu::initSheldureDialog(int focus, std::vector<std::string> &data)
+{
     MoonsGeometry itemArea;
     MoonsGeometry addrArea    = { 17, 5, 140, 70 };
     MoonsGeometry labelArea   = { 7, 5, 140, 70 };
@@ -1398,30 +1398,43 @@ void CGuiMenu::initZondDialog(int focus, std::vector<std::string> &data)
 
     GUI_EL_Window   window( &GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this );
 
-    GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)Zond_label, (GUI_Obj *)this);
+    GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)Sheldure_label, (GUI_Obj *)this);
 
     window.Draw();
     label.Draw();
 
-    for(int i = 0; i < data.size(); i++)
+    if(data.size() == 0)
     {
-        if (i > 1) break;
+        LabelParams params;
+        params = GUI_EL_TEMP_LabelMode;
+        params.element.align = {alignHCenter, alignVCenter};
+    	std::string str;
+        str.append(NoSheldure);
+        MoonsGeometry localFieldArea = { 15, 45, 145, 100 };
+        GUI_EL_Label  field (&params, &localFieldArea,  (char*)str.c_str(),      (GUI_Obj *)this);
+        field.Draw();
+    } else
+    {
+		for(int i = 0; i < data.size(); i++)
+		{
+			if (i > 1) break;
 
-        itemArea = {(GXT)(windowArea.xs + 5),
-                    (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT+20)),
-                    (GXT)(windowArea.xe - MARGIN - 15),
-                    (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT+20) )
-                   };
+			itemArea = {(GXT)(windowArea.xs + 5),
+						(GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT+20)),
+						(GXT)(windowArea.xe - MARGIN - 15),
+						(GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT+20) )
+					   };
 
-        std::string ex = data.at(offset+i);
-        bool select = (focus - offset == i) ? true : false;
-        GUI_EL_MenuItem addr( &param, &itemArea, (char*)ex.c_str() ,false, select,(GUI_Obj *)this);
-        addr.Draw();
+			std::string ex = data.at(offset+i);
+			bool select = (focus - offset == i) ? true : false;
+			GUI_EL_MenuItem addr( &param, &itemArea, (char*)ex.c_str() ,false, select,(GUI_Obj *)this);
+			addr.Draw();
+		}
+		MoonsGeometry sliderArea  = { 150, 25, 157, 110};
+		SliderParams  sliderParams = {(int32_t)data.size(), (int32_t)1, (int32_t)focus};
+		GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
+		slider.Draw();
     }
-    MoonsGeometry sliderArea  = { 150, 25, 157, 110};
-    SliderParams  sliderParams = {(int32_t)data.size(), (int32_t)1, (int32_t)focus};
-    GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
-    slider.Draw();
 }
 
 void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)

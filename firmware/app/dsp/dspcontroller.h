@@ -19,6 +19,7 @@
 #include <list>
 #include <vector>
 #include "packagemanager.h"
+#include "qmrtc.h"
 
 
 class QmTimer;
@@ -49,7 +50,8 @@ public:
         RadioModeUSB = 7,
         RadioModeFM = 9,
         RadioModeSazhenData = 11,
-        RadioModePSWF = 20
+        RadioModePSWF = 20,
+		RadioModeVirtualPpps = 5
     };
     enum RadioOperation {
         RadioOperationOff,
@@ -218,6 +220,9 @@ public:
 
     void setAdr();
 
+    void startVirtualPpsModeTx();
+    void startVirtualPpsModeRx();
+
 private:
     friend struct DspCommand;
 
@@ -234,7 +239,8 @@ private:
         PSWFTransmitter,    //0x72
         RadioLineNotPswf,   // 0x68
         GucPath,            // 0x7A
-		ModemReceiver
+		ModemReceiver,
+		VirtualPps         // 0x64
     };
     enum RxParameterCode {
         RxFrequency = 1,
@@ -295,6 +301,7 @@ private:
         uint8_t swf_mode;
         uint8_t guc_mode;
  		uint8_t guc_adr;
+ 		uint8_t param;
         ModemState modem_rx_state;
         ModemBandwidth modem_rx_bandwidth;
         ModemTimeSyncMode modem_rx_time_sync_mode;
@@ -384,6 +391,7 @@ private:
     void getSwr();                                                                                  // функция настройки шумоподавителя
     void sendPswf();                                                                            // функция отправки УК
     void addSeconds(int *date_time);                                                                // функция добавления секунды к текущей секунде
+    void addSeconds(QmRtc::Time *t);
     void changePswfFrequency();                                                                   // функция приема УК
     void syncPulseDetected();                                                                       // функция выполения задач по секундной метке
     void getDataTime();                                                                             // функция получения времени
@@ -414,6 +422,11 @@ private:
     void LogicPswfTx();
     void LogicPswfRx();
 
+
+    void changeVirtualFreq();
+    void wakeUpTimer();
+    void correctTime();
+    void LogicPswfModes(uint8_t* data, uint8_t indicator, int data_len); // func for 0x63 cadr from dsp
 
     bool smsFind;
 
@@ -529,6 +542,19 @@ bool modem_rx_on, modem_tx_on;
     uint8_t pswfDataPacket[30];
 
     int CondCmdRxIndexer = 0;
+
+    //----------- RTC LOGIC
+    QmRtc *rtc;
+    QmRtc::Time t;
+    bool RtcTxRole;
+    bool RtcRxRole;
+    uint8_t RtcRxCounter;
+    uint8_t RtcTxCounter;
+    int8_t RtcFirstCatch;
+    bool virtual_mode;
+    uint8_t txrtx = 0;
+
+
 
 public:
     uint8_t getSmsCounter();

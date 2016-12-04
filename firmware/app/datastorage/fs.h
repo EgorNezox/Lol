@@ -45,6 +45,7 @@ public:
     void updateFileTree();
     std::vector<std::string> *getFileTree();
     void getFileNamesByType(std::vector<std::string>* typeFiles, FileType fileType);
+    bool getSheldure(uint8_t &data);
 private:
     bool renameFile(std::string oldfileName, std::string newFileName);
     bool deleteFile(std::string fileName);

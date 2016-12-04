@@ -30,7 +30,6 @@
 
 void qmMain() {
 	QmApplication app;
-
 	target_device_multiradio_init();
 
 #if defined(PORT__TARGET_DEVICE_REV1)
@@ -132,6 +131,7 @@ void qmMain() {
                           );
 #endif
 
+    data_storage_fs.getSheldure(ui_service.setSheldure());
 
     kb_light_iopin.writeOutput(QmIopin::Level_Low);
 	data_storage_fs.getVoiceChannelsTable(mr_channels_table);

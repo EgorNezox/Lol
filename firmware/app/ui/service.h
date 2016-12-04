@@ -90,6 +90,7 @@ public:
     void setPswfStatus(bool var);
     void TxCondCmdPackage(int value);
     uint8_t* getGpsGucCoordinat(uint8_t *coord);
+    uint8_t &setSheldure();
 
     std::vector<uint8_t>* onLoadVoiceMail(uint8_t fileNumber);
     std::vector<uint8_t>* onLoadMessage(DataStorage::FS::FileType typeF, uint8_t fileNumber);
@@ -171,8 +172,8 @@ private:
     //
     std::vector<int> guc_command_vector;
     int position = 0;
-    int zond_position = 0;
-    std::vector<std::string> zond_data;
+    int sheldure_position = 0;
+    std::vector<std::string> sheldure_data;
     bool pswf_status;
 
     int cntSmsRx = 0;
@@ -189,6 +190,8 @@ private:
     bool flashTestOn = false;
     std::vector<uint8_t> condMsg;
 
+
+    uint8_t SheldureMass[651];  // 50 сеансов по 13 байт + 1 байт кол-во сеансов
 };
 
 } /* namespace Ui */
