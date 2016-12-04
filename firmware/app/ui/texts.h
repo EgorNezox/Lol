@@ -125,6 +125,7 @@ extern const char* StartGucTx;
 extern const char* GucIndivid;
 extern const char* GucGroup;
 extern const char* Sheldure_label;
+extern const char* NoSheldure;
 
 extern const char* startStr;
 

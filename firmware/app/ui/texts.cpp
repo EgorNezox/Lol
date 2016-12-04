@@ -200,8 +200,9 @@ const char* NoGucCoord      = "Нет\0";
 const char* StartGucTx      = "Старт\0";
 const char* GucIndivid      = "Одному\0";
 const char* GucGroup        = "Всем\0";
-const char* Sheldure            = "12 000000 Гц\n12:34 ГУК\0";
-const char* Sheldure_label           = "Расписание";
+const char* Sheldure        = "12 000000 Гц\n12:34 ГУК\0";
+const char* Sheldure_label  = "Расписание";
+const char* NoSheldure		= "Расписаниия\n     нет\0";
 const char* atumalfunction_title_str = "Сбой АСУ";
 const char* atumalfunction_text_str = "Передача на текущей частоте ограничена";
 

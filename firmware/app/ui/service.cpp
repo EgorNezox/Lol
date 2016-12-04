@@ -2746,48 +2746,46 @@ void Service::drawMenu()
         case GuiWindowsSubType::sheldure:
         {
             sheldure_data.clear();
-//            unsigned char SheldureMass[] = {'3', '0', '1','0',':','3','2',':','0','0',0x00,0x44,0xec,0x88,
-//            									 '1', '1','1',':','4','3',':','0','0',0x00,0x49,0x3e,0x00,
-//												 '2', '1','2',':','5','4',':','0','0',0x00,0x12,0x4f,0x80,
-//            };
-//#if defined (PORT__TARGET_DEVICE_REV1)
-            int sheldure_size = SheldureMass[0];
-            for(int i = 0; i < sheldure_size; i++)
+            if (SheldureMass[0] > 0 && SheldureMass[0] <= 50)
             {
-                std::string s;
-                switch (SheldureMass[ 1 + (i * 13) ])   // Режим
-                {
-                case 0:
-                    s.append(callSubMenu[0]);
-                    break;
-                case 1:
-                    s.append(callSubMenu[1]);
-                    break;
-                case 2:
-                    s.append(callSubMenu[2]);
-                    break;
-                case 3:
-                    s.append(callSubMenu[3]);
-                    break;
-                }
-                (SheldureMass[1+(i * 13)] % 2 == 0) ? s.append("   ") : s.append("  ");
+            	int sheldure_size = SheldureMass[0];
+					for(int i = 0; i < sheldure_size; i++)
+					{
+						std::string s;
+						switch (SheldureMass[ 1 + (i * 13) ])   // Режим
+						{
+						case 0:
+							s.append(callSubMenu[0]);
+							break;
+						case 1:
+							s.append(callSubMenu[1]);
+							break;
+						case 2:
+							s.append(callSubMenu[2]);
+							break;
+						case 3:
+							s.append(callSubMenu[3]);
+							break;
+						}
+						(SheldureMass[1+(i * 13)] % 2 == 0) ? s.append("   ") : s.append("  ");
 
-                for(int j = 0; j < 5; j++)
-                    s.push_back(SheldureMass[ 2 + (i*13) + j]); // Время
-                s.append("\n ");
-                int frec = 0;
-                for(int k = 3; k >= 0; k--)
-                {
-                    frec += (uint8_t)(SheldureMass[ 10 + (i*13) + 3 - k]) << k*8;
-                }
-                std::string ch;
-                sprintf((char*)ch.c_str(),"%d",frec);
-                for(int j = 0; j < 7; j++)
-                	s.push_back(ch[j]);
-                s.append(freq_hz);
-                sheldure_data.push_back(s);
+						for(int j = 0; j < 5; j++)
+							s.push_back(SheldureMass[ 2 + (i*13) + j]); // Время
+						s.append("\n ");
+						int frec = 0;
+						for(int k = 3; k >= 0; k--)
+						{
+							frec += (uint8_t)(SheldureMass[ 10 + (i*13) + 3 - k]) << k*8;
+						}
+						std::string ch;
+						sprintf((char*)ch.c_str(),"%d",frec);
+						for(int j = 0; j < 7; j++)
+							s.push_back(ch[j]);
+						s.append(freq_hz);
+						sheldure_data.push_back(s);
+					}
             }
-//#endif
+
             menu->initSheldureDialog(menu->focus,sheldure_data);
             break;
         }
