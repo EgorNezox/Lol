@@ -364,10 +364,12 @@ Service::~Service() {
     delete keyboard;
     delete chnext_bt;
     delete chprev_bt;
-    delete chnext_bt;
-    delete chprev_bt;
+//    delete chnext_bt;
+//    delete chprev_bt;
     delete main_scr;
     delete indicator;
+    fileMessage.clear();
+    condMsg.clear();
 }
 
 void Service::setNotification(NotificationType type)
@@ -906,7 +908,7 @@ void Service::keyPressed(UI_Key key)
                 // send
                 if ( menu->txCondCmdStage == size )
                 {
-#ifndef _DEBUG_
+#ifdef _DEBUG_
 
                     // [0] - cmd, [1] - raddr, [2] - retrans
                     // condCmdModeSelect, 1 - individ, 2 - quit
@@ -922,6 +924,18 @@ void Service::keyPressed(UI_Key key)
                     if (menu->condCmdModeSelect == 2){
                         param[2] +=32;
                         voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
+                    }
+                    if ((storageFs > 0) && (param[0] != 0))
+                    {
+                        char sym[4];
+                        sprintf(sym,"%d",param[0]);
+                        if (param[0] < 10) sym[1] = 0;
+                        sym[2] = 0;
+                        condMsg.clear();
+                        condMsg.push_back((uint8_t)sym[0]);
+                        condMsg.push_back((uint8_t)sym[1]);
+                        condMsg.push_back((uint8_t)sym[2]);
+                        storageFs->setCondCommand(&condMsg);
                     }
 
                     //menu->txCondCmdStage = 0;
@@ -1107,9 +1121,12 @@ void Service::keyPressed(UI_Key key)
                     freqs = mas[0];
                     int speed = 0;//atoi(mas[1]);
                     guc_command_vector.clear();
+
                     parsingGucCommand((uint8_t*)str);
                     voice_service->saveFreq(freqs);
                     voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
+                    if (storageFs > 0)
+                        storageFs->setGroupCondCommand((uint8_t*)str,strlen(str));
 #else
                     for (auto &k: estate.listItem)
                         k->inputStr.clear();
@@ -1635,6 +1652,8 @@ void Service::keyPressed(UI_Key key)
                                     voice_service->TurnSMSMode(param[2], (char*)msg.c_str(),atoi(dstAddr.c_str())); //retr,msg,radr
                                 else
                                     voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
+                                if (storageFs > 0)
+                                    storageFs->setSms((uint8_t*)msg[0],msg.size());
                                 for(auto &k: estate.listItem)
                                     k->inputStr.clear();
                                 menu->smsTxStage++;
@@ -3063,7 +3082,7 @@ void Service::parsingGucCommand(uint8_t *str)
     int cnt = 0;
 
     int len = strlen((const char*)str);
-    for(int i = 0; i<=len;i++){
+    for(int i = 0; i <= len; i++){
         if ((str[i] == ' ') || (len == i))
         {
             if (i - index == 2)
@@ -3071,11 +3090,11 @@ void Service::parsingGucCommand(uint8_t *str)
             if (i - index == 1)
                 number[1] = '\0';
 
-            memcpy(number,&str[index],i - index);
+            memcpy(number, &str[index], i - index);
             guc_command_vector.push_back(atoi(number));
             ++cnt;
-            for(int j = 0; j<3;j++) number[j] = '\0';
-            index = i+1;
+            for(int j = 0; j < 3; j++) number[j] = '\0';
+            index = i + 1;
         }
     }
 }

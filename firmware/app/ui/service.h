@@ -135,7 +135,7 @@ private:
     int getLanguage();
 
     void onSmsCounterChange(int param);
-     bool isSmsCounterFull = false;
+    bool isSmsCounterFull = false;
 
     void GucCoord();
 
