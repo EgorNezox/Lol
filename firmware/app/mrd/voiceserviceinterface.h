@@ -64,7 +64,7 @@ public:
     void gucCrcFail();
     void gucCoordRec();
 
-    void turnVirtualPswfTx();
+    void turnVirtualPswfTx(bool ack, uint8_t r_adr, uint8_t cmd,int retr);
     void turnVirtualPswfRx();
 
     void setVirtualMode(bool param);

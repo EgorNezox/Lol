@@ -209,7 +209,7 @@ void VoiceServiceInterface::TurnPSWFMode(uint8_t mode, int cmd, int r_adr, int r
 		if ((r_adr == 0) && (cmd ==0))
 			turnVirtualPswfRx();
 		else
-			turnVirtualPswfTx();
+			turnVirtualPswfTx(false,r_adr, cmd,retr);
 	}
 	else
 	{
@@ -246,9 +246,9 @@ void VoiceServiceInterface::gucCrcFail()
     gucCrcFailed();
 }
 
-void VoiceServiceInterface::turnVirtualPswfTx()
+void VoiceServiceInterface::turnVirtualPswfTx(bool ack, uint8_t r_adr, uint8_t cmd,int retr)
 {
-	dispatcher->dsp_controller->startVirtualPpsModeTx();
+	dispatcher->dsp_controller->startVirtualPpsModeTx(ack,r_adr,cmd,retr);
 }
 
 void VoiceServiceInterface::turnVirtualPswfRx()

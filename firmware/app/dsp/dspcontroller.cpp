@@ -426,30 +426,65 @@ void DspController::setTx()
 void DspController::sendPswf()
 {
 
-    if (ContentPSWF.RET_end_adr > 0)
-    {
-    	ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(
-    	ContentPSWF.RET_end_adr,
-    	ContentPSWF.R_ADR,
-		ContentPSWF.COM_N,
-		ContentPSWF.RN_KEY,
-		date_time[0],
-		date_time[1],
-		date_time[2],
-		date_time[3]);
-    }
-    else
-    {
-    	ContentPSWF.L_CODE = navigator->Calc_LCODE(
-    	ContentPSWF.R_ADR,
-		ContentPSWF.S_ADR,
-		ContentPSWF.COM_N,
-		ContentPSWF.RN_KEY,
-		date_time[0],
-		date_time[1],
-		date_time[2],
-		date_time[3]);
-    }
+	if (virtual_mode == true)
+	{
+	    if (ContentPSWF.RET_end_adr > 0)
+	    {
+	    	ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(
+	    	ContentPSWF.RET_end_adr,
+	    	ContentPSWF.R_ADR,
+			ContentPSWF.COM_N,
+			ContentPSWF.RN_KEY,
+			d.day,
+			t.hours,
+			t.minutes,
+			t.seconds);
+	    }
+	    else
+	    {
+	    	ContentPSWF.L_CODE = navigator->Calc_LCODE(
+	    	ContentPSWF.R_ADR,
+			ContentPSWF.S_ADR,
+			ContentPSWF.COM_N,
+			ContentPSWF.RN_KEY,
+			d.day,
+			t.hours,
+			t.minutes,
+			t.seconds);
+	    }
+	}
+
+	else
+	{
+	    if (ContentPSWF.RET_end_adr > 0)
+	    {
+	    	ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(
+	    	ContentPSWF.RET_end_adr,
+	    	ContentPSWF.R_ADR,
+			ContentPSWF.COM_N,
+			ContentPSWF.RN_KEY,
+			date_time[0],
+			date_time[1],
+			date_time[2],
+			date_time[3]);
+	    }
+	    else
+	    {
+	    	ContentPSWF.L_CODE = navigator->Calc_LCODE(
+	    	ContentPSWF.R_ADR,
+			ContentPSWF.S_ADR,
+			ContentPSWF.COM_N,
+			ContentPSWF.RN_KEY,
+			date_time[0],
+			date_time[1],
+			date_time[2],
+			date_time[3]);
+	    }
+	}
+
+
+
+
 
     ContentPSWF.Frequency = getFrequencyPswf();
     ContentPSWF.indicator = 20;
@@ -813,16 +848,29 @@ void DspController::recPswf(uint8_t data,uint8_t code)
 {
     qmDebugMessage(QmDebug::Dump, "RecievedPswf() command_rx30 = %d", command_rx30);
 
-    private_lcode = (char)navigator->Calc_LCODE(
-    ContentPSWF.R_ADR,
-    ContentPSWF.S_ADR,
-	data,
-	ContentPSWF.RN_KEY,
-    date_time[0],
-	date_time[1],
-	date_time[2],
-	prevSecond(date_time[3]));
-
+    if (virtual_mode == true)
+    {
+    	private_lcode = (char)navigator->Calc_LCODE(
+    	    			ContentPSWF.R_ADR,
+    					ContentPSWF.S_ADR,
+    					data,
+    					ContentPSWF.RN_KEY,
+    					d.day,
+    					t.hours,
+    					t.minutes,
+    					prevSecond(t.seconds));
+    }
+    else {
+    	private_lcode = (char)navigator->Calc_LCODE(
+    			ContentPSWF.R_ADR,
+				ContentPSWF.S_ADR,
+				data,
+				ContentPSWF.RN_KEY,
+				date_time[0],
+				date_time[1],
+				date_time[2],
+				prevSecond(date_time[3]));
+    }
 
     qmDebugMessage(QmDebug::Dump, "private_lcode = %d,lcode = %d", private_lcode,code);
 
@@ -2044,10 +2092,13 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     	{
     		addSeconds(&t);
 
-    		if (count_VrtualTimer >= 10)
+    		if (count_VrtualTimer > 10)
     		{
     			if (radio_state != radiostateSync)
+    			{
     				LogicPswfRx();
+    				setPswfRxFreq();
+    			}
     		}
 
     		else
@@ -3037,7 +3088,7 @@ bool DspController::getIsGucCoord()
 }
 
 
-void DspController::startVirtualPpsModeTx()
+void DspController::startVirtualPpsModeTx(bool ack, uint8_t r_adr, uint8_t cmd,int retr)
 {
 	setPswfTx();
 	ParameterValue comandValue;  //0x60 2 5 1
@@ -3045,6 +3096,8 @@ void DspController::startVirtualPpsModeTx()
 	sendCommandEasy(PSWFReceiver,5,comandValue);
 	comandValue.radio_mode = RadioModeOff;
 	sendCommandEasy(VirtualPps,1,comandValue);
+
+	ContentPSWF.COM_N = cmd;
 
 	RtcTxRole = true;
 	RtcRxRole = false;
@@ -3062,7 +3115,7 @@ void DspController::startVirtualPpsModeTx()
 	rtc->setDate(d);
 	rtc->setTime(t);
 #endif
-	count_VrtualTimer = 0;
+	count_VrtualTimer = 7;
 	txrtx = 0;
 #ifndef PORT__PCSIMULATOR
 //	d =  rtc->getDate();
@@ -3087,6 +3140,7 @@ void DspController::startVirtualPpsModeRx()
 	RtcFirstCatch = 0;
 
 	radio_state = radiostatePswf;
+	SmsLogicRole = SmsRoleIdle;
 
 	d.day  = 1;
 	d.month  = 1;
@@ -3138,6 +3192,7 @@ void DspController::correctTime(uint8_t num)
 
 	t.seconds = 12 * (t.seconds / 12) + 6;
 	count_VrtualTimer = num;
+	qmDebugMessage(QmDebug::Dump, "COUNTER VIRTUAL %d",count_VrtualTimer);
 
 #ifndef PORT__PCSIMULATOR
 	rtc->setTime(t);
@@ -3190,11 +3245,11 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 	else if (indicator == 30)
 	{
 
-		if (data[2] == 2)  // synchro packet
+		if (data[1] == 2)  // synchro packet
 		{
 			antiSync = true;
 			qmDebugMessage(QmDebug::Dump, "Sync anti turn on");
-			correctTime(data[8]);
+			correctTime(data[7]);
 		}
 
 		qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");

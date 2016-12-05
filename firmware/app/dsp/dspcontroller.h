@@ -222,7 +222,7 @@ public:
 
     void setAdr();
 
-    void startVirtualPpsModeTx();
+    void startVirtualPpsModeTx(bool ack, uint8_t r_adr, uint8_t cmd,int retr);
     void startVirtualPpsModeRx();
 
     void setVirtualDay(uint8_t *param);

@@ -2115,14 +2115,12 @@ void Service::keyPressed(UI_Key key)
             case keyLeft:
             {
                 gpsSynchronization = gpsSynchronization ? false : true;
+                voice_service->setVirtualMode(!gpsSynchronization);
                 break;
             }
             default:
                 break;
             }
-
-            voice_service->setVirtualMode(!gpsSynchronization);
-
             break;
         }
         case GuiWindowsSubType::setDate:
