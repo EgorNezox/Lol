@@ -46,10 +46,13 @@ const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " ГП\0", " УК\0", " ГУК\0"};
 const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0", " GPS координаты\0"};
     const char *dataSubSubMenu[] = {" Условные команды\0", " СМС\0", " Головая почта\0", " Группа усл.команд\0"};
 
-const char *settingsSubMenu[] = {" ДВ\0", " Пар. связи\0", " Скан\0", " Режим\0", " Звук\0", " Шум\0"," Время ГУК\0", " Кл. сети"," Конфигур"," Коорд"}; //TODO:
+const char *settingsSubMenu[] = {" ДВ\0", " Пар. связи\0", " Скан\0", " Режим\0", " Звук\0",
+                                 " Шум\0"," Время ГУК\0", " Кл. сети"," Конфигур"," Коорд",
+                                 " Дисплей\0" }; //TODO:
     const char *dateAndTimeSubMenu[] = {" Синхро\0", " Ручной\0"};
         const char *setDateOrTime[] = {" Ввод даты\0", " Ввод время\0"};
     const char *setConnParam[] = {" Частота\0", " Скорость\0", " Тип изл.\0", " Реч. реж.\0"};
+const char *files[] = {" Файлы\0"};
 
 const char *coordinateStr = "Координаты\0";
 const char *coordNotExistStr = "Координаты\n отсутствуют\0";
@@ -200,8 +203,9 @@ const char* NoGucCoord      = "Нет\0";
 const char* StartGucTx      = "Старт\0";
 const char* GucIndivid      = "Одному\0";
 const char* GucGroup        = "Всем\0";
-const char* Zond            = "12 000000 Гц\n12:34 ГУК\0";
-const char* Zond_label           = "Расписание";
+const char* Sheldure        = "12 000000 Гц\n12:34 ГУК\0";
+const char* Sheldure_label  = "Расписание";
+const char* NoSheldure		= "Расписаниия\n     нет\0";
 const char* atumalfunction_title_str = "Сбой АСУ";
 const char* atumalfunction_text_str = "Передача на текущей частоте ограничена";
 
@@ -215,3 +219,8 @@ const char *EndCmd   = "Прием\0";
 const char *EndSms   = "Принята квитаниция\0";
 
 const char *STARTS = "Старт";
+
+const char *errorReadFile = "Ошибка чтения файла\0";
+
+const char *displayBrightnessStr[] = {"Минимальная\0","Средняя\0","Максиамльная\0"};
+const char *displayBrightnessTitleStr = "Яркость\0";

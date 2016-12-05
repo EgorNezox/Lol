@@ -37,8 +37,11 @@ void CGuiTree::init()
     sttSuppress.setName(settingsSubMenu[5]);
     sttWaitGuk.setName(settingsSubMenu[6]);
     sttEditRnKey.setName(settingsSubMenu[7]);
-    sttZond.setName(settingsSubMenu[8]);
+    sttSheldure.setName(settingsSubMenu[8]);
     stCoord.setName(settingsSubMenu[9]);
+    sttDisplay.setName(settingsSubMenu[10]);
+
+    sttFileManager.setName(files[0]);
 
     // 4.1.1 - 4.1.2
     sttConnParamGPS.setName(dateAndTimeSubMenu[0]); sttConnParamHand.setName(dateAndTimeSubMenu[1]);
@@ -221,6 +224,8 @@ void CGuiTree::init()
     settings.nextState.push_back(&sttScan);
     settings.nextState.push_back(&sttSound);
     settings.nextState.push_back(&sttSuppress);
+    settings.nextState.push_back(&sttDisplay);
+    settings.nextState.push_back(&sttSheldure);
     // 4.1 - Дата/время
     sttDateTime.setType(GuiWindowTypes::menuWindow);
     sttDateTime.prevState = &settings;
@@ -256,10 +261,11 @@ void CGuiTree::init()
     sttConnParam.nextState.push_back(&sttSetSpeed);
     sttConnParam.nextState.push_back(&swAruArm);
     sttConnParam.nextState.push_back(&stCoord);
-    sttConnParam.nextState.push_back(&sttWaitGuk);
+    //sttConnParam.nextState.push_back(&sttWaitGuk);
     sttConnParam.nextState.push_back(&sttEditRnKey);
     sttConnParam.nextState.push_back(&sttChannelEmissionType);
     sttConnParam.nextState.push_back(&sttVoiceMode);
+    sttConnParam.nextState.push_back(&sttFileManager);
 
     // 4.2.1 - Частота
     sttSetFreq.setType(GuiWindowTypes::endMenuWindow);
@@ -299,6 +305,11 @@ void CGuiTree::init()
     sttVoiceMode.prevState = &sttConnParam;
     sttVoiceMode.nextState.clear();
 
+    // 4.2.8 - Файлы
+    sttFileManager.subType = GuiWindowsSubType::filetree;
+    sttFileManager.prevState = &sttConnParam;
+    sttFileManager.nextState.clear();
+
     // 4.3 - Сканирование
     sttScan.subType = GuiWindowsSubType::scan;
     sttScan.prevState = &settings;
@@ -311,6 +322,14 @@ void CGuiTree::init()
     sttSuppress.subType = GuiWindowsSubType::suppress;
     sttSuppress.prevState = &settings;
     sttSuppress.nextState.clear();
+    // 4.6 - Дисплей
+    sttDisplay.subType = GuiWindowsSubType::display;
+    sttDisplay.prevState = &settings;
+    sttDisplay.nextState.clear();
+    // 4.7 - Расписание
+    sttSheldure.subType = GuiWindowsSubType::sheldure;
+    sttSheldure.prevState = &settings;
+    sttSheldure.nextState.clear();
 
     currentState = &MainWindow;
     statesStack.clear();

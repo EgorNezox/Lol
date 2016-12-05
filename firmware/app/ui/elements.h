@@ -17,9 +17,10 @@
 #include "gui_elements_common.h"
 #include "gui_obj.h"
 #include <string>
+#include <vector>
 
 //-----------------------------
-#define MAX_LABEL_LENGTH 85
+#define MAX_LABEL_LENGTH 60
 #define MAX_TEXT_AREA_LENGTH 180
 
 struct ElementParams{
@@ -27,6 +28,10 @@ struct ElementParams{
     Alignment align;
 };
 
+struct FullContentSize{
+    uint32_t H;
+    uint32_t W;
+};
 
 /*!Базовый абстрактный класс элемента*/
 class GUI_Element{
@@ -45,6 +50,7 @@ class GUI_Element{
         MoonsGeometry geom;	//Координаты элемента относительно диалога
         Margins margins;
         Alignment align;
+        virtual void SetInputFocus(bool isFocus = true) = 0;
     private:
         void AlignContent();
     protected:
@@ -69,14 +75,17 @@ class GUI_EL_Label: public GUI_Element{
 		void setSkipTextBackgronundFilling(bool enabled);
 		void SetText(char *text);
         bool transparent;
+        void SetParams(LabelParams *params);
+        virtual void SetInputFocus(bool isFocus);
 	private:
 
 		PGFONT font;
 		ColorScheme color_sch;
-		bool skip_text_bg_filling;
+        bool skip_text_bg_filling;
 	protected:
 		void CalcContentGeom();
         std::string text;
+
 };
 
 struct IconParams{
@@ -92,15 +101,37 @@ typedef LabelParams TextAreaParams;
 class GUI_EL_TextArea: public GUI_Element{
     public:
         GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj);
+        GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, std::vector<uint8_t> *data, GUI_Obj *parent_obj);
+        ~GUI_EL_TextArea();
         void Draw();
         void SetText(char *text);
+        void SetText(std::vector<uint8_t> *data);
+        void ScrollUp();
+        void ScrollDown();
+        uint32_t GetScrollIndex();
+        uint32_t GetMaxScrollIndex();
+        uint32_t SetScrollIndex(uint32_t index);
+        virtual void SetInputFocus(bool isFocus);
+        void setVisibleScroll(bool isVisible);
     private:
-        int32_t lines_count;
+        void copyStrFromData(char *dest, uint32_t index, uint32_t count);
+        char getChar(uint32_t index);
+        uint32_t getDataSize();
+        uint32_t lines_count;
         GYT line_height;
         TextAreaParams params;
+        bool isScroll = false;
+        bool isVisibleScroll = false;
+        uint32_t visLineBegin = 0;
+       // int32_t visLineBeginMax = 0;
+        uint32_t visLinesCount = 0;
+        bool isData = false;
+        FullContentSize allContent;
     protected:
         void CalcContentGeom();
-        char text[MAX_TEXT_AREA_LENGTH];
+        char* text;
+        std::vector<uint8_t>* data = 0;
+        //char* text[MAX_TEXT_AREA_LENGTH];
 };
 
 //-----------------------------
@@ -113,6 +144,10 @@ class GUI_EL_Icon: public GUI_Element{
         PGSYMBOL icon;
     protected:
         void CalcContentGeom();
+
+        // GUI_Element interface
+public:
+        virtual void SetInputFocus(bool isFocus);
 };
 
 //-----------------------------
@@ -125,6 +160,10 @@ class GUI_EL_Battery: public GUI_Element{
         GUI_EL_Battery(ElementParams *params, int charge, MoonsGeometry *geom, GUI_Obj *parent_obj);
     protected:
         void CalcContentGeom();
+
+        // GUI_Element interface
+public:
+        virtual void SetInputFocus(bool isFocus);
 };
 
 //-----------------------------
@@ -147,6 +186,10 @@ class GUI_EL_VolumeTuner: public GUI_Element{
         uint8_t bar_count;
         GXT bar_interval;
         uint8_t level;
+
+        // GUI_Element interface
+public:
+        virtual void SetInputFocus(bool isFocus);
 };
 
 //-----------------------------
@@ -196,6 +239,10 @@ class GUI_EL_SpinBox: public GUI_Element{
         PGSYMBOL down_arrow;
         GYT label_h;
         char str[10];
+
+        // GUI_Element interface
+public:
+        virtual void SetInputFocus(bool isFocus);
 };
 
 //-----------------------------
@@ -217,6 +264,10 @@ class GUI_EL_Window: public GUI_Element{
         ColorScheme color_sch;
         uint8_t frame_thick;
         bool round_corners;
+
+        // GUI_Element interface
+public:
+        virtual void SetInputFocus(bool isFocus);
 };
 
 //-----------------------------
@@ -238,14 +289,18 @@ class GUI_EL_MenuItem: public GUI_EL_Label{
         bool rec_flag;
     protected:
         void CalcContentGeom();
+
+        // GUI_Element interface
+public:
+        virtual void SetInputFocus(bool isFocus);
 };
 
 //-----------------------------
 
 struct SliderParams{
-    int32_t list_size;
-    int32_t window_size;
-    int32_t window_offset;
+    uint32_t list_size;
+    uint32_t window_size;
+    uint32_t window_offset;
 };
 
 /*!Класс элемента бегунок*/
@@ -262,6 +317,10 @@ class GUI_EL_Slider: public GUI_Element{
         GUI_EL_Icon down_arrow;
     protected:
         void CalcContentGeom();
+
+        // GUI_Element interface
+public:
+        virtual void SetInputFocus(bool isFocus);
 };
 
 //-----------------------------
@@ -277,6 +336,8 @@ class GUI_EL_InputString: public GUI_EL_Label{
         void CalcContentGeom();
     private:
         int length;
+
+        // GUI_Element interface
 };
 
 //-----------------------------
@@ -314,6 +375,10 @@ class GUI_EL_Bar: public GUI_Element{
         int32_t max_val;
         int32_t cur_val;
         void CalcContentGeom();
+
+        // GUI_Element interface
+public:
+        virtual void SetInputFocus(bool isFocus);
 };
 
 class GUI_EL_MarkLvlBar: public GUI_EL_Bar{
@@ -421,6 +486,43 @@ class GUI_Painter{
 //                                    char *text,
 //                                    ColorSchemeType color_scheme = CST_DEFAULT,
 //                                    DrawMode drawMode = DM_TRANSPARENT);
+};
+
+//----------------------------------------------------
+
+
+/*!Класс элемента прокручиваемая зона*/
+class GUI_EL_ScrollArea: public GUI_Element{
+    public:
+        struct visibleElemIndex{
+            uint32_t begin;
+            uint32_t end;
+        };
+        GUI_EL_ScrollArea(MoonsGeometry *geom, Alignment *align, Margins *margins, GUI_Obj *parent_obj);
+        ~GUI_EL_ScrollArea();
+        void Draw();
+        void ClearCanvas();
+        void SetInputFocus(bool isFocus = true);
+        void addGuiElement(GUI_Element* element);
+        void removeGuiElement(GUI_Element* element);
+        int incFocus();
+        int decFocus();
+        void setFocus(const uint32_t elemIndex);
+        void activateElement(const uint32_t elemIndex);
+        void activateFocusElement();
+        GUI_Element* getFocusElement();
+        uint32_t getVisElemCount();
+        uint32_t setFirstVisElem(const int32_t elemIndex);
+        uint32_t getFirstVisElem();
+    protected:
+        void CalcContentGeom();
+        std::vector<GUI_Element*> elements;
+        FullContentSize allContent;
+        int visibleElemsCount; // количество отображаемых элементов из всех в данный момент
+        visibleElemIndex visElemInd; // индекс отображаемого элемента
+        bool isVScroll; // есть ли вертикальный скроллбар
+        uint16_t focus; // номер элемента с фокусом
+        //GUI_EL_Slider hSlider;
 };
 
 #include "element_templates.h"

@@ -25,6 +25,7 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, Alignment align):CGui
     tx = new char[100];
 
     GUI_EL_TEMP_WindowGeneral.frame_thick = 0;
+
 }
 
 void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
@@ -539,6 +540,11 @@ void CGuiMenu::keyPressed(UI_Key key)
     }
 }
 
+void CGuiMenu::setFS(DataStorage::FS *fs)
+{
+    storageFs = fs;
+}
+
 void CGuiMenu::setSttParam(CEndState state, UI_Key key)
 {
     GuiWindowsSubType type = state.subType;
@@ -686,6 +692,18 @@ void CGuiMenu::inputGroupCondCmd( CEndState state )
 
 
     ct = std::chrono::steady_clock::now();
+}
+
+bool CGuiMenu::getIsInRepeatInterval()
+{
+    auto newTime = std::chrono::steady_clock::now();
+    bool isRepeat = false;
+    if ( ( newTime - ct ).count() < 900*(1000000) )
+    {
+        isRepeat = true;
+    }
+    ct = std::chrono::steady_clock::now();
+    return isRepeat;
 }
 
 void CGuiMenu::initTxPutOffVoiceDialog(int status)  //  ГП
@@ -1367,8 +1385,8 @@ void CGuiMenu::initEditRnKeyDialog()
     addr.Draw();
 }
 
-void CGuiMenu::initZondDialog(int focus, std::vector<std::string> &data)
-{    
+void CGuiMenu::initSheldureDialog(int focus, std::vector<std::string> &data)
+{
     MoonsGeometry itemArea;
     MoonsGeometry addrArea    = { 17, 5, 140, 70 };
     MoonsGeometry labelArea   = { 7, 5, 140, 70 };
@@ -1380,30 +1398,43 @@ void CGuiMenu::initZondDialog(int focus, std::vector<std::string> &data)
 
     GUI_EL_Window   window( &GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this );
 
-    GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)Zond_label, (GUI_Obj *)this);
+    GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)Sheldure_label, (GUI_Obj *)this);
 
     window.Draw();
     label.Draw();
 
-    for(int i = 0; i < data.size(); i++)
+    if(data.size() == 0)
     {
-        if (i > 1) break;
+        LabelParams params;
+        params = GUI_EL_TEMP_LabelMode;
+        params.element.align = {alignHCenter, alignVCenter};
+    	std::string str;
+        str.append(NoSheldure);
+        MoonsGeometry localFieldArea = { 15, 45, 145, 100 };
+        GUI_EL_Label  field (&params, &localFieldArea,  (char*)str.c_str(),      (GUI_Obj *)this);
+        field.Draw();
+    } else
+    {
+		for(int i = 0; i < data.size(); i++)
+		{
+			if (i > 1) break;
 
-        itemArea = {(GXT)(windowArea.xs + 5),
-                    (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT+20)),
-                    (GXT)(windowArea.xe - MARGIN - 15),
-                    (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT+20) )
-                   };
+			itemArea = {(GXT)(windowArea.xs + 5),
+						(GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT+20)),
+						(GXT)(windowArea.xe - MARGIN - 15),
+						(GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT+20) )
+					   };
 
-        std::string ex = data.at(offset+i);
-        bool select = (focus - offset == i) ? true : false;
-        GUI_EL_MenuItem addr( &param, &itemArea, (char*)ex.c_str() ,false, select,(GUI_Obj *)this);
-        addr.Draw();
+			std::string ex = data.at(offset+i);
+			bool select = (focus - offset == i) ? true : false;
+			GUI_EL_MenuItem addr( &param, &itemArea, (char*)ex.c_str() ,false, select,(GUI_Obj *)this);
+			addr.Draw();
+		}
+		MoonsGeometry sliderArea  = { 150, 25, 157, 110};
+		SliderParams  sliderParams = {(int32_t)data.size(), (int32_t)1, (int32_t)focus};
+		GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
+		slider.Draw();
     }
-    MoonsGeometry sliderArea  = { 150, 25, 157, 110};
-    SliderParams  sliderParams = {(int32_t)data.size(), (int32_t)1, (int32_t)focus};
-    GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
-    slider.Draw();
 }
 
 void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
@@ -1844,9 +1875,13 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
         break;
     }
 
-                  titleArea = {  5,   5, 150,  20 };
-    MoonsGeometry labelArea = {  5,  21, 150,  51 };
+                  titleArea = {  5,   5, 150,  18 };
+    MoonsGeometry labelArea = {  5,  18, 150,  43 };
     MoonsGeometry valueArea = {  5,  52, 150,  85 };
+
+    TextAreaParams textParams = GUI_EL_TEMP_LabelMode;
+    textParams.element.align.align_h = alignHCenter;
+    MoonsGeometry textGeom = {3, 44, 156, 122};
 
     LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
 
@@ -1859,17 +1894,28 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
     GUI_EL_Window window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
     GUI_EL_Label  title  ( &titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj*)this );
     GUI_EL_Label  label  ( &param[0],                  &labelArea,  (char*)labelStr.c_str(), (GUI_Obj*)this );
-    GUI_EL_Label  value  ( &param[1],                  &valueArea,  (char*)valueStr.c_str(), (GUI_Obj*)this );
+    GUI_EL_Label  value ( &param[1],&valueArea,  (char*)valueStr.c_str(), (GUI_Obj*)this );
+
+    GUI_EL_TextArea cmdText(&textParams, &textGeom, (char*)valueStr.c_str(), (GUI_Obj*)this);
 
     window.Draw();
     title.Draw();
     label.Draw();
+
+    if (groupCondCommStage == 4){
+        cmdText.setVisibleScroll(true);
+        cmdScrollIndex = cmdText.SetScrollIndex(cmdScrollIndex);
+        cmdText.Draw();
+
+        char comCount[] = {0,0,0};
+        sprintf(comCount,"%03d/100", cmdCount);
+        std::string commandCountStr(comCount);
+
+        GUI_Painter::DrawText(110,7,titleParams.font,(char*)commandCountStr.c_str());
+    }
+    else
         value.Draw();
 }
-
-
-
-
 
 void CGuiMenu::initSelectVoiceModeParameters(bool use)
 {
@@ -1965,4 +2011,103 @@ void CGuiMenu::initFailedSms(int stage)
 void CGuiMenu::TxCondCmdPackage(int value)  // Передача УК  пакеты
 {
    command_tx30 = value;
+}
+
+void CGuiMenu::initFileManagerDialog(uint8_t stage)
+{
+    MoonsGeometry window_geom = {0, 0, 159, 127};
+    GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneralBack, &window_geom, (GUI_Obj*)this);
+
+    MoonsGeometry label_geom  = { 2, 6, 157, 20};
+    LabelParams   label_params = GUI_EL_TEMP_LabelTitle;
+
+    Margins margins = {0,0,0,0};
+    MoonsGeometry scroll_geom = {0, 25, 159, 112};
+
+    Alignment align = { alignHCenter, alignVCenter};
+    GUI_EL_ScrollArea ScrollArea(&scroll_geom, &align, &margins, (GUI_Obj*)this);
+
+    MoonsGeometry  item_geom;
+    item_geom = {(GXT)(0),(GYT)(0),(GXT)(145),(GYT)(16)};
+
+    MenuItemParams item_param = GUI_EL_TEMP_DefaultMenuItem;
+    item_param.label_params.element.align = {alignHCenter, alignVCenter};
+    item_param.label_params.transparent = true;
+    item_param.icon_params.icon = sym_blank;
+
+    window.Draw();
+    const char* titleChar;
+
+    switch(stage){
+    case 0:
+
+        titleChar = files[0];
+
+        for (uint8_t subMenu = 0; subMenu < 4; subMenu++)
+        {
+            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)reciveSubMenu[subMenu + 1], true, true, (GUI_Obj*)this );
+            ScrollArea.addGuiElement(item);
+        }
+        ScrollArea.setFirstVisElem(0);
+        ScrollArea.setFocus(filesStageFocus[stage]);
+        ScrollArea.Draw();
+        break;
+
+    case 1:
+
+        titleChar = reciveSubMenu[fileType + 1];
+
+        if (tFiles[fileType].size() > 0){
+            for (uint8_t file = 0; file < tFiles[fileType].size(); file++)
+            {
+                std::string fileName = tFiles[fileType].at(file);
+
+                GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)fileName.c_str(), true, true, (GUI_Obj*)this );
+                ScrollArea.addGuiElement(item);
+            }
+            ScrollArea.setFirstVisElem(firstVisFileElem);
+            if (filesStageFocus[stage] > tFiles[fileType].size() - 1 )
+            	filesStageFocus[stage] = tFiles[fileType].size() - 1;
+
+            ScrollArea.setFocus(filesStageFocus[stage]);
+            firstVisFileElem = ScrollArea.getFirstVisElem();
+            ScrollArea.Draw();
+        }
+        break;
+
+    case 2:
+
+        titleChar = reciveSubMenu[fileType + 1];
+        TextAreaParams textArea_Params = GUI_EL_TEMP_LabelText;
+        MoonsGeometry textArea_Geom = {2, 30, 157, 126};
+
+        GUI_EL_TextArea textArea(&textArea_Params, &textArea_Geom, fileMessage, (GUI_Obj*)this);
+        textAreaScrollIndex = textArea.SetScrollIndex(textAreaScrollIndex);
+        textArea.Draw();
+        break;
+    }
+
+    GUI_EL_Label title( &label_params, &label_geom, (char*)titleChar, (GUI_Obj *)this);
+    title.Draw();
+}
+
+void CGuiMenu::initDisplayBrightnessDialog()
+{
+    MoonsGeometry brightness_geom  = {5,  45,  160,  70 };
+    LabelParams brightnessParams = GUI_EL_TEMP_LabelMode;
+    brightnessParams.element.align.align_h = alignHCenter;
+    GUI_EL_Label brightness(&brightnessParams, &brightness_geom,  (char*)displayBrightnessStr[displayBrightness], (GUI_Obj*)this);
+
+    titleArea = {(GXT)(windowArea.xs + MARGIN),
+                 (GYT)(windowArea.ys + MARGIN),
+                 (GXT)(windowArea.xe - MARGIN),
+                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
+                };
+
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
+    GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)displayBrightnessTitleStr, (GUI_Obj *)this);
+
+    window.Draw();
+    title.Draw();
+    brightness.Draw();
 }

@@ -4,18 +4,31 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string>
+#include <string.h>
 #include <list>
+#include <vector>
+#include <chrono>
+#include <ctime>
+#include <map>
+#include <sigc++/sigc++.h>
 
 #include "gui_tree.h"
-#include "service.h"
+//#include "service.h"
 #include "elements.h"
 #include "keyboard.h"
 #include "ui_keys.h"
 #include "texts.h"
-#include <vector>
+#include "datastorage/fs.h"
 
-#include <chrono>
-#include <ctime>
+#define flashTest 0
+
+#define smsflashTest_size 27
+
+#if flashTest
+    #define grpFlashTest 1 // ГУК
+    #define smsFlashTest 1 // СМС
+    #define cndFlashTest 1 // УК
+#endif
 
 #define MARGIN			4
 #define BUTTON_HEIGHT	33
@@ -23,7 +36,6 @@
 
 extern MoonsGeometry ui_common_dialog_area;
 extern MoonsGeometry ui_indicator_area;
-
 
 class CGuiDialog: public GUI_Obj
 {
@@ -43,6 +55,9 @@ public:
     CGuiMenu(MoonsGeometry* area, const char *title, Alignment align);
     virtual ~CGuiMenu();
     void Draw();
+
+    sigc::signal<std::vector<uint8_t>*, uint8_t /*номер файла*/> loadVoiceMail;
+    sigc::signal<std::vector<uint8_t>*, DataStorage::FS::FileType /*тип файла*/, uint8_t /*номер файла*/> loadMessage;
 
     uint8_t focus;
     void initItems(std::list<std::string>, const char*, int);
@@ -68,6 +83,8 @@ public:
     void setTitle(const char*);
     void keyPressed(UI_Key);
     bool isEditing(){ return editing; }
+
+    void setFS(DataStorage::FS* fs);
 
     void TxCondCmdPackage(int value);    // Передача УК  пакеты
     int command_tx30 = 0;
@@ -161,11 +178,22 @@ public:
     std::string RN_KEY;
     void initEditRnKeyDialog();
 
-    //ZOND
+    //SHELDURE
     std::map<int, std::string> sheldure;
-    void initZondDialog(int focus, std::vector<std::string> &data);
+    void initSheldureDialog(int focus, std::vector<std::string> &data);
     int32_t scrollIndex = 0;
     int32_t scrollIndexMax = 0;
+
+    //files
+    uint8_t filesStage = 0;
+    uint8_t firstVisFileElem = 0;
+    DataStorage::FS::FileType fileType;
+
+    std::vector<std::string> tFiles[4];
+    uint16_t textAreaScrollIndex;
+    uint16_t filesScrollIndex;
+
+
 
     //
     bool useMode = false;
@@ -179,7 +207,6 @@ public:
     bool inVoiceMail = false;
     PGFONT voiceFont = GUI_EL_TEMP_LabelMode.font;
     PGFONT voiceDigitFont = GUI_EL_TEMP_LabelChannel.font;
-    //PGFONT voiceDigitFont = GUI_EL_TEMP_LabelMode.font;
 
     void TxVoiceDialogInitPaint(bool isClear = false);
     void VoiceDialogClearWindow();
@@ -198,6 +225,17 @@ public:
     void RxVoiceDialogStatus1(int status, bool isClear = false);
     void initRxPutOffVoiceDialogTest(int status);
 
+    uint8_t cmdCount = 0;
+    uint16_t cmdScrollIndex = 0;
+
+    bool getIsInRepeatInterval();
+    void initFileManagerDialog(uint8_t stage);
+    uint8_t filesStageFocus[3] = {0,0,0};
+
+    std::vector<uint8_t>* fileMessage;
+
+    uint8_t displayBrightness = 2; //2 - max, 0 - min
+    void initDisplayBrightnessDialog();
 private:
     GUI_Obj obj;
     MoonsGeometry menuArea;
@@ -214,6 +252,7 @@ private:
     bool editing;
 
     uint8_t vol = 100;
+    DataStorage::FS* storageFs;
 
     std::string length_message;
 };

@@ -24,6 +24,7 @@
 #include <qmtimer.h>
 #include <string.h>
 #include <time.h>
+#include <sigc++/sigc++.h>
 
 #include "gui_obj.h"
 #include "menu.h"
@@ -89,7 +90,10 @@ public:
     void setPswfStatus(bool var);
     void TxCondCmdPackage(int value);
     uint8_t* getGpsGucCoordinat(uint8_t *coord);
+    uint8_t &setSheldure();
 
+    std::vector<uint8_t>* onLoadVoiceMail(uint8_t fileNumber);
+    std::vector<uint8_t>* onLoadMessage(DataStorage::FS::FileType typeF, uint8_t fileNumber);
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
@@ -113,7 +117,7 @@ private:
     GUI_Indicator       *indicator;
     GUI_Dialog_MsgBox   *msg_box;
 
-    DataStorage::FS *storageFs;
+    DataStorage::FS *storageFs = 0;
 
     QmTimer *systemTimeTimer;
 
@@ -132,7 +136,7 @@ private:
     int getLanguage();
 
     void onSmsCounterChange(int param);
-     bool isSmsCounterFull = false;
+    bool isSmsCounterFull = false;
 
     void GucCoord();
 
@@ -168,14 +172,26 @@ private:
     //
     std::vector<int> guc_command_vector;
     int position = 0;
-    int zond_position = 0;
-    std::vector<std::string> zond_data;
+    int sheldure_position = 0;
+    std::vector<std::string> sheldure_data;
     bool pswf_status;
 
     int cntSmsRx = 0;
     int cntGucRx = 0;
     bool isSmsMessageRec = false;
     bool failFlag;
+
+    uint8_t cmdSpaceCount = 0;
+    uint8_t cmdDigitCount = 0;
+    uint8_t cmdDigitCountLast = 0;
+    bool isLastFreeSym = false;
+
+    std::vector<uint8_t> fileMessage;
+    bool flashTestOn = false;
+    std::vector<uint8_t> condMsg;
+
+
+    uint8_t SheldureMass[651];  // 50 сеансов по 13 байт + 1 байт кол-во сеансов
 };
 
 } /* namespace Ui */

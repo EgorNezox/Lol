@@ -114,10 +114,11 @@ void GUI_Element::AlignContent(){	//В зависимости от типа вы
 //+++++++++++++Label+++++++++++++++++++++
 
 GUI_EL_Label::GUI_EL_Label(LabelParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj):GUI_Element(geom, &params->element.align, &params->element.margins, parent_obj){
-	skip_text_bg_filling = false;
-	font=params->font;
-	transparent=params->transparent;
-	color_sch=params->color_sch;
+    skip_text_bg_filling = false;
+    font = params->font;
+    transparent = params->transparent;
+    transparent =true;
+    color_sch = params->color_sch;
 	SetText(text);
 	if(text!=0)PrepareContent();
 }
@@ -142,6 +143,13 @@ void GUI_EL_Label::SetText(char *text){
     }
 }
 
+void GUI_EL_Label::SetParams(LabelParams *params)
+{
+    font = params->font;
+    transparent = params->transparent;
+    color_sch = params->color_sch;
+}
+
 //-----------------------------
 
 void GUI_EL_Label::Draw(){
@@ -154,7 +162,7 @@ void GUI_EL_Label::Draw(){
 		SGUCHAR skipflags;
 		if(!transparent){
 			gsetmode(COMMON_ELEMENT_VP_MODE);
-			skipflags = GLINE;
+            skipflags = GLINE;
 		}
 		else {
             gsetmode(COMMON_ELEMENT_VP_MODE | GTRANSPERANT);
@@ -188,7 +196,9 @@ void GUI_EL_Label::CalcContentGeom(){
 
 }
 
-
+void GUI_EL_Label::SetInputFocus(bool isFocus)
+{
+}
 
 //+++++++++++++TextArea+++++++++++++++++++++
 
@@ -198,93 +208,175 @@ GUI_EL_TextArea::GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, ch
  SetText(text);
 }
 
+GUI_EL_TextArea::GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, std::vector<uint8_t> *data, GUI_Obj *parent_obj):GUI_Element(geom, &params->element.align, &params->element.margins, parent_obj){
+    this->params = *params;
+    lines_count = 0;
+    isData = true;
+    this->data = data;
+    CalcContentGeom();
+}
+
+GUI_EL_TextArea::~GUI_EL_TextArea(){
+    if (!isData)
+        delete []text;
+}
+
 //-----------------------------
 
 void GUI_EL_TextArea::SetText(char *text){
-	if(text!=NULL){
-		strcpy(this->text, text);
-	}
+    if(text!=NULL){
+        uint16_t len = strlen((const char*)text);
+        this->text = new char[len];
+        strcpy(this->text, text);
+        CalcContentGeom();
+    }
+}
+
+void GUI_EL_TextArea::copyStrFromData(char *dest, uint32_t index, uint32_t count)
+{
+ if (isData){
+    for (uint16_t i = 0; i < count; i++)
+      dest[i] = (char)data->at(index + i);
+ }
+ else{
+     strncpy(dest, &text[index], count);
+ }
+}
+
+char GUI_EL_TextArea::getChar(uint32_t index)
+{
+    if (isData)
+        if (index != data->size())
+            return (char)(data->at(index));
+        else
+            return 0;
+    else
+        return text[index];
+}
+
+uint32_t GUI_EL_TextArea::getDataSize()
+{
+    if (isData){
+       return data->size();
+    }
+    else
+       return strlen(text);
 }
 
 //-----------------------------
 
 void GUI_EL_TextArea::Draw(){
-	if(text!=0){
-		int32_t i=0, j=0,k=0,str_width=0, last_space=0, sym_to_cp=0;
+    if((text !=0 && !isData) || (data != 0 && isData)){
+        uint32_t i = 0, j = 0, k = 0, str_width = 0, last_space = 0, sym_to_cp = 0;
         MoonsGeometry local_content, line_geom;
-		char line_str[MAX_LABEL_LENGTH];
-		LabelParams label_params=params;
-		label_params.element.align.align_v=alignTop;
-		label_params.element.margins={0,0,0,0};
+        char line_str[MAX_LABEL_LENGTH];
+
+        LabelParams label_params = params;
+        label_params.element.align.align_v = alignTop;
+        label_params.element.margins = {0,0,0,0};
+
         PrepareContent();
         PrepareViewport();
-		local_content=GetContentGeomOnElem();
-		line_geom=local_content;
-		line_geom.ye=line_geom.ys+line_height-1;
-		for(i=0;i<lines_count;++i, line_geom.ys+=line_height, line_geom.ye+=line_height){
-			for(j=0, str_width=0, last_space=0;;++j,++k){
-				if(text[k]=='\n' || text[k]==0){
-					strncpy(line_str,&text[k-j],j);
-					line_str[j]=0;
+
+        local_content = GetContentGeomOnElem();
+
+        line_geom = local_content;
+        line_geom.ye = line_geom.ys + line_height-1;
+
+        uint32_t curVisLine = 0;
+
+        for(i = 0; i < lines_count; ++i, ++curVisLine)
+        {
+            for(j = 0, str_width = 0, last_space = 0 ; ; ++j, ++k){
+                if(getChar(k)== '\n' || getChar(k) == 0){
+                    copyStrFromData((char*)&line_str, k-j, j);
+                    line_str[j] = 0;
                     ++k;
                     break;
                 }
                 else{
-					if(text[k]==' '){
-						last_space=k;
+                    if(getChar(k) == ' '){
+                        last_space = k;
                     }
-					str_width+=ggetsymw(text[k]);
-					if(str_width>GEOM_W(el_geom)){
-						if(last_space==0 || text[k]==' '){
-							sym_to_cp=j;
-							strncpy(line_str,&text[k-j],sym_to_cp);
-							line_str[sym_to_cp]=0;
+                    str_width += ggetsymw(getChar(k));
+                    if(str_width > GEOM_W(el_geom)){
+                        if(last_space == 0 || getChar(k) == ' '){
+                            sym_to_cp = j;
+                            copyStrFromData((char*)&line_str, k-j, sym_to_cp);
+                            line_str[sym_to_cp] = 0;
                             ++k;
                             break;
                         }
                         else{
-							sym_to_cp=j-(k-last_space);
-							strncpy(line_str,&text[k-j],sym_to_cp);
-							line_str[sym_to_cp]=0;
-							k=last_space+1;
+                            sym_to_cp = j - (k - last_space);
+                            copyStrFromData((char*)&line_str, k-j, sym_to_cp);
+                            line_str[sym_to_cp] = 0;
+                            k = last_space + 1;
                             break;
                         }
 
                     }
                 }
             }
-                GUI_EL_Label text_line(&label_params,&line_geom,line_str,parent_obj);
+            if ((curVisLine >= visLineBegin) && (curVisLine <= visLineBegin + visLinesCount) ){
+                GUI_EL_Label text_line(&label_params, &line_geom, line_str, parent_obj);
                 text_line.Draw();
+                line_geom.ys += line_height;
+                line_geom.ye += line_height;
             }
-
         }
+        if (isScroll)
+  //      {
+        //if (direction == VDir)
+        {
+            MoonsGeometry sliderArea  = { (GXT)el_geom.xe, (GYT)el_geom.ys , (GXT)(el_geom.xe + 7), (GYT) el_geom.ye};
+            SliderParams  sliderParams = {lines_count - visLinesCount + 1, (int32_t)1, visLineBegin};
+            GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
+            slider.Draw();
+        }
+        //else
+//        {
+//                MoonsGeometry sliderArea  = { 15, 10, 150, 20};
+//                SliderParams  sliderParams = {lines_count - visLinesCount + 1, (int32_t)1, visLineBegin};
+//                GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
+//                slider.SetDirection(HDir);
+//                slider.Draw();
+//        }
+    }
 }
 
 //-----------------------------
 
 void GUI_EL_TextArea::CalcContentGeom(){
-    int32_t i = 0, lf_count=0, max_str_width=0, str_width=0, size=strlen(text), last_space=0, last_str_with=0;
-    content.W=0;
-    content.H=0;
+    int32_t lf_count=0, max_str_width=0, str_width=0, last_space=0, last_str_with=0;
+
+    int32_t size = getDataSize();
+
+    content.W = GEOM_W(el_geom);
+    content.H = GEOM_H(el_geom);
+
+    allContent.W=0;
+    allContent.H=0;
     gselfont(params.font);
-    for(i=0;i<=size;++i){ //	подсчет количества строк
-        if(text[i]==' '){
-            last_space=i;
-            last_str_with=str_width;
+
+    for( uint32_t i = 0; i <= size; ++i){ //	подсчет количества строк
+        if(getChar(i) == ' '){
+            last_space = i;
+            last_str_with = str_width;
         }
-        if(text[i]=='\n' || text[i]==0){
+        if(getChar(i) == '\n' || getChar(i) == 0){
             ++lf_count;
-            if(str_width>max_str_width){
-                max_str_width=str_width;
+            if(str_width > max_str_width){
+                max_str_width = str_width;
             }
-            str_width=0;
+            str_width =0;
         }
         else {
-            str_width+=ggetsymw(text[i]);
-            if(str_width>GEOM_W(el_geom)){		//если строка длиннее чем область элемента
+            str_width += ggetsymw(getChar(i));
+            if(str_width > GEOM_W(el_geom)){		//если строка длиннее чем область элемента
                 ++lf_count;						//cчитаем перенос строки
-                if(last_space==0 || text[i]==' '){
-                    str_width-=ggetsymw(text[i]);	//и отменяем сложение длины этого символа
+                if(last_space == 0 || getChar(i) == ' '){
+                    str_width -= ggetsymw(getChar(i));	//и отменяем сложение длины этого символа
                 }
                 else{
                     str_width=last_str_with;
@@ -300,12 +392,68 @@ void GUI_EL_TextArea::CalcContentGeom(){
             }
         }
     }
-    lines_count=lf_count;
-    line_height=ggetfh();
-	content.H=ggetfh()*lines_count;
-    content.W=max_str_width;
+    lines_count = lf_count;
+    line_height = ggetfh();
+    allContent.H = ggetfh()*lines_count;
+    allContent.W = max_str_width;
+
+    if (allContent.H > GEOM_H(el_geom) && !isScroll && isVisibleScroll)
+    {
+        el_geom.xe -= 10;
+        isScroll = true;
+        CalcContentGeom();
+    }
+    visLinesCount = (geom.ye - geom.ys) / line_height ;
 }
 
+void GUI_EL_TextArea::ScrollUp(){
+   if (visLineBegin > 0){
+       --visLineBegin;
+       Draw();
+   }
+}
+
+void GUI_EL_TextArea::ScrollDown(){
+    if (visLineBegin < lines_count - visLinesCount){
+        ++visLineBegin;
+        Draw();
+    }
+}
+
+uint32_t GUI_EL_TextArea::GetScrollIndex(){
+    return visLineBegin;
+}
+
+uint32_t GUI_EL_TextArea::SetScrollIndex(uint32_t index){
+    uint32_t oldIndex;
+
+    if (isScroll){
+        if (index <= 0 ){
+            oldIndex = 0;
+        }
+        else if (index >= lines_count - visLinesCount ){
+            oldIndex = lines_count - visLinesCount;
+        }
+        else
+            oldIndex = index;
+
+        if (visLineBegin != oldIndex){
+            visLineBegin = oldIndex;
+        }
+    }
+    return visLineBegin;
+}
+
+void GUI_EL_TextArea::SetInputFocus(bool isFocus)
+{
+
+}
+
+void GUI_EL_TextArea::setVisibleScroll(bool isVisible)
+{
+    isVisibleScroll = isVisible;
+    PrepareContent();
+}
 
 
 
@@ -328,6 +476,10 @@ void GUI_EL_Icon::CalcContentGeom(){
 void GUI_EL_Icon::Draw(){
 	PrepareViewport();
 	gputsym(content.x,content.y, icon);
+}
+
+void GUI_EL_Icon::SetInputFocus(bool isFocus)
+{
 }
 
 //-----------------------------
@@ -386,6 +538,10 @@ void GUI_EL_Battery::CalcContentGeom(){
 	content.W=BATTERY_W;
 }
 
+void GUI_EL_Battery::SetInputFocus(bool isFocus)
+{
+}
+
 //+++++++++++++VolumeTuner+++++++++++++++++++++
 
 GUI_EL_VolumeTuner::GUI_EL_VolumeTuner(VolumeTunerParams* params, MoonsGeometry* geom, GUI_Obj* parent_obj, uint8_t level) :
@@ -437,6 +593,10 @@ void GUI_EL_VolumeTuner::Draw(){
 void GUI_EL_VolumeTuner::CalcContentGeom(){
 	content.H = GEOM_H(el_geom);
 	content.W = GEOM_W(el_geom);
+}
+
+void GUI_EL_VolumeTuner::SetInputFocus(bool isFocus)
+{
 }
 
 
@@ -542,7 +702,9 @@ void GUI_EL_SpinBox::CalcContentGeom(){
 	content.H=label_h+gsymh(up_arrow)+gsymh(down_arrow)+4;//+4 это марджины иконок
 }
 
-
+void GUI_EL_SpinBox::SetInputFocus(bool isFocus)
+{
+}
 
 
 //+++++++++++++Window+++++++++++++++++++++
@@ -585,7 +747,9 @@ void GUI_EL_Window::CalcContentGeom()
     content.W = GEOM_W(el_geom);
 }
 
-
+void GUI_EL_Window::SetInputFocus(bool isFocus)
+{
+}
 
 
 //+++++++++++++Menu Item+++++++++++++++++++++
@@ -623,7 +787,23 @@ void GUI_EL_MenuItem::CalcContentGeom()
     content.H = GEOM_H(el_geom) - margins.Top-margins.Bottom;
 }
 
-
+void GUI_EL_MenuItem::SetInputFocus(bool isFocus)
+{
+    MenuItemParams *item_params;
+    if (isFocus)
+    {
+         item_params =&GUI_EL_TEMP_ActiveMenuItem;
+         GUI_EL_Label::SetParams(&item_params->label_params);
+    }
+    else
+    {
+        item_params =&GUI_EL_TEMP_DefaultMenuItem;
+        item_params->label_params.element.align = {alignHCenter, alignVCenter};
+        item_params->label_params.transparent = true;
+        item_params->icon_params.icon = sym_blank;
+        GUI_EL_Label::SetParams(&item_params->label_params);
+    }
+}
 
 
 //+++++++++++++Slider+++++++++++++++++++++
@@ -696,6 +876,10 @@ void GUI_EL_Slider::CalcContentGeom(){
 	content.H=GEOM_H(el_geom)- margins.Top-margins.Bottom;
 }
 
+void GUI_EL_Slider::SetInputFocus(bool isFocus)
+{
+}
+
 //-----------------------------
 
 GUI_EL_InputString::GUI_EL_InputString(LabelParams *params, MoonsGeometry *geom, char *text, int length, int position, GUI_Obj *parrent_obj):GUI_EL_Label(params, geom, text, parrent_obj){
@@ -730,9 +914,6 @@ void GUI_EL_InputString::Draw(){
 void GUI_EL_InputString::CalcContentGeom(){
 	GUI_EL_Label::CalcContentGeom();
 }
-
-
-
 
 //+++++++++++++Button+++++++++++++++++++++
 
@@ -781,7 +962,6 @@ void GUI_EL_Bar::Draw(){
 	if(bar_len>0){
 		groundrect(content.x+2,content.y+2,content.x+2+bar_len,CONTENT_YE(content)-2,0,GFILL);
 	}
-
 }
 
 //-----------------------------
@@ -797,6 +977,9 @@ void GUI_EL_Bar::CalcContentGeom(){
 	content.H=GEOM_H(el_geom)- margins.Top-margins.Bottom;
 }
 
+void GUI_EL_Bar::SetInputFocus(bool isFocus)
+{
+}
 
 //+++++++++++++Bar with marked lvl+++++++++++++++++++++
 
@@ -962,3 +1145,223 @@ void GUI_Painter::DrawText( unsigned char x,
 //{
 //    DrawText(vp.xs,vp.ys,vp.xe,vp.ye,coord.x,coord.y,font,text,color_scheme,drawMode);
 //}
+
+//-------------------------------------------------------
+
+GUI_EL_ScrollArea::GUI_EL_ScrollArea(MoonsGeometry *geom,
+                                     Alignment *align,
+                                     Margins *margins,
+                                     GUI_Obj *parent_obj
+                                     ):
+                                        GUI_Element(geom,
+                                                    align,
+                                                    margins,
+                                                    parent_obj){
+visibleElemsCount = 0;
+visElemInd.begin = 0;
+visElemInd.end = 0;
+focus = 0;
+isVScroll = false;
+PrepareContent();
+}
+
+GUI_EL_ScrollArea::~GUI_EL_ScrollArea()
+{
+    for (uint16_t i = 0; i < elements.size(); i++)
+        delete elements[i];
+}
+
+void GUI_EL_ScrollArea::Draw(){
+
+
+    PrepareContent();
+    PrepareViewport();
+    for (uint16_t i = visElemInd.begin, c = 0; i < visElemInd.end; i++, c++ )
+    {
+        MoonsGeometry geom_prev;
+        if (i == visElemInd.begin)
+        {
+           geom_prev = {el_geom.xs,0,el_geom.xe,el_geom.ys};
+        }
+        else
+        {
+           GUI_Element *elemPrev = elements[i-1];
+           geom_prev = elemPrev->el_geom;
+        }
+        GUI_Element *elem = elements[i];
+        if (elem)
+          {
+            int32_t h = GEOM_H(elem->el_geom);
+            elem->el_geom.xs = geom_prev.xs;
+            elem->el_geom.xe = geom_prev.xe;
+            elem->el_geom.ys = geom_prev.ye;
+            elem->el_geom.ye = elem->el_geom.ys + h;
+            elem->Draw();
+          }
+    }
+
+   // vector<GUI_Element>::iterator i = elements[visElemInd.begin];
+
+    //GUI_Element* i = elements[visElemInd.begin];
+ //   while(i != elements[visElemInd.end])
+  //  {
+        //GUI_Element* el = ((GUI_Element*)*i);
+//        i->Draw();
+ //       i++;
+ //   }
+    if (isVScroll)
+    {
+        MoonsGeometry sliderArea  = { (GXT)el_geom.xe,(GYT)el_geom.ys , (GXT)(el_geom.xe + 10), (GYT)el_geom.ye};
+        SliderParams  sliderParams = {elements.size(), 1, focus};
+        GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this->parent_obj);
+        slider.Draw();
+    }
+}
+
+void GUI_EL_ScrollArea::ClearCanvas()
+{
+ //ClearCanvasFull();
+}
+
+void GUI_EL_ScrollArea::SetInputFocus(bool isFocus)
+{
+
+}
+
+void GUI_EL_ScrollArea::CalcContentGeom(){
+    content.W = GEOM_W(el_geom) - margins.Left-margins.Right;
+    content.H = GEOM_H(el_geom) - margins.Top-margins.Bottom;
+
+    allContent.H = 0;
+    allContent.W = 0;
+
+    std::vector<GUI_Element*>::iterator i = elements.begin();
+    while(i != elements.end())
+    {
+        GUI_Element*  el = ((GUI_Element*)*i);
+
+        MoonsGeometry geom = el->el_geom;
+        allContent.H += GEOM_H(geom);
+        allContent.W += GEOM_W(geom);
+
+        i++;
+    }
+    if (allContent.H > GEOM_H(el_geom) && !isVScroll)
+    {
+        el_geom.xe -= 10;
+        isVScroll = true;
+    }
+    visibleElemsCount = getVisElemCount();
+//    if (focus >= visibleElemsCount)
+//    {
+//        if (focus < elements.size() - visibleElemsCount)
+//        {
+//            visElemInd.end = focus;
+//             visElemInd.begin = visElemInd.end - visibleElemsCount;
+//        }
+//       else
+//        {
+//            visElemInd.end = elements.size();
+//            visElemInd.begin = visElemInd.end - visibleElemsCount;
+//        }
+//    }
+//    else
+//    {
+//        visElemInd.begin = 0;
+//        visElemInd.end = visibleElemsCount;
+//    }
+
+    visElemInd.end = visElemInd.begin + visibleElemsCount;
+}
+
+uint32_t GUI_EL_ScrollArea::getVisElemCount(){
+    int32_t h = el_geom.ys, visCount = 0;
+    for (int32_t i = 0 ; i < elements.size() ; i++)
+    {
+        GUI_Element *elem = elements[i];
+
+        if (h + GEOM_H(elem->el_geom) < el_geom.ye)
+        {
+            h += GEOM_H(elem->el_geom);
+            visCount++;
+        }
+        else
+            break;
+    }
+    return visCount;
+}
+
+uint32_t GUI_EL_ScrollArea::setFirstVisElem(const int32_t elemIndex)
+{
+
+    if (elemIndex >= 0 && elemIndex < elements.size() - visibleElemsCount)
+    {
+        visElemInd.begin = elemIndex;
+        visElemInd.end = visElemInd.begin + visibleElemsCount;
+    }
+    else
+    {
+        if (elemIndex < 0 )
+            visElemInd.begin = 0;
+        if (elemIndex > elements.size() - visibleElemsCount)
+            visElemInd.begin = elements.size() - visibleElemsCount;
+    }
+    return visElemInd.begin;
+}
+
+uint32_t GUI_EL_ScrollArea::getFirstVisElem()
+{
+    return visElemInd.begin;
+}
+
+void  GUI_EL_ScrollArea::addGuiElement(GUI_Element *element){
+    elements.push_back(element);
+    CalcContentGeom();
+}
+
+void  GUI_EL_ScrollArea::removeGuiElement(GUI_Element *element){
+    //elements.erase(element);
+}
+
+int GUI_EL_ScrollArea::incFocus(){
+ setFocus(++focus);
+ return focus;
+}
+
+int GUI_EL_ScrollArea::decFocus(){
+  setFocus(--focus);
+  return focus;
+}
+
+void GUI_EL_ScrollArea::setFocus(const uint32_t elemIndex){
+    PrepareContent();
+    if (elemIndex >= 0 && elemIndex < elements.size())
+    {
+            if (elemIndex >= visElemInd.end)
+            {
+                visElemInd.end = elemIndex;
+                visElemInd.begin = visElemInd.end - visibleElemsCount + 1;
+            }
+            if (elemIndex < visElemInd.begin)
+            {
+                visElemInd.begin = elemIndex;
+                visElemInd.end = visElemInd.begin + visibleElemsCount;
+            }
+
+        GUI_Element* elem = (GUI_Element*)elements[focus];
+        elem->SetInputFocus(false);
+        focus  = elemIndex;
+        elem = (GUI_Element*)elements[focus];
+        elem->SetInputFocus();
+
+    //Draw();
+    }
+}
+
+void GUI_EL_ScrollArea::activateElement(const uint32_t elemIndex){
+
+}
+
+void GUI_EL_ScrollArea::activateFocusElement(){
+
+}

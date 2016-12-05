@@ -12,15 +12,12 @@
 #include <iostream>
 #include <string.h>
 #include <string>
-//#include "../../../system/reset.h"
-
+#include "../../../system/reset.h"
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
-
-
 
 namespace Ui {
 
@@ -68,6 +65,10 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     {
         menu = new CGuiMenu(&ui_menu_msg_box_area, mainMenu[0], {alignHCenter,alignTop});
     }
+    menu->setFS(storageFs);
+
+    menu->loadVoiceMail.connect(sigc::mem_fun(this, &Service::onLoadVoiceMail));
+    menu->loadMessage.connect(sigc::mem_fun(this, &Service::onLoadMessage));
 
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
@@ -108,19 +109,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     systemTimeTimer->start();
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
 #endif
-
-    for(int i = 1; i< 10; i++)
-    {
-        std::string s(callSubMenu[i%4]);
-        char str[2];  sprintf(str,"%d",i);
-        s.append(" ").append(str).append(":00 ");
-        char str2[10];
-        s.append("\n ");
-        sprintf(str2,"%i",i*210000);
-        s.append(str2);
-        s.append(freq_hz);
-        zond_data.push_back(s);
-    }
 
     menu->supressStatus = 0;
     cntSmsRx = 0;
@@ -363,10 +351,12 @@ Service::~Service() {
     delete keyboard;
     delete chnext_bt;
     delete chprev_bt;
-    delete chnext_bt;
-    delete chprev_bt;
+//    delete chnext_bt;
+//    delete chprev_bt;
     delete main_scr;
     delete indicator;
+    fileMessage.clear();
+    condMsg.clear();
 }
 
 void Service::setNotification(NotificationType type)
@@ -923,6 +913,18 @@ void Service::keyPressed(UI_Key key)
                         param[2] +=32;
                         voice_service->TurnPSWFMode(1,param[0],param[2],0); // Ñ ÐºÐ²Ð¸Ñ‚Ð°Ð½Ñ†Ð¸ÐµÐ¹
                     }
+                    if ((storageFs > 0) && (param[0] != 0))
+                    {
+                        char sym[4];
+                        sprintf(sym,"%d",param[0]);
+                        if (param[0] < 10) sym[1] = 0;
+                        sym[2] = 0;
+                        condMsg.clear();
+                        condMsg.push_back((uint8_t)sym[0]);
+                        condMsg.push_back((uint8_t)sym[1]);
+                        condMsg.push_back((uint8_t)sym[2]);
+                        storageFs->setCondCommand(&condMsg);
+                    }
 
 
                     for(auto &k: estate.listItem)
@@ -1027,6 +1029,7 @@ void Service::keyPressed(UI_Key key)
 
                     guiTree.backvard();
                     menu->focus = 0;
+
                 }
                 else if ( menu->groupCondCommStage == 1 ||
                           menu->groupCondCommStage == 3 ||
@@ -1036,13 +1039,33 @@ void Service::keyPressed(UI_Key key)
 
                     if ( menu->groupCondCommStage == 3 )
                         (*iter)++;
-                    if ( menu->groupCondCommStage == 4 )
-                        (*iter)++; (*iter)++;
+                    if ( menu->groupCondCommStage == 4 && menu->cmdCount){
+                        (*iter)++;(*iter)++;
 
-                    if ( (*iter)->inputStr.size() > 0 )
-                    {
-                           (*iter)->inputStr.pop_back();
+                        #define isCmdArrNotEmpty ( (*iter)->inputStr.size() > 0 )
+                        #define lastSym ( (*iter)->inputStr[ (*iter)->inputStr.size()-1 ] )
+                        #define isSpace(c) ( (c == ch_key0[0]) ? true : false )
+                        #define deleteLastSym ( (*iter)->inputStr.pop_back() )
+                        #define deleteSpace if (isCmdArrNotEmpty) { if (isSpace(lastSym)) deleteLastSym; }
+
+                        deleteSpace;
+                        uint8_t spaceCount = 0;
+                        while (spaceCount < 1) {
+                            if (isCmdArrNotEmpty) {
+                                spaceCount += isSpace(lastSym);
+                                if (!spaceCount) deleteLastSym;
+                                if (!isCmdArrNotEmpty) spaceCount = 1;
+                            }
                         }
+                        if (menu->cmdCount) {
+                            if (menu->cmdCount == 100) isLastFreeSym = false;
+                            menu->cmdCount--;
+                            cmdDigitCount = 0;
+                            if (menu->cmdCount == 0)
+                                cmdSpaceCount = 0;
+                        }
+                        menu->cmdScrollIndex += 20;
+                    }
                     else
                     {
                         menu->groupCondCommStage--;
@@ -1084,9 +1107,12 @@ void Service::keyPressed(UI_Key key)
                     freqs = mas[0];
                     int speed = 0;//atoi(mas[1]);
                     guc_command_vector.clear();
+
                     parsingGucCommand((uint8_t*)str);
                     voice_service->saveFreq(freqs);
                     voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
+                    if (storageFs > 0)
+                        storageFs->setGroupCondCommand((uint8_t*)str,strlen(str));
 #else
                     for (auto &k: estate.listItem)
                         k->inputStr.clear();
@@ -1115,6 +1141,16 @@ void Service::keyPressed(UI_Key key)
                 {
                     // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 }
+                break;
+            }
+            case keyUp:
+            {
+               if (menu->cmdScrollIndex) menu->cmdScrollIndex--;
+               break;
+            }
+            case keyDown:
+            {
+                menu->cmdScrollIndex++;
                 break;
             }
             default:
@@ -1161,23 +1197,74 @@ void Service::keyPressed(UI_Key key)
 
                 if ( menu->groupCondCommStage == 4 )
                 {
-                    std::string* commands;
-                    (*iter)++; (*iter)++;
+                    std::string* commands; (*iter)++; (*iter)++;
                     commands = &(*iter)->inputStr;
 
-                    if ( key > 5 && key < 17 && commands->size() < 100 )
+                    //if ( key > 5 && key < 17 && (menu->cmdCount < 100 || ( menu->cmdCount == 100 && (cmdDigitCount == 1 || cmdSpaceCount == 1) )) )
+                    if ( key > 5 && key < 17 && ((menu->cmdCount < 101 && !isLastFreeSym) || (menu->cmdCount == 100 && isLastFreeSym)) )
                     {
-                        if ( key != key0 )
+                        if ( key != key0)
                         {
-                            commands->push_back( (char)(42 + key) );
-                            }
-                        else
-                        {
-                            menu->inputGroupCondCmd(estate);
-                            }
-                           }
-                                }
+                            if (cmdSpaceCount == 2)
+                               commands->pop_back();                               
 
+                            commands->push_back( (char)(42 + key) );
+                            cmdDigitCount++;
+                            cmdSpaceCount = 0;
+                            if (cmdDigitCount == 1){
+                                menu->cmdCount++;               // inc comCount
+                                if (menu->cmdCount == 100) isLastFreeSym = true;
+                            }
+                        }
+                        else  // key0
+                        {
+                            bool isRepeat = menu->getIsInRepeatInterval();
+                            if (cmdSpaceCount == 0 ||
+                               (cmdSpaceCount == 1 && cmdDigitCount == 0 && !isRepeat) ||
+                               (cmdDigitCountLast == 2 && cmdSpaceCount == 1 && isRepeat))
+                            isRepeat = false;
+                            bool isFirst = !isRepeat;
+
+                            if (isFirst){                                             //if first time key0
+                               if (cmdSpaceCount < 2){                              // if spaces < 2
+                                   commands->push_back(ch_key0[0]);                     // write space
+                                   cmdSpaceCount++;                                     // inc spaceCount
+                                   if (cmdDigitCount == 1){                             // if DigitCount == 1
+                                       cmdDigitCountLast = cmdDigitCount;                   // remember DigitCount
+                                       cmdDigitCount = 0;                                   // DigitCount = 0
+                                   }
+                               }
+                            }
+                            if (isRepeat){                                     // if Repeat key0
+                                commands->pop_back();                               // delete space
+                                commands->push_back(ch_key0[1]);                    // write 0
+
+                                if (cmdSpaceCount == 2 || (menu->cmdCount == 0 && cmdSpaceCount == 1)){
+                                    menu->cmdCount++;
+                                    if (menu->cmdCount == 100) isLastFreeSym = true;
+                                }
+                                cmdSpaceCount = 0;                                  // spaceCount = 0
+                                cmdDigitCount++;                                    // inc DigitCount
+
+                                if (cmdDigitCountLast == 1){                    // if DigitCountLast == 1
+                                    commands->push_back(ch_key0[0]);                 // write space
+                                    cmdDigitCountLast = 2;                          // DigitCountLast = 2
+                                    cmdDigitCount = 0;                              // DigitCount = 0;
+                                    cmdSpaceCount = 1;
+                                }
+                           }
+                        }
+
+                        if (cmdDigitCount == 2){ // if DigitCount == 2
+                          commands->push_back(ch_key0[0]);                  // write space
+                          cmdSpaceCount = 1;                                // spaceCount = 1
+                          cmdDigitCountLast = cmdDigitCount;                // remember DigitCount
+                          cmdDigitCount = 0;                                // DigitCount = 0
+
+                        }
+                    }
+                    menu->cmdScrollIndex += 20; // with reserve to scroll max down. on set cmdScrollIndex to textarea it do correct
+                }
                 break;
             }
             }
@@ -1233,12 +1320,19 @@ void Service::keyPressed(UI_Key key)
                 if (key == keyBack)
                 {
                     headset_controller->stopSmartRecord();
+                	Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
+                    if (storageFs > 0)
+                        storageFs->setVoiceMail(&message);
                     menu->putOffVoiceStatus--;
                 }
 #ifndef _DEBUG_
                 if (key == keyEnter) // && STATUS OK
                 {
                     headset_controller->stopSmartRecord();
+                    Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
+                    if (storageFs > 0)
+                        storageFs->setVoiceMail(&message);
+
 
                     if ( headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_READY )
                         menu->putOffVoiceStatus++;
@@ -1277,7 +1371,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 3:
-            {// Ð²Ð²Ð¾Ð´ Ð°Ð´Ñ€ÐµÑÐ° Ð¾Ð»ÑƒÑ‡Ð°Ñ‚ÐµÐ»ÑŒ
+            {// ââîä àäðåñà ïîëó÷àòåëü
                 if ( key > 5 && key < 16 && menu->voiceAddr.size() < 2 )
                 {
                     menu->voiceAddr.push_back((char)(42+key));
@@ -1551,6 +1645,8 @@ void Service::keyPressed(UI_Key key)
                                     voice_service->TurnSMSMode(param[2], (char*)msg.c_str(),atoi(dstAddr.c_str())); //retr,msg,radr
                                 else
                                     voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
+                                if (storageFs > 0)
+                                    storageFs->setSms((uint8_t*)msg.c_str(),msg.size());
                                 for(auto &k: estate.listItem)
                                     k->inputStr.clear();
                                 menu->smsTxStage++;
@@ -1932,6 +2028,33 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::display:
+        {
+            if (key == keyLeft )
+            {
+                if (menu->displayBrightness > 0)
+                menu->displayBrightness--;
+
+            }
+            if ( key == keyRight)
+            {
+                if (menu->displayBrightness < 2)
+                menu->displayBrightness++;
+
+            }
+            if ( key == keyBack)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+
+            }
+            if (key == keyEnter)
+            {
+                guiTree.backvard();
+                menu->focus = 0;
+            }
+            break;
+        }
         case GuiWindowsSubType::aruarmaus:
         {
             if (key == keyUp  )
@@ -2244,7 +2367,7 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
-        case  GuiWindowsSubType::zond:
+        case  GuiWindowsSubType::sheldure:
         {
             if ( key == keyEnter)
             {
@@ -2264,9 +2387,9 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyDown)
             {
-                if ( zond_data.size() != 0 )
+                if ( sheldure_data.size() != 0 )
                 {
-                    if ( menu->focus < zond_data.size()-1)
+                    if ( menu->focus < sheldure_data.size()-1)
                         menu->focus++;
                 }
             }
@@ -2330,6 +2453,108 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::filetree:
+        {
+            if ( key == keyEnter)
+            {
+                if (menu->filesStage == 0){
+                    menu->fileType = (DataStorage::FS::FileType)menu->filesStageFocus[0];
+                     if (storageFs > 0)
+                          storageFs->getFileNamesByType(&menu->tFiles[menu->fileType], menu->fileType);
+                }
+
+                if (menu->filesStage == 1){
+                    switch (menu->fileType) {
+                    case DataStorage::FS::FT_SMS:
+                    case DataStorage::FS::FT_CND:
+                    case DataStorage::FS::FT_GRP:
+                        if (menu->tFiles[menu->fileType].size() > 0)
+                            menu->fileMessage = onLoadMessage(menu->fileType, menu->filesStageFocus[1]);
+                        break;
+                    case DataStorage::FS::FT_VM:
+                        if (menu->tFiles[menu->fileType].size() > 0)
+                            menu->fileMessage = onLoadVoiceMail(menu->filesStageFocus[1]);
+                    default:
+                        break;
+                    }
+                }
+
+                switch (menu->filesStage){
+                case 0:
+                    menu->filesStage++; break;
+                case 1:
+                    if (menu->tFiles[menu->fileType].size() > 0)
+                        menu->filesStage++;
+                    break;
+                }
+            }
+            if ( key == keyBack)
+            {
+                if (menu->filesStage > 0)
+                   menu->filesStage--;
+                else
+                {
+                   guiTree.backvard();
+                   menu->focus = 7;
+                   menu->offset = 5;
+                }
+            }
+            if (key == keyUp)
+            {
+                switch(menu->filesStage){
+                case 0:
+                case 1:
+                    if (menu->filesStageFocus[menu->filesStage] > 0)
+                        menu->filesStageFocus[menu->filesStage]--;
+                    break;
+                case 2:
+                    menu->textAreaScrollIndex--;
+                    break;
+                }
+            }
+            if (key == keyDown)
+            {
+                switch (menu->filesStage){
+                case 0:
+                    if (menu->filesStageFocus[menu->filesStage] < 3)
+                        menu->filesStageFocus[menu->filesStage]++;
+                    break;
+                case 1:
+                    if (menu->filesStageFocus[menu->filesStage] < menu->tFiles[menu->fileType].size()-1)
+                        menu->filesStageFocus[menu->filesStage]++;
+                    break;
+                case 2:
+                    menu->textAreaScrollIndex++;
+                    break;
+                }
+            }
+            if (key == keyRight)
+            {
+                if (menu->filesStage == 0)
+                switch (menu->filesStageFocus[menu->filesStage]){
+                    case 0:
+                        #if smsFlashTest
+                            flashTestOn = true;
+                            smsMessage(smsflashTest_size);
+                        #endif
+                    break;
+
+                    case 2:
+                        #if cndFlashTest
+                            FirstPacketPSWFRecieved(42);
+                        #endif
+                    break;
+
+                    case 3:
+                        #if grpFlashTest
+                            gucFrame(0);
+                        #endif
+                    break;
+                }
+            }
+            break;
+        }
+
         default:
             break;
         }
@@ -2370,11 +2595,23 @@ void Service::FirstPacketPSWFRecieved(int packet)
     {
 //    	guiTree.resetCurrentState();
 //    	drawMainWindow();
-
-        char sym[64];
+        char sym[3];
         sprintf(sym,"%d",packet);
+
         guiTree.append(messangeWindow, "Recieved packet ", sym);
         msgBox( "Recieved packet ", (int)packet );
+
+        if (storageFs > 0){
+
+            if (packet < 10) sym[1] = 0;
+            sym[2] = 0;
+            condMsg.clear();
+            condMsg.push_back((uint8_t)sym[0]);
+            condMsg.push_back((uint8_t)sym[1]);
+            condMsg.push_back((uint8_t)sym[2]);
+
+            storageFs->setCondCommand(&condMsg);
+        }
     }
     else if ( packet > 99)
     {
@@ -2747,6 +2984,11 @@ void Service::drawMenu()
             menu->initSuppressDialog();
             break;
         }
+        case GuiWindowsSubType::display:
+        {
+            menu->initDisplayBrightnessDialog();
+            break;
+        }
         case GuiWindowsSubType::aruarmaus:
         {
             menu->initAruarmDialog();
@@ -2762,9 +3004,50 @@ void Service::drawMenu()
             menu->initEditRnKeyDialog();
             break;
         }
-        case GuiWindowsSubType::zond:
+        case GuiWindowsSubType::sheldure:
         {
-            menu->initZondDialog(menu->focus,zond_data);
+            sheldure_data.clear();
+            if (SheldureMass[0] > 0 && SheldureMass[0] <= 50)
+            {
+            	int sheldure_size = SheldureMass[0];
+					for(int i = 0; i < sheldure_size; i++)
+					{
+						std::string s;
+						switch (SheldureMass[ 1 + (i * 13) ])   // Ðåæèì
+						{
+						case 0:
+							s.append(callSubMenu[0]);
+            break;
+						case 1:
+							s.append(callSubMenu[1]);
+							break;
+						case 2:
+							s.append(callSubMenu[2]);
+							break;
+						case 3:
+							s.append(callSubMenu[3]);
+							break;
+        }
+						(SheldureMass[1+(i * 13)] % 2 == 0) ? s.append("   ") : s.append("  ");
+
+						for(int j = 0; j < 5; j++)
+							s.push_back(SheldureMass[ 2 + (i*13) + j]); // Âðåìÿ
+						s.append("\n ");
+						int frec = 0;
+						for(int k = 3; k >= 0; k--)
+						{
+							frec += (uint8_t)(SheldureMass[ 10 + (i*13) + 3 - k]) << k*8;
+						}
+						std::string ch;
+						sprintf((char*)ch.c_str(),"%d",frec);
+						for(int j = 0; j < 7; j++)
+							s.push_back(ch[j]);
+						s.append(freq_hz);
+						sheldure_data.push_back(s);
+					}
+            }
+
+            menu->initSheldureDialog(menu->focus,sheldure_data);
             break;
         }
         case GuiWindowsSubType::voiceMode:
@@ -2775,6 +3058,13 @@ void Service::drawMenu()
         case GuiWindowsSubType::channelEmissionType:
         {
             menu->initSelectChEmissTypeParameters(menu->ch_emiss_type);
+            break;
+        }
+        case GuiWindowsSubType::filetree:
+        {
+            if (!flashTestOn)
+                menu->initFileManagerDialog(menu->filesStage);
+            flashTestOn = false;
             break;
         }
         default:
@@ -2837,7 +3127,7 @@ void Service::parsingGucCommand(uint8_t *str)
     int cnt = 0;
 
     int len = strlen((const char*)str);
-    for(int i = 0; i<=len;i++){
+    for(int i = 0; i <= len; i++){
         if ((str[i] == ' ') || (len == i))
         {
             if (i - index == 2)
@@ -2845,11 +3135,11 @@ void Service::parsingGucCommand(uint8_t *str)
             if (i - index == 1)
                 number[1] = '\0';
 
-            memcpy(number,&str[index],i - index);
+            memcpy(number, &str[index], i - index);
             guc_command_vector.push_back(atoi(number));
             ++cnt;
-            for(int j = 0; j<3;j++) number[j] = '\0';
-            index = i+1;
+            for(int j = 0; j < 3; j++) number[j] = '\0';
+            index = i + 1;
         }
     }
 }
@@ -2898,48 +3188,105 @@ void Service::setCoordDate(Navigation::Coord_Date date)
 }
 
 void Service::gucFrame(int value)
-{
-	const char *sym = "Recieved packet for station\0";
-	vect = voice_service->getGucCommand();
+{       
+#if grpFlashTest
 
+   const char *sym = "Recieved packet for station\0";
 
-	bool isCoord = voice_service->getIsGucCoord();
-	uint8_t size = vect[0];
+   std::string gucText = "42 1 2 3 4 5 6 7 8 9 10 10.12.13.100 11.13.14.100";
+   uint16_t size = gucText.size() + 1;
+   uint8_t gucCommands[size];
+   //for (uint8_t i = 0; i < size; i++)
+  //   gucText[i] = gucText[i];
+   memcpy(&gucCommands[0], &gucText[0], size);
+   gucCommands[size] = 0;
 
-	char longitude[14]; longitude[12] = '\n';
-	char latitude[14]; latitude[12] = '\0';
-	char coords[26];
-	if (isCoord)
-	{
-		// uint8_t coord[9] = {0,0,0,0,0,0,0,0,0};
-		// getGpsGucCoordinat(coord);
-		sprintf(longitude, "%02d.%02d.%02d.%03d", vect[size+1],vect[size+2],vect[size+3],vect[size+4]);
-		sprintf(latitude, "%02d.%02d.%02d.%03d", vect[size+5],vect[size+6],vect[size+7],vect[size+8]);
-		memcpy(&coords[0],&longitude[0],13);
-		memcpy(&coords[13],&latitude[0],13);
-		coords[12] = '\n';
-	}
-	else
-	{
-		//std::string str = std::string(coordNotExistStr);
-		//memcpy(&coords[0],&str[0],str.size());
+   char ch[3];
+   sprintf(ch, "%d", gucCommands[position]);
+   ch[2] = '\0';
 
-		// memcpy(&coords[0],&coordNotExistStr[0],25);
-		// coords[25]='\0';
-	}
+   char coords[26];
+   memcpy(&coords[0], &gucText[24], 25);
+   coords[25] = 0;
 
-	if (vect[0] != '\0')
-	{
-		char ch[3];
-		sprintf(ch, "%d", vect[position]);
-		ch[2] = '\0';
+   guiTree.append(messangeWindow, sym, ch);
+   msgBox( titleGuc, gucCommands[position], size, position, (uint8_t*)&coords );
+   if (storageFs > 0)
+   {
+       uint16_t fullSize = size;
+       storageFs->setGroupCondCommand((uint8_t*)&gucCommands, fullSize);
+   }
 
-		guiTree.append(messangeWindow, sym, ch);
-		msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
-	}
+#else
+
+    const char *sym = "Recieved packet for station\0";
+    vect = voice_service->getGucCommand();
+
+    bool isCoord = voice_service->getIsGucCoord();
+    uint8_t size = vect[0];
+
+    char longitude[14]; longitude[12] = '\n';
+    char latitude[14]; latitude[12] = '\0';
+    char coords[26];
+    if (isCoord)
+    {
+        // uint8_t coord[9] = {0,0,0,0,0,0,0,0,0};
+        // getGpsGucCoordinat(coord);
+        sprintf(longitude, "%02d.%02d.%02d.%03d", vect[size+1],vect[size+2],vect[size+3],vect[size+4]);
+        sprintf(latitude, "%02d.%02d.%02d.%03d", vect[size+5],vect[size+6],vect[size+7],vect[size+8]);
+        memcpy(&coords[0],&longitude[0],13);
+        memcpy(&coords[13],&latitude[0],13);
+        coords[12] = '\n';
+    }
+    else
+    {
+        //std::string str = std::string(coordNotExistStr);
+        //memcpy(&coords[0],&str[0],str.size());
+
+        // memcpy(&coords[0],&coordNotExistStr[0],25);
+        // coords[25]='\0';
+    }
+
+    if (vect[0] != 0)
+    {
+        char ch[3];
+        sprintf(ch, "%d", vect[position]);
+        ch[2] = '\0';
+
+        guiTree.append(messangeWindow, sym, ch);
+        msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
+        if (storageFs > 0)
+        {
+        	uint8_t len = 0;
+        	for(int i = 1; i<=size; i++)
+        	len	+= (vect[i] > 9) ? 3 : 2;
+
+            uint16_t fullSize = isCoord ? len + 26 : len;
+            uint8_t cmdv[fullSize];
+            char cmdSym[3];
+            uint8_t prevCnt = 1;
+
+            for (uint8_t cmdCount = 1; cmdCount <= size; cmdCount++){
+
+                sprintf(cmdSym, "%d", vect[cmdCount]);
+                bool isOneSymCmd = false;
+                if (vect[cmdCount] < 10){
+                  isOneSymCmd = true;
+                  cmdSym[1] = ' ';
+                }
+                cmdSym[2] = ' ';
+                memcpy(&cmdv[prevCnt-1], &cmdSym[0], isOneSymCmd ? 2 : 3);
+                prevCnt  += (isOneSymCmd ? 2 : 3);
+            }
+
+            if (isCoord)
+                memcpy(&cmdv[len], &coords[0], 26);
+            storageFs->setGroupCondCommand((uint8_t*)&cmdv, fullSize);
+        }
+    }
+
+#endif
 }
-
-
 
 void Service::updateSystemTime()
 {
@@ -2973,11 +3320,14 @@ void Service::updateSystemTime()
 void Service::smsMessage(int value)
 {
     char sym[value];//TODO:
-    for(int i = 0; i<value;++i) sym[i] = '\0';
+    for(int i = 0; i < value; ++i) sym[i] = '\0';
 
-    //std::string test = "azbuka morze";
-   // memcpy(sym, &test[0] , 12);
+#if smsFlashTest
+    std::string test = "test write to flash memory\0";
+    memcpy(sym, &test[0] , value);
+#else
     memcpy(sym, voice_service->getSmsContent(), value);
+#endif
     sym[value-1] = '\0';
 
     const char *text;
@@ -2989,6 +3339,9 @@ void Service::smsMessage(int value)
     std::string text_str = text;
     menu->smsTxStage = 4;
     menu->initTxSmsDialog(title,text_str);
+
+    if (storageFs > 0)
+        storageFs->setSms((uint8_t*)&sym[0], value);
 }
 
 void Service::updateAleVmProgress(uint8_t t)
@@ -3019,8 +3372,6 @@ void Service::msgBoxSms(const char *text)
 	msg_box->Draw_Sms();
 
 }
-
-
 
 void Service::updateAleState(Multiradio::MainServiceInterface::AleState state)
 {
@@ -3067,6 +3418,66 @@ void Service::TxCondCmdPackage(int value)
         menu->txCondCmdStage = 6;
         menu->initCondCommDialog((CEndState&)guiTree.getCurrentState());
     }
+}
+
+std::vector<uint8_t>* Service::onLoadVoiceMail(uint8_t fileNumber)
+{
+    uint8_t result = 0; // ok
+    if (storageFs > 0){
+        fileMessage.clear();
+        result = multiradio_service->playVoiceMessage(fileNumber);
+    }
+
+    std::string stateStr;
+    std::string errorReadStr(errorReadFile);
+    std::string errorSpeakerOffStr(smatrHSStateStr[1]);
+
+    switch (result){
+        case 1: stateStr = errorReadStr; break;
+        case 2: stateStr = errorSpeakerOffStr; break;
+    }
+
+    if (result != 0)
+    {
+        fileMessage.resize(stateStr.size());
+        memcpy(fileMessage.data(),&stateStr[0],stateStr.size());
+    }
+    else
+    {
+        stateStr = (std::string)smatrHSStateStr[5];
+        fileMessage.resize(stateStr.size());
+        memcpy(fileMessage.data(),&stateStr[0],stateStr.size());
+    }
+    return &fileMessage;
+}
+
+std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, uint8_t fileNumber)
+{
+    bool result = false;
+    if (storageFs > 0){
+        fileMessage.clear();
+        switch (typeF){
+            case DataStorage::FS::FT_SMS:
+                result = storageFs->getSms(&fileMessage, fileNumber); break;
+            case DataStorage::FS::FT_CND:
+                result = storageFs->getCondCommand(&fileMessage, fileNumber); break;
+            case DataStorage::FS::FT_GRP:
+                result = storageFs->getGroupCondCommand(&fileMessage, fileNumber); break;
+        }
+    }
+    if (!result)
+    {
+        std::string errorReadStr(errorReadFile);
+        fileMessage.resize(errorReadStr.size());
+        memcpy(fileMessage.data(),&errorReadStr[0],errorReadStr.size());
+    }
+    return &fileMessage;
+
+}
+
+uint8_t& Service::setSheldure()
+{
+   return SheldureMass[0];
 }
 
 void Service::msgGucTXQuit(int ans)

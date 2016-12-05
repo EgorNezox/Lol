@@ -10,7 +10,7 @@
 
 
 #define LANG_COUNT 1
-#define MAIN_MENU_MAX_LIST_SIZE 6
+#define MAIN_MENU_MAX_LIST_SIZE 8
 #define _LIST_SIZE 5
 #define SETTINGS_LIST_SIZE 2
 
@@ -59,6 +59,7 @@ extern const char *setDateOrTime[];
 extern const char *setConnParam[];
 extern const char *useScanMenu[];
 extern const char *dataAndTime[];
+extern const char *files[];
 
 extern const char *aruStr;
 extern const char *armStr;
@@ -124,7 +125,8 @@ extern const char* NoGucCoord;
 extern const char* StartGucTx;
 extern const char* GucIndivid;
 extern const char* GucGroup;
-extern const char* Zond_label;
+extern const char* Sheldure_label;
+extern const char* NoSheldure;
 
 extern const char* startStr;
 
@@ -138,12 +140,17 @@ extern const char* dsphardwarefailure_unknown_text_str;
 
 extern const char *smsDataInformDx[];
 
-extern const char *zondSubMenu[];
+extern const char *sheldureSubMenu[];
 
 extern const char *StartCmd;
 extern const char *EndCmd;
 extern const char *EndSms;
 
 extern const char *STARTS;
+
+extern const char *errorReadFile;
+
+extern const char *displayBrightnessStr[];
+extern const char *displayBrightnessTitleStr;
 
 #endif /* TEXTS_H_ */
