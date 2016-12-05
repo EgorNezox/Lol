@@ -94,6 +94,8 @@ public:
 
     std::vector<uint8_t>* onLoadVoiceMail(uint8_t fileNumber);
     std::vector<uint8_t>* onLoadMessage(DataStorage::FS::FileType typeF, uint8_t fileNumber);
+    void showMessage(const char *title, const char *text);
+    void showSchedulePrompt();
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);

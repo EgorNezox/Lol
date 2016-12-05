@@ -3070,6 +3070,7 @@ void Service::drawMenu()
             break;
         }
     }
+    //showSchedulePrompt();
 }
 
 void Service::draw()
@@ -3472,6 +3473,17 @@ std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, ui
     }
     return &fileMessage;
 
+}
+
+void Service::showMessage(const char *title, const char *text)
+{
+    MoonsGeometry area = {25,25,130,100};
+    GUI_Dialog_MsgBox::showMessage(&area, true, title, text);
+}
+
+void Service::showSchedulePrompt()
+{
+    showMessage("",schedulePromptStr);
 }
 
 uint8_t& Service::setSheldure()

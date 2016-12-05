@@ -153,4 +153,6 @@ extern const char *errorReadFile;
 extern const char *displayBrightnessStr[];
 extern const char *displayBrightnessTitleStr;
 
+extern const char *schedulePromptStr;
+
 #endif /* TEXTS_H_ */
