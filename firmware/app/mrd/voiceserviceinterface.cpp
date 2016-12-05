@@ -204,15 +204,25 @@ void VoiceServiceInterface::TurnAGCMode(uint8_t mode, int radio_path)
 
 void VoiceServiceInterface::TurnPSWFMode(uint8_t mode, int cmd, int r_adr, int retr)
 {
-    if ((r_adr == 0) && (cmd ==0))
-    {
-      dispatcher->dsp_controller->startPSWFReceiving();
-    } else {
-    	if (mode == 0)
-    		dispatcher->dsp_controller->startPSWFTransmitting(false, r_adr, cmd,retr);
-    	else
-    		dispatcher->dsp_controller->startPSWFTransmitting(true, r_adr, cmd,retr);
-    }
+	if (dispatcher->dsp_controller->getVirtualMode()== true)
+	{
+		if ((r_adr == 0) && (cmd ==0))
+			turnVirtualPswfRx();
+		else
+			turnVirtualPswfTx();
+	}
+	else
+	{
+		if ((r_adr == 0) && (cmd ==0))
+		{
+			dispatcher->dsp_controller->startPSWFReceiving();
+		} else {
+			if (mode == 0)
+				dispatcher->dsp_controller->startPSWFTransmitting(false, r_adr, cmd,retr);
+			else
+				dispatcher->dsp_controller->startPSWFTransmitting(true, r_adr, cmd,retr);
+		}
+	}
 }
 
 const char* VoiceServiceInterface::ReturnSwfStatus()
@@ -354,6 +364,38 @@ uint8_t VoiceServiceInterface::getSmsCounter()
 
 }
 
+void VoiceServiceInterface::setVirtualDate(std::string s)
+{
+    uint8_t param[2];
+    uint8_t cnt = 0;
+
+    if (s.length() > 0)
+    {
+        if (s[1] != '.')
+        {
+            param[0] = s[0];
+            param[1] = s[1];
+        }
+        else
+        {
+            param[0] = 0;
+            param[1] = s[0];
+        }
+        dispatcher->dsp_controller->setVirtualDay(param);
+    }
+}
+
+void VoiceServiceInterface::setVirtualTime(std::string s)
+{
+    uint8_t param[6];
+    uint8_t cnt = 0;
+    for(int i = 0; i< s.length();i++){
+        if (s[i] != '.') { param[cnt] = s[i]; ++cnt;}
+    }
+
+    dispatcher->dsp_controller->setVirtualTime(param);
+}
+
 void VoiceServiceInterface::TxCondCmdTransmit(int value)
 {
     command_tx30(value);
@@ -365,6 +407,11 @@ void VoiceServiceInterface::onSmsCounterChange(int param){
 bool VoiceServiceInterface::getIsGucCoord()
 {
     return dispatcher->dsp_controller->getIsGucCoord();
+}
+
+void VoiceServiceInterface::setVirtualMode(bool param)
+{
+	dispatcher->dsp_controller->setVirtualMode(param);
 }
 
 } /* namespace Multiradio */

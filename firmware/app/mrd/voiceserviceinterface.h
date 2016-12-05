@@ -13,6 +13,7 @@
 #include "qmobject.h"
 #include "multiradio.h"
 #include "../ui/texts.h"
+#include <string>
 
 namespace Multiradio {
 
@@ -66,6 +67,8 @@ public:
     void turnVirtualPswfTx();
     void turnVirtualPswfRx();
 
+    void setVirtualMode(bool param);
+
     uint8_t* requestGucCoord();
 
 	sigc::signal<void> currentChannelChanged;
@@ -87,6 +90,8 @@ public:
     void goToVoice();
     uint8_t getSmsCounter();
 
+    void setVirtualDate(std::string s);
+    void setVirtualTime(std::string s);
 
     bool getIsGucCoord();
 private:

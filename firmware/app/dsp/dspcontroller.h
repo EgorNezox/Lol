@@ -168,7 +168,8 @@ public:
     int getSmsForUiStage();                 // функция обновления статуса для Sms-режима
     uint8_t* getGucCoord();                 // получение координат для отображения на экране пользователя в режиме групп ук
 
-
+    bool getVirtualMode();
+    void setVirtualMode(bool param);
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -223,6 +224,9 @@ public:
 
     void startVirtualPpsModeTx();
     void startVirtualPpsModeRx();
+
+    void setVirtualDay(uint8_t *param);
+    void setVirtualTime(uint8_t *param);
 
 private:
     friend struct DspCommand;

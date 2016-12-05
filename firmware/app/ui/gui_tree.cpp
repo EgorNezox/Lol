@@ -227,7 +227,7 @@ void CGuiTree::init()
     sttDateTime.nextState.push_back(&sttConnParamGPS);
     sttDateTime.nextState.push_back(&sttConnParamHand);
     // 4.1.1 - GPS синх-ция
-    sttConnParamGPS.setType(GuiWindowTypes::menuWindow);
+    sttConnParamGPS.setType(GuiWindowTypes::endMenuWindow);
     sttConnParamGPS.subType = GuiWindowsSubType::gpsSync;
     sttConnParamGPS.prevState = &sttDateTime;
     sttConnParamGPS.nextState.clear();

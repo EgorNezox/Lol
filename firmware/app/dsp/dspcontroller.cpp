@@ -528,10 +528,8 @@ void DspController::addSeconds(QmRtc::Time *t) {
 void DspController::LogicPswfTx()
 {
 	++command_tx30;
-#if 0
     if ((command_tx30 > 0) && (command_tx30 % 3 == 0))
     TxCondCmdPackageTransmit(command_tx30);
-#endif
 	if (command_tx30 <= 30)
 		sendPswf();
 
@@ -3047,7 +3045,7 @@ void DspController::startVirtualPpsModeTx()
 	sendCommandEasy(PSWFReceiver,5,comandValue);
 	comandValue.radio_mode = RadioModeOff;
 	sendCommandEasy(VirtualPps,1,comandValue);
-	virtual_mode = true;
+
 	RtcTxRole = true;
 	RtcRxRole = false;
 	RtcTxCounter = 0;
@@ -3060,9 +3058,10 @@ void DspController::startVirtualPpsModeTx()
 	t.hours = 1;
 	t.minutes = 1;
 	t.seconds = 6;
+#ifndef PORT__PCSIMULATOR
 	rtc->setDate(d);
 	rtc->setTime(t);
-
+#endif
 	count_VrtualTimer = 0;
 	txrtx = 0;
 #ifndef PORT__PCSIMULATOR
@@ -3081,7 +3080,7 @@ void DspController::startVirtualPpsModeRx()
 	sendCommandEasy(PSWFReceiver,5,comandValue);
 	comandValue.param = 2;
 	sendCommandEasy(PSWFReceiver,4,comandValue);
-	virtual_mode = true;
+
 	RtcRxCounter = 0;
 	RtcRxRole = true;
 	RtcTxRole = false;
@@ -3096,15 +3095,14 @@ void DspController::startVirtualPpsModeRx()
 	t.hours = 1;
 	t.minutes = 1;
 	t.seconds = 6;
+#ifndef PORT__PCSIMULATOR
 	rtc->setDate(d);
 	rtc->setTime(t);
-
+#endif
 	antiSync = false;
 
-#ifndef PORT__PCSIMULATOR
 //	d =  rtc->getDate();
 //	t = rtc->getTime();
-#endif
 }
 
 void DspController::sendSynchro(uint32_t freq, uint8_t cnt)
@@ -3263,6 +3261,35 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			recPswf(data[9],data[10]);
 		}
    }
+}
+
+
+bool DspController::getVirtualMode()
+{
+	return virtual_mode;
+}
+
+void DspController::setVirtualMode(bool param)
+{
+	virtual_mode = param;
+}
+
+void DspController::setVirtualDay(uint8_t *param)
+{
+    d.day = param[0] + param[1]*10;
+}
+
+void DspController::setVirtualTime(uint8_t *param)
+{
+    uint16_t value[3] = {0,0,0};
+
+    for(int i = 0; i<6;i++)
+    value[0] = value[i] + (value[i+1] * 10);
+
+
+    t.seconds = value[0];
+    t.minutes = value[1];
+    t.hours   = value[2];
 }
 
 } /* namespace Multiradio */

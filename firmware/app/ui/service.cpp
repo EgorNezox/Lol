@@ -914,6 +914,7 @@ void Service::keyPressed(UI_Key key)
                         param[i] = atoi(k->inputStr.c_str());
                         i++;
                     }
+
                     if (menu->condCmdModeSelect == 0)
                         voice_service->TurnPSWFMode(1, param[0], 0,0); // групповой вызов
                     if (menu->condCmdModeSelect == 1)
@@ -923,12 +924,10 @@ void Service::keyPressed(UI_Key key)
                         voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
                     }
 
-                    //menu->txCondCmdStage = 0;
-                    //guiTree.resetCurrentState();
+
                     for(auto &k: estate.listItem)
                         k->inputStr.clear();
 
-                    //redrawMessage(callSubMenu[0],StartCmd);
 
 #else
                     menu->txCondCmdStage = 0;
@@ -1889,13 +1888,13 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyEnter)
             {
-            	//voice_service->goToVoice();
-            	//guiTree.resetCurrentState();
-#if    1
-            	voice_service->turnVirtualPswfTx();
-#else
-            	voice_service->turnVirtualPswfRx();
-#endif
+            	voice_service->goToVoice();
+            	guiTree.resetCurrentState();
+//#if    1
+//            	voice_service->turnVirtualPswfTx();
+//#else
+//            	voice_service->turnVirtualPswfRx();
+//#endif
             }
             break;
         }
@@ -1998,6 +1997,9 @@ void Service::keyPressed(UI_Key key)
             default:
                 break;
             }
+
+            voice_service->setVirtualMode(!gpsSynchronization);
+
             break;
         }
         case GuiWindowsSubType::setDate:
@@ -2682,6 +2684,7 @@ void Service::drawMenu()
         {
             menu->setTitle(dataAndTime[0]);
             std::string str; str.append(st.listItem.front()->inputStr); //str.append("00.00.00");
+            voice_service->setVirtualDate(str);
             menu->initSetDateOrTimeDialog( str );
             break;
         }
@@ -2689,6 +2692,7 @@ void Service::drawMenu()
         {
             menu->setTitle(dataAndTime[1]);
             std::string str; str.append(st.listItem.front()->inputStr); //str.append("00:00:00");
+             voice_service->setVirtualTime(str);
             menu->initSetDateOrTimeDialog( str );
             break;
         }
