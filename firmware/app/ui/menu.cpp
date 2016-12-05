@@ -2066,6 +2066,9 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
                 ScrollArea.addGuiElement(item);
             }
             ScrollArea.setFirstVisElem(firstVisFileElem);
+            if (filesStageFocus[stage] > tFiles[fileType].size() - 1 )
+            	filesStageFocus[stage] = tFiles[fileType].size() - 1;
+
             ScrollArea.setFocus(filesStageFocus[stage]);
             firstVisFileElem = ScrollArea.getFirstVisElem();
             ScrollArea.Draw();
@@ -2079,8 +2082,6 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
         MoonsGeometry textArea_Geom = {2, 30, 157, 126};
 
         GUI_EL_TextArea textArea(&textArea_Params, &textArea_Geom, fileMessage, (GUI_Obj*)this);
-        if (textAreaScrollIndex > tFiles[fileType].size() - 1 )
-        	textAreaScrollIndex = tFiles[fileType].size() - 1;
         textAreaScrollIndex = textArea.SetScrollIndex(textAreaScrollIndex);
         textArea.Draw();
         break;

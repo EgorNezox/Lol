@@ -191,6 +191,7 @@ public:
 
     std::vector<std::string> tFiles[4];
     uint16_t textAreaScrollIndex;
+    uint16_t filesScrollIndex;
 
 
 

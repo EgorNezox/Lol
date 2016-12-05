@@ -2456,7 +2456,6 @@ void Service::keyPressed(UI_Key key)
             {
                 if (menu->filesStage == 0){
                     menu->fileType = (DataStorage::FS::FileType)menu->filesStageFocus[0];
-                    // при записи файлов обновлять по сигналу
                      if (storageFs > 0)
                           storageFs->getFileNamesByType(&menu->tFiles[menu->fileType], menu->fileType);
                 }
@@ -3253,9 +3252,15 @@ void Service::gucFrame(int value)
         msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
         if (storageFs > 0)
         {
-            uint16_t fullSize = isCoord ? size + 26 : size;
+        	uint8_t len = 0;
+        	for(int i = 1; i<=size; i++)
+        	len	+= (vect[i] > 9) ? 3 : 2;
+
+            uint16_t fullSize = isCoord ? len + 26 : len;
             uint8_t cmdv[fullSize];
             char cmdSym[3];
+            uint8_t prevCnt = 1;
+
             for (uint8_t cmdCount = 1; cmdCount <= size; cmdCount++){
 
                 sprintf(cmdSym, "%d", vect[cmdCount]);
@@ -3265,11 +3270,12 @@ void Service::gucFrame(int value)
                   cmdSym[1] = ' ';
                 }
                 cmdSym[2] = ' ';
-                memcpy(&cmdv[cmdCount-1], &cmdSym[1], isOneSymCmd ? 2 : 3);
+                memcpy(&cmdv[prevCnt-1], &cmdSym[0], isOneSymCmd ? 2 : 3);
+                prevCnt  += (isOneSymCmd ? 2 : 3);
             }
 
             if (isCoord)
-                memcpy(&cmdv[size + 1], &coords[0], 26);
+                memcpy(&cmdv[len], &coords[0], 26);
             storageFs->setGroupCondCommand((uint8_t*)&cmdv, fullSize);
         }
     }
