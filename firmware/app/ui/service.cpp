@@ -895,7 +895,7 @@ void Service::keyPressed(UI_Key key)
                 // send
                 if ( menu->txCondCmdStage == size )
                 {
-#ifdef _DEBUG_
+#ifndef _DEBUG_
 
                     // [0] - cmd, [1] - raddr, [2] - retrans
                     // condCmdModeSelect, 1 - individ, 2 - quit
@@ -1321,12 +1321,19 @@ void Service::keyPressed(UI_Key key)
                 if (key == keyBack)
                 {
                     headset_controller->stopSmartRecord();
+                	Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
+                    if (storageFs > 0)
+                        storageFs->setVoiceMail(&message);
                     menu->putOffVoiceStatus--;
                 }
 #ifndef _DEBUG_
                 if (key == keyEnter) // && STATUS OK
                 {
                     headset_controller->stopSmartRecord();
+                    Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
+                    if (storageFs > 0)
+                        storageFs->setVoiceMail(&message);
+
 
                     if ( headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_READY )
                         menu->putOffVoiceStatus++;
@@ -1640,7 +1647,7 @@ void Service::keyPressed(UI_Key key)
                                 else
                                     voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
                                 if (storageFs > 0)
-                                    storageFs->setSms((uint8_t*)msg[0],msg.size());
+                                    storageFs->setSms((uint8_t*)msg.c_str(),msg.size());
                                 for(auto &k: estate.listItem)
                                     k->inputStr.clear();
                                 menu->smsTxStage++;

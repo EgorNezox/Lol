@@ -20,7 +20,7 @@
 #include "texts.h"
 #include "datastorage/fs.h"
 
-#define flashTest 1
+#define flashTest 0
 
 #define smsflashTest_size 27
 
@@ -224,7 +224,7 @@ public:
     void RxVoiceDialogStatus1(int status, bool isClear = false);
     void initRxPutOffVoiceDialogTest(int status);
 
-    uint8_t cmdCount = 98;
+    uint8_t cmdCount = 0;
     uint16_t cmdScrollIndex = 0;
 
     bool getIsInRepeatInterval();
