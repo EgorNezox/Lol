@@ -1820,7 +1820,7 @@ void Service::keyPressed(UI_Key key)
             	}
             	if (cntGucRx == 3)
             	{
-            		cntGucRx = 0;
+                    cntGucRx = 1;
             		guiTree.resetCurrentState();
             	}
             }
@@ -2883,7 +2883,6 @@ void Service::drawMenu()
         case GuiWindowsSubType::recvVoice:
         case GuiWindowsSubType::rxSmsMessage:
         {
-
             break;
         }
         case GuiWindowsSubType::rxPutOffVoice:

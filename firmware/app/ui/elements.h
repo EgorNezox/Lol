@@ -287,6 +287,7 @@ class GUI_EL_MenuItem: public GUI_EL_Label{
         GUI_EL_Icon mark;
         bool draw_mark;
         bool rec_flag;
+        MenuItemParams params;
     protected:
         void CalcContentGeom();
 

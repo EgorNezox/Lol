@@ -766,6 +766,7 @@ GUI_EL_MenuItem::GUI_EL_MenuItem(MenuItemParams *params,
 {
     this->draw_mark = draw_mark;
     this->rec_flag = rec_flag;
+    this->params = *params;
 }
 
 void GUI_EL_MenuItem::Draw()
@@ -789,19 +790,25 @@ void GUI_EL_MenuItem::CalcContentGeom()
 
 void GUI_EL_MenuItem::SetInputFocus(bool isFocus)
 {
-    MenuItemParams *item_params;
+    MenuItemParams item_params;
     if (isFocus)
     {
-         item_params =&GUI_EL_TEMP_ActiveMenuItem;
-         GUI_EL_Label::SetParams(&item_params->label_params);
+        //item_params = params.label_params;
+        // item_params =&GUI_EL_TEMP_ActiveMenuItem;
+         //item_params->label_params.font = &Consolas25x35;
+         //GUI_EL_Label::SetParams(&item_params->label_params);
+
+        GUI_EL_Label::SetParams(&params.label_params);
     }
     else
     {
-        item_params =&GUI_EL_TEMP_DefaultMenuItem;
-        item_params->label_params.element.align = {alignHCenter, alignVCenter};
-        item_params->label_params.transparent = true;
-        item_params->icon_params.icon = sym_blank;
-        GUI_EL_Label::SetParams(&item_params->label_params);
+        item_params = params;
+        //item_params =&GUI_EL_TEMP_DefaultMenuItem;
+        //item_params->label_params.font = &Consolas25x35;
+        item_params.label_params.element.align = {alignHCenter, alignVCenter};
+        item_params.label_params.transparent = true;
+        item_params.icon_params.icon = sym_blank;
+        GUI_EL_Label::SetParams(&item_params.label_params);
     }
 }
 
