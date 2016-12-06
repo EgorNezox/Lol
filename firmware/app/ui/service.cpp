@@ -44,7 +44,20 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller = headset_controller;
     this->storageFs          = fs;
 
+    loadSheldure();
     ginit();
+
+//    SheldureMass[0] = 1;
+//    SheldureMass[1] = 0;
+//    SheldureMass[2] = 1+48;
+//    SheldureMass[3] = 2+48;
+//    SheldureMass[4] = 20+48;
+//    SheldureMass[5] = 1+48;
+//    SheldureMass[6] = 8+48;
+//    SheldureMass[7] = 4+48;
+//    SheldureMass[8] = 4+48;
+//    updateSessionTimeSchedule();
+
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
     voice_service->smsCounterChanged.connect(sigc::mem_fun(this,&Service::onSmsCounterChange));
 
@@ -66,6 +79,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
         menu = new CGuiMenu(&ui_menu_msg_box_area, mainMenu[0], {alignHCenter,alignTop});
     }
     menu->setFS(storageFs);
+
 
     menu->loadVoiceMail.connect(sigc::mem_fun(this, &Service::onLoadVoiceMail));
     menu->loadMessage.connect(sigc::mem_fun(this, &Service::onLoadMessage));
@@ -3016,7 +3030,7 @@ void Service::drawMenu()
 						{
 						case 0:
 							s.append(callSubMenu[0]);
-            break;
+                            break;
 						case 1:
 							s.append(callSubMenu[1]);
 							break;
@@ -3038,7 +3052,7 @@ void Service::drawMenu()
 							frec += (uint8_t)(SheldureMass[ 10 + (i*13) + 3 - k]) << k*8;
 						}
 						std::string ch;
-						sprintf((char*)ch.c_str(),"%d",frec);
+                        sprintf((char*)ch.c_str(),"%d",frec);
 						for(int j = 0; j < 7; j++)
 							s.push_back(ch[j]);
 						s.append(freq_hz);
@@ -3070,7 +3084,7 @@ void Service::drawMenu()
             break;
         }
     }
-    //showSchedulePrompt();
+    //showSchedulePrompt(DataStorage::FS::FT_SMS, 15);
 }
 
 void Service::draw()
@@ -3472,23 +3486,141 @@ std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, ui
         memcpy(fileMessage.data(),&errorReadStr[0],errorReadStr.size());
     }
     return &fileMessage;
-
 }
 
 void Service::showMessage(const char *title, const char *text)
 {
-    MoonsGeometry area = {25,25,130,100};
+    MoonsGeometry area = {15,20,140,95};
     GUI_Dialog_MsgBox::showMessage(&area, true, title, text);
 }
 
-void Service::showSchedulePrompt()
+void Service::showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t minutes)
 {
-    showMessage("",schedulePromptStr);
+    char min[5];
+    sprintf((char*)&min,"%d",minutes);
+    std::string text =
+        std::string(min) +
+        std::string(schedulePromptStr) +
+        std::string(reciveSubMenu[fileType + 1]);
+
+    showMessage("",text.c_str());
+}
+
+void Service::updateSessionTimeSchedule()
+{
+    uint8_t offset = 1;
+    uint8_t sessionCount = SheldureMass[0];
+
+    if (sessionCount){
+
+        uint8_t sessionTimeHour = 0;
+        uint8_t sessionTimeMinute = 0;
+
+        sessionList.clear();
+
+        for (uint8_t session = 0; session < sessionCount; session++){
+
+            offset = 1 + session * 13;
+
+            sessionTimeHour   = (SheldureMass[offset + 1] - 48) * 10 +
+                                 SheldureMass[offset + 2] - 48;
+            sessionTimeMinute = (SheldureMass[offset + 4] - 48) * 10 +
+                                 SheldureMass[offset + 5] - 48;
+
+            ScheduleTimeSession timeSession;
+            timeSession.index = session;
+            timeSession.type = (DataStorage::FS::FileType)SheldureMass[offset];
+            timeSession.time = sessionTimeHour * 60 + sessionTimeMinute;
+
+            uint8_t insertIndex = 0;
+
+            if (sessionList.size() == 0)
+                sessionList.push_back(timeSession);
+            else
+                for (uint8_t sessionTime = 0; sessionTime < sessionList.size(); sessionTime++){
+                    if (timeSession.time > sessionList.at(sessionTime).time)
+                        insertIndex++;
+                    else
+                        sessionList.insert(sessionList.begin() + insertIndex, timeSession);
+                }
+        }
+
+        calcNextSessionIndex();
+    } else
+        schedulePromptTimer.stop();
+}
+
+void Service::calcNextSessionIndex()
+{
+    uint8_t curTimeHour = 0;
+    uint8_t curTimeMinute = 0;
+    uint8_t curTimeSecond = 0;
+
+    getCurrentTime(&curTimeHour, &curTimeMinute, &curTimeSecond);
+
+    uint16_t curTimeInMinutes = curTimeHour * 60 + curTimeMinute;
+
+    for (uint8_t sessionTime = 0; sessionTime < sessionList.size(); sessionTime++){
+        if (curTimeInMinutes > sessionList.at(sessionTime).time)
+         continue;
+        else
+           nextSessionIndex = sessionTime;
+    }
+
+    onScheduleSessionTimer();
+}
+
+void Service::onScheduleSessionTimer()
+{
+    uint8_t curTimeHour = 0;
+    uint8_t curTimeMinute = 0;
+    uint8_t curTimeSecond = 0;
+
+    getCurrentTime(&curTimeHour, &curTimeMinute, &curTimeSecond);
+
+    uint16_t curTimeInMinutes = curTimeHour * 60 + curTimeMinute;
+
+    uint64_t deltaTime = sessionList.at(nextSessionIndex).time - curTimeInMinutes;
+
+    if (deltaTime < 11){
+        showSchedulePrompt(sessionList.at(nextSessionIndex).type, deltaTime);
+
+        nextSessionIndex++;
+        if (nextSessionIndex == sessionList.size())
+           nextSessionIndex = 0;
+        if (sessionList.size() > 1)
+            onScheduleSessionTimer();
+        return;
+    }
+    if (deltaTime <= 15){
+        showSchedulePrompt(sessionList.at(nextSessionIndex).type, deltaTime);
+
+        schedulePromptTimer.setInterval((deltaTime - 10)*60000);
+        schedulePromptTimer.start();
+        return;
+    }
+    schedulePromptTimer.setInterval((deltaTime - 15)*60000);
+    schedulePromptTimer.start();
+}
+
+void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
+{
+    *hour = 12;
+    *minute = 14;
+    *second = 16;
 }
 
 uint8_t& Service::setSheldure()
 {
    return SheldureMass[0];
+}
+
+void Service::loadSheldure()
+{
+   if (storageFs > 0){
+       storageFs->getSheldure(setSheldure());
+       updateSessionTimeSchedule();
+   }
 }
 
 void Service::msgGucTXQuit(int ans)

@@ -203,7 +203,7 @@ void GUI_EL_Label::SetInputFocus(bool isFocus)
 //+++++++++++++TextArea+++++++++++++++++++++
 
 GUI_EL_TextArea::GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj):GUI_Element(geom, &params->element.align, &params->element.margins, parent_obj){
- this->params=*params;
+ this->params= *params;
  lines_count=0;
  SetText(text);
 }
@@ -217,17 +217,19 @@ GUI_EL_TextArea::GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, st
 }
 
 GUI_EL_TextArea::~GUI_EL_TextArea(){
-    if (!isData)
+    if (!isData && (text > 0) && strlen(text)>0)
         delete []text;
 }
 
 //-----------------------------
 
 void GUI_EL_TextArea::SetText(char *text){
-    if(text!=NULL){
+    if(text != NULL){
         uint16_t len = strlen((const char*)text);
-        this->text = new char[len];
-        strcpy(this->text, text);
+        if (len > 0){
+            this->text = new char[len];
+            strcpy(this->text, text);
+        }
         CalcContentGeom();
     }
 }
@@ -259,14 +261,16 @@ uint32_t GUI_EL_TextArea::getDataSize()
     if (isData){
        return data->size();
     }
-    else
+    else if(text > 0)
        return strlen(text);
+    else
+       return 0;
 }
 
 //-----------------------------
 
 void GUI_EL_TextArea::Draw(){
-    if((text !=0 && !isData) || (data != 0 && isData)){
+    if((text != 0 && !isData) || (data != 0 && isData)){
         uint32_t i = 0, j = 0, k = 0, str_width = 0, last_space = 0, sym_to_cp = 0;
         MoonsGeometry local_content, line_geom;
         char line_str[MAX_LABEL_LENGTH];
@@ -355,8 +359,10 @@ void GUI_EL_TextArea::CalcContentGeom(){
     content.W = GEOM_W(el_geom);
     content.H = GEOM_H(el_geom);
 
-    allContent.W=0;
-    allContent.H=0;
+    allContent.W = 0;
+    allContent.H = 0;
+
+    if (size > 0){
     gselfont(params.font);
 
     for( uint32_t i = 0; i <= size; ++i){ //	подсчет количества строк
@@ -391,6 +397,7 @@ void GUI_EL_TextArea::CalcContentGeom(){
                 last_str_with=0;
             }
         }
+    }
     }
     lines_count = lf_count;
     line_height = ggetfh();

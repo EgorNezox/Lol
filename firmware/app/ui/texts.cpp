@@ -225,4 +225,4 @@ const char *errorReadFile = "Ошибка чтения файла\0";
 const char *displayBrightnessStr[] = {"Минимальная\0","Средняя\0","Максиамльная\0"};
 const char *displayBrightnessTitleStr = "Яркость\0";
 
-const char *schedulePromptStr = "Через 10 минут\n начнется приём.\0";
+const char *schedulePromptStr = " минут\n до начала\n сеанса связи\n режима\0";

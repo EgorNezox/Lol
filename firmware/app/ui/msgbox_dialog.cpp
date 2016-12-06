@@ -290,13 +290,14 @@ void GUI_Dialog_MsgBox::showMessage(MoonsGeometry *area, bool isFrame, const cha
     GUI_Obj obj(&oa);
     GUI_EL_Window window( &params, area, &obj);
 
-    GUI_EL_TextArea titleArea ( &title_area_params, &title_area_geom,  (char*)title.c_str(), &obj );
     GUI_EL_TextArea textArea  ( &text_area_params,  &text_area_geom,   (char*)text.c_str(), &obj );
 
     window.Draw();
 
-    if (title != "")
+    if (title != ""){
+      GUI_EL_TextArea titleArea ( &title_area_params, &title_area_geom,  (char*)title.c_str(), &obj );
       titleArea.Draw();
+    }
 
     textArea.Draw();
 }
