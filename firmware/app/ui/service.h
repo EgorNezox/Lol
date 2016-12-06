@@ -56,6 +56,11 @@ enum NotificationType {
     NotificationMismatchVoiceChannelsTable
 };
 
+struct ScheduleTimeSession{
+    uint8_t index; // in schedule
+    DataStorage::FS::FileType type;
+    uint16_t time; // in minutes hour*60+min
+};
 
 class Service : public QmObject //sigc::trackable
 {
@@ -92,8 +97,16 @@ public:
     uint8_t* getGpsGucCoordinat(uint8_t *coord);
     uint8_t &setSheldure();
 
-    std::vector<uint8_t>* onLoadVoiceMail(uint8_t fileNumber);
-    std::vector<uint8_t>* onLoadMessage(DataStorage::FS::FileType typeF, uint8_t fileNumber);
+    std::vector<uint8_t>* onLoadVoiceMail(uint8_t fileNumber, DataStorage::FS::TransitionFileType tft);
+    std::vector<uint8_t>* onLoadMessage(DataStorage::FS::FileType typeF, DataStorage::FS::TransitionFileType tft, uint8_t fileNumber);
+    void showMessage(const char *title, const char *text);
+    void showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t minutes);
+    bool checkSessionTimeSchedule();
+    void onScheduleSessionTimer();
+    void calcNextSessionIndex();
+    void updateSessionTimeSchedule();
+    void getCurrentTime(uint8_t *hour, uint8_t *minute, uint8_t *second);
+    void loadSheldure();
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
@@ -191,9 +204,11 @@ private:
     std::vector<uint8_t> condMsg;
 
     void setColorScheme(uint32_t back,uint32_t front);
+    uint8_t SheldureMass[200];  // 50 пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 13 пїЅпїЅпїЅпїЅ + 1 пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ-пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    QmTimer schedulePromptTimer;
 
-
-    uint8_t SheldureMass[651];  // 50 сеансов по 13 байт + 1 байт кол-во сеансов
+    std::vector<ScheduleTimeSession> sessionList;
+    uint8_t nextSessionIndex = 0;
 };
 
 } /* namespace Ui */

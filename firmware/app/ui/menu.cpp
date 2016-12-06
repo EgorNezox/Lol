@@ -26,6 +26,39 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, Alignment align):CGui
 
     GUI_EL_TEMP_WindowGeneral.frame_thick = 0;
 
+//    tFiles[0].push_back("Sms0");
+//    tFiles[0].push_back("Sms1");
+//    tFiles[0].push_back("Sms2");
+//    tFiles[0].push_back("Sms3");
+//    tFiles[0].push_back("Sms4");
+//    tFiles[0].push_back("Sms5");
+//    tFiles[0].push_back("Sms6");
+//    tFiles[0].push_back("Sms7");
+//    tFiles[0].push_back("Sms8");
+//    tFiles[0].push_back("Sms9");
+//    tFiles[1].push_back("Voice0");
+//    tFiles[2].push_back("Group0");
+//    tFiles[2].push_back("Group1");
+//    tFiles[2].push_back("Group2");
+//    tFiles[2].push_back("Group3");
+//    tFiles[2].push_back("Group4");
+//    tFiles[2].push_back("Group5");
+//    tFiles[2].push_back("Group6");
+//    tFiles[2].push_back("Group7");
+//    tFiles[2].push_back("Group8");
+//    tFiles[2].push_back("Group9");
+//    tFiles[3].push_back("Cond0");
+//    tFiles[3].push_back("Cond1");
+//    tFiles[3].push_back("Cond2");
+//    tFiles[3].push_back("Cond3");
+//    tFiles[3].push_back("Cond4");
+//    tFiles[3].push_back("Cond5");
+//    tFiles[3].push_back("Cond6");
+//    tFiles[3].push_back("Cond7");
+//    tFiles[3].push_back("Cond8");
+//    tFiles[3].push_back("Cond9");
+
+
 }
 
 void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
@@ -2018,22 +2051,23 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
     MoonsGeometry window_geom = {0, 0, 159, 127};
     GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneralBack, &window_geom, (GUI_Obj*)this);
 
-    MoonsGeometry label_geom  = { 2, 6, 157, 20};
+    MoonsGeometry label_geom  = { 2, 4, 157, 16};
     LabelParams   label_params = GUI_EL_TEMP_LabelTitle;
 
     Margins margins = {0,0,0,0};
-    MoonsGeometry scroll_geom = {0, 25, 159, 112};
+    MoonsGeometry scroll_geom = {0, 22, 159, 120};
 
     Alignment align = { alignHCenter, alignVCenter};
     GUI_EL_ScrollArea ScrollArea(&scroll_geom, &align, &margins, (GUI_Obj*)this);
 
     MoonsGeometry  item_geom;
-    item_geom = {(GXT)(0),(GYT)(0),(GXT)(145),(GYT)(16)};
+    item_geom = {(GXT)(0),(GYT)(0),(GXT)(145),(GYT)(30)};
 
-    MenuItemParams item_param = GUI_EL_TEMP_DefaultMenuItem;
-    item_param.label_params.element.align = {alignHCenter, alignVCenter};
-    item_param.label_params.transparent = true;
-    item_param.icon_params.icon = sym_blank;
+    MenuItemParams item_param;
+   // item_param.label_params = GUI_EL_TEMP_LabelChannel;
+//    item_param.label_params.element.align = {alignHCenter, alignVCenter};
+//    item_param.label_params.transparent = true;
+//    item_param.icon_params.icon = sym_blank;
 
     window.Draw();
     const char* titleChar;
@@ -2045,10 +2079,20 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
 
         for (uint8_t subMenu = 0; subMenu < 4; subMenu++)
         {
+            if (filesStageFocus[stage] == subMenu){
+                item_param = GUI_EL_TEMP_ActiveMenuItem;
+            } else
+                item_param = GUI_EL_TEMP_DefaultMenuItem;
+            item_param.label_params.font = &Consolas25x35;
+
             GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)reciveSubMenu[subMenu + 1], true, true, (GUI_Obj*)this );
             ScrollArea.addGuiElement(item);
         }
-        ScrollArea.setFirstVisElem(0);
+
+        if (filesStageFocus[stage] == 3)
+          ScrollArea.setFirstVisElem(1);
+        else
+            ScrollArea.setFirstVisElem(0);
         ScrollArea.setFocus(filesStageFocus[stage]);
         ScrollArea.Draw();
         break;
@@ -2057,17 +2101,24 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
 
         titleChar = reciveSubMenu[fileType + 1];
 
+        if (filesStageFocus[stage] > tFiles[fileType].size() - 1 )
+            filesStageFocus[stage] = tFiles[fileType].size() - 1;
+
         if (tFiles[fileType].size() > 0){
             for (uint8_t file = 0; file < tFiles[fileType].size(); file++)
             {
                 std::string fileName = tFiles[fileType].at(file);
 
+                if (filesStageFocus[stage] == file){
+                    item_param = GUI_EL_TEMP_ActiveMenuItem;
+                } else
+                    item_param = GUI_EL_TEMP_DefaultMenuItem;
+                item_param.label_params.font = &Tahoma26;
+
                 GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)fileName.c_str(), true, true, (GUI_Obj*)this );
                 ScrollArea.addGuiElement(item);
             }
             ScrollArea.setFirstVisElem(firstVisFileElem);
-            if (filesStageFocus[stage] > tFiles[fileType].size() - 1 )
-            	filesStageFocus[stage] = tFiles[fileType].size() - 1;
 
             ScrollArea.setFocus(filesStageFocus[stage]);
             firstVisFileElem = ScrollArea.getFirstVisElem();

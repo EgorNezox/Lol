@@ -131,7 +131,7 @@ void qmMain() {
                           );
 #endif
 
-    data_storage_fs.getSheldure(ui_service.setSheldure());
+    //data_storage_fs.getSheldure(ui_service.setSheldure());
 
     kb_light_iopin.writeOutput(QmIopin::Level_Low);
 	data_storage_fs.getVoiceChannelsTable(mr_channels_table);
@@ -143,8 +143,6 @@ void qmMain() {
 	entxrs232_iopin.writeOutput(QmIopin::Level_High);
 	headset_controller.startServicing(mr_channels_table);
 	mr_dispatcher.startServicing(mr_channels_table);
-
-
 
 	app.exec();
 }

@@ -153,4 +153,8 @@ extern const char *errorReadFile;
 extern const char *displayBrightnessStr[];
 extern const char *displayBrightnessTitleStr;
 
+extern const char *schedulePromptStr;
+
+extern const char *txrxFilesStr[];
+
 #endif /* TEXTS_H_ */

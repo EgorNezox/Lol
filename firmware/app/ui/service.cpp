@@ -45,6 +45,20 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->storageFs          = fs;
 
     ginit();
+    //loadSheldure();
+
+
+//    SheldureMass[0] = 1;
+//    SheldureMass[1] = 0;
+//    SheldureMass[2] = 1+48;
+//    SheldureMass[3] = 2+48;
+//    SheldureMass[4] = 20+48;
+//    SheldureMass[5] = 1+48;
+//    SheldureMass[6] = 8+48;
+//    SheldureMass[7] = 4+48;
+//    SheldureMass[8] = 4+48;
+//    updateSessionTimeSchedule();
+
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
     voice_service->smsCounterChanged.connect(sigc::mem_fun(this,&Service::onSmsCounterChange));
 
@@ -79,7 +93,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
     voice_service->command_tx30.connect(sigc::mem_fun(this, &Service::TxCondCmdPackage));
-
 
     //    guc_command_vector.push_back(2);
     //    guc_command_vector.push_back(15);
@@ -944,7 +957,7 @@ void Service::keyPressed(UI_Key key)
                         condMsg.push_back((uint8_t)sym[0]);
                         condMsg.push_back((uint8_t)sym[1]);
                         condMsg.push_back((uint8_t)sym[2]);
-                        storageFs->setCondCommand(&condMsg);
+                        storageFs->setCondCommand(&condMsg,DataStorage::FS::FTT_TX);
                     }
 
 
@@ -1134,7 +1147,7 @@ void Service::keyPressed(UI_Key key)
                     voice_service->saveFreq(freqs);
                     voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
                     if (storageFs > 0)
-                        storageFs->setGroupCondCommand((uint8_t*)str,strlen(str));
+                        storageFs->setGroupCondCommand((uint8_t*)str,strlen(str),DataStorage::FS::FTT_TX);
 #else
                     for (auto &k: estate.listItem)
                         k->inputStr.clear();
@@ -1344,7 +1357,7 @@ void Service::keyPressed(UI_Key key)
                     headset_controller->stopSmartRecord();
                 	Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
                     if (storageFs > 0)
-                        storageFs->setVoiceMail(&message);
+                        storageFs->setVoiceMail(&message, DataStorage::FS::FTT_TX);
                     menu->putOffVoiceStatus--;
                 }
 #ifndef _DEBUG_
@@ -1353,7 +1366,7 @@ void Service::keyPressed(UI_Key key)
                     headset_controller->stopSmartRecord();
                     Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
                     if (storageFs > 0)
-                        storageFs->setVoiceMail(&message);
+                        storageFs->setVoiceMail(&message, DataStorage::FS::FTT_TX);
 
 
                     if ( headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_READY )
@@ -1668,7 +1681,7 @@ void Service::keyPressed(UI_Key key)
                                 else
                                     voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
                                 if (storageFs > 0)
-                                    storageFs->setSms((uint8_t*)msg.c_str(),msg.size());
+                                    storageFs->setSms((uint8_t*)msg.c_str(),msg.size(), DataStorage::FS::FTT_TX);
                                 for(auto &k: estate.listItem)
                                     k->inputStr.clear();
                                 menu->smsTxStage++;
@@ -1842,7 +1855,7 @@ void Service::keyPressed(UI_Key key)
             	}
             	if (cntGucRx == 3)
             	{
-            		cntGucRx = 0;
+                    cntGucRx = 1;
             		guiTree.resetCurrentState();
             	}
             }
@@ -2488,16 +2501,18 @@ void Service::keyPressed(UI_Key key)
                 }
 
                 if (menu->filesStage == 1){
+                    DataStorage::FS::TransitionFileType ft;
                     switch (menu->fileType) {
-                    case DataStorage::FS::FT_SMS:
-                    case DataStorage::FS::FT_CND:
-                    case DataStorage::FS::FT_GRP:
+                    case DataStorage::FS::FT_SMS: if (storageFs > 0) ft = storageFs->getTransmitType(DataStorage::FS::FT_SMS, menu->filesStageFocus[1]);
+                    case DataStorage::FS::FT_CND: if (storageFs > 0) ft = storageFs->getTransmitType(DataStorage::FS::FT_SMS, menu->filesStageFocus[1]);
+                    case DataStorage::FS::FT_GRP: if (storageFs > 0) ft = storageFs->getTransmitType(DataStorage::FS::FT_SMS, menu->filesStageFocus[1]);
                         if (menu->tFiles[menu->fileType].size() > 0)
-                            menu->fileMessage = onLoadMessage(menu->fileType, menu->filesStageFocus[1]);
+                            menu->fileMessage = onLoadMessage(menu->fileType, ft, menu->filesStageFocus[1]);
                         break;
                     case DataStorage::FS::FT_VM:
+                        if (storageFs > 0)ft = storageFs->getTransmitType(DataStorage::FS::FT_SMS, menu->filesStageFocus[1]);
                         if (menu->tFiles[menu->fileType].size() > 0)
-                            menu->fileMessage = onLoadVoiceMail(menu->filesStageFocus[1]);
+                            menu->fileMessage = onLoadVoiceMail(menu->filesStageFocus[1], ft);
                     default:
                         break;
                     }
@@ -2634,7 +2649,7 @@ void Service::FirstPacketPSWFRecieved(int packet)
             condMsg.push_back((uint8_t)sym[1]);
             condMsg.push_back((uint8_t)sym[2]);
 
-            storageFs->setCondCommand(&condMsg);
+            storageFs->setCondCommand(&condMsg, DataStorage::FS::FTT_RX);
         }
     }
     else if ( packet > 99)
@@ -2907,7 +2922,6 @@ void Service::drawMenu()
         case GuiWindowsSubType::recvVoice:
         case GuiWindowsSubType::rxSmsMessage:
         {
-
             break;
         }
         case GuiWindowsSubType::rxPutOffVoice:
@@ -3041,7 +3055,7 @@ void Service::drawMenu()
 						{
 						case 0:
 							s.append(callSubMenu[0]);
-            break;
+                            break;
 						case 1:
 							s.append(callSubMenu[1]);
 							break;
@@ -3063,7 +3077,7 @@ void Service::drawMenu()
 							frec += (uint8_t)(SheldureMass[ 10 + (i*13) + 3 - k]) << k*8;
 						}
 						std::string ch;
-						sprintf((char*)ch.c_str(),"%d",frec);
+                        sprintf((char*)ch.c_str(),"%d",frec);
 						for(int j = 0; j < 7; j++)
 							s.push_back(ch[j]);
 						s.append(freq_hz);
@@ -3095,6 +3109,7 @@ void Service::drawMenu()
             break;
         }
     }
+    //showSchedulePrompt(DataStorage::FS::FT_SMS, 15);
 }
 
 void Service::draw()
@@ -3305,7 +3320,7 @@ void Service::gucFrame(int value)
 
             if (isCoord)
                 memcpy(&cmdv[len], &coords[0], 26);
-            storageFs->setGroupCondCommand((uint8_t*)&cmdv, fullSize);
+            storageFs->setGroupCondCommand((uint8_t*)&cmdv, fullSize, DataStorage::FS::FTT_RX);
         }
     }
 
@@ -3365,7 +3380,7 @@ void Service::smsMessage(int value)
     menu->initTxSmsDialog(title,text_str);
 
     if (storageFs > 0)
-        storageFs->setSms((uint8_t*)&sym[0], value);
+        storageFs->setSms((uint8_t*)&sym[0], value, DataStorage::FS::FTT_RX);
 }
 
 void Service::updateAleVmProgress(uint8_t t)
@@ -3444,12 +3459,12 @@ void Service::TxCondCmdPackage(int value)
     }
 }
 
-std::vector<uint8_t>* Service::onLoadVoiceMail(uint8_t fileNumber)
+std::vector<uint8_t>* Service::onLoadVoiceMail(uint8_t fileNumber, DataStorage::FS::TransitionFileType tft)
 {
     uint8_t result = 0; // ok
     if (storageFs > 0){
         fileMessage.clear();
-        result = multiradio_service->playVoiceMessage(fileNumber);
+        result = multiradio_service->playVoiceMessage(fileNumber, tft);
     }
 
     std::string stateStr;
@@ -3475,18 +3490,18 @@ std::vector<uint8_t>* Service::onLoadVoiceMail(uint8_t fileNumber)
     return &fileMessage;
 }
 
-std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, uint8_t fileNumber)
+std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, DataStorage::FS::TransitionFileType tft, uint8_t fileNumber)
 {
     bool result = false;
     if (storageFs > 0){
         fileMessage.clear();
         switch (typeF){
             case DataStorage::FS::FT_SMS:
-                result = storageFs->getSms(&fileMessage, fileNumber); break;
+                result = storageFs->getSms(&fileMessage, fileNumber, tft); break;
             case DataStorage::FS::FT_CND:
-                result = storageFs->getCondCommand(&fileMessage, fileNumber); break;
+                result = storageFs->getCondCommand(&fileMessage, fileNumber, tft); break;
             case DataStorage::FS::FT_GRP:
-                result = storageFs->getGroupCondCommand(&fileMessage, fileNumber); break;
+                result = storageFs->getGroupCondCommand(&fileMessage, fileNumber, tft); break;
         }
     }
     if (!result)
@@ -3496,12 +3511,141 @@ std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, ui
         memcpy(fileMessage.data(),&errorReadStr[0],errorReadStr.size());
     }
     return &fileMessage;
+}
 
+void Service::showMessage(const char *title, const char *text)
+{
+    MoonsGeometry area = {15,20,140,95};
+    GUI_Dialog_MsgBox::showMessage(&area, true, title, text);
+}
+
+void Service::showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t minutes)
+{
+    char min[5];
+    sprintf((char*)&min,"%d",minutes);
+    std::string text =
+        std::string(min) +
+        std::string(schedulePromptStr) +
+        std::string(reciveSubMenu[fileType + 1]);
+
+    showMessage("",text.c_str());
+}
+
+void Service::updateSessionTimeSchedule()
+{
+    uint8_t offset = 1;
+    uint8_t sessionCount = SheldureMass[0];
+
+    if (sessionCount){
+
+        uint8_t sessionTimeHour = 0;
+        uint8_t sessionTimeMinute = 0;
+
+        sessionList.clear();
+
+        for (uint8_t session = 0; session < sessionCount; session++){
+
+            offset = 1 + session * 13;
+
+            sessionTimeHour   = (SheldureMass[offset + 1] - 48) * 10 +
+                                 SheldureMass[offset + 2] - 48;
+            sessionTimeMinute = (SheldureMass[offset + 4] - 48) * 10 +
+                                 SheldureMass[offset + 5] - 48;
+
+            ScheduleTimeSession timeSession;
+            timeSession.index = session;
+            timeSession.type = (DataStorage::FS::FileType)SheldureMass[offset];
+            timeSession.time = sessionTimeHour * 60 + sessionTimeMinute;
+
+            uint8_t insertIndex = 0;
+
+            if (sessionList.size() == 0)
+                sessionList.push_back(timeSession);
+            else
+                for (uint8_t sessionTime = 0; sessionTime < sessionList.size(); sessionTime++){
+                    if (timeSession.time > sessionList.at(sessionTime).time)
+                        insertIndex++;
+                    else
+                        sessionList.insert(sessionList.begin() + insertIndex, timeSession);
+                }
+        }
+
+        calcNextSessionIndex();
+    } else
+        schedulePromptTimer.stop();
+}
+
+void Service::calcNextSessionIndex()
+{
+    uint8_t curTimeHour = 0;
+    uint8_t curTimeMinute = 0;
+    uint8_t curTimeSecond = 0;
+
+    getCurrentTime(&curTimeHour, &curTimeMinute, &curTimeSecond);
+
+    uint16_t curTimeInMinutes = curTimeHour * 60 + curTimeMinute;
+
+    for (uint8_t sessionTime = 0; sessionTime < sessionList.size(); sessionTime++){
+        if (curTimeInMinutes > sessionList.at(sessionTime).time)
+         continue;
+        else
+           nextSessionIndex = sessionTime;
+    }
+
+    onScheduleSessionTimer();
+}
+
+void Service::onScheduleSessionTimer()
+{
+    uint8_t curTimeHour = 0;
+    uint8_t curTimeMinute = 0;
+    uint8_t curTimeSecond = 0;
+
+    getCurrentTime(&curTimeHour, &curTimeMinute, &curTimeSecond);
+
+    uint16_t curTimeInMinutes = curTimeHour * 60 + curTimeMinute;
+
+    uint64_t deltaTime = sessionList.at(nextSessionIndex).time - curTimeInMinutes;
+
+    if (deltaTime < 11){
+        showSchedulePrompt(sessionList.at(nextSessionIndex).type, deltaTime);
+
+        nextSessionIndex++;
+        if (nextSessionIndex == sessionList.size())
+           nextSessionIndex = 0;
+        if (sessionList.size() > 1)
+            onScheduleSessionTimer();
+        return;
+    }
+    if (deltaTime <= 15){
+        showSchedulePrompt(sessionList.at(nextSessionIndex).type, deltaTime);
+
+        schedulePromptTimer.setInterval((deltaTime - 10)*60000);
+        schedulePromptTimer.start();
+        return;
+    }
+    schedulePromptTimer.setInterval((deltaTime - 15)*60000);
+    schedulePromptTimer.start();
+}
+
+void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
+{
+    *hour = 12;
+    *minute = 14;
+    *second = 16;
 }
 
 uint8_t& Service::setSheldure()
 {
    return SheldureMass[0];
+}
+
+void Service::loadSheldure()
+{
+   if (storageFs > 0){
+       storageFs->getSheldure(setSheldure());
+       updateSessionTimeSchedule();
+   }
 }
 
 void Service::msgGucTXQuit(int ans)

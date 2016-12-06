@@ -29,8 +29,8 @@ struct ElementParams{
 };
 
 struct FullContentSize{
-    uint32_t H;
-    uint32_t W;
+    uint32_t H = 0;
+    uint32_t W = 0;
 };
 
 /*!Базовый абстрактный класс элемента*/
@@ -129,7 +129,7 @@ class GUI_EL_TextArea: public GUI_Element{
         FullContentSize allContent;
     protected:
         void CalcContentGeom();
-        char* text;
+        char* text = 0;
         std::vector<uint8_t>* data = 0;
         //char* text[MAX_TEXT_AREA_LENGTH];
 };
@@ -287,6 +287,7 @@ class GUI_EL_MenuItem: public GUI_EL_Label{
         GUI_EL_Icon mark;
         bool draw_mark;
         bool rec_flag;
+        MenuItemParams params;
     protected:
         void CalcContentGeom();
 

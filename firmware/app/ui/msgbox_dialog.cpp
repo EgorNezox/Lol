@@ -257,3 +257,47 @@ void GUI_Dialog_MsgBox::keyPressed(UI_Key key)
     if (key == keyDown && position < list_size)
     { position++;}
 }
+
+void GUI_Dialog_MsgBox::showMessage(MoonsGeometry *area, bool isFrame, const char *p_title, const char *p_text)
+{
+    GXT xs = area->xs;
+    GYT xe = area->xe;
+    GXT ys = area->ys;
+    GYT ye = area->ye;
+
+   std::string title = p_title;
+   std::string text = p_text;
+
+   MoonsGeometry title_area_geom = { (GXT)(xs + 10), (GYT)(ys + 5), (GXT)(xe - 10),  (GYT)(ys + 10) };
+   MoonsGeometry text_area_geom  = { (GXT)(xs + 10), (GYT)(ys + 30), (GXT)(xe - 10), (GYT)(ye - 10) };
+
+    if (title == ""){
+        text_area_geom  = { (GXT)(xs + 10), (GYT)(ys + 10), (GXT)(xe - 10), (GYT)(ye - 5) };
+    }
+
+    TextAreaParams title_area_params = GUI_EL_TEMP_CommonTextAreaLT;
+    TextAreaParams text_area_params = GUI_EL_TEMP_CommonTextAreaLT;
+
+    title_area_params.element.align.align_h = alignHCenter;
+    text_area_params.element.align.align_h = alignHCenter;
+    text_area_params.element.align.align_v = alignVCenter;
+
+    WindowParams params = GUI_EL_TEMP_WindowGeneralBack;
+    if (isFrame)
+        params.frame_thick = 1;
+
+    MoonsGeometry oa{0,0,159,127};
+    GUI_Obj obj(&oa);
+    GUI_EL_Window window( &params, area, &obj);
+
+    GUI_EL_TextArea textArea  ( &text_area_params,  &text_area_geom,   (char*)text.c_str(), &obj );
+
+    window.Draw();
+
+    if (title != ""){
+      GUI_EL_TextArea titleArea ( &title_area_params, &title_area_geom,  (char*)title.c_str(), &obj );
+      titleArea.Draw();
+    }
+
+    textArea.Draw();
+}

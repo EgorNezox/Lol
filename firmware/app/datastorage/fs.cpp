@@ -10,15 +10,23 @@ namespace DataStorage {
 FS::FS(const std::string &dir) :
 	dir(dir)
 {
-//	deleteFile("Cond0");
-//	deleteFile("Cond1");
-//	deleteFile("Cond2");
-//	deleteFile("Cond2");
+    trans[FTT_RX] = "r";
+    trans[FTT_TX] = "t";
+
 	fileTypeInfo[FT_SMS].fileName = "Sms";
 	fileTypeInfo[FT_VM].fileName = "Voice";
 	fileTypeInfo[FT_GRP].fileName = "Group";
 	fileTypeInfo[FT_CND].fileName = "Cond";
-	fileTypeInfo[FT_VM].maxCount = 1;
+
+    fileTypeInfo[FT_SMS].counter[FTT_RX].maxCount = 10;
+    fileTypeInfo[FT_SMS].counter[FTT_TX].maxCount = 10;
+    fileTypeInfo[FT_GRP].counter[FTT_RX].maxCount = 10;
+    fileTypeInfo[FT_GRP].counter[FTT_TX].maxCount = 10;
+    fileTypeInfo[FT_CND].counter[FTT_RX].maxCount = 10;
+    fileTypeInfo[FT_CND].counter[FTT_TX].maxCount = 10;
+    fileTypeInfo[FT_VM].counter[FTT_RX].maxCount = 1;
+    fileTypeInfo[FT_VM].counter[FTT_TX].maxCount = 1;
+
     updateFileTree();
 }
 
@@ -188,10 +196,10 @@ bool FS::getSheldure(uint8_t &data)
 
 //-----------------------------------------------------
 
-bool FS::getCondCommand(std::vector<uint8_t>* data, uint8_t number)
+bool FS::getCondCommand(std::vector<uint8_t>* data, uint8_t number, TransitionFileType transFileType)
 {
     if (number > maxFilesCount - 1) return false;
-    std::string fileName = generateFileNameByNumber(FT_CND, number);
+    std::string fileName = generateFileNameByNumber(FT_CND, transFileType, number);
     if (fileName != errorFileName){
     	QmFile file(dir, fileName);
     	if (!file.open(QmFile::ReadOnly))
@@ -206,24 +214,24 @@ bool FS::getCondCommand(std::vector<uint8_t>* data, uint8_t number)
     	return false;
 }
 
-void FS::setCondCommand(std::vector<uint8_t> *data)
+void FS::setCondCommand(std::vector<uint8_t> *data, TransitionFileType transFileType)
 {
-    std::string fileName = prepareFileStorageToWriting(FT_CND);
+    std::string fileName = prepareFileStorageToWriting(FT_CND, transFileType);
     if (fileName != errorFileName){
     	QmFile file(dir, fileName);
     	if (!file.open(QmFile::WriteOnly))
     		return;
     	uint64_t writeSize = file.write(data->data(), data->size());
     	if (writeSize)
-    		fileTypeInfo[FT_CND].count++;
+            fileTypeInfo[FT_CND].counter[transFileType].count++;
     }
 }
 
-bool FS::getGroupCondCommand(std::vector<uint8_t>* data, uint8_t number)
+bool FS::getGroupCondCommand(std::vector<uint8_t>* data, uint8_t number, TransitionFileType transFileType)
 {
     if (number > maxFilesCount - 1) return false;
 
-    std::string fileName = generateFileNameByNumber(FT_GRP, number);
+    std::string fileName = generateFileNameByNumber(FT_GRP, transFileType, number);
     if (fileName != errorFileName){
     	QmFile file(dir, fileName);
     	if (!file.open(QmFile::ReadOnly))
@@ -236,24 +244,24 @@ bool FS::getGroupCondCommand(std::vector<uint8_t>* data, uint8_t number)
     	return false;
 }
 
-void FS::setGroupCondCommand(uint8_t* data, uint16_t size)
+void FS::setGroupCondCommand(uint8_t* data, uint16_t size, TransitionFileType transFileType)
 {
-    std::string fileName = prepareFileStorageToWriting(FT_GRP);
+    std::string fileName = prepareFileStorageToWriting(FT_GRP, transFileType);
     if (fileName != errorFileName){
     	QmFile file(dir, fileName);
     	if (!file.open(QmFile::WriteOnly))
     		return;
     	int64_t writeSize = file.write(data, size);
     	if (writeSize)
-    		fileTypeInfo[FT_GRP].count++;
+            fileTypeInfo[FT_GRP].counter[transFileType].count++;
     }
 }
 
-bool FS::getSms(std::vector<uint8_t>* data, uint8_t number)
+bool FS::getSms(std::vector<uint8_t>* data, uint8_t number, TransitionFileType transFileType)
 {
     if (number > maxFilesCount - 1) return false;
 
-    std::string fileName = generateFileNameByNumber(FT_SMS, number);
+    std::string fileName = generateFileNameByNumber(FT_SMS, transFileType, number);
     if (fileName != errorFileName){
     	QmFile file(dir, fileName);
     	if (!file.open(QmFile::ReadOnly))
@@ -268,24 +276,24 @@ bool FS::getSms(std::vector<uint8_t>* data, uint8_t number)
     	return false;
 }
 
-void FS::setSms(uint8_t* data, uint16_t size)
+void FS::setSms(uint8_t* data, uint16_t size, TransitionFileType transFileType)
 {
-    std::string fileName = prepareFileStorageToWriting(FT_SMS);
+    std::string fileName = prepareFileStorageToWriting(FT_SMS, transFileType);
     if (fileName != errorFileName){
     	QmFile file(dir, fileName);
     	if (!file.open(QmFile::WriteOnly))
     		return;
     	int64_t writeSize = file.write(data, size);
     	if (writeSize)
-    		fileTypeInfo[FT_SMS].count++;
+            fileTypeInfo[FT_SMS].counter[transFileType].count++;
     }
 }
 
-bool FS::getVoiceMail(std::vector<uint8_t>* data, uint8_t number)
+bool FS::getVoiceMail(std::vector<uint8_t>* data, uint8_t number, TransitionFileType transFileType)
 {
     if (number > maxFilesCount - 1) return false;
 
-    std::string fileName = generateFileNameByNumber(FT_VM, number);
+    std::string fileName = generateFileNameByNumber(FT_VM, transFileType, number);
     if (fileName != errorFileName){
     	QmFile file(dir, fileName);
     	if (!file.open(QmFile::ReadOnly))
@@ -300,16 +308,16 @@ bool FS::getVoiceMail(std::vector<uint8_t>* data, uint8_t number)
     	return false;
 }
 
-void FS::setVoiceMail(std::vector<uint8_t>* data)
+void FS::setVoiceMail(std::vector<uint8_t>* data, TransitionFileType transFileType)
 {
-    std::string fileName = prepareFileStorageToWriting(FT_VM);
+    std::string fileName = prepareFileStorageToWriting(FT_VM, transFileType);
     if (fileName != errorFileName){
     	QmFile file(dir, fileName);
     	if (!file.open(QmFile::WriteOnly))
     		return;
     	int64_t writeSize = file.write(data->data(), data->size());
     	if (writeSize)
-    		fileTypeInfo[FT_VM].count++;
+            fileTypeInfo[FT_VM].counter[transFileType].count++;
     }
 }
 
@@ -334,12 +342,13 @@ void FS::updateFileTree()
 
     std::string fileName;
     for (uint8_t fileType = 0; fileType < 4; fileType++)
+    for (uint8_t fileTransType = 0; fileTransType < 2; fileTransType++)
     for (uint8_t fileNum = 0; fileNum < 10; fileNum++)
     {
-        fileName = generateFileNameByNumber((FileType)fileType, fileNum);
+        fileName = generateFileNameByNumber((FileType)fileType, (TransitionFileType)fileTransType, fileNum);
         if (existFile(fileName)){
             files.push_back(fileName);
-            fileTypeInfo[fileType].count++;
+            fileTypeInfo[fileType].counter[fileTransType].count++;
         }
         else
             break;
@@ -355,70 +364,71 @@ void FS::getFileNamesByType(std::vector<std::string> *typeFiles, FS::FileType fi
 {
     typeFiles->clear();
     std::string fileName;
-    fileTypeInfo[fileType].count = 0;
-    for (uint8_t fileNum = 0; fileNum < 10; fileNum++)
-    {
-        fileName = generateFileNameByNumber(fileType, fileNum);
-        if (existFile(fileName)){
-            typeFiles->push_back(fileName);
-            fileTypeInfo[fileType].count++;
+    for (uint8_t fileTransType = 0; fileTransType < 2; fileTransType++){
+        fileTypeInfo[fileType].counter[fileTransType].count = 0;
+        for (uint8_t fileNum = 0; fileNum < 10; fileNum++)
+        {
+            fileName = generateFileNameByNumber(fileType, (TransitionFileType)fileTransType, fileNum);
+            if (existFile(fileName)){
+                typeFiles->push_back(fileName);
+                fileTypeInfo[fileType].counter[fileTransType].count++;
+            }
+            else
+                break;
         }
-        else
-            break;
     }
 }
 
 uint8_t FS::getFreeFileSlotCount()
 {
-    uint8_t sum = 0;
-    for (uint8_t ftype = 0; ftype < 4; ftype++){
-       sum += fileTypeInfo[ftype].count;
-       if (sum > maxFilesCount) return 0;
-    }
-    uint8_t res = maxFilesCount - sum;
-    return res;
+//    uint8_t sum = 0;
+//    for (uint8_t ftype = 0; ftype < 4; ftype++){
+//       sum += fileTypeInfo[ftype].counter[transFileType].count;
+//       if (sum > maxFilesCount) return 0;
+//    }
+//    uint8_t res = maxFilesCount - sum;
+//    return res;
 }
 
-std::string FS::generateFileNameByNumber(FS::FileType fileType, uint8_t number)
+std::string FS::generateFileNameByNumber(FS::FileType fileType, TransitionFileType transFileType, uint8_t number)
 {
     char n[1] = {0};
     std::string name = fileTypeInfo[fileType].fileName;
     sprintf(n,"%d", number);
+    name.append(n);
+    name.append(trans[transFileType]);
     return name.append(n);
 }
 
-void FS::prepareFreeFileSlot(FS::FileType fileType)
+void FS::prepareFreeFileSlot(FS::FileType fileType, TransitionFileType transFileType)
 {
-    deleteFile(generateFileNameByNumber(fileType, 0));
+    deleteFile(generateFileNameByNumber(fileType,transFileType, 0));
 
     //cyclic rename file n to n-1
-    for (uint8_t fileNumber = 1; fileNumber < fileTypeInfo[fileType].count; fileNumber++)
-        renameFile(generateFileNameByNumber(fileType, fileNumber),
-                   generateFileNameByNumber(fileType, fileNumber-1));
-    fileTypeInfo[fileType].count--;
+    for (uint8_t fileNumber = 1; fileNumber < fileTypeInfo[fileType].counter[transFileType].count; fileNumber++)
+        renameFile(generateFileNameByNumber(fileType, transFileType, fileNumber),
+                   generateFileNameByNumber(fileType, transFileType, fileNumber-1));
+    fileTypeInfo[fileType].counter[transFileType].count--;
 }
 
-std::string FS::prepareFileStorageToWriting(FS::FileType fileType)
+std::string FS::prepareFileStorageToWriting(FS::FileType fileType, TransitionFileType transFileType)
 {
-    //is limit file count of this type
-    if (fileTypeInfo[fileType].count == fileTypeInfo[fileType].maxCount)
+    if (fileTypeInfo[fileType].counter[transFileType].count == fileTypeInfo[fileType].counter[transFileType].maxCount)
     {
-        prepareFreeFileSlot(fileType);
-        return generateFileNameByNumber(fileType, fileTypeInfo[fileType].maxCount-1);
+        prepareFreeFileSlot(fileType, transFileType);
+        return generateFileNameByNumber(fileType, transFileType, fileTypeInfo[fileType].counter[transFileType].maxCount-1);
     }
-    else if (getFreeFileSlotCount() == 0)
-    {
-        //define type of file to delete (is type with max file count)
-        FS::FileType typeToDelete = fileType;
-        for (uint8_t typeID = 0; typeID < 4; typeID++)
-            if (fileTypeInfo[typeID].count > fileTypeInfo[typeToDelete].count)
-                typeToDelete = (FileType)typeID;
+    else
+        return generateFileNameByNumber(fileType, transFileType, fileTypeInfo[fileType].counter[transFileType].count);
+}
 
-        prepareFreeFileSlot(typeToDelete);
-        return generateFileNameByNumber(fileType, fileTypeInfo[fileType].count);
-    } else
-    	return generateFileNameByNumber(fileType, fileTypeInfo[fileType].count);
-       // return errorFileName;
+DataStorage::FS::TransitionFileType FS::getTransmitType(FS::FileType fileType, uint8_t fileTreeTypeFocus){
+    // fileTreeTypeFocus - focus in one type file list(sms or vm)
+    // first loaded files is rx, second is tx =>
+    if (fileTreeTypeFocus >= fileTypeInfo[fileType].counter[FTT_RX].count)
+        return FTT_TX;
+    else
+        return FTT_RX;
 }
 
 } /* namespace DataStorage */

@@ -121,7 +121,7 @@ public:
     void keyPressed(UI_Key);
     void setCmd(int cmd);
     void Draw_Sms();
-
+    static void showMessage(MoonsGeometry *area, bool isFrame, const char *p_title, const char *p_text);
 protected:
     MoonsGeometry window_geom;
     TextAreaParams title_area_params;
