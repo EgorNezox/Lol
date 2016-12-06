@@ -936,7 +936,7 @@ void Service::keyPressed(UI_Key key)
                         condMsg.push_back((uint8_t)sym[0]);
                         condMsg.push_back((uint8_t)sym[1]);
                         condMsg.push_back((uint8_t)sym[2]);
-                        storageFs->setCondCommand(&condMsg);
+                        storageFs->setCondCommand(&condMsg,DataStorage::FS::FTT_TX);
                     }
 
 
@@ -1125,7 +1125,7 @@ void Service::keyPressed(UI_Key key)
                     voice_service->saveFreq(freqs);
                     voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
                     if (storageFs > 0)
-                        storageFs->setGroupCondCommand((uint8_t*)str,strlen(str));
+                        storageFs->setGroupCondCommand((uint8_t*)str,strlen(str),DataStorage::FS::FTT_TX);
 #else
                     for (auto &k: estate.listItem)
                         k->inputStr.clear();
@@ -1384,7 +1384,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 3:
-            {// ввод адреса получатель
+            {// пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if ( key > 5 && key < 16 && menu->voiceAddr.size() < 2 )
                 {
                     menu->voiceAddr.push_back((char)(42+key));
@@ -3027,7 +3027,7 @@ void Service::drawMenu()
 					for(int i = 0; i < sheldure_size; i++)
 					{
 						std::string s;
-						switch (SheldureMass[ 1 + (i * 13) ])   // Режим
+						switch (SheldureMass[ 1 + (i * 13) ])   // пїЅпїЅпїЅпїЅпїЅ
 						{
 						case 0:
 							s.append(callSubMenu[0]);
@@ -3045,7 +3045,7 @@ void Service::drawMenu()
 						(SheldureMass[1+(i * 13)] % 2 == 0) ? s.append("   ") : s.append("  ");
 
 						for(int j = 0; j < 5; j++)
-							s.push_back(SheldureMass[ 2 + (i*13) + j]); // Время
+							s.push_back(SheldureMass[ 2 + (i*13) + j]); // пїЅпїЅпїЅпїЅпїЅ
 						s.append("\n ");
 						int frec = 0;
 						for(int k = 3; k >= 0; k--)

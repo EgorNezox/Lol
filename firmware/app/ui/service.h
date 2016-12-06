@@ -203,7 +203,7 @@ private:
     bool flashTestOn = false;
     std::vector<uint8_t> condMsg;
 
-    uint8_t SheldureMass[651];  // 50 сеансов по 13 байт + 1 байт кол-во сеансов
+    uint8_t SheldureMass[200];  // 50 пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 13 пїЅпїЅпїЅпїЅ + 1 пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ-пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     QmTimer schedulePromptTimer;
 
     std::vector<ScheduleTimeSession> sessionList;
