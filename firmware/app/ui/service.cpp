@@ -948,6 +948,7 @@ void Service::keyPressed(UI_Key key)
                 if (menu->txCondCmdStage == 0)
                 {
                     guiTree.backvard();
+                    voice_service->goToVoice(); // add return to voice mode
                 }
                 else if (menu->txCondCmdStage == 1)
                 {
@@ -1371,7 +1372,7 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 3:
-            {// ввод адреса получатель
+            {// пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if ( key > 5 && key < 16 && menu->voiceAddr.size() < 2 )
                 {
                     menu->voiceAddr.push_back((char)(42+key));
@@ -2927,7 +2928,7 @@ void Service::drawMenu()
         {
             menu->setTitle(dataAndTime[1]);
             std::string str; str.append(st.listItem.front()->inputStr); //str.append("00:00:00");
-             voice_service->setVirtualTime(str);
+            voice_service->setVirtualTime(str);
             menu->initSetDateOrTimeDialog( str );
             break;
         }
@@ -3011,7 +3012,7 @@ void Service::drawMenu()
 					for(int i = 0; i < sheldure_size; i++)
 					{
 						std::string s;
-						switch (SheldureMass[ 1 + (i * 13) ])   // Режим
+						switch (SheldureMass[ 1 + (i * 13) ])   // пїЅпїЅпїЅпїЅпїЅ
 						{
 						case 0:
 							s.append(callSubMenu[0]);
@@ -3029,7 +3030,7 @@ void Service::drawMenu()
 						(SheldureMass[1+(i * 13)] % 2 == 0) ? s.append("   ") : s.append("  ");
 
 						for(int j = 0; j < 5; j++)
-							s.push_back(SheldureMass[ 2 + (i*13) + j]); // Время
+							s.push_back(SheldureMass[ 2 + (i*13) + j]); // пїЅпїЅпїЅпїЅпїЅ
 						s.append("\n ");
 						int frec = 0;
 						for(int k = 3; k >= 0; k--)
@@ -3488,7 +3489,7 @@ void Service::msgGucTXQuit(int ans)
     }
     else
     {
-        msgBox( "GUC", gucQuitTextFail);
+        msgBox( "Guc", gucQuitTextFail);
         guiTree.append(messangeWindow, gucQuitTextFail, "QUIT\0");
     }
 }

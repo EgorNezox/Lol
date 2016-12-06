@@ -366,31 +366,34 @@ uint8_t VoiceServiceInterface::getSmsCounter()
 
 void VoiceServiceInterface::setVirtualDate(std::string s)
 {
-    uint8_t param[2];
     uint8_t cnt = 0;
 
-    if (s.length() > 0)
+    if (s.length() == 8)
     {
-        if (s[1] != '.')
+        for(int i = 0; i<8;i++)
         {
-            param[0] = s[0];
-            param[1] = s[1];
+            if (s[i] != '.')
+            {
+                param[cnt] = s[i];
+                ++cnt;
+            }
+
         }
-        else
-        {
-            param[0] = 0;
-            param[1] = s[0];
-        }
-        dispatcher->dsp_controller->setVirtualDay(param);
+
+        dispatcher->dsp_controller->setVirtualDate(param);
     }
+
 }
 
 void VoiceServiceInterface::setVirtualTime(std::string s)
 {
-    uint8_t param[6];
     uint8_t cnt = 0;
-    for(int i = 0; i< s.length();i++){
-        if (s[i] != '.') { param[cnt] = s[i]; ++cnt;}
+    for(int i = 0; i< s.length();i++)
+    {
+        if (s[i] != ':')
+        {
+            param[cnt] = s[i]; ++cnt;
+        }
     }
 
     dispatcher->dsp_controller->setVirtualTime(param);

@@ -110,6 +110,8 @@ private:
 
 	Dispatcher *dispatcher;
     ChannelStatus current_channel_status;
+
+    uint8_t param[6];
 };
 
 

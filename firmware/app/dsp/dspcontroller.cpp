@@ -26,7 +26,7 @@
 #include <cstring>
 #include "../synchro/virtual_timer.h"
 
-#define DEFAULT_PACKET_HEADER_LEN	2 // � � С‘� � � …� � Т‘� � С‘� � С”� � В°� ЎвЂљ� � С•� Ў� ‚ � � С”� � В°� � Т‘� Ў� ‚� � В° + � � С”� � С•� � Т‘ � � С—� � В°� Ў� ‚� � В°� � С�� � Вµ� ЎвЂљ� Ў� ‚� � В° ("� � В°� � Т‘� Ў� ‚� � Вµ� Ў� ѓ" � � � …� � В° � Ў� ѓ� � В°� � С�� � С•� � С� � � Т‘� � Вµ� � В»� � Вµ � � � …� � Вµ � � � � � ЎвЂ¦� � С•� � Т‘� � С‘� ЎвЂљ � Ў� ѓ� Ў� ‹� � Т‘� � В°, � Ў� Њ� ЎвЂљ� � С• "� � В°� � Т‘� Ў� ‚� � Вµ� Ў� ѓ � � � …� � В°� � В·� � � …� � В°� ЎвЂЎ� � Вµ� � � …� � С‘� Ў� Џ" � � С‘� � В· � � С”� � В°� � � …� � В°� � В»� Ў� Љ� � � …� � С•� � С–� � С• � ЎС“� Ў� ‚� � С•� � � � � � � …� Ў� Џ)
+#define DEFAULT_PACKET_HEADER_LEN	2
 #define hw_rtc                      1
 #define DefkeyValue 631
 
@@ -3117,10 +3117,7 @@ void DspController::startVirtualPpsModeTx(bool ack, uint8_t r_adr, uint8_t cmd,i
 #endif
 	count_VrtualTimer = 7;
 	txrtx = 0;
-#ifndef PORT__PCSIMULATOR
-//	d =  rtc->getDate();
-//	t = rtc->getTime();
-#endif
+
 }
 
 
@@ -3155,8 +3152,6 @@ void DspController::startVirtualPpsModeRx()
 #endif
 	antiSync = false;
 
-//	d =  rtc->getDate();
-//	t = rtc->getTime();
 }
 
 void DspController::sendSynchro(uint32_t freq, uint8_t cnt)
@@ -3329,22 +3324,41 @@ void DspController::setVirtualMode(bool param)
 	virtual_mode = param;
 }
 
-void DspController::setVirtualDay(uint8_t *param)
+void DspController::setVirtualDate(uint8_t *param)
 {
-    d.day = param[0] + param[1]*10;
+    uint8_t date[3];
+
+    for(int i = 0; i<6;i++) param[i] = param[i] - 48;
+
+    date[0] =  10*param[0] + param[1];
+    date[1] =  10*param[2] + param[3];
+    date[2] =  10*param[4] + param[5];
+
+#ifndef PORT__PCSIMULATOR
+    d.day = date[0];
+    d.month = date[1];
+    d.year  = date[2];
+    rtc->setDate(d);
+#endif
 }
 
 void DspController::setVirtualTime(uint8_t *param)
 {
-    uint16_t value[3] = {0,0,0};
+    for(int i = 0; i<6;i++) param[i] = param[i] - 48;
 
-    for(int i = 0; i<6;i++)
-    value[0] = value[i] + (value[i+1] * 10);
+    uint8_t time[3] = {0,0,0};
 
+    time[2] = 10*param[0] + param[1];
+    time[1] = 10*param[2] + param[3];
+    time[0] = 10*param[4] + param[5];
 
-    t.seconds = value[0];
-    t.minutes = value[1];
-    t.hours   = value[2];
+#ifndef PORT__PCSIMULATOR
+    t.seconds  = time[0];
+    t.minutes  = time[1];
+    t.hours    = time[2];
+    rtc->setTime(t);
+#endif
+
 }
 
 } /* namespace Multiradio */
