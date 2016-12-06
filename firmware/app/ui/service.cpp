@@ -44,8 +44,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller = headset_controller;
     this->storageFs          = fs;
 
-    loadSheldure();
     ginit();
+    loadSheldure();
+
 
 //    SheldureMass[0] = 1;
 //    SheldureMass[1] = 0;
@@ -80,7 +81,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     }
     menu->setFS(storageFs);
 
-
     menu->loadVoiceMail.connect(sigc::mem_fun(this, &Service::onLoadVoiceMail));
     menu->loadMessage.connect(sigc::mem_fun(this, &Service::onLoadMessage));
 
@@ -93,7 +93,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
     voice_service->command_tx30.connect(sigc::mem_fun(this, &Service::TxCondCmdPackage));
-
 
     //    guc_command_vector.push_back(2);
     //    guc_command_vector.push_back(15);
@@ -1336,7 +1335,7 @@ void Service::keyPressed(UI_Key key)
                     headset_controller->stopSmartRecord();
                 	Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
                     if (storageFs > 0)
-                        storageFs->setVoiceMail(&message);
+                        storageFs->setVoiceMail(&message, DataStorage::FS::FTT_TX);
                     menu->putOffVoiceStatus--;
                 }
 #ifndef _DEBUG_
@@ -1345,7 +1344,7 @@ void Service::keyPressed(UI_Key key)
                     headset_controller->stopSmartRecord();
                     Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
                     if (storageFs > 0)
-                        storageFs->setVoiceMail(&message);
+                        storageFs->setVoiceMail(&message, DataStorage::FS::FTT_TX);
 
 
                     if ( headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_READY )
@@ -1660,7 +1659,7 @@ void Service::keyPressed(UI_Key key)
                                 else
                                     voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
                                 if (storageFs > 0)
-                                    storageFs->setSms((uint8_t*)msg.c_str(),msg.size());
+                                    storageFs->setSms((uint8_t*)msg.c_str(),msg.size(), DataStorage::FS::FTT_TX);
                                 for(auto &k: estate.listItem)
                                     k->inputStr.clear();
                                 menu->smsTxStage++;
@@ -2478,16 +2477,18 @@ void Service::keyPressed(UI_Key key)
                 }
 
                 if (menu->filesStage == 1){
+                    DataStorage::FS::TransitionFileType ft;
                     switch (menu->fileType) {
-                    case DataStorage::FS::FT_SMS:
-                    case DataStorage::FS::FT_CND:
-                    case DataStorage::FS::FT_GRP:
+                    case DataStorage::FS::FT_SMS: if (storageFs > 0) ft = storageFs->getTransmitType(DataStorage::FS::FT_SMS, menu->filesStageFocus[1]);
+                    case DataStorage::FS::FT_CND: if (storageFs > 0) ft = storageFs->getTransmitType(DataStorage::FS::FT_SMS, menu->filesStageFocus[1]);
+                    case DataStorage::FS::FT_GRP: if (storageFs > 0) ft = storageFs->getTransmitType(DataStorage::FS::FT_SMS, menu->filesStageFocus[1]);
                         if (menu->tFiles[menu->fileType].size() > 0)
-                            menu->fileMessage = onLoadMessage(menu->fileType, menu->filesStageFocus[1]);
+                            menu->fileMessage = onLoadMessage(menu->fileType, ft, menu->filesStageFocus[1]);
                         break;
                     case DataStorage::FS::FT_VM:
+                        if (storageFs > 0)ft = storageFs->getTransmitType(DataStorage::FS::FT_SMS, menu->filesStageFocus[1]);
                         if (menu->tFiles[menu->fileType].size() > 0)
-                            menu->fileMessage = onLoadVoiceMail(menu->filesStageFocus[1]);
+                            menu->fileMessage = onLoadVoiceMail(menu->filesStageFocus[1], ft);
                     default:
                         break;
                     }
@@ -2624,7 +2625,7 @@ void Service::FirstPacketPSWFRecieved(int packet)
             condMsg.push_back((uint8_t)sym[1]);
             condMsg.push_back((uint8_t)sym[2]);
 
-            storageFs->setCondCommand(&condMsg);
+            storageFs->setCondCommand(&condMsg, DataStorage::FS::FTT_RX);
         }
     }
     else if ( packet > 99)
@@ -3295,7 +3296,7 @@ void Service::gucFrame(int value)
 
             if (isCoord)
                 memcpy(&cmdv[len], &coords[0], 26);
-            storageFs->setGroupCondCommand((uint8_t*)&cmdv, fullSize);
+            storageFs->setGroupCondCommand((uint8_t*)&cmdv, fullSize, DataStorage::FS::FTT_RX);
         }
     }
 
@@ -3355,7 +3356,7 @@ void Service::smsMessage(int value)
     menu->initTxSmsDialog(title,text_str);
 
     if (storageFs > 0)
-        storageFs->setSms((uint8_t*)&sym[0], value);
+        storageFs->setSms((uint8_t*)&sym[0], value, DataStorage::FS::FTT_RX);
 }
 
 void Service::updateAleVmProgress(uint8_t t)
@@ -3434,12 +3435,12 @@ void Service::TxCondCmdPackage(int value)
     }
 }
 
-std::vector<uint8_t>* Service::onLoadVoiceMail(uint8_t fileNumber)
+std::vector<uint8_t>* Service::onLoadVoiceMail(uint8_t fileNumber, DataStorage::FS::TransitionFileType tft)
 {
     uint8_t result = 0; // ok
     if (storageFs > 0){
         fileMessage.clear();
-        result = multiradio_service->playVoiceMessage(fileNumber);
+        result = multiradio_service->playVoiceMessage(fileNumber, tft);
     }
 
     std::string stateStr;
@@ -3465,18 +3466,18 @@ std::vector<uint8_t>* Service::onLoadVoiceMail(uint8_t fileNumber)
     return &fileMessage;
 }
 
-std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, uint8_t fileNumber)
+std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, DataStorage::FS::TransitionFileType tft, uint8_t fileNumber)
 {
     bool result = false;
     if (storageFs > 0){
         fileMessage.clear();
         switch (typeF){
             case DataStorage::FS::FT_SMS:
-                result = storageFs->getSms(&fileMessage, fileNumber); break;
+                result = storageFs->getSms(&fileMessage, fileNumber, tft); break;
             case DataStorage::FS::FT_CND:
-                result = storageFs->getCondCommand(&fileMessage, fileNumber); break;
+                result = storageFs->getCondCommand(&fileMessage, fileNumber, tft); break;
             case DataStorage::FS::FT_GRP:
-                result = storageFs->getGroupCondCommand(&fileMessage, fileNumber); break;
+                result = storageFs->getGroupCondCommand(&fileMessage, fileNumber, tft); break;
         }
     }
     if (!result)

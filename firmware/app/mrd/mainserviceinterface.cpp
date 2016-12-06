@@ -371,13 +371,13 @@ voice_message_t MainServiceInterface::getAleRxVmMessage() {
     return vm_rx_message;
 }
 
-uint8_t MainServiceInterface::playVoiceMessage(uint8_t fileNumber)
+uint8_t MainServiceInterface::playVoiceMessage(uint8_t fileNumber, DataStorage::FS::TransitionFileType transFileType)
 {
     Headset::Controller::Status status;
     uint8_t result = 1; // error read
     if (storageFs > 0){
         voice_message_t msg;
-        if (storageFs->getVoiceMail(&msg, fileNumber))
+        if (storageFs->getVoiceMail(&msg, fileNumber, transFileType))
            result = 0;
         dispatcher->headset_controller->setSmartMessageToPlay(msg);
         status = dispatcher->headset_controller->getStatus();
@@ -511,7 +511,7 @@ void MainServiceInterface::stopAleSession() {
 		printDebugVmMessage(ale.vm_size, ale.vm_f_count, message);
 		dispatcher->headset_controller->setSmartMessageToPlay(message);
         if (storageFs > 0)
-            storageFs->setVoiceMail(&message);
+            storageFs->setVoiceMail(&message,DataStorage::FS::FTT_RX);
 		break;
 	}
 	case alefunctionTx: {

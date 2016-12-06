@@ -14,9 +14,18 @@ public:
 					FT_CND = 2,
                     FT_GRP = 3};
 
-    struct FileTypeInfo {uint8_t count = 0;
-                         uint8_t maxCount = 10;
-                         std::string fileName;};
+    enum TransitionFileType { FTT_RX = 0,
+                              FTT_TX = 1};
+
+    struct FileCounter {
+        uint8_t count = 0;
+        uint8_t maxCount = 10;
+    };
+
+    struct FileTypeInfo {
+        FileCounter counter[2];
+        std::string fileName;
+    };
 
 	FS(const std::string &dir);
 	~FS();
@@ -34,32 +43,34 @@ public:
 	bool getAnalogHeadsetChannel(uint8_t &data);
 	void setAnalogHeadsetChannel(uint8_t data);
 
-    bool getCondCommand(std::vector<uint8_t>* data, uint8_t number);
-    void setCondCommand(std::vector<uint8_t> *data);
-    bool getGroupCondCommand(std::vector<uint8_t> *data, uint8_t number);
-    void setGroupCondCommand(uint8_t *data, uint16_t size);
-    bool getSms(std::vector<uint8_t> *data, uint8_t number);
-    void setSms(uint8_t* data, uint16_t size);
-    bool getVoiceMail(std::vector<uint8_t> *data, uint8_t number);
-    void setVoiceMail(std::vector<uint8_t> *data);
+    bool getCondCommand(std::vector<uint8_t>* data, uint8_t number, TransitionFileType transFileType);
+    void setCondCommand(std::vector<uint8_t> *data, TransitionFileType transFileType);
+    bool getGroupCondCommand(std::vector<uint8_t> *data, uint8_t number, TransitionFileType transFileType);
+    void setGroupCondCommand(uint8_t *data, uint16_t size, TransitionFileType transFileType);
+    bool getSms(std::vector<uint8_t> *data, uint8_t number, TransitionFileType transFileType);
+    void setSms(uint8_t* data, uint16_t size, TransitionFileType transFileType);
+    bool getVoiceMail(std::vector<uint8_t> *data, uint8_t number, TransitionFileType transFileType);
+    void setVoiceMail(std::vector<uint8_t> *data, TransitionFileType transFileType);
     void updateFileTree();
     std::vector<std::string> *getFileTree();
     void getFileNamesByType(std::vector<std::string>* typeFiles, FileType fileType);
     bool getSheldure(uint8_t &data);
+    TransitionFileType getTransmitType(FS::FileType fileType, uint8_t fileTreeTypeFocus);
 private:
     bool renameFile(std::string oldfileName, std::string newFileName);
     bool deleteFile(std::string fileName);
     bool existFile(std::string fileName);
     std::string dir;
     std::vector<std::string> files;
-    uint8_t maxFilesCount = 10;
+    uint8_t maxFilesCount = 32;
     std::string errorFileName = "error";
     FileTypeInfo fileTypeInfo[4];
     uint8_t getFreeFileSlotCount();
+    std::string trans[2];
 
-    std::string prepareFileStorageToWriting(FileType fileType);
-    std::string generateFileNameByNumber(FileType fileType, uint8_t number);
-    void prepareFreeFileSlot(FS::FileType fileType);
+    std::string prepareFileStorageToWriting(FileType fileType, TransitionFileType transFileType);
+    std::string generateFileNameByNumber(FileType fileType, TransitionFileType transFileType, uint8_t number);
+    void prepareFreeFileSlot(FS::FileType fileType, TransitionFileType transFileType);
 };
 
 } /* namespace DataStorage */

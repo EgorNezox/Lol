@@ -97,8 +97,8 @@ public:
     uint8_t* getGpsGucCoordinat(uint8_t *coord);
     uint8_t &setSheldure();
 
-    std::vector<uint8_t>* onLoadVoiceMail(uint8_t fileNumber);
-    std::vector<uint8_t>* onLoadMessage(DataStorage::FS::FileType typeF, uint8_t fileNumber);
+    std::vector<uint8_t>* onLoadVoiceMail(uint8_t fileNumber, DataStorage::FS::TransitionFileType tft);
+    std::vector<uint8_t>* onLoadMessage(DataStorage::FS::FileType typeF, DataStorage::FS::TransitionFileType tft, uint8_t fileNumber);
     void showMessage(const char *title, const char *text);
     void showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t minutes);
     bool checkSessionTimeSchedule();

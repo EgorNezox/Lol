@@ -26,11 +26,38 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, Alignment align):CGui
 
     GUI_EL_TEMP_WindowGeneral.frame_thick = 0;
 
-    tFiles[0].push_back("Sms0");
-    tFiles[0].push_back("Sms1");
-    tFiles[0].push_back("Sms2");
-    tFiles[0].push_back("Sms3");
-    tFiles[0].push_back("Sms4");
+//    tFiles[0].push_back("Sms0");
+//    tFiles[0].push_back("Sms1");
+//    tFiles[0].push_back("Sms2");
+//    tFiles[0].push_back("Sms3");
+//    tFiles[0].push_back("Sms4");
+//    tFiles[0].push_back("Sms5");
+//    tFiles[0].push_back("Sms6");
+//    tFiles[0].push_back("Sms7");
+//    tFiles[0].push_back("Sms8");
+//    tFiles[0].push_back("Sms9");
+//    tFiles[1].push_back("Voice0");
+//    tFiles[2].push_back("Group0");
+//    tFiles[2].push_back("Group1");
+//    tFiles[2].push_back("Group2");
+//    tFiles[2].push_back("Group3");
+//    tFiles[2].push_back("Group4");
+//    tFiles[2].push_back("Group5");
+//    tFiles[2].push_back("Group6");
+//    tFiles[2].push_back("Group7");
+//    tFiles[2].push_back("Group8");
+//    tFiles[2].push_back("Group9");
+//    tFiles[3].push_back("Cond0");
+//    tFiles[3].push_back("Cond1");
+//    tFiles[3].push_back("Cond2");
+//    tFiles[3].push_back("Cond3");
+//    tFiles[3].push_back("Cond4");
+//    tFiles[3].push_back("Cond5");
+//    tFiles[3].push_back("Cond6");
+//    tFiles[3].push_back("Cond7");
+//    tFiles[3].push_back("Cond8");
+//    tFiles[3].push_back("Cond9");
+
 
 }
 

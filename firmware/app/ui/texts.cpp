@@ -226,3 +226,5 @@ const char *displayBrightnessStr[] = {"Минимальная\0","Средняя\0","Максиамльная\
 const char *displayBrightnessTitleStr = "Яркость\0";
 
 const char *schedulePromptStr = " минут\n до начала\n сеанса связи\n режима\0";
+
+const char *rxtxFilesStr[] = {"Принятые\0", "Переданные\0"};
