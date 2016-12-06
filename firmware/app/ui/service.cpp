@@ -342,6 +342,27 @@ void Service::FailedSms(int stage)
     }
 }
 
+void Service::setColorScheme(uint32_t back,uint32_t front)
+{
+
+         GENERAL_TEXT_COLOR =				front;
+         GENERAL_FORE_COLOR =				front;
+         GENERAL_BACK_COLOR =				back;
+         MENU_ITEM_INACTIVE_BACK_COLOR =	back;
+         MENU_ITEM_INACTIVE_TEXT_COLOR =	front;
+         MENU_ITEM_ACTIVE_BACK_COLOR =	    front;
+         MENU_ITEM_ACTIVE_TEXT_COLOR =	    back;
+         SPBOX_ACTIVE_BACK_COLOR =		    front;
+         SPBOX_ACTIVE_TEXT_COLOR =		    back;
+         SPBOX_INACTIVE_BACK_COLOR =		back;
+         SPBOX_INACTIVE_TEXT_COLOR =		front;
+         BATTERY_HIGH_COLOR =				front;
+         BATTERY_MID_COLOR =				front;
+         BATTERY_LOW_COLOR =				front;
+
+
+}
+
 Service::~Service() {
     QM_ASSERT(single_instance == true);
     single_instance = false;
@@ -2035,12 +2056,15 @@ void Service::keyPressed(UI_Key key)
             {
                 if (menu->displayBrightness > 0)
                 menu->displayBrightness--;
+                //setColorScheme(menu->displayBrightness);
+
 
             }
             if ( key == keyRight)
             {
                 if (menu->displayBrightness < 2)
                 menu->displayBrightness++;
+                //setColorScheme(menu->displayBrightness);
 
             }
             if ( key == keyBack)
@@ -2053,6 +2077,7 @@ void Service::keyPressed(UI_Key key)
             {
                 guiTree.backvard();
                 menu->focus = 0;
+                //setColorScheme(menu->displayBrightness);
             }
             break;
         }

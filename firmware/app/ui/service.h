@@ -190,6 +190,8 @@ private:
     bool flashTestOn = false;
     std::vector<uint8_t> condMsg;
 
+    void setColorScheme(uint32_t back,uint32_t front);
+
 
     uint8_t SheldureMass[651];  // 50 сеансов по 13 байт + 1 байт кол-во сеансов
 };
