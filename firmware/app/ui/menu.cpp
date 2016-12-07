@@ -26,39 +26,7 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, Alignment align):CGui
 
     GUI_EL_TEMP_WindowGeneral.frame_thick = 0;
 
-//    tFiles[0].push_back("Sms0");
-//    tFiles[0].push_back("Sms1");
-//    tFiles[0].push_back("Sms2");
-//    tFiles[0].push_back("Sms3");
-//    tFiles[0].push_back("Sms4");
-//    tFiles[0].push_back("Sms5");
-//    tFiles[0].push_back("Sms6");
-//    tFiles[0].push_back("Sms7");
-//    tFiles[0].push_back("Sms8");
-//    tFiles[0].push_back("Sms9");
-//    tFiles[1].push_back("Voice0");
-//    tFiles[2].push_back("Group0");
-//    tFiles[2].push_back("Group1");
-//    tFiles[2].push_back("Group2");
-//    tFiles[2].push_back("Group3");
-//    tFiles[2].push_back("Group4");
-//    tFiles[2].push_back("Group5");
-//    tFiles[2].push_back("Group6");
-//    tFiles[2].push_back("Group7");
-//    tFiles[2].push_back("Group8");
-//    tFiles[2].push_back("Group9");
-//    tFiles[3].push_back("Cond0");
-//    tFiles[3].push_back("Cond1");
-//    tFiles[3].push_back("Cond2");
-//    tFiles[3].push_back("Cond3");
-//    tFiles[3].push_back("Cond4");
-//    tFiles[3].push_back("Cond5");
-//    tFiles[3].push_back("Cond6");
-//    tFiles[3].push_back("Cond7");
-//    tFiles[3].push_back("Cond8");
-//    tFiles[3].push_back("Cond9");
-
-
+    //tFiles[0].push_back("sms0t");
 }
 
 void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
@@ -2064,6 +2032,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
     item_geom = {(GXT)(0),(GYT)(0),(GXT)(145),(GYT)(30)};
 
     MenuItemParams item_param;
+
    // item_param.label_params = GUI_EL_TEMP_LabelChannel;
 //    item_param.label_params.element.align = {alignHCenter, alignVCenter};
 //    item_param.label_params.transparent = true;
@@ -2077,6 +2046,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
 
         titleChar = files[0];
 
+
         for (uint8_t subMenu = 0; subMenu < 4; subMenu++)
         {
             if (filesStageFocus[stage] == subMenu){
@@ -2084,6 +2054,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
             } else
                 item_param = GUI_EL_TEMP_DefaultMenuItem;
             item_param.label_params.font = &Consolas25x35;
+            item_param.label_params.transparent = true;
 
             GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)reciveSubMenu[subMenu + 1], true, true, (GUI_Obj*)this );
             ScrollArea.addGuiElement(item);
@@ -2114,6 +2085,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
                 } else
                     item_param = GUI_EL_TEMP_DefaultMenuItem;
                 item_param.label_params.font = &Tahoma26;
+                item_param.label_params.transparent = true;
 
                 GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)fileName.c_str(), true, true, (GUI_Obj*)this );
                 ScrollArea.addGuiElement(item);
@@ -2129,7 +2101,9 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
     case 2:
 
         titleChar = reciveSubMenu[fileType + 1];
-        TextAreaParams textArea_Params = GUI_EL_TEMP_LabelText;
+        TextAreaParams textArea_Params = GUI_EL_TEMP_LabelMode;
+        textArea_Params.element.align.align_h = alignLeft;
+        textArea_Params.element.align.align_v = alignTop;
         MoonsGeometry textArea_Geom = {2, 30, 157, 126};
 
         GUI_EL_TextArea textArea(&textArea_Params, &textArea_Geom, fileMessage, (GUI_Obj*)this);
@@ -2137,7 +2111,6 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
         textArea.Draw();
         break;
     }
-
     GUI_EL_Label title( &label_params, &label_geom, (char*)titleChar, (GUI_Obj *)this);
     title.Draw();
 }
