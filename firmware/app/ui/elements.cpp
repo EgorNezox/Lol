@@ -1208,7 +1208,7 @@ void GUI_EL_ScrollArea::Draw(){
             int32_t h = GEOM_H(elem->el_geom);
             elem->el_geom.xs = geom_prev.xs;
             elem->el_geom.xe = geom_prev.xe;
-            elem->el_geom.ys = geom_prev.ye;
+            elem->el_geom.ys = geom_prev.ye + 1;
             elem->el_geom.ye = elem->el_geom.ys + h;
             elem->Draw();
           }
@@ -1255,7 +1255,7 @@ void GUI_EL_ScrollArea::CalcContentGeom(){
         GUI_Element*  el = ((GUI_Element*)*i);
 
         MoonsGeometry geom = el->el_geom;
-        allContent.H += GEOM_H(geom);
+        allContent.H += GEOM_H(geom); allContent.H++;
         allContent.W += GEOM_W(geom);
 
         i++;

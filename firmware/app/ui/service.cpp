@@ -2495,25 +2495,29 @@ void Service::keyPressed(UI_Key key)
             if ( key == keyEnter)
             {
                 if (menu->filesStage == 0){
+
                     menu->fileType = (DataStorage::FS::FileType)menu->filesStageFocus[0];
                      if (storageFs > 0)
                           storageFs->getFileNamesByType(&menu->tFiles[menu->fileType], menu->fileType);
                 }
 
                 if (menu->filesStage == 1){
-                    DataStorage::FS::TransitionFileType ft;
-                    switch (menu->fileType) {
-                    case DataStorage::FS::FT_SMS: if (storageFs > 0) ft = storageFs->getTransmitType(DataStorage::FS::FT_SMS, menu->filesStageFocus[1]);
-                    case DataStorage::FS::FT_CND: if (storageFs > 0) ft = storageFs->getTransmitType(DataStorage::FS::FT_SMS, menu->filesStageFocus[1]);
-                    case DataStorage::FS::FT_GRP: if (storageFs > 0) ft = storageFs->getTransmitType(DataStorage::FS::FT_SMS, menu->filesStageFocus[1]);
-                        if (menu->tFiles[menu->fileType].size() > 0)
-                            menu->fileMessage = onLoadMessage(menu->fileType, ft, menu->filesStageFocus[1]);
+
+                	DataStorage::FS::TransitionFileType ft;
+                    if (storageFs > 0) ft = storageFs->getTransmitType(menu->fileType, menu->filesStageFocus[1]);
+
+                    switch (menu->fileType)
+                    {
+                    case DataStorage::FS::FT_SMS:
+                    case DataStorage::FS::FT_CND:
+                    case DataStorage::FS::FT_GRP:
+                    	if (menu->tFiles[menu->fileType].size() > 0)
+                        menu->fileMessage = onLoadMessage(menu->fileType, ft, storageFs->getFileNumber(menu->fileType, menu->filesStageFocus[1]));
                         break;
+
                     case DataStorage::FS::FT_VM:
-                        if (storageFs > 0)ft = storageFs->getTransmitType(DataStorage::FS::FT_SMS, menu->filesStageFocus[1]);
                         if (menu->tFiles[menu->fileType].size() > 0)
-                            menu->fileMessage = onLoadVoiceMail(menu->filesStageFocus[1], ft);
-                    default:
+                        menu->fileMessage = onLoadVoiceMail(storageFs->getFileNumber(menu->fileType, menu->filesStageFocus[1]), ft);
                         break;
                     }
                 }

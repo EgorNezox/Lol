@@ -54,6 +54,7 @@ public:
     void updateFileTree();
     std::vector<std::string> *getFileTree();
     void getFileNamesByType(std::vector<std::string>* typeFiles, FileType fileType);
+    uint8_t getFileNumber(FS::FileType fileType, uint8_t fileTreeTypeFocus);
     bool getSheldure(uint8_t &data);
     TransitionFileType getTransmitType(FS::FileType fileType, uint8_t fileTreeTypeFocus);
 private:

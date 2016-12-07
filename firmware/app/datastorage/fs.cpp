@@ -10,6 +10,7 @@ namespace DataStorage {
 FS::FS(const std::string &dir) :
 	dir(dir)
 {
+
     trans[FTT_RX] = "r";
     trans[FTT_TX] = "t";
 
@@ -397,7 +398,7 @@ std::string FS::generateFileNameByNumber(FS::FileType fileType, TransitionFileTy
     sprintf(n,"%d", number);
     name.append(n);
     name.append(trans[transFileType]);
-    return name.append(n);
+    return name;
 }
 
 void FS::prepareFreeFileSlot(FS::FileType fileType, TransitionFileType transFileType)
@@ -431,4 +432,12 @@ DataStorage::FS::TransitionFileType FS::getTransmitType(FS::FileType fileType, u
         return FTT_RX;
 }
 
+uint8_t FS::getFileNumber(FS::FileType fileType, uint8_t fileTreeTypeFocus){
+
+	if (fileTreeTypeFocus < fileTypeInfo[fileType].counter[FTT_RX].count)
+		return fileTreeTypeFocus;
+	else
+		return fileTreeTypeFocus - fileTypeInfo[fileType].counter[FTT_RX].count;
+
+}
 } /* namespace DataStorage */
