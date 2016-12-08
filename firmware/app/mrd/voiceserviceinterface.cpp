@@ -29,7 +29,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     dispatcher->dsp_controller->smsFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::SmsFailStage));
     dispatcher->dsp_controller->recievedGucResp.connect(sigc::mem_fun(this,&VoiceServiceInterface::responseGuc));
     dispatcher->dsp_controller->recievedGucQuitForTransm.connect(sigc::mem_fun(this,&VoiceServiceInterface::messageGucQuit));
-	dispatcher->dsp_controller->updateSmsStatus.connect(sigc::mem_fun(this,&VoiceServiceInterface::getSmsForUiStage));
+
     dispatcher->dsp_controller->gucCrcFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCrcFail));
     dispatcher->dsp_controller->updateGucGpsStatus.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCoordRec));
     dispatcher->dsp_controller->smsCounterChanged.connect(sigc::mem_fun(this,&VoiceServiceInterface::onSmsCounterChange));
@@ -204,25 +204,19 @@ void VoiceServiceInterface::TurnAGCMode(uint8_t mode, int radio_path)
 
 void VoiceServiceInterface::TurnPSWFMode(uint8_t mode, int cmd, int r_adr, int retr)
 {
-	if (dispatcher->dsp_controller->getVirtualMode()== true)
+
+	if ((r_adr == 0) && (cmd ==0))
 	{
-		if ((r_adr == 0) && (cmd ==0))
-			turnVirtualPswfRx();
-		else
-			turnVirtualPswfTx(false,r_adr, cmd,retr);
+		dispatcher->dsp_controller->startPSWFReceiving();
 	}
 	else
 	{
-		if ((r_adr == 0) && (cmd ==0))
-		{
-			dispatcher->dsp_controller->startPSWFReceiving();
-		} else {
-			if (mode == 0)
-				dispatcher->dsp_controller->startPSWFTransmitting(false, r_adr, cmd,retr);
-			else
-				dispatcher->dsp_controller->startPSWFTransmitting(true, r_adr, cmd,retr);
-		}
+		if (mode == 0)
+			dispatcher->dsp_controller->startPSWFTransmitting(false, r_adr, cmd,retr);
+		else
+			dispatcher->dsp_controller->startPSWFTransmitting(true, r_adr, cmd,retr);
 	}
+
 }
 
 const char* VoiceServiceInterface::ReturnSwfStatus()
@@ -246,9 +240,9 @@ void VoiceServiceInterface::gucCrcFail()
     gucCrcFailed();
 }
 
-void VoiceServiceInterface::turnVirtualPswfTx(bool ack, uint8_t r_adr, uint8_t cmd,int retr)
+void VoiceServiceInterface::turnVirtualPswfTx()
 {
-	dispatcher->dsp_controller->startVirtualPpsModeTx(ack,r_adr,cmd,retr);
+	dispatcher->dsp_controller->startVirtualPpsModeTx();
 }
 
 void VoiceServiceInterface::turnVirtualPswfRx()
@@ -284,6 +278,13 @@ void VoiceServiceInterface::SmsFailStage(int stage)
 void VoiceServiceInterface::setRnKey(int value)
 {
    dispatcher->dsp_controller->setRnKey(value);
+}
+
+uint8_t* VoiceServiceInterface::getVirtualTime()
+{
+	uint8_t *pointer = 0;
+	pointer = dispatcher->dsp_controller->getVirtualTime();
+	return pointer;
 }
 
 
@@ -415,6 +416,11 @@ bool VoiceServiceInterface::getIsGucCoord()
 void VoiceServiceInterface::setVirtualMode(bool param)
 {
 	dispatcher->dsp_controller->setVirtualMode(param);
+}
+
+bool VoiceServiceInterface::getVirtualMode()
+{
+	return dispatcher->dsp_controller->getVirtualMode();
 }
 
 } /* namespace Multiradio */

@@ -64,10 +64,11 @@ public:
     void gucCrcFail();
     void gucCoordRec();
 
-    void turnVirtualPswfTx(bool ack, uint8_t r_adr, uint8_t cmd,int retr);
+    void turnVirtualPswfTx();
     void turnVirtualPswfRx();
 
     void setVirtualMode(bool param);
+    bool getVirtualMode();
 
     uint8_t* requestGucCoord();
 
@@ -94,6 +95,8 @@ public:
     void setVirtualTime(std::string s);
 
     bool getIsGucCoord();
+
+    uint8_t* getVirtualTime();
 private:
     void onSmsCounterChange(int param);
 	friend class Dispatcher;

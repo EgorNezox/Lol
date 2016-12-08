@@ -94,11 +94,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     voice_service->command_tx30.connect(sigc::mem_fun(this, &Service::TxCondCmdPackage));
 
-    //    guc_command_vector.push_back(2);
-    //    guc_command_vector.push_back(15);
-    //    guc_command_vector.push_back(54);
-    //    msgBox( guiTree.getCurrentState().getName(), guc_command_vector.at(position), guc_command_vector.size(), position );
-    //    guiTree.append(messangeWindow, (char*)test_Pass, voice_service->ReturnSwfStatus());
     command_rx_30 = 0;
 
     voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
@@ -131,87 +126,11 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 }
 
 
-void Service::updateSmsStatus(int value)
-{
-    CEndState state = (CEndState&)guiTree.getCurrentState();
-
-    if ( state.subType == GuiWindowsSubType::txSmsMessage )
-    {
-        switch(value)
-        {
-        case 10:
-        {
-            menu->smsStage = 0x0F;
-            menu->smsValueStrStatus.append(txSmsResultStatus[0]);
-            break;
-        }
-        case 25:
-        {
-            menu->smsValueStrStatus.append(txSmsResultStatus[1]);
-            break;
-        }
-        case 45:
-        {
-            menu->smsValueStrStatus.append(txSmsResultStatus[2]);
-            break;
-        }
-        case 90:
-        {
-            menu->smsStage = 0xF0;
-            menu->smsValueStrStatus.append(txSmsResultStatus[3]);
-            break;
-        }
-        default:
-        {
-            menu->smsValueStrStatus.append("\0");
-            break;
-        }
-        }
-    }
-    else if( state.subType == GuiWindowsSubType::rxSmsMessage )
-    {
-        switch(value)
-        {
-        case 10:
-        {
-            menu->smsStage = 0x0F;
-            menu->smsValueStrStatus.append( rxSmsResultStatus[0]);
-            break;
-        }
-        case 25:
-        {
-            menu->smsValueStrStatus.append( rxSmsResultStatus[1]);
-            break;
-        }
-        case 45:
-        {
-            menu->smsValueStrStatus.append( rxSmsResultStatus[2]);
-            break;
-        }
-        case 90:
-        {
-            menu->smsStage = 0xF0;
-            menu->smsValueStrStatus.append( rxSmsResultStatus[3]);
-            break;
-        }
-        default:
-        {
-            menu->smsValueStrStatus.append("\0");
-            break;
-        }
-        }
-    }
-}
 
 void Service::setPswfStatus(bool var)
 {
 		pswf_status = var;
 }
-
-//void Service::errorMessage()
-//{
-//    guiTree.append(messangeWindow, (char*)"Error ASU\0", "0\0");
-//}
 
 void Service::showAtuMalfunction()
 {
@@ -385,8 +304,6 @@ Service::~Service() {
     delete keyboard;
     delete chnext_bt;
     delete chprev_bt;
-//    delete chnext_bt;
-//    delete chprev_bt;
     delete main_scr;
     delete indicator;
     fileMessage.clear();
@@ -2201,6 +2118,11 @@ void Service::keyPressed(UI_Key key)
                     st.push_back('.');
                 }
             }
+            if (key == keyEnter)
+            {
+            	auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
+            	voice_service->setVirtualDate(st);
+            }
             break;
         }
         case GuiWindowsSubType::setTime:
@@ -2217,6 +2139,12 @@ void Service::keyPressed(UI_Key key)
                     guiTree.backvard();
                     menu->focus = 0;
                 }
+            }
+            if (key == keyEnter)
+            {
+            	auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
+            	voice_service->setVirtualTime(st);
+
             }
             else if ( key >= key0 && key <= key9 )
             {
@@ -2963,7 +2891,6 @@ void Service::drawMenu()
         {
             menu->setTitle(dataAndTime[0]);
             std::string str; str.append(st.listItem.front()->inputStr); //str.append("00.00.00");
-            voice_service->setVirtualDate(str);
             menu->initSetDateOrTimeDialog( str );
             break;
         }
@@ -2971,7 +2898,6 @@ void Service::drawMenu()
         {
             menu->setTitle(dataAndTime[1]);
             std::string str; str.append(st.listItem.front()->inputStr); //str.append("00:00:00");
-            voice_service->setVirtualTime(str);
             menu->initSetDateOrTimeDialog( str );
             break;
         }
@@ -3214,14 +3140,36 @@ void Service::setCoordDate(Navigation::Coord_Date date)
 //    str.push_back((char)date.data[3]);
 //
 //    str.push_back((char)' ');
-    str.push_back((char)date.time[0]);
-    str.push_back((char)date.time[1]);
-    str.push_back((char)':');
-    str.push_back((char)date.time[2]);
-    str.push_back((char)date.time[3]);
-    str.push_back((char)':');
-    str.push_back((char)date.time[4]);
-    str.push_back((char)date.time[5]);
+
+    uint8_t *time;
+
+    if (voice_service->getVirtualMode() == true)
+    {
+    	time = voice_service->getVirtualTime();
+
+
+    		str.push_back((char)time[0]);
+    		str.push_back((char)time[1]);
+    		str.push_back((char)':');
+    		str.push_back((char)time[2]);
+    		str.push_back((char)time[3]);
+    		str.push_back((char)':');
+    		str.push_back((char)time[4]);
+    		str.push_back((char)time[5]);
+
+    }
+    else
+    {
+        str.push_back((char)date.time[0]);
+        str.push_back((char)date.time[1]);
+        str.push_back((char)':');
+        str.push_back((char)date.time[2]);
+        str.push_back((char)date.time[3]);
+        str.push_back((char)':');
+        str.push_back((char)date.time[4]);
+        str.push_back((char)date.time[5]);
+    }
+
 
     qmDebugMessage(QmDebug::Dump, "DATE TIME %s :", str.c_str());
     indicator->date_time->SetText((char *)str.c_str());

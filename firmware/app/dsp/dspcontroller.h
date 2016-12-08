@@ -185,7 +185,7 @@ public:
     sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
     sigc::signal<void,int> recievedGucResp;    // ответ на группу ук
     sigc::signal<void,int> recievedGucQuitForTransm; // прием квитанции групп ук
-    sigc::signal<void,int> updateSmsStatus;          // статус СМС
+
     sigc::signal<void> updateGucGpsStatus;    float swf_res = 2; // надо изменить значение на нижнее предельное
     sigc::signal<void> gucCrcFailed;                 // ошибка crc-суммы
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> hardwareFailed;
@@ -222,11 +222,13 @@ public:
 
     void setAdr();
 
-    void startVirtualPpsModeTx(bool ack, uint8_t r_adr, uint8_t cmd,int retr);
+    void startVirtualPpsModeTx();
     void startVirtualPpsModeRx();
 
     void setVirtualDate(uint8_t *param);
     void setVirtualTime(uint8_t *param);
+
+    uint8_t* getVirtualTime();
 
 private:
     friend struct DspCommand;
@@ -561,6 +563,8 @@ bool modem_rx_on, modem_tx_on;
     uint32_t freqVirtual;
     uint8_t count_VrtualTimer = 0;
     bool antiSync = false;
+
+    uint8_t virtualTime[6];
 
     QmRtc::Date d;
 

@@ -35,6 +35,8 @@
 
 #define VIRTUAL_TIME 120
 
+#define NUMS 7
+
 namespace Multiradio {
 
 using namespace Galua;
@@ -426,64 +428,45 @@ void DspController::setTx()
 void DspController::sendPswf()
 {
 
+	int time[4] = {0,0,0,0};
+
 	if (virtual_mode == true)
 	{
-	    if (ContentPSWF.RET_end_adr > 0)
-	    {
-	    	ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(
-	    	ContentPSWF.RET_end_adr,
-	    	ContentPSWF.R_ADR,
-			ContentPSWF.COM_N,
-			ContentPSWF.RN_KEY,
-			d.day,
-			t.hours,
-			t.minutes,
-			t.seconds);
-	    }
-	    else
-	    {
-	    	ContentPSWF.L_CODE = navigator->Calc_LCODE(
-	    	ContentPSWF.R_ADR,
-			ContentPSWF.S_ADR,
-			ContentPSWF.COM_N,
-			ContentPSWF.RN_KEY,
-			d.day,
-			t.hours,
-			t.minutes,
-			t.seconds);
-	    }
+		time[0] = d.day;
+		time[1] = t.hours;
+		time[2] = t.minutes;
+		time[3] = t.seconds;
 	}
-
 	else
 	{
-	    if (ContentPSWF.RET_end_adr > 0)
-	    {
-	    	ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(
-	    	ContentPSWF.RET_end_adr,
-	    	ContentPSWF.R_ADR,
-			ContentPSWF.COM_N,
-			ContentPSWF.RN_KEY,
-			date_time[0],
-			date_time[1],
-			date_time[2],
-			date_time[3]);
-	    }
-	    else
-	    {
-	    	ContentPSWF.L_CODE = navigator->Calc_LCODE(
-	    	ContentPSWF.R_ADR,
-			ContentPSWF.S_ADR,
-			ContentPSWF.COM_N,
-			ContentPSWF.RN_KEY,
-			date_time[0],
-			date_time[1],
-			date_time[2],
-			date_time[3]);
-	    }
+		for(int i = 0; i<4;i++) time[i] = date_time[i];
 	}
 
 
-
+	if (ContentPSWF.RET_end_adr > 0)
+	{
+		ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(
+				ContentPSWF.RET_end_adr,
+				ContentPSWF.R_ADR,
+				ContentPSWF.COM_N,
+				ContentPSWF.RN_KEY,
+				time[0],
+				time[1],
+				time[2],
+				time[3]);
+	}
+	else
+	{
+		ContentPSWF.L_CODE = navigator->Calc_LCODE(
+				ContentPSWF.R_ADR,
+				ContentPSWF.S_ADR,
+				ContentPSWF.COM_N,
+				ContentPSWF.RN_KEY,
+				time[0],
+				time[1],
+				time[2],
+				time[3]);
+	}
 
 
     ContentPSWF.Frequency = getFrequencyPswf();
@@ -629,6 +612,7 @@ void DspController::LogicPswfRx()
 
 void DspController::changePswfFrequency()
 {
+	if (virtual_mode != true)
     getDataTime();
 
 	if (CondComLogicRole == CondComTx)
@@ -784,6 +768,7 @@ void DspController::TxSmsWork()
 
 void DspController::changeSmsFrequency()
 {
+	if (virtual_mode != true)
 	getDataTime();
 
 
@@ -848,6 +833,7 @@ void DspController::recPswf(uint8_t data,uint8_t code)
 {
     qmDebugMessage(QmDebug::Dump, "RecievedPswf() command_rx30 = %d", command_rx30);
 
+
     if (virtual_mode == true)
     {
     	private_lcode = (char)navigator->Calc_LCODE(
@@ -858,7 +844,7 @@ void DspController::recPswf(uint8_t data,uint8_t code)
     					d.day,
     					t.hours,
     					t.minutes,
-    					prevSecond(t.seconds));
+						prevSecond(t.seconds));
     }
     else {
     	private_lcode = (char)navigator->Calc_LCODE(
@@ -935,7 +921,13 @@ int DspController::getFrequencyPswf()
 
 int DspController::getFrequencySms()
 {
-    int fr_sh = CalcSmsTransmitFreq(ContentSms.RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
+	int fr_sh = 0;
+
+	if (virtual_mode == true)
+		fr_sh = CalcSmsTransmitFreq(ContentSms.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
+	else
+		fr_sh = CalcSmsTransmitFreq(ContentSms.RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
+
     fr_sh += 1622;
 
     fr_sh = fr_sh * 1000; // � � вЂњ� ЎвЂ�
@@ -1416,7 +1408,11 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 			tx_data_len += 4;
 			if (sms_counter > 38 && sms_counter < 77)
 			{
-				uint8_t fstn = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39); // TODO: fix that;
+				uint8_t fstn = 0;
+				if (virtual_mode == true)
+					fstn = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,d.day,t.hours,t.minutes,t.seconds,sms_counter - 39);
+				else
+					fstn = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39); // TODO: fix that;
 				QNB_RX++;
 				qmDebugMessage(QmDebug::Dump, "FSTN: %d", fstn);
 				uint32_t abc = (fstn << 24);
@@ -1575,7 +1571,11 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 				tx_data_len += 4;
 				if (ContentSms.stage == StageRx_data)
 				{
-                    uint8_t fstn = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39); // TODO: fix that;
+					uint8_t fstn  = 0;
+			        if (virtual_mode == true)
+			        	fstn = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,d.day,t.hours,t.minutes,t.seconds,sms_counter - 39);
+			        else
+			        	fstn = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39); // TODO: fix that;
 					QNB_RX++;
 					qmDebugMessage(QmDebug::Dump, "FSTN: %d", fstn);
 					uint32_t abc = (fstn << 24);
@@ -2055,57 +2055,69 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     {
     	// get number of the catch packet ...
 #ifndef PORT__PCSIMULATOR
-
-    	if (RtcTxRole)
+    	if (virtual_mode == false) return;
+    	if (indicator == 5)
     	{
 
-			addSeconds(&t);
-
-    		if (count_VrtualTimer <= 10)
+    		if (RtcTxRole)
     		{
 
-    			qmDebugMessage(QmDebug::Dump, "0x65 frame");
-    			++RtcTxCounter;
+    			addSeconds(&t);
 
-    			if (IsStart(t.seconds))
+    			if (count_VrtualTimer <= 10)
     			{
-    				freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
-    				RtcTxCounter = 1;
-    				++count_VrtualTimer;
-    				if (count_VrtualTimer > 10) LogicPswfTx();
+
+    				qmDebugMessage(QmDebug::Dump, "0x65 frame");
+    				++RtcTxCounter;
+
+    				if (IsStart(t.seconds))
+    				{
+    					freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
+    					RtcTxCounter = 1;
+    					++count_VrtualTimer;
+    					if (count_VrtualTimer > 10)
+    					{
+    						if (radio_state == radiostatePswf)
+    							changePswfFrequency();
+    						if (radio_state == radiostateSms)
+    							changeSmsFrequency();
+    					}
+    				}
+
+    				if (RtcTxCounter == 5 && count_VrtualTimer>NUMS)
+    				{
+    					sendSynchro(freqVirtual,count_VrtualTimer);
+    				}
     			}
 
-    			if (RtcTxCounter == 5)
+    			else
     			{
-    				sendSynchro(freqVirtual,count_VrtualTimer);
+    				if (radio_state == radiostatePswf)
+    					changePswfFrequency();
+    				if (radio_state == radiostateSms)
+    					changeSmsFrequency();
+    			}
+    		}
+    		//-------- RXROLE------------------------------------
+    		if (RtcRxRole)
+    		{
+    			addSeconds(&t);
+
+    			if (count_VrtualTimer > 10)
+    			{
+    				if (radio_state == radiostatePswf)
+    					changePswfFrequency();
+    				if (radio_state == radiostateSms)
+    					changeSmsFrequency();
+    			}
+
+    			else
+    			{
+    				if (IsStart(t.seconds))
+    					++count_VrtualTimer;
     			}
     		}
 
-    		else
-    		{
-    			if (radio_state != radiostateSync)
-    			LogicPswfTx();
-    		}
-    	}
-//-------- RXROLE------------------------------------
-    	if (RtcRxRole)
-    	{
-    		addSeconds(&t);
-
-    		if (count_VrtualTimer > 10)
-    		{
-    			if (radio_state != radiostateSync)
-    			{
-    				LogicPswfRx();
-    				setPswfRxFreq();
-    			}
-    		}
-
-    		else
-    		{
-        		if (IsStart(t.seconds))
-        			++count_VrtualTimer;
-    		}
     	}
 #endif
     	break;
@@ -2132,6 +2144,20 @@ void DspController::sendSms(Module module)
     ContentSms.indicator = 20;
     ContentSms.SNR =  7;
 
+    int time[4] = {0,0,0,0};
+
+    if (virtual_mode == true)
+    {
+    	time[0] = d.day;
+    	time[1] = t.hours;
+    	time[2] = t.minutes;
+    	time[3] = t.seconds;
+    }
+    else
+    {
+    	for(int i = 0; i<4;i++) time[i] = date_time[i];
+    }
+
 
     if (sms_counter >= 19 && sms_counter <= 38){
     	ContentSms.L_CODE = navigator->Calc_LCODE_SMS(
@@ -2139,10 +2165,10 @@ void DspController::sendSms(Module module)
 		ContentSms.S_ADR,
 		wzn_value,
 		ContentSms.RN_KEY,
-		date_time[0],
-		date_time[1],
-		date_time[2],
-		date_time[3]);
+		time[0],
+		time[1],
+		time[2],
+		time[3]);
     }
     else
     {
@@ -2152,10 +2178,10 @@ void DspController::sendSms(Module module)
 		ContentSms.S_ADR,
 		sms_counter-1,
 		ContentSms.RN_KEY,
-		date_time[0],
-		date_time[1],
-		date_time[2],
-		date_time[3]);
+		time[0],
+		time[1],
+		time[2],
+		time[3]);
     }
 
 
@@ -2206,7 +2232,11 @@ void DspController::sendSms(Module module)
     // tx
     if ((sms_counter > 38 && sms_counter < 77) && (SmsLogicRole == SmsRoleTx))
     {
-        uint8_t FST_N =  calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39);
+        uint8_t FST_N = 0;
+        if (virtual_mode == true)
+        	FST_N = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,d.day,t.hours,t.minutes,t.seconds,sms_counter - 39);
+        else
+        	FST_N = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39);
         ++QNB;
         qmDebugMessage(QmDebug::Dump, "FSTN: %d", FST_N);
         if (cntChvc > 255) cntChvc = 7;
@@ -2470,7 +2500,10 @@ void DspController::startPSWFReceiving() {
 
 	for(int i = 0; i<30;i++) pswfDataPacket[i] = 255;
 
-	setPswfRx();
+	if (virtual_mode == true)
+		startVirtualPpsModeRx();
+	else
+		setPswfRx();
 
 	command_tx30  = 0;
 
@@ -2497,12 +2530,17 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
     if (pswf_retranslator > 0) ContentPSWF.R_ADR += 32;
     data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
 
-    setPswfTx();
-
-	command_rx30  = 0;
+    command_rx30  = 0;
 
     CondComLogicRole = CondComTx;
     radio_state = radiostatePswf;
+
+    if (virtual_mode == true)
+    	startVirtualPpsModeTx();
+    else
+    	setPswfTx();
+
+
 }
 
 void DspController::startSMSRecieving(SmsStage stage)
@@ -2516,6 +2554,7 @@ void DspController::startSMSRecieving(SmsStage stage)
     quit_vector.erase(quit_vector.begin(),quit_vector.end());
 
 
+    if (virtual_mode == true) startVirtualPpsModeRx();
     setRx();
 
     smsRxStateSync = 0;
@@ -2575,9 +2614,10 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
     radio_state = radiostateSms;
 
-    setTx();
-
-    updateSmsStatus(getSmsForUiStage());
+    if (virtual_mode == true)
+    	startVirtualPpsModeTx();
+    else
+    	setTx();
 }
 
 void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command, bool isGps)
@@ -3088,7 +3128,7 @@ bool DspController::getIsGucCoord()
 }
 
 
-void DspController::startVirtualPpsModeTx(bool ack, uint8_t r_adr, uint8_t cmd,int retr)
+void DspController::startVirtualPpsModeTx()
 {
 	setPswfTx();
 	ParameterValue comandValue;  //0x60 2 5 1
@@ -3097,25 +3137,15 @@ void DspController::startVirtualPpsModeTx(bool ack, uint8_t r_adr, uint8_t cmd,i
 	comandValue.radio_mode = RadioModeOff;
 	sendCommandEasy(VirtualPps,1,comandValue);
 
-	ContentPSWF.COM_N = cmd;
+	t = rtc->getTime();
+	d = rtc->getDate();
 
 	RtcTxRole = true;
 	RtcRxRole = false;
 	RtcTxCounter = 0;
-	radio_state = radiostatePswf;
+	//radio_state = radiostatePswf;
 
-	d.day  = 1;
-	d.month  = 1;
-	d.weekday = 1;
-
-	t.hours = 1;
-	t.minutes = 1;
-	t.seconds = 6;
-#ifndef PORT__PCSIMULATOR
-	rtc->setDate(d);
-	rtc->setTime(t);
-#endif
-	count_VrtualTimer = 7;
+	count_VrtualTimer = NUMS;
 	txrtx = 0;
 
 }
@@ -3136,20 +3166,9 @@ void DspController::startVirtualPpsModeRx()
 	RtcTxRole = false;
 	RtcFirstCatch = 0;
 
-	radio_state = radiostatePswf;
-	SmsLogicRole = SmsRoleIdle;
+	t = rtc->getTime();
+	d = rtc->getDate();
 
-	d.day  = 1;
-	d.month  = 1;
-	d.weekday = 1;
-
-	t.hours = 1;
-	t.minutes = 1;
-	t.seconds = 6;
-#ifndef PORT__PCSIMULATOR
-	rtc->setDate(d);
-	rtc->setTime(t);
-#endif
 	antiSync = false;
 
 }
@@ -3200,7 +3219,7 @@ void DspController::correctTime(uint8_t num)
 void DspController::wakeUpTimer()
 {
 #ifndef PORT__PCSIMULATOR
-	if ((virtual_mode) && (RtcRxRole == true) && (!antiSync))
+	if ((virtual_mode == true) && (RtcRxRole == true) && (!antiSync))
 	{
 
 		t = rtc->getTime();
@@ -3322,6 +3341,12 @@ bool DspController::getVirtualMode()
 void DspController::setVirtualMode(bool param)
 {
 	virtual_mode = param;
+	if (virtual_mode == false)
+	{
+		ParameterValue comandValue;  //0x60 2 5 1
+		comandValue.param = 0;
+		sendCommandEasy(PSWFReceiver,5,comandValue);
+	}
 }
 
 void DspController::setVirtualDate(uint8_t *param)
@@ -3339,6 +3364,7 @@ void DspController::setVirtualDate(uint8_t *param)
     d.month = date[1];
     d.year  = date[2];
     rtc->setDate(d);
+    d = rtc->getDate();
 #endif
 }
 
@@ -3359,6 +3385,33 @@ void DspController::setVirtualTime(uint8_t *param)
     rtc->setTime(t);
 #endif
 
+}
+
+uint8_t* DspController::getVirtualTime()
+{
+	char ms[3];
+     ms[2] = t.seconds;
+     ms[1] = t.minutes;
+     ms[0] = t.hours;
+
+     char param = 0;
+     for(int i = 0; i<3;i++)
+      if (ms[i] > 9)
+    	 {
+    		 param = ms[i] / 10;
+    		 virtualTime[2*i] = param;
+    		 param = ms[i] % 10;
+    		 virtualTime[2*i+1] = param;
+    	 }
+    	 else
+    	 {
+    		 virtualTime[2*i] = 0;
+    		 virtualTime[2*i+1] = ms[i];
+    	 }
+
+
+     for(int i = 0; i<6;i++) virtualTime[i] = virtualTime[i] + 48;
+     return &virtualTime[0];
 }
 
 } /* namespace Multiradio */
