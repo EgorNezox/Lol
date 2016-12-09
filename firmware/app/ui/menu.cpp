@@ -1431,7 +1431,7 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
             ScrollArea.addGuiElement(item);
         }
 
-        ScrollArea.setFirstVisElem(0);
+        ScrollArea.setFirstVisElem(firstVisSheldureElem[sheldureStage]);
         ScrollArea.setFocus(sheldureStageFocus[sheldureStage]);
 
 

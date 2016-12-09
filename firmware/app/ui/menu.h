@@ -189,6 +189,7 @@ public:
     //files
     uint8_t filesStage = 0;
     uint8_t firstVisFileElem = 0;
+    uint8_t firstVisSheldureElem[2] = {0,0};
     DataStorage::FS::FileType fileType;
 
     std::vector<std::string> tFiles[4];

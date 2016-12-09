@@ -46,7 +46,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     ginit();
     loadSheldure();
-    sheldureParsing();
 
 
 //    SheldureMass[0] = 1;
@@ -2574,7 +2573,7 @@ void Service::keyPressed(UI_Key key)
                 }
                 if ( key == keyEnter )
                 {
-                    if (menu->sheldureStageFocus[menu->sheldureStage] + 1 == sheldure_data.size() && sheldureMass[0] < 50)
+                    if (menu->sheldureStageFocus[menu->sheldureStage] + 1 == sheldure_data.size() && sheldure.size() < 50)
                         menu->sheldureStage = 1;
                     else
                         menu->sheldureStage = 4;
@@ -2586,7 +2585,7 @@ void Service::keyPressed(UI_Key key)
                 }
                 if ( key == keyDown)
                 {
-                    if (menu->sheldureStageFocus[menu->sheldureStage] < (sheldureMass[0] - (sheldureMass[0] == 50)) )
+                    if (menu->sheldureStageFocus[menu->sheldureStage] < (sheldure.size() - (sheldure.size() == 50)) )
                       menu->sheldureStageFocus[menu->sheldureStage]++;
                 }
              break;
@@ -3180,7 +3179,7 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::sheldure:
         {
-            menu->initSheldureDialog(&sheldure_data, sheldureMass[0]);
+            menu->initSheldureDialog(&sheldure_data, sheldure.size());
             break;
         }
         case GuiWindowsSubType::voiceMode:
@@ -3759,9 +3758,9 @@ void Service::loadSheldure()
     uint8_t massTemp[] =
     {0x32,'0', '1','0',':','3','2',':','0','0',0x00,0x44,0xec,0x88};
 
-    for (uint8_t i = 0; i < 49; i++)
+    for (uint8_t i = 0; i < 5; i++)
      memcpy(&sheldureMass[1+i*13], &massTemp[1], 13);
-    sheldureMass[0] = 49;
+    sheldureMass[0] = 5;
 
     sheldureParsing(sheldureMass);
 
@@ -3770,6 +3769,7 @@ void Service::loadSheldure()
          sheldureMass = 0;
     }
 #endif
+    sheldureToStringList();
 }
 
 void Service::uploadSheldure()
@@ -3881,6 +3881,39 @@ void Service::sheldureUnparsing(uint8_t* sMass)
 
         storageFs->setSheldure(sMass, sheldure.size() * 13 + 1);
     }
+}
+
+void Service::sheldureToStringList()
+{
+    sheldure_data.clear();
+
+    uint8_t sheldureSize = sheldure.size();
+
+     if (sheldureSize > 0 && sheldureSize <= 50)
+     {
+         for (uint8_t session = 0; session < sheldureSize; session++)
+         {
+             std::string s;
+
+             // --------- type -----------
+
+             uint8_t typeMsg = (uint8_t)sheldure[session].type;
+             s.append(tmpParsing[typeMsg]);
+             (sheldure[session].type % 2 == 0) ? s.append("  ") : s.append("   ");
+
+              // --------- time -----------
+
+             s.append(sheldure[session].time).append("\n ");
+
+             // --------- freq -----------
+
+             s.append(sheldure[session].freq).append(freq_hz);
+
+             sheldure_data.push_back(s);
+         }
+     }
+     if(sheldureSize < 50)
+        sheldure_data.push_back(addSheldure);
 }
 
 }/* namespace Ui */

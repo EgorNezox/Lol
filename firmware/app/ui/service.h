@@ -128,6 +128,7 @@ public:
     void sheldureParsing(uint8_t *sMass);
     void sheldureUnparsing(uint8_t *sMass);
     void uploadSheldure();
+    void sheldureToStringList();
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
