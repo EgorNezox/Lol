@@ -79,7 +79,7 @@ struct SheldureSession{
         freq = "10000";
     }
 
-    copyFrom(SheldureSession* source){
+    void copyFrom(SheldureSession* source){
         time = source->time;
         type = source->type;
         freq = source->freq;
