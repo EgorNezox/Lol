@@ -107,6 +107,7 @@ public:
     void updateSessionTimeSchedule();
     void getCurrentTime(uint8_t *hour, uint8_t *minute, uint8_t *second);
     void loadSheldure();
+    void sheldureParsing();
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
@@ -204,7 +205,7 @@ private:
     std::vector<uint8_t> condMsg;
 
     void setColorScheme(uint32_t back,uint32_t front);
-    uint8_t SheldureMass[200];  // 50 ������� �� 13 ���� + 1 ���� ���-�� �������
+    uint8_t sheldureMass[651];  // 651 = 50 ������� �� 13 ���� + 1 ���� ���-�� �������
     QmTimer schedulePromptTimer;
 
     std::vector<ScheduleTimeSession> sessionList;

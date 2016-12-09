@@ -21,6 +21,7 @@ const char proc = '%';
 
 const char* trans = "Отправить\0";
 const char* callTitle[2] = {"Команда\0", "Адрес\0"};
+const char* yesNo[] = {"\t\tНЕТ\0", "\t\tДА\0"};
 
 char * ok_texts[LANG_COUNT]={(char *)"Ок"};
 char * missing_ch_table_txt[LANG_COUNT]={(char *)"Отсутствует таблица\nречевых каналов\0"};
@@ -34,24 +35,24 @@ const char* receiveStatusStr[] = {"Начать прием\0", "Идет прием\0"};
 const char *mainMenu[] = {"ГЛАВНОЕ МЕНЮ\0", " Передача\0", " Прием\0", " Данные\0", " Настройки\0"};
 
 const char *callSubMenu[] = {" УК\0", " СМС\0", " ГП\0", " ГУК\0"};
-    const char *commandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
-        const char *smplSubMenu[] = {" Групповой.\0", " Индивид.\0", "Инд. с квит.\0"};
-        const char *twSubMenu[] = {" Без ретранслятора\0", " С ретранслятором\0"};
-    const char *smsSubMenu[] = {" Без ретранслятора\0", " С ретранслятором\0"};
-    const char *groupCommandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
-        const char *groupCommandsSimplSubMenu[] = {" Групповой вызов\0", " Индивидуальный\0"};
+const char *commandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
+const char *smplSubMenu[] = {" Групповой.\0", " Индивид.\0", "Инд. с квит.\0"};
+const char *twSubMenu[] = {" Без ретранслятора\0", " С ретранслятором\0"};
+const char *smsSubMenu[] = {" Без ретранслятора\0", " С ретранслятором\0"};
+const char *groupCommandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
+const char *groupCommandsSimplSubMenu[] = {" Групповой вызов\0", " Индивидуальный\0"};
 
 const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " ГП\0", " УК\0", " ГУК\0"};
-
+const char *tmpParsing[] = {" Речь\0", " УК\0", " СМС\0", " ГП\0", " ГУК\0"};
 const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0", " GPS координаты\0"};
-    const char *dataSubSubMenu[] = {" Условные команды\0", " СМС\0", " Головая почта\0", " Группа усл.команд\0"};
+const char *dataSubSubMenu[] = {" Условные команды\0", " СМС\0", " Головая почта\0", " Группа усл.команд\0"};
 
 const char *settingsSubMenu[] = {" ДВ\0", " Пар. связи\0", " Скан\0", " Режим\0", " Звук\0",
                                  " Шум\0"," Время ГУК\0", " Кл. сети"," Конфигур"," Коорд",
                                  " Дисплей\0" }; //TODO:
-    const char *dateAndTimeSubMenu[] = {" Синхро\0", " Ручной\0"};
-        const char *setDateOrTime[] = {" Ввод даты\0", " Ввод время\0"};
-    const char *setConnParam[] = {" Частота\0", " Скорость\0", " Тип изл.\0", " Реч. реж.\0"};
+const char *dateAndTimeSubMenu[] = {" Синхро\0", " Ручной\0"};
+const char *setDateOrTime[] = {" Ввод даты\0", " Ввод время\0"};
+const char *setConnParam[] = {" Частота\0", " Скорость\0", " Тип изл.\0", " Реч. реж.\0"};
 const char *files[] = {" Файлы\0"};
 
 const char *coordinateStr = "Координаты\0";
@@ -197,15 +198,19 @@ const char* titleCoord      = "Получены\nкоодинаты\0";
 
 const char* startStr           = "Старт\0";
 
-const char* typeCondCmd     = "Выберите тип\0";
-const char* YesGucCoord     = "Есть\0";
-const char* NoGucCoord      = "Нет\0";
-const char* StartGucTx      = "Старт\0";
-const char* GucIndivid      = "Одному\0";
-const char* GucGroup        = "Всем\0";
-const char* Sheldure        = "12 000000 Гц\n12:34 ГУК\0";
-const char* Sheldure_label  = "Расписание";
-const char* NoSheldure		= "Расписаниия\n     нет\0";
+const char* typeCondCmd         = "Выберите тип\0";
+const char* YesGucCoord         = "Есть\0";
+const char* NoGucCoord          = "Нет\0";
+const char* StartGucTx          = "Старт\0";
+const char* GucIndivid          = "Одному\0";
+const char* GucGroup            = "Всем\0";
+const char* Sheldure            = "12 000000 Гц\n12:34 ГУК\0";
+const char* Sheldure_label      = "Расписание";
+const char* editSheldure_label  = "Редактирование";
+const char* newSheldure_label   = "Новый сеанс";
+const char* addSheldure         = " Добавить\n сеанс\0";
+const char* editSheldure        = " Изменить\n сеанс\0";
+const char* delSheldure         = " Удалить\n сеанс\0";
 const char* atumalfunction_title_str = "Сбой АСУ";
 const char* atumalfunction_text_str = "Передача на текущей частоте ограничена";
 

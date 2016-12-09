@@ -1386,11 +1386,13 @@ void CGuiMenu::initEditRnKeyDialog()
     addr.Draw();
 }
 
-void CGuiMenu::initSheldureDialog(int focus, std::vector<std::string> &data)
+void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessionCount)
 {
-    MoonsGeometry itemArea;
-    MoonsGeometry addrArea    = { 17, 5, 140, 70 };
-    MoonsGeometry labelArea   = { 7, 5, 140, 70 };
+    MoonsGeometry labelArea   = { 5, 3, 120, 15 };
+    MoonsGeometry length_geom = { 120,  2,  160,  15};
+
+    LabelParams param_length = GUI_EL_TEMP_CommonTextAreaLT;
+    param_length.element.align = {alignHCenter, alignTop};
 
     MenuItemParams param = GUI_EL_TEMP_DefaultMenuItem;
     param.label_params.element.align = {alignHCenter, alignTop};
@@ -1398,44 +1400,184 @@ void CGuiMenu::initSheldureDialog(int focus, std::vector<std::string> &data)
     param.label_params.font = &Tahoma26;
 
     GUI_EL_Window   window( &GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this );
-
-    GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)Sheldure_label, (GUI_Obj *)this);
-
     window.Draw();
-    label.Draw();
 
-    if(data.size() == 0)
+    Margins margins = {0,0,0,0};
+    MoonsGeometry scroll_geom = {0, 20, 159, 120};
+
+    Alignment align = { alignHCenter, alignVCenter};
+    GUI_EL_ScrollArea ScrollArea(&scroll_geom, &align, &margins, (GUI_Obj*)this);
+    MenuItemParams item_param;
+    MoonsGeometry  item_geom;
+    item_geom = {(GXT)(0),(GYT)(0),(GXT)(145),(GYT)(48)};
+
+    switch (sheldureStage) {
+    case 0: // session list
     {
-        LabelParams params;
-        params = GUI_EL_TEMP_LabelMode;
-        params.element.align = {alignHCenter, alignVCenter};
-    	std::string str;
-        str.append(NoSheldure);
-        MoonsGeometry localFieldArea = { 15, 45, 145, 100 };
-        GUI_EL_Label  field (&params, &localFieldArea,  (char*)str.c_str(),      (GUI_Obj *)this);
-        field.Draw();
-    } else
-    {
-		for(int i = 0; i < data.size(); i++)
-		{
-			if (i > 1) break;
+        GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)Sheldure_label, (GUI_Obj *)this);
 
-			itemArea = {(GXT)(windowArea.xs + 5),
-						(GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT+20)),
-						(GXT)(windowArea.xe - MARGIN - 15),
-						(GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT+20) )
-					   };
 
-			std::string ex = data.at(offset+i);
-			bool select = (focus - offset == i) ? true : false;
-			GUI_EL_MenuItem addr( &param, &itemArea, (char*)ex.c_str() ,false, select,(GUI_Obj *)this);
-			addr.Draw();
-		}
-		MoonsGeometry sliderArea  = { 150, 25, 157, 110};
-		SliderParams  sliderParams = {(int32_t)data.size(), (int32_t)1, (int32_t)focus};
-		GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
-		slider.Draw();
+        for (uint8_t i = 0; i < data->size(); i++)
+        {
+            if (sheldureStageFocus[sheldureStage] == i){
+                item_param = GUI_EL_TEMP_ActiveMenuItem;
+            } else
+                item_param = GUI_EL_TEMP_DefaultMenuItem;
+            item_param.label_params.font = &Tahoma26;
+            item_param.label_params.transparent = true;
+
+            std::string ex = data->at(i);
+            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)ex.c_str(), true, true, (GUI_Obj*)this );
+            ScrollArea.addGuiElement(item);
+        }
+
+        ScrollArea.setFirstVisElem(0);
+        ScrollArea.setFocus(sheldureStageFocus[sheldureStage]);
+
+
+        if (sheldureStageFocus[sheldureStage] < sessionCount){
+            length_message.clear();
+            char str_len[] = {0,0,0};
+            sprintf(str_len,"%d", sheldureStageFocus[sheldureStage]+1);
+            length_message.append(str_len);
+            length_message.append( "/" );
+            sprintf(str_len,"%d",sessionCount);
+            length_message.append(str_len);
+            GUI_EL_TextArea length (&param_length, &length_geom, (char*)length_message.c_str(), (GUI_Obj *)this);
+           length.Draw();
+        }
+        label.Draw();
+        ScrollArea.Draw();
+        break;
     }
+    case 1: // type
+    {
+        GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)newSheldure_label, (GUI_Obj *)this);
+
+        for (uint8_t subMenu = 0; subMenu < 5; subMenu++)
+        {
+            if (sheldureStageFocus[sheldureStage] == subMenu){
+                item_param = GUI_EL_TEMP_ActiveMenuItem;
+            } else
+                item_param = GUI_EL_TEMP_DefaultMenuItem;
+            item_param.label_params.font = &Consolas25x35;
+            item_param.label_params.transparent = true;
+
+            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)tmpParsing[subMenu], true, true, (GUI_Obj*)this );
+            ScrollArea.addGuiElement(item);
+        }
+
+        ScrollArea.setFirstVisElem(0);
+        ScrollArea.setFocus(sheldureStageFocus[sheldureStage]);
+
+        ScrollArea.Draw();
+        label.Draw();
+
+        break;
+    }
+    case 2: // time
+    {
+        LabelParams label_param[3] = {GUI_EL_TEMP_LabelText, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
+
+        MoonsGeometry timeArea     = { 5, 20, 160, 45 };
+        MoonsGeometry volume_geom  = { 5, 50, 160, 100 };
+
+        label_param[0].transparent = true;
+        label_param[1].transparent = false;
+        label_param[2].transparent = false;
+
+        label_param[0].element.align = { alignHCenter, alignTop };
+        label_param[1].element.align = { alignHCenter, alignTop };
+        label_param[2].element.align = { alignHCenter, alignTop };
+
+        GUI_EL_Label    title (&label_param[0],            &titleArea,   (char*)newSheldure_label,       (GUI_Obj *)this);
+        GUI_EL_Label    label (&label_param[1],            &timeArea,    (char*)dataAndTime[1],          (GUI_Obj *)this);
+        GUI_EL_TextArea volume(&label_param[2],            &volume_geom, (char*)sheldureTimeStr.c_str(), (GUI_Obj *)this);
+
+        title.Draw();
+        label.Draw();
+        volume.Draw();
+
+        break;
+    }
+    case 3: // frec
+    {
+        LabelParams label_param[3] = {GUI_EL_TEMP_LabelText, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
+
+        MoonsGeometry frecArea     = { 5, 20, 160, 45 };
+        MoonsGeometry valueArea  = { 5, 50, 160, 100 };
+
+        label_param[0].transparent = true;
+        label_param[1].transparent = false;
+        label_param[2].transparent = false;
+
+        label_param[0].element.align = { alignHCenter, alignTop };
+        label_param[1].element.align = { alignHCenter, alignTop };
+        label_param[2].element.align = { alignHCenter, alignTop };
+
+        GUI_EL_Label  title ( &label_param[0],  &titleArea,  (char*)editSheldure_label, (GUI_Obj*)this );
+        GUI_EL_Label  label ( &label_param[1],  &frecArea,  (char*)groupCondCommFreqStr, (GUI_Obj*)this );
+        GUI_EL_Label  value ( &label_param[2],  &valueArea,  (char*)sheldureFreqStr.c_str(), (GUI_Obj*)this );
+
+        title.Draw();
+        label.Draw();
+        value.Draw();
+
+        break;
+    }
+    case 4: // edit
+    {
+      GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)editSheldure_label, (GUI_Obj *)this);
+
+        for (uint8_t i = 0; i < 2; i++)
+        {
+            if (sheldureStageFocus[sheldureStage] == i){
+                item_param = GUI_EL_TEMP_ActiveMenuItem;
+            } else
+                item_param = GUI_EL_TEMP_DefaultMenuItem;
+            item_param.label_params.font = &Tahoma26;
+            item_param.label_params.transparent = true;
+
+            const char* edtStr[2] = {editSheldure,delSheldure};
+            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)edtStr[i], true, true, (GUI_Obj*)this );
+            ScrollArea.addGuiElement(item);
+        }
+        ScrollArea.setFirstVisElem(0);
+        ScrollArea.setFocus(sheldureStageFocus[sheldureStage]);
+
+        window.Draw();
+        label.Draw();
+        ScrollArea.Draw();
+        break;
+    }
+    case 5:     // delite
+    {
+        GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)delSheldure, (GUI_Obj *)this);
+
+          for (uint8_t i = 0; i < 2; i++)
+          {
+              if (sheldureStageFocus[sheldureStage] == i){
+                  item_param = GUI_EL_TEMP_ActiveMenuItem;
+              } else
+                  item_param = GUI_EL_TEMP_DefaultMenuItem;
+              item_param.label_params.font = &Tahoma26;
+              item_param.label_params.transparent = true;
+
+              GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)yesNo[i], true, true, (GUI_Obj*)this );
+              ScrollArea.addGuiElement(item);
+          }
+          ScrollArea.setFirstVisElem(0);
+          ScrollArea.setFocus(sheldureStageFocus[sheldureStage]);
+
+          window.Draw();
+          label.Draw();
+          ScrollArea.Draw();
+          break;
+    }
+    default:
+        break;
+    }
+
 }
 
 void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
@@ -1532,7 +1674,7 @@ void CGuiMenu::inputSmsAddr(std::string *field, UI_Key key)
 void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 {
     GUI_EL_Window   window (&GUI_EL_TEMP_WindowGeneral, &windowArea,         (GUI_Obj *)this);
-    MoonsGeometry title_geom = {  5,   5, 150,  20 };
+    MoonsGeometry title_geom  = {  5,   5, 150,  20 };
     MoonsGeometry field_geom  = {  7,  40, 147,  60 };
     MoonsGeometry length_geom = { 110,  5,  160,  20};
     MoonsGeometry sliderArea  = { 150, 25, 157, 110};

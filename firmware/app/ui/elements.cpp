@@ -217,8 +217,8 @@ GUI_EL_TextArea::GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, st
 }
 
 GUI_EL_TextArea::~GUI_EL_TextArea(){
-    if (!isData && (text > 0) && strlen(text)>0)
-        delete []text;
+    //if (!isData && (text > 0) && strlen(text)>0)
+        //delete []text;
 }
 
 //-----------------------------
