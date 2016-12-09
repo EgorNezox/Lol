@@ -2645,7 +2645,31 @@ void Service::keyPressed(UI_Key key)
             }
             if ( key >= key0 && key <= key9 )
             {
-                if ( tempSheldureSession.time.size() < 5 )
+//                uint8_t timeSize = tempSheldureSession.time.size();
+//                uint8_t h1;
+//                uint8_t m1;
+
+//                if (timeSize > 0) h1 = atoi(tempSheldureSession.time.substr(0, 1).c_str());
+//                if (timeSize > 4) m1 = atoi(tempSheldureSession.time.substr(3, 1).c_str());
+
+//                bool isPush = true;
+
+//                if ( tempSheldureSession.time.size() < 5){
+//                    if ((timeSize == 0 && key > key2) ||
+//                        (timeSize == 1 && h1 == 2 && key > key3) ||
+//                        (timeSize == 3 && key > key5));// ||
+//                        //(timeSize == 4 && m1 == 2 && key > key3))
+//                    isPush = false;
+//                } else
+//                    isPush = false;
+
+//                if (isPush)
+//                    tempSheldureSession.time.push_back(key + 42);
+
+                if ( tempSheldureSession.time.size() == 2)
+                    tempSheldureSession.time.push_back(':');
+
+                if ( tempSheldureSession.time.size() < 5)
                     tempSheldureSession.time.push_back(key + 42);
 
                 if (tempSheldureSession.time.size() > 1 && tempSheldureSession.time.size() < 3 )
@@ -2655,7 +2679,7 @@ void Service::keyPressed(UI_Key key)
                     if ( atoi(hh.c_str()) > 23 )
                         tempSheldureSession.time.clear();
                 }
-                if (tempSheldureSession.time.size() > 3 && tempSheldureSession.time.size() < 5 )
+                if (tempSheldureSession.time.size() > 3 && tempSheldureSession.time.size() < 6 )
                 {
                     // 0 <= ?? <= 59
                     auto mm = tempSheldureSession.time.substr(3, 2);
@@ -2665,8 +2689,8 @@ void Service::keyPressed(UI_Key key)
                     }
                 }
 
-                if ( tempSheldureSession.time.size() == 2)
-                    tempSheldureSession.time.push_back(':');
+              //  if ( tempSheldureSession.time.size() == 2)
+              //      tempSheldureSession.time.push_back(':');
             }
             menu->sheldureTimeStr = tempSheldureSession.time;
             if (!isNew)
@@ -3665,10 +3689,11 @@ void Service::showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t mi
     showMessage("",text.c_str());
 }
 
+// create list of sessions
+// call on schedule changes
 void Service::updateSessionTimeSchedule()
 {
-    uint8_t offset = 1;
-    uint8_t sessionCount = sheldureMass[0];
+    uint8_t sessionCount = sheldure.size();
 
     if (sessionCount){
 
@@ -3679,16 +3704,12 @@ void Service::updateSessionTimeSchedule()
 
         for (uint8_t session = 0; session < sessionCount; session++){
 
-            offset = 1 + session * 13;
-
-            sessionTimeHour   = (sheldureMass[offset + 1] - 48) * 10 +
-                                 sheldureMass[offset + 2] - 48;
-            sessionTimeMinute = (sheldureMass[offset + 4] - 48) * 10 +
-                                 sheldureMass[offset + 5] - 48;
+            sessionTimeHour   = atoi(sheldure[session].time.substr(0,2).c_str());
+            sessionTimeMinute = atoi(sheldure[session].time.substr(3,2).c_str());
 
             ScheduleTimeSession timeSession;
             timeSession.index = session;
-            timeSession.type = (DataStorage::FS::FileType)sheldureMass[offset];
+            timeSession.type = (DataStorage::FS::FileType)sheldure[session].type;
             timeSession.time = sessionTimeHour * 60 + sessionTimeMinute;
 
             uint8_t insertIndex = 0;
@@ -3725,7 +3746,6 @@ void Service::calcNextSessionIndex()
         else
            nextSessionIndex = sessionTime;
     }
-
     onScheduleSessionTimer();
 }
 
@@ -3739,16 +3759,18 @@ void Service::onScheduleSessionTimer()
 
     uint16_t curTimeInMinutes = curTimeHour * 60 + curTimeMinute;
 
-    uint64_t deltaTime = sessionList.at(nextSessionIndex).time - curTimeInMinutes;
+    uint16_t deltaTime = sessionList.at(nextSessionIndex).time - curTimeInMinutes;
 
     if (deltaTime < 11){
         showSchedulePrompt(sessionList.at(nextSessionIndex).type, deltaTime);
 
         nextSessionIndex++;
         if (nextSessionIndex == sessionList.size())
-           nextSessionIndex = 0;
-        if (sessionList.size() > 1)
-            onScheduleSessionTimer();
+           nextSessionIndex = 0; // cyclic
+        if (sessionList.size() > 1){
+            schedulePromptTimer.setInterval(2000);
+            schedulePromptTimer.start();
+        }
         return;
     }
     if (deltaTime <= 15){
@@ -3769,11 +3791,6 @@ void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
     *second = 16;
 }
 
-uint8_t& Service::setSheldure()
-{
- //  return sheldureMass[0];
-}
-
 void Service::loadSheldure()
 {
 #ifndef _DEBUG_
@@ -3783,6 +3800,7 @@ void Service::loadSheldure()
 
        if (storageFs->getSheldure(sheldureMass)){
          sheldureParsing(sheldureMass);
+         schedulePromptTimer.timeout.connect(sigc::mem_fun( this, &CUiService::onScheduleSessionTimer));
          //updateSessionTimeSchedule();
        }
 
