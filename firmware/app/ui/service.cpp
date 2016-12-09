@@ -2559,6 +2559,7 @@ void Service::keyPressed(UI_Key key)
         case GuiWindowsSubType::sheldure:
         {
             static uint8_t sheldureStagePrev = 0;
+            static bool isNew = false;
 
             switch (menu->sheldureStage) {
 
@@ -2573,10 +2574,19 @@ void Service::keyPressed(UI_Key key)
                 }
                 if ( key == keyEnter )
                 {
-                    if (menu->sheldureStageFocus[menu->sheldureStage] + 1 == sheldure_data.size() && sheldure.size() < 50)
+                    if (menu->sheldureStageFocus[menu->sheldureStage] + 1 == sheldure_data.size() && sheldure.size() < 50){
                         menu->sheldureStage = 1;
-                    else
+                        isNew = true;
+                        tempSheldureSession.clear();
+                    }
+                    else{
                         menu->sheldureStage = 4;
+                        isNew = false;
+                        tempSheldureSession.copyFrom(&sheldure[menu->sheldureStageFocus[menu->sheldureStage]]);
+                        menu->sheldureStageFocus[1] = tempSheldureSession.type;
+                        menu->sheldureTimeStr = tempSheldureSession.time;
+                        menu->sheldureFreqStr = tempSheldureSession.freq;
+                    }
                 }
                 if ( key == keyUp)
                 {
@@ -2598,80 +2608,103 @@ void Service::keyPressed(UI_Key key)
                 if ( key == keyEnter )
                 {
                     menu->sheldureStage = 2; // time
+                    if (!isNew)
+                        tempSheldureSession.time = sheldure[menu->sheldureStageFocus[0]].time;
+                    tempSheldureSession.type = (DataStorage::FS::FileType)menu->sheldureStageFocus[menu->sheldureStage];
+                    menu->sheldureTimeStr = tempSheldureSession.time;
                 }
                 if ( key == keyUp)
                 {
-                    if (menu->sheldureStageFocus[menu->sheldureStage] > 0)
+                    if (menu->sheldureStageFocus[menu->sheldureStage] > 0){
                       menu->sheldureStageFocus[menu->sheldureStage]--;
+                      tempSheldureSession.type = (DataStorage::FS::FileType)menu->sheldureStageFocus[menu->sheldureStage];
+                    }
                 }
                 if ( key == keyDown)
                 {
-                    if (menu->sheldureStageFocus[menu->sheldureStage] < 4)
+                    if (menu->sheldureStageFocus[menu->sheldureStage] < 4){
                       menu->sheldureStageFocus[menu->sheldureStage]++;
+                      tempSheldureSession.type = (DataStorage::FS::FileType)menu->sheldureStageFocus[menu->sheldureStage];
+                    }
                 }
              break;
             case 2: // time
 
             if ( key == keyBack )
             {
-                if (menu->sheldureTimeStr.size() != 0){
-                    menu->sheldureTimeStr.pop_back();
+                if (tempSheldureSession.time.size() > 0){
+                    tempSheldureSession.time.pop_back();
                 }
                 else
                     menu->sheldureStage = 1;
             }
             if ( key == keyEnter )
             {
-                if (menu->sheldureTimeStr.size() == 5)
+                if (tempSheldureSession.time.size() == 5)
                 menu->sheldureStage = 3;
             }
             if ( key >= key0 && key <= key9 )
             {
-                if ( menu->sheldureTimeStr.size() < 5 )
-                    menu->sheldureTimeStr.push_back(key + 42);
+                if ( tempSheldureSession.time.size() < 5 )
+                    tempSheldureSession.time.push_back(key + 42);
 
-                if (menu->sheldureTimeStr.size() > 1 && menu->sheldureTimeStr.size() < 3 )
+                if (tempSheldureSession.time.size() > 1 && tempSheldureSession.time.size() < 3 )
                 {
                     // 0 <= ?? <= 23
-                    auto hh = menu->sheldureTimeStr.substr(0, 2);
+                    auto hh = tempSheldureSession.time.substr(0, 2);
                     if ( atoi(hh.c_str()) > 23 )
-                        menu->sheldureTimeStr.clear();
+                        tempSheldureSession.time.clear();
                 }
-                if (menu->sheldureTimeStr.size() > 3 && menu->sheldureTimeStr.size() < 5 )
+                if (tempSheldureSession.time.size() > 3 && tempSheldureSession.time.size() < 5 )
                 {
                     // 0 <= ?? <= 59
-                    auto mm = menu->sheldureTimeStr.substr(3, 2);
+                    auto mm = tempSheldureSession.time.substr(3, 2);
                     if ( atoi(mm.c_str()) > 59 )
                     {
-                        menu->sheldureTimeStr.pop_back(); menu->sheldureTimeStr.pop_back();
+                        tempSheldureSession.time.pop_back(); tempSheldureSession.time.pop_back();
                     }
                 }
 
-                if ( menu->sheldureTimeStr.size() == 2)
-                    menu->sheldureTimeStr.push_back(':');
-
+                if ( tempSheldureSession.time.size() == 2)
+                    tempSheldureSession.time.push_back(':');
             }
+            menu->sheldureTimeStr = tempSheldureSession.time;
+            if (!isNew)
+                tempSheldureSession.freq = sheldure[menu->sheldureStageFocus[0]].freq;
+            menu->sheldureFreqStr = tempSheldureSession.freq;
+            menu->sheldureFreqStr.append(" ").append(freq_hz);
             break;
             case 3: // freq
                 if ( key == keyBack )
                 {
-                    if (menu->sheldureFreqStr.size() != 0){
-                        menu->sheldureFreqStr.pop_back();
+                    if (tempSheldureSession.freq.size() > 5){
+                        tempSheldureSession.freq.pop_back();
                     }
                     else
                         menu->sheldureStage = 2; // time
                 }
                 if ( key == keyEnter )
                 {
-                    if (menu->sheldureFreqStr.size() > 5 && menu->sheldureFreqStr.size() < 9)
+                    if (tempSheldureSession.freq.size() > 4 && tempSheldureSession.freq.size() < 9){
                         menu->sheldureStage = 0;
+                        if (isNew){
+                            sheldure.push_back(tempSheldureSession);
+                            tempSheldureSession.clear();
+                        } else {
+                            sheldure[menu->sheldureStageFocus[menu->sheldureStage]].copyFrom(&tempSheldureSession);
+                            tempSheldureSession.clear();
+                            uploadSheldure();
+                        }
+                        sheldureToStringList();
+                    }
                 }
                 if ( key >= key0 && key <= key9 )
                 {
-                    if ( menu->sheldureFreqStr.size() > 5 && menu->sheldureFreqStr.size() < 9 )
-                        menu->sheldureFreqStr.push_back(key + 42);
+                    if (tempSheldureSession.freq.size() < 8 )
+                        tempSheldureSession.freq.push_back(key + 42);
                 }
-                //menu->sheldureFreqStr.append(freq_hz);
+                menu->sheldureFreqStr = tempSheldureSession.freq;
+                menu->sheldureFreqStr.append(" ").append(freq_hz);
             break;
 
             case 4:// editing
@@ -2716,9 +2749,16 @@ void Service::keyPressed(UI_Key key)
                 }
                 if ( key == keyEnter )
                 {
-                    if(menu->sheldureStageFocus[menu->sheldureStage] == 0)
-                        menu->sheldureStage = 4;    // session list
-                    menu->sheldureStage = 0;
+                    if(menu->sheldureStageFocus[menu->sheldureStage] == 0) // no
+                        menu->sheldureStage = 4;
+                    else {  // delete
+                        menu->sheldureStage = 0; // session list
+                        sheldure.erase(sheldure.begin() + menu->sheldureStageFocus[0]);
+                        if (menu->sheldureStageFocus[0] > 0)
+                            menu->sheldureStageFocus[0]--;
+                        uploadSheldure();
+                        sheldureToStringList();
+                    }
                 }
             break;
 

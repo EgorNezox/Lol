@@ -64,17 +64,25 @@ struct ScheduleTimeSession{
 
 struct SheldureSession{
     std::string time = "00:00";
-    DataStorage::FS::FileType type = DataStorage::FS::FT_CND;
-    std::string freq = "100000";
+    DataStorage::FS::FileType type = DataStorage::FS::FT_SP;
+    std::string freq = "10000";
+
     void clear(){
         time = "";
-        type = DataStorage::FS::FT_CND;
+        type = DataStorage::FS::FT_SP;
         freq = "";
     }
+
     void reInit(){
         time = "00:00";
-        type = DataStorage::FS::FT_CND;
-        freq = "100000";
+        type = DataStorage::FS::FT_SP;
+        freq = "10000";
+    }
+
+    copyFrom(SheldureSession* source){
+        time = source->time;
+        type = source->type;
+        freq = source->freq;
     }
 };
 
