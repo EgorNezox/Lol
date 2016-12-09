@@ -205,12 +205,14 @@ const char* StartGucTx          = "Старт\0";
 const char* GucIndivid          = "Одному\0";
 const char* GucGroup            = "Всем\0";
 const char* Sheldure            = "12 000000 Гц\n12:34 ГУК\0";
-const char* Sheldure_label      = "Расписание";
-const char* editSheldure_label  = "Редактирование";
-const char* newSheldure_label   = "Новый сеанс";
+const char* Sheldure_label      = "  Расписание";
+const char* editSheldure_label  = "  Редактирование";
+const char* delSheldure_lable   = "  Удаление";
+const char* newSheldure_label   = "  Новый сеанс";
 const char* addSheldure         = " Добавить\n сеанс\0";
 const char* editSheldure        = " Изменить\n сеанс\0";
 const char* delSheldure         = " Удалить\n сеанс\0";
+const char* askDelSheldure      = "\t\t Удалить\n\t сеанс?\0";
 const char* atumalfunction_title_str = "Сбой АСУ";
 const char* atumalfunction_text_str = "Передача на текущей частоте ограничена";
 

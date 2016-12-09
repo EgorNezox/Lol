@@ -2518,7 +2518,7 @@ void Service::keyPressed(UI_Key key)
             {
                 switch (menu->filesStage){
                 case 0:
-                    if (menu->filesStageFocus[menu->filesStage] < 3)
+                    if (menu->filesStageFocus[menu->filesStage] < 4)
                         menu->filesStageFocus[menu->filesStage]++;
                     break;
                 case 1:
@@ -2567,6 +2567,7 @@ void Service::keyPressed(UI_Key key)
                 sheldureStagePrev = 0;
                 if ( key == keyBack )
                 {
+                    tempSheldureSession.clear();
                     guiTree.backvard();
                     menu->focus = 0;
                     menu->offset = 0;
@@ -2580,12 +2581,12 @@ void Service::keyPressed(UI_Key key)
                         tempSheldureSession.clear();
                     }
                     else{
-                        menu->sheldureStage = 4;
                         isNew = false;
                         tempSheldureSession.copyFrom(&sheldure[menu->sheldureStageFocus[menu->sheldureStage]]);
                         menu->sheldureStageFocus[1] = tempSheldureSession.type;
                         menu->sheldureTimeStr = tempSheldureSession.time;
                         menu->sheldureFreqStr = tempSheldureSession.freq;
+                        menu->sheldureStage = 4;
                     }
                 }
                 if ( key == keyUp)
@@ -2606,12 +2607,13 @@ void Service::keyPressed(UI_Key key)
                         menu->sheldureStage = sheldureStagePrev;
                 }
                 if ( key == keyEnter )
-                {
-                    menu->sheldureStage = 2; // time
-                    if (!isNew)
+                {                  
+                    if (!isNew){
                         tempSheldureSession.time = sheldure[menu->sheldureStageFocus[0]].time;
+                    }
                     tempSheldureSession.type = (DataStorage::FS::FileType)menu->sheldureStageFocus[menu->sheldureStage];
                     menu->sheldureTimeStr = tempSheldureSession.time;
+                    menu->sheldureStage = 2; // time
                 }
                 if ( key == keyUp)
                 {
@@ -2677,7 +2679,7 @@ void Service::keyPressed(UI_Key key)
             case 3: // freq
                 if ( key == keyBack )
                 {
-                    if (tempSheldureSession.freq.size() > 5){
+                    if (tempSheldureSession.freq.size() > 0){
                         tempSheldureSession.freq.pop_back();
                     }
                     else
@@ -2686,7 +2688,6 @@ void Service::keyPressed(UI_Key key)
                 if ( key == keyEnter )
                 {
                     if (tempSheldureSession.freq.size() > 4 && tempSheldureSession.freq.size() < 9){
-                        menu->sheldureStage = 0;
                         if (isNew){
                             sheldure.push_back(tempSheldureSession);
                             tempSheldureSession.clear();
@@ -2696,6 +2697,7 @@ void Service::keyPressed(UI_Key key)
                             uploadSheldure();
                         }
                         sheldureToStringList();
+                        menu->sheldureStage = 0;
                     }
                 }
                 if ( key >= key0 && key <= key9 )
@@ -3858,14 +3860,7 @@ void Service::sheldureParsing(uint8_t* sMass)
             // --------- type ---------
 
             DataStorage::FS::FileType ft = DataStorage::FS::FT_CND;;
-            switch (sMass[ 1 + (i * 13) ] - 48){
-                case 0: ft = DataStorage::FS::FT_SP;  break;
-                case 1: ft = DataStorage::FS::FT_CND; break;
-                case 2: ft = DataStorage::FS::FT_SMS; break;
-                case 3: ft = DataStorage::FS::FT_VM;  break;
-                case 4: ft = DataStorage::FS::FT_GRP; break;
-            }
-            tempSheldureSession.type = ft;
+            tempSheldureSession.type = (DataStorage::FS::FileType)(sMass[ 1 + (i * 13) ] - 48);
 
             // --------- time ---------
 
@@ -3898,15 +3893,7 @@ void Service::sheldureUnparsing(uint8_t* sMass)
         {
             // ---------- type ----------
 
-            uint8_t ft = 1;
-            switch (sheldure.at(session).type){
-                case DataStorage::FS::FT_SP:  ft = 0;
-                case DataStorage::FS::FT_CND: ft = 1;
-                case DataStorage::FS::FT_SMS: ft = 2;
-                case DataStorage::FS::FT_VM:  ft = 3;
-                case DataStorage::FS::FT_GRP: ft = 4;
-            }
-            sMass[ 1 + (session * 13) ] = ft + 48;
+            sMass[ 1 + (session * 13) ] = sheldure.at(session).type + 48;
 
             // ---------- time ----------
 
@@ -3918,7 +3905,6 @@ void Service::sheldureUnparsing(uint8_t* sMass)
             for(int i = 3; i >= 0; i--)
               sMass[1 + session * 13 + 9 + (3 - i)] = freq >> 8 * i;
         }
-
         storageFs->setSheldure(sMass, sheldure.size() * 13 + 1);
     }
 }

@@ -192,7 +192,7 @@ public:
     uint8_t firstVisSheldureElem[2] = {0,0};
     DataStorage::FS::FileType fileType;
 
-    std::vector<std::string> tFiles[4];
+    std::vector<std::string> tFiles[5];
     uint16_t textAreaScrollIndex;
     uint16_t filesScrollIndex;
 

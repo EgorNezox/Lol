@@ -1453,14 +1453,14 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
     case 1: // type
     {
         GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)newSheldure_label, (GUI_Obj *)this);
-
+        item_geom = {(GXT)(0),(GYT)(0),(GXT)(145),(GYT)(32)};
         for (uint8_t subMenu = 0; subMenu < 5; subMenu++)
         {
             if (sheldureStageFocus[sheldureStage] == subMenu){
                 item_param = GUI_EL_TEMP_ActiveMenuItem;
             } else
                 item_param = GUI_EL_TEMP_DefaultMenuItem;
-            item_param.label_params.font = &Consolas25x35;
+            item_param.label_params.font = &Tahoma26;
             item_param.label_params.transparent = true;
 
             GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)tmpParsing[subMenu], true, true, (GUI_Obj*)this );
@@ -1505,7 +1505,7 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
         LabelParams label_param[3] = {GUI_EL_TEMP_LabelText, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
 
         MoonsGeometry frecArea     = { 5, 20, 160, 45 };
-        MoonsGeometry valueArea  = { 5, 50, 160, 100 };
+        MoonsGeometry valueArea    = { 5, 50, 160, 100 };
 
         label_param[0].transparent = true;
         label_param[1].transparent = false;
@@ -1552,7 +1552,16 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
     }
     case 5:     // delite
     {
-        GUI_EL_Label    label ( &titleParams,&labelArea,  (char*)delSheldure, (GUI_Obj *)this);
+        MoonsGeometry titleArea     = { 0, 15, 165, 70 };
+        MoonsGeometry scroll_geom = {0, 74, 159, 159};
+        item_geom = {(GXT)(0),(GYT)(0),(GXT)(145),(GYT)(25)};
+
+        LabelParams titleParam = GUI_EL_TEMP_LabelMode;
+        titleParam.transparent = false;
+        titleParam.element.align = { alignHCenter, alignTop };
+        GUI_EL_Label    label ( &titleParams,   &labelArea,  (char*)delSheldure_lable, (GUI_Obj *)this);
+        GUI_EL_Label    title ( &titleParam,  &titleArea,  (char*)askDelSheldure, (GUI_Obj*)this );
+        GUI_EL_ScrollArea ScrollArea(&scroll_geom, &align, &margins, (GUI_Obj*)this);
 
           for (uint8_t i = 0; i < 2; i++)
           {
@@ -1571,6 +1580,7 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
 
           window.Draw();
           label.Draw();
+          title.Draw();
           ScrollArea.Draw();
           break;
     }
@@ -2188,8 +2198,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
 
         titleChar = files[0];
 
-
-        for (uint8_t subMenu = 0; subMenu < 4; subMenu++)
+        for (uint8_t subMenu = 0; subMenu < 5; subMenu++)
         {
             if (filesStageFocus[stage] == subMenu){
                 item_param = GUI_EL_TEMP_ActiveMenuItem;
@@ -2198,7 +2207,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
             item_param.label_params.font = &Consolas25x35;
             item_param.label_params.transparent = true;
 
-            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)reciveSubMenu[subMenu + 1], true, true, (GUI_Obj*)this );
+            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)tmpParsing[subMenu], true, true, (GUI_Obj*)this );
             ScrollArea.addGuiElement(item);
         }
 
@@ -2212,7 +2221,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
 
     case 1:
 
-        titleChar = reciveSubMenu[fileType + 1];
+        titleChar = reciveSubMenu[fileType];
 
         if (filesStageFocus[stage] > tFiles[fileType].size() - 1 )
             filesStageFocus[stage] = tFiles[fileType].size() - 1;
@@ -2242,7 +2251,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
 
     case 2:
 
-        titleChar = reciveSubMenu[fileType + 1];
+        titleChar = tmpParsing[fileType];
         TextAreaParams textArea_Params = GUI_EL_TEMP_LabelMode;
         textArea_Params.element.align.align_h = alignLeft;
         textArea_Params.element.align.align_v = alignTop;

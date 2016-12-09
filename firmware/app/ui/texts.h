@@ -129,9 +129,11 @@ extern const char* GucGroup;
 extern const char* Sheldure_label;
 extern const char* editSheldure_label;
 extern const char* newSheldure_label;
+extern const char* delSheldure_lable;
 extern const char* addSheldure;
 extern const char* editSheldure;
 extern const char* delSheldure;
+extern const char* askDelSheldure;
 extern const char* tmpParsing[];
 
 extern const char* startStr;

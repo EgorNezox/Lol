@@ -9,11 +9,11 @@ namespace DataStorage {
 
 class FS {
 public:
-    enum FileType { FT_SMS = 0,
-                    FT_VM  = 1,
-					FT_CND = 2,
-                    FT_GRP = 3,
-                    FT_SP  = 4};
+    enum FileType { FT_SP = 0,
+                    FT_CND  = 1,
+                    FT_SMS = 2,
+                    FT_VM = 3,
+                    FT_GRP  = 4};
 
     enum TransitionFileType { FTT_RX = 0,
                               FTT_TX = 1};
@@ -66,7 +66,7 @@ private:
     std::vector<std::string> files;
     uint8_t maxFilesCount = 32;
     std::string errorFileName = "error";
-    FileTypeInfo fileTypeInfo[4];
+    FileTypeInfo fileTypeInfo[5];
     uint8_t getFreeFileSlotCount();
     std::string trans[2];
 
