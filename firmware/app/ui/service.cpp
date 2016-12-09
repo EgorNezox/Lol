@@ -46,6 +46,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     ginit();
     //loadSheldure();
+    sheldureParsing();
 
 
 //    SheldureMass[0] = 1;
@@ -2404,43 +2405,6 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
-        case  GuiWindowsSubType::sheldure:
-        {
-            if ( key == keyEnter)
-            {
-                guiTree.advance(menu->focus);
-                menu->focus = 0;
-            }
-            if ( key == keyBack)
-            {
-                guiTree.backvard();
-                menu->focus = 0;
-                menu->offset = 0;
-            }
-            if (key == keyUp)
-            {
-                if ( menu->focus > 0 )
-                    menu->focus--;
-            }
-            if (key == keyDown)
-            {
-                if ( sheldure_data.size() != 0 )
-                {
-                    if ( menu->focus < sheldure_data.size()-1)
-                        menu->focus++;
-                }
-            }
-
-            //int value = 0;
-            if (menu->focus > menu->offset){
-                if (menu->offset + 2 == menu->focus) menu->offset +=1;
-            }
-            else
-            {
-                if (menu->focus + 1 == menu->offset) menu->offset = menu->focus;
-            }
-             break;
-        }
         case GuiWindowsSubType::voiceMode:
         {
             if ( key == keyEnter)
@@ -2593,7 +2557,159 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::sheldure:
+        {
 
+            static uint8_t sheldureStagePrev = 0;
+
+            switch (menu->sheldureStage) {
+
+            case 0: // session list
+                sheldureStagePrev = 0;
+                if ( key == keyBack )
+                {
+                    guiTree.backvard();
+                    menu->focus = 0;
+                    menu->offset = 0;
+                    break;
+                }
+                if ( key == keyEnter )
+                {
+                    if (menu->sheldureStageFocus[0] + 1 == sheldure_data.size() && sheldureMass[0] < 50)
+                        menu->sheldureStage = 1;
+                    else
+                        menu->sheldureStage = 4;
+                }
+                if ( key == keyUp)
+                {
+                    if (menu->sheldureStageFocus[0] > 0)
+                      menu->sheldureStageFocus[0]--;
+                }
+                if ( key == keyDown)
+                {
+                    if (menu->sheldureStageFocus[0] < (sheldureMass[0] - (sheldureMass[0] == 50)) )
+                      menu->sheldureStageFocus[0]++;
+                }
+             break;
+            case 1: //type msg
+                if ( key == keyBack )
+                {
+                    if (sheldureStagePrev == 0 || sheldureStagePrev == 4) // list or edit
+                        menu->sheldureStage = sheldureStagePrev;
+                }
+                if ( key == keyEnter )
+                {
+                    menu->sheldureStage = 2; // time
+                }
+                if ( key == keyUp)
+                {
+                    if (menu->sheldureStageFocus[1] > 0)
+                      menu->sheldureStageFocus[1]--;
+                }
+                if ( key == keyDown)
+                {
+                    if (menu->sheldureStageFocus[1] < 4)
+                      menu->sheldureStageFocus[1]++;
+                }
+             break;
+            case 2: // time
+
+            if ( key == keyBack )
+            {
+                if (menu->sheldureTimeStr.size() != 0){
+                    menu->sheldureTimeStr.pop_back();
+                }
+                else
+                    menu->sheldureStage = 1;
+            }
+            if ( key == keyEnter )
+            {
+                if (menu->sheldureTimeStr.size() == 5)
+                menu->sheldureStage = 3;
+            }
+            if ( key >= key0 && key <= key9 )
+            {
+                if ( menu->sheldureTimeStr.size() < 5 )
+                    menu->sheldureTimeStr.push_back(key + 42);
+
+                if (menu->sheldureTimeStr.size() > 1 && menu->sheldureTimeStr.size() < 3 )
+                {
+                    // 0 <= ?? <= 23
+                    auto hh = menu->sheldureTimeStr.substr(0, 2);
+                    if ( atoi(hh.c_str()) > 23 )
+                        menu->sheldureTimeStr.clear();
+                }
+                if (menu->sheldureTimeStr.size() > 3 && menu->sheldureTimeStr.size() < 5 )
+                {
+                    // 0 <= ?? <= 59
+                    auto mm = menu->sheldureTimeStr.substr(3, 2);
+                    if ( atoi(mm.c_str()) > 59 )
+                    {
+                        menu->sheldureTimeStr.pop_back(); menu->sheldureTimeStr.pop_back();
+                    }
+                }
+
+                if ( menu->sheldureTimeStr.size() == 2)
+                    menu->sheldureTimeStr.push_back(':');
+
+            }
+            break;
+            case 3: // freq
+                if ( key == keyBack )
+                {
+                    menu->sheldureStage = 2; // time
+                }
+                if ( key == keyEnter )
+                {
+                    if (menu->sheldureFreqStr.size() > 5 && menu->sheldureFreqStr.size() < 9)
+                    menu->sheldureStage = 0;
+                }
+            break;
+
+            case 4:// editing
+                sheldureStagePrev = 4;
+                if ( key == keyUp)
+                {
+                    if (menu->sheldureStageFocus[4] > 0)
+                      menu->sheldureStageFocus[4]--;
+                }
+                if ( key == keyDown)
+                {
+                    if (menu->sheldureStageFocus[4] < 1)
+                      menu->sheldureStageFocus[4]++;
+                }
+                if ( key == keyBack )
+                {
+                    menu->sheldureStage = 0;
+                }
+                if ( key == keyEnter )
+                {
+                    if (menu->sheldureStageFocus[4] == 0) // type
+                    menu->sheldureStage = 1;
+                    if (menu->sheldureStageFocus[4] == 1) // delete
+                    menu->sheldureStage = 5;
+                }
+
+            break;
+
+            case 5: // delete question
+                if ( key == keyBack )
+                {
+                    menu->sheldureStage = 4;
+                }
+                if ( key == keyEnter )
+                {
+                    menu->sheldureStage = 0;
+                }
+            break;
+
+
+            } // switch exit
+
+            break;
+        }
+
+        // default menu
         default:
             break;
         }
@@ -3044,48 +3160,7 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::sheldure:
         {
-            sheldure_data.clear();
-            if (SheldureMass[0] > 0 && SheldureMass[0] <= 50)
-            {
-            	int sheldure_size = SheldureMass[0];
-					for(int i = 0; i < sheldure_size; i++)
-					{
-						std::string s;
-						switch (SheldureMass[ 1 + (i * 13) ])   // �����
-						{
-						case 0:
-							s.append(callSubMenu[0]);
-                            break;
-						case 1:
-							s.append(callSubMenu[1]);
-							break;
-						case 2:
-							s.append(callSubMenu[2]);
-							break;
-						case 3:
-							s.append(callSubMenu[3]);
-							break;
-        }
-						(SheldureMass[1+(i * 13)] % 2 == 0) ? s.append("   ") : s.append("  ");
-
-						for(int j = 0; j < 5; j++)
-							s.push_back(SheldureMass[ 2 + (i*13) + j]); // �����
-						s.append("\n ");
-						int frec = 0;
-						for(int k = 3; k >= 0; k--)
-						{
-							frec += (uint8_t)(SheldureMass[ 10 + (i*13) + 3 - k]) << k*8;
-						}
-						std::string ch;
-                        sprintf((char*)ch.c_str(),"%d",frec);
-						for(int j = 0; j < 7; j++)
-							s.push_back(ch[j]);
-						s.append(freq_hz);
-						sheldure_data.push_back(s);
-					}
-            }
-
-            menu->initSheldureDialog(menu->focus,sheldure_data);
+            menu->initSheldureDialog(&sheldure_data, sheldureMass[0]);
             break;
         }
         case GuiWindowsSubType::voiceMode:
@@ -3534,7 +3609,7 @@ void Service::showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t mi
 void Service::updateSessionTimeSchedule()
 {
     uint8_t offset = 1;
-    uint8_t sessionCount = SheldureMass[0];
+    uint8_t sessionCount = sheldureMass[0];
 
     if (sessionCount){
 
@@ -3547,14 +3622,14 @@ void Service::updateSessionTimeSchedule()
 
             offset = 1 + session * 13;
 
-            sessionTimeHour   = (SheldureMass[offset + 1] - 48) * 10 +
-                                 SheldureMass[offset + 2] - 48;
-            sessionTimeMinute = (SheldureMass[offset + 4] - 48) * 10 +
-                                 SheldureMass[offset + 5] - 48;
+            sessionTimeHour   = (sheldureMass[offset + 1] - 48) * 10 +
+                                 sheldureMass[offset + 2] - 48;
+            sessionTimeMinute = (sheldureMass[offset + 4] - 48) * 10 +
+                                 sheldureMass[offset + 5] - 48;
 
             ScheduleTimeSession timeSession;
             timeSession.index = session;
-            timeSession.type = (DataStorage::FS::FileType)SheldureMass[offset];
+            timeSession.type = (DataStorage::FS::FileType)sheldureMass[offset];
             timeSession.time = sessionTimeHour * 60 + sessionTimeMinute;
 
             uint8_t insertIndex = 0;
@@ -3637,7 +3712,7 @@ void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
 
 uint8_t& Service::setSheldure()
 {
-   return SheldureMass[0];
+   return sheldureMass[0];
 }
 
 void Service::loadSheldure()
@@ -3661,6 +3736,46 @@ void Service::msgGucTXQuit(int ans)
         msgBox( "Guc", gucQuitTextFail);
         guiTree.append(messangeWindow, gucQuitTextFail, "QUIT\0");
     }
+}
+
+void Service::sheldureParsing()
+{
+    unsigned char sMass[] =
+    {0x32,'0', '1','0',':','3','2',':','0','0',0x00,0x44,0xec,0x88};
+
+    for (uint8_t i = 0; i < 49; i++)
+     memcpy(&sheldureMass[1+i*13], &sMass[1], 13);
+    sheldureMass[0] = 49;
+
+    sheldure_data.clear();
+    if (sheldureMass[0] > 0 && sheldureMass[0] <= 50)
+    {
+        int sheldure_size = sheldureMass[0];
+        for(int i = 0; i < sheldure_size; i++)
+        {
+            std::string s;
+            s.append(callSubMenu[sheldureMass[ 1 + (i * 13) ] - 48]);
+
+            (sheldureMass[1+(i * 13)] % 2 == 0) ? s.append("   ") : s.append("  ");
+
+            for(int j = 0; j < 5; j++)
+                s.push_back(sheldureMass[ 2 + (i*13) + j]); // �����
+            s.append("\n ");
+            int frec = 0;
+            for(uint8_t k = 0; k < 4; k++)
+             frec += (uint8_t)(sheldureMass[ 10 + (i*13) + k]) << (3-k)*8;
+
+
+            char ch[8];
+            sprintf(ch,"%d",frec);
+            for(uint8_t j = 0; j < 7; j++)
+                s.push_back(ch[j]);
+            s.append(freq_hz);
+            sheldure_data.push_back(s);
+        }
+    }
+    if(sheldureMass[0] < 50)
+       sheldure_data.push_back(addSheldure);
 }
 
 }/* namespace Ui */

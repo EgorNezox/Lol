@@ -1,4 +1,4 @@
-#ifndef MENU
+ #ifndef MENU
 #define MENU
 
 #include <stdint.h>
@@ -180,9 +180,11 @@ public:
 
     //SHELDURE
     std::map<int, std::string> sheldure;
-    void initSheldureDialog(int focus, std::vector<std::string> &data);
+    void initSheldureDialog(std::vector<std::string> *data, uint8_t sessionCount);
     int32_t scrollIndex = 0;
     int32_t scrollIndexMax = 0;
+    uint8_t sheldureStage = 0;
+
 
     //files
     uint8_t filesStage = 0;
@@ -231,11 +233,14 @@ public:
     bool getIsInRepeatInterval();
     void initFileManagerDialog(uint8_t stage);
     uint8_t filesStageFocus[3] = {0,0,0};
+    uint8_t sheldureStageFocus[6] = {0,0,0,0,0,0};
 
     std::vector<uint8_t>* fileMessage;
 
     uint8_t displayBrightness = 2; //2 - max, 0 - min
     void initDisplayBrightnessDialog();
+    std::string sheldureTimeStr;
+    std::string sheldureFreqStr;
 private:
     GUI_Obj obj;
     MoonsGeometry menuArea;
@@ -255,6 +260,7 @@ private:
     DataStorage::FS* storageFs;
 
     std::string length_message;
+
 };
 
 

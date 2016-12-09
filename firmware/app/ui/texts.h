@@ -126,7 +126,11 @@ extern const char* StartGucTx;
 extern const char* GucIndivid;
 extern const char* GucGroup;
 extern const char* Sheldure_label;
-extern const char* NoSheldure;
+extern const char* editSheldure_label;
+extern const char* newSheldure_label;
+extern const char* addSheldure;
+extern const char* editSheldure;
+extern const char* delSheldure;
 
 extern const char* startStr;
 
