@@ -2122,6 +2122,7 @@ void Service::keyPressed(UI_Key key)
             {
             	auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
             	voice_service->setVirtualDate(st);
+            	guiTree.backvard();
             }
             break;
         }
@@ -2144,7 +2145,7 @@ void Service::keyPressed(UI_Key key)
             {
             	auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
             	voice_service->setVirtualTime(st);
-
+            	guiTree.backvard();
             }
             else if ( key >= key0 && key <= key9 )
             {

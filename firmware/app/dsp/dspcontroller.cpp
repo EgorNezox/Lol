@@ -3389,29 +3389,24 @@ void DspController::setVirtualTime(uint8_t *param)
 
 uint8_t* DspController::getVirtualTime()
 {
-	char ms[3];
-     ms[2] = t.seconds;
-     ms[1] = t.minutes;
-     ms[0] = t.hours;
+	QmRtc::Time time = rtc->getTime();
+	char param = 0;
+	char ms[3] = {0,0,0};
 
-     char param = 0;
-     for(int i = 0; i<3;i++)
-      if (ms[i] > 9)
-    	 {
-    		 param = ms[i] / 10;
-    		 virtualTime[2*i] = param;
-    		 param = ms[i] % 10;
-    		 virtualTime[2*i+1] = param;
-    	 }
-    	 else
-    	 {
-    		 virtualTime[2*i] = 0;
-    		 virtualTime[2*i+1] = ms[i];
-    	 }
+	ms[2] = time.seconds;
+	ms[1] = time.minutes;
+	ms[0] = time.hours;
 
+	for(int i = 0; i<3;i++)
+	if (ms[i] > 9)
+	{
+		param = ms[i] / 10;
+		virtualTime[2*i]   = param + 48;
+		param = ms[i] % 10;
+		virtualTime[2*i+1] = param + 48;
+	}
 
-     for(int i = 0; i<6;i++) virtualTime[i] = virtualTime[i] + 48;
-     return &virtualTime[0];
+	return &virtualTime[0];
 }
 
 } /* namespace Multiradio */
