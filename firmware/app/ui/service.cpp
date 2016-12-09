@@ -45,8 +45,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->storageFs          = fs;
 
     ginit();
-    //loadSheldure();
-    sheldureParsing();
+    loadSheldure();
 
 
 //    SheldureMass[0] = 1;
@@ -3712,15 +3711,62 @@ void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
 
 uint8_t& Service::setSheldure()
 {
-   return sheldureMass[0];
+ //  return sheldureMass[0];
 }
 
 void Service::loadSheldure()
 {
+#ifndef _DEBUG_
    if (storageFs > 0){
-       storageFs->getSheldure(setSheldure());
-       updateSessionTimeSchedule();
+       if (sheldureMass == 0)
+          sheldureMass = new uint8_t[651];
+
+       if (storageFs->getSheldure(sheldureMass)){
+         sheldureParsing(sheldureMass);
+         //updateSessionTimeSchedule();
+       }
+
+       if (sheldureMass > 0){
+            delete []sheldureMass;
+            sheldureMass = 0;
+       }
    }
+#else
+    if (sheldureMass == 0)
+       sheldureMass = new uint8_t[651];
+
+    uint8_t massTemp[] =
+    {0x32,'0', '1','0',':','3','2',':','0','0',0x00,0x44,0xec,0x88};
+
+    for (uint8_t i = 0; i < 49; i++)
+     memcpy(&sheldureMass[1+i*13], &massTemp[1], 13);
+    sheldureMass[0] = 49;
+
+    sheldureParsing(sheldureMass);
+
+    if (sheldureMass > 0){
+         delete []sheldureMass;
+         sheldureMass = 0;
+    }
+#endif
+}
+
+void Service::uploadSheldure()
+{
+#ifndef _DEBUG_
+    if (storageFs > 0){
+        if (sheldureMass == 0)
+           sheldureMass = new uint8_t[sheldure.size() * 13];
+
+        sheldureUnparsing(sheldureMass);
+        storageFs->setSheldure(sheldureMass, sheldureMass[0]);
+
+        if (sheldureMass > 0){
+             delete []sheldureMass;
+             sheldureMass = 0;
+        }
+    }
+#endif
 }
 
 void Service::msgGucTXQuit(int ans)
@@ -3738,44 +3784,82 @@ void Service::msgGucTXQuit(int ans)
     }
 }
 
-void Service::sheldureParsing()
+void Service::sheldureParsing(uint8_t* sMass)
 {
-    unsigned char sMass[] =
-    {0x32,'0', '1','0',':','3','2',':','0','0',0x00,0x44,0xec,0x88};
-
-    for (uint8_t i = 0; i < 49; i++)
-     memcpy(&sheldureMass[1+i*13], &sMass[1], 13);
-    sheldureMass[0] = 49;
-
-    sheldure_data.clear();
-    if (sheldureMass[0] > 0 && sheldureMass[0] <= 50)
+    if (sMass[0] > 0 && sMass[0] <= 50)
     {
-        int sheldure_size = sheldureMass[0];
-        for(int i = 0; i < sheldure_size; i++)
+        uint8_t sheldureSize = sMass[0];
+
+        for(uint8_t i = 0; i < sheldureSize; i++)
         {
-            std::string s;
-            s.append(callSubMenu[sheldureMass[ 1 + (i * 13) ] - 48]);
+            tempSheldureSession.clear();
 
-            (sheldureMass[1+(i * 13)] % 2 == 0) ? s.append("   ") : s.append("  ");
+            // --------- type ---------
 
-            for(int j = 0; j < 5; j++)
-                s.push_back(sheldureMass[ 2 + (i*13) + j]); // �����
-            s.append("\n ");
-            int frec = 0;
+            DataStorage::FS::FileType ft = DataStorage::FS::FT_CND;;
+            switch (sMass[ 1 + (i * 13) ] - 48){
+                case 0: ft = DataStorage::FS::FT_SP;  break;
+                case 1: ft = DataStorage::FS::FT_CND; break;
+                case 2: ft = DataStorage::FS::FT_SMS; break;
+                case 3: ft = DataStorage::FS::FT_VM;  break;
+                case 4: ft = DataStorage::FS::FT_GRP; break;
+            }
+            tempSheldureSession.type = ft;
+
+            // --------- time ---------
+
+            for(uint8_t j = 0; j < 5; j++)
+                tempSheldureSession.time.push_back(sMass[ 2 + (i*13) + j]);
+
+            // --------- freq ---------
+
+            uint32_t frec = 0;
             for(uint8_t k = 0; k < 4; k++)
-             frec += (uint8_t)(sheldureMass[ 10 + (i*13) + k]) << (3-k)*8;
-
+              frec += (uint8_t)(sMass[ 10 + (i*13) + k]) << (3-k)*8;
 
             char ch[8];
             sprintf(ch,"%d",frec);
             for(uint8_t j = 0; j < 7; j++)
-                s.push_back(ch[j]);
-            s.append(freq_hz);
-            sheldure_data.push_back(s);
+                tempSheldureSession.freq.push_back(ch[j]);
+
+            sheldure.push_back(tempSheldureSession);
         }
     }
-    if(sheldureMass[0] < 50)
-       sheldure_data.push_back(addSheldure);
+}
+
+void Service::sheldureUnparsing(uint8_t* sMass)
+{
+    if (storageFs > 0){
+
+        sMass[0] = sheldure.size();
+
+        for (uint8_t session = 0; session < sMass[0]; session++)
+        {
+            // ---------- type ----------
+
+            uint8_t ft = 1;
+            switch (sheldure.at(session).type){
+                case DataStorage::FS::FT_SP:  ft = 0;
+                case DataStorage::FS::FT_CND: ft = 1;
+                case DataStorage::FS::FT_SMS: ft = 2;
+                case DataStorage::FS::FT_VM:  ft = 3;
+                case DataStorage::FS::FT_GRP: ft = 4;
+            }
+            sMass[ 1 + (session * 13) ] = ft + 48;
+
+            // ---------- time ----------
+
+            memcpy(&sMass[ 1 + (session * 13) + 1], &sheldure.at(session).time[0], 5);
+
+            // ---------- freq ----------
+
+            uint32_t freq = atoi(sheldure.at(session).freq.c_str());
+            for(int i = 3; i >= 0; i--)
+              sMass[1 + session * 13 + 9 + (3 - i)] = freq >> 8 * i;
+        }
+
+        storageFs->setSheldure(sMass, sheldure.size() * 13 + 1);
+    }
 }
 
 }/* namespace Ui */

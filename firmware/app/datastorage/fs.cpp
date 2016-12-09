@@ -182,16 +182,29 @@ void FS::setAnalogHeadsetChannel(uint8_t data) {
 		return;
 	file.write((uint8_t *)&data, 1);
 }
-bool FS::getSheldure(uint8_t &data)
+
+bool FS::getSheldure(uint8_t* data)
 {
     QmFile file(dir, "Sheldure");
-    if(!file.open(QmFile::ReadOnly))
-        return false;
-    int64_t file_size = file.size();
-    if (!(file_size >= 14))
-        return false;
-    file.read((uint8_t*)&data,file_size);
-    return true;
+    if (file.open(QmFile::ReadOnly)){
+        uint32_t fileSize = file.size();
+        if (fileSize >= 14){
+            if (file.read(data, fileSize) > 0)
+                return true;
+        }
+    }
+    return false;
+}
+
+bool FS::setSheldure(uint8_t* data, uint16_t size)
+{
+    deleteFile("Sheldure");
+    QmFile file(dir, "Sheldure");
+    if(file.open(QmFile::WriteOnly)){
+       if (file.write((uint8_t*)&data, size) > 0)
+          return true;
+    }
+    return false;
 }
 
 //-----------------------------------------------------

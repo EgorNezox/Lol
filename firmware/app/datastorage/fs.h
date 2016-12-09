@@ -12,7 +12,8 @@ public:
     enum FileType { FT_SMS = 0,
                     FT_VM  = 1,
 					FT_CND = 2,
-                    FT_GRP = 3};
+                    FT_GRP = 3,
+                    FT_SP  = 4};
 
     enum TransitionFileType { FTT_RX = 0,
                               FTT_TX = 1};
@@ -54,8 +55,9 @@ public:
     void updateFileTree();
     std::vector<std::string> *getFileTree();
     void getFileNamesByType(std::vector<std::string>* typeFiles, FileType fileType);
-    bool getSheldure(uint8_t &data);
+    bool getSheldure(uint8_t *data);
     TransitionFileType getTransmitType(FS::FileType fileType, uint8_t fileTreeTypeFocus);
+    bool setSheldure(uint8_t *data, uint16_t size);
 private:
     bool renameFile(std::string oldfileName, std::string newFileName);
     bool deleteFile(std::string fileName);
