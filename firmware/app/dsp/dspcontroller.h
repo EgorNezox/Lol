@@ -568,6 +568,8 @@ bool modem_rx_on, modem_tx_on;
 
     QmRtc::Date d;
 
+    bool quest = false;
+
 
 public:
     uint8_t getSmsCounter();

@@ -664,10 +664,8 @@ void DspController::RxSmsWork()
 		}
 		if (sms_counter == 77)
 		{
-
-			generateSmsReceived();
-
 			setTx();
+			quest = generateSmsReceived();
 			sendSms(PSWFTransmitter);
 		}
 		if (sms_counter > 77 && sms_counter < 83)
@@ -677,6 +675,8 @@ void DspController::RxSmsWork()
 
         if (sms_counter == 84)
 		{
+        	if (quest) {smsPacketMessage(100); quest = false;}
+
 			sms_counter = 0;
 			setRx();
 			smsFind = false;
@@ -2349,7 +2349,7 @@ bool DspController::generateSmsReceived()
 {
     // 1. params for storage operation
 
-	qmDebugMessage(QmDebug::Dump,"� � С™� � С•� � В»� � С‘� ЎвЂЎ� � Вµ� Ў� ѓ� ЎвЂљ� � � � � � С• � � С—� � В°� � С”� � Вµ� ЎвЂљ� � С•� � � �  sms data %d:",  recievedSmsBuffer.size());
+	//qmDebugMessage(QmDebug::Dump,"sms data %d:",  recievedSmsBuffer.size());
 
     int data[255];
     uint8_t crc_calcs[100];
@@ -2409,9 +2409,11 @@ bool DspController::generateSmsReceived()
           std::copy(&packet[0],&packet[99],sms_content);
           sms_content[99] = '\0';
           // return sms status and signal(len, sms_content)
-          smsPacketMessage(len);
+//          smsPacketMessage(len);
 
           qmDebugMessage(QmDebug::Dump," Count of symbol for sms message %d", len);
+
+          ack = 73;
 
           return true;
         }
@@ -2465,8 +2467,14 @@ int DspController::check_rx_call()
 
 uint8_t DspController::calc_ack_code(uint8_t ack)
 {
-    uint8_t ACK_CODE = (ContentSms.R_ADR + ContentSms.S_ADR + ack + ContentSms.RN_KEY +
-                    date_time[0] + date_time[1]+ date_time[2] + date_time[3]) % 100;
+	uint8_t ACK_CODE  = 0;
+
+	if (virtual_mode == true)
+		ACK_CODE = (ContentSms.R_ADR + ContentSms.S_ADR + ack + ContentSms.RN_KEY +
+				   d.day + t.hours + t.minutes + t.seconds-2) % 100;
+	else
+		ACK_CODE = (ContentSms.R_ADR + ContentSms.S_ADR + ack + ContentSms.RN_KEY +
+				   date_time[0] + date_time[1]+ date_time[2] + date_time[3]) % 100;
     return ACK_CODE;
 }
 
@@ -2559,6 +2567,7 @@ void DspController::startSMSRecieving(SmsStage stage)
 
     smsRxStateSync = 0;
     radio_state = radiostateSms;
+    sms_counter  = 0;
 }
 
 
@@ -2613,6 +2622,8 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
 
     radio_state = radiostateSms;
+
+    sms_counter  = 0;
 
     if (virtual_mode == true)
     	startVirtualPpsModeTx();
@@ -3310,6 +3321,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 
 			if (sms_counter > 76 && sms_counter < 83)
 			{
+				if (virtual_mode == false)
 				prevTime();
 				uint8_t ack_code_calc = calc_ack_code(data[9]);
 				qmDebugMessage(QmDebug::Info, "recieve count sms = %d %d", ack_code_calc, data[10]);
@@ -3404,6 +3416,11 @@ uint8_t* DspController::getVirtualTime()
 		virtualTime[2*i]   = param + 48;
 		param = ms[i] % 10;
 		virtualTime[2*i+1] = param + 48;
+	}
+	else
+	{
+		virtualTime[2*i] = 48;
+		virtualTime[2*i+1] = ms[i] + 48;
 	}
 
 	return &virtualTime[0];
