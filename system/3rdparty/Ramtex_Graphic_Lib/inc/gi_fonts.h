@@ -30,10 +30,10 @@ extern "C" {
 #endif
 
 /* Font definitions */
-extern GCODE GFONT FCODE Lucida_Console_8x12;
+//extern GCODE GFONT FCODE Lucida_Console_8x12;
 extern GCODE GFONT FCODE Tahoma_15x13;
-extern GCODE GFONT FCODE Tahoma_bold_18x14;
-extern GCODE GFONT FCODE Consolas25x58;
+//extern GCODE GFONT FCODE Tahoma_bold_18x14;
+//extern GCODE GFONT FCODE Consolas25x58;
 extern GCODE GFONT FCODE Consolas25x35;
 extern GCODE GFONT FCODE Tahoma26;
 
