@@ -2204,7 +2204,8 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
                 item_param = GUI_EL_TEMP_ActiveMenuItem;
             } else
                 item_param = GUI_EL_TEMP_DefaultMenuItem;
-            item_param.label_params.font = &Consolas25x35;
+            item_param.label_params.font = GUI_EL_TEMP_LabelChannel.font;
+
             item_param.label_params.transparent = true;
 
             GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)tmpParsing[subMenu], true, true, (GUI_Obj*)this );

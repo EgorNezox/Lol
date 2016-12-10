@@ -34,12 +34,21 @@ GCOLOR BATTERY_HIGH_COLOR =				G_WHITE;
 GCOLOR BATTERY_MID_COLOR =				G_WHITE;
 GCOLOR BATTERY_LOW_COLOR =				G_WHITE;
 
+#if memory_hack
+LabelParams GUI_EL_TEMP_LabelChannel{
+    .element={{0,0,0,0},{alignHCenter, alignVCenter}},
+    .font=&HackConsolas25x35,
+    .color_sch={GENERAL_TEXT_COLOR,GENERAL_BACK_COLOR},
+    .transparent=0
+};
+#else
 LabelParams GUI_EL_TEMP_LabelChannel{
     .element={{0,0,0,0},{alignHCenter, alignVCenter}},
     .font=&Consolas25x35,
-	.color_sch={GENERAL_TEXT_COLOR,GENERAL_BACK_COLOR},
-	.transparent=0
+    .color_sch={GENERAL_TEXT_COLOR,GENERAL_BACK_COLOR},
+    .transparent=0
 };
+#endif
 
 LabelParams GUI_EL_TEMP_LabelMode{
 	.element={{2,2,1,1},{alignRight, alignTop}},

@@ -7,7 +7,6 @@
   ******************************************************************************
   */
 
-
 //----------INCLUDES-----------
 
 #include <string.h>
@@ -33,6 +32,30 @@ static Alignment bottom_align={alignLeft, alignBottom};
 
 //----------CODE---------------
 
+
+void convertStrToHackEncoding(uint8_t* text, uint16_t size, PGFONT font)
+{
+#if memory_hack
+    // recalc usual encoding to reduced (hacked) encoding for memory saving
+        if (font == (PGFONT)&HackConsolas25x35)
+        {
+            for (uint16_t i = 0; i < size; i++){
+                uint8_t sym = text[i];
+                if ( sym >= 0xC0 ) // letter
+                    text[i] = sym - 145;
+                else if (sym >= 0x30 && sym <= 0x39) // digits
+                    text[i] = sym - 11;
+                else
+                    switch(sym){
+                        case 0x25: text[i] = 0x22; break; //"%"
+                        case 0x2D: text[i] = 0x23; break; //"-"
+                        case 0x2E: text[i] = 0x24; break; //"."
+                        case 0x5F: text[i] = 0x20; break; //"_" to " "
+                    }
+            }
+        }
+#endif
+}
 
 //+++++++++++++Element+++++++++++++++++++++
 
@@ -136,6 +159,8 @@ void GUI_EL_Label::SetText(char *text){
     {
     	this->text.clear();
         this->text.append( text );//, sizeof(this->text));
+
+        convertStrToHackEncoding((uint8_t*)&this->text[0], this->text.size(), this->font);
 	}
     else
     {
@@ -1144,9 +1169,13 @@ void GUI_Painter::DrawText( unsigned char x,
 
     gsetmode(mode);
     gselfont(font);
+
+    std::string str(text);
+    convertStrToHackEncoding((uint8_t*)&str[0], str.size(), font);
+
     gsetvp(0, 0, 159, 127);
     gsetpos(x, y + font->symheight - 2);
-    gputs(text);
+    gputs(str.c_str());
 }
 
 
