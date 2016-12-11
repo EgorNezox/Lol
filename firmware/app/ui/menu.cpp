@@ -476,7 +476,7 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
             else
                 itemParams.label_params.color_sch = {GENERAL_TEXT_COLOR, GENERAL_BACK_COLOR};
 
-            GUI_EL_MenuItem item(&itemParams, &itemArea, (char*)k.c_str(), false, true, (GUI_Obj*)this);
+            GUI_EL_MenuItem item(&itemParams, &itemArea, (char*)k.c_str(), true, (GUI_Obj*)this);
             item.Draw();
             i++;
         }
@@ -1427,7 +1427,7 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
             item_param.label_params.transparent = true;
 
             std::string ex = data->at(i);
-            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)ex.c_str(), true, true, (GUI_Obj*)this );
+            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)ex.c_str(), true, (GUI_Obj*)this );
             ScrollArea.addGuiElement(item);
         }
 
@@ -1463,7 +1463,7 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
             item_param.label_params.font = &Tahoma26;
             item_param.label_params.transparent = true;
 
-            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)tmpParsing[subMenu], true, true, (GUI_Obj*)this );
+            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)tmpParsing[subMenu], true, (GUI_Obj*)this );
             ScrollArea.addGuiElement(item);
         }
 
@@ -1500,11 +1500,11 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
 
         break;
     }
-    case 3: // frec
+    case 3: // freq
     {
         LabelParams label_param[3] = {GUI_EL_TEMP_LabelText, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
 
-        MoonsGeometry frecArea     = { 5, 20, 160, 45 };
+        MoonsGeometry freqArea     = { 5, 20, 160, 45 };
         MoonsGeometry valueArea    = { 5, 50, 160, 100 };
 
         label_param[0].transparent = true;
@@ -1516,7 +1516,7 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
         label_param[2].element.align = { alignHCenter, alignTop };
 
         GUI_EL_Label  title ( &label_param[0],  &titleArea,  (char*)editSheldure_label, (GUI_Obj*)this );
-        GUI_EL_Label  label ( &label_param[1],  &frecArea,  (char*)groupCondCommFreqStr, (GUI_Obj*)this );
+        GUI_EL_Label  label ( &label_param[1],  &freqArea,  (char*)groupCondCommFreqStr, (GUI_Obj*)this );
         GUI_EL_Label  value ( &label_param[2],  &valueArea,  (char*)sheldureFreqStr.c_str(), (GUI_Obj*)this );
 
         title.Draw();
@@ -1539,7 +1539,7 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
             item_param.label_params.transparent = true;
 
             const char* edtStr[2] = {editSheldure,delSheldure};
-            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)edtStr[i], true, true, (GUI_Obj*)this );
+            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)edtStr[i], true, (GUI_Obj*)this );
             ScrollArea.addGuiElement(item);
         }
         ScrollArea.setFirstVisElem(0);
@@ -1572,7 +1572,7 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
               item_param.label_params.font = &Tahoma26;
               item_param.label_params.transparent = true;
 
-              GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)yesNo[i], true, true, (GUI_Obj*)this );
+              GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)yesNo[i], true, (GUI_Obj*)this );
               ScrollArea.addGuiElement(item);
           }
           ScrollArea.setFirstVisElem(0);
@@ -2208,7 +2208,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
 
             item_param.label_params.transparent = true;
 
-            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)tmpParsing[subMenu], true, true, (GUI_Obj*)this );
+            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)tmpParsing[subMenu], true, (GUI_Obj*)this );
             ScrollArea.addGuiElement(item);
         }
 
@@ -2239,7 +2239,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
                 item_param.label_params.font = &Tahoma26;
                 item_param.label_params.transparent = true;
 
-                GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)fileName.c_str(), true, true, (GUI_Obj*)this );
+                GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)fileName.c_str(), true, (GUI_Obj*)this );
                 ScrollArea.addGuiElement(item);
             }
             ScrollArea.setFirstVisElem(firstVisFileElem);

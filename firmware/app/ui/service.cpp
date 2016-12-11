@@ -2647,27 +2647,6 @@ void Service::keyPressed(UI_Key key)
             }
             if ( key >= key0 && key <= key9 )
             {
-//                uint8_t timeSize = tempSheldureSession.time.size();
-//                uint8_t h1;
-//                uint8_t m1;
-
-//                if (timeSize > 0) h1 = atoi(tempSheldureSession.time.substr(0, 1).c_str());
-//                if (timeSize > 4) m1 = atoi(tempSheldureSession.time.substr(3, 1).c_str());
-
-//                bool isPush = true;
-
-//                if ( tempSheldureSession.time.size() < 5){
-//                    if ((timeSize == 0 && key > key2) ||
-//                        (timeSize == 1 && h1 == 2 && key > key3) ||
-//                        (timeSize == 3 && key > key5));// ||
-//                        //(timeSize == 4 && m1 == 2 && key > key3))
-//                    isPush = false;
-//                } else
-//                    isPush = false;
-
-//                if (isPush)
-//                    tempSheldureSession.time.push_back(key + 42);
-
                 if ( tempSheldureSession.time.size() == 2)
                     tempSheldureSession.time.push_back(':');
 
@@ -2748,6 +2727,7 @@ void Service::keyPressed(UI_Key key)
                 if ( key == keyBack )
                 {
                     menu->sheldureStage = 0;
+                    menu->sheldureStageFocus[4] = 0;
                 }
                 if ( key == keyEnter )
                 {
@@ -2755,6 +2735,7 @@ void Service::keyPressed(UI_Key key)
                     menu->sheldureStage = 1;
                     if (menu->sheldureStageFocus[menu->sheldureStage] == 1) // delete
                     menu->sheldureStage = 5;
+                    menu->sheldureStageFocus[4] = 0;
                 }
             break;
 
@@ -2772,6 +2753,7 @@ void Service::keyPressed(UI_Key key)
                 if ( key == keyBack )
                 {
                     menu->sheldureStage = 4;
+                    menu->sheldureStageFocus[5] = 0;
                 }
                 if ( key == keyEnter )
                 {
@@ -2784,6 +2766,7 @@ void Service::keyPressed(UI_Key key)
                             menu->sheldureStageFocus[0]--;
                         uploadSheldure();
                         sheldureToStringList();
+                        menu->sheldureStageFocus[5] = 0;
                     }
                 }
             break;

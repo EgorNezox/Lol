@@ -281,11 +281,10 @@ struct MenuItemParams{
 class GUI_EL_MenuItem: public GUI_EL_Label{
     public:
         void Draw();
-        GUI_EL_MenuItem(MenuItemParams *params, MoonsGeometry *geom, char *text, bool draw_mark, bool rec, GUI_Obj *parrent_obj );
+        GUI_EL_MenuItem(MenuItemParams *params, MoonsGeometry *geom, char *text, bool rec, GUI_Obj *parrent_obj );
         char *text;
     private:
         GUI_EL_Icon mark;
-        bool draw_mark;
         bool rec_flag;
         MenuItemParams params;
     protected:

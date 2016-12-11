@@ -789,14 +789,12 @@ void GUI_EL_Window::SetInputFocus(bool isFocus)
 GUI_EL_MenuItem::GUI_EL_MenuItem(MenuItemParams *params,
                                  MoonsGeometry  *geom,
                                  char           *text,
-                                 bool            draw_mark,
                                  bool            rec_flag,
                                  GUI_Obj        *parrent_obj
                                 ):
                                  GUI_EL_Label(&params->label_params, geom, text, parrent_obj),
                                  mark(&params->icon_params.element, geom, params->icon_params.icon, parrent_obj)
 {
-    this->draw_mark = draw_mark;
     this->rec_flag = rec_flag;
     this->params = *params;
 }
@@ -804,7 +802,6 @@ GUI_EL_MenuItem::GUI_EL_MenuItem(MenuItemParams *params,
 void GUI_EL_MenuItem::Draw()
 {
 	GUI_EL_Label::Draw();
-    if (draw_mark) mark.Draw();
 	PrepareViewport();
     gsetcolorf(GENERAL_FORE_COLOR);
     if (rec_flag)
