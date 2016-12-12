@@ -2231,7 +2231,7 @@ void Service::keyPressed(UI_Key key)
                     if ( atoi(hh.c_str()) > 23 )
                         st.clear();
                 }
-                if (st.size() > 3 && st.size() < 5 )
+                if (st.size() > 3 && st.size() < 6 )
                 {
                     // 0 <= ?? <= 59
                     auto mm = st.substr(3, 2);
@@ -3152,6 +3152,7 @@ void Service::drawMenu()
             menu->setTitle(dataAndTime[1]);
             std::string str; str.append(st.listItem.front()->inputStr); //str.append("00:00:00");
             voice_service->setVirtualTime(str);
+            updateSessionTimeSchedule();
             menu->initSetDateOrTimeDialog( str );
             break;
         }
@@ -3711,7 +3712,7 @@ void Service::updateSessionTimeSchedule()
                 }
         }
 
-      //  calcNextSessionIndex();
+        calcNextSessionIndex();
     } else
         schedulePromptTimer.stop();
 }
@@ -3830,6 +3831,7 @@ void Service::uploadSheldure()
              delete []sheldureMass;
              sheldureMass = 0;
         }
+        updateSessionTimeSchedule();
     }
 #endif
 }
