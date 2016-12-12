@@ -198,7 +198,6 @@ DspController::~DspController()
     delete rtc;
 }
 
-
 bool DspController::isReady() {
 	return is_ready;
 }

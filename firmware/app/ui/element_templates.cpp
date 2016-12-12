@@ -34,12 +34,21 @@ GCOLOR BATTERY_HIGH_COLOR =				G_WHITE;
 GCOLOR BATTERY_MID_COLOR =				G_WHITE;
 GCOLOR BATTERY_LOW_COLOR =				G_WHITE;
 
+#if memory_hack
+LabelParams GUI_EL_TEMP_LabelChannel{
+    .element={{0,0,0,0},{alignHCenter, alignVCenter}},
+    .font=&HackConsolas25x35,
+    .color_sch={GENERAL_TEXT_COLOR,GENERAL_BACK_COLOR},
+    .transparent=0
+};
+#else
 LabelParams GUI_EL_TEMP_LabelChannel{
     .element={{0,0,0,0},{alignHCenter, alignVCenter}},
     .font=&Consolas25x35,
-	.color_sch={GENERAL_TEXT_COLOR,GENERAL_BACK_COLOR},
-	.transparent=0
+    .color_sch={GENERAL_TEXT_COLOR,GENERAL_BACK_COLOR},
+    .transparent=0
 };
+#endif
 
 LabelParams GUI_EL_TEMP_LabelMode{
 	.element={{2,2,1,1},{alignRight, alignTop}},
@@ -64,28 +73,28 @@ LabelParams GUI_EL_TEMP_LabelText{
 
 LabelParams GUI_EL_TEMP_LabelInput{
 	.element={{0,0,0,0},{alignLeft, alignTop}},
-	.font=&Lucida_Console_8x12,
+    .font=&Tahoma_15x13,
 	.color_sch={GENERAL_TEXT_COLOR,GENERAL_BACK_COLOR},
 	.transparent=1
 };
 
 LabelParams GUI_EL_TEMP_LabelCoords{
 	.element={{0,0,0,0},{alignRight, alignTop}},
-	.font=&Lucida_Console_8x12,
+    .font=&Tahoma_15x13,
 	.color_sch={GENERAL_TEXT_COLOR,GENERAL_BACK_COLOR},
 	.transparent=1
 };
 
 LabelParams GUI_EL_TEMP_LabelSpBoxActive{
 	.element={{0,0,2,0},{alignHCenter, alignVCenter}},
-	.font=&Lucida_Console_8x12,
+    .font=&Tahoma_15x13,
 	.color_sch={SPBOX_ACTIVE_TEXT_COLOR,SPBOX_ACTIVE_BACK_COLOR},
 	.transparent=0
 };
 
 LabelParams GUI_EL_TEMP_LabelSpBoxInactive{
 	.element={{0,0,2,0},{alignHCenter, alignVCenter}},
-	.font=&Lucida_Console_8x12,
+    .font=&Tahoma_15x13,
 	.color_sch={SPBOX_INACTIVE_TEXT_COLOR,SPBOX_INACTIVE_BACK_COLOR},
 	.transparent=1
 };
@@ -172,53 +181,53 @@ MenuItemParams GUI_EL_TEMP_ActiveMenuItem{
 		.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_arrow_12}
 };
 
-MenuItemParams GUI_EL_TEMP_DefaultCheckBoxItem{
-	.label_params={.element={{2,2,2,2},{alignLeft, alignVCenter}},
-		.font=&Tahoma_15x13,
-		.color_sch={MENU_ITEM_INACTIVE_TEXT_COLOR,MENU_ITEM_INACTIVE_BACK_COLOR},
-		.transparent=0},
-	.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_check_mark_12}
-};
+//MenuItemParams GUI_EL_TEMP_DefaultCheckBoxItem{
+//	.label_params={.element={{2,2,2,2},{alignLeft, alignVCenter}},
+//		.font=&Tahoma_15x13,
+//		.color_sch={MENU_ITEM_INACTIVE_TEXT_COLOR,MENU_ITEM_INACTIVE_BACK_COLOR},
+//		.transparent=0},
+//	.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_check_mark_12}
+//};
+//
+//MenuItemParams GUI_EL_TEMP_ActiveCheckBoxItem{
+//	.label_params={.element={{2,2,2,2},{alignLeft, alignVCenter}},
+//		.font=&Tahoma_15x13,
+//		.color_sch={MENU_ITEM_ACTIVE_TEXT_COLOR,MENU_ITEM_ACTIVE_BACK_COLOR},
+//		.transparent=0},
+//	.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_check_mark_12}
+//};
 
-MenuItemParams GUI_EL_TEMP_ActiveCheckBoxItem{
-	.label_params={.element={{2,2,2,2},{alignLeft, alignVCenter}},
-		.font=&Tahoma_15x13,
-		.color_sch={MENU_ITEM_ACTIVE_TEXT_COLOR,MENU_ITEM_ACTIVE_BACK_COLOR},
-		.transparent=0},
-	.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_check_mark_12}
-};
+//MenuItemParams GUI_EL_TEMP_DefaultBtListItem{
+//	.label_params={.element={{2,2,2,2},{alignLeft, alignVCenter}},
+//		.font=&Tahoma_15x13,
+//		.color_sch={MENU_ITEM_INACTIVE_TEXT_COLOR,MENU_ITEM_INACTIVE_BACK_COLOR},
+//		.transparent=0},
+//	.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_paired_mark_12}
+//};
 
-MenuItemParams GUI_EL_TEMP_DefaultBtListItem{
-	.label_params={.element={{2,2,2,2},{alignLeft, alignVCenter}},
-		.font=&Tahoma_15x13,
-		.color_sch={MENU_ITEM_INACTIVE_TEXT_COLOR,MENU_ITEM_INACTIVE_BACK_COLOR},
-		.transparent=0},
-	.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_paired_mark_12}
-};
+//MenuItemParams GUI_EL_TEMP_ActiveBtListItem{
+//	.label_params={.element={{2,2,2,2},{alignLeft, alignVCenter}},
+//		.font=&Tahoma_15x13,
+//		.color_sch={MENU_ITEM_ACTIVE_TEXT_COLOR,MENU_ITEM_ACTIVE_BACK_COLOR},
+//		.transparent=0},
+//	.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_paired_mark_12}
+//};
 
-MenuItemParams GUI_EL_TEMP_ActiveBtListItem{
-	.label_params={.element={{2,2,2,2},{alignLeft, alignVCenter}},
-		.font=&Tahoma_15x13,
-		.color_sch={MENU_ITEM_ACTIVE_TEXT_COLOR,MENU_ITEM_ACTIVE_BACK_COLOR},
-		.transparent=0},
-	.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_paired_mark_12}
-};
+//MenuItemParams GUI_EL_TEMP_ActiveBtListItemConnected{
+//	.label_params={.element={{2,2,2,2},{alignLeft, alignVCenter}},
+//		.font=&Tahoma_15x13,
+//		.color_sch={MENU_ITEM_ACTIVE_TEXT_COLOR,MENU_ITEM_ACTIVE_BACK_COLOR},
+//		.transparent=0},
+//	.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_headset_12}
+//};
 
-MenuItemParams GUI_EL_TEMP_ActiveBtListItemConnected{
-	.label_params={.element={{2,2,2,2},{alignLeft, alignVCenter}},
-		.font=&Tahoma_15x13,
-		.color_sch={MENU_ITEM_ACTIVE_TEXT_COLOR,MENU_ITEM_ACTIVE_BACK_COLOR},
-		.transparent=0},
-	.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_headset_12}
-};
-
-MenuItemParams GUI_EL_TEMP_DefaultBtListItemConnected{
-	.label_params={.element={{2,2,2,2},{alignLeft, alignVCenter}},
-		.font=&Tahoma_15x13,
-		.color_sch={MENU_ITEM_INACTIVE_TEXT_COLOR,MENU_ITEM_INACTIVE_BACK_COLOR},
-		.transparent=0},
-	.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_headset_12}
-};
+//MenuItemParams GUI_EL_TEMP_DefaultBtListItemConnected{
+//	.label_params={.element={{2,2,2,2},{alignLeft, alignVCenter}},
+//		.font=&Tahoma_15x13,
+//		.color_sch={MENU_ITEM_INACTIVE_TEXT_COLOR,MENU_ITEM_INACTIVE_BACK_COLOR},
+//		.transparent=0},
+//	.icon_params={{.margins={2,4,2,2}, .align={alignRight, alignVCenter}}, .icon=sym_headset_12}
+//};
 
 ElementParams GUI_EL_TEMP_SliderUpArrow{
 	.margins={0,0,0,0},

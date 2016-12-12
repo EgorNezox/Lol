@@ -62,6 +62,32 @@ struct ScheduleTimeSession{
     uint16_t time; // in minutes hour*60+min
 };
 
+struct SheldureSession{
+    std::string time = "00:00";
+    DataStorage::FS::FileType type = DataStorage::FS::FT_SP;
+    std::string freq = "10000";
+
+    void clear(){
+        time = "";
+        type = DataStorage::FS::FT_SP;
+        freq = "";
+    }
+
+    void reInit(){
+        time = "00:00";
+        type = DataStorage::FS::FT_SP;
+        freq = "10000";
+    }
+
+    void copyFrom(SheldureSession* source){
+        time = source->time;
+        type = source->type;
+        freq = source->freq;
+    }
+};
+
+typedef std::vector<SheldureSession> Sheldure;
+
 class Service : public QmObject //sigc::trackable
 {
 public:
@@ -107,6 +133,10 @@ public:
     void updateSessionTimeSchedule();
     void getCurrentTime(uint8_t *hour, uint8_t *minute, uint8_t *second);
     void loadSheldure();
+    void sheldureParsing(uint8_t *sMass);
+    void sheldureUnparsing(uint8_t *sMass);
+    void uploadSheldure();
+    void sheldureToStringList();
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
@@ -204,11 +234,15 @@ private:
     std::vector<uint8_t> condMsg;
 
     void setColorScheme(uint32_t back,uint32_t front);
-    uint8_t SheldureMass[200];  // 50 ������� �� 13 ���� + 1 ���� ���-�� �������
+    uint8_t* sheldureMass = 0;  // 651 = 50 ������� �� 13 ���� + 1 ���� ���-�� �������
     QmTimer schedulePromptTimer;
 
     std::vector<ScheduleTimeSession> sessionList;
     uint8_t nextSessionIndex = 0;
+
+
+    Sheldure sheldure;
+    SheldureSession tempSheldureSession;
 };
 
 } /* namespace Ui */

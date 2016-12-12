@@ -45,7 +45,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->storageFs          = fs;
 
     ginit();
-    //loadSheldure();
+    loadSheldure();
 
 
 //    SheldureMass[0] = 1;
@@ -2160,7 +2160,7 @@ void Service::keyPressed(UI_Key key)
                     if ( atoi(hh.c_str()) > 23 )
                         st.clear();
                 }
-                if (st.size() > 3 && st.size() < 5 )
+                if (st.size() > 3 && st.size() < 6 )
                 {
                     // 0 <= ?? <= 59
                     auto mm = st.substr(3, 2);
@@ -2333,43 +2333,6 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
-        case  GuiWindowsSubType::sheldure:
-        {
-            if ( key == keyEnter)
-            {
-                guiTree.advance(menu->focus);
-                menu->focus = 0;
-            }
-            if ( key == keyBack)
-            {
-                guiTree.backvard();
-                menu->focus = 0;
-                menu->offset = 0;
-            }
-            if (key == keyUp)
-            {
-                if ( menu->focus > 0 )
-                    menu->focus--;
-            }
-            if (key == keyDown)
-            {
-                if ( sheldure_data.size() != 0 )
-                {
-                    if ( menu->focus < sheldure_data.size()-1)
-                        menu->focus++;
-                }
-            }
-
-            //int value = 0;
-            if (menu->focus > menu->offset){
-                if (menu->offset + 2 == menu->focus) menu->offset +=1;
-            }
-            else
-            {
-                if (menu->focus + 1 == menu->offset) menu->offset = menu->focus;
-            }
-             break;
-        }
         case GuiWindowsSubType::voiceMode:
         {
             if ( key == keyEnter)
@@ -2488,7 +2451,7 @@ void Service::keyPressed(UI_Key key)
             {
                 switch (menu->filesStage){
                 case 0:
-                    if (menu->filesStageFocus[menu->filesStage] < 3)
+                    if (menu->filesStageFocus[menu->filesStage] < 4)
                         menu->filesStageFocus[menu->filesStage]++;
                     break;
                 case 1:
@@ -2526,7 +2489,228 @@ void Service::keyPressed(UI_Key key)
             }
             break;
         }
+        case GuiWindowsSubType::sheldure:
+        {
+            static uint8_t sheldureStagePrev = 0;
+            static bool isNew = false;
 
+            switch (menu->sheldureStage) {
+
+            case 0: // session list
+                sheldureStagePrev = 0;
+                if ( key == keyBack )
+                {
+                    tempSheldureSession.clear();
+                    guiTree.backvard();
+                    menu->focus = 0;
+                    menu->offset = 0;
+                    break;
+                }
+                if ( key == keyEnter )
+                {
+                    if (menu->sheldureStageFocus[menu->sheldureStage] + 1 == sheldure_data.size() && sheldure.size() < 50){
+                        menu->sheldureStage = 1;
+                        isNew = true;
+                        tempSheldureSession.clear();
+                    }
+                    else{
+                        isNew = false;
+                        tempSheldureSession.copyFrom(&sheldure[menu->sheldureStageFocus[menu->sheldureStage]]);
+                        menu->sheldureStageFocus[1] = tempSheldureSession.type;
+                        menu->sheldureTimeStr = tempSheldureSession.time;
+                        menu->sheldureFreqStr = tempSheldureSession.freq;
+                        menu->sheldureStage = 4;
+                    }
+                }
+                if ( key == keyUp)
+                {
+                    if (menu->sheldureStageFocus[menu->sheldureStage] > 0)
+                      menu->sheldureStageFocus[menu->sheldureStage]--;
+                }
+                if ( key == keyDown)
+                {
+                    if (menu->sheldureStageFocus[menu->sheldureStage] < (sheldure.size() - (sheldure.size() == 50)) )
+                      menu->sheldureStageFocus[menu->sheldureStage]++;
+                }
+             break;
+            case 1: //type msg
+                if ( key == keyBack )
+                {
+                    if (sheldureStagePrev == 0 || sheldureStagePrev == 4) // list or edit
+                        menu->sheldureStage = sheldureStagePrev;
+                }
+                if ( key == keyEnter )
+                {                  
+                    if (!isNew){
+                        tempSheldureSession.time = sheldure[menu->sheldureStageFocus[0]].time;
+                    }
+                    tempSheldureSession.type = (DataStorage::FS::FileType)menu->sheldureStageFocus[menu->sheldureStage];
+                    menu->sheldureTimeStr = tempSheldureSession.time;
+                    menu->sheldureStage = 2; // time
+                }
+                if ( key == keyUp)
+                {
+                    if (menu->sheldureStageFocus[menu->sheldureStage] > 0){
+                      menu->sheldureStageFocus[menu->sheldureStage]--;
+                      tempSheldureSession.type = (DataStorage::FS::FileType)menu->sheldureStageFocus[menu->sheldureStage];
+                    }
+                }
+                if ( key == keyDown)
+                {
+                    if (menu->sheldureStageFocus[menu->sheldureStage] < 4){
+                      menu->sheldureStageFocus[menu->sheldureStage]++;
+                      tempSheldureSession.type = (DataStorage::FS::FileType)menu->sheldureStageFocus[menu->sheldureStage];
+                    }
+                }
+             break;
+            case 2: // time
+
+            if ( key == keyBack )
+            {
+                if (tempSheldureSession.time.size() > 0){
+                    tempSheldureSession.time.pop_back();
+                }
+                else
+                    menu->sheldureStage = 1;
+            }
+            if ( key == keyEnter )
+            {
+                if (tempSheldureSession.time.size() == 5)
+                menu->sheldureStage = 3;
+            }
+            if ( key >= key0 && key <= key9 )
+            {
+                if ( tempSheldureSession.time.size() == 2)
+                    tempSheldureSession.time.push_back(':');
+
+                if ( tempSheldureSession.time.size() < 5)
+                    tempSheldureSession.time.push_back(key + 42);
+
+                if (tempSheldureSession.time.size() > 1 && tempSheldureSession.time.size() < 3 )
+                {
+                    // 0 <= ?? <= 23
+                    auto hh = tempSheldureSession.time.substr(0, 2);
+                    if ( atoi(hh.c_str()) > 23 )
+                        tempSheldureSession.time.clear();
+                }
+                if (tempSheldureSession.time.size() > 3 && tempSheldureSession.time.size() < 6 )
+                {
+                    // 0 <= ?? <= 59
+                    auto mm = tempSheldureSession.time.substr(3, 2);
+                    if ( atoi(mm.c_str()) > 59 )
+                    {
+                        tempSheldureSession.time.pop_back(); tempSheldureSession.time.pop_back();
+                    }
+                }
+
+              //  if ( tempSheldureSession.time.size() == 2)
+              //      tempSheldureSession.time.push_back(':');
+            }
+            menu->sheldureTimeStr = tempSheldureSession.time;
+            if (!isNew)
+                tempSheldureSession.freq = sheldure[menu->sheldureStageFocus[0]].freq;
+            menu->sheldureFreqStr = tempSheldureSession.freq;
+            menu->sheldureFreqStr.append(" ").append(freq_hz);
+            break;
+            case 3: // freq
+                if ( key == keyBack )
+                {
+                    if (tempSheldureSession.freq.size() > 0){
+                        tempSheldureSession.freq.pop_back();
+                    }
+                    else
+                        menu->sheldureStage = 2; // time
+                }
+                if ( key == keyEnter )
+                {
+                    if (tempSheldureSession.freq.size() > 4 && tempSheldureSession.freq.size() < 9){
+                        if (isNew){
+                            sheldure.push_back(tempSheldureSession);
+                            tempSheldureSession.clear();
+                        } else {
+                            sheldure[menu->sheldureStageFocus[0]].copyFrom(&tempSheldureSession);
+                            tempSheldureSession.clear();
+                            uploadSheldure();
+                        }
+                        sheldureToStringList();
+                        menu->sheldureStage = 0;
+                    }
+                }
+                if ( key >= key0 && key <= key9 )
+                {
+                    if (tempSheldureSession.freq.size() < 8 )
+                        tempSheldureSession.freq.push_back(key + 42);
+                }
+                menu->sheldureFreqStr = tempSheldureSession.freq;
+                menu->sheldureFreqStr.append(" ").append(freq_hz);
+            break;
+
+            case 4:// editing
+                sheldureStagePrev = 4;
+                if ( key == keyUp)
+                {
+                    if (menu->sheldureStageFocus[menu->sheldureStage] > 0)
+                      menu->sheldureStageFocus[menu->sheldureStage]--;
+                }
+                if ( key == keyDown)
+                {
+                    if (menu->sheldureStageFocus[menu->sheldureStage] < 1)
+                      menu->sheldureStageFocus[menu->sheldureStage]++;
+                }
+                if ( key == keyBack )
+                {
+                    menu->sheldureStage = 0;
+                    menu->sheldureStageFocus[4] = 0;
+                }
+                if ( key == keyEnter )
+                {
+                    if (menu->sheldureStageFocus[menu->sheldureStage] == 0) // type
+                    menu->sheldureStage = 1;
+                    if (menu->sheldureStageFocus[menu->sheldureStage] == 1) // delete
+                    menu->sheldureStage = 5;
+                    menu->sheldureStageFocus[4] = 0;
+                }
+            break;
+
+            case 5: // delete question
+                if ( key == keyUp)
+                {
+                    if (menu->sheldureStageFocus[menu->sheldureStage] > 0)
+                      menu->sheldureStageFocus[menu->sheldureStage]--;
+                }
+                if ( key == keyDown)
+                {
+                    if (menu->sheldureStageFocus[menu->sheldureStage] < 1)
+                      menu->sheldureStageFocus[menu->sheldureStage]++;
+                }
+                if ( key == keyBack )
+                {
+                    menu->sheldureStage = 4;
+                    menu->sheldureStageFocus[5] = 0;
+                }
+                if ( key == keyEnter )
+                {
+                    if(menu->sheldureStageFocus[menu->sheldureStage] == 0) // no
+                        menu->sheldureStage = 4;
+                    else {  // delete
+                        menu->sheldureStage = 0; // session list
+                        sheldure.erase(sheldure.begin() + menu->sheldureStageFocus[0]);
+                        if (menu->sheldureStageFocus[0] > 0)
+                            menu->sheldureStageFocus[0]--;
+                        uploadSheldure();
+                        sheldureToStringList();
+                        menu->sheldureStageFocus[5] = 0;
+                    }
+                }
+            break;
+
+
+            } // switch exit
+
+            break;
+        }
+
+        // default menu
         default:
             break;
         }
@@ -2899,6 +3083,7 @@ void Service::drawMenu()
         {
             menu->setTitle(dataAndTime[1]);
             std::string str; str.append(st.listItem.front()->inputStr); //str.append("00:00:00");
+            updateSessionTimeSchedule();
             menu->initSetDateOrTimeDialog( str );
             break;
         }
@@ -2975,48 +3160,7 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::sheldure:
         {
-            sheldure_data.clear();
-            if (SheldureMass[0] > 0 && SheldureMass[0] <= 50)
-            {
-            	int sheldure_size = SheldureMass[0];
-					for(int i = 0; i < sheldure_size; i++)
-					{
-						std::string s;
-						switch (SheldureMass[ 1 + (i * 13) ])   // �����
-						{
-						case 0:
-							s.append(callSubMenu[0]);
-                            break;
-						case 1:
-							s.append(callSubMenu[1]);
-							break;
-						case 2:
-							s.append(callSubMenu[2]);
-							break;
-						case 3:
-							s.append(callSubMenu[3]);
-							break;
-        }
-						(SheldureMass[1+(i * 13)] % 2 == 0) ? s.append("   ") : s.append("  ");
-
-						for(int j = 0; j < 5; j++)
-							s.push_back(SheldureMass[ 2 + (i*13) + j]); // �����
-						s.append("\n ");
-						int frec = 0;
-						for(int k = 3; k >= 0; k--)
-						{
-							frec += (uint8_t)(SheldureMass[ 10 + (i*13) + 3 - k]) << k*8;
-						}
-						std::string ch;
-                        sprintf((char*)ch.c_str(),"%d",frec);
-						for(int j = 0; j < 7; j++)
-							s.push_back(ch[j]);
-						s.append(freq_hz);
-						sheldure_data.push_back(s);
-					}
-            }
-
-            menu->initSheldureDialog(menu->focus,sheldure_data);
+            menu->initSheldureDialog(&sheldure_data, sheldure.size());
             break;
         }
         case GuiWindowsSubType::voiceMode:
@@ -3147,7 +3291,6 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     if (voice_service->getVirtualMode() == true)
     {
     	time = voice_service->getVirtualTime();
-
 
     		str.push_back((char)time[0]);
     		str.push_back((char)time[1]);
@@ -3484,10 +3627,11 @@ void Service::showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t mi
     showMessage("",text.c_str());
 }
 
+// create list of sessions
+// call on schedule changes
 void Service::updateSessionTimeSchedule()
 {
-    uint8_t offset = 1;
-    uint8_t sessionCount = SheldureMass[0];
+    uint8_t sessionCount = sheldure.size();
 
     if (sessionCount){
 
@@ -3496,18 +3640,14 @@ void Service::updateSessionTimeSchedule()
 
         sessionList.clear();
 
+        ScheduleTimeSession timeSession;
         for (uint8_t session = 0; session < sessionCount; session++){
 
-            offset = 1 + session * 13;
+            sessionTimeHour   = atoi(sheldure[session].time.substr(0,2).c_str());
+            sessionTimeMinute = atoi(sheldure[session].time.substr(3,2).c_str());
 
-            sessionTimeHour   = (SheldureMass[offset + 1] - 48) * 10 +
-                                 SheldureMass[offset + 2] - 48;
-            sessionTimeMinute = (SheldureMass[offset + 4] - 48) * 10 +
-                                 SheldureMass[offset + 5] - 48;
-
-            ScheduleTimeSession timeSession;
             timeSession.index = session;
-            timeSession.type = (DataStorage::FS::FileType)SheldureMass[offset];
+            timeSession.type = (DataStorage::FS::FileType)sheldure[session].type;
             timeSession.time = sessionTimeHour * 60 + sessionTimeMinute;
 
             uint8_t insertIndex = 0;
@@ -3544,7 +3684,6 @@ void Service::calcNextSessionIndex()
         else
            nextSessionIndex = sessionTime;
     }
-
     onScheduleSessionTimer();
 }
 
@@ -3558,16 +3697,18 @@ void Service::onScheduleSessionTimer()
 
     uint16_t curTimeInMinutes = curTimeHour * 60 + curTimeMinute;
 
-    uint64_t deltaTime = sessionList.at(nextSessionIndex).time - curTimeInMinutes;
+    uint16_t deltaTime = sessionList.at(nextSessionIndex).time - curTimeInMinutes;
 
     if (deltaTime < 11){
         showSchedulePrompt(sessionList.at(nextSessionIndex).type, deltaTime);
 
         nextSessionIndex++;
         if (nextSessionIndex == sessionList.size())
-           nextSessionIndex = 0;
-        if (sessionList.size() > 1)
-            onScheduleSessionTimer();
+           nextSessionIndex = 0; // cyclic
+        if (sessionList.size() > 1){
+            schedulePromptTimer.setInterval(2000);
+            schedulePromptTimer.start();
+        }
         return;
     }
     if (deltaTime <= 15){
@@ -3583,22 +3724,81 @@ void Service::onScheduleSessionTimer()
 
 void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
 {
-    *hour = 12;
-    *minute = 14;
-    *second = 16;
-}
+    uint8_t* time;
 
-uint8_t& Service::setSheldure()
-{
-   return SheldureMass[0];
+    if ( voice_service->getVirtualMode() == true)
+    {
+    	time = voice_service->getVirtualTime();
+    	*hour   = (time[0]-48)*10 + (time[1]-48);
+    	*minute = (time[2]-48)*10 + (time[3]-48);
+    	*second = (time[4]-48)*10 + (time[5]-48);
+    }
+    else
+    {
+    	Navigation::Coord_Date date = navigator->getCoordDate();
+    	*hour   = (date.time[0]-48)*10 + (date.time[1]-48);
+    	*minute = (date.time[2]-48)*10 + (date.time[3]-48);
+    	*second = (date.time[4]-48)*10 + (date.time[5]-48);
+    }
+
 }
 
 void Service::loadSheldure()
 {
+#ifndef _DEBUG_
    if (storageFs > 0){
-       storageFs->getSheldure(setSheldure());
-       updateSessionTimeSchedule();
+       if (sheldureMass == 0)
+          sheldureMass = new uint8_t[651];
+
+       if (storageFs->getSheldure(sheldureMass)){
+         sheldureParsing(sheldureMass);
+         schedulePromptTimer.timeout.connect(sigc::mem_fun( this, &Service::onScheduleSessionTimer));
+         updateSessionTimeSchedule();
+       }
+
+       if (sheldureMass > 0){
+            delete []sheldureMass;
+            sheldureMass = 0;
+       }
    }
+#else
+    if (sheldureMass == 0)
+       sheldureMass = new uint8_t[651];
+
+    uint8_t massTemp[] =
+    {0x32,'0', '1','0',':','3','2',':','0','0',0x00,0x44,0xec,0x88};
+
+    for (uint8_t i = 0; i < 5; i++)
+     memcpy(&sheldureMass[1+i*13], &massTemp[1], 13);
+    sheldureMass[0] = 5;
+
+    sheldureParsing(sheldureMass);
+
+    if (sheldureMass > 0){
+         delete []sheldureMass;
+         sheldureMass = 0;
+    }
+#endif
+    sheldureToStringList();
+}
+
+void Service::uploadSheldure()
+{
+#ifndef _DEBUG_
+    if (storageFs > 0){
+        if (sheldureMass == 0)
+           sheldureMass = new uint8_t[sheldure.size() * 13];
+
+        sheldureUnparsing(sheldureMass);
+        storageFs->setSheldure(sheldureMass, sheldureMass[0]);
+
+        if (sheldureMass > 0){
+             delete []sheldureMass;
+             sheldureMass = 0;
+        }
+        updateSessionTimeSchedule();
+    }
+#endif
 }
 
 void Service::msgGucTXQuit(int ans)
@@ -3614,6 +3814,101 @@ void Service::msgGucTXQuit(int ans)
         msgBox( "Guc", gucQuitTextFail);
         guiTree.append(messangeWindow, gucQuitTextFail, "QUIT\0");
     }
+}
+
+void Service::sheldureParsing(uint8_t* sMass)
+{
+    if (sMass[0] > 0 && sMass[0] <= 50)
+    {
+        uint8_t sheldureSize = sMass[0];
+
+        for(uint8_t i = 0; i < sheldureSize; i++)
+        {
+            tempSheldureSession.clear();
+
+            // --------- type ---------
+
+            DataStorage::FS::FileType ft = DataStorage::FS::FT_CND;;
+            tempSheldureSession.type = (DataStorage::FS::FileType)(sMass[ 1 + (i * 13) ] - 48);
+
+            // --------- time ---------
+
+            for(uint8_t j = 0; j < 5; j++)
+                tempSheldureSession.time.push_back(sMass[ 2 + (i*13) + j]);
+
+            // --------- freq ---------
+
+            uint32_t frec = 0;
+            for(uint8_t k = 0; k < 4; k++)
+              frec += (uint8_t)(sMass[ 10 + (i*13) + k]) << (3-k)*8;
+
+            char ch[8];
+            sprintf(ch,"%d",frec);
+            for(uint8_t j = 0; j < 7; j++)
+                tempSheldureSession.freq.push_back(ch[j]);
+
+            sheldure.push_back(tempSheldureSession);
+        }
+    }
+}
+
+void Service::sheldureUnparsing(uint8_t* sMass)
+{
+    if (storageFs > 0){
+
+        sMass[0] = sheldure.size();
+
+        for (uint8_t session = 0; session < sMass[0]; session++)
+        {
+            // ---------- type ----------
+
+            sMass[ 1 + (session * 13) ] = sheldure.at(session).type + 48;
+
+            // ---------- time ----------
+
+            memcpy(&sMass[ 1 + (session * 13) + 1], &sheldure.at(session).time[0], 5);
+
+            // ---------- freq ----------
+
+            uint32_t freq = atoi(sheldure.at(session).freq.c_str());
+            for(int i = 3; i >= 0; i--)
+              sMass[1 + session * 13 + 9 + (3 - i)] = freq >> 8 * i;
+        }
+        storageFs->setSheldure(sMass, sheldure.size() * 13 + 1);
+    }
+}
+
+void Service::sheldureToStringList()
+{
+    sheldure_data.clear();
+
+    uint8_t sheldureSize = sheldure.size();
+
+     if (sheldureSize > 0 && sheldureSize <= 50)
+     {
+         for (uint8_t session = 0; session < sheldureSize; session++)
+         {
+             std::string s;
+
+             // --------- type -----------
+
+             uint8_t typeMsg = (uint8_t)sheldure[session].type;
+             s.append(tmpParsing[typeMsg]);
+             (sheldure[session].type % 2 == 0) ? s.append("  ") : s.append("   ");
+
+              // --------- time -----------
+
+             s.append(sheldure[session].time).append("\n ");
+
+             // --------- freq -----------
+
+             s.append(sheldure[session].freq).append(freq_hz);
+
+             sheldure_data.push_back(s);
+         }
+     }
+     if(sheldureSize < 50)
+        sheldure_data.push_back(addSheldure);
 }
 
 }/* namespace Ui */

@@ -36,6 +36,7 @@ extern const char proc;
 
 extern const char* trans;
 extern const char* callTitle[];
+extern const char* yesNo[];
 
 extern char * ok_texts[LANG_COUNT];
 extern char * missing_ch_table_txt[LANG_COUNT];
@@ -126,7 +127,14 @@ extern const char* StartGucTx;
 extern const char* GucIndivid;
 extern const char* GucGroup;
 extern const char* Sheldure_label;
-extern const char* NoSheldure;
+extern const char* editSheldure_label;
+extern const char* newSheldure_label;
+extern const char* delSheldure_lable;
+extern const char* addSheldure;
+extern const char* editSheldure;
+extern const char* delSheldure;
+extern const char* askDelSheldure;
+extern const char* tmpParsing[];
 
 extern const char* startStr;
 
