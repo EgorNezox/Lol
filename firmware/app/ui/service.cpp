@@ -2139,6 +2139,7 @@ void Service::keyPressed(UI_Key key)
                 {
                     guiTree.backvard();
                     menu->focus = 0;
+                    updateSessionTimeSchedule();
                 }
             }
             if (key == keyEnter)
@@ -2146,6 +2147,7 @@ void Service::keyPressed(UI_Key key)
             	auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
             	voice_service->setVirtualTime(st);
             	guiTree.backvard();
+                updateSessionTimeSchedule();
             }
             else if ( key >= key0 && key <= key9 )
             {
@@ -2630,8 +2632,8 @@ void Service::keyPressed(UI_Key key)
                         } else {
                             sheldure[menu->sheldureStageFocus[0]].copyFrom(&tempSheldureSession);
                             tempSheldureSession.clear();
-                            uploadSheldure();
                         }
+                        uploadSheldure();
                         sheldureToStringList();
                         menu->sheldureStage = 0;
                     }
@@ -3083,7 +3085,6 @@ void Service::drawMenu()
         {
             menu->setTitle(dataAndTime[1]);
             std::string str; str.append(st.listItem.front()->inputStr); //str.append("00:00:00");
-            updateSessionTimeSchedule();
             menu->initSetDateOrTimeDialog( str );
             break;
         }
@@ -3221,6 +3222,10 @@ void Service::draw()
         break;
     default:
         break;
+    }
+    if (isShowSchedulePrompt)
+    {
+    	showMessage("",schedulePromptText.c_str());
     }
 }
 
@@ -3615,6 +3620,19 @@ void Service::showMessage(const char *title, const char *text)
     GUI_Dialog_MsgBox::showMessage(&area, true, title, text);
 }
 
+void Service::startSchedulePromptTimer()
+{
+	isShowSchedulePrompt = true;
+	schedulePromptRedrawTimer.setSingleShot(true);
+	schedulePromptRedrawTimer.start(6000);
+}
+
+void Service::stopSchedulePromptTimer()
+{
+	isShowSchedulePrompt = false;
+	draw();
+}
+
 void Service::showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t minutes)
 {
     char min[5];
@@ -3622,9 +3640,12 @@ void Service::showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t mi
     std::string text =
         std::string(min) +
         std::string(schedulePromptStr) +
-        std::string(reciveSubMenu[fileType + 1]);
+        std::string(tmpParsing[fileType + 1]);
 
     showMessage("",text.c_str());
+
+    schedulePromptText = text;
+    startSchedulePromptTimer();
 }
 
 // create list of sessions
@@ -3656,10 +3677,14 @@ void Service::updateSessionTimeSchedule()
                 sessionList.push_back(timeSession);
             else
                 for (uint8_t sessionTime = 0; sessionTime < sessionList.size(); sessionTime++){
-                    if (timeSession.time > sessionList.at(sessionTime).time)
+                    if (timeSession.time > sessionList.at(sessionTime).time){
                         insertIndex++;
-                    else
+                        break;
+                    }
+                    else{
                         sessionList.insert(sessionList.begin() + insertIndex, timeSession);
+                        break;
+                    }
                 }
         }
 
@@ -3726,20 +3751,21 @@ void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
 {
     uint8_t* time;
 
-    if ( voice_service->getVirtualMode() == true)
-    {
+//    if ( voice_service->getVirtualMode() == true)
+//    {
     	time = voice_service->getVirtualTime();
     	*hour   = (time[0]-48)*10 + (time[1]-48);
     	*minute = (time[2]-48)*10 + (time[3]-48);
     	*second = (time[4]-48)*10 + (time[5]-48);
-    }
-    else
-    {
-    	Navigation::Coord_Date date = navigator->getCoordDate();
-    	*hour   = (date.time[0]-48)*10 + (date.time[1]-48);
-    	*minute = (date.time[2]-48)*10 + (date.time[3]-48);
-    	*second = (date.time[4]-48)*10 + (date.time[5]-48);
-    }
+//    }
+//    else
+//    {
+//    	Navigation::Coord_Date date = navigator->getCoordDate();
+//    	*hour   = (date.time[0]-48)*10 + (date.time[1]-48);
+//    	*minute = (date.time[2]-48)*10 + (date.time[3]-48);
+//    	*second = (date.time[4]-48)*10 + (date.time[5]-48);
+//    }
+
 
 }
 
@@ -3753,6 +3779,7 @@ void Service::loadSheldure()
        if (storageFs->getSheldure(sheldureMass)){
          sheldureParsing(sheldureMass);
          schedulePromptTimer.timeout.connect(sigc::mem_fun( this, &Service::onScheduleSessionTimer));
+         schedulePromptRedrawTimer.timeout.connect(sigc::mem_fun( this, &Service::stopSchedulePromptTimer));
          updateSessionTimeSchedule();
        }
 
@@ -3787,10 +3814,10 @@ void Service::uploadSheldure()
 #ifndef _DEBUG_
     if (storageFs > 0){
         if (sheldureMass == 0)
-           sheldureMass = new uint8_t[sheldure.size() * 13];
+           sheldureMass = new uint8_t[1 + sheldure.size() * 13];
 
         sheldureUnparsing(sheldureMass);
-        storageFs->setSheldure(sheldureMass, sheldureMass[0]);
+        storageFs->setSheldure(sheldureMass, sheldure.size() * 13 + 1);
 
         if (sheldureMass > 0){
              delete []sheldureMass;
@@ -3866,7 +3893,9 @@ void Service::sheldureUnparsing(uint8_t* sMass)
 
             // ---------- time ----------
 
-            memcpy(&sMass[ 1 + (session * 13) + 1], &sheldure.at(session).time[0], 5);
+            std::string sec = ":00";
+            memcpy(&sMass[ 1 + 1 + (session * 13)], &sheldure.at(session).time[0], 5);
+            memcpy(&sMass[ 1 + 1 +(session * 13) + 5], &sec[0], 3);
 
             // ---------- freq ----------
 
@@ -3874,7 +3903,6 @@ void Service::sheldureUnparsing(uint8_t* sMass)
             for(int i = 3; i >= 0; i--)
               sMass[1 + session * 13 + 9 + (3 - i)] = freq >> 8 * i;
         }
-        storageFs->setSheldure(sMass, sheldure.size() * 13 + 1);
     }
 }
 

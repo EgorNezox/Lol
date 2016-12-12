@@ -193,8 +193,9 @@ bool FS::getSheldure(uint8_t* data)
     if (file.open(QmFile::ReadOnly)){
         uint32_t fileSize = file.size();
         if (fileSize >= 14){
-            if (file.read(data, fileSize) > 0)
-                return true;
+            uint64_t res =  file.read(data, fileSize);
+            file.close();
+            if (res > 0) return true;
         }
     }
     return false;
@@ -205,8 +206,9 @@ bool FS::setSheldure(uint8_t* data, uint16_t size)
     deleteFile("Sheldure");
     QmFile file(dir, "Sheldure");
     if(file.open(QmFile::WriteOnly)){
-       if (file.write((uint8_t*)&data, size) > 0)
-          return true;
+       uint64_t res = file.write((uint8_t*)data, size);
+       file.close();
+       if (res > 0) return true;
     }
     return false;
 }

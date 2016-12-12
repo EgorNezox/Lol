@@ -137,6 +137,9 @@ public:
     void sheldureUnparsing(uint8_t *sMass);
     void uploadSheldure();
     void sheldureToStringList();
+
+    void startSchedulePromptTimer();
+    void stopSchedulePromptTimer();
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
@@ -236,6 +239,7 @@ private:
     void setColorScheme(uint32_t back,uint32_t front);
     uint8_t* sheldureMass = 0;  // 651 = 50 ������� �� 13 ���� + 1 ���� ���-�� �������
     QmTimer schedulePromptTimer;
+    QmTimer schedulePromptRedrawTimer;
 
     std::vector<ScheduleTimeSession> sessionList;
     uint8_t nextSessionIndex = 0;
@@ -243,6 +247,8 @@ private:
 
     Sheldure sheldure;
     SheldureSession tempSheldureSession;
+    std::string schedulePromptText = "";
+    bool isShowSchedulePrompt = false;
 };
 
 } /* namespace Ui */
