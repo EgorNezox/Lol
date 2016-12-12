@@ -35,7 +35,7 @@
 
 #define VIRTUAL_TIME 120
 
-#define NUMS 7
+#define NUMS 0
 
 namespace Multiradio {
 
@@ -2058,10 +2058,10 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     	if (indicator == 5)
     	{
 
+			addSeconds(&t);
+
     		if (RtcTxRole)
     		{
-
-    			addSeconds(&t);
 
     			if (count_VrtualTimer <= 10)
     			{
@@ -2072,6 +2072,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     				if (IsStart(t.seconds))
     				{
     					freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
+    					qmDebugMessage(QmDebug::Dump, "0x65 frame %d %d",t.minutes,t.seconds);
     					RtcTxCounter = 1;
     					++count_VrtualTimer;
     					if (count_VrtualTimer > 10)
@@ -2100,7 +2101,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		//-------- RXROLE------------------------------------
     		if (RtcRxRole)
     		{
-    			addSeconds(&t);
 
     			if (count_VrtualTimer > 10)
     			{

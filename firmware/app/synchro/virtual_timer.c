@@ -7,15 +7,28 @@
 
 #include "virtual_timer.h"
 
+int fr_band_commanders[][6] =
+{
+		{1622,	 1974},
+		{1975,	 2158, 2206,    2483},
+		{2517,   2610, 2665,    2835},
+		{3170,   3385, 3515,	3560},
+		{3561,	 3885, 4015,	4334},
+		{4335,	 4635, 4765,	4980,  5075,    5275},
+		{5276,   5465, 5745,    5885,  6215,    6420},
+		{6421,   6510, 6780,    7185,  7465,    7815},
+		{7816,   8800, 9055,    9385},
+		{9915,   9980, 10115,   11160, 11415,   11585}
+
+};
+
+
 int  getInterval(uint8_t min,uint8_t sec)
 {
-	uint8_t interval = 1;
-	interval = (min  % 2 == 0) ? 1 : 6;
-
-	uint8_t ost = sec / 12; // 0 .. 4
-	interval =  interval + ost;
-
-	return interval;
+	uint8_t unchet = min % 2;
+	uint8_t res = (60*unchet + sec)/12;
+	res += 1;
+	return res;
 }
 
 uint8_t IsStart(uint8_t sec)
@@ -25,142 +38,26 @@ uint8_t IsStart(uint8_t sec)
 }
 
 
-int getCommanderFreq(uint8_t RN_KEY, uint8_t SEC, uint8_t DAY, uint8_t HRS,uint8_t MIN)
+int getCommanderFreq(int RN_KEY, uint8_t SEC, uint8_t DAY, uint8_t HRS,uint8_t MIN)
 {
-	uint8_t interval = getInterval(MIN,SEC);
+    uint8_t interval = getInterval(MIN,SEC);
+    uint8_t len_int[10] = {1,2,2,2,2,3,3,3,2,3};
 
-	int fr_sh = CalcShiftCommandFreq(RN_KEY,SEC,DAY,HRS,MIN,interval);
+    int fr_sh = CalcShiftCommandFreq(RN_KEY,SEC,DAY,HRS,MIN,interval);
 
-	fr_sh += 1622;
-	fr_sh = fr_sh * 1000;
+    for(int i = 0; i< len_int[interval-1];i++)
+    {
+    	if (fr_sh + fr_band_commanders[interval-1][2*i] <  fr_band_commanders[interval-1][2*i+1])
+    		return 1000 * (fr_sh + fr_band_commanders[interval-1][2*i]);
+    	else
+    		fr_sh = fr_sh - (fr_band_commanders[interval-1][2*i+1] - fr_band_commanders[interval-1][2*i]);
+    }
 
-	switch(interval)
-	{
-	case 1: {
-		// 0-1
-		fr_sh = fr_band_commander[0] + fr_sh;
-		break;
-	}
-	case 2: {
-		// 2 - 5
-		int delta = fr_band_commander[3] - fr_band_commander[2];
-		if (fr_sh > delta)
-			fr_sh  = fr_sh + fr_band_commander[4] - delta;
-		else
-			fr_sh = fr_sh  + fr_band_commander[2];
-		break;
-	}
-	case 3: {
-		// 6 - 9
-		int delta = fr_band_commander[7] - fr_band_commander[6];
-		if (fr_sh > delta)
-			fr_sh  = fr_sh + fr_band_commander[8] - delta;
-		else
-			fr_sh = fr_sh +	fr_band_commander[6];
-		break;
-	}
-	case 4: {
-		// 10 - 13
-		int delta = fr_band_commander[11] - fr_band_commander[10];
-		if (fr_sh > delta)
-			fr_sh  = fr_sh + fr_band_commander[12] - delta;
-		else
-			fr_sh  = fr_sh + fr_band_commander[10];
-		break;
-	}
-	case 5: {
-		// 14 - 17
-		int delta = fr_band_commander[15] - fr_band_commander[14];
-		if (fr_sh > delta)
-			fr_sh  = fr_sh + fr_band_commander[16] - delta;
-		else
-			fr_sh  = fr_sh + fr_band_commander[14];
-		break;
-	}
-	case 6: {
-		// 18 - 23
-		int delta[2] = {0,0};
+    return 1000 * fr_band_commanders[interval-1][0];
 
-	    delta[0] = fr_band_commander[19] - fr_band_commander[18];
-	    delta[1] = fr_band_commander[21] - fr_band_commander[20];
-
-	    int param = delta[0] + delta[1];
-
-	    if (fr_sh < delta[0])
-	    	fr_sh = fr_sh + fr_band_commander[18];
-	    if (fr_sh > delta[0] && fr_sh < param)
-	    	fr_sh = fr_sh + fr_band_commander[20] - delta[0];
-	    if (fr_sh > param)
-	    	fr_sh = fr_sh + fr_band_commander[22] - param;
-		break;
-	}
-	case 7: {
-		// 24 - 29
-		int delta[2] = {0,0};
-
-		delta[0] = fr_band_commander[25] - fr_band_commander[24];
-		delta[1] = fr_band_commander[27] - fr_band_commander[26];
-
-		int param = delta[0] + delta[1];
-
-		if (fr_sh < delta[0])
-			fr_sh = fr_sh + fr_band_commander[24];
-		if (fr_sh > delta[0] && fr_sh < param)
-			fr_sh = fr_sh + fr_band_commander[26] - delta[0];
-		if (fr_sh > param)
-			fr_sh = fr_sh + fr_band_commander[28] - param;
-		break;
-	}
-	case 8: {
-		// 30 - 35
-		int delta[2] = {0,0};
-
-		delta[0] = fr_band_commander[31] - fr_band_commander[30];
-		delta[1] = fr_band_commander[33] - fr_band_commander[32];
-
-		int param = delta[0] + delta[1];
-
-		if (fr_sh < delta[0])
-			fr_sh = fr_sh + fr_band_commander[30];
-		if (fr_sh > delta[0] && fr_sh < param)
-			fr_sh = fr_sh + fr_band_commander[32] - delta[0];
-		if (fr_sh > param)
-			fr_sh = fr_sh + fr_band_commander[34] - param;
-		break;
-	}
-	case 9: {
-		// 36 - 39
-		int delta = fr_band_commander[37] - fr_band_commander[36];
-		if (fr_sh > delta)
-			fr_sh  = fr_sh + fr_band_commander[38] - delta;
-		else
-			fr_sh  = fr_sh + fr_band_commander[36];
-		break;
-	}
-	case 10:{
-		// 40 - 45
-		int delta[2] = {0,0};
-
-		delta[0] = fr_band_commander[41] - fr_band_commander[40];
-		delta[1] = fr_band_commander[43] - fr_band_commander[42];
-
-		int param = delta[0] + delta[1];
-
-		if (fr_sh < delta[0])
-			fr_sh = fr_sh + fr_band_commander[40];
-		if (fr_sh > delta[0] && fr_sh < param)
-			fr_sh = fr_sh + fr_band_commander[42] - delta[0];
-		if (fr_sh > param)
-			fr_sh = fr_sh + fr_band_commander[44] - param;
-		break;
-	}
-	default:break;
-	}
-
-	return fr_sh;
 }
 
-int CalcShiftCommandFreq(uint8_t RN_KEY, uint8_t SEC, uint8_t DAY, uint8_t HRS, uint8_t MIN,int interval)
+int CalcShiftCommandFreq(int RN_KEY, uint8_t SEC, uint8_t DAY, uint8_t HRS, uint8_t MIN,int interval)
 {
 	uint32_t tot_width_int[10] = {352,460,263,260,643,715,534,844,1314,1280};
 
