@@ -414,7 +414,7 @@ std::string FS::generateFileNameByNumber(FS::FileType fileType, TransitionFileTy
     char n[1] = {0};
     std::string name = fileTypeInfo[fileType].fileName;
     sprintf(n,"%d", number);
-    name.append(n);
+    name += n;
     name.append(trans[transFileType]);
     return name;
 }

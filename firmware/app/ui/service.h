@@ -249,6 +249,8 @@ private:
     SheldureSession tempSheldureSession;
     std::string schedulePromptText = "";
     bool isShowSchedulePrompt = false;
+    bool setAsk = false;
+
 };
 
 } /* namespace Ui */

@@ -157,8 +157,8 @@ void GUI_EL_Label::setSkipTextBackgronundFilling(bool enabled){
 void GUI_EL_Label::SetText(char *text){
     if(text!=0)
     {
-    	this->text.clear();
-        this->text.append( text );//, sizeof(this->text));
+    	this->text = std::string(text);
+        //this->text.append( text );//, sizeof(this->text));
 
         convertStrToHackEncoding((uint8_t*)&this->text[0], this->text.size(), this->font);
 	}
@@ -242,8 +242,8 @@ GUI_EL_TextArea::GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, st
 }
 
 GUI_EL_TextArea::~GUI_EL_TextArea(){
-  //  if (!isData && (text > 0) && strlen(text)>0)
-        //delete []text;
+    if (!isData && (text > 0) && strlen(text)>0)
+        delete []text;
 }
 
 //-----------------------------
@@ -252,8 +252,8 @@ void GUI_EL_TextArea::SetText(char *text){
     if(text != NULL){
         uint16_t len = strlen((const char*)text);
         if (len > 0){
-            this->text = new char[len];
-            strcpy(this->text, text);
+            this->text = new char[len + 1];
+            strncpy(this->text, text, len + 1);
         }
         CalcContentGeom();
     }
@@ -298,7 +298,7 @@ void GUI_EL_TextArea::Draw(){
     if((text != 0 && !isData) || (data != 0 && isData)){
         uint32_t i = 0, j = 0, k = 0, str_width = 0, last_space = 0, sym_to_cp = 0;
         MoonsGeometry local_content, line_geom;
-        char line_str[MAX_LABEL_LENGTH];
+        char line_str[30];
 
         LabelParams label_params = params;
         label_params.element.align.align_v = alignTop;

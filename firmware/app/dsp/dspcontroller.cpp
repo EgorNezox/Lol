@@ -35,7 +35,7 @@
 
 #define VIRTUAL_TIME 120
 
-#define NUMS 0
+#define NUMS 7
 
 namespace Multiradio {
 
@@ -545,7 +545,7 @@ void DspController::addSeconds(QmRtc::Time *t) {
 void DspController::LogicPswfTx()
 {
 	++command_tx30;
-    if ((command_tx30 > 0) && (command_tx30 % 3 == 0))
+    if ((command_tx30 > 0) && (command_tx30 % 3 == 0) && (setAsk == false))
     TxCondCmdPackageTransmit(command_tx30);
 	if (command_tx30 <= 30)
 		sendPswf();
@@ -759,7 +759,7 @@ void DspController::TxSmsWork()
 
     if (sms_counter == 84)
     {
-    	if (ok_quit >= 2) smsFailed(-1);  else smsFailed(0);
+    	if (ok_quit >= 1) smsFailed(-1);  else smsFailed(0);
     	resetSmsState();
     }
 
@@ -869,6 +869,7 @@ void DspController::recPswf(uint8_t data,uint8_t code)
     		if (ContentPSWF.R_ADR > 32)
     		{
     			pswf_ack = true;
+    			setAsk = true;
     			ContentPSWF.R_ADR = ContentPSWF.R_ADR - 32;
     			qmDebugMessage(QmDebug::Dump, "r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
     		}
@@ -2299,8 +2300,17 @@ void DspController::sendSms(Module module)
 
 void DspController::prevTime()
 {
-	date_time[3]  = date_time[3] - 1;
-	bool overflow = false;
+	if (virtual_mode == true)
+	{
+		qmDebugMessage(QmDebug::Dump, "T: %d", t.seconds);
+		t.seconds = t.seconds - 1;
+		qmDebugMessage(QmDebug::Dump, "T2: %d", t.seconds);
+	}
+	else
+	{
+		date_time[3]  = date_time[3] - 1;
+		bool overflow = false;
+	}
    /* if (date_time[3] < 0)
     {
     	date_time[3] = 59; overflow = true;
@@ -2468,12 +2478,19 @@ uint8_t DspController::calc_ack_code(uint8_t ack)
 {
 	uint8_t ACK_CODE  = 0;
 
+
 	if (virtual_mode == true)
 		ACK_CODE = (ContentSms.R_ADR + ContentSms.S_ADR + ack + ContentSms.RN_KEY +
-				   d.day + t.hours + t.minutes + t.seconds-2) % 100;
+				   d.day + t.hours + t.minutes + t.seconds) % 100;
 	else
 		ACK_CODE = (ContentSms.R_ADR + ContentSms.S_ADR + ack + ContentSms.RN_KEY +
 				   date_time[0] + date_time[1]+ date_time[2] + date_time[3]) % 100;
+
+	qmDebugMessage(QmDebug::Dump, "radr = %d", ContentSms.R_ADR);
+	qmDebugMessage(QmDebug::Dump, "sadr = %d", ContentSms.S_ADR);
+	qmDebugMessage(QmDebug::Dump, "ack  = %d", ack);
+	qmDebugMessage(QmDebug::Dump, "radr = %d", ContentSms.RN_KEY);
+	qmDebugMessage(QmDebug::Dump, "radr = %d", d.day,t.hours,t.minutes,t.seconds);
     return ACK_CODE;
 }
 
@@ -2518,6 +2535,8 @@ void DspController::startPSWFReceiving() {
 	SmsLogicRole = SmsRoleIdle;
 	radio_state = radiostatePswf;
 	pswf_rec = 0;
+
+	setAsk = false;
 }
 
 void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,int retr) {
@@ -2541,12 +2560,14 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
 
     CondComLogicRole = CondComTx;
     radio_state = radiostatePswf;
+    SmsLogicRole = SmsRoleIdle;
 
     if (virtual_mode == true)
     	startVirtualPpsModeTx();
     else
     	setPswfTx();
 
+	setAsk = false;
 
 }
 
@@ -3320,11 +3341,10 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 
 			if (sms_counter > 76 && sms_counter < 83)
 			{
-				if (virtual_mode == false)
 				prevTime();
 				uint8_t ack_code_calc = calc_ack_code(data[9]);
 				qmDebugMessage(QmDebug::Info, "recieve count sms = %d %d", ack_code_calc, data[10]);
-				if ((ack_code_calc == data[10]) && (data[9] != 99))
+				//if ((ack_code_calc == data[10]) && (data[9] != 99))
 					++ok_quit;
 				quit_vector.push_back(data[9]);  // ack
 				quit_vector.push_back(data[10]); // ack code

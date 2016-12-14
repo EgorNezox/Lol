@@ -570,6 +570,7 @@ bool modem_rx_on, modem_tx_on;
 
     bool quest = false;
 
+    bool setAsk = false;
 
 public:
     uint8_t getSmsCounter();

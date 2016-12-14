@@ -855,6 +855,7 @@ void Service::keyPressed(UI_Key key)
                         param[i] = atoi(k->inputStr.c_str());
                         i++;
                     }
+                    setAsk = false;
 
                     if (menu->condCmdModeSelect == 0)
                         voice_service->TurnPSWFMode(1, param[0], 0,0); // групповой вызов
@@ -863,6 +864,7 @@ void Service::keyPressed(UI_Key key)
                     if (menu->condCmdModeSelect == 2){
                         param[2] +=32;
                         voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
+                        setAsk = true;
                     }
                     if ((storageFs > 0) && (param[0] != 0))
                     {
