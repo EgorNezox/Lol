@@ -1597,7 +1597,8 @@ void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
     if ( keyNum >= 0 && keyNum <= 9)
     {
         auto newTime = std::chrono::steady_clock::now();
-        if (prevKey == key && ((newTime - ct).count() < 550 * 1000000) )
+        uint64_t delta = (newTime - ct).count() * 1000000;
+        if (prevKey == key && delta < 550)
         {
             keyPressCount++;
             if (keyPressCount > keyCharsCount[keyNum])
