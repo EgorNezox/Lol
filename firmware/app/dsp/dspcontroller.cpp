@@ -35,7 +35,7 @@
 
 #define VIRTUAL_TIME 120
 
-#define NUMS 7
+#define NUMS 0
 
 namespace Multiradio {
 
@@ -435,6 +435,8 @@ void DspController::sendPswf()
 		time[1] = t.hours;
 		time[2] = t.minutes;
 		time[3] = t.seconds;
+		qmDebugMessage(QmDebug::Dump, "time now: %d %d %d %d" ,d.day,t.hours,t.minutes,t.seconds);
+
 	}
 	else
 	{
@@ -613,6 +615,8 @@ void DspController::changePswfFrequency()
 {
 	if (virtual_mode != true)
     getDataTime();
+
+	//addSeconds(&t);
 
 	if (CondComLogicRole == CondComTx)
 	{
@@ -2078,6 +2082,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     					++count_VrtualTimer;
     					if (count_VrtualTimer > 10)
     					{
+    						addSeconds(&t);
     						if (radio_state == radiostatePswf)
     							changePswfFrequency();
     						if (radio_state == radiostateSms)
