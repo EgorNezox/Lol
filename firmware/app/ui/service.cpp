@@ -2008,6 +2008,12 @@ void Service::keyPressed(UI_Key key)
             {
                 guiTree.backvard();
                 menu->focus = 0;
+                if (menu->displayBrightness == 2)
+                    setColorScheme(G_BLACK,G_WHITE);
+                if (menu->displayBrightness == 1)
+                    setColorScheme(G_BLACK,G_LLIGHTGREY);
+                if (menu->displayBrightness == 0)
+                    setColorScheme(G_BLACK,G_LIGHTGREY);
                 //setColorScheme(menu->displayBrightness);
             }
             break;
