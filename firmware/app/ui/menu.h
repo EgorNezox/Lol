@@ -243,6 +243,11 @@ public:
     std::string sheldureTimeStr;
     std::string sheldureFreqStr;
 private:
+    const char* keyChars[10] = {(const char*)&ch_key0, (const char*)&ch_key1, (const char*)&ch_key2, (const char*)&ch_key3, (const char*)&ch_key4,
+                                (const char*)&ch_key5, (const char*)&ch_key6, (const char*)&ch_key7, (const char*)&ch_key8, (const char*)&ch_key9};
+    uint8_t keyCharsCount[10] = {sizeof ch_key0, sizeof ch_key1, sizeof ch_key2, sizeof ch_key3, sizeof ch_key4,
+                                 sizeof ch_key5, sizeof ch_key6, sizeof ch_key7, sizeof ch_key8, sizeof ch_key9};
+
     GUI_Obj obj;
     MoonsGeometry menuArea;
     MoonsGeometry textArea;
