@@ -35,7 +35,7 @@
 
 #define VIRTUAL_TIME 120
 
-#define NUMS 0
+#define NUMS 7
 
 namespace Multiradio {
 
@@ -3240,7 +3240,7 @@ void DspController::correctTime(uint8_t num)
 	t = rtc->getTime();
 #endif
 
-	t.seconds = 12 * (t.seconds / 12) + 6;
+	t.seconds = 12 * (t.seconds / 12) + 7;
 	count_VrtualTimer = num;
 	qmDebugMessage(QmDebug::Dump, "COUNTER VIRTUAL %d",count_VrtualTimer);
 
