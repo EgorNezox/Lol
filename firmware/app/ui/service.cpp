@@ -47,7 +47,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     ginit();
     loadSheldure();
 
-
 //    SheldureMass[0] = 1;
 //    SheldureMass[1] = 0;
 //    SheldureMass[2] = 1+48;
@@ -2089,6 +2088,8 @@ void Service::keyPressed(UI_Key key)
                 if (st.size() > 0)
                 {
                     st.pop_back();
+                    if (st.size() == 2 || st.size() == 5)
+                       st.pop_back();
                 }
                 else
                 {
@@ -2101,18 +2102,29 @@ void Service::keyPressed(UI_Key key)
                 auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
                 if ( st.size() < 8 )
                     st.push_back(key+42);
-
                 if (st.size() > 1 && st.size() < 3 )
                 {
                     // 1 <= ?? <= 31
+                    auto day = st.substr(0, 2);
+                    if ( atoi(day.c_str()) > 31 || atoi(day.c_str()) == 0 ){
+                        st.pop_back(); st.pop_back();
+                    }
                 }
-                if (st.size() > 3 && st.size() < 5 )
+                if (st.size() > 4 && st.size() < 6 )
                 {
                     // 1 <= ?? <= 12
+                    auto month = st.substr(3, 2);
+                    if ( atoi(month.c_str()) > 12 || atoi(month.c_str()) == 0 ){
+                        st.pop_back(); st.pop_back();
+                    }
                 }
-                if (st.size() > 6 )
+                if (st.size() == 8 )
                 {
                     // 16 <= ?? <= 99
+                    auto year = st.substr(6, 2);
+                    if ( atoi(year.c_str()) < 16){
+                        st.pop_back(); st.pop_back();
+                    }
                 }
 
                 if ( st.size() == 2  || st.size() == 5)
@@ -2136,6 +2148,8 @@ void Service::keyPressed(UI_Key key)
                 if (st.size() > 0)
                 {
                     st.pop_back();
+                    if (st.size() == 2 || st.size() == 5)
+                       st.pop_back();
                 }
                 else
                 {
@@ -3080,6 +3094,8 @@ void Service::drawMenu()
         {
             menu->setTitle(dataAndTime[0]);
             std::string str; str.append(st.listItem.front()->inputStr); //str.append("00.00.00");
+            std::string dateTemplate = "--.--.--";
+            str.append(dateTemplate.substr(str.size(),8-str.size()));
             menu->initSetDateOrTimeDialog( str );
             break;
         }
@@ -3087,6 +3103,8 @@ void Service::drawMenu()
         {
             menu->setTitle(dataAndTime[1]);
             std::string str; str.append(st.listItem.front()->inputStr); //str.append("00:00:00");
+            std::string timeTemplate = "--:--:--";
+            str.append(timeTemplate.substr(str.size(),8-str.size()));
             menu->initSetDateOrTimeDialog( str );
             break;
         }

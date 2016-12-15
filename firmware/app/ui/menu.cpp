@@ -1592,80 +1592,25 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
 
 void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
 {
-    auto newTime = std::chrono::steady_clock::now();
+    uint8_t keyNum = key-6;
 
-    if ( key > 5 && key < 16)
+    if ( keyNum >= 0 && keyNum <= 9)
     {
-        if (prevKey == key)
+        auto newTime = std::chrono::steady_clock::now();
+        if (prevKey == key && ((newTime - ct).count() < 550 * 1000000) )
         {
-            if ( ( newTime - ct ).count() < 800*(1000000) )
-            {
-                keyPressCount++;
-                switch ( key )
-                {
-                case key0:
-                    if ( keyPressCount > 1 ) keyPressCount = 0;
-                    break;
-                case key1:
-                    if ( keyPressCount > 6) keyPressCount = 0;
-                    break;
-                default:
-                    if ( keyPressCount > 4 ) keyPressCount = 0;
-                    break;
-                }
-
-                if (field->size() > 0) // todo: это вызывает сбой
-                    field->pop_back();
-            }
-            else
+            keyPressCount++;
+            if (keyPressCount > keyCharsCount[keyNum])
                 keyPressCount = 0;
+            if (field->size() > 0) // todo: это вызывает сбой
+                field->pop_back();
         }
         else
-        {
             keyPressCount = 0;
-        }
-
         prevKey = key;
-
-        switch (key)
-        {
-        case key0:
-            field->push_back(ch_key0[keyPressCount]);
-            break;
-        case key1:
-            field->push_back(ch_key1[keyPressCount]);
-            break;
-        case key2:
-            field->push_back(ch_key2[keyPressCount]);
-            break;
-        case key3:
-            field->push_back(ch_key3[keyPressCount]);
-            break;
-        case key4:
-            field->push_back(ch_key4[keyPressCount]);
-            break;
-        case key5:
-            field->push_back(ch_key5[keyPressCount]);
-            break;
-        case key6:
-            field->push_back(ch_key6[keyPressCount]);
-            break;
-        case key7:
-            field->push_back(ch_key7[keyPressCount]);
-            break;
-        case key8:
-            field->push_back(ch_key8[keyPressCount]);
-            break;
-        case key9:
-            field->push_back(ch_key9[keyPressCount]);
-            break;
-        default:
-            //
-            break;
-        }
+        field->push_back((keyChars[keyNum][keyPressCount]));
         ct = std::chrono::steady_clock::now();
     }
-
 }
 
 void CGuiMenu::inputSmsAddr(std::string *field, UI_Key key)
