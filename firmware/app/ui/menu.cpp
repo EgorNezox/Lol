@@ -25,8 +25,9 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, Alignment align):CGui
     tx = new char[100];
 
     GUI_EL_TEMP_WindowGeneral.frame_thick = 0;
-
-    //tFiles[0].push_back("sms0t");
+    inputTimer.timeout.connect(sigc::mem_fun( this, &CGuiMenu::onInputTimer));
+    inputTimer.setInterval(inputInterval);
+    inputTimer.setSingleShot(true);
 }
 
 void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
@@ -662,49 +663,6 @@ void CGuiMenu::initSetDateOrTimeDialog(std::string text)
     window.Draw();
     title.Draw();
     volume.Draw();
-}
-
-void CGuiMenu::inputGroupCondCmd( CEndState state )
-{
-	auto item = state.listItem.begin(); item++; item++;
-    auto elem = state.listItem.back();
-    auto newTime = std::chrono::steady_clock::now();
-
-    auto command = (*item);
-
-    if ( ( newTime - ct ).count() < 900*(1000000) )
-    {
-            keyPressCount++;
-            if ( keyPressCount > 1 )
-                keyPressCount = 0;
-
-            if (elem->inputStr.size() > 0)
-            elem->inputStr.pop_back();
-            elem->inputStr.push_back(ch_key0[keyPressCount]);
-            command->inputStr.push_back(ch_key0[keyPressCount]);
-        }
-    else
-    {
-        keyPressCount = 0;
-        elem->inputStr.push_back(ch_key0[keyPressCount]);
-        command->inputStr.push_back(ch_key0[keyPressCount]);
-    }
-
-
-
-    ct = std::chrono::steady_clock::now();
-}
-
-bool CGuiMenu::getIsInRepeatInterval()
-{
-    auto newTime = std::chrono::steady_clock::now();
-    bool isRepeat = false;
-    if ( ( newTime - ct ).count() < 900*(1000000) )
-    {
-        isRepeat = true;
-    }
-    ct = std::chrono::steady_clock::now();
-    return isRepeat;
 }
 
 void CGuiMenu::initTxPutOffVoiceDialog(int status)  //  ГП
@@ -1590,28 +1548,39 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
 
 }
 
+bool CGuiMenu::getIsInRepeatInterval()
+{
+    auto newTime = std::chrono::steady_clock::now();
+    bool isRepeat = false;
+    if ( ( newTime - ct ).count() < 900*(1000000) )
+    {
+        isRepeat = true;
+    }
+    ct = std::chrono::steady_clock::now();
+    return isRepeat;
+}
+
 void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
 {
     uint8_t keyNum = key-6;
 
     if ( keyNum >= 0 && keyNum <= 9)
     {
-        auto newTime = std::chrono::steady_clock::now();
-        uint64_t delta = (newTime - ct).count() * 1000000;
-        if (prevKey == key && delta < 550)
+        if (prevKey == key && isInRepeatIntervalInput)
         {
             keyPressCount++;
             if (keyPressCount > keyCharsCount[keyNum])
                 keyPressCount = 0;
-            if (field->size() > 0) // todo: это вызывает сбой
+            if (field->size() > 0)
                 field->pop_back();
         }
         else
             keyPressCount = 0;
         prevKey = key;
         field->push_back((keyChars[keyNum][keyPressCount]));
-        ct = std::chrono::steady_clock::now();
     }
+    isInRepeatIntervalInput = true;
+    inputTimer.start();
 }
 
 void CGuiMenu::inputSmsAddr(std::string *field, UI_Key key)
@@ -1629,132 +1598,60 @@ void CGuiMenu::inputSmsAddr(std::string *field, UI_Key key)
 
 void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 {
-    GUI_EL_Window   window (&GUI_EL_TEMP_WindowGeneral, &windowArea,         (GUI_Obj *)this);
+    GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this);
     MoonsGeometry title_geom  = {  5,   5, 150,  20 };
     MoonsGeometry field_geom  = {  7,  40, 147,  60 };
     MoonsGeometry length_geom = { 110,  5,  160,  20};
-    MoonsGeometry sliderArea  = { 150, 25, 157, 110};
 
-    LabelParams param[3] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelMode,GUI_EL_TEMP_LabelChannel};
+    LabelParams param[3] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelChannel};
     param[0].element.align = {alignHCenter, alignTop};
-    param[1].element.align = {alignHCenter, alignVCenter};
-    param[2].element.align = {alignHCenter, alignVCenter};
+    param[1].element.align = param[2].element.align = {alignHCenter, alignVCenter};
 
+    LabelParams fieldParam = param[1];
 
-    length_message.clear();
+    bool isDrawTitle = true;
+    bool isDrawLength = false;
+    bool isDrawScroll = false;
 
     switch(smsTxStage)
     {
-    case 1:
-    {
-        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
-        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
-        window.Draw();
-        title.Draw();
-        field.Draw();
-        break;
-    }
-    case 2:
-    {
-        if (fieldStr.size() == 0)
-            fieldStr.append("--");
-        else
-            fieldStr.append(fieldStr);
-
-        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
-        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
-        window.Draw();
-        title.Draw();
-        field.Draw();
-
-        break;
-    }
     case 3:
-    {
+        fieldParam = param[2];
+    case 2:
         if (fieldStr.size() == 0)
             fieldStr.append("--");
-
-        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
-        GUI_EL_TextArea field  (&param[2], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
-        window.Draw();
-        title.Draw();
-        field.Draw();
-
         break;
-    }
     case 4:
     {
-        int32_t all_line = 1;
-        std::string str;
-        str.clear();
+        field_geom  = {  5,  18, 155,  124 };
+        fieldParam = param[1];
+        fieldParam.element.align = {alignLeft, alignTop};
 
-        for (uint8_t i = 0; i < fieldStr.size(); i++)
-        {
-            if ( (i%8 == 0) && (i != 0) )
-            {
-                str.push_back('\n');
-                all_line++;                 // кол-во строк
-            }
-
-            str.push_back( fieldStr[i] );
-        }
-        field_geom  = {  7,  20, 158,  120 };
-        param[1].element.align = {alignLeft, alignTop};
-        //length_message.append(std::to_string(fieldStr.size()));
-
-        int len = fieldStr.size();
+        length_message.clear();
         char str_len[] = {0,0,0,0};
-        sprintf(str_len,"%d",len);
-        length_message.append(str_len);
-        length_message.append( "/100" );
+        sprintf(str_len,"%d", fieldStr.size());
+        length_message.append(str_len).append( "/100" );
 
-
-        if(all_line > max_line || focus_line > all_line-4)
-        {
-                focus_line = all_line-4;
-        }
-        max_line = all_line;
-        char* pointer = (char*)str.c_str();
-        GUI_EL_Label    title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
-        SliderParams  sliderParams;
-        if(all_line <= 4)
-        {
-            sliderParams = { (int32_t)1, (int32_t)1, (int32_t)1 };                      // { из какого количества элементов, 1, позиция }
-        }
-        else
-        {
-            str = (char*)&pointer[9*focus_line];
-            strncpy((char*)str.c_str(),(char*)str.c_str(),(9*focus_line));
-            sliderParams = { (int32_t)all_line-3, (int32_t)1, (int32_t)focus_line};      // { из какого количества элементов, 1, позиция с прокруткой }
-        }
-        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)str.c_str(), (GUI_Obj *)this);
-        GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
-        GUI_EL_TextArea length (&param[0], &length_geom, (char*)length_message.c_str(), (GUI_Obj *)this);
-        window.Draw();
-        title.Draw();
-        field.Draw();
-        slider.Draw();
-        length.Draw();
+        isDrawLength = true;
+        isDrawScroll = true;
         break;
     }
     case 5:
-    {
-        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
-        window.Draw();
-        field.Draw();
-        break;
-    }
     case 6:
-    {
-
-        GUI_EL_TextArea field  (&param[1], &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
-        window.Draw();
-        field.Draw();
+        isDrawTitle = false;
         break;
     }
-    default:
-    {break;}
-    }
+
+    GUI_EL_Label title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
+    GUI_EL_Label length (&param[0], &length_geom, (char*)length_message.c_str(), (GUI_Obj *)this);
+    GUI_EL_TextArea field  (&fieldParam, &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
+    if (isDrawScroll) field.setVisibleScroll(true);
+    smsScrollIndex = field.SetScrollIndex(smsScrollIndex);
+
+    window.Draw();
+    if (isDrawTitle) title.Draw();
+    if (isDrawLength)length.Draw();
+    field.Draw();
 }
 
 void CGuiMenu::initTxGroupCondComm(CEndState state)
@@ -2232,4 +2129,9 @@ void CGuiMenu::initDisplayBrightnessDialog()
     window.Draw();
     title.Draw();
     brightness.Draw();
+}
+
+void CGuiMenu::onInputTimer()
+{
+    isInRepeatIntervalInput = false;
 }

@@ -1514,8 +1514,10 @@ void Service::keyPressed(UI_Key key)
                 {
                 case keyBack:
                 {
-                    if ((*iter)->inputStr.size() > 0)
+                    if ((*iter)->inputStr.size() > 0){
                         (*iter)->inputStr.pop_back();
+                        menu->smsScrollIndex += 20;
+                    }
                     else
                         menu->smsTxStage--;
                     break;
@@ -1528,20 +1530,21 @@ void Service::keyPressed(UI_Key key)
                 }
                 case keyUp:
                 {
-                    if(menu->focus_line > 0)
-                        menu->focus_line--;
+                    if(menu->smsScrollIndex > 0)
+                        menu->smsScrollIndex--;
                     break;
                 }
                 case keyDown:
                 {
-                    if (menu->focus_line + 4 < menu->max_line)
-                        menu->focus_line++;
+                        menu->smsScrollIndex++;
                     break;
                 }
                 default:
                 {
-                    if ((*iter)->inputStr.size() < 100)
+                    if ((*iter)->inputStr.size() < 100){
                         menu->inputSmsMessage( &(*iter)->inputStr, key );
+                        menu->smsScrollIndex++;
+                    }
                     break;
                 }
                 }
@@ -1693,6 +1696,7 @@ void Service::keyPressed(UI_Key key)
         	{
         		guiTree.backvard();
         		menu->focus = 0;
+                menu->smsTxStage = 1;
         	}
         	if ( key == keyEnter)
         	{
@@ -1720,6 +1724,7 @@ void Service::keyPressed(UI_Key key)
                   isSmsMessageRec = false;
                   menu->smsStage = 0;
                   cntSmsRx = 0;
+                  menu->smsTxStage = 1;
         	  }
         	}
 
@@ -1727,10 +1732,13 @@ void Service::keyPressed(UI_Key key)
         	{
         		if (menu->focus_line > 1) --menu->focus_line;
 
+                if(menu->smsScrollIndex > 0)
+                    menu->smsScrollIndex--;
+
         		if (cntSmsRx >= 2 && isSmsMessageRec == true)
         		{
         			//msgBoxSms(voice_service->getSmsContent());
-        			 menu->initTxSmsDialog((char*)"CKC",voice_service->getSmsContent());
+                     menu->initTxSmsDialog((char*)"CМC",voice_service->getSmsContent());
         		}
 
         	}
@@ -1738,10 +1746,12 @@ void Service::keyPressed(UI_Key key)
         	{
         		++menu->focus_line;
 
+                menu->smsScrollIndex++;
+
         		if (cntSmsRx >= 2 && isSmsMessageRec == true)
         		{
         			//msgBoxSms(voice_service->getSmsContent());
-        			 menu->initTxSmsDialog((char*)"CKC",voice_service->getSmsContent());
+                     menu->initTxSmsDialog((char*)"CМC",voice_service->getSmsContent());
         		}
         	}
         	break;
