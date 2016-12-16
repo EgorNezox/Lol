@@ -968,258 +968,206 @@ void Service::keyPressed(UI_Key key)
         case GuiWindowsSubType::txGroupCondCmd:
         {
             std::list<SInputItemParameters*>::iterator iter = estate.listItem.begin();
-
             int freqs = 0;
-
-            switch ( key )
+            switch (menu->groupCondCommStage)
             {
-            case keyBack:
-            {
-                if ( menu->groupCondCommStage == 0 )
+                case 0:     // use coordinate ?
                 {
-                    for (auto &k: estate.listItem)
-                        k->inputStr.clear();
-
-                    guiTree.backvard();
-                    menu->focus = 0;
-
-                }
-                else if ( menu->groupCondCommStage == 1 ||
-                          menu->groupCondCommStage == 3 ||
-                          menu->groupCondCommStage == 4
-                          )
-                {
-
-                    if ( menu->groupCondCommStage == 3 )
-                        (*iter)++;
-                    if ( menu->groupCondCommStage == 4 && menu->cmdCount){
-                        (*iter)++;(*iter)++;
-
-                        #define isCmdArrNotEmpty ( (*iter)->inputStr.size() > 0 )
-                        #define lastSym ( (*iter)->inputStr[ (*iter)->inputStr.size()-1 ] )
-                        #define isSpace(c) ( (c == ch_key0[0]) ? true : false )
-                        #define deleteLastSym ( (*iter)->inputStr.pop_back() )
-                        #define deleteSpace if (isCmdArrNotEmpty) { if (isSpace(lastSym)) deleteLastSym; }
-
-                        deleteSpace;
-                        uint8_t spaceCount = 0;
-                        while (spaceCount < 1) {
-                            if (isCmdArrNotEmpty) {
-                                spaceCount += isSpace(lastSym);
-                                if (!spaceCount) deleteLastSym;
-                                if (!isCmdArrNotEmpty) spaceCount = 1;
-                            }
-                        }
-                        if (menu->cmdCount) {
-                            if (menu->cmdCount == 100) isLastFreeSym = false;
-                            menu->cmdCount--;
-                            cmdDigitCount = 0;
-                            if (menu->cmdCount == 0)
-                                cmdSpaceCount = 0;
-                        }
-                        menu->cmdScrollIndex += 20;
-                    }
-                    else
+                    if ( key == keyBack )
                     {
-                        menu->groupCondCommStage--;
-                        if ( menu->groupCondCommStage == 4 && menu->sndMode)
-                            menu->groupCondCommStage--;
+                        for (auto &k: estate.listItem)
+                            k->inputStr.clear();
+                        guiTree.backvard();
+                        menu->focus = 0;
                     }
-                }
-                else
-                {
-                    menu->groupCondCommStage--;
-  //                  if (menu->groupCondCommStage == 1)
- //                       menu->groupCondCommStage--;
-                }
-                break;
-            }
-            case keyEnter:
-            {
-                if ( menu->groupCondCommStage == 2 )
-                {
-                    menu->groupCondCommStage++;
-                    if (menu->sndMode)
+
+                    if ( key == keyEnter )
+                    {
                         menu->groupCondCommStage++;
-                }
-                else if ( menu->groupCondCommStage == 5 )
-                {
-#ifndef PORT__PCSIMULATOR
-                    menu->focus = 0;
-                    menu->groupCondCommStage = 0;
-                    int mas[4];
-                    int i = 0;
-                    const char * str;
-                    for (auto &k: estate.listItem)
-                    {
-                        mas[i] = atoi(k->inputStr.c_str());
-                        if (i == 2) str = k->inputStr.c_str();
-                        i++;
                     }
-                    int r_adr = mas[1];
-                    freqs = mas[0];
-                    int speed = 0;//atoi(mas[1]);
-                    guc_command_vector.clear();
 
-                    parsingGucCommand((uint8_t*)str);
-                    voice_service->saveFreq(freqs);
-                    voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
-                    if (storageFs > 0)
-                        storageFs->setGroupCondCommand((uint8_t*)str,strlen(str),DataStorage::FS::FTT_TX);
-#else
-                    for (auto &k: estate.listItem)
-                        k->inputStr.clear();
-                    guiTree.resetCurrentState();
-#endif
-                }
-                else
-                    menu->groupCondCommStage++;
-//                if (menu->groupCondCommStage == 1)
- //                   menu->groupCondCommStage++;
-
-                break;
-            }
-            case keyLeft:
-            case keyRight:
-            {
-                if (menu->groupCondCommStage == 0)
-                {
-                    menu->useSndCoord = menu->useSndCoord ? false : true;
-                }
-                if (menu->groupCondCommStage == 2)
-                {
-                    menu->sndMode = menu->sndMode ? false : true;
-                }
-                if (menu->groupCondCommStage == 4)
-                {
-                    // ���������
+                    if ( key == keyLeft || key == keyRight )
+                    {
+                        menu->useSndCoord = menu->useSndCoord ? false : true;
+                    }
                 }
                 break;
-            }
-            case keyUp:
-            {
-               if (menu->cmdScrollIndex) menu->cmdScrollIndex--;
-               break;
-            }
-            case keyDown:
-            {
-                menu->cmdScrollIndex++;
-                break;
-            }
-            default:
-            {
-                // set freq
-                if ( menu->groupCondCommStage == 1 )
+                case 1:     // frequency
                 {
                     std::string* freq;
-
                     freq = &(*iter)->inputStr;
 
-                    if (freq->size() < 8)
+                    if ( key == keyBack )
                     {
-                        if ( key > 5 && key < 17)
+                        if(freq->size() > 0)
                         {
-                            if ( freq->size() > 0 || (freq->size() == 0 && key != key0) )
-                            {
-                                freq->push_back( (char)(42 + key) );
-                                // check
-                                if ( atoi( freq->c_str() ) > 25E6 )
-                                    freq->clear();
-                            }
-                        }
+                            freq->pop_back();
+                        }else
+                            menu->groupCondCommStage--;
+                    }
+
+                    if ( key == keyEnter )
+                    {
+                        if(freq->size() > 4 && freq->size() < 9)
+                            menu->groupCondCommStage++;
+                    }
+
+                    if ( key >= key0 && key <= key9 )
+                    {
+                        if (freq->size() < 8 )
+                            freq->push_back((char)key + 42);
                     }
                 }
-                if ( menu->groupCondCommStage == 0 && menu->focus == 1 )
+                break;
+                case 2:     // group vs. indiv.
                 {
-                    menu->useSndCoord = menu->useSndCoord ? false : true;
-                }
+                    if ( key == keyBack )
+                    {
+                        menu->groupCondCommStage--;
+                    }
 
-                if ( menu->groupCondCommStage == 3 )
+                    if ( key == keyEnter )
+                    {
+                        menu->groupCondCommStage++;     // одному
+                        if(menu->sndMode)
+                            menu->groupCondCommStage++; // всем
+                    }
+
+                    if ( key == keyLeft || key == keyRight )
+                    {
+                        menu->sndMode = menu->sndMode ? false : true;
+                    }
+                }
+                break;
+                case 3:     // set address
                 {
                     std::string* address;
                     (*iter)++;
                     address = &(*iter)->inputStr;
 
-                    if ( key > 5 && key < 17)
+                    if ( key == keyBack )
                     {
-                        address->push_back( (char)(42 + key) );
+                        if(address->size() > 0)
+                        {
+                            address->pop_back();
+                        }else
+                            menu->groupCondCommStage--;
+                    }
+
+                    if ( key == keyEnter )
+                    {
+                        if(address->size() > 0)
+                            menu->groupCondCommStage++;
+                    }
+
+                    if ( key >= key0 && key <= key9 )
+                    {
+                        address->push_back( (char)(key + 42) );
                         if ( atoi(address->c_str()) > 31)
                             address->clear();
                     }
-                }
 
-                if ( menu->groupCondCommStage == 4 )
-                {
-                    std::string* commands; (*iter)++; (*iter)++;
-                    commands = &(*iter)->inputStr;
-
-                    //if ( key > 5 && key < 17 && (menu->cmdCount < 100 || ( menu->cmdCount == 100 && (cmdDigitCount == 1 || cmdSpaceCount == 1) )) )
-                    if ( key > 5 && key < 17 && ((menu->cmdCount < 101 && !isLastFreeSym) || (menu->cmdCount == 100 && isLastFreeSym)) )
-                    {
-                        if ( key != key0)
-                        {
-                            if (cmdSpaceCount == 2)
-                               commands->pop_back();                               
-
-                            commands->push_back( (char)(42 + key) );
-                            cmdDigitCount++;
-                            cmdSpaceCount = 0;
-                            if (cmdDigitCount == 1){
-                                menu->cmdCount++;               // inc comCount
-                                if (menu->cmdCount == 100) isLastFreeSym = true;
-                            }
-                        }
-                        else  // key0
-                        {
-                            bool isRepeat = menu->getIsInRepeatInterval();
-                            if (cmdSpaceCount == 0 ||
-                               (cmdSpaceCount == 1 && cmdDigitCount == 0 && !isRepeat) ||
-                               (cmdDigitCountLast == 2 && cmdSpaceCount == 1 && isRepeat))
-                            isRepeat = false;
-                            bool isFirst = !isRepeat;
-
-                            if (isFirst){                                             //if first time key0
-                               if (cmdSpaceCount < 2){                              // if spaces < 2
-                                   commands->push_back(ch_key0[0]);                     // write space
-                                   cmdSpaceCount++;                                     // inc spaceCount
-                                   if (cmdDigitCount == 1){                             // if DigitCount == 1
-                                       cmdDigitCountLast = cmdDigitCount;                   // remember DigitCount
-                                       cmdDigitCount = 0;                                   // DigitCount = 0
-                                   }
-                               }
-                            }
-                            if (isRepeat){                                     // if Repeat key0
-                                commands->pop_back();                               // delete space
-                                commands->push_back(ch_key0[1]);                    // write 0
-
-                                if (cmdSpaceCount == 2 || (menu->cmdCount == 0 && cmdSpaceCount == 1)){
-                                    menu->cmdCount++;
-                                    if (menu->cmdCount == 100) isLastFreeSym = true;
-                                }
-                                cmdSpaceCount = 0;                                  // spaceCount = 0
-                                cmdDigitCount++;                                    // inc DigitCount
-
-                                if (cmdDigitCountLast == 1){                    // if DigitCountLast == 1
-                                    commands->push_back(ch_key0[0]);                 // write space
-                                    cmdDigitCountLast = 2;                          // DigitCountLast = 2
-                                    cmdDigitCount = 0;                              // DigitCount = 0;
-                                    cmdSpaceCount = 1;
-                                }
-                           }
-                        }
-
-                        if (cmdDigitCount == 2){ // if DigitCount == 2
-                          commands->push_back(ch_key0[0]);                  // write space
-                          cmdSpaceCount = 1;                                // spaceCount = 1
-                          cmdDigitCountLast = cmdDigitCount;                // remember DigitCount
-                          cmdDigitCount = 0;                                // DigitCount = 0
-
-                        }
-                    }
-                    menu->cmdScrollIndex += 20; // with reserve to scroll max down. on set cmdScrollIndex to textarea it do correct
                 }
                 break;
-            }
+                case 4:     // set command
+                {
+                    std::string* commands;
+                    (*iter)++; (*iter)++;
+                    commands = &(*iter)->inputStr;
+
+                    if ( key == keyBack )
+                    {
+                        if(commands->size() > 0)
+                        {
+                            if(commands->size() %3 == 1)
+                                menu->cmdCount--;
+
+                            if( commands->size() > 2 && commands->back() == ' ' )
+                            {
+                                commands->pop_back();
+                            }
+                            commands->pop_back();
+                        }else
+                        {
+                            menu->cmdCount = 0;
+                            menu->groupCondCommStage--;     // одному
+                                if(menu->sndMode)
+                                    menu->groupCondCommStage--; // всем
+                        }
+                    }
+                    if ( key == keyEnter )
+                    {
+                        if(commands->size() > 0)
+                            menu->groupCondCommStage++;
+                    }
+                    if ( key == keyUp )
+                    {
+                        if(menu->cmdScrollIndex) menu->cmdScrollIndex--;
+                    }
+
+                    if ( key == keyDown )
+                    {
+                        menu->cmdScrollIndex++;
+                    }
+
+                    if ( key >= key0 && key <= key9 )
+                    {
+                        if (commands->size() < 299)
+                        {
+                            commands->push_back( (char)(key + 42) );
+                            if(commands->size() > 0 && commands->size() %3 == 1)
+                                menu->cmdCount++;
+
+                            if(commands->size() > 0 && (commands->size()+1) %3 == 0)
+                            {
+                                commands->push_back((char) ' ');
+                            }
+                                menu->cmdScrollIndex += 20;
+                        }
+                    }
+                }
+                break;
+                case 5:     // start
+                {
+                    if ( key == keyBack )
+                    {
+                        menu->groupCondCommStage--;
+                    }
+                    if ( key == keyEnter )
+                    {
+#ifndef PORT__PCSIMULATOR
+                        menu->focus = 0;
+                        menu->groupCondCommStage = 0;
+                        int mas[4];
+                        int i = 0;
+                        const char * str;
+                        for (auto &k: estate.listItem)
+                        {
+                            mas[i] = atoi(k->inputStr.c_str());
+                            if (i == 2) str = k->inputStr.c_str();
+                            i++;
+                        }
+                        int r_adr = mas[1];
+                        freqs = mas[0];
+                        int speed = 0;//atoi(mas[1]);
+                        guc_command_vector.clear();
+
+                        parsingGucCommand((uint8_t*)str);
+                        voice_service->saveFreq(freqs);
+                        voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
+                        if (storageFs > 0)
+                            storageFs->setGroupCondCommand((uint8_t*)str,strlen(str),DataStorage::FS::FTT_TX);
+#else
+                        for (auto &k: estate.listItem)
+                            k->inputStr.clear();
+                        menu->groupCondCommStage = 0;
+                        guiTree.resetCurrentState();
+#endif
+                    }
+
+                }
+                default:
+                    break;
             }
             break;
         }
