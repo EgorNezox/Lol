@@ -3443,7 +3443,7 @@ void Service::updateSystemTime()
 
 void Service::smsMessage(int value)
 {
-    char sym[value];//TODO:
+    char sym[value + 1];//TODO:
     for(int i = 0; i < value; ++i) sym[i] = '\0';
 
 #if smsFlashTest
@@ -3452,7 +3452,7 @@ void Service::smsMessage(int value)
 #else
     memcpy(sym, voice_service->getSmsContent(), value);
 #endif
-    sym[value-1] = '\0';
+    sym[value] = '\0';
 
     const char *text;
     text = &sym[0];

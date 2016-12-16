@@ -2432,7 +2432,7 @@ bool DspController::generateSmsReceived()
           int len = 100;
 
           std::copy(&packet[0],&packet[99],sms_content);
-          sms_content[99] = '\0';
+          //sms_content[99] = '\0';
           // return sms status and signal(len, sms_content)
 //          smsPacketMessage(len);
 

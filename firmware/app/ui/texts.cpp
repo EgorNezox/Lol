@@ -8,7 +8,7 @@ char ch_zero_letter='0';
 char ch_closed_letter='З';
 char ch_invalid_letter='x';
 
-const char* ch_em_type_str[] = {(char *)"J3E\0", (char*)"F3E\0",(char*)"В_П\0",(char*)"Ч_П\0"};
+const char* ch_em_type_str[] = {(char *)"F3E\0", (char*)"J3E\0",(char*)"В_П\0",(char*)"Ч_П\0"};
 
 const char* exitStr = "Выход\0";
 
