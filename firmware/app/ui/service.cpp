@@ -239,22 +239,22 @@ void Service::FailedSms(int stage)
     case -1:
     {
         guiTree.append(messangeWindow, callSubMenu[1], EndSms);
-        msgBox( "Recieved packet ", EndSms);
+        msgBox( "Принятый пакет ", EndSms);
         failFlag = true;
         break;
     }
     case 0:
     {
-        guiTree.append(messangeWindow, "Failed Sms\0", sms_quit_fail1);
-        msgBox( "Recieved packet \0", sms_quit_fail1 );
+        guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail1);
+        msgBox( "Принятый пакет \0", sms_quit_fail1 );
     	//menu->initFailedSms(stage);
         failFlag = true;
         break;
     }
     case 1:
     {
-        guiTree.append(messangeWindow, "Failed Sms\0", sms_quit_fail2);
-        msgBox( "Recieved packet \0", sms_quit_fail2);
+        guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail2);
+        msgBox( "Принятый пакет \0", sms_quit_fail2);
     	//menu->initFailedSms(stage);
         failFlag = true;
         break;
@@ -1966,6 +1966,12 @@ void Service::keyPressed(UI_Key key)
             {
                 guiTree.backvard();
                 menu->focus = 0;
+                if (menu->displayBrightness == 2)
+                    setColorScheme(G_BLACK,G_WHITE);
+                if (menu->displayBrightness == 1)
+                    setColorScheme(G_BLACK,G_LLIGHTGREY);
+                if (menu->displayBrightness == 0)
+                    setColorScheme(G_BLACK,G_LIGHTGREY);
                 //setColorScheme(menu->displayBrightness);
             }
             break;
@@ -2730,8 +2736,8 @@ void Service::FirstPacketPSWFRecieved(int packet)
         char sym[3];
         sprintf(sym,"%d",packet);
 
-        guiTree.append(messangeWindow, "Recieved packet ", sym);
-        msgBox( "Recieved packet ", (int)packet );
+        guiTree.append(messangeWindow, "Принятый пакет ", sym);
+        msgBox( "Принятый пакет ", (int)packet );
 
         if (storageFs > 0){
 
@@ -2747,13 +2753,13 @@ void Service::FirstPacketPSWFRecieved(int packet)
     }
     else if ( packet > 99)
     {
-        guiTree.append(messangeWindow, "Recieved packet: Fatal error\t");
-        msgBox( "Recieved packet: Fatal error\t" );
+        guiTree.append(messangeWindow, "Принятый пакет:\n\tОшибка\t");
+        msgBox( "Принятый пакет:\n\tОшибка\t" );
     }
     else
     {
-        guiTree.append(messangeWindow, "Recieved packet: Unknow error\t");
-        msgBox( "Recieved packet: Unknow error\t" );
+        guiTree.append(messangeWindow, "Принятый пакет:\n\tНеизвестная\n\tошибка\t");
+        msgBox( "Принятый пакет:\n\tНеизвестная\n\tошибка\t" );
     }
 }
 

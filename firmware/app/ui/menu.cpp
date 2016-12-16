@@ -1309,7 +1309,7 @@ void CGuiMenu::initRxPutOffVoiceDialog(int status)
 
 void CGuiMenu::initEditRnKeyDialog()
 {
-    MoonsGeometry labelArea   = { 7, 10, 147, 30 };
+    MoonsGeometry labelArea   = { 5, 5, 150, 40 };
     MoonsGeometry addrArea    = { 7, 40, 147, 80 };
 
     LabelParams param = GUI_EL_TEMP_LabelChannel;
