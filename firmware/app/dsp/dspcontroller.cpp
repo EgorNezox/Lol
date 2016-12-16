@@ -35,7 +35,7 @@
 
 #define VIRTUAL_TIME 120
 
-#define NUMS 7
+#define NUMS 0
 
 namespace Multiradio {
 
@@ -400,7 +400,7 @@ void DspController::getDataTime()
     date_time[2] = min;
     date_time[3] = sec;
 
-    qmDebugMessage(QmDebug::Dump, "getDataTime(): %d %d %d %d", day, hrs, min, sec);
+  //  qmDebugMessage(QmDebug::Dump, "getDataTime(): %d %d %d %d", day, hrs, min, sec);
 
     addSeconds(date_time);
 }
@@ -614,7 +614,10 @@ void DspController::LogicPswfRx()
 void DspController::changePswfFrequency()
 {
 	if (virtual_mode != true)
-    getDataTime();
+	{
+		getDataTime();
+		addSeconds(date_time);
+	}
 
 	//addSeconds(&t);
 
@@ -772,7 +775,12 @@ void DspController::TxSmsWork()
 void DspController::changeSmsFrequency()
 {
 	if (virtual_mode != true)
-	getDataTime();
+	{
+	  getDataTime();
+	  addSeconds(date_time);
+	  qmDebugMessage(QmDebug::Dump, "getDataTime(): %d %d %d %d", date_time[0], date_time[1], date_time[2], date_time[3]);
+	}
+
 
 
 	if (SmsLogicRole == SmsRoleTx)
@@ -2181,13 +2189,15 @@ void DspController::sendSms(Module module)
     	ContentSms.L_CODE = navigator->Calc_LCODE(
     	ContentSms.R_ADR,
 		ContentSms.S_ADR,
-		sms_counter-1,
+		sms_counter,
 		ContentSms.RN_KEY,
 		time[0],
 		time[1],
 		time[2],
 		time[3]);
     }
+
+    qmDebugMessage(QmDebug::Dump, "LCODE: %d",ContentSms.L_CODE);
 
 
     if (sms_counter > 38 && sms_counter < 76)
@@ -2274,6 +2284,7 @@ void DspController::sendSms(Module module)
 
     	qmDebugMessage(QmDebug::Dump, "SADR: %d",ContentSms.S_ADR);
     	qmDebugMessage(QmDebug::Dump, "RADR: %d",ContentSms.R_ADR);
+    	qmDebugMessage(QmDebug::Dump, "LCODE: %d",ContentSms.L_CODE);
 
     	qmToBigEndian((uint8_t)ContentSms.L_CODE, tx_data+tx_data_len);
     	++tx_data_len;
