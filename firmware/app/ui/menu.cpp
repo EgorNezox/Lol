@@ -1630,6 +1630,9 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
         break;
     case 4:
     {
+    	if (fieldStr.size() > 100)
+    		fieldStr.resize(100);
+
         field_geom  = {  5,  18, 155,  124 };
         fieldParam = param[1];
         fieldParam.element.align = {alignLeft, alignTop};
@@ -1762,12 +1765,12 @@ void CGuiMenu::initRxCondCmdDialog()        // Прием УК
 {
     titleArea   = { 5,  5, 150, 20 };
 
-    LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
+    LabelParams param = GUI_EL_TEMP_LabelMode;
     param.element.align = {alignHCenter, alignVCenter};
     param.transparent = false;
 
     GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                    (GUI_Obj *)this);
-    GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)ticketStr[0], (GUI_Obj *)this);
+    //GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)ticketStr[0], (GUI_Obj *)this);
 
     window.Draw();
 
@@ -1783,15 +1786,16 @@ void CGuiMenu::initRxCondCmdDialog()        // Прием УК
     //    }
     //    else
     {
-        title.SetText((char*)callSubMenu[0]);
-        title.Draw();
+        //title.SetText((char*)callSubMenu[0]);
+       // title.Draw();
         if (recvStage == 0)
             param.transparent = false;
         else
             param.transparent = true;
 
         MoonsGeometry buttonArea  = { 29, 40, 129, 80 };
-        GUI_EL_Label button ( &param, &buttonArea, (char*)receiveStatusStr[recvStage], (GUI_Obj *)this);
+        //GUI_EL_Label button ( &param, &buttonArea, (char*)receiveStatusStr[recvStage], (GUI_Obj *)this);
+        GUI_EL_Label button ( &param, &buttonArea, (char*)startStr, (GUI_Obj *)this);
         button.Draw();
     }
 
@@ -1902,6 +1906,7 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
     GUI_EL_TextArea cmdText(&textParams, &textGeom, (char*)valueStr.c_str(), (GUI_Obj*)this);
 
     window.Draw();
+    if (groupCondCommStage != 5)
     title.Draw();
     label.Draw();
 
@@ -2106,7 +2111,8 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
         TextAreaParams textArea_Params = GUI_EL_TEMP_LabelMode;
         textArea_Params.element.align.align_h = alignLeft;
         textArea_Params.element.align.align_v = alignTop;
-        MoonsGeometry textArea_Geom = {2, 30, 157, 126};
+        //MoonsGeometry textArea_Geom = {2, 30, 157, 126};
+        MoonsGeometry textArea_Geom = {  5,  18, 155,  124 };
 
         GUI_EL_TextArea textArea(&textArea_Params, &textArea_Geom, fileMessage, (GUI_Obj*)this);
         textArea.setVisibleScroll(true);

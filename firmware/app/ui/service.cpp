@@ -3444,15 +3444,18 @@ void Service::updateSystemTime()
 void Service::smsMessage(int value)
 {
     char sym[value + 1];//TODO:
-    for(int i = 0; i < value; ++i) sym[i] = '\0';
+    for(int i = 0; i < value + 1; ++i) sym[i] = '\0';
 
 #if smsFlashTest
     std::string test = "test write to flash memory\0";
     memcpy(sym, &test[0] , value);
 #else
     memcpy(sym, voice_service->getSmsContent(), value);
+//    uint8_t* cont = (uint8_t*)voice_service->getSmsContent();
+//    cont[100] = 0;
 #endif
-    sym[value] = '\0';
+    sym[value] = 0;
+    sym[value + 1] = 0;
 
     const char *text;
     text = &sym[0];

@@ -2431,7 +2431,7 @@ bool DspController::generateSmsReceived()
 
           int len = 100;
 
-          std::copy(&packet[0],&packet[99],sms_content);
+          std::copy(&packet[0],&packet[100],sms_content);
           //sms_content[99] = '\0';
           // return sms status and signal(len, sms_content)
 //          smsPacketMessage(len);
@@ -2631,11 +2631,12 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
     int data_sms[255];
 
-    for(int i = 0; i<ind;i++) ContentSms.message[i] = message[i];
+    for(int i = 0;   i < ind; i++) ContentSms.message[i] = message[i];
+    for(int i = ind; i < 259; i++) ContentSms.message[i] = 0;
 
     pack_manager->to_Koi7(ContentSms.message); // test
 
-    pack_manager->compressMass(ContentSms.message,87,7); //test
+    pack_manager->compressMass(ContentSms.message,ind,7); //test
 
     ContentSms.message[87] = ContentSms.message[87] & 0x0F; //set 4 most significant bits to 0
 
