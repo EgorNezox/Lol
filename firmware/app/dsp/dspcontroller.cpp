@@ -3183,10 +3183,10 @@ void DspController::startVirtualPpsModeTx()
 	sendCommandEasy(PSWFReceiver,5,comandValue);
 	comandValue.radio_mode = RadioModeOff;
 	sendCommandEasy(VirtualPps,1,comandValue);
-
+#ifndef PORT__PCSIMULATOR
 	t = rtc->getTime();
 	d = rtc->getDate();
-
+#endif
 	RtcTxRole = true;
 	RtcRxRole = false;
 	RtcTxCounter = 0;
@@ -3212,10 +3212,10 @@ void DspController::startVirtualPpsModeRx()
 	RtcRxRole = true;
 	RtcTxRole = false;
 	RtcFirstCatch = 0;
-
+#ifndef PORT__PCSIMULATOR
 	t = rtc->getTime();
 	d = rtc->getDate();
-
+#endif
 	antiSync = false;
 
 }
@@ -3436,6 +3436,7 @@ void DspController::setVirtualTime(uint8_t *param)
 
 uint8_t* DspController::getVirtualTime()
 {
+#ifndef PORT__PCSIMULATOR
 	QmRtc::Time time = rtc->getTime();
 	char param = 0;
 	char ms[3] = {0,0,0};
@@ -3457,7 +3458,7 @@ uint8_t* DspController::getVirtualTime()
 		virtualTime[2*i] = 48;
 		virtualTime[2*i+1] = ms[i] + 48;
 	}
-
+#endif
 	return &virtualTime[0];
 }
 

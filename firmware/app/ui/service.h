@@ -244,7 +244,6 @@ private:
     std::vector<ScheduleTimeSession> sessionList;
     uint8_t nextSessionIndex = 0;
 
-
     Sheldure sheldure;
     SheldureSession tempSheldureSession;
     std::string schedulePromptText = "";

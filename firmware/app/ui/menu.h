@@ -11,6 +11,7 @@
 #include <ctime>
 #include <map>
 #include <sigc++/sigc++.h>
+#include <qmtimer.h>
 
 #include "gui_tree.h"
 //#include "service.h"
@@ -136,17 +137,16 @@ public:
     UI_Key prevKey = keyBack;
     char ch = ' ';
     int keyPressCount = 0;
-    std::chrono::time_point<std::chrono::steady_clock> ct = std::chrono::steady_clock::now();
     std::string smsValueStrStatus;
     uint8_t smsStage = 0;
-
+    uint16_t smsScrollIndex;
 
     // recv
     bool recvStatus = false;
     uint8_t recvStage = 0;
 
     // recv sms
-    void initRxSmsDialog(std::string);
+    void initRxSmsDialog(std::string);   
 
     // volume
     void incrVolume(){ if ( vol < 100) vol += 5; }
@@ -230,7 +230,7 @@ public:
 
     uint8_t cmdCount = 0;
     uint16_t cmdScrollIndex = 0;
-
+    std::chrono::time_point<std::chrono::steady_clock> ct = std::chrono::steady_clock::now();
     bool getIsInRepeatInterval();
     void initFileManagerDialog(uint8_t stage);
     uint8_t filesStageFocus[3] = {0,0,0};
@@ -242,7 +242,13 @@ public:
     void initDisplayBrightnessDialog();
     std::string sheldureTimeStr;
     std::string sheldureFreqStr;
+    void onInputTimer();
 private:
+    const char* keyChars[10] = {(const char*)&ch_key0, (const char*)&ch_key1, (const char*)&ch_key2, (const char*)&ch_key3, (const char*)&ch_key4,
+                                (const char*)&ch_key5, (const char*)&ch_key6, (const char*)&ch_key7, (const char*)&ch_key8, (const char*)&ch_key9};
+    uint8_t keyCharsCount[10] = {sizeof ch_key0, sizeof ch_key1, sizeof ch_key2, sizeof ch_key3, sizeof ch_key4,
+                                 sizeof ch_key5, sizeof ch_key6, sizeof ch_key7, sizeof ch_key8, sizeof ch_key9};
+
     GUI_Obj obj;
     MoonsGeometry menuArea;
     MoonsGeometry textArea;
@@ -261,6 +267,10 @@ private:
     DataStorage::FS* storageFs;
 
     std::string length_message;
+
+    QmTimer inputTimer;
+    uint16_t inputInterval = 550;
+    bool isInRepeatIntervalInput = false;
 
 };
 

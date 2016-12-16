@@ -235,7 +235,7 @@
    #define G_WHITE       0xffff
    /* Names for extended colors */
    #define G_LLIGHTGREY  0xd6ba
-   #define G_LIGHTGREY   0xbdf7
+   #define G_LIGHTGREY   0x7bcf
    #define G_GREY        0xad75
    #define G_DARKGREY    0x94b2
    #define G_DDARKGREY   0x7bef

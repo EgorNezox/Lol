@@ -8,7 +8,7 @@ char ch_zero_letter='0';
 char ch_closed_letter='З';
 char ch_invalid_letter='x';
 
-const char* ch_em_type_str[] = {(char *)"ЧМ\0", (char*)"ВБП\0",(char*)"В_П\0",(char*)"Ч_П\0"};
+const char* ch_em_type_str[] = {(char *)"J3E\0", (char*)"F3E\0",(char*)"В_П\0",(char*)"Ч_П\0"};
 
 const char* exitStr = "Выход\0";
 
@@ -178,7 +178,7 @@ const char *rxSmsResultStatus[] = {
 //const char* voiceRxTxLabelStr[] = {"Канал записи\0", "Канал воспр.\0", "Запись речи\0", "Воспр. речи\0", "Получатель\0", "Получена гол.поч.\0"};
 
 const char* voiceRxStr[] = {"Нажмите Ввод\n для запуска\n приема\0", "От:\0", "Нажмите ввод\0"};
-const char* voiceRxTxLabelStr[] = {"Канал записи\0", "Канал воспро-\n изведения:\0", "Запись речи.\0", "Воспр. речи.\0", "Получатель\0", "Получена ГП\0"};
+const char* voiceRxTxLabelStr[] = {"Канал записи\0", "         Канал\n\tвоспроизведения:\0", "Запись речи.\0", "Воспр. речи.\0", "Получатель\0", "Получена ГП\0"};
 
 const char* condCommStr[] = {"Адрес получателя\0", "Адрес ретранслятора\0", "Команда\0", "Ретранслятор\0", "Сообщение\0"};
 const char* condCommSendStr = "Нажмите Ввод для \nзапуска передачи\0";
@@ -194,7 +194,7 @@ const char* pressEnter = "Нажмите ввод\nдля продолжения\0";
 
 const char* recievedGUC_CMD = "Приняты команды\0";
 const char* titleGuc        = "Сообщение\0";
-const char* titleCoord      = "Получены\nкоодинаты\0";
+const char* titleCoord      = "Получены\nкоординаты\0";
 
 const char* startStr           = "Старт\0";
 
@@ -223,7 +223,7 @@ const char* dsphardwarefailure_unknown_text_str = "Устр. %d, код %d";
 
 const char *StartCmd = "Передача...\0";
 const char *EndCmd   = "Прием\0";
-const char *EndSms   = "Принята квитаниция\0";
+const char *EndSms   = "Принята квитанция\0";
 
 const char *STARTS = "Старт";
 
