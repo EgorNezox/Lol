@@ -269,7 +269,7 @@ private:
     std::string length_message;
 
     QmTimer inputTimer;
-    uint16_t inputInterval = 550;
+    uint16_t inputInterval = 600;
     bool isInRepeatIntervalInput = false;
 
 };

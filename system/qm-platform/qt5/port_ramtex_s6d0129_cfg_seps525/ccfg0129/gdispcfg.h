@@ -234,8 +234,8 @@
    #define G_CYAN        0x07ff
    #define G_WHITE       0xffff
    /* Names for extended colors */
-   #define G_LLIGHTGREY  0xd6ba
-   #define G_LIGHTGREY   0x7bcf
+   #define G_LLIGHTGREY  G_RGB_TO_COLOR(90,90,90)//0xd6ba
+   #define G_LIGHTGREY   G_RGB_TO_COLOR(50,50,50)//0x7bcf
    #define G_GREY        0xad75
    #define G_DARKGREY    0x94b2
    #define G_DDARKGREY   0x7bef

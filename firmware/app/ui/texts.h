@@ -165,4 +165,6 @@ extern const char *schedulePromptStr;
 
 extern const char *txrxFilesStr[];
 
+extern const char *rxtxFiledSmsStr[];
+
 #endif /* TEXTS_H_ */

@@ -263,6 +263,8 @@ void CGuiMenu::initAruarmDialog()
     volume[1]->SetText((char*)armStr);
     volume[2]->SetText((char*)ausStr);
 
+    //uint8_t focus = 0;
+
     for ( int i = 0; i < 3; i++)
     {
         if (aruArmAsuStatus[i] == 1)
@@ -286,6 +288,11 @@ void CGuiMenu::initAruarmDialog()
 
     for (int i = 0; i < 6; i++)
         volume[i]->Draw();
+
+    MoonsGeometry rect = {volume_geom[focus].xs, volume_geom[focus].ys, volume_geom[focus + 3].xe, volume_geom[focus].ye};
+
+    GUI_Painter::SetViewPort(windowArea.xs, windowArea.ys, windowArea.xe, windowArea.ye);
+    GUI_Painter::DrawRect(rect, RDM_LINE, CST_DEFAULT);
 
     for (int i = 0; i < 6; i++)
         delete volume[i];
@@ -1726,7 +1733,7 @@ void CGuiMenu::initRxSmsDialog(std::string str)
 {
     titleArea   = {  5,   5, 150,  20 };
     MoonsGeometry button_geom;
-    LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
+    LabelParams param = GUI_EL_TEMP_LabelMode;
     param.element.align = {alignHCenter, alignVCenter};
     param.transparent = false;
 
@@ -1734,7 +1741,7 @@ void CGuiMenu::initRxSmsDialog(std::string str)
     GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
 
     window.Draw();
-    title.Draw();
+    //title.Draw();
 
     if (recvStage == 0)
     {
@@ -2102,6 +2109,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
         MoonsGeometry textArea_Geom = {2, 30, 157, 126};
 
         GUI_EL_TextArea textArea(&textArea_Params, &textArea_Geom, fileMessage, (GUI_Obj*)this);
+        textArea.setVisibleScroll(true);
         textAreaScrollIndex = textArea.SetScrollIndex(textAreaScrollIndex);
         textArea.Draw();
         break;

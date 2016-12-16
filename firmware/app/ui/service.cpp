@@ -239,14 +239,14 @@ void Service::FailedSms(int stage)
     case -1:
     {
         guiTree.append(messangeWindow, callSubMenu[1], EndSms);
-        msgBox( "Принятый пакет ", EndSms);
+        msgBox( rxtxFiledSmsStr[0], EndSms);
         failFlag = true;
         break;
     }
     case 0:
     {
         guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail1);
-        msgBox( "Принятый пакет \0", sms_quit_fail1 );
+        msgBox( rxtxFiledSmsStr[0], sms_quit_fail1 );
     	//menu->initFailedSms(stage);
         failFlag = true;
         break;
@@ -254,7 +254,7 @@ void Service::FailedSms(int stage)
     case 1:
     {
         guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail2);
-        msgBox( "Принятый пакет \0", sms_quit_fail2);
+        msgBox( rxtxFiledSmsStr[0], sms_quit_fail2);
     	//menu->initFailedSms(stage);
         failFlag = true;
         break;
@@ -262,7 +262,7 @@ void Service::FailedSms(int stage)
     case 3:
     {
         guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
-        msgBox( "Failed Sms", sms_crc_fail);
+        msgBox( rxtxFiledSmsStr[1], sms_crc_fail);
     	//menu->initFailedSms(stage);
         failFlag = true;
         break;
@@ -1686,7 +1686,7 @@ void Service::keyPressed(UI_Key key)
         		if (cntSmsRx >= 2 && isSmsMessageRec == true)
         		{
         			//msgBoxSms(voice_service->getSmsContent());
-                     menu->initTxSmsDialog((char*)"CМC",voice_service->getSmsContent());
+                     menu->initTxSmsDialog((char*)"CMC",voice_service->getSmsContent());
         		}
 
         	}
@@ -1699,7 +1699,7 @@ void Service::keyPressed(UI_Key key)
         		if (cntSmsRx >= 2 && isSmsMessageRec == true)
         		{
         			//msgBoxSms(voice_service->getSmsContent());
-                     menu->initTxSmsDialog((char*)"CМC",voice_service->getSmsContent());
+                     menu->initTxSmsDialog((char*)"CMC",voice_service->getSmsContent());
         		}
         	}
         	break;

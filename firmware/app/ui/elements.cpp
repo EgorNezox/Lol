@@ -333,7 +333,8 @@ void GUI_EL_TextArea::Draw(){
                             sym_to_cp = j;
                             copyStrFromData((char*)&line_str, k-j, sym_to_cp);
                             line_str[sym_to_cp] = 0;
-                            ++k;
+                            //j--;
+                            //++k;
                             break;
                         }
                         else{
@@ -408,6 +409,7 @@ void GUI_EL_TextArea::CalcContentGeom(){
                 ++lf_count;						//cчитаем перенос строки
                 if(last_space == 0 || getChar(i) == ' '){
                     str_width -= ggetsymw(getChar(i));	//и отменяем сложение длины этого символа
+                    i--;
                 }
                 else{
                     str_width=last_str_with;
