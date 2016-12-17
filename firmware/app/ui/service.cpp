@@ -1112,7 +1112,7 @@ void Service::keyPressed(UI_Key key)
 
                     if ( key >= key0 && key <= key9 )
                     {
-                        if (commands->size() < 299)
+                        if (commands->size() < 299 && menu->cmdCount < 101 )
                         {
                             commands->push_back( (char)(key + 42) );
                             if(commands->size() > 0 && commands->size() %3 == 1)
@@ -1680,7 +1680,7 @@ void Service::keyPressed(UI_Key key)
         	{
         		if (menu->focus_line > 1) --menu->focus_line;
 
-                if(menu->smsScrollIndex > 0)
+                if (menu->smsScrollIndex > 0)
                     menu->smsScrollIndex--;
 
         		if (cntSmsRx >= 2 && isSmsMessageRec == true)
@@ -2737,7 +2737,7 @@ void Service::FirstPacketPSWFRecieved(int packet)
         sprintf(sym,"%d",packet);
 
         guiTree.append(messangeWindow, "Принятый пакет ", sym);
-        msgBox( "Принятый пакет ", (int)packet );
+        msgBox( recPacket, (int)packet );
 
         if (storageFs > 0){
 
@@ -2754,12 +2754,12 @@ void Service::FirstPacketPSWFRecieved(int packet)
     else if ( packet > 99)
     {
         guiTree.append(messangeWindow, "Принятый пакет:\n\tОшибка\t");
-        msgBox( "Принятый пакет:\n\tОшибка\t" );
+        msgBox( rxCondErrorStr[0] );
     }
     else
     {
         guiTree.append(messangeWindow, "Принятый пакет:\n\tНеизвестная\n\tошибка\t");
-        msgBox( "Принятый пакет:\n\tНеизвестная\n\tошибка\t" );
+        msgBox( rxCondErrorStr[1] );
     }
 }
 
@@ -3231,7 +3231,7 @@ void Service::parsingGucCommand(uint8_t *str)
 
     int len = strlen((const char*)str);
     for(int i = 0; i <= len; i++){
-        if ((str[i] == ' ') || (len == i))
+        if ((str[i] == ' ') || (len == i && str[i-1] != ' '))
         {
             if (i - index == 2)
                 number[2] = '\0';
@@ -3381,26 +3381,16 @@ void Service::gucFrame(int value)
         msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
         if (storageFs > 0)
         {
-        	uint8_t len = 0;
-        	for(int i = 1; i<=size; i++)
-        	len	+= (vect[i] > 9) ? 3 : 2;
-
+        	uint16_t len = size * 3;
             uint16_t fullSize = isCoord ? len + 26 : len;
             uint8_t cmdv[fullSize];
             char cmdSym[3];
-            uint8_t prevCnt = 1;
 
-            for (uint8_t cmdCount = 1; cmdCount <= size; cmdCount++){
-
-                sprintf(cmdSym, "%d", vect[cmdCount]);
-                bool isOneSymCmd = false;
-                if (vect[cmdCount] < 10){
-                  isOneSymCmd = true;
-                  cmdSym[1] = ' ';
-                }
+            for (uint8_t cmdSymInd = 1; cmdSymInd <= size; cmdSymInd++)
+            {
+                sprintf(cmdSym, "%02d", vect[cmdSymInd]);
                 cmdSym[2] = ' ';
-                memcpy(&cmdv[prevCnt-1], &cmdSym[0], isOneSymCmd ? 2 : 3);
-                prevCnt  += (isOneSymCmd ? 2 : 3);
+                memcpy(&cmdv[(cmdSymInd - 1) * 3], &cmdSym[0], 3);
             }
 
             if (isCoord)
@@ -3408,6 +3398,7 @@ void Service::gucFrame(int value)
             storageFs->setGroupCondCommand((uint8_t*)&cmdv, fullSize, DataStorage::FS::FTT_RX);
         }
     }
+    cntGucRx = 1;
 
 #endif
 }

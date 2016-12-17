@@ -97,7 +97,7 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
 void GUI_Dialog_MsgBox::setCmd(int cmd)
 {
     char sym[3];
-    sprintf(sym,"%d", cmd);
+    sprintf(sym,"%02d", cmd);
     sym[2] = '\0';
     memcpy(&this->text, &sym, 3);
 }
@@ -168,6 +168,13 @@ void GUI_Dialog_MsgBox::DrawWithCoord(uint8_t* coord){
                                     (GXT)(window_geom.xe - BUTTON_WIDTH - 30),
                                     (GYT)( window_geom.ye - (MARGIN)) };
 
+ MoonsGeometry length_area_geom  = { 90, 5, 158, 15 };
+
+// std::string lenght;
+// char str_len[] = {0,0,0};
+// sprintf(str_len,"%d", position);
+// lenght.append(str_len).append("/").append();
+
   button_geom.xs = (GXT)(coord_area_geom.xe + 5);
   button_geom.ys = coord_area_geom.ys + 20 ;
   button_geom.xe = button_geom.xs + BUTTON_WIDTH - 1;
@@ -177,8 +184,9 @@ void GUI_Dialog_MsgBox::DrawWithCoord(uint8_t* coord){
   LabelParams coord_area_params = GUI_EL_TEMP_LabelCoords;
 
   GUI_EL_Window   window( &GUI_EL_TEMP_WindowGeneral, &window_geom, (GUI_Obj *)this );
-  GUI_EL_TextArea title_area( &title_area_params, &title_area_geom, (char*)title.c_str(), (GUI_Obj *)this );
-  GUI_EL_TextArea text_area ( &text_area_params,  &text_area_geom,  (char*)text,  (GUI_Obj *)this );
+  GUI_EL_Label title_area( &title_area_params, &title_area_geom, (char*)title.c_str(), (GUI_Obj *)this );
+//  GUI_EL_Label length_area( &title_area_params, &length_area_geom, (char*)lenght.c_str(), (GUI_Obj *)this );
+  GUI_EL_Label text_area ( &text_area_params,  &text_area_geom,  (char*)text,  (GUI_Obj *)this );
 
   GUI_EL_Label coord_area ( &coord_area_params,  &coord_area_geom,  (char*)coord,  (GUI_Obj *)this );
   GUI_EL_Button ok_button( &GUI_EL_TEMP_LabelButton, &button_geom, ok_texts[/*service->getLanguage()*/0], bs_unselected, (GUI_Obj *)this);

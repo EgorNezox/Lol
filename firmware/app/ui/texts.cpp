@@ -227,6 +227,8 @@ const char *EndSms   = "Принята квитанция\0";
 
 const char *STARTS = "Старт";
 
+const char *recPacket = "Принята команда";
+
 const char *errorReadFile = "Ошибка чтения файла\0";
 
 const char *displayBrightnessStr[] = {"Минимальная\0","Средняя\0","Максиамльная\0"};
@@ -237,3 +239,5 @@ const char *schedulePromptStr = " минут\n до начала\n сеанса связи\n режима\0";
 const char *rxtxFilesStr[] = {"Принятые\0", "Переданные\0"};
 
 const char *rxtxFiledSmsStr[] = {"Принятый пакет\0", "Ошибка СМС\0"};
+
+const char *rxCondErrorStr[] = {"Принятый пакет:\n\tОшибка\t\0", "Принятый пакет:\n\tНеизвестная\n\tошибка\t\0" };

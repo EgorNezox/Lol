@@ -2675,8 +2675,8 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
 
     ContentGuc.indicator = 20;
     ContentGuc.type = 1;
-    ContentGuc.chip_time = 2;
-    ContentGuc.WIDTH_SIGNAL = 1;
+	ContentGuc.chip_time = 3; // super versia new, last value = 2
+	ContentGuc.WIDTH_SIGNAL = 0; // last value  = 1, thi is freq mode 0 - 3k1, 1 - 20k maybe it works:)
     data_storage_fs->getAleStationAddress(ContentGuc.S_ADR);
     ContentGuc.R_ADR = r_adr;
 
@@ -2780,8 +2780,8 @@ void DspController::sendGucQuit()
 
 	ContentGuc.indicator = 20;
 	ContentGuc.type = 4;
-	ContentGuc.chip_time = 2;
-	ContentGuc.WIDTH_SIGNAL = 1;
+	ContentGuc.chip_time = 3; // super versia new, last value = 2
+	ContentGuc.WIDTH_SIGNAL = 0; // last value  = 1, thi is freq mode 0 - 3k1, 1 - 20k maybe it works:)
 	data_storage_fs->getAleStationAddress(ContentGuc.S_ADR);
 
 
@@ -3255,10 +3255,6 @@ void DspController::correctTime(uint8_t num)
 	t.seconds = 12 * (t.seconds / 12) + 7;
 	count_VrtualTimer = num;
 	qmDebugMessage(QmDebug::Dump, "COUNTER VIRTUAL %d",count_VrtualTimer);
-
-#ifndef PORT__PCSIMULATOR
-	rtc->setTime(t);
-#endif
 
 	RtcFirstCatch = -1;
 }
