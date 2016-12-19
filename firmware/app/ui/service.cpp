@@ -2340,25 +2340,22 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::channelEmissionType:
         {
-            if ( key == keyEnter)
+            if ( key == keyEnter || key == keyBack)
             {
                 if (menu->ch_emiss_type)
                     voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionFM);
                 else
                     voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionUSB);
 
-//                guiTree.advance(menu->focus);
-//                menu->focus = 0;
-            }
-            if ( key == keyBack)
-            {
                 guiTree.backvard();
                 menu->focus = 0;
                 menu->offset = 0;
+//                guiTree.advance(menu->focus);
+//                menu->focus = 0;
             }
             if (key == keyUp || key == keyDown)
             {
-                menu->ch_emiss_type = menu->ch_emiss_type ? false : true;
+                menu->ch_emiss_type = !menu->ch_emiss_type;
             }
             break;
         }
@@ -2856,7 +2853,8 @@ void Service::drawMainWindow()
     if (navigator != 0)
     {
         Navigation::Coord_Date date = navigator->getCoordDate();
-        if (date.status == true) gpsStatus = true; else gpsStatus = false;
+        gpsStatus = date.status;
+
     }
 
     indicator->Draw(pGetMultitradioService()->getStatus(),

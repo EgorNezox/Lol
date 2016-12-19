@@ -57,6 +57,7 @@ bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
 		file.read((uint8_t *)&(entry.speed), 1);
 		data.push_back(entry);
 	}
+	file.close();
 	return true;
 }
 
@@ -77,6 +78,7 @@ bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data) {
 		file.read((uint8_t *)&entry, 4);
 		data.push_back(entry);
 	}
+	file.close();
 	return true;
 }
 
@@ -89,6 +91,7 @@ bool FS::getAleStationAddress(uint8_t& data) {
 	if (!(file_size == 1))
 		return false;
 	file.read((uint8_t *)&data, 1);
+	file.close();
 	return true;
 }
 
@@ -101,6 +104,7 @@ bool FS::getFhssKey(uint16_t& data) {
 	if (!(file_size == 2))
 		return false;
 	file.read((uint8_t *)&data, 2);
+	file.close();
 	return true;
 }
 
@@ -109,6 +113,7 @@ void FS::setFhssKey(uint16_t data) {
 	if (!file.open(QmFile::WriteOnly))
 		return;
 	file.write((uint8_t *)&data, 2);
+	file.close();
 }
 
 bool FS::getVoiceFrequency(uint32_t &data) {
@@ -120,6 +125,7 @@ bool FS::getVoiceFrequency(uint32_t &data) {
 	if (!(file_size == 4))
 		return false;
 	file.read((uint8_t *)&data, 4);
+	file.close();
 	return true;
 }
 
@@ -128,6 +134,7 @@ void FS::setVoiceFrequency(uint32_t data) {
 	if (!file.open(QmFile::WriteOnly))
 		return;
 	file.write((uint8_t *)&data, 4);
+	file.close();
 }
 
 bool FS::getVoiceEmissionType(Multiradio::voice_emission_t &data) {
@@ -139,6 +146,7 @@ bool FS::getVoiceEmissionType(Multiradio::voice_emission_t &data) {
 	if (!(file_size == 1))
 		return false;
 	file.read((uint8_t *)&data, 1);
+	file.close();
 	return true;
 }
 
@@ -147,6 +155,7 @@ void FS::setVoiceEmissionType(Multiradio::voice_emission_t data) {
 	if (!file.open(QmFile::WriteOnly))
 		return;
 	file.write((uint8_t *)&data, 1);
+	file.close();
 }
 
 bool FS::getVoiceChannelSpeed(Multiradio::voice_channel_speed_t &data) {
@@ -228,6 +237,7 @@ bool FS::getCondCommand(std::vector<uint8_t>* data, uint8_t number, TransitionFi
     		return false;
     	data->resize(file_size);
     	file.read(data->data(), file_size);
+    	file.close();
     	return true;
     } else
     	return false;
@@ -241,6 +251,7 @@ void FS::setCondCommand(std::vector<uint8_t> *data, TransitionFileType transFile
     	if (!file.open(QmFile::WriteOnly))
     		return;
     	uint64_t writeSize = file.write(data->data(), data->size());
+    	file.close();
     	if (writeSize)
             fileTypeInfo[FT_CND].counter[transFileType].count++;
     }
@@ -258,6 +269,7 @@ bool FS::getGroupCondCommand(std::vector<uint8_t>* data, uint8_t number, Transit
     	int64_t file_size = file.size();
     	data->resize(file_size);
     	file.read(data->data(), file_size);
+    	file.close();
     	return true;
     } else
     	return false;
@@ -271,6 +283,7 @@ void FS::setGroupCondCommand(uint8_t* data, uint16_t size, TransitionFileType tr
     	if (!file.open(QmFile::WriteOnly))
     		return;
     	int64_t writeSize = file.write(data, size);
+    	file.close();
     	if (writeSize)
             fileTypeInfo[FT_GRP].counter[transFileType].count++;
     }
@@ -290,6 +303,7 @@ bool FS::getSms(std::vector<uint8_t>* data, uint8_t number, TransitionFileType t
     		return false;
     	data->resize(file_size);
     	file.read(data->data(), file_size);
+    	file.close();
     	return true;
     } else
     	return false;
@@ -303,6 +317,7 @@ void FS::setSms(uint8_t* data, uint16_t size, TransitionFileType transFileType)
     	if (!file.open(QmFile::WriteOnly))
     		return;
     	int64_t writeSize = file.write(data, size);
+    	file.close();
     	if (writeSize)
             fileTypeInfo[FT_SMS].counter[transFileType].count++;
     }
@@ -322,6 +337,7 @@ bool FS::getVoiceMail(std::vector<uint8_t>* data, uint8_t number, TransitionFile
     		return false;
     	data->resize(file_size);
     	file.read(data->data(), file_size);
+    	file.close();
     	return true;
     } else
     	return false;
@@ -335,6 +351,7 @@ void FS::setVoiceMail(std::vector<uint8_t>* data, TransitionFileType transFileTy
     	if (!file.open(QmFile::WriteOnly))
     		return;
     	int64_t writeSize = file.write(data->data(), data->size());
+    	file.close();
     	if (writeSize)
             fileTypeInfo[FT_VM].counter[transFileType].count++;
     }
@@ -349,6 +366,7 @@ bool FS::getGpsSynchroMode(uint8_t* data) {
     if (!(file_size == 1))
         return false;
     file.read((uint8_t*)data, 1);
+	file.close();
     return true;
 }
 
@@ -357,6 +375,7 @@ void FS::setGpsSynchroMode(uint8_t data) {
     if (!file.open(QmFile::WriteOnly))
         return;
     file.write((uint8_t*)&data, 1);
+	file.close();
 }
 
 bool FS::renameFile(std::string oldfileName, std::string newFileName)
