@@ -140,6 +140,7 @@ public:
 
     void startSchedulePromptTimer();
     void stopSchedulePromptTimer();
+    void showMessage(const char *title, const char *text, MoonsGeometry area);
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
@@ -164,6 +165,8 @@ private:
     GUI_Dialog_MsgBox   *msg_box;
 
     DataStorage::FS *storageFs = 0;
+
+    MoonsGeometry promptArea = {15,56,140,124};
 
     QmTimer *systemTimeTimer;
 

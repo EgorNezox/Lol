@@ -340,6 +340,25 @@ void FS::setVoiceMail(std::vector<uint8_t>* data, TransitionFileType transFileTy
     }
 }
 
+bool FS::getGpsSynchroMode(uint8_t* data) {
+    data = 0;
+    QmFile file(dir, "GpsSynchroMode");
+    if (!file.open(QmFile::ReadOnly))
+        return false;
+    int64_t file_size = file.size();
+    if (!(file_size == 1))
+        return false;
+    file.read((uint8_t*)data, 1);
+    return true;
+}
+
+void FS::setGpsSynchroMode(uint8_t data) {
+    QmFile file(dir, "GpsSynchroMode");
+    if (!file.open(QmFile::WriteOnly))
+        return;
+    file.write((uint8_t*)&data, 1);
+}
+
 bool FS::renameFile(std::string oldfileName, std::string newFileName)
 {
     return QmFile::rename(dir, oldfileName, newFileName);

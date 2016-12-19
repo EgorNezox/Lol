@@ -47,16 +47,10 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     ginit();
     loadSheldure();
 
-//    SheldureMass[0] = 1;
-//    SheldureMass[1] = 0;
-//    SheldureMass[2] = 1+48;
-//    SheldureMass[3] = 2+48;
-//    SheldureMass[4] = 20+48;
-//    SheldureMass[5] = 1+48;
-//    SheldureMass[6] = 8+48;
-//    SheldureMass[7] = 4+48;
-//    SheldureMass[8] = 4+48;
-//    updateSessionTimeSchedule();
+    if (storageFs > 0){
+       storageFs->getGpsSynchroMode((uint8_t*)&gpsSynchronization);
+       voice_service->setVirtualMode(!gpsSynchronization);
+    }
 
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
     voice_service->smsCounterChanged.connect(sigc::mem_fun(this,&Service::onSmsCounterChange));
@@ -2028,16 +2022,19 @@ void Service::keyPressed(UI_Key key)
             switch ( key )
             {
             case keyBack:
+            case keyEnter:
             {
                 guiTree.backvard();
                 menu->focus = 0;
+                voice_service->setVirtualMode(!gpsSynchronization);
+                if (storageFs > 0)
+                    storageFs->setGpsSynchroMode((uint8_t)gpsSynchronization);
                 break;
             }
             case keyRight:
             case keyLeft:
             {
                 gpsSynchronization = gpsSynchronization ? false : true;
-                voice_service->setVirtualMode(!gpsSynchronization);
                 break;
             }
             default:
@@ -3215,7 +3212,7 @@ void Service::draw()
     }
     if (isShowSchedulePrompt)
     {
-    	showMessage("",schedulePromptText.c_str());
+        showMessage("", schedulePromptText.c_str(), promptArea);
     }
 }
 
@@ -3600,6 +3597,11 @@ void Service::showMessage(const char *title, const char *text)
     GUI_Dialog_MsgBox::showMessage(&area, true, title, text);
 }
 
+void Service::showMessage(const char *title, const char *text, MoonsGeometry area)
+{
+    GUI_Dialog_MsgBox::showMessage(&area, true, title, text);
+}
+
 void Service::startSchedulePromptTimer()
 {
 	isShowSchedulePrompt = true;
@@ -3616,13 +3618,13 @@ void Service::stopSchedulePromptTimer()
 void Service::showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t minutes)
 {
     char min[5];
-    sprintf((char*)&min,"%d",minutes);
+    sprintf((char*)&min, "%d", minutes);
     std::string text =
         std::string(min) +
         std::string(schedulePromptStr) +
         std::string(tmpParsing[fileType + 1]);
 
-    showMessage("",text.c_str());
+    showMessage("",text.c_str(), promptArea);
 
     schedulePromptText = text;
     startSchedulePromptTimer();
@@ -3734,9 +3736,9 @@ void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
 //    if ( voice_service->getVirtualMode() == true)
 //    {
     	time = voice_service->getVirtualTime();
-    	*hour   = (time[0]-48)*10 + (time[1]-48);
-    	*minute = (time[2]-48)*10 + (time[3]-48);
-    	*second = (time[4]-48)*10 + (time[5]-48);
+        *hour   = (time[0] - 48) * 10 + (time[1] - 48);
+        *minute = (time[2] - 48) * 10 + (time[3] - 48);
+        *second = (time[4] - 48) * 10 + (time[5] - 48);
 //    }
 //    else
 //    {
@@ -3745,8 +3747,6 @@ void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
 //    	*minute = (date.time[2]-48)*10 + (date.time[3]-48);
 //    	*second = (date.time[4]-48)*10 + (date.time[5]-48);
 //    }
-
-
 }
 
 void Service::loadSheldure()
@@ -3802,9 +3802,9 @@ void Service::uploadSheldure()
         if (sheldureMass > 0){
              delete []sheldureMass;
              sheldureMass = 0;
-        }
-        updateSessionTimeSchedule();
+        }       
     }
+    updateSessionTimeSchedule();
 #endif
 }
 

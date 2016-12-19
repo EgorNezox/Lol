@@ -238,7 +238,7 @@ GUI_EL_TextArea::GUI_EL_TextArea(TextAreaParams *params, MoonsGeometry *geom, st
     lines_count = 0;
     isData = true;
     this->data = data;
-    CalcContentGeom();
+    //CalcContentGeom();
 }
 
 GUI_EL_TextArea::~GUI_EL_TextArea(){
@@ -255,15 +255,16 @@ void GUI_EL_TextArea::SetText(char *text){
             this->text = new char[len + 1];
             strncpy(this->text, text, len + 1);
         }
-        CalcContentGeom();
+        //CalcContentGeom();
     }
 }
 
 void GUI_EL_TextArea::copyStrFromData(char *dest, uint32_t index, uint32_t count)
 {
  if (isData){
-    for (uint16_t i = 0; i < count; i++)
-      dest[i] = (char)data->at(index + i);
+  //  for (uint16_t i = 0; i < count; i++)
+   //   dest[i] = (char)data->at(index + i);
+      memcpy(dest,data->data() + index, count);
  }
  else{
      strncpy(dest, &text[index], count);
@@ -333,8 +334,6 @@ void GUI_EL_TextArea::Draw(){
                             sym_to_cp = j;
                             copyStrFromData((char*)&line_str, k-j, sym_to_cp);
                             line_str[sym_to_cp] = 0;
-                            //j--;
-                            //++k;
                             break;
                         }
                         else{
@@ -356,22 +355,12 @@ void GUI_EL_TextArea::Draw(){
             }
         }
         if (isScroll)
-  //      {
-        //if (direction == VDir)
         {
             MoonsGeometry sliderArea  = { (GXT)el_geom.xe, (GYT)el_geom.ys , (GXT)(el_geom.xe + 7), (GYT) el_geom.ye};
             SliderParams  sliderParams = {lines_count - visLinesCount + 1, (int32_t)1, visLineBegin};
             GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
             slider.Draw();
         }
-        //else
-//        {
-//                MoonsGeometry sliderArea  = { 15, 10, 150, 20};
-//                SliderParams  sliderParams = {lines_count - visLinesCount + 1, (int32_t)1, visLineBegin};
-//                GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
-//                slider.SetDirection(HDir);
-//                slider.Draw();
-//        }
     }
 }
 
@@ -486,7 +475,7 @@ void GUI_EL_TextArea::SetInputFocus(bool isFocus)
 void GUI_EL_TextArea::setVisibleScroll(bool isVisible)
 {
     isVisibleScroll = isVisible;
-    PrepareContent();
+    //PrepareContent();
 }
 
 
