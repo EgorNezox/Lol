@@ -47,17 +47,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     ginit();
     loadSheldure();
 
-//    SheldureMass[0] = 1;
-//    SheldureMass[1] = 0;
-//    SheldureMass[2] = 1+48;
-//    SheldureMass[3] = 2+48;
-//    SheldureMass[4] = 20+48;
-//    SheldureMass[5] = 1+48;
-//    SheldureMass[6] = 8+48;
-//    SheldureMass[7] = 4+48;
-//    SheldureMass[8] = 4+48;
-//    updateSessionTimeSchedule();
-
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
     voice_service->smsCounterChanged.connect(sigc::mem_fun(this,&Service::onSmsCounterChange));
 
@@ -3450,6 +3439,9 @@ void Service::smsMessage(int value)
     sym[value] = 0;
     sym[value + 1] = 0;
 
+    if (storageFs > 0)
+        storageFs->setSms((uint8_t*)&sym[0], value, DataStorage::FS::FTT_RX);
+
     const char *text;
     text = &sym[0];
 
@@ -3460,8 +3452,6 @@ void Service::smsMessage(int value)
     menu->smsTxStage = 4;
     menu->initTxSmsDialog(title,text_str);
 
-    if (storageFs > 0)
-        storageFs->setSms((uint8_t*)&sym[0], value, DataStorage::FS::FTT_RX);
 }
 
 void Service::updateAleVmProgress(uint8_t t)
@@ -3596,7 +3586,7 @@ std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, Da
 
 void Service::showMessage(const char *title, const char *text)
 {
-    MoonsGeometry area = {15,20,140,95};
+    MoonsGeometry area = {15,62,140,125};
     GUI_Dialog_MsgBox::showMessage(&area, true, title, text);
 }
 
@@ -3620,7 +3610,7 @@ void Service::showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t mi
     std::string text =
         std::string(min) +
         std::string(schedulePromptStr) +
-        std::string(tmpParsing[fileType + 1]);
+        std::string(tmpParsing[fileType]);
 
     showMessage("",text.c_str());
 

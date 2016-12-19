@@ -30,7 +30,7 @@
 #define hw_rtc                      1
 #define DefkeyValue 631
 
-#define GUC_TIMER_INTERVAL 5000
+#define GUC_TIMER_INTERVAL 3000
 #define GUC_TIMER_INTERVAL_REC 30000
 
 #define VIRTUAL_TIME 120
@@ -358,8 +358,8 @@ void DspController::processSyncPulse(){
 	}
     case radiostateGucTx:{
     	if (trans_guc == 1){
-    	 sendGuc();
-    	 trans_guc = 0;
+    		sendGuc();
+    		trans_guc = 0;
     	}
         break;
     }
@@ -1657,6 +1657,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 
 void DspController::sendGuc()
 {
+
     qmDebugMessage(QmDebug::Dump, "sendGuc()");
 
     uint8_t tx_address = 0x7A;
@@ -1809,7 +1810,7 @@ void DspController::recGuc()
     if (ContentGuc.stage == GucTx){
     	ContentGuc.stage = GucTxQuit;
         startGucRecieving();
-        guc_timer->setInterval(GUC_TIMER_INTERVAL_REC);
+        guc_timer->setInterval(60000);
         guc_timer->start();
     }
     if (ContentGuc.stage == GucRx){
@@ -1841,6 +1842,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             radio_state = radiostateGucTx;
             qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radio_state = radiostateGucTx");
             pending_command->in_progress = false;
+            if (baddy == false)
             trans_guc = 1;
         }
     }
@@ -2893,12 +2895,13 @@ void DspController::startGucRecieving()
     gucRxStateSync = 0;
     if (ContentGuc.stage != GucTxQuit) ContentGuc.stage =  GucRx;
 
+    baddy = true;
     guc_vector.clear();
 }
 
 void DspController::GucSwichRxTxAndViewData()
 {
-    guc_timer->setInterval(GUC_TIMER_INTERVAL); // TODO: � � � � � � С•� � В·� � С�� � С•� � В¶� � � …� � С• � � С‘� � В·� � С�� � Вµ� � � …� � Вµ� � � …� � С‘� � Вµ � � С‘� � � …� ЎвЂљ� � Вµ� Ў� ‚� � � � � � В°� � В»� � В°
+    guc_timer->setInterval(2000); // TODO: � � � � � � С•� � В·� � С�� � С•� � В¶� � � …� � С• � � С‘� � В·� � С�� � Вµ� � � …� � Вµ� � � …� � С‘� � Вµ � � С‘� � � …� ЎвЂљ� � Вµ� Ў� ‚� � � � � � В°� � В»� � В°
     if (guc_vector.size() > 0)
     {
     int size = guc_vector[0][0];

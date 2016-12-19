@@ -572,6 +572,8 @@ bool modem_rx_on, modem_tx_on;
 
     bool setAsk = false;
 
+    uint8_t baddy  = 0;
+
 public:
     uint8_t getSmsCounter();
     bool getIsGucCoord();

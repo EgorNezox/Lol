@@ -1657,7 +1657,7 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     GUI_EL_Label length (&param[0], &length_geom, (char*)length_message.c_str(), (GUI_Obj *)this);
     GUI_EL_TextArea field  (&fieldParam, &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
     if (isDrawScroll) field.setVisibleScroll(true);
-    smsScrollIndex = field.SetScrollIndex(smsScrollIndex);
+    	smsScrollIndex = field.SetScrollIndex(smsScrollIndex);
 
     window.Draw();
     if (isDrawTitle) title.Draw();
@@ -1735,17 +1735,14 @@ void CGuiMenu::initTxGroupCondComm(CEndState state)
 
 void CGuiMenu::initRxSmsDialog(std::string str)
 {
-    titleArea   = {  5,   5, 150,  20 };
     MoonsGeometry button_geom;
     LabelParams param = GUI_EL_TEMP_LabelMode;
     param.element.align = {alignHCenter, alignVCenter};
     param.transparent = false;
 
     GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
-    GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)"CMC", (GUI_Obj *)this);
 
     window.Draw();
-    title.Draw();
 
     if (recvStage == 0)
     {

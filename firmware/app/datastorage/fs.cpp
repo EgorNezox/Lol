@@ -32,6 +32,8 @@ FS::FS(const std::string &dir) :
     fileTypeInfo[FT_SP].counter[FTT_TX].maxCount = 1;
 
     updateFileTree();
+
+//    deleteFile("AleDefaultCallFreqs");
 }
 
 FS::~FS()
