@@ -166,7 +166,7 @@ private:
 
     DataStorage::FS *storageFs = 0;
 
-    MoonsGeometry promptArea = {15,56,140,124};
+    MoonsGeometry promptArea = {15,62,140,124};
 
     QmTimer *systemTimeTimer;
 

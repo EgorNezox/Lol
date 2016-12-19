@@ -3620,7 +3620,7 @@ void Service::showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t mi
     std::string text =
         std::string(min) +
         std::string(schedulePromptStr) +
-        std::string(tmpParsing[fileType + 1]);
+        std::string(tmpParsing[fileType]);
 
     showMessage("",text.c_str(), promptArea);
 
@@ -3656,16 +3656,13 @@ void Service::updateSessionTimeSchedule()
             if (sessionList.size() == 0)
                 sessionList.push_back(timeSession);
             else
-                for (uint8_t sessionTime = 0; sessionTime < sessionList.size(); sessionTime++){
-                    if (timeSession.time > sessionList.at(sessionTime).time){
-                        insertIndex++;
+            {
+                for (uint8_t sessionTime = 0; sessionTime < sessionList.size(); sessionTime++, insertIndex++){
+                    if (timeSession.time < sessionList.at(sessionTime).time)
                         break;
-                    }
-                    else{
-                        sessionList.insert(sessionList.begin() + insertIndex, timeSession);
-                        break;
-                    }
                 }
+            	sessionList.insert(sessionList.begin() + insertIndex, timeSession);
+            }
         }
 
         calcNextSessionIndex();
@@ -3702,7 +3699,11 @@ void Service::onScheduleSessionTimer()
 
     uint16_t curTimeInMinutes = curTimeHour * 60 + curTimeMinute;
 
-    uint16_t deltaTime = sessionList.at(nextSessionIndex).time - curTimeInMinutes;
+    uint16_t deltaTime = 0;
+    if (nextSessionIndex == 0 && curTimeInMinutes > sessionList.at(0).time)
+    	deltaTime = 24 * 60 - curTimeInMinutes + sessionList.at(nextSessionIndex).time; // timeTo0Hour + sessionTime
+    else
+    	deltaTime = sessionList.at(nextSessionIndex).time - curTimeInMinutes;
 
     if (deltaTime < 11){
         showSchedulePrompt(sessionList.at(nextSessionIndex).type, deltaTime);

@@ -62,7 +62,7 @@ void qmMain() {
 			QmSpiffs::format(data_fs_config);
 	}
 #endif
-    QmSpiffs::mount("data", data_fs_config);
+    bool isMount = QmSpiffs::mount("data", data_fs_config);
 
  #endif
 
