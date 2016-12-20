@@ -357,6 +357,7 @@ void DspController::processSyncPulse(){
 		break;
 	}
     case radiostateGucTx:{
+    	if (ContentGuc.stage == GucRx || ContentGuc.stage == GucRxQuit) return;
     	if (trans_guc == 1){
     		sendGuc();
     		trans_guc = 0;
@@ -1842,7 +1843,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             radio_state = radiostateGucTx;
             qmDebugMessage(QmDebug::Dump, "processReceivedFrame() radio_state = radiostateGucTx");
             pending_command->in_progress = false;
-            if (baddy == false)
             trans_guc = 1;
         }
     }
@@ -2894,8 +2894,6 @@ void DspController::startGucRecieving()
     radio_state = radiostateGucRxPrepare;
     gucRxStateSync = 0;
     if (ContentGuc.stage != GucTxQuit) ContentGuc.stage =  GucRx;
-
-    baddy = true;
     guc_vector.clear();
 }
 

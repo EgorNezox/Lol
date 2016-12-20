@@ -222,8 +222,8 @@ private:
     std::vector<std::string> sheldure_data;
     bool pswf_status;
 
-    int cntSmsRx = 0;
-    int cntGucRx = 0;
+    int cntSmsRx = 1;
+    int cntGucRx = 1;
     bool isSmsMessageRec = false;
     bool failFlag;
 

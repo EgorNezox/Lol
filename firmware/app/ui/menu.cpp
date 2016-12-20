@@ -1577,15 +1577,20 @@ void CGuiMenu::inputSmsMessage(std::string *field, UI_Key key)
         if (prevKey == key && isInRepeatIntervalInput)
         {
             keyPressCount++;
-            if (keyPressCount > keyCharsCount[keyNum])
+            if (keyPressCount >= keyCharsCount[keyNum])
                 keyPressCount = 0;
             if (field->size() > 0)
                 field->pop_back();
         }
         else
             keyPressCount = 0;
+
         prevKey = key;
-        field->push_back((keyChars[keyNum][keyPressCount]));
+
+        if (field->size() == 100 && keyPressCount == 0)
+        	return;
+        char ch = (keyChars[keyNum][keyPressCount]);
+        field->push_back(ch);
     }
     isInRepeatIntervalInput = true;
     inputTimer.start();
@@ -1771,8 +1776,6 @@ void CGuiMenu::initRxCondCmdDialog()        // Прием УК
     GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)ticketStr[0], (GUI_Obj *)this);
 
     window.Draw();
-
-
 
 
     //    if (rxCondCmdStatus == 1)
