@@ -30,6 +30,8 @@
 #include "menu.h"
 #include "gui_tree.h"
 
+#define VM_PROGRESS 0
+
 /*FORWARD DECLARATIONS*/
 class GUI_Dialog_MainScr;
 class GUI_Indicator;

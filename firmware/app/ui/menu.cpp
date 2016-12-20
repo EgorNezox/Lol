@@ -812,8 +812,6 @@ void CGuiMenu::VoiceDialogClearWindow()
 //        GUI_Painter::DrawRect(45, 5, 110, 15, RDM_FILL); // clear menuitems
 //        GUI_Painter::DrawRect(150, 25, 158, 112, RDM_FILL); //clear slider
 
-
-
         toVoiceMail = true;
     }
     GUI_Painter::SetMode(DM_TRANSPARENT);
@@ -856,7 +854,6 @@ void CGuiMenu::TxVoiceDialogStatus1(int status, bool isClear)
         str = strOld;
         cst = CST_INVERSE;
     }
-
 
     GUI_Painter::DrawText(15,35,voiceFont,(char*)voiceRxTxLabelStr[0],cst);
     GUI_Painter::DrawText(55,75,voiceDigitFont,(char*)str.c_str(),cst);
@@ -1047,7 +1044,6 @@ void CGuiMenu::initRxPutOffVoiceDialogTest(int status)
             case 3: { RxVoiceDialogStatus3(argStatus[i], isClear[i]); break; }
             case 4: { RxVoiceDialogStatus4(argStatus[i], isClear[i]); break; }
             case 5: { RxVoiceDialogStatus5(argStatus[i], isClear[i]); break; }
-            default: { break; }
         }
     }
     voiceStatusOld = voiceStatusCur;

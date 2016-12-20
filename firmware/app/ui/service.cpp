@@ -2922,7 +2922,7 @@ void Service::drawMenu()
             }
 
             menu->initTxPutOffVoiceDialogTest(status);
-            //menu->initTxPutOffVoiceDialog(status);
+
             break;
         }
         case GuiWindowsSubType::txSmsMessage:
@@ -3006,7 +3006,7 @@ void Service::drawMenu()
         {
             menu->initRxCondCmdDialog();
             if (menu->recvStage == 0)
-            menu->recvStage = (++menu->recvStage) % 2;
+            	menu->recvStage = (++menu->recvStage) % 2;
             break;
         }
         case GuiWindowsSubType::recvGroupCondCmd:
@@ -3029,7 +3029,7 @@ void Service::drawMenu()
             }
 
             menu->initRxPutOffVoiceDialogTest(status);
-           // menu->initRxPutOffVoiceDialog(status);
+
             break;
         }
         case GuiWindowsSubType::gpsCoord:
@@ -3460,6 +3460,7 @@ void Service::smsMessage(int value)
 
 void Service::updateAleVmProgress(uint8_t t)
 {
+#if VM_PROGRESS
     QM_UNUSED(t);
 
     CState currentState;
@@ -3471,6 +3472,7 @@ void Service::updateAleVmProgress(uint8_t t)
         if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 5)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 2)))
             drawMenu();
     }
+#endif
 }
 
 void Service::msgBoxSms(const char *text)
