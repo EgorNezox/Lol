@@ -59,6 +59,8 @@ public:
     bool getSheldure(uint8_t *data);
     TransitionFileType getTransmitType(FS::FileType fileType, uint8_t fileTreeTypeFocus);
     bool setSheldure(uint8_t *data, uint16_t size);
+    bool getGpsSynchroMode(uint8_t *data);
+    void setGpsSynchroMode(uint8_t data);
 private:
     bool renameFile(std::string oldfileName, std::string newFileName);
     bool deleteFile(std::string fileName);

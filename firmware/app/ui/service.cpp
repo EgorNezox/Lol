@@ -47,6 +47,11 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     ginit();
     loadSheldure();
 
+    if (storageFs > 0){
+       storageFs->getGpsSynchroMode((uint8_t*)&gpsSynchronization);
+       voice_service->setVirtualMode(!gpsSynchronization);
+    }
+
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
     voice_service->smsCounterChanged.connect(sigc::mem_fun(this,&Service::onSmsCounterChange));
 
@@ -2016,21 +2021,22 @@ void Service::keyPressed(UI_Key key)
         {
             switch ( key )
             {
+            case keyEnter:
             case keyBack:
             {
                 guiTree.backvard();
                 menu->focus = 0;
+                voice_service->setVirtualMode(!gpsSynchronization);
+                if (storageFs > 0)
+                    storageFs->setGpsSynchroMode((uint8_t)gpsSynchronization);
                 break;
             }
             case keyRight:
             case keyLeft:
             {
-                gpsSynchronization = gpsSynchronization ? false : true;
-                voice_service->setVirtualMode(!gpsSynchronization);
+                gpsSynchronization = !gpsSynchronization;
                 break;
             }
-            default:
-                break;
             }
             break;
         }
