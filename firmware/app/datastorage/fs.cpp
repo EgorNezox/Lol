@@ -32,6 +32,8 @@ FS::FS(const std::string &dir) :
     fileTypeInfo[FT_SP].counter[FTT_TX].maxCount = 1;
 
     updateFileTree();
+
+//    deleteFile("AleDefaultCallFreqs");
 }
 
 FS::~FS()
@@ -71,8 +73,8 @@ bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data) {
 		return false;
 	uint32_t count = 0;
 	file.read((uint8_t *)&count, 4);
-	if (!(file_size == (4 + 4*count)))
-		return false;
+//	if (!(file_size == (4 + 4*count)))
+//		return false;
 	for (unsigned int i = 0; i < count; i++) {
 		uint32_t entry;
 		file.read((uint8_t *)&entry, 4);
@@ -195,6 +197,19 @@ void FS::setAnalogHeadsetChannel(uint8_t data) {
 		return;
 	file.write((uint8_t *)&data, 1);
 }
+
+bool FS::getGpsSynchroMode(uint8_t* data) {
+    QmFile file(dir, "GpsSynchroMode");
+    if (!file.open(QmFile::ReadOnly))
+        return false;
+    int64_t file_size = file.size();
+    if (!(file_size == 1))
+        return false;
+    file.read((uint8_t*)data, 1);
+    return true;
+}
+
+
 
 bool FS::getSheldure(uint8_t* data)
 {
@@ -357,18 +372,7 @@ void FS::setVoiceMail(std::vector<uint8_t>* data, TransitionFileType transFileTy
     }
 }
 
-bool FS::getGpsSynchroMode(uint8_t* data) {
-    data = 0;
-    QmFile file(dir, "GpsSynchroMode");
-    if (!file.open(QmFile::ReadOnly))
-        return false;
-    int64_t file_size = file.size();
-    if (!(file_size == 1))
-        return false;
-    file.read((uint8_t*)data, 1);
-	file.close();
-    return true;
-}
+
 
 void FS::setGpsSynchroMode(uint8_t data) {
     QmFile file(dir, "GpsSynchroMode");

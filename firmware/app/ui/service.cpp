@@ -47,11 +47,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     ginit();
     loadSheldure();
 
-    if (storageFs > 0){
-       storageFs->getGpsSynchroMode((uint8_t*)&gpsSynchronization);
-       voice_service->setVirtualMode(!gpsSynchronization);
-    }
-
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
     voice_service->smsCounterChanged.connect(sigc::mem_fun(this,&Service::onSmsCounterChange));
 
@@ -115,9 +110,20 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     cntSmsRx = 0;
     cntGucRx = 0;
 
+    synchModeTimer.setSingleShot(true);
+    synchModeTimer.timeout.connect(sigc::mem_fun(this, &Service::readSynchMode));
+    synchModeTimer.start(1000);
+
     draw();
 }
 
+void Service::readSynchMode()
+{
+    if (storageFs > 0){
+       storageFs->getGpsSynchroMode((uint8_t*)&gpsSynchronization);
+       voice_service->setVirtualMode(!gpsSynchronization);
+    }
+}
 
 
 void Service::setPswfStatus(bool var)
@@ -232,14 +238,14 @@ void Service::FailedSms(int stage)
     {
     case -1:
     {
-        guiTree.append(messangeWindow, callSubMenu[1], EndSms);
+       // guiTree.append(messangeWindow, callSubMenu[1], EndSms);
         msgBox( rxtxFiledSmsStr[0], EndSms);
         failFlag = true;
         break;
     }
     case 0:
     {
-        guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail1);
+      //  guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail1);
         msgBox( rxtxFiledSmsStr[0], sms_quit_fail1 );
     	//menu->initFailedSms(stage);
         failFlag = true;
@@ -247,7 +253,7 @@ void Service::FailedSms(int stage)
     }
     case 1:
     {
-        guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail2);
+      //  guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail2);
         msgBox( rxtxFiledSmsStr[0], sms_quit_fail2);
     	//menu->initFailedSms(stage);
         failFlag = true;
@@ -255,7 +261,7 @@ void Service::FailedSms(int stage)
     }
     case 3:
     {
-        guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
+     //   guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
         msgBox( rxtxFiledSmsStr[1], sms_crc_fail);
     	//menu->initFailedSms(stage);
         failFlag = true;
@@ -269,7 +275,6 @@ void Service::FailedSms(int stage)
 
 void Service::setColorScheme(uint32_t back,uint32_t front)
 {
-
          GENERAL_TEXT_COLOR =				front;
          GENERAL_FORE_COLOR =				front;
          GENERAL_BACK_COLOR =				back;
@@ -284,8 +289,6 @@ void Service::setColorScheme(uint32_t back,uint32_t front)
          BATTERY_HIGH_COLOR =				front;
          BATTERY_MID_COLOR =				front;
          BATTERY_LOW_COLOR =				front;
-
-
 }
 
 Service::~Service() {
@@ -325,7 +328,6 @@ void Service::setNotification(NotificationType type)
     }
     draw();
 }
-
 
 void Service::keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type){
     QM_UNUSED(pr_type);
@@ -1129,9 +1131,8 @@ void Service::keyPressed(UI_Key key)
                     }
                     if ( key == keyEnter )
                     {
+                    	menu->groupCondCommStage++;
 #ifndef PORT__PCSIMULATOR
-                        menu->focus = 0;
-                        menu->groupCondCommStage = 0;
                         int mas[4];
                         int i = 0;
                         const char * str;
@@ -1158,10 +1159,22 @@ void Service::keyPressed(UI_Key key)
                         guiTree.resetCurrentState();
 #endif
                     }
-
-                }
-                default:
                     break;
+                }
+                case 6:     // ...
+                {
+                	if ( key == keyBack )
+                	{
+                		menu->groupCondCommStage--;
+                	}
+                	if ( key == keyEnter )
+                	{
+                		menu->groupCondCommStage = 0;
+                		menu->focus = 0;
+                		guiTree.resetCurrentState();
+                	}
+                	break;
+                }
             }
             break;
         }
@@ -1216,8 +1229,8 @@ void Service::keyPressed(UI_Key key)
                 {
                     headset_controller->stopSmartRecord();
                 	Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
-                    if (storageFs > 0)
-                        storageFs->setVoiceMail(&message, DataStorage::FS::FTT_TX);
+//                    if (storageFs > 0)
+//                        storageFs->setVoiceMail(&message, DataStorage::FS::FTT_TX);
                     menu->putOffVoiceStatus--;
                 }
 #ifndef _DEBUG_
@@ -1483,7 +1496,7 @@ void Service::keyPressed(UI_Key key)
                 }
                 default:
                 {
-                    if ((*iter)->inputStr.size() < 100){
+                    if ((*iter)->inputStr.size() < 101){
                         menu->inputSmsMessage( &(*iter)->inputStr, key );
                         menu->smsScrollIndex++;
                     }
@@ -1639,16 +1652,14 @@ void Service::keyPressed(UI_Key key)
         	{
         		guiTree.backvard();
         		menu->focus = 0;
-                menu->smsTxStage = 1;
         	}
         	if ( key == keyEnter)
         	{
-            	++cntSmsRx;
+               ++cntSmsRx;
 
         	  if (cntSmsRx == 1)
         	  {
         		menu->initRxSmsDialog(startStr);
-        		menu->focus_line  = 1;
         		isSmsMessageRec = false;
         	  }
         	  if (cntSmsRx == 2)
@@ -1663,7 +1674,6 @@ void Service::keyPressed(UI_Key key)
         	  {
                   //smsMessage(13);
                   guiTree.resetCurrentState();
-                  menu->focus_line = 1;
                   isSmsMessageRec = false;
                   menu->smsStage = 0;
                   cntSmsRx = 0;
@@ -1673,8 +1683,6 @@ void Service::keyPressed(UI_Key key)
 
         	if ( key == keyUp)
         	{
-        		if (menu->focus_line > 1) --menu->focus_line;
-
                 if (menu->smsScrollIndex > 0)
                     menu->smsScrollIndex--;
 
@@ -1687,8 +1695,6 @@ void Service::keyPressed(UI_Key key)
         	}
         	if ( key == keyDown)
         	{
-        		++menu->focus_line;
-
                 menu->smsScrollIndex++;
 
         		if (cntSmsRx >= 2 && isSmsMessageRec == true)
@@ -2021,8 +2027,8 @@ void Service::keyPressed(UI_Key key)
         {
             switch ( key )
             {
-            case keyBack:
             case keyEnter:
+            case keyBack:
             {
                 guiTree.backvard();
                 menu->focus = 0;
@@ -2034,11 +2040,9 @@ void Service::keyPressed(UI_Key key)
             case keyRight:
             case keyLeft:
             {
-                gpsSynchronization = gpsSynchronization ? false : true;
+                gpsSynchronization = !gpsSynchronization;
                 break;
             }
-            default:
-                break;
             }
             break;
         }
@@ -2724,15 +2728,12 @@ void Service::redrawMessage( const char* title,const  char* message)
 
 void Service::FirstPacketPSWFRecieved(int packet)
 {
-    if ( packet >= 0 && packet < 100 )
+     if ( packet >= 0 && packet < 100 )
     {
 //    	guiTree.resetCurrentState();
 //    	drawMainWindow();
         char sym[3];
         sprintf(sym,"%d",packet);
-
-        guiTree.append(messangeWindow, "Принятый пакет ", sym);
-        msgBox( recPacket, (int)packet );
 
         if (storageFs > 0){
 
@@ -2745,15 +2746,18 @@ void Service::FirstPacketPSWFRecieved(int packet)
 
             storageFs->setCondCommand(&condMsg, DataStorage::FS::FTT_RX);
         }
+
+         //guiTree.append(messangeWindow, "Принятый пакет ", sym);
+         msgBox( recPacket, (int)packet );
     }
     else if ( packet > 99)
     {
-        guiTree.append(messangeWindow, "Принятый пакет:\n\tОшибка\t");
+        //guiTree.append(messangeWindow, "Принятый пакет:\n\tОшибка\t");
         msgBox( rxCondErrorStr[0] );
     }
     else
     {
-        guiTree.append(messangeWindow, "Принятый пакет:\n\tНеизвестная\n\tошибка\t");
+       // guiTree.append(messangeWindow, "Принятый пакет:\n\tНеизвестная\n\tошибка\t");
         msgBox( rxCondErrorStr[1] );
     }
 }
@@ -2789,7 +2793,9 @@ void Service::msgBox(const char *title, const int condCmd)
     if(msg_box == nullptr)
     {
         msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, align007);
+
     }
+    msg_box->setCmd(condCmd);
     msg_box->Draw();
 }
 
@@ -2928,7 +2934,7 @@ void Service::drawMenu()
             }
 
             menu->initTxPutOffVoiceDialogTest(status);
-            //menu->initTxPutOffVoiceDialog(status);
+
             break;
         }
         case GuiWindowsSubType::txSmsMessage:
@@ -3012,7 +3018,7 @@ void Service::drawMenu()
         {
             menu->initRxCondCmdDialog();
             if (menu->recvStage == 0)
-            menu->recvStage = (++menu->recvStage) % 2;
+            	menu->recvStage = (++menu->recvStage) % 2;
             break;
         }
         case GuiWindowsSubType::recvGroupCondCmd:
@@ -3035,7 +3041,7 @@ void Service::drawMenu()
             }
 
             menu->initRxPutOffVoiceDialogTest(status);
-           // menu->initRxPutOffVoiceDialog(status);
+
             break;
         }
         case GuiWindowsSubType::gpsCoord:
@@ -3105,11 +3111,11 @@ void Service::drawMenu()
             }
 
             if (currentSpeed != Multiradio::voice_channel_speed_t::voicespeedInvalid && !f_error)
-            {   str.push_back('\n'); str.append(" ").append(speed_bit); }
+            {  str.append(" ").append(speed_bit); }
 
             str.push_back('\0');
 
-            menu->initSetSpeedDialog();
+            menu->initSetSpeedDialog(str);
             break;
         }
         case GuiWindowsSubType::scan:
@@ -3374,8 +3380,6 @@ void Service::gucFrame(int value)
         sprintf(ch, "%d", vect[position]);
         ch[2] = '\0';
 
-        guiTree.append(messangeWindow, sym, ch);
-        msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
         if (storageFs > 0)
         {
         	uint16_t len = size * 3;
@@ -3394,6 +3398,12 @@ void Service::gucFrame(int value)
                 memcpy(&cmdv[len], &coords[0], 26);
             storageFs->setGroupCondCommand((uint8_t*)&cmdv, fullSize, DataStorage::FS::FTT_RX);
         }
+        guiTree.append(messangeWindow, sym, ch);
+        if (isCoord)
+        	msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
+        else
+        	msgBox( titleGuc, vect[position], size, position);
+
     }
     cntGucRx = 1;
 
@@ -3445,6 +3455,9 @@ void Service::smsMessage(int value)
     sym[value] = 0;
     sym[value + 1] = 0;
 
+    if (storageFs > 0)
+        storageFs->setSms((uint8_t*)&sym[0], value, DataStorage::FS::FTT_RX);
+
     const char *text;
     text = &sym[0];
 
@@ -3455,12 +3468,11 @@ void Service::smsMessage(int value)
     menu->smsTxStage = 4;
     menu->initTxSmsDialog(title,text_str);
 
-    if (storageFs > 0)
-        storageFs->setSms((uint8_t*)&sym[0], value, DataStorage::FS::FTT_RX);
 }
 
 void Service::updateAleVmProgress(uint8_t t)
 {
+#if VM_PROGRESS
     QM_UNUSED(t);
 
     CState currentState;
@@ -3472,6 +3484,7 @@ void Service::updateAleVmProgress(uint8_t t)
         if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 5)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 2)))
             drawMenu();
     }
+#endif
 }
 
 void Service::msgBoxSms(const char *text)
@@ -3591,7 +3604,7 @@ std::vector<uint8_t>* Service::onLoadMessage(DataStorage::FS::FileType typeF, Da
 
 void Service::showMessage(const char *title, const char *text)
 {
-    MoonsGeometry area = {15,20,140,95};
+    MoonsGeometry area = {15,62,140,125};
     GUI_Dialog_MsgBox::showMessage(&area, true, title, text);
 }
 
@@ -3813,12 +3826,14 @@ void Service::msgGucTXQuit(int ans)
     	char a[3]; a[2] = '\0';
     	sprintf(a,"%d",ans);
         msgBox( gucQuitTextOk, ans);
-        guiTree.append(messangeWindow, a, "QUIT\0");
+       //guiTree.append(messangeWindow, a, "QUIT\0");
+        guiTree.resetCurrentState();
     }
     else
     {
         msgBox( "Guc", gucQuitTextFail);
-        guiTree.append(messangeWindow, gucQuitTextFail, "QUIT\0");
+        //guiTree.append(messangeWindow, gucQuitTextFail, "QUIT\0");
+        guiTree.resetCurrentState();
     }
 }
 

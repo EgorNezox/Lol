@@ -198,7 +198,8 @@ void GUI_Dialog_MsgBox::DrawWithCoord(uint8_t* coord){
   window.Draw();
   title_area.Draw();
   text_area.Draw();
-  coord_area.Draw();
+  if (coord != 0)
+    coord_area.Draw();
   slider.Draw();
   ok_button.Draw();
 }

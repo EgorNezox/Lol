@@ -30,7 +30,7 @@
 #define hw_rtc                      1
 #define DefkeyValue 631
 
-#define GUC_TIMER_INTERVAL 5000
+#define GUC_TIMER_INTERVAL 3000
 #define GUC_TIMER_INTERVAL_REC 30000
 
 #define VIRTUAL_TIME 120
@@ -1637,6 +1637,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 
 void DspController::sendGuc()
 {
+
     qmDebugMessage(QmDebug::Dump, "sendGuc()");
 
     uint8_t tx_address = 0x7A;
@@ -2783,7 +2784,6 @@ void DspController::startGucRecieving()
     radio_state = radiostateGucRxPrepare;
     gucRxStateSync = 0;
     if (ContentGuc.stage != GucTxQuit) ContentGuc.stage =  GucRx;
-
     guc_vector.clear();
 }
 

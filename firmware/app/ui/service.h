@@ -30,6 +30,8 @@
 #include "menu.h"
 #include "gui_tree.h"
 
+#define VM_PROGRESS 0
+
 /*FORWARD DECLARATIONS*/
 class GUI_Dialog_MainScr;
 class GUI_Indicator;
@@ -202,6 +204,7 @@ private:
 
     void FailedSms(int stage);
 
+    void readSynchMode();
     // gps coordinate
     std::string coord_lat;
     std::string coord_log;
@@ -225,8 +228,8 @@ private:
     std::vector<std::string> sheldure_data;
     bool pswf_status;
 
-    int cntSmsRx = 0;
-    int cntGucRx = 0;
+    int cntSmsRx = 1;
+    int cntGucRx = 1;
     bool isSmsMessageRec = false;
     bool failFlag;
 
@@ -252,6 +255,8 @@ private:
     std::string schedulePromptText = "";
     bool isShowSchedulePrompt = false;
     bool setAsk = false;
+
+    QmTimer synchModeTimer;
 
 };
 
