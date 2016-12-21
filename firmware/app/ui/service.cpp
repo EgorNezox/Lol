@@ -1229,8 +1229,8 @@ void Service::keyPressed(UI_Key key)
                 {
                     headset_controller->stopSmartRecord();
                 	Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
-                    if (storageFs > 0)
-                        storageFs->setVoiceMail(&message, DataStorage::FS::FTT_TX);
+//                    if (storageFs > 0)
+//                        storageFs->setVoiceMail(&message, DataStorage::FS::FTT_TX);
                     menu->putOffVoiceStatus--;
                 }
 #ifndef _DEBUG_
@@ -1652,16 +1652,14 @@ void Service::keyPressed(UI_Key key)
         	{
         		guiTree.backvard();
         		menu->focus = 0;
-                menu->smsTxStage = 1;
         	}
         	if ( key == keyEnter)
         	{
-            	++cntSmsRx;
+               ++cntSmsRx;
 
         	  if (cntSmsRx == 1)
         	  {
         		menu->initRxSmsDialog(startStr);
-        		menu->focus_line  = 1;
         		isSmsMessageRec = false;
         	  }
         	  if (cntSmsRx == 2)
@@ -1676,18 +1674,15 @@ void Service::keyPressed(UI_Key key)
         	  {
                   //smsMessage(13);
                   guiTree.resetCurrentState();
-                  menu->focus_line = 1;
                   isSmsMessageRec = false;
                   menu->smsStage = 0;
-                  cntSmsRx = 1;
+                  cntSmsRx = 0;
                   menu->smsTxStage = 1;
         	  }
         	}
 
         	if ( key == keyUp)
         	{
-        		if (menu->focus_line > 1) --menu->focus_line;
-
                 if (menu->smsScrollIndex > 0)
                     menu->smsScrollIndex--;
 
@@ -1700,8 +1695,6 @@ void Service::keyPressed(UI_Key key)
         	}
         	if ( key == keyDown)
         	{
-        		++menu->focus_line;
-
                 menu->smsScrollIndex++;
 
         		if (cntSmsRx >= 2 && isSmsMessageRec == true)
@@ -2738,7 +2731,7 @@ void Service::redrawMessage( const char* title,const  char* message)
 
 void Service::FirstPacketPSWFRecieved(int packet)
 {
-    if ( packet >= 0 && packet < 100 )
+     if ( packet >= 0 && packet < 100 )
     {
 //    	guiTree.resetCurrentState();
 //    	drawMainWindow();
@@ -2803,7 +2796,9 @@ void Service::msgBox(const char *title, const int condCmd)
     if(msg_box == nullptr)
     {
         msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, align007);
+
     }
+    msg_box->setCmd(condCmd);
     msg_box->Draw();
 }
 
@@ -3829,12 +3824,14 @@ void Service::msgGucTXQuit(int ans)
     	char a[3]; a[2] = '\0';
     	sprintf(a,"%d",ans);
         msgBox( gucQuitTextOk, ans);
-        guiTree.append(messangeWindow, a, "QUIT\0");
+       //guiTree.append(messangeWindow, a, "QUIT\0");
+        guiTree.resetCurrentState();
     }
     else
     {
         msgBox( "Guc", gucQuitTextFail);
-        guiTree.append(messangeWindow, gucQuitTextFail, "QUIT\0");
+        //guiTree.append(messangeWindow, gucQuitTextFail, "QUIT\0");
+        guiTree.resetCurrentState();
     }
 }
 

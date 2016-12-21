@@ -72,8 +72,8 @@ bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data) {
 		return false;
 	uint32_t count = 0;
 	file.read((uint8_t *)&count, 4);
-	if (!(file_size == (4 + 4*count)))
-		return false;
+//	if (!(file_size == (4 + 4*count)))
+//		return false;
 	for (unsigned int i = 0; i < count; i++) {
 		uint32_t entry;
 		file.read((uint8_t *)&entry, 4);
