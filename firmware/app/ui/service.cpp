@@ -47,11 +47,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     ginit();
     loadSheldure();
 
-    if (storageFs > 0){
-       storageFs->getGpsSynchroMode((uint8_t*)&gpsSynchronization);
-       voice_service->setVirtualMode(!gpsSynchronization);
-    }
-
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
     voice_service->smsCounterChanged.connect(sigc::mem_fun(this,&Service::onSmsCounterChange));
 
@@ -115,9 +110,20 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     cntSmsRx = 0;
     cntGucRx = 0;
 
+    synchModeTimer.setSingleShot(true);
+    synchModeTimer.timeout.connect(sigc::mem_fun(this, &Service::readSynchMode));
+    synchModeTimer.start(1000);
+
     draw();
 }
 
+void Service::readSynchMode()
+{
+    if (storageFs > 0){
+       storageFs->getGpsSynchroMode((uint8_t*)&gpsSynchronization);
+       voice_service->setVirtualMode(!gpsSynchronization);
+    }
+}
 
 
 void Service::setPswfStatus(bool var)
@@ -232,14 +238,14 @@ void Service::FailedSms(int stage)
     {
     case -1:
     {
-        guiTree.append(messangeWindow, callSubMenu[1], EndSms);
+       // guiTree.append(messangeWindow, callSubMenu[1], EndSms);
         msgBox( rxtxFiledSmsStr[0], EndSms);
         failFlag = true;
         break;
     }
     case 0:
     {
-        guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail1);
+      //  guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail1);
         msgBox( rxtxFiledSmsStr[0], sms_quit_fail1 );
     	//menu->initFailedSms(stage);
         failFlag = true;
@@ -247,7 +253,7 @@ void Service::FailedSms(int stage)
     }
     case 1:
     {
-        guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail2);
+      //  guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail2);
         msgBox( rxtxFiledSmsStr[0], sms_quit_fail2);
     	//menu->initFailedSms(stage);
         failFlag = true;
@@ -255,7 +261,7 @@ void Service::FailedSms(int stage)
     }
     case 3:
     {
-        guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
+     //   guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
         msgBox( rxtxFiledSmsStr[1], sms_crc_fail);
     	//menu->initFailedSms(stage);
         failFlag = true;
@@ -269,7 +275,6 @@ void Service::FailedSms(int stage)
 
 void Service::setColorScheme(uint32_t back,uint32_t front)
 {
-
          GENERAL_TEXT_COLOR =				front;
          GENERAL_FORE_COLOR =				front;
          GENERAL_BACK_COLOR =				back;
@@ -284,8 +289,6 @@ void Service::setColorScheme(uint32_t back,uint32_t front)
          BATTERY_HIGH_COLOR =				front;
          BATTERY_MID_COLOR =				front;
          BATTERY_LOW_COLOR =				front;
-
-
 }
 
 Service::~Service() {
@@ -325,7 +328,6 @@ void Service::setNotification(NotificationType type)
     }
     draw();
 }
-
 
 void Service::keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type){
     QM_UNUSED(pr_type);
@@ -1129,9 +1131,8 @@ void Service::keyPressed(UI_Key key)
                     }
                     if ( key == keyEnter )
                     {
+                    	menu->groupCondCommStage++;
 #ifndef PORT__PCSIMULATOR
-                        menu->focus = 0;
-                        menu->groupCondCommStage = 0;
                         int mas[4];
                         int i = 0;
                         const char * str;
@@ -1158,10 +1159,22 @@ void Service::keyPressed(UI_Key key)
                         guiTree.resetCurrentState();
 #endif
                     }
-
-                }
-                default:
                     break;
+                }
+                case 6:     // ...
+                {
+                	if ( key == keyBack )
+                	{
+                		menu->groupCondCommStage--;
+                	}
+                	if ( key == keyEnter )
+                	{
+                		menu->groupCondCommStage = 0;
+                		menu->focus = 0;
+                		guiTree.resetCurrentState();
+                	}
+                	break;
+                }
             }
             break;
         }
@@ -3105,11 +3118,11 @@ void Service::drawMenu()
             }
 
             if (currentSpeed != Multiradio::voice_channel_speed_t::voicespeedInvalid && !f_error)
-            {   str.push_back('\n'); str.append(" ").append(speed_bit); }
+            {  str.append(" ").append(speed_bit); }
 
             str.push_back('\0');
 
-            menu->initSetSpeedDialog();
+            menu->initSetSpeedDialog(str);
             break;
         }
         case GuiWindowsSubType::scan:

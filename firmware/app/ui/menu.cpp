@@ -611,9 +611,9 @@ void CGuiMenu::initSetParametersDialog(std::string text)
     volume.Draw();
 }
 
-void CGuiMenu::initSetSpeedDialog()
+void CGuiMenu::initSetSpeedDialog(std::string text)
 {
-    MoonsGeometry spbox_geom  = {  5,  45,  160,  95 };
+    MoonsGeometry volume_geom  = {  5,  45,  160,  95 };
     LabelParams label_param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
 
     titleArea = { 5, 10, 160, 35};
@@ -626,21 +626,21 @@ void CGuiMenu::initSetSpeedDialog()
     GUI_EL_Window   window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
     GUI_EL_Label    title (&label_param[0],            &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
 
-    SpBoxParams spbox_params = GUI_EL_TEMP_CommonSpBox;
+//    SpBoxParams spbox_params = GUI_EL_TEMP_CommonSpBox;
+//
+//    SpBoxSettings spbox_settings;
+//
+//                  spbox_settings.value = 600;
+//                  spbox_settings.min = 600;
+//                  spbox_settings.max = 4800;
+//                  spbox_settings.step = 600;
+//                  spbox_settings.spbox_len = 4;
+//                  spbox_settings.cyclic = false;
 
-    SpBoxSettings spbox_settings;
-
-                  spbox_settings.value = 600;
-                  spbox_settings.min = 600;
-                  spbox_settings.max = 4800;
-                  spbox_settings.step = 600;
-                  spbox_settings.spbox_len = 4;
-                  spbox_settings.cyclic = false;
-
-    GUI_EL_SpinBox  volume(&spbox_geom, &spbox_params, &spbox_settings, (GUI_Obj*)this);
-    volume.lab_params->font = GUI_EL_TEMP_LabelMode.font;
-    volume.SetActiveness(true);
-    //GUI_EL_TextArea volume(&label_param[1],            &volume_geom, (char*)text.c_str(),     (GUI_Obj *)this);
+  //  GUI_EL_SpinBox  volume(&spbox_geom, &spbox_params, &spbox_settings, (GUI_Obj*)this);
+  //  volume.lab_params->font = GUI_EL_TEMP_LabelMode.font;
+  //  volume.SetActiveness(true);
+    GUI_EL_Label volume(&label_param[1],  &volume_geom, (char*)text.c_str(), (GUI_Obj *)this);
 
     window.Draw();
     title.Draw();
@@ -1864,16 +1864,19 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
             valueStr.append("--\0");
         break;
     }
-    case 5: // print report
+    case 5: // start
     {
         labelStr.append("\0");
 
-//        if (useCoordinatel)
-//            valueStr.append("OK");
-//        else
-//            valueStr.append("ERROR");
-
         valueStr.append(StartGucTx);
+
+        break;
+    }
+    case 6: // transmit
+    {
+        labelStr.append("\0");
+
+        valueStr.append(StartCmd);
 
         break;
     }
@@ -1905,7 +1908,7 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
     GUI_EL_TextArea cmdText(&textParams, &textGeom, (char*)valueStr.c_str(), (GUI_Obj*)this);
 
     window.Draw();
-    if (groupCondCommStage != 5)
+    if (groupCondCommStage != 5 && groupCondCommStage != 6)
     title.Draw();
     label.Draw();
 

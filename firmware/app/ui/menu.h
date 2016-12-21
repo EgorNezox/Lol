@@ -1,4 +1,4 @@
- #ifndef MENU
+#ifndef MENU
 #define MENU
 
 #include <stdint.h>
@@ -74,7 +74,7 @@ public:
     void initGpsCoordinateDialog(char*, char*);
     void initSetParametersDialog(std::string);
     void initSetDateOrTimeDialog(std::string);
-    void initSetSpeedDialog();
+    void initSetSpeedDialog(std::string text);
     void initSelectVoiceModeParameters(bool);
     void initSelectChEmissTypeParameters(bool);
     void initFailedSms(int stage);
@@ -196,8 +196,6 @@ public:
     uint16_t textAreaScrollIndex;
     uint16_t filesScrollIndex;
 
-
-
     //
     bool useMode = false;
     bool ch_emiss_type = false;
@@ -273,7 +271,6 @@ private:
     bool isInRepeatIntervalInput = false;
 
 };
-
 
 #endif // MENU
 

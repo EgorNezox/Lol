@@ -190,7 +190,6 @@ void FS::setAnalogHeadsetChannel(uint8_t data) {
 }
 
 bool FS::getGpsSynchroMode(uint8_t* data) {
-    data = 0;
     QmFile file(dir, "GpsSynchroMode");
     if (!file.open(QmFile::ReadOnly))
         return false;

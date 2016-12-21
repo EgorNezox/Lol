@@ -201,6 +201,7 @@ private:
 
     void FailedSms(int stage);
 
+    void readSynchMode();
     // gps coordinate
     std::string coord_lat;
     std::string coord_log;
@@ -251,6 +252,8 @@ private:
     std::string schedulePromptText = "";
     bool isShowSchedulePrompt = false;
     bool setAsk = false;
+
+    QmTimer synchModeTimer;
 
 };
 
