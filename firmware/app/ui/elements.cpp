@@ -255,7 +255,7 @@ void GUI_EL_TextArea::SetText(char *text){
             this->text = new char[len + 1];
             strncpy(this->text, text, len + 1);
         }
-        //CalcContentGeom();
+        CalcContentGeom();
     }
 }
 
@@ -475,7 +475,7 @@ void GUI_EL_TextArea::SetInputFocus(bool isFocus)
 void GUI_EL_TextArea::setVisibleScroll(bool isVisible)
 {
     isVisibleScroll = isVisible;
-    //PrepareContent();
+    PrepareContent();
 }
 
 

@@ -84,6 +84,7 @@ public:
     sigc::signal<void> gucCrcFailed;
     sigc::signal<void> gucCoord;
     sigc::signal<void,int> smsCounterChanged;
+    sigc::signal<void> startRxQuitSignal;
 
     sigc::signal<void, int> command_tx30;   // Передача УК  пакеты
     void TxCondCmdTransmit(int value);
@@ -93,6 +94,8 @@ public:
 
     void setVirtualDate(std::string s);
     void setVirtualTime(std::string s);
+
+    void startRxQuit();
 
     bool getIsGucCoord();
 

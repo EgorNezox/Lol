@@ -190,6 +190,7 @@ public:
     sigc::signal<void> gucCrcFailed;                 // ������ crc-�����
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> hardwareFailed;
     sigc::signal<void,int> smsCounterChanged;
+    sigc::signal<void> startRxQuit;
 
     sigc::signal<void, int/*command_tx30*/> TxCondCmdPackageTransmit;   // �������� ��  ������
 

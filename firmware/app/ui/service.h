@@ -149,7 +149,6 @@ private:
     void msgBox(const char*, const int);
     void msgBox(const char*, const int, const int, const int, uint8_t*);
     void msgBoxSms(const char *text);
-    void redrawMessage(const char *title,const char *message);
 
     matrix_keyboard_t matrix_kb;
     aux_keyboard_t aux_kb;
@@ -166,6 +165,8 @@ private:
     GUI_Indicator       *indicator;
     GUI_Dialog_MsgBox   *msg_box;
 
+    int condCmdValue = 0 ;
+    bool isDrawCondCmd = false;
     DataStorage::FS *storageFs = 0;
 
     MoonsGeometry promptArea = {15,62,140,124};
@@ -203,6 +204,7 @@ private:
     void msgGucTXQuit(int ans);
 
     void FailedSms(int stage);
+    void startRxQuit();
 
     void readSynchMode();
     // gps coordinate

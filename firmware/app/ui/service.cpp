@@ -93,6 +93,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->messageGucTxQuit.connect(sigc::mem_fun(this, &Service::msgGucTXQuit));
     voice_service->gucCrcFailed.connect(sigc::mem_fun(this,&Service::errorGucCrc));
     voice_service->gucCoord.connect(sigc::mem_fun(this,&Service::GucCoord));
+    voice_service->startRxQuitSignal.connect(sigc::mem_fun(this, &Service::startRxQuit));
 
     pswf_status = false;
  #if defined (PORT__TARGET_DEVICE_REV1)
@@ -125,6 +126,13 @@ void Service::readSynchMode()
     }
 }
 
+void Service::startRxQuit()
+{
+	menu->groupCondCommStage = 0;
+	menu->focus = 0;
+	guiTree.resetCurrentState();
+	draw();
+}
 
 void Service::setPswfStatus(bool var)
 {
@@ -134,7 +142,7 @@ void Service::setPswfStatus(bool var)
 void Service::showAtuMalfunction()
 {
     msgBox(atumalfunction_title_str, atumalfunction_text_str);
-    guiTree.append(messangeWindow, atumalfunction_title_str, atumalfunction_text_str);
+   // guiTree.append(messangeWindow, atumalfunction_title_str, atumalfunction_text_str);
 }
 
 void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)
@@ -150,13 +158,13 @@ void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)
 		text = text_buffer;
 	}
 	msgBox(title.c_str(), text.c_str());
-	guiTree.append(messangeWindow, title.c_str(), text.c_str());
+	//guiTree.append(messangeWindow, title.c_str(), text.c_str());
 }
 
 void Service::errorGucCrc()
 {
     msgBox( "Error ", "Crc error\0");
-    guiTree.append(messangeWindow, errorCrcGuc, "0\0");
+    //guiTree.append(messangeWindow, errorCrcGuc, "0\0");
 }
 
 void Service::GucCoord(){
@@ -227,7 +235,7 @@ void Service::updateBattery(int new_val)
 
 void Service::drawIndicator()
 {
-        if ( guiTree.getCurrentState().getType() == mainWindow )
+        if ( guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr)
             indicator->Draw();
 }
 
@@ -312,15 +320,15 @@ void Service::setNotification(NotificationType type)
     {
     case NotificationMissingVoiceChannelsTable:
         msgBox(missing_ch_table_txt[getLanguage()]);
-    	guiTree.append(messangeWindow, missing_ch_table_txt[getLanguage()]);
+    	//guiTree.append(messangeWindow, missing_ch_table_txt[getLanguage()]);
         break;
     case NotificationMissingOpenVoiceChannels:
         msgBox(missing_open_ch_txt[getLanguage()]);
-        guiTree.append(messangeWindow, missing_open_ch_txt[getLanguage()]);
+        //guiTree.append(messangeWindow, missing_open_ch_txt[getLanguage()]);
         break;
     case NotificationMismatchVoiceChannelsTable:
         msgBox(ch_table_mismatch_txt[getLanguage()]);
-        guiTree.append(messangeWindow, ch_table_mismatch_txt[getLanguage()]);
+        //guiTree.append(messangeWindow, ch_table_mismatch_txt[getLanguage()]);
         break;
     default:
         QM_ASSERT(0);
@@ -583,6 +591,7 @@ void Service::keyPressed(UI_Key key)
         {
             if (vect != nullptr)
             {
+            	if (position == 0) position = 1;
                 if (key == keyUp && position > 1)
                 { position--; }
                 if (key == keyDown && position < vect[0])
@@ -1098,7 +1107,7 @@ void Service::keyPressed(UI_Key key)
                     }
                     if ( key == keyUp )
                     {
-                        if(menu->cmdScrollIndex) menu->cmdScrollIndex--;
+                        if(menu->cmdScrollIndex > 0) menu->cmdScrollIndex--;
                     }
 
                     if ( key == keyDown )
@@ -1631,17 +1640,10 @@ void Service::keyPressed(UI_Key key)
                     guiTree.resetCurrentState();
 #else
                     failFlag = false;
-                        voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
-                        // параметр ответа определяется по получению кадра на адрес 0x63
-                        // в первой стадии вызова
-                        // if (ContentSms.R_ADR > 32) pswf_ack = true;
-                        //redrawMessage(callSubMenu[0],EndCmd);
+                    voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
 
 #endif
-                    //                    menu->rxCondCmdStatus = 1;
                 }
-                //                else
-                //                {}
             }
             break;
         }
@@ -2719,13 +2721,6 @@ void Service::onSmsCounterChange(int param)
     menu->smsTxStage = 1;
 }
 
-void Service::redrawMessage( const char* title,const  char* message)
-{
-    guiTree.resetCurrentState();
-    guiTree.append(messangeWindow,title,message);
-    msgBox(title,message);
-}
-
 void Service::FirstPacketPSWFRecieved(int packet)
 {
      if ( packet >= 0 && packet < 100 )
@@ -2748,6 +2743,8 @@ void Service::FirstPacketPSWFRecieved(int packet)
         }
 
          //guiTree.append(messangeWindow, "Принятый пакет ", sym);
+         condCmdValue = packet;
+         isDrawCondCmd = true;
          msgBox( recPacket, (int)packet );
     }
     else if ( packet > 99)
@@ -2766,10 +2763,17 @@ void Service::msgBox(const char *title)
 {
     Alignment align007 = {alignHCenter,alignTop};
     MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+
+    if (msg_box != nullptr)
+    {
+        delete msg_box;
+        msg_box = nullptr;
+    }
     if(msg_box == nullptr)
     {
         msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, align007);
     }
+    guiTree.append(messangeWindow, "");
     msg_box->Draw();
 }
 
@@ -2778,10 +2782,16 @@ void Service::msgBox(const char *title, const char *text)
     Alignment align007 = {alignHCenter,alignTop};
     MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
 
+    if (msg_box != nullptr)
+    {
+        delete msg_box;
+        msg_box = nullptr;
+    }
     if(msg_box == nullptr)
     {
         msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (char*)text, align007);
     }
+    guiTree.append(messangeWindow, "");
     msg_box->Draw();
 }
 
@@ -2790,13 +2800,20 @@ void Service::msgBox(const char *title, const int condCmd)
     Alignment align007 = {alignHCenter,alignTop};
     MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
 
+    if (msg_box != nullptr)
+    {
+        delete msg_box;
+        msg_box = nullptr;
+    }
     if(msg_box == nullptr)
     {
         msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, align007);
 
     }
+    guiTree.append(messangeWindow, "");
     msg_box->setCmd(condCmd);
     msg_box->Draw();
+    isDrawCondCmd = false;
 }
 
 
@@ -2805,6 +2822,11 @@ void Service::msgBox(const char *title, const int condCmd, const int size, const
     Alignment align007 = {alignHCenter,alignTop};
     MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
 
+    if (msg_box != nullptr)
+    {
+        delete msg_box;
+        msg_box = nullptr;
+    }
     if(msg_box == nullptr)
     {
         msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, (int) size, (int) pos, align007);
@@ -2815,6 +2837,7 @@ void Service::msgBox(const char *title, const int condCmd, const int size, const
         msg_box->position = pos;
     }
     //msg_box->Draws();
+    guiTree.append(messangeWindow, "");
     msg_box->DrawWithCoord(coord);
 }
 
@@ -3192,17 +3215,11 @@ void Service::draw()
     }
     case messangeWindow:
     {
-        int cmd = atoi(currentState.getText());
         if (vect != nullptr)
             msgBox(currentState.getName(), vect[position], vect[0], position);
-        else
-            if ( cmd >= 0 && cmd < 100)
-                if (vect != nullptr)
-                    msgBox(currentState.getName(), vect[position], vect[0], position);
-                else
-                    msgBox( currentState.getName(), cmd );
-            else
-                msgBox( currentState.getName(), currentState.getText() );
+        if ( condCmdValue >= 0 && condCmdValue < 100 && isDrawCondCmd)
+            msgBox( currentState.getName(), condCmdValue);
+
         break;
     }
     case menuWindow:
@@ -3336,7 +3353,7 @@ void Service::gucFrame(int value)
    memcpy(&coords[0], &gucText[24], 25);
    coords[25] = 0;
 
-   guiTree.append(messangeWindow, sym, ch);
+  // guiTree.append(messangeWindow, sym, ch);
    msgBox( titleGuc, gucCommands[position], size, position, (uint8_t*)&coords );
    if (storageFs > 0)
    {
@@ -3398,7 +3415,7 @@ void Service::gucFrame(int value)
                 memcpy(&cmdv[len], &coords[0], 26);
             storageFs->setGroupCondCommand((uint8_t*)&cmdv, fullSize, DataStorage::FS::FTT_RX);
         }
-        guiTree.append(messangeWindow, sym, ch);
+        //guiTree.append(messangeWindow, sym, ch);
         if (isCoord)
         	msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
         else

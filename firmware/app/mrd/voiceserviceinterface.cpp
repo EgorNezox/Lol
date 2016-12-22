@@ -35,11 +35,17 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     dispatcher->dsp_controller->smsCounterChanged.connect(sigc::mem_fun(this,&VoiceServiceInterface::onSmsCounterChange));
 
     dispatcher->dsp_controller->TxCondCmdPackageTransmit.connect(sigc::mem_fun(this,&VoiceServiceInterface::TxCondCmdTransmit));
+    dispatcher->dsp_controller->startRxQuit.connect(sigc::mem_fun(this,&VoiceServiceInterface::startRxQuit));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
 {
 
+}
+
+void VoiceServiceInterface::startRxQuit()
+{
+	startRxQuitSignal();
 }
 
 void VoiceServiceInterface::messageGucQuit(int ans){

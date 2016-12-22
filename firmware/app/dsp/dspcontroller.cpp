@@ -1888,6 +1888,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         	{
         		startGucRecieving();
         		ContentGuc.stage = GucTx;
+        		startRxQuit();
         	}
         }
         break;
