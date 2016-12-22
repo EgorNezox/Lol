@@ -166,7 +166,9 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     for(int i = 0;i<255;i++) rs_data_clear[i] = 1;
 
     data_storage_fs->getAleStationAddress(ContentSms.S_ADR);
-    data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
+    ContentGuc.S_ADR = ContentSms.S_ADR;
+    ContentPSWF.S_ADR = ContentSms.S_ADR;
+    //data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
     QNB = 0;
     pswf_rec = 0;
 
@@ -250,6 +252,15 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 	current_radio_frequency = frequency;
 	if (processing_required)
 		processRadioState();
+}
+
+
+void DspController::powerControlAsk()
+{
+	// вольт * 10
+	/*ParameterValue command;
+	ind = 2, param = 10,
+	sendCommandEasy(TxRadioMode,)*/
 }
 
 void DspController::setRadioOperation(RadioOperation operation) {
@@ -525,12 +536,14 @@ void DspController::addSeconds(QmRtc::Time *t) {
 void DspController::LogicPswfTx()
 {
 	++command_tx30;
-    if ((command_tx30 > 0) && (command_tx30 % 3 == 0) && (setAsk == false))
+
+    if ((command_tx30 % 3 == 0) && (setAsk == false))
     TxCondCmdPackageTransmit(command_tx30);
-	if (command_tx30 <= 30)
+
+	if (command_tx30 <= 31)
 		sendPswf();
 
-	if (command_tx30 == 31)
+	if (command_tx30 > 31)
 	{
 		command_tx30 = 0;
 
@@ -549,42 +562,34 @@ void DspController::LogicPswfTx()
 
 void DspController::LogicPswfRx()
 {
-    if (command_rx30 > 0)
+
+	if (pswf_rec >= 3 && (command_rx30 > 31))
 	{
-		++CondCmdRxIndexer;
+		pswf_rec = 0;
+		command_rx30 = 0;
 
-		if (CondCmdRxIndexer == 31)
+		for(int i = 0; i<30;i++)
 		{
-			CondCmdRxIndexer = 0;
+			if (pswfDataPacket[i] == ContentPSWF.COM_N)  pswfDataPacket[i] = 255;
+		}
 
-			if (pswf_rec >= 3)
-			{
-				pswf_rec = 0;
-				command_rx30 = 0;
+		if (pswf_ack == true)
+		{
+			CondComLogicRole = CondComTx;
+			pswf_ack = false;
+			uint8_t radr = ContentPSWF.R_ADR;
+			if (radr > 32) radr = radr - 32;
+			ContentPSWF.R_ADR = ContentPSWF.S_ADR;
+			ContentPSWF.S_ADR = radr;
+			setPswfTx();
+		}
 
-				for(int i = 0; i<30;i++)
-				{
-					if (pswfDataPacket[i] == ContentPSWF.COM_N)  pswfDataPacket[i] = 255;
-				}
-
-				if (pswf_ack == true)
-				{
-					CondComLogicRole = CondComTx;
-					pswf_ack = false;
-					uint8_t radr = ContentPSWF.R_ADR;
-					if (radr > 32) radr = radr - 32;
-					ContentPSWF.R_ADR = ContentPSWF.S_ADR;
-					ContentPSWF.S_ADR = radr;
-					setPswfTx();
-				}
-
-				else
-				{
-					radio_state = radiostateSync;
-				}
-			}
+		else
+		{
+			radio_state = radiostateSync;
 		}
 	}
+
 
 }
 
@@ -606,8 +611,8 @@ void DspController::changePswfFrequency()
 
 	if (CondComLogicRole == CondComRx)
 	{
+	    ++command_rx30;
 		LogicPswfRx();
-
 		setPswfRxFreq();
 	}
 }
@@ -659,7 +664,17 @@ void DspController::RxSmsWork()
 
         if (sms_counter == 84)
 		{
-        	if (quest) {smsPacketMessage(100); quest = false;}
+        	if (quest)
+        	{
+        		indexSmsLen = 100;
+                for(int i = 0;i<100;i++)
+                {
+                	if (sms_content[i] == 0) indexSmsLen = i;
+                	break;
+                }
+
+        		smsPacketMessage(indexSmsLen); quest = false;
+        	}
 
 			sms_counter = 0;
 			setRx();
@@ -759,8 +774,6 @@ void DspController::changeSmsFrequency()
 	  qmDebugMessage(QmDebug::Dump, "getDataTime(): %d %d %d %d", date_time[0], date_time[1], date_time[2], date_time[3]);
 	}
 
-
-
 	if (SmsLogicRole == SmsRoleTx)
 	{
 
@@ -775,8 +788,6 @@ void DspController::changeSmsFrequency()
     static uint8_t tempCounter = sms_counter;
     if (tempCounter != sms_counter && sms_counter % 11 == 0 )
       smsCounterChanged(sms_counter);
-
-    //setrRxFreq();
 
 	////////////////////////////////////
 }
@@ -858,22 +869,17 @@ void DspController::recPswf(uint8_t data,uint8_t code)
     		ContentPSWF.COM_N = data;
     		if (ContentPSWF.R_ADR > 32)
     		{
+    			//data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
     			pswf_ack = true;
     			setAsk = true;
     			ContentPSWF.R_ADR = ContentPSWF.R_ADR - 32;
     			qmDebugMessage(QmDebug::Dump, "r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
     		}
-
-    		//ContentPSWF.R_ADR = ContentPSWF.S_ADR;
-    		data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
     	}
 
     }
 
-
     if (pswf_rec == 3) firstPacket(ContentPSWF.COM_N);
-
-    ++command_rx30;
 }
 
 int DspController::prevSecond(int second) {
@@ -2387,15 +2393,7 @@ bool DspController::generateSmsReceived()
 
           // 10. create str consist data split ''
 
-          int len = 100;
-
           std::copy(&packet[0],&packet[100],sms_content);
-          //sms_content[99] = '\0';
-          // return sms status and signal(len, sms_content)
-//          smsPacketMessage(len);
-
-          qmDebugMessage(QmDebug::Dump," Count of symbol for sms message %d", len);
-
           ack = 73;
 
           return true;
@@ -2528,7 +2526,7 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
     ContentPSWF.COM_N = cmd;
     ContentPSWF.R_ADR = r_adr;
     if (pswf_retranslator > 0) ContentPSWF.R_ADR += 32;
-    data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
+    //data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
 
     command_rx30  = 0;
 
@@ -2635,7 +2633,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     ContentGuc.type = 1;
 	ContentGuc.chip_time = 3; // super versia new, last value = 2
 	ContentGuc.WIDTH_SIGNAL = 0; // last value  = 1, thi is freq mode 0 - 3k1, 1 - 20k maybe it works:)
-    data_storage_fs->getAleStationAddress(ContentGuc.S_ADR);
+    //data_storage_fs->getAleStationAddress(ContentGuc.S_ADR);
     ContentGuc.R_ADR = r_adr;
 
     uint8_t num_cmd = command.size();
@@ -2692,7 +2690,7 @@ void DspController::sendGucQuit()
 	ContentGuc.type = 4;
 	ContentGuc.chip_time = 3; // super versia new, last value = 2
 	ContentGuc.WIDTH_SIGNAL = 0; // last value  = 1, thi is freq mode 0 - 3k1, 1 - 20k maybe it works:)
-	data_storage_fs->getAleStationAddress(ContentGuc.S_ADR);
+	//data_storage_fs->getAleStationAddress(ContentGuc.S_ADR);
 
 
 	ContentGuc.ckk = 0;

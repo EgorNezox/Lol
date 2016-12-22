@@ -4,6 +4,9 @@
 
 #include "fs.h"
 
+#include <string.h>
+
+#define FAKE_CALL_FREQS 1
 
 namespace DataStorage {
 
@@ -34,6 +37,15 @@ FS::FS(const std::string &dir) :
     updateFileTree();
 
 //    deleteFile("AleDefaultCallFreqs");
+
+//    QmFile file(dir, "AleDefaultCallFreqs");
+//    	file.open(QmFile::ReadOnly);
+//    		uint32_t f = 4;
+//    		uint8_t fw[4];
+//    		memcpy(&fw, &f, 4);
+//    		file.write((uint8_t*)&fw, 4);
+//    file.close();
+
 }
 
 FS::~FS()
@@ -63,7 +75,18 @@ bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
 	return true;
 }
 
-bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data) {
+bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data)
+{
+#if FAKE_CALL_FREQS
+
+	data.push_back(5786000);
+	data.push_back(4517000);
+	data.push_back(6197000);
+	data.push_back(4889000);
+	return true;
+
+#else
+
 	data.clear();
 	QmFile file(dir, "AleDefaultCallFreqs");
 	if (!file.open(QmFile::ReadOnly))
@@ -76,12 +99,18 @@ bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data) {
 //	if (!(file_size == (4 + 4*count)))
 //		return false;
 	for (unsigned int i = 0; i < count; i++) {
+//	for (unsigned int i = 0; i < 5; i++) {
 		uint32_t entry;
 		file.read((uint8_t *)&entry, 4);
 		data.push_back(entry);
 	}
+//	uint32_t f = 6779000;
+//	uint8_t fw[4];
+//	memcpy(&fw, &f, 4);
+//	file.write((uint8_t*)&fw, 4);
 	file.close();
 	return true;
+#endif
 }
 
 bool FS::getAleStationAddress(uint8_t& data) {

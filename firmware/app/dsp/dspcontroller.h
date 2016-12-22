@@ -435,6 +435,8 @@ private:
     void correctTime(uint8_t num);
     void LogicPswfModes(uint8_t* data, uint8_t indicator, int data_len); // func for 0x63 cadr from dsp
 
+    void powerControlAsk();
+
 
     void recGucQuit();
 
@@ -575,7 +577,7 @@ bool modem_rx_on, modem_tx_on;
 
     bool setAsk = false;
 
-    uint8_t baddy  = 0;
+    uint8_t indexSmsLen = 100;
 
 public:
     uint8_t getSmsCounter();

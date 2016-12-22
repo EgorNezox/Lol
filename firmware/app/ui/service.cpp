@@ -14,6 +14,8 @@
 #include <string>
 #include "../../../system/reset.h"
 
+#define VM_PROGRESS 1
+
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
@@ -578,6 +580,7 @@ void Service::keyPressed(UI_Key key)
         if ( key == keyEnter)
         {
             guiTree.delLastElement();
+            draw();
             if (msg_box != nullptr)
             {
                 delete msg_box;
@@ -1237,7 +1240,7 @@ void Service::keyPressed(UI_Key key)
                 if (key == keyBack)
                 {
                     headset_controller->stopSmartRecord();
-                	Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
+                	//Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
 //                    if (storageFs > 0)
 //                        storageFs->setVoiceMail(&message, DataStorage::FS::FTT_TX);
                     menu->putOffVoiceStatus--;
@@ -2426,6 +2429,7 @@ void Service::keyPressed(UI_Key key)
                         menu->filesStageFocus[menu->filesStage]--;
                     break;
                 case 2:
+                    if (menu->textAreaScrollIndex > 0)
                     menu->textAreaScrollIndex--;
                     break;
                 }
