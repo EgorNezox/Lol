@@ -226,13 +226,13 @@ private:
 
     //
     std::vector<int> guc_command_vector;
-    int position = 0;
+    uint8_t position = 0;
     int sheldure_position = 0;
     std::vector<std::string> sheldure_data;
     bool pswf_status;
 
-    int cntSmsRx = 1;
-    int cntGucRx = 1;
+    int cntSmsRx = -1;
+    int cntGucRx = -1;
     bool isSmsMessageRec = false;
     bool failFlag;
 

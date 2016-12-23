@@ -177,6 +177,9 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     retranslation_active = false;
 
+    for(int i = 0;i<100;i++)
+    	sms_content[i] = 0;
+
 }
 DspController::~DspController()
 
@@ -666,13 +669,6 @@ void DspController::RxSmsWork()
 		{
         	if (quest)
         	{
-        		indexSmsLen = 100;
-                for(int i = 0;i<100;i++)
-                {
-                	if (sms_content[i] == 0) indexSmsLen = i;
-                	break;
-                }
-
         		smsPacketMessage(indexSmsLen); quest = false;
         	}
 
@@ -2386,6 +2382,16 @@ bool DspController::generateSmsReceived()
 
         else
         {
+
+        	indexSmsLen = 100;
+        	for(int i = 0;i<100;i++)
+        	{
+        		if (crc_calcs[i] == 0) {
+        			indexSmsLen = i;
+        			break;
+        		}
+        	}
+
           // 8. calculate text without CRC32 code
           pack_manager->decompressMass(crc_calcs,89,packet,110,7);
           // 9. interpretate to Win1251 encode

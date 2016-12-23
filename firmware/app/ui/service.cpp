@@ -110,8 +110,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 #endif
 
     menu->supressStatus = 0;
-    cntSmsRx = 0;
-    cntGucRx = 0;
 
     synchModeTimer.setSingleShot(true);
     synchModeTimer.timeout.connect(sigc::mem_fun(this, &Service::readSynchMode));
@@ -591,20 +589,22 @@ void Service::keyPressed(UI_Key key)
 
             vect = nullptr;
             position = 1;
+            guiTree.resetCurrentState();
         }
         else
         {
             if (vect != nullptr)
             {
-            	if (position == 0) position = 1;
+            	if (position == 0)
+            		position = 1;
                 if (key == keyUp && position > 1)
-                { position--; }
+                	position--;
                 if (key == keyDown && position < vect[0])
-                { position++; }
-                //msg_box->setCmd(msg_box_vector.at(position));
-            }
-            else
+                	position++;
+
+                msg_box->setCmd(vect[position]);
                 msg_box->keyPressed(key);
+            }
         }
         break;
     }
@@ -1654,16 +1654,26 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::rxSmsMessage:
         {
-
         	if ( key == keyBack)
         	{
-        		guiTree.backvard();
-        		menu->focus = 0;
+        		if (cntSmsRx > 0)
+        			--cntSmsRx;
+        		if (cntSmsRx == 0)
+        		{
+        			cntSmsRx = -1;
+					guiTree.backvard();
+					menu->focus = 0;
+					isSmsMessageRec = false;
+					menu->smsStage = 0;
+					menu->smsTxStage = 1;
+					break;
+        		}
         	}
         	if ( key == keyEnter)
         	{
                ++cntSmsRx;
-
+        	}
+        	if ( key == keyBack || key == keyEnter){
         	  if (cntSmsRx == 1)
         	  {
         		menu->initRxSmsDialog(startStr);
@@ -1683,7 +1693,7 @@ void Service::keyPressed(UI_Key key)
                   guiTree.resetCurrentState();
                   isSmsMessageRec = false;
                   menu->smsStage = 0;
-                  cntSmsRx = 0;
+                  cntSmsRx = -1;
                   menu->smsTxStage = 1;
         	  }
         	}
@@ -1695,7 +1705,6 @@ void Service::keyPressed(UI_Key key)
 
         		if (cntSmsRx >= 2 && isSmsMessageRec == true)
         		{
-        			//msgBoxSms(voice_service->getSmsContent());
                      menu->initTxSmsDialog((char*)"CMC",voice_service->getSmsContent());
         		}
 
@@ -1706,7 +1715,6 @@ void Service::keyPressed(UI_Key key)
 
         		if (cntSmsRx >= 2 && isSmsMessageRec == true)
         		{
-        			//msgBoxSms(voice_service->getSmsContent());
                      menu->initTxSmsDialog((char*)"CMC",voice_service->getSmsContent());
         		}
         	}
@@ -1714,15 +1722,29 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::recvGroupCondCmd:
         {
-            if ( key == keyBack)
-            {
-                guiTree.backvard();
-                menu->focus = 0;
-            }
+//            if ( key == keyBack)
+//            {
+//                guiTree.backvard();
+//                menu->focus = 0;
+//            }
+        	if ( key == keyBack)
+        	{
+        		if (cntGucRx > 0)
+        			--cntGucRx;
+        		if (cntGucRx == 0)
+        		{
+        			cntGucRx = -1;
+					guiTree.backvard();
+					menu->focus = 0;
+					break;
+        		}
+        	}
             if ( key == keyEnter)
             {
             	++cntGucRx;
-
+            }
+            if ( key == keyBack || key == keyEnter)
+            {
             	if (cntGucRx == 1)
             	{
             		menu->initRxSmsDialog(STARTS);
@@ -1739,10 +1761,11 @@ void Service::keyPressed(UI_Key key)
             	}
             	if (cntGucRx == 3)
             	{
-                    cntGucRx = 1;
+                    cntGucRx = -1;
             		guiTree.resetCurrentState();
             	}
             }
+
             break;
         }
         case GuiWindowsSubType::rxPutOffVoice:
@@ -3042,9 +3065,20 @@ void Service::drawMenu()
             break;
         }
         case GuiWindowsSubType::recvGroupCondCmd:
-        case GuiWindowsSubType::recvVoice:
+        {
+        	if (cntGucRx == -1){
+        		cntGucRx = 0;
+        		keyPressed(keyEnter);
+        	}
+            break;
+        }
+        case GuiWindowsSubType::recvVoice: break;
         case GuiWindowsSubType::rxSmsMessage:
         {
+        	if (cntSmsRx == -1){
+        		cntSmsRx = 0;
+        		keyPressed(keyEnter);
+        	}
             break;
         }
         case GuiWindowsSubType::rxPutOffVoice:
@@ -3433,9 +3467,9 @@ void Service::gucFrame(int value)
         }
         //guiTree.append(messangeWindow, sym, ch);
         if (isGucCoord)
-        	msgBox( titleGuc, vect[position], size, position, (uint8_t*)&gucCoords );
+        	msgBox( titleGuc, vect[1], size, 0, (uint8_t*)&gucCoords );
         else
-        	msgBox( titleGuc, vect[position], size, position);
+        	msgBox( titleGuc, vect[1], size, 0);
 
     }
     cntGucRx = 1;
@@ -3475,7 +3509,7 @@ void Service::updateSystemTime()
 void Service::smsMessage(int value)
 {
     char sym[value + 1];//TODO:
-    for(int i = 0; i < value + 1; ++i) sym[i] = '\0';
+    for(int i = 0; i < value + 1; ++i) sym[i] = 0;
 
 #if smsFlashTest
     std::string test = "test write to flash memory\0";
