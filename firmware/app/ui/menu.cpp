@@ -1657,8 +1657,8 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     GUI_EL_Label title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
     GUI_EL_Label length (&param[0], &length_geom, (char*)length_message.c_str(), (GUI_Obj *)this);
     GUI_EL_TextArea field  (&fieldParam, &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
-    if (isDrawScroll) field.setVisibleScroll(true);
-    	smsScrollIndex = field.SetScrollIndex(smsScrollIndex);
+    field.setVisibleScroll(isDrawScroll);
+    smsScrollIndex = field.SetScrollIndex(smsScrollIndex);
 
     window.Draw();
     if (isDrawTitle) title.Draw();
@@ -2054,8 +2054,11 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
     case 0:
 
         titleChar = files[0];
-
+#if no_speah_hack
+        for (uint8_t subMenu = 1; subMenu < 5; subMenu++)
+#else
         for (uint8_t subMenu = 0; subMenu < 5; subMenu++)
+#endif
         {
             if (filesStageFocus[stage] == subMenu){
                 item_param = GUI_EL_TEMP_ActiveMenuItem;
@@ -2073,13 +2076,17 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
           ScrollArea.setFirstVisElem(1);
         else
             ScrollArea.setFirstVisElem(0);
+#if no_speah_hack
+        ScrollArea.setFocus(filesStageFocus[stage]-1);
+#else
         ScrollArea.setFocus(filesStageFocus[stage]);
+#endif
         ScrollArea.Draw();
         break;
 
     case 1:
 
-        titleChar = reciveSubMenu[fileType];
+        titleChar = tmpParsing[fileType];
 
         if (filesStageFocus[stage] > tFiles[fileType].size() - 1 )
             filesStageFocus[stage] = tFiles[fileType].size() - 1;

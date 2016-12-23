@@ -262,8 +262,6 @@ void GUI_EL_TextArea::SetText(char *text){
 void GUI_EL_TextArea::copyStrFromData(char *dest, uint32_t index, uint32_t count)
 {
  if (isData){
-  //  for (uint16_t i = 0; i < count; i++)
-   //   dest[i] = (char)data->at(index + i);
       memcpy(dest,data->data() + index, count);
  }
  else{
@@ -367,9 +365,9 @@ void GUI_EL_TextArea::Draw(){
 //-----------------------------
 
 void GUI_EL_TextArea::CalcContentGeom(){
-    int32_t lf_count=0, max_str_width=0, str_width=0, last_space=0, last_str_with=0;
+    uint32_t lf_count=0, max_str_width=0, str_width=0, last_space=0, last_str_with=0;
 
-    int32_t size = getDataSize();
+    uint32_t size = getDataSize();
 
     content.W = GEOM_W(el_geom);
     content.H = GEOM_H(el_geom);
@@ -451,14 +449,14 @@ uint32_t GUI_EL_TextArea::SetScrollIndex(uint32_t index){
     uint32_t oldIndex;
 
     if (isScroll){
-        if (index <= 0 ){
+        if (index == 0 ){
             oldIndex = 0;
         }
-        else if (index >= lines_count - visLinesCount ){
-            oldIndex = lines_count - visLinesCount;
-        }
         else
-            oldIndex = index;
+        	if (index >= lines_count - visLinesCount )
+            	oldIndex = lines_count - visLinesCount;
+        	else
+        		oldIndex = index;
 
         if (visLineBegin != oldIndex){
             visLineBegin = oldIndex;
@@ -474,8 +472,10 @@ void GUI_EL_TextArea::SetInputFocus(bool isFocus)
 
 void GUI_EL_TextArea::setVisibleScroll(bool isVisible)
 {
-    isVisibleScroll = isVisible;
-    PrepareContent();
+	if (isVisibleScroll != isVisible){
+		isVisibleScroll = isVisible;
+		PrepareContent();
+	}
 }
 
 

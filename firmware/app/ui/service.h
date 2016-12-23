@@ -163,7 +163,7 @@ private:
     Navigation::Navigator *navigator;
     GUI_Dialog_MainScr  *main_scr;
     GUI_Indicator       *indicator;
-    GUI_Dialog_MsgBox   *msg_box;
+    GUI_Dialog_MsgBox   *msg_box = nullptr;
 
     int condCmdValue = 0 ;
     bool isDrawCondCmd = false;
@@ -221,6 +221,7 @@ private:
     int isFreq = 0;
     int command_rx_30 = 0;
     bool gpsSynchronization = true;
+    bool isChangeGpsSynch = false;
     uint8_t* vect = nullptr;
 
     //
@@ -259,6 +260,8 @@ private:
     bool setAsk = false;
 
     QmTimer synchModeTimer;
+    bool isGucCoord = false;
+    char gucCoords[26];
 
 };
 

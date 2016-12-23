@@ -336,7 +336,7 @@ void Service::setNotification(NotificationType type)
         QM_ASSERT(0);
         break;
     }
-    draw();
+    //draw();
 }
 
 void Service::keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type){
@@ -580,7 +580,9 @@ void Service::keyPressed(UI_Key key)
         if ( key == keyEnter)
         {
             guiTree.delLastElement();
-            draw();
+            if (isDrawCondCmd)
+        	    isDrawCondCmd = false;
+            //draw();
             if (msg_box != nullptr)
             {
                 delete msg_box;
@@ -2035,17 +2037,21 @@ void Service::keyPressed(UI_Key key)
             case keyEnter:
             case keyBack:
             {
+                if (isChangeGpsSynch){
+                	voice_service->setVirtualMode(!gpsSynchronization);
+                	if (storageFs > 0)
+                		storageFs->setGpsSynchroMode((uint8_t)gpsSynchronization);
+                	isChangeGpsSynch = false;
+                }
                 guiTree.backvard();
                 menu->focus = 0;
-                voice_service->setVirtualMode(!gpsSynchronization);
-                if (storageFs > 0)
-                    storageFs->setGpsSynchroMode((uint8_t)gpsSynchronization);
                 break;
             }
             case keyRight:
             case keyLeft:
             {
                 gpsSynchronization = !gpsSynchronization;
+                isChangeGpsSynch = true;
                 break;
             }
             }
@@ -2423,11 +2429,22 @@ void Service::keyPressed(UI_Key key)
             if (key == keyUp)
             {
                 switch(menu->filesStage){
+#if no_speah_hack
+                case 0:
+                    if (menu->filesStageFocus[menu->filesStage] > 1)
+                        menu->filesStageFocus[menu->filesStage]--;
+                    break;
+                case 1:
+                    if (menu->filesStageFocus[menu->filesStage] > 0)
+                        menu->filesStageFocus[menu->filesStage]--;
+                    break;
+#else
                 case 0:
                 case 1:
                     if (menu->filesStageFocus[menu->filesStage] > 0)
                         menu->filesStageFocus[menu->filesStage]--;
                     break;
+#endif
                 case 2:
                     if (menu->textAreaScrollIndex > 0)
                     menu->textAreaScrollIndex--;
@@ -2769,14 +2786,9 @@ void Service::msgBox(const char *title)
     MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
 
     if (msg_box != nullptr)
-    {
         delete msg_box;
-        msg_box = nullptr;
-    }
-    if(msg_box == nullptr)
-    {
-        msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, align007);
-    }
+    msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, align007);
+
     guiTree.append(messangeWindow, "");
     msg_box->Draw();
 }
@@ -2787,14 +2799,9 @@ void Service::msgBox(const char *title, const char *text)
     MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
 
     if (msg_box != nullptr)
-    {
         delete msg_box;
-        msg_box = nullptr;
-    }
-    if(msg_box == nullptr)
-    {
-        msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (char*)text, align007);
-    }
+    msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (char*)text, align007);
+
     guiTree.append(messangeWindow, "");
     msg_box->Draw();
 }
@@ -2805,15 +2812,9 @@ void Service::msgBox(const char *title, const int condCmd)
     MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
 
     if (msg_box != nullptr)
-    {
         delete msg_box;
-        msg_box = nullptr;
-    }
-    if(msg_box == nullptr)
-    {
-        msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, align007);
+    msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, align007);
 
-    }
     guiTree.append(messangeWindow, "");
     msg_box->setCmd(condCmd);
     msg_box->Draw();
@@ -2827,20 +2828,12 @@ void Service::msgBox(const char *title, const int condCmd, const int size, const
     MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
 
     if (msg_box != nullptr)
-    {
         delete msg_box;
-        msg_box = nullptr;
-    }
-    if(msg_box == nullptr)
-    {
-        msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, (int) size, (int) pos, align007);
-    }
-    else
-    {
-        msg_box->setCmd(condCmd);
-        msg_box->position = pos;
-    }
-    //msg_box->Draws();
+    msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, (int) size, (int) pos, align007);
+
+    msg_box->setCmd(condCmd);
+    msg_box->position = pos;
+
     guiTree.append(messangeWindow, "");
     msg_box->DrawWithCoord(coord);
 }
@@ -3219,10 +3212,31 @@ void Service::draw()
     }
     case messangeWindow:
     {
-        if (vect != nullptr)
-            msgBox(currentState.getName(), vect[position], vect[0], position);
-        if ( condCmdValue >= 0 && condCmdValue < 100 && isDrawCondCmd)
-            msgBox( currentState.getName(), condCmdValue);
+        if (msg_box != nullptr)
+        {
+        	if (vect != nullptr)
+        		if (isGucCoord)
+        			msg_box->DrawWithCoord((uint8_t*)&gucCoords);
+        		else
+        			msg_box->DrawWithCoord((uint8_t*)0);
+        	else
+        		msg_box->Draw();
+        }
+    	//if ( condCmdValue >= 0 && condCmdValue < 100 && isDrawCondCmd)
+
+
+//        if (vect != nullptr){
+//
+//           if (isGucCoord)
+//            	msgBox( titleGuc, vect[position], vect[0], position, (uint8_t*)&gucCoords );
+//           else
+//            	msgBox( titleGuc, vect[position], vect[0], position);
+//
+//           // msgBox(currentState.getName(), vect[position], vect[0], position);
+//           isD
+//        }
+//        if ( condCmdValue >= 0 && condCmdValue < 100 && isDrawCondCmd)
+//           msgBox( currentState.getName(), condCmdValue);
 
         break;
     }
@@ -3236,9 +3250,8 @@ void Service::draw()
         break;
     }
     if (isShowSchedulePrompt)
-    {
-        showMessage("", schedulePromptText.c_str(), promptArea);
-    }
+    	showMessage("", schedulePromptText.c_str(), promptArea);
+
 }
 
 int Service::getFreq()
@@ -3370,21 +3383,20 @@ void Service::gucFrame(int value)
     const char *sym = "Recieved packet for station\0";
     vect = voice_service->getGucCommand();
 
-    bool isCoord = voice_service->getIsGucCoord();
+    isGucCoord = voice_service->getIsGucCoord();
     uint8_t size = vect[0];
 
     char longitude[14]; longitude[12] = '\n';
     char latitude[14]; latitude[12] = '\0';
-    char coords[26];
-    if (isCoord)
+    if (isGucCoord)
     {
         // uint8_t coord[9] = {0,0,0,0,0,0,0,0,0};
         // getGpsGucCoordinat(coord);
         sprintf(longitude, "%02d.%02d.%02d.%03d", vect[size+1],vect[size+2],vect[size+3],vect[size+4]);
         sprintf(latitude, "%02d.%02d.%02d.%03d", vect[size+5],vect[size+6],vect[size+7],vect[size+8]);
-        memcpy(&coords[0],&longitude[0],13);
-        memcpy(&coords[13],&latitude[0],13);
-        coords[12] = '\n';
+        memcpy(&gucCoords[0],&longitude[0],13);
+        memcpy(&gucCoords[13],&latitude[0],13);
+        gucCoords[12] = '\n';
     }
     else
     {
@@ -3404,7 +3416,7 @@ void Service::gucFrame(int value)
         if (storageFs > 0)
         {
         	uint16_t len = size * 3;
-            uint16_t fullSize = isCoord ? len + 26 : len;
+            uint16_t fullSize = isGucCoord ? len + 26 : len;
             uint8_t cmdv[fullSize];
             char cmdSym[3];
 
@@ -3415,13 +3427,13 @@ void Service::gucFrame(int value)
                 memcpy(&cmdv[(cmdSymInd - 1) * 3], &cmdSym[0], 3);
             }
 
-            if (isCoord)
-                memcpy(&cmdv[len], &coords[0], 26);
+            if (isGucCoord)
+                memcpy(&cmdv[len], &gucCoords[0], 26);
             storageFs->setGroupCondCommand((uint8_t*)&cmdv, fullSize, DataStorage::FS::FTT_RX);
         }
         //guiTree.append(messangeWindow, sym, ch);
-        if (isCoord)
-        	msgBox( titleGuc, vect[position], size, position, (uint8_t*)&coords );
+        if (isGucCoord)
+        	msgBox( titleGuc, vect[position], size, position, (uint8_t*)&gucCoords );
         else
         	msgBox( titleGuc, vect[position], size, position);
 

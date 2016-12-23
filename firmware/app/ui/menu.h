@@ -21,6 +21,8 @@
 #include "texts.h"
 #include "datastorage/fs.h"
 
+#define no_speah_hack 1
+
 #define flashTest 0
 
 #define smsflashTest_size 27
@@ -231,7 +233,11 @@ public:
     std::chrono::time_point<std::chrono::steady_clock> ct = std::chrono::steady_clock::now();
     bool getIsInRepeatInterval();
     void initFileManagerDialog(uint8_t stage);
+#if no_speah_hack
+    uint8_t filesStageFocus[3] = {1,0,0};
+#else
     uint8_t filesStageFocus[3] = {0,0,0};
+#endif
     uint8_t sheldureStageFocus[6] = {0,0,0,0,0,0};
 
     std::vector<uint8_t>* fileMessage;
