@@ -713,7 +713,7 @@ void DspController::TxSmsWork()
     if (sms_counter == 20)
     {
     	setRx();
-    	 setrRxFreq();
+    	setrRxFreq();
     }
 
     if (sms_counter > 20 && sms_counter < 38)
@@ -801,7 +801,7 @@ void DspController::resetSmsState()
 bool DspController::checkForTxAnswer()
 {
 
-	if (tx_call_ask_vector.size() >= 3)
+	if (tx_call_ask_vector.size() >= 2)
 	{
 		wzn_value = wzn_change(tx_call_ask_vector);
 		qmDebugMessage(QmDebug::Dump, "wzn_value" ,wzn_value);
@@ -875,7 +875,7 @@ void DspController::recPswf(uint8_t data,uint8_t code)
 
     }
 
-    if (pswf_rec == 3) firstPacket(ContentPSWF.COM_N);
+    if (pswf_rec == 1) firstPacket(ContentPSWF.COM_N);
 }
 
 int DspController::prevSecond(int second) {

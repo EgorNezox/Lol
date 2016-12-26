@@ -235,8 +235,16 @@ void Service::updateBattery(int new_val)
 
 void Service::drawIndicator()
 {
-        if ( guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr)
-            indicator->Draw();
+	if ( guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr){
+		bool gpsStatus = false;
+		if (navigator != 0)
+		{
+			Navigation::Coord_Date date = navigator->getCoordDate();
+			gpsStatus = date.status;
+		}
+		indicator->UpdateGpsStatus(gpsStatus);
+		indicator->Draw();
+	}
 }
 
 void Service::FailedSms(int stage)
@@ -2903,7 +2911,6 @@ void Service::drawMainWindow()
     {
         Navigation::Coord_Date date = navigator->getCoordDate();
         gpsStatus = date.status;
-
     }
 
     indicator->Draw(pGetMultitradioService()->getStatus(),
