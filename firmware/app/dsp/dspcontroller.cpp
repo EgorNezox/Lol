@@ -2462,11 +2462,12 @@ int DspController::check_rx_call(int* wzn)
     int cnt_index = 0;
     for(int i = 0; i<18;i++)
     {
-       if (syncro_recieve.at(i) == i)
+       if (syncro_recieve.at(i) == i){
            ++cnt_index;
-       wzn_mas[waveZone[i]] += 1;
-       snr_mas[waveZone[i]] += snr.at(i);
+           wzn_mas[waveZone[i]] += 1;
+           snr_mas[waveZone[i]] += snr.at(i);
        //qmDebugMessage(QmDebug::Dump, "syncro_recieve value = %d", syncro_recieve.at(i));
+       }
     }
 
     qmDebugMessage(QmDebug::Dump, "check rx call = %d", cnt_index);
