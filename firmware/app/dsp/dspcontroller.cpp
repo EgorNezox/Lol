@@ -154,7 +154,10 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     for(int i = 0; i<18;i++)
     {
         syncro_recieve.push_back(99);
+        snr.push_back(0);
+        waveZone.push_back(0);
     }
+    	waveZone.push_back(0); // size must be 19
 
     guc_timer = new QmTimer(true,this);
     guc_timer->setInterval(GUC_TIMER_INTERVAL);
@@ -164,8 +167,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     sms_call_received = false;
     for(int i = 0;i<255;i++) rs_data_clear[i] = 1;
-
-    data_storage_fs->getAleStationAddress(ContentSms.S_ADR);
+   data_storage_fs->getAleStationAddress(ContentSms.S_ADR);
     ContentGuc.S_ADR = ContentSms.S_ADR;
     ContentPSWF.S_ADR = ContentSms.S_ADR;
     //data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
@@ -805,10 +807,12 @@ bool DspController::checkForTxAnswer()
 	{
 		wzn_value = wzn_change(tx_call_ask_vector);
 		qmDebugMessage(QmDebug::Dump, "wzn_value" ,wzn_value);
-		tx_call_ask_vector.erase(tx_call_ask_vector.begin());
+		tx_call_ask_vector.resize(0);
 
 		return true;
 	}
+
+	tx_call_ask_vector.resize(0);
 	return false;
 }
 
@@ -1003,6 +1007,17 @@ int DspController::CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, in
     {
         FR_SH = (RN_KEY + 73 + 230*SEC_MLT + 17*MIN + 29*HRS + 43*DAY)% TOT_W;
         qmDebugMessage(QmDebug::Dump, "Calc freq sms tx formula %d", FR_SH);
+    }
+
+    if ((sms_counter < 19) && (SmsLogicRole == SmsRoleRx))
+    {
+
+    	waveZone.erase(waveZone.begin());
+    	waveZone.push_back(SEC_MLT / 6);
+ //   	waveZone[indexerWaze] = SEC_MLT;
+//    	++indexerWaze;
+//    	if (indexerWaze == 18)
+//    		indexerWaze = 0;
     }
 
     return FR_SH;
@@ -2314,14 +2329,13 @@ void DspController::prevTime()
 
 void DspController::getZone()
 {
-	for(int i = 0; i<syncro_recieve.size();i++)
+	for(int i = 0; i<18;i++)
 	{
-		if  (syncro_recieve.at(i) >=0   && syncro_recieve.at(i) <6 ) syncro_recieve[i] = 0;
-		if  (syncro_recieve.at(i) > 5   && syncro_recieve.at(i) <12) syncro_recieve[i] = 1;
-		if  (syncro_recieve.at(i) >= 12 && syncro_recieve.at(i) <18) syncro_recieve[i] = 2;
-		if  (syncro_recieve.at(i) >=18  && syncro_recieve.at(i) <24) syncro_recieve[i] = 3;
-		if  (syncro_recieve.at(i) >= 24 && syncro_recieve.at(i) <30) syncro_recieve[i] = 4;
-
+		if  (waveZone[i] >=0   && waveZone[i] <6 ) syncro_recieve[i] = 0;
+		if  (waveZone[i] > 5   && waveZone[i] <12) syncro_recieve[i] = 1;
+		if  (waveZone[i] >= 12 && waveZone[i] <18) syncro_recieve[i] = 2;
+		if  (waveZone[i] >=18  && waveZone[i] <24) syncro_recieve[i] = 3;
+		if  (waveZone[i] >= 24 && waveZone[i] <30) syncro_recieve[i] = 4;
     }
 }
 
@@ -2418,14 +2432,18 @@ bool DspController::generateSmsReceived()
 int DspController::wzn_change(std::vector<int> &vect)
 {
     int wzn_mas[5] = {0,0,0,0,0};
-    for(int i = 0; i<vect.size()-1;i++){
+    for(int i = 0; i < vect.size() - 1; i++)
+    {
         if (vect[i] <= 4) wzn_mas[vect[i]] += 1;
     }
     int index = 0;
-    for(int i = 0; i<4;i++)
+    for(int i = 1; i < 5; i++)
     {
         if (wzn_mas[index] < wzn_mas[i]) index = i;
     }
+
+
+
     return index;
 }
 
@@ -2435,21 +2453,41 @@ int DspController::calcFstn(int R_ADR, int S_ADR, int RN_KEY, int SEC, int MIN, 
     return FST_N;
 }
 
-int DspController::check_rx_call()
+int DspController::check_rx_call(int* wzn)
 {
+
+	int snr_mas[5] = {0,0,0,0,0};
+	int wzn_mas[5] = {0,0,0,0,0};
+
     int cnt_index = 0;
     for(int i = 0; i<18;i++)
     {
        if (syncro_recieve.at(i) == i)
            ++cnt_index;
+       wzn_mas[waveZone[i]] += 1;
+       snr_mas[waveZone[i]] += snr.at(i);
        //qmDebugMessage(QmDebug::Dump, "syncro_recieve value = %d", syncro_recieve.at(i));
     }
 
     qmDebugMessage(QmDebug::Dump, "check rx call = %d", cnt_index);
 
-    if (cnt_index>=3) return true;
+    if (cnt_index < 2) return false;
 
-    return false;
+    int index = 0;
+    for(int i = 1; i < 5; i++)
+    {
+        if (wzn_mas[index] < wzn_mas[i])
+        	index = i;
+        else
+        	if(wzn_mas[index] == wzn_mas[i])
+        {
+        	if (snr_mas[i] >= snr_mas[index])
+        		index = i;
+        }
+    }
+    *wzn = index;
+
+    return true;
 }
 
 uint8_t DspController::calc_ack_code(uint8_t ack)
@@ -2566,6 +2604,17 @@ void DspController::startSMSRecieving(SmsStage stage)
     smsRxStateSync = 0;
     radio_state = radiostateSms;
     sms_counter  = 0;
+
+	syncro_recieve.clear();
+	snr.clear();
+	waveZone.clear();
+    for(int i = 0; i<18;i++)
+    {
+        syncro_recieve.push_back(99);
+        snr.push_back(0);
+        waveZone.push_back(0);
+    }
+    	waveZone.push_back(0); // size must be 19
 }
 
 
@@ -3178,11 +3227,19 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 		qmDebugMessage(QmDebug::Dump, "0x63 indicator 31");
 		if (sms_counter < 19)
 		{
+			snr.erase(snr.begin());
+			snr.push_back(0);
+
 			syncro_recieve.erase(syncro_recieve.begin());
 			syncro_recieve.push_back(99);
 
-			if (check_rx_call()) {
+			if (check_rx_call(&wzn_value)) {
 				sms_call_received = true;
+				//getZone();
+				//wzn_value = wzn_change(waveZone);
+				syncro_recieve.clear();
+				for(int i = 0; i<18;i++)
+					syncro_recieve.push_back(99);
 				qmDebugMessage(QmDebug::Dump, "sms call received");
 			}
 
@@ -3220,22 +3277,29 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			if (sms_counter > 19 && sms_counter < 38)
 			{
 				tx_call_ask_vector.push_back(data[9]); // wzn response
+				qmDebugMessage(QmDebug::Dump, "wzn = %d", data[9]);
 
 			}
 			if (sms_counter < 19)
 			{
+				snr.erase(snr.begin());
+				snr.push_back(data[6]);
+
 				syncro_recieve.erase(syncro_recieve.begin());
 				syncro_recieve.push_back(data[9]); // CYC_N
+
+				qmDebugMessage(QmDebug::Dump, "data[9] = %d", data[9]);
+
 				qmDebugMessage(QmDebug::Dump, "recieve frame() count = %d", syncro_recieve.size());
 
-				if (check_rx_call())
+				if (check_rx_call(&wzn_value))
 				{
 					sms_call_received = true;
 					ContentSms.R_ADR = data[8]; // todo: check
 					if (ContentSms.R_ADR > 32) pswf_ack = true;
 					qmDebugMessage(QmDebug::Dump, "sms call received");
-					getZone();
-					wzn_value = wzn_change(syncro_recieve);
+					//getZone();
+					//wzn_value = wzn_change(syncro_recieve);
 					syncro_recieve.clear();
 					for(int i = 0; i<18;i++)
 						syncro_recieve.push_back(99);

@@ -412,7 +412,7 @@ private:
     int wzn_change(std::vector<int> &vect);
     int calcFstn(int R_ADR, int S_ADR, int RN_KEY, int SEC, int MIN, int HRS, int DAY, int QNB);
 
-    int check_rx_call();
+    int check_rx_call(int* wzn);
 
     uint8_t calc_ack_code(uint8_t ack);
 
@@ -519,6 +519,7 @@ private:
     std::vector< std::vector<char> > recievedPswfBuffer;        // ����� ������ ��� ��
     std::vector< std::vector<uint8_t> > recievedSmsBuffer;      // ����� ������ ��� ���
 
+    std::vector<int> snr;
     std::vector<int> syncro_recieve;                            // ����� ��� ������ CYC_N  � ���
     std::vector<int> tx_call_ask_vector;                        // ����� ��� ������ �������� WZN
     std::vector<int> quit_vector;                               // ����� ��� ������ ��������� � ���
@@ -578,6 +579,11 @@ bool modem_rx_on, modem_tx_on;
     bool setAsk = false;
 
     uint8_t indexSmsLen = 100;
+
+    std::vector<int> waveZone;
+
+
+    uint8_t indexerWaze = 0;
 
 public:
     uint8_t getSmsCounter();
