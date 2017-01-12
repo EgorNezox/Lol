@@ -920,9 +920,9 @@ int DspController::getFrequencySms()
 	int fr_sh = 0;
 
 	if (virtual_mode == true)
-		fr_sh = CalcSmsTransmitFreq(ContentSms.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
+		fr_sh = CalcSmsTransmitFreq(ContentSms.RN_KEY,d.day,t.hours,t.minutes,t.seconds);
 	else
-		fr_sh = CalcSmsTransmitFreq(ContentSms.RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
+		fr_sh = CalcSmsTransmitFreq(ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3]);
 
     fr_sh += 1622;
 
@@ -970,7 +970,7 @@ int DspController::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
 }
 
 
-int DspController::CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
+int DspController::CalcSmsTransmitFreq(int RN_KEY, int DAY, int HRS, int MIN, int SEC)
 {
     int wzn = 0;
     int FR_SH = 0;
@@ -1011,19 +1011,12 @@ int DspController::CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, in
 
     if ((sms_counter < 19) && (SmsLogicRole == SmsRoleRx))
     {
-
     	waveZone.erase(waveZone.begin());
     	waveZone.push_back(SEC_MLT / 6);
- //   	waveZone[indexerWaze] = SEC_MLT;
-//    	++indexerWaze;
-//    	if (indexerWaze == 18)
-//    		indexerWaze = 0;
     }
 
     return FR_SH;
 }
-
-
 
 void DspController::initResetState() {
 	radio_state = radiostateSync;
@@ -1421,7 +1414,7 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 				else
 					fstn = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39); // TODO: fix that;
 				QNB_RX++;
-				qmDebugMessage(QmDebug::Dump, "FSTN: %d", fstn);
+				qmDebugMessage(QmDebug::Dump, "sendCommandEasy() FSTN: %d", fstn);
 				uint32_t abc = (fstn << 24);
 				//qmToBigEndian(value.frequency, tx_data+tx_data_len);
 				//tx_data_len += 4;
@@ -1584,7 +1577,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 			        else
 			        	fstn = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39); // TODO: fix that;
 					QNB_RX++;
-					qmDebugMessage(QmDebug::Dump, "FSTN: %d", fstn);
+					qmDebugMessage(QmDebug::Dump, "sendCommand() FSTN: %d", fstn);
 					uint32_t abc = (fstn << 24);
 					//qmToBigEndian(value.frequency, tx_data+tx_data_len);
 					//tx_data_len += 4;
@@ -2208,7 +2201,7 @@ void DspController::sendSms(Module module)
         else
         	FST_N = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39);
         ++QNB;
-        qmDebugMessage(QmDebug::Dump, "FSTN: %d", FST_N);
+        qmDebugMessage(QmDebug::Dump, "sendSms() FSTN: %d", FST_N);
         if (cntChvc > 255) cntChvc = 7;
     	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
     	++tx_data_len;
@@ -2447,9 +2440,18 @@ int DspController::wzn_change(std::vector<int> &vect)
     return index;
 }
 
-int DspController::calcFstn(int R_ADR, int S_ADR, int RN_KEY, int SEC, int MIN, int HRS, int DAY, int QNB)
+int DspController::calcFstn(int R_ADR, int S_ADR, int RN_KEY, int DAY, int HRS, int MIN, int SEC, int QNB)
 {
     int FST_N = (R_ADR + S_ADR + RN_KEY + SEC + MIN + HRS + DAY + QNB) % 100;
+    qmDebugMessage(QmDebug::Dump, "calcFstn() R_ADR: %d", R_ADR);
+    qmDebugMessage(QmDebug::Dump, "calcFstn() S_ADR: %d", S_ADR);
+    qmDebugMessage(QmDebug::Dump, "calcFstn() RN_KEY: %d", RN_KEY);
+    qmDebugMessage(QmDebug::Dump, "calcFstn() DAY: %d", DAY);
+    qmDebugMessage(QmDebug::Dump, "calcFstn() HRS: %d", HRS);
+    qmDebugMessage(QmDebug::Dump, "calcFstn() MIN: %d", MIN);
+    qmDebugMessage(QmDebug::Dump, "calcFstn() SEC: %d", SEC);
+    qmDebugMessage(QmDebug::Dump, "calcFstn() QNB: %d", QNB);
+    qmDebugMessage(QmDebug::Dump, "calcFstn() FST_N: %d", FST_N);
     return FST_N;
 }
 
@@ -3236,8 +3238,6 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 
 			if (check_rx_call(&wzn_value)) {
 				sms_call_received = true;
-				//getZone();
-				//wzn_value = wzn_change(waveZone);
 				syncro_recieve.clear();
 				for(int i = 0; i<18;i++)
 					syncro_recieve.push_back(99);
@@ -3289,18 +3289,15 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 				syncro_recieve.erase(syncro_recieve.begin());
 				syncro_recieve.push_back(data[9]); // CYC_N
 
-				qmDebugMessage(QmDebug::Dump, "data[9] = %d", data[9]);
-
 				qmDebugMessage(QmDebug::Dump, "recieve frame() count = %d", syncro_recieve.size());
 
+				ContentSms.R_ADR = data[8]; // todo: check
 				if (check_rx_call(&wzn_value))
 				{
 					sms_call_received = true;
-					ContentSms.R_ADR = data[8]; // todo: check
+
 					if (ContentSms.R_ADR > 32) pswf_ack = true;
 					qmDebugMessage(QmDebug::Dump, "sms call received");
-					//getZone();
-					//wzn_value = wzn_change(syncro_recieve);
 					syncro_recieve.clear();
 					for(int i = 0; i<18;i++)
 						syncro_recieve.push_back(99);
@@ -3321,7 +3318,6 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 		}
 		else
 		{
-
 			ContentPSWF.R_ADR =  data[7];
 			ContentPSWF.S_ADR = data[8];
 			// data[9]  - COM_N

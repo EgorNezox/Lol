@@ -386,7 +386,7 @@ private:
 
 
     int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);                              // ������� �������� ������� �������� ��� ��
-    int CalcSmsTransmitFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);                        // ������� �������� ������� �������� ��� ���
+    int CalcSmsTransmitFreq(int RN_KEY, int DAY, int HRS, int MIN, int SEC);                        // ������� �������� ������� �������� ��� ���
     int CalcSmsTransmitRxRoleFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int CalcSmsTransmitTxRoleFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int prevSecond(int second);                                                                     // ������� ��������� ���������� �������
@@ -410,7 +410,7 @@ private:
 
     bool generateSmsReceived();
     int wzn_change(std::vector<int> &vect);
-    int calcFstn(int R_ADR, int S_ADR, int RN_KEY, int SEC, int MIN, int HRS, int DAY, int QNB);
+    int calcFstn(int R_ADR, int S_ADR, int RN_KEY, int DAY, int HRS, int MIN, int SEC, int QNB);
 
     int check_rx_call(int* wzn);
 
