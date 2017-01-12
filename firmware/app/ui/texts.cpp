@@ -66,7 +66,7 @@ const char *true_SWF = "ТЕСТ ПРОЙДЕН\0";
 
 const char *smsText[] = {"Адрес: \0", "Сообщение:\n\0"};
 
-const char *sms_quit_fail1 = "Ошибка приема SMS\0";
+const char *sms_quit_fail1 = "Нет ответа\0";
 const char *sms_quit_fail2 = "Квитанция потеряна\0";
 const char *sms_crc_fail = "Пакет доставлен с ошибками\0";
 
@@ -219,7 +219,8 @@ const char* dsphardwarefailure_unknown_text_str = "Устр. %d, код %d";
 
 const char *StartCmd = "Передача...\0";
 const char *EndCmd   = "Прием\0";
-const char *EndSms   = "Принята квитанция\0";
+const char *EndSms   = "Сообщение доставлено\0";
+const char *EndSms2  = "Сообщение не доставлено\0";
 
 const char *STARTS = "Старт";
 

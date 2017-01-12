@@ -534,7 +534,8 @@ private:
     char sms_content[100];                                      // ������������� ������ ��� ������ ��� ��� ���������� ������
     uint8_t ack;                                                // ���������� ��� sms, ������ ��� �������� ��� ���������� �������� 73 | 99
     int ok_quit = 0;                                            // ���� ��� ��������� ���
-bool modem_rx_on, modem_tx_on;
+    int smsError = 0;
+    bool modem_rx_on, modem_tx_on;
 
     int trans_guc;                                              // ���� �������� ����� ��
     int pswf_rec = 0;                                           // ���� ��� ����������� ��������� ��������� � ��

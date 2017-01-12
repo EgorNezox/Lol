@@ -153,6 +153,7 @@ extern const char *sheldureSubMenu[];
 extern const char *StartCmd;
 extern const char *EndCmd;
 extern const char *EndSms;
+extern const char *EndSms2;
 
 extern const char *STARTS;
 

@@ -757,7 +757,15 @@ void DspController::TxSmsWork()
 
     if (sms_counter == 84)
     {
-    	if (ok_quit >= 1) smsFailed(-1);  else smsFailed(0);
+    	if (ok_quit >= 1)
+    		smsFailed(-1);
+    	else
+    	{
+    		if (smsError >= 1)
+    			smsFailed(0);
+    		else
+    			smsFailed(2);
+    	}
     	resetSmsState();
     }
 
@@ -797,6 +805,7 @@ void DspController::resetSmsState()
 	radio_state = radiostateSync;
 	smsFind  = false;
 	ok_quit = 0;
+	smsError = 0;
 	std::memset(rs_data_clear,1,sizeof(rs_data_clear));
 }
 
@@ -3307,12 +3316,22 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			if (sms_counter > 76 && sms_counter < 83)
 			{
 				prevTime();
-				uint8_t ack_code_calc = calc_ack_code(data[9]);
+
+				uint8_t ack      = data[9];
+				uint8_t ack_code = data[10];
+				uint8_t ack_code_calc = calc_ack_code(ack);
+
 				qmDebugMessage(QmDebug::Info, "recieve count sms = %d %d", ack_code_calc, data[10]);
-				//if ((ack_code_calc == data[10]) && (data[9] != 99))
-					++ok_quit;
-				quit_vector.push_back(data[9]);  // ack
-				quit_vector.push_back(data[10]); // ack code
+				if (ack_code_calc == ack_code){
+						if (ack == 73)
+							++ok_quit;
+						if (ack == 99)
+							++smsError;
+				}
+
+
+				quit_vector.push_back(ack);  // ack
+				quit_vector.push_back(ack_code); // ack code
 			}
 			pswf_first_packet_received = true;
 		}

@@ -249,44 +249,14 @@ void Service::drawIndicator()
 
 void Service::FailedSms(int stage)
 {
-	UI_Key key;
-    switch(stage)
-    {
-    case -1:
-    {
-       // guiTree.append(messangeWindow, callSubMenu[1], EndSms);
-        msgBox( rxtxFiledSmsStr[0], EndSms);
-        failFlag = true;
-        break;
+    switch(stage){
+		case -1: { msgBox( rxtxFiledSmsStr[0], EndSms);         break; }
+		case  0: { msgBox( rxtxFiledSmsStr[0], sms_quit_fail1); break; }
+		case  1: { msgBox( rxtxFiledSmsStr[0], sms_quit_fail2); break; }
+		case  2: { msgBox( rxtxFiledSmsStr[0], EndSms2);        break; }
+		case  3: { msgBox( rxtxFiledSmsStr[1], sms_crc_fail);   break; }
     }
-    case 0:
-    {
-      //  guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail1);
-        msgBox( rxtxFiledSmsStr[0], sms_quit_fail1 );
-    	//menu->initFailedSms(stage);
-        failFlag = true;
-        break;
-    }
-    case 1:
-    {
-      //  guiTree.append(messangeWindow, "Ошибка СМС\0", sms_quit_fail2);
-        msgBox( rxtxFiledSmsStr[0], sms_quit_fail2);
-    	//menu->initFailedSms(stage);
-        failFlag = true;
-        break;
-    }
-    case 3:
-    {
-     //   guiTree.append(messangeWindow, "Failed Sms", sms_quit_fail2);
-        msgBox( rxtxFiledSmsStr[1], sms_crc_fail);
-    	//menu->initFailedSms(stage);
-        failFlag = true;
-        break;
-    }
-    default:
-        //qmDebugMessage(QmDebug::Dump, "Sms error message: stage = %s", stage);
-        break;
-    }
+    failFlag = true;
 }
 
 void Service::setColorScheme(uint32_t back,uint32_t front)
@@ -2768,9 +2738,9 @@ void Service::onSmsCounterChange(int param)
 {
     menu->smsTxStage = 6;
     if ((param > 0 && param < 77) && (failFlag == false))
-    drawMenu();
+    	drawMenu();
     else
-    menu->smsTxStage = 1;
+    	menu->smsTxStage = 1;
 }
 
 void Service::FirstPacketPSWFRecieved(int packet)
@@ -3923,7 +3893,6 @@ void Service::sheldureParsing(uint8_t* sMass)
 
             // --------- type ---------
 
-            DataStorage::FS::FileType ft = DataStorage::FS::FT_CND;;
             tempSheldureSession.type = (DataStorage::FS::FileType)(sMass[ 1 + (i * 13) ] - 48);
 
             // --------- time ---------
