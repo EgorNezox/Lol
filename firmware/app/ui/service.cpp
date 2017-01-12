@@ -2190,8 +2190,8 @@ void Service::keyPressed(UI_Key key)
             {
                 auto iter = estate.listItem.begin();
                 main_scr->oFreq.clear();
-                main_scr->oFreq.append( (*iter)->inputStr.c_str() );
-                int freq = atoi(main_scr->nFreq.c_str());
+                main_scr->oFreq.append( (*iter)->inputStr );
+                int freq = atoi(main_scr->oFreq.c_str());
                 voice_service->tuneFrequency(freq);
 
                 guiTree.resetCurrentState();
@@ -2316,6 +2316,7 @@ void Service::keyPressed(UI_Key key)
                     char ch[4]; sprintf(ch, "%d", t); ch[3] = '\0';
                     menu->RN_KEY.append(ch);
                     menu->focus = 4;
+                    menu->offset = 3;
                     guiTree.backvard();
                 }
             }
@@ -2324,6 +2325,7 @@ void Service::keyPressed(UI_Key key)
                 storageFs->setFhssKey((uint16_t)atoi(menu->RN_KEY.c_str()));
                 voice_service->setRnKey(atoi(menu->RN_KEY.c_str()));
                 menu->focus = 4;
+                menu->offset = 3;
                 guiTree.backvard();
 
             }
