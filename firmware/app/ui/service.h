@@ -206,6 +206,8 @@ private:
     void FailedSms(int stage);
     void startRxQuit();
 
+    void setFreq();
+
     void readSynchMode();
     // gps coordinate
     std::string coord_lat;

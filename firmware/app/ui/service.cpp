@@ -892,6 +892,7 @@ void Service::keyPressed(UI_Key key)
                 {
                     guiTree.backvard();
                     voice_service->goToVoice(); // add return to voice mode
+                    setFreq();
                 }
                 else if (menu->txCondCmdStage == 1)
                 {
@@ -1376,6 +1377,7 @@ void Service::keyPressed(UI_Key key)
                 case keyBack:
                 {
                     guiTree.backvard();
+                    setFreq();
                     break;
                 }
                 case keyLeft:
@@ -1574,6 +1576,7 @@ void Service::keyPressed(UI_Key key)
             {
                 menu->smsTxStage = 1;
                 guiTree.resetCurrentState();
+                setFreq();
             }
             }
             default:
@@ -1665,7 +1668,7 @@ void Service::keyPressed(UI_Key key)
 				#ifndef PORT__PCSIMULATOR
         		voice_service->TurnSMSMode();
 				#endif
-        		menu->initRxSmsDialog("...");
+        		menu->initRxSmsDialog(receiveStatusStr[1]);
         	  }
 
         	  if (cntSmsRx == 3)
@@ -2773,16 +2776,21 @@ void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
          //guiTree.append(messangeWindow, "Принятый пакет ", sym);
          condCmdValue = packet;
          isDrawCondCmd = true;
-         if (setAsk)
-        	 msgBox( cmdRec, (int)packet );
-         else
-        	 msgBox( recPacket, (int)packet );
+
+         if (isRec){
+			 if (setAsk)
+				 msgBox( cmdRec, (int)packet );
+			 else
+				 msgBox( recPacket, (int)packet );
+         } else
+        	 msgBox( notReiableRecPacket, (int)packet );
     }
     else if ( packet > 99)
         msgBox( rxCondErrorStr[0] );
     else
         msgBox( rxCondErrorStr[1] );
 
+     //setFreq();
 }
 
 void Service::msgBox(const char *title)
@@ -3516,6 +3524,7 @@ void Service::smsMessage(int value)
     menu->smsTxStage = 4;
     menu->initTxSmsDialog(title,text_str);
 
+    setFreq();
 }
 
 void Service::updateAleVmProgress(uint8_t t)
@@ -3978,6 +3987,12 @@ void Service::sheldureToStringList()
      }
      if(sheldureSize < 50)
         sheldure_data.push_back(addSheldure);
+}
+
+void Service::setFreq()
+{
+    int freq = atoi(main_scr->oFreq.c_str());
+    voice_service->tuneFrequency(freq);
 }
 
 }/* namespace Ui */

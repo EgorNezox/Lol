@@ -170,6 +170,7 @@ extern const char *rxtxFiledSmsStr[];
 
 extern const char *recPacket;
 extern const char* cmdRec;
+extern const char *notReiableRecPacket;
 
 extern const char *rxCondErrorStr[];
 

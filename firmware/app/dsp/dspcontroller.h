@@ -511,11 +511,11 @@ private:
     int success_pswf;                                           // ���� �������� �������� ��
     bool pswf_first_packet_received;                            // ����, �����  ������� 3 ������� � ���� ������
     bool pswf_ack;                                              // ����, ���������� ������� ��������� � ��
-
+    bool pswf_ack_tx;
     int date_time[4];                                           // ������ ����-������� ��� ������ � �����������
     char private_lcode;                                         // ���������� - ������ ������� lcode ��� ��������� � ����������
     int pswf_retranslator = 0;                                  // ������� ������������
-
+    bool isPswfFull = false;
     std::vector< std::vector<char> > recievedPswfBuffer;        // ����� ������ ��� ��
     std::vector< std::vector<uint8_t> > recievedSmsBuffer;      // ����� ������ ��� ���
 
@@ -540,11 +540,11 @@ private:
     int trans_guc;                                              // ���� �������� ����� ��
     int pswf_rec = 0;                                           // ���� ��� ����������� ��������� ��������� � ��
     bool state_pswf = 0;                                        // ?
-
+    int pswf_in = 0;
     int wzn_value;                                              // �������� �������� ���� (�� 1 �� 4) ������ ���
     uint8_t sms_retranslation;                                  // ���� ������������ ��� ������ ���
     bool sms_call_received;                                     // ���� ��������� ����������� ������ ��� ���
-
+    uint8_t firstTrueCommand = 100;
     bool isGpsGuc = false;                                      // ������� ��������� � ������
     bool unblockGucTx = false;                                  // ���� ��� �������� - �������(�������� �� sendCommand)
     bool failQuitGuc = false;                                   // ����, true ���� crc �� �������, ��������� � ��������� �������

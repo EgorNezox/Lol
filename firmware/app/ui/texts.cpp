@@ -226,6 +226,7 @@ const char *STARTS = "Старт";
 
 const char *recPacket = "Принята команда\0";
 const char* cmdRec   = "Принята квитанция\0";
+const char *notReiableRecPacket = "Принята недостоверная команда\0";
 
 const char *errorReadFile = "Ошибка чтения файла\0";
 

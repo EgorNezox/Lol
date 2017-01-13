@@ -137,6 +137,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     success_pswf = 30;
     pswf_first_packet_received = false;
     pswf_ack = false;
+    pswf_ack_tx = false;
     private_lcode = 0;
     count_clear = 0;
 
@@ -552,9 +553,9 @@ void DspController::LogicPswfTx()
 	{
 		command_tx30 = 0;
 
-		if(pswf_ack == true)
+		if(pswf_ack_tx == true)
 		{
-			pswf_ack = false;
+			pswf_ack_tx = false;
 			CondComLogicRole = CondComRx;
 			setPswfRx();
 		}
@@ -568,7 +569,7 @@ void DspController::LogicPswfTx()
 void DspController::LogicPswfRx()
 {
 
-	if (pswf_rec >= 3 && (command_rx30 > 31))
+	if (pswf_rec >= 3 && (command_rx30 > 31) && isPswfFull)
 	{
 		pswf_rec = 0;
 		command_rx30 = 0;
@@ -587,6 +588,7 @@ void DspController::LogicPswfRx()
 			ContentPSWF.R_ADR = ContentPSWF.S_ADR;
 			ContentPSWF.S_ADR = radr;
 			setPswfTx();
+			isPswfFull = false;
 		}
 
 		else
@@ -696,10 +698,6 @@ void DspController::RxSmsWork()
 		}
 	}
 }
-
-
-
-
 
 void DspController::TxSmsWork()
 {
@@ -837,11 +835,9 @@ void DspController::setrRxFreq()
     sendCommandEasy(PSWFReceiver, PswfRxFrequency, param);
 }
 
-
 void DspController::recPswf(uint8_t data, uint8_t code)
 {
     qmDebugMessage(QmDebug::Dump, "RecievedPswf() command_rx30 = %d", command_rx30);
-
 
     if (virtual_mode == true)
     {
@@ -869,24 +865,43 @@ void DspController::recPswf(uint8_t data, uint8_t code)
 
     qmDebugMessage(QmDebug::Dump, "private_lcode = %d,lcode = %d", private_lcode,code);
 
-
+    qmDebugMessage(QmDebug::Dump, " >>>>>>>>> pswf_in = %d",pswf_in);
     if (code == private_lcode){
-    	pswfDataPacket[pswf_rec] = data;
+    	firstTrueCommand = ContentPSWF.COM_N;
     	++pswf_rec;
-    	if (pswf_rec == 1)
+    	if (pswf_rec == 2)
     	{
     		ContentPSWF.COM_N = data;
+    		firstPacket(ContentPSWF.COM_N, true);
+    	}
+    }
+    if (pswf_in < 30)
+    {
+    	if (pswf_rec){
+    		pswfDataPacket[pswf_in] = data;
+    		pswf_in++;
+    	}
+    }
+    else
+    {
+    	for (int i = 0; i <= 29; i++)
+    		pswfDataPacket[i] = 100;
+    	if (pswf_rec >= 1)
+    	{
+    		if (pswf_rec == 1)
+    			firstPacket(firstTrueCommand, false); // false - not reliable data
+
+    		qmDebugMessage(QmDebug::Dump, "____30___R_ADR = %d ", ContentPSWF.R_ADR);
     		if (ContentPSWF.R_ADR > 32)
     		{
-    			//data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
     			pswf_ack = true;
     			setAsk = true;
     			ContentPSWF.R_ADR = ContentPSWF.R_ADR - 32;
     			qmDebugMessage(QmDebug::Dump, "r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
     		}
-    		firstPacket(ContentPSWF.COM_N, !pswf_ack);
     	}
-
+    	pswf_in = 0;
+    	isPswfFull = true;
     }
 
    // if (pswf_rec == 1)
@@ -2564,6 +2579,7 @@ void DspController::startPSWFReceiving() {
 	SmsLogicRole = SmsRoleIdle;
 	radio_state = radiostatePswf;
 	pswf_rec = 0;
+	pswf_in = 0;
 
 	setAsk = false;
 }
@@ -2576,7 +2592,7 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
 
     ContentPSWF.RET_end_adr = retr;
 
-    pswf_ack = ack;
+    pswf_ack_tx = ack;
 
     ContentPSWF.indicator = 20;
     ContentPSWF.TYPE = 0;
@@ -3261,6 +3277,13 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 	else if (indicator == 30)
 	{
 
+		if (SmsLogicRole == SmsRoleIdle)
+		{
+			ContentPSWF.R_ADR = data[7];
+			ContentPSWF.S_ADR = data[8];
+			qmDebugMessage(QmDebug::Dump, "____R_ADR = %d ", ContentPSWF.R_ADR);
+			qmDebugMessage(QmDebug::Dump, "____R_SDR = %d", ContentPSWF.S_ADR);
+		}
 		if (data[1] == 2)  // synchro packet
 		{
 			antiSync = true;
@@ -3270,7 +3293,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 
 		qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");
 		if (SmsLogicRole != SmsRoleIdle)
-		{
+
 			qmDebugMessage(QmDebug::Dump, "processReceivedFrame() data_len = %d", data_len);
 			std::vector<uint8_t> sms_data;
 			if (sms_counter > 38 && sms_counter < 76)
@@ -3336,15 +3359,11 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			}
 			pswf_first_packet_received = true;
 		}
-		else
-		{
-			ContentPSWF.R_ADR =  data[7];
-			ContentPSWF.S_ADR = data[8];
-			// data[9]  - COM_N
-			// data[10] - LCODE
-			recPswf(data[9],data[10]);
-		}
-   }
+
+	if (SmsLogicRole == SmsRoleIdle)
+	{
+		recPswf(data[9],data[10]);
+	}
 }
 
 
