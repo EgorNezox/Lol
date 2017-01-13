@@ -238,7 +238,33 @@ bool FS::getGpsSynchroMode(uint8_t* data) {
     return true;
 }
 
-
+/** @brief setVoiceMode Функция для записи речевого режима на флешку
+ *  @details Данная функция записывает речевой режим на флешку
+ *  @param true (1) VoiceModeAuto
+ *         false (0) VoiceModeManual
+ *  @return void.
+ */
+void FS::setVoiceMode(bool data)
+{
+    QmFile file(dir, "VoiceMode");
+    if(!file.open(QmFile::WriteOnly))
+        return;
+    file.write((uint8_t*)&data,1);
+}
+/** @brief getVoiceMode Функция для чтения речевого режима из флешки
+ *  @details Данная функция считывает речевой режим из флешки
+ *  @param true (1) VoiceModeAuto
+ *         false (0) VoiceModeManual
+ *  @return data Речевой режим.
+ */
+bool FS::getVoiceMode(bool *data)
+{
+    QmFile file(dir, "VoiceMode");
+    if(!file.open(QmFile::ReadOnly))
+        return false;
+    file.read((uint8_t*)data,1);
+    return true;
+}
 
 bool FS::getSheldure(uint8_t* data)
 {
