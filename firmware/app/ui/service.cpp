@@ -2745,7 +2745,7 @@ void Service::onSmsCounterChange(int param)
     	menu->smsTxStage = 1;
 }
 
-void Service::FirstPacketPSWFRecieved(int packet)
+void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
 {
      if ( packet >= 0 && packet < 100 )
     {
@@ -2754,7 +2754,7 @@ void Service::FirstPacketPSWFRecieved(int packet)
         char sym[3];
         sprintf(sym,"%d",packet);
 
-        if (storageFs > 0){
+        if (storageFs > 0 && !isRec){
 
             if (packet < 10) sym[1] = 0;
             sym[2] = 0;
@@ -2769,18 +2769,16 @@ void Service::FirstPacketPSWFRecieved(int packet)
          //guiTree.append(messangeWindow, "Принятый пакет ", sym);
          condCmdValue = packet;
          isDrawCondCmd = true;
-         msgBox( recPacket, (int)packet );
+         if (setAsk)
+        	 msgBox( cmdRec, (int)packet );
+         else
+        	 msgBox( recPacket, (int)packet );
     }
     else if ( packet > 99)
-    {
-        //guiTree.append(messangeWindow, "Принятый пакет:\n\tОшибка\t");
         msgBox( rxCondErrorStr[0] );
-    }
     else
-    {
-       // guiTree.append(messangeWindow, "Принятый пакет:\n\tНеизвестная\n\tошибка\t");
         msgBox( rxCondErrorStr[1] );
-    }
+
 }
 
 void Service::msgBox(const char *title)

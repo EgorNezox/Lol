@@ -173,7 +173,7 @@ public:
 
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
-    sigc::signal<void,int> firstPacket;     // ������� ������ ����� � ��
+    sigc::signal<void,int,bool> firstPacket;     // ������� ������ ����� � ��
     sigc::signal<void> smsReceived;         // ������� ���
     sigc::signal<void,int> smsFailed;       // ������ ������ ���
     sigc::signal<void,int> smsPacketMessage;    // ����� ��������� �� �����

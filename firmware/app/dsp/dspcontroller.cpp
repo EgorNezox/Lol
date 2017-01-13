@@ -838,7 +838,7 @@ void DspController::setrRxFreq()
 }
 
 
-void DspController::recPswf(uint8_t data,uint8_t code)
+void DspController::recPswf(uint8_t data, uint8_t code)
 {
     qmDebugMessage(QmDebug::Dump, "RecievedPswf() command_rx30 = %d", command_rx30);
 
@@ -884,11 +884,12 @@ void DspController::recPswf(uint8_t data,uint8_t code)
     			ContentPSWF.R_ADR = ContentPSWF.R_ADR - 32;
     			qmDebugMessage(QmDebug::Dump, "r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
     		}
+    		firstPacket(ContentPSWF.COM_N, !pswf_ack);
     	}
 
     }
 
-    if (pswf_rec == 1) firstPacket(ContentPSWF.COM_N);
+   // if (pswf_rec == 1)
 }
 
 int DspController::prevSecond(int second) {

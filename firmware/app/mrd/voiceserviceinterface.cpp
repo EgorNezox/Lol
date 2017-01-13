@@ -336,9 +336,9 @@ void VoiceServiceInterface::updateChannel() {
 	}
 }
 
-void VoiceServiceInterface::fistPacketRecieve(int packet)
+void VoiceServiceInterface::fistPacketRecieve(int packet, bool rec)
 {
-    firstPacket(packet);
+    firstPacket(packet, rec);
 }
 
 void VoiceServiceInterface::saveFreq(int value)

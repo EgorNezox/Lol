@@ -74,7 +74,7 @@ public:
 
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
-    sigc::signal<void,int> firstPacket;
+    sigc::signal<void,int,bool> firstPacket;
     sigc::signal<void,int> smsFailed;
     sigc::signal<void,int> smsMess;
     sigc::signal<void,int> respGuc;
@@ -110,7 +110,7 @@ private:
 	void updateChannel();
 
 
-    void fistPacketRecieve(int packet);
+    void fistPacketRecieve(int packet, bool rec);
     void responseGuc(int value);
     void smsMessage(int value);
 

@@ -192,7 +192,7 @@ private:
 
     void GucCoord();
 
-    void FirstPacketPSWFRecieved(int packet);
+    void FirstPacketPSWFRecieved(int packet, bool isRec);
     void smsMessage(int value);
 
     void drawMainWindow();
