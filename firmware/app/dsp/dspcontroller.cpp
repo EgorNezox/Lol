@@ -166,11 +166,14 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     for(int i = 0;i<50;i++) guc_text[i] = '\0';
 
+
     sms_call_received = false;
-    for(int i = 0;i<255;i++) rs_data_clear[i] = 1;
-   data_storage_fs->getAleStationAddress(ContentSms.S_ADR);
-    ContentGuc.S_ADR = ContentSms.S_ADR;
-    ContentPSWF.S_ADR = ContentSms.S_ADR;
+    for(int i = 0;i<255;i++) rs_data_clear[i] = 1;\
+
+
+   data_storage_fs->getAleStationAddress(stationAddress);
+    ContentSms.S_ADR = stationAddress;
+
     //data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
     QNB = 0;
     pswf_rec = 0;
@@ -589,6 +592,7 @@ void DspController::LogicPswfRx()
 			ContentPSWF.S_ADR = radr;
 			setPswfTx();
 			isPswfFull = false;
+			command_tx30 = 1;
 		}
 
 		else
@@ -615,8 +619,7 @@ void DspController::changePswfFrequency()
 	{
 		LogicPswfTx();
 	}
-
-	if (CondComLogicRole == CondComRx)
+	else if (CondComLogicRole == CondComRx)
 	{
 	    ++command_rx30;
 		LogicPswfRx();
@@ -756,13 +759,13 @@ void DspController::TxSmsWork()
     if (sms_counter == 84)
     {
     	if (ok_quit >= 1)
-    		smsFailed(-1);
+    		smsFailed(-1); //correct recieved
     	else
     	{
     		if (smsError >= 1)
-    			smsFailed(0);
+    			smsFailed(0); // negative ack recieved
     		else
-    			smsFailed(2);
+    			smsFailed(2); // not ack recieved
     	}
     	resetSmsState();
     }
@@ -835,7 +838,7 @@ void DspController::setrRxFreq()
     sendCommandEasy(PSWFReceiver, PswfRxFrequency, param);
 }
 
-void DspController::recPswf(uint8_t data, uint8_t code)
+void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
 {
     qmDebugMessage(QmDebug::Dump, "RecievedPswf() command_rx30 = %d", command_rx30);
 
@@ -865,8 +868,9 @@ void DspController::recPswf(uint8_t data, uint8_t code)
 
     qmDebugMessage(QmDebug::Dump, "private_lcode = %d,lcode = %d", private_lcode,code);
 
-    qmDebugMessage(QmDebug::Dump, " >>>>>>>>> pswf_in = %d",pswf_in);
-    if (code == private_lcode){
+    qmDebugMessage(QmDebug::Dump, " >>>>>>>>> pswf_in = %d, pswf_rec = %d ",pswf_in, pswf_rec);
+
+    if ((code == private_lcode) && (indicator == 30)){
     	firstTrueCommand = ContentPSWF.COM_N;
     	++pswf_rec;
     	if (pswf_rec == 2)
@@ -891,7 +895,7 @@ void DspController::recPswf(uint8_t data, uint8_t code)
     		if (pswf_rec == 1)
     			firstPacket(firstTrueCommand, false); // false - not reliable data
 
-    		qmDebugMessage(QmDebug::Dump, "____30___R_ADR = %d ", ContentPSWF.R_ADR);
+    		qmDebugMessage(QmDebug::Dump, " = %d ", ContentPSWF.R_ADR);
     		if (ContentPSWF.R_ADR > 32)
     		{
     			pswf_ack = true;
@@ -2599,6 +2603,7 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
     ContentPSWF.COM_N = cmd;
     ContentPSWF.R_ADR = r_adr;
     if (pswf_retranslator > 0) ContentPSWF.R_ADR += 32;
+    ContentPSWF.S_ADR = stationAddress;
     //data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
 
     command_rx30  = 0;
@@ -2866,7 +2871,7 @@ void DspController::startGucRecieving()
     comandValue.guc_mode = 3;
 
     sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
-    data_storage_fs->getAleStationAddress(comandValue.guc_mode);
+    comandValue.guc_mode = stationAddress;
     sendCommandEasy(RadioLineNotPswf, 3 ,comandValue);
 
 
@@ -3282,7 +3287,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			ContentPSWF.R_ADR = data[7];
 			ContentPSWF.S_ADR = data[8];
 			qmDebugMessage(QmDebug::Dump, "____R_ADR = %d ", ContentPSWF.R_ADR);
-			qmDebugMessage(QmDebug::Dump, "____R_SDR = %d", ContentPSWF.S_ADR);
+			qmDebugMessage(QmDebug::Dump, "____S_ADR = %d ", ContentPSWF.S_ADR);
 		}
 		if (data[1] == 2)  // synchro packet
 		{
@@ -3346,13 +3351,13 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 				uint8_t ack_code_calc = calc_ack_code(ack);
 
 				qmDebugMessage(QmDebug::Info, "recieve count sms = %d %d", ack_code_calc, data[10]);
+				qmDebugMessage(QmDebug::Dump, "recieve count sms = %d %d", ack_code_calc, data[10]);
 				if (ack_code_calc == ack_code){
 						if (ack == 73)
 							++ok_quit;
 						if (ack == 99)
 							++smsError;
 				}
-
 
 				quit_vector.push_back(ack);  // ack
 				quit_vector.push_back(ack_code); // ack code
@@ -3362,7 +3367,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 
 	if (SmsLogicRole == SmsRoleIdle)
 	{
-		recPswf(data[9],data[10]);
+		recPswf(data[9],data[10],indicator);
 	}
 }
 

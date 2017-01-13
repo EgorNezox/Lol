@@ -391,7 +391,7 @@ private:
     int CalcSmsTransmitTxRoleFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int prevSecond(int second);                                                                     // ������� ��������� ���������� �������
 
-    void recPswf(uint8_t data,uint8_t code);                                                       // ������� �������� ��� lcode
+    void recPswf(uint8_t data,uint8_t code, uint8_t indicator);                                                       // ������� �������� ��� lcode
     int getFrequencyPswf();                                                                         // ������� �������� ��������� ������� � ��
     int getFrequencySms();                                                                          // ������� �������� ��������� ������� � ���
 
@@ -585,6 +585,7 @@ private:
 
 
     uint8_t indexerWaze = 0;
+    uint8_t stationAddress;
 
 public:
     uint8_t getSmsCounter();

@@ -1748,12 +1748,12 @@ void CGuiMenu::initRxSmsDialog(std::string str)
     if (recvStage == 0)
     {
         param.transparent = false;
-        button_geom = { 30, 40, 130, 80 };
+        button_geom = { 10, 40, 150, 80 };
     }
     else
     {
         param.transparent = true;
-        button_geom = { 30, 40, 130, 80 };
+        button_geom = { 10, 40, 150, 80 };
     }
 
     GUI_EL_Label    ok_button ( &param, &button_geom, (char*)str.c_str(), (GUI_Obj *)this);

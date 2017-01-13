@@ -856,6 +856,7 @@ void Service::keyPressed(UI_Key key)
                         voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
                         setAsk = true;
                     }
+
                     if ((storageFs > 0) && (param[0] != 0))
                     {
                         char sym[4];
@@ -866,9 +867,8 @@ void Service::keyPressed(UI_Key key)
                         condMsg.push_back((uint8_t)sym[0]);
                         condMsg.push_back((uint8_t)sym[1]);
                         condMsg.push_back((uint8_t)sym[2]);
-                        storageFs->setCondCommand(&condMsg,DataStorage::FS::FTT_TX);
+                       // storageFs->setCondCommand(&condMsg,DataStorage::FS::FTT_TX);
                     }
-
 
                     for(auto &k: estate.listItem)
                         k->inputStr.clear();
@@ -2770,7 +2770,7 @@ void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
             condMsg.push_back((uint8_t)sym[1]);
             condMsg.push_back((uint8_t)sym[2]);
 
-            storageFs->setCondCommand(&condMsg, DataStorage::FS::FTT_RX);
+         //   storageFs->setCondCommand(&condMsg, DataStorage::FS::FTT_RX);
         }
 
          //guiTree.append(messangeWindow, "Принятый пакет ", sym);
