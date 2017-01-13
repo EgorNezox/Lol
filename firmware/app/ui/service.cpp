@@ -70,6 +70,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
         menu = new CGuiMenu(&ui_menu_msg_box_area, mainMenu[0], {alignHCenter,alignTop});
     }
     menu->setFS(storageFs);
+    storageFs->getVoiceMode(&menu->useMode);
+    multiradio_service->setVoiceMode((Multiradio::MainServiceInterface::VoiceMode)!menu->useMode);
+
 
     menu->loadVoiceMail.connect(sigc::mem_fun(this, &Service::onLoadVoiceMail));
     menu->loadMessage.connect(sigc::mem_fun(this, &Service::onLoadMessage));
@@ -2339,9 +2342,10 @@ void Service::keyPressed(UI_Key key)
                     multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode::VoiceModeAuto);
                 else
                     multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode::VoiceModeManual);
-
-//                guiTree.advance(menu->focus);
-//                menu->focus = 0;
+                storageFs->setVoiceMode(menu->useMode);
+                guiTree.backvard();
+                menu->focus = 0;
+                menu->offset = 0;
             }
             if ( key == keyBack)
             {

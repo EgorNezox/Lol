@@ -61,6 +61,8 @@ public:
     bool setSheldure(uint8_t *data, uint16_t size);
     bool getGpsSynchroMode(uint8_t *data);
     void setGpsSynchroMode(uint8_t data);
+    void setVoiceMode(bool data);
+    bool getVoiceMode(bool *data);
 private:
     bool renameFile(std::string oldfileName, std::string newFileName);
     bool deleteFile(std::string fileName);
