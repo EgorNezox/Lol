@@ -48,7 +48,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     ginit();
     loadSheldure();
-
+    storageFs->getVoiceMode(menu->useMode);
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
     voice_service->smsCounterChanged.connect(sigc::mem_fun(this,&Service::onSmsCounterChange));
 
@@ -2339,9 +2339,10 @@ void Service::keyPressed(UI_Key key)
                     multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode::VoiceModeAuto);
                 else
                     multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode::VoiceModeManual);
-
-//                guiTree.advance(menu->focus);
-//                menu->focus = 0;
+                storageFs->setVoiceMode(menu->useMode);
+                guiTree.backvard();
+                menu->focus = 0;
+                menu->offset = 0;
             }
             if ( key == keyBack)
             {
