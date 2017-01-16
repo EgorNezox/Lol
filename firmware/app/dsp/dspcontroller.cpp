@@ -423,7 +423,6 @@ void DspController::setTx()
 
 void DspController::sendPswf()
 {
-
 	int time[4] = {0,0,0,0};
 
 	if (virtual_mode == true)
@@ -433,39 +432,20 @@ void DspController::sendPswf()
 		time[2] = t.minutes;
 		time[3] = t.seconds;
 		qmDebugMessage(QmDebug::Dump, "time now: %d %d %d %d" ,d.day,t.hours,t.minutes,t.seconds);
-
 	}
 	else
 	{
 		for(int i = 0; i<4;i++) time[i] = date_time[i];
 	}
 
-
-	if (ContentPSWF.RET_end_adr > 0)
-	{
-		ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(
-				ContentPSWF.RET_end_adr,
-				ContentPSWF.R_ADR,
-				ContentPSWF.COM_N,
-				ContentPSWF.RN_KEY,
-				time[0],
-				time[1],
-				time[2],
-				time[3]);
-	}
-	else
-	{
-		ContentPSWF.L_CODE = navigator->Calc_LCODE(
-				ContentPSWF.R_ADR,
-				ContentPSWF.S_ADR,
-				ContentPSWF.COM_N,
-				ContentPSWF.RN_KEY,
-				time[0],
-				time[1],
-				time[2],
-				time[3]);
-	}
-
+ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(ContentPSWF.RET_end_adr ? ContentPSWF.RET_end_adr : ContentPSWF.R_ADR,
+												ContentPSWF.S_ADR,
+												ContentPSWF.COM_N,
+												ContentPSWF.RN_KEY,
+												time[0],
+												time[1],
+												time[2],
+												time[3]);
 
     ContentPSWF.Frequency = getFrequencyPswf();
     ContentPSWF.indicator = 20;
@@ -526,7 +506,6 @@ void DspController::addSeconds(int *date_time) {
     }
 }
 
-
 void DspController::addSeconds(QmRtc::Time *t) {
     t->seconds += 1;
     if (t->seconds >= 60) {
@@ -539,14 +518,12 @@ void DspController::addSeconds(QmRtc::Time *t) {
     }
 }
 
-
-
 void DspController::LogicPswfTx()
 {
 	++command_tx30;
 
     if ((command_tx30 % 3 == 0) && (setAsk == false))
-    TxCondCmdPackageTransmit(command_tx30);
+    	TxCondCmdPackageTransmit(command_tx30);
 
 	if (command_tx30 <= 30)
 		sendPswf();
@@ -559,6 +536,7 @@ void DspController::LogicPswfTx()
 		{
 			pswf_ack_tx = false;
 			CondComLogicRole = CondComRx;
+			waitAckTimer = 1;
 			setPswfRx();
 		}
 		else
@@ -566,21 +544,23 @@ void DspController::LogicPswfTx()
 			radio_state = radiostateSync;
 		}
 	}
-	qmDebugMessage(QmDebug::Dump, "TX____ stationAddress = %d ", stationAddress);
-	qmDebugMessage(QmDebug::Dump, "TX____ ContentPSWF.R_ADR = %d ", ContentPSWF.R_ADR);
-	qmDebugMessage(QmDebug::Dump, "TX____ ContentPSWF.S_ADR = %d ", ContentPSWF.S_ADR);
+
+	qmDebugMessage(QmDebug::Dump, "RX____ ContentPSWF.R_ADR = %d, ContentPSWF.S_ADR = %d ", ContentPSWF.R_ADR, ContentPSWF.S_ADR);
 }
 
 void DspController::LogicPswfRx()
 {
+	if (waitAckTimer){
+		waitAckTimer++;
+		if (waitAckTimer >= 65){
+			waitAckTimer = 0;
+			firstPacket(100, false); // no ack recieved
+		}
+
+	}
 	if (isPswfFull)
 	{
 		pswf_rec = 0;
-
-//		for(int i = 0; i<30;i++)
-//		{
-//			if (pswfDataPacket[i] == ContentPSWF.COM_N)  pswfDataPacket[i] = 255;
-//		}
 
 		if (pswf_ack == true)
 		{
@@ -598,9 +578,7 @@ void DspController::LogicPswfRx()
 		}
 	}
 
-	qmDebugMessage(QmDebug::Dump, "RX____ stationAddress = %d ", stationAddress);
-	qmDebugMessage(QmDebug::Dump, "RX____ ContentPSWF.R_ADR = %d ", ContentPSWF.R_ADR);
-	qmDebugMessage(QmDebug::Dump, "RX____ ContentPSWF.S_ADR = %d ", ContentPSWF.S_ADR);
+	qmDebugMessage(QmDebug::Dump, "RX____ ContentPSWF.R_ADR = %d, ContentPSWF.S_ADR = %d ", ContentPSWF.R_ADR, ContentPSWF.S_ADR);
 }
 
 
@@ -839,41 +817,25 @@ void DspController::setrRxFreq()
 
 void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
 {
-    if (virtual_mode == true)
-    {
-    	private_lcode = (char)navigator->Calc_LCODE(
-    	    			ContentPSWF.R_ADR,
-    					ContentPSWF.S_ADR,
-    					data,
-    					ContentPSWF.RN_KEY,
-    					d.day,
-    					t.hours,
-    					t.minutes,
-						prevSecond(t.seconds));
-    }
-    else {
-    	private_lcode = (char)navigator->Calc_LCODE(
-    			ContentPSWF.R_ADR,
-				ContentPSWF.S_ADR,
-				data,
-				ContentPSWF.RN_KEY,
-				date_time[0],
-				date_time[1],
-				date_time[2],
-				prevSecond(date_time[3]));
-    }
+    if (virtual_mode)
+    	private_lcode = (char)navigator->Calc_LCODE(ContentPSWF.R_ADR, ContentPSWF.S_ADR, data, ContentPSWF.RN_KEY, d.day, t.hours, t.minutes, prevSecond(t.seconds));
+    else
+    	private_lcode = (char)navigator->Calc_LCODE(ContentPSWF.R_ADR, ContentPSWF.S_ADR, data, ContentPSWF.RN_KEY, date_time[0], date_time[1], date_time[2], prevSecond(date_time[3]));
 
     qmDebugMessage(QmDebug::Dump, " >>>>>>>>> recPswf() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
     qmDebugMessage(QmDebug::Dump, " >>>>>>>>> recPswf() private_lcode = %d,lcode = %d", private_lcode,code);
     qmDebugMessage(QmDebug::Dump, " >>>>>>>>> recPswf() pswf_in = %d, pswf_rec = %d, pswf_in_virt = %d ",pswf_in, pswf_rec, pswf_in_virt);
 
+
 	if (virtual_mode && indicator == 31){
 		pswf_in_virt++;
-		if (pswf_in_virt > 37 && !pswf_rec){
+		uint8_t counter = 37;
+		if (virtual_mode)
+		   counter += 65;
+		if (pswf_in_virt > counter && !pswf_rec){
 			startVirtualPpsModeRx();
 		}
 	}
-
 
     if (code == private_lcode){ //lcode can be overflow (==0) TODO fix
     	if (indicator == 30){
@@ -888,21 +850,16 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     }
     if (pswf_in < 30)
     {
-    	if (pswf_rec){
-    		pswfDataPacket[pswf_in] = data;
+    	if (pswf_rec)
     		pswf_in++;
-    	}
     }
     else
     {
-    	for (int i = 0; i <= 29; i++)
-    		pswfDataPacket[i] = 100;
     	if (pswf_rec >= 1)
     	{
     		if (pswf_rec == 1)
     			firstPacket(firstTrueCommand, false); // false - not reliable data
 
-    		qmDebugMessage(QmDebug::Dump, " = %d ", ContentPSWF.R_ADR);
     		if (ContentPSWF.R_ADR > 32)
     		{
     			pswf_ack = true;
@@ -913,11 +870,7 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     	}
     	pswf_rec = 0;
     	pswf_in = 0;
-
-
     }
-    qmDebugMessage(QmDebug::Dump, "recPswf() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
-   // if (pswf_rec == 1)
 }
 
 int DspController::prevSecond(int second) {
@@ -2575,11 +2528,12 @@ void DspController::setPswfTx()
 }
 
 
-void DspController::startPSWFReceiving() {
+void DspController::startPSWFReceiving()
+{
 	qmDebugMessage(QmDebug::Dump, "startPSWFReceiving(%d)", ack);
 	QM_ASSERT(is_ready);
 
-	for(int i = 0; i<30;i++) pswfDataPacket[i] = 255;
+//	for(int i = 0; i<30;i++) pswfDataPacket[i] = 255;
 
 	if (virtual_mode == true)
 		startVirtualPpsModeRx();
@@ -2596,6 +2550,7 @@ void DspController::startPSWFReceiving() {
 
 	setAsk = false;
 	isPswfFull = false;
+	waitAckTimer = 0;
 }
 
 void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,int retr) {
@@ -2627,6 +2582,7 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
 
 	setAsk = false;
 	isPswfFull = false;
+	waitAckTimer = 0;
 
 }
 

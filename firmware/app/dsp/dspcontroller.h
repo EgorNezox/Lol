@@ -552,7 +552,7 @@ private:
     uint8_t guc_text[120];                                      // ������ �������� � ������ �� ����� ������ � �������� ��� ������ ����� ��
     uint8_t guc_coord[10];                                      // ������ ��� �������� ��������� � ���
     int  freqGucValue = 0;                                      // ������� ��� ��������� � ���
-
+    uint8_t waitAckTimer = 0;
     uint8_t smsDataPacket[255];
     uint8_t pswfDataPacket[30];
 

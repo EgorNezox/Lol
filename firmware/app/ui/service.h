@@ -267,6 +267,7 @@ private:
 
     bool isValidGpsTime = false; //
 
+    //QmTimer synchModeTimer;
 };
 
 } /* namespace Ui */

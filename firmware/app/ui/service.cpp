@@ -2798,10 +2798,16 @@ void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
          } else
         	 msgBox( notReiableRecPacket, (int)packet );
     }
-    else if ( packet > 99)
+     else if ( packet == 100){
+         msgBox( gucQuitTextFail );
+         setAsk = false;
+     }
+    else if ( packet > 100)
         msgBox( rxCondErrorStr[0] );
     else
         msgBox( rxCondErrorStr[1] );
+
+    menu->recvStage = 0;
 
      //setFreq();
 }

@@ -48,7 +48,7 @@ FS::FS(const std::string &dir) :
 
 //	QmFile file(dir, "AleStationAddress");
 //
-//	uint8_t data1 = 9;
+//	uint8_t data1 = 3;
 //	if (!file.open(QmFile::WriteOnly))
 //		return;
 //	file.write((uint8_t *)&data1, 1);
