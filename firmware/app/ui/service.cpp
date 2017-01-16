@@ -2781,7 +2781,7 @@ void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
             condMsg.push_back((uint8_t)sym[1]);
             condMsg.push_back((uint8_t)sym[2]);
 
-           // storageFs->setCondCommand(&condMsg, DataStorage::FS::FTT_RX);
+            storageFs->setCondCommand(&condMsg, DataStorage::FS::FTT_RX);
         }
 
          //guiTree.append(messangeWindow, "Принятый пакет ", sym);

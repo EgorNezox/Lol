@@ -392,9 +392,9 @@ private:
     int prevSecond(int second);                                                                     // ������� ��������� ���������� �������
 
     void recPswf(uint8_t data,uint8_t code, uint8_t indicator);                                                       // ������� �������� ��� lcode
-    int getFrequencyPswf();                                                                         // ������� �������� ��������� ������� � ��
-    int getFrequencySms();                                                                          // ������� �������� ��������� ������� � ���
-
+   // int getFrequencyPswf();                                                                         // ������� �������� ��������� ������� � ��
+   // int getFrequencySms();                                                                          // ������� �������� ��������� ������� � ���
+    int getFrequency(uint8_t mode);
     void getSwr();                                                                                  // ������� ��������� ��������������
     void sendPswf();                                                                            // ������� �������� ��
     void addSeconds(int *date_time);                                                                // ������� ���������� ������� � ������� �������

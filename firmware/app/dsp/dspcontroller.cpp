@@ -420,12 +420,11 @@ void DspController::setTx()
 	sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
 }
 
-
 void DspController::sendPswf()
 {
 	int time[4] = {0,0,0,0};
 
-	if (virtual_mode == true)
+	if (virtual_mode)
 	{
 		time[0] = d.day;
 		time[1] = t.hours;
@@ -447,7 +446,7 @@ ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(ContentPSWF.RET_end_adr ? Conten
 												time[2],
 												time[3]);
 
-    ContentPSWF.Frequency = getFrequencyPswf();
+    ContentPSWF.Frequency = getFrequency(0); //pswf = 0, sms = 1
     ContentPSWF.indicator = 20;
     ContentPSWF.TYPE = 0;
     ContentPSWF.SNR =  9;
@@ -455,42 +454,21 @@ ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(ContentPSWF.RET_end_adr ? Conten
     uint8_t tx_address = 0x72;
     uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
     int tx_data_len = 0;
-    qmToBigEndian((uint8_t)ContentPSWF.indicator, tx_data + tx_data_len);
-    ++tx_data_len;
-    qmToBigEndian((uint8_t)ContentPSWF.TYPE, tx_data + tx_data_len);
-    ++tx_data_len;
-    qmToBigEndian((uint32_t)ContentPSWF.Frequency, tx_data + tx_data_len);
-    tx_data_len += 4;
-    qmToBigEndian((uint8_t)ContentPSWF.SNR, tx_data+tx_data_len);
-    ++tx_data_len;
+    qmToBigEndian((uint8_t)ContentPSWF.indicator,  tx_data + tx_data_len); ++tx_data_len;
+    qmToBigEndian((uint8_t)ContentPSWF.TYPE,       tx_data + tx_data_len); ++tx_data_len;
+    qmToBigEndian((uint32_t)ContentPSWF.Frequency, tx_data + tx_data_len); tx_data_len += 4;
+    qmToBigEndian((uint8_t)ContentPSWF.SNR,        tx_data + tx_data_len); ++tx_data_len;
 
-    if (pswf_retranslator == 0)
-    {
-    	qmToBigEndian((uint8_t)ContentPSWF.R_ADR, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentPSWF.S_ADR, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentPSWF.COM_N, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data+tx_data_len);
-    	++tx_data_len;
-    }
-    else
-    {
-    	qmToBigEndian((uint8_t)ContentPSWF.RET_end_adr, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentPSWF.R_ADR, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentPSWF.COM_N, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data+tx_data_len);
-    	++tx_data_len;
-    }
+    qmToBigEndian((uint8_t)(pswf_retranslator ? ContentPSWF.RET_end_adr : ContentPSWF.R_ADR), tx_data+tx_data_len);  ++tx_data_len;
+    qmToBigEndian((uint8_t)ContentPSWF.S_ADR,  tx_data + tx_data_len); ++tx_data_len;
+    qmToBigEndian((uint8_t)ContentPSWF.COM_N,  tx_data + tx_data_len); ++tx_data_len;
+    qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data + tx_data_len); ++tx_data_len;
 
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
 }
 //TODO
-void DspController::addSeconds(int *date_time) {
+void DspController::addSeconds(int *date_time)
+{
     date_time[3] += 1;
     if (date_time[3] >= 60) {
         date_time[3] %= 60;
@@ -506,7 +484,8 @@ void DspController::addSeconds(int *date_time) {
     }
 }
 
-void DspController::addSeconds(QmRtc::Time *t) {
+void DspController::addSeconds(QmRtc::Time *t)
+{
     t->seconds += 1;
     if (t->seconds >= 60) {
         t->seconds %= 60;
@@ -550,6 +529,7 @@ void DspController::LogicPswfTx()
 
 void DspController::LogicPswfRx()
 {
+	 qmDebugMessage(QmDebug::Dump, " >>>>>>>>> LogicPswfRx() waitAckTimer = %d", waitAckTimer);
 	if (waitAckTimer){
 		waitAckTimer++;
 		if (waitAckTimer >= 65){
@@ -570,7 +550,8 @@ void DspController::LogicPswfRx()
 			ContentPSWF.S_ADR = stationAddress;
 			setPswfTx();
 			isPswfFull = false;
-			command_tx30 = 0;
+			command_tx30 = 1;
+			sendPswf();
 		}
 		else
 		{
@@ -578,19 +559,19 @@ void DspController::LogicPswfRx()
 		}
 	}
 
+	setPswfRxFreq();
+
 	qmDebugMessage(QmDebug::Dump, "RX____ ContentPSWF.R_ADR = %d, ContentPSWF.S_ADR = %d ", ContentPSWF.R_ADR, ContentPSWF.S_ADR);
 }
 
 
 void DspController::changePswfFrequency()
 {
-	if (virtual_mode != true)
+	if (!virtual_mode)
 	{
 		getDataTime();
 		addSeconds(date_time);
 	}
-
-	//addSeconds(&t);
 
 	if (CondComLogicRole == CondComTx)
 	{
@@ -599,13 +580,12 @@ void DspController::changePswfFrequency()
 	else if (CondComLogicRole == CondComRx)
 	{
 		LogicPswfRx();
-		setPswfRxFreq();
 	}
 }
 
 void DspController::setPswfRxFreq()
 {
-	ContentPSWF.Frequency = getFrequencyPswf();
+	ContentPSWF.Frequency = getFrequency(0); //pswf = 0, sms = 1
 	ParameterValue param;
 	param.frequency = ContentPSWF.Frequency;
 	sendCommandEasy(PSWFReceiver, PswfRxFrequency, param);
@@ -626,8 +606,10 @@ void DspController::RxSmsWork()
 			sendSms(PSWFTransmitter);
 		}
 
-        if (sms_counter > 20 && sms_counter < 38) sendSms(PSWFTransmitter);
-		if (sms_counter == 39)
+        if (sms_counter > 20 && sms_counter < 38)
+        	sendSms(PSWFTransmitter);
+
+        if (sms_counter == 39)
 		{
 			setRx();
 			setrRxFreq();
@@ -670,8 +652,8 @@ void DspController::RxSmsWork()
 			smsFind  = true;
 			sms_call_received = false;
 			sms_counter = 19;
+			pswf_in_virt = 0;
 		}
-
 		else
 		{
 			setrRxFreq();
@@ -708,7 +690,6 @@ void DspController::TxSmsWork()
     		setTx();
     		sendSms(PSWFTransmitter);
     	}
-
     	else
     	{
     		resetSmsState();
@@ -751,16 +732,23 @@ void DspController::TxSmsWork()
 
 void DspController::changeSmsFrequency()
 {
-	if (virtual_mode == false)
+	if (!virtual_mode)
 	{
 	  getDataTime();
 	  addSeconds(date_time);
 	  qmDebugMessage(QmDebug::Dump, "getDataTime(): %d %d %d %d", date_time[0], date_time[1], date_time[2], date_time[3]);
 	}
+	else
+	{
+		if (SmsLogicRole == SmsRoleRx && !smsFind){
+				pswf_in_virt++;
+			if (pswf_in_virt >= 90)
+				startVirtualPpsModeRx();
+		}
+	}
 
 	if (SmsLogicRole == SmsRoleTx)
 	{
-
         TxSmsWork();
 	}
 
@@ -789,7 +777,6 @@ void DspController::resetSmsState()
 
 bool DspController::checkForTxAnswer()
 {
-
 	if (tx_call_ask_vector.size() >= 2)
 	{
 		wzn_value = wzn_change(tx_call_ask_vector);
@@ -805,7 +792,7 @@ bool DspController::checkForTxAnswer()
 
 void DspController::setrRxFreq()
 {
-    ContentSms.Frequency =  getFrequencySms();
+    ContentSms.Frequency =  getFrequency(1); //pswf = 0, sms = 1
 
     ParameterValue param;
     param.frequency = ContentSms.Frequency;
@@ -845,6 +832,7 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
 			{
 				ContentPSWF.COM_N = data;
 				firstPacket(ContentPSWF.COM_N, true);
+				waitAckTimer = 0;
 			}
     	}
     }
@@ -857,8 +845,10 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     {
     	if (pswf_rec >= 1)
     	{
-    		if (pswf_rec == 1)
+    		if (pswf_rec == 1){
     			firstPacket(firstTrueCommand, false); // false - not reliable data
+    			waitAckTimer = 0;
+    		}
 
     		if (ContentPSWF.R_ADR > 32)
     		{
@@ -873,65 +863,37 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     }
 }
 
-int DspController::prevSecond(int second) {
+int DspController::prevSecond(int second)
+{
 	if (second == 0)
 		return 59;
 	return second - 1;
 }
 
-int DspController::getFrequencyPswf()
+int DspController::getFrequency(uint8_t mode) //pswf = 0, sms = 1
 {
 	int fr_sh = 0;
 
-	if (virtual_mode == true)
-		fr_sh	 = CalcShiftFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
-	else
-		fr_sh = CalcShiftFreq(ContentPSWF.RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
-	fr_sh += 1622;
+	int RN_KEY = mode ? ContentSms.RN_KEY : ContentPSWF.RN_KEY;
 
+	if (virtual_mode)
+		fr_sh = CalcShiftFreq(RN_KEY,t.seconds,d.day,t.hours,t.minutes);
+	else
+		fr_sh = CalcShiftFreq(RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
+
+	fr_sh += 1622;
 	fr_sh = fr_sh * 1000; // � � вЂњ� ЎвЂ�
 
-	for(int i = 0; i<32;i+=2)
+	for(int i = 0; i < 32; i += 2)
 	{
 		if((fr_sh >= frequence_bandwidth[i]) && (fr_sh <= frequence_bandwidth[i+1]))
-		{
 			break;
-		}else{
+		else
 			fr_sh += (frequence_bandwidth[i+2] - frequence_bandwidth[i+1]);
-		}
 	}
 
 	qmDebugMessage(QmDebug::Dump,"frequency:  %d ", fr_sh);
-
     return fr_sh;
-}
-
-int DspController::getFrequencySms()
-{
-	int fr_sh = 0;
-
-	if (virtual_mode == true)
-		fr_sh = CalcSmsTransmitFreq(ContentSms.RN_KEY,d.day,t.hours,t.minutes,t.seconds);
-	else
-		fr_sh = CalcSmsTransmitFreq(ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3]);
-
-    fr_sh += 1622;
-
-    fr_sh = fr_sh * 1000; // � � вЂњ� ЎвЂ�
-
-    for(int i = 0; i<32;i+=2)
-    {
-        if((fr_sh >= frequence_bandwidth[i]) && (fr_sh <= frequence_bandwidth[i+1]))
-        {
-            break;
-        }else{
-            fr_sh += (frequence_bandwidth[i+2] - frequence_bandwidth[i+1]);
-        }
-    }
-
-    qmDebugMessage(QmDebug::Dump,"frequency:  %d ", fr_sh);
-
-    return  fr_sh;
 }
 
 void DspController::setRnKey(int keyValue)
@@ -943,7 +905,6 @@ void DspController::setRnKey(int keyValue)
 
 void DspController::resetContentStructState()
 {
-
     ContentSms.stage = StageNone;
     // � � Т‘� � С•� � В±� � В°� � � � � � С‘� ЎвЂљ� Ў� Љ � � С•� � С—� Ў� ‚� � Вµ� � Т‘� � Вµ� � В»� � Вµ� � � …� � С‘� � Вµ � � Т‘� Ў� ‚� ЎС“� � С–� � С‘� ЎвЂ¦ � ЎвЂћ� ЎС“� � � …� � С”� ЎвЂ� � � С‘� � в„–
 }
@@ -951,15 +912,11 @@ void DspController::resetContentStructState()
 int DspController::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
 {
     int TOT_W = 6671; // � Ўв‚¬� � С‘� Ў� ‚� � С‘� � � …� � В° � Ў� ‚� � В°� � В·� Ў� ‚� � Вµ� Ўв‚¬� � Вµ� � � …� � � …� ЎвЂ№� ЎвЂ¦ � ЎС“� ЎвЂЎ� � В°� Ў� ѓ� ЎвЂљ� � С”� � С•� � � �
-
     int SEC_MLT = value_sec[SEC]; // SEC_MLT � � � � � ЎвЂ№� � В±� � С‘� Ў� ‚� � В°� � Вµ� � С� � � � �  � � С�� � В°� Ў� ѓ� Ў� ѓ� � С‘� � � � � � Вµ
-
     int FR_SH = (RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY)% TOT_W;
-
     qmDebugMessage(QmDebug::Dump, "Calc freq formula %d", FR_SH);
     return FR_SH;
 }
-
 
 int DspController::CalcSmsTransmitFreq(int RN_KEY, int DAY, int HRS, int MIN, int SEC)
 {
@@ -1009,7 +966,8 @@ int DspController::CalcSmsTransmitFreq(int RN_KEY, int DAY, int HRS, int MIN, in
     return FR_SH;
 }
 
-void DspController::initResetState() {
+void DspController::initResetState()
+{
 	radio_state = radiostateSync;
 	current_radio_operation = RadioOperationOff;
 	current_radio_mode = RadioModeOff;
@@ -1024,7 +982,8 @@ void DspController::setAdr()
 	sendCommand(PSWFReceiver, PswfRxRAdr, param);
 }
 
-void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version) {
+void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version)
+{
 	if (!is_ready) {
 		qmDebugMessage(QmDebug::Info, "DSP started (id=0x%02X, version=%u.%u)", id, major_version, minor_version);
 		startup_timer->stop();
@@ -1036,13 +995,15 @@ void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t
 	started();
 }
 
-void DspController::processStartupTimeout() {
+void DspController::processStartupTimeout()
+{
 	qmDebugMessage(QmDebug::Warning, "DSP startup timeout");
 	is_ready = true;
 	started();
 }
 
-bool DspController::startRadioOff() {
+bool DspController::startRadioOff()
+{
 	switch (radio_state) {
 	case radiostateSync: {
 		switch (current_radio_operation) {
@@ -1277,7 +1238,8 @@ void DspController::processCommandResponse(bool success, Module module, int code
 	}
 }
 
-void DspController::syncPendingCommand() {
+void DspController::syncPendingCommand()
+{
 	qmDebugMessage(QmDebug::Dump,"reload progress state");
 	pending_command->in_progress = false;
 	switch (pending_command->module) {
@@ -1298,15 +1260,14 @@ void DspController::syncPendingCommand() {
 	}
 }
 
-bool DspController::resyncPendingCommand() {
+bool DspController::resyncPendingCommand()
+{
 	if (pending_command->in_progress) {
 		pending_command->sync_next = false;
 		return false;
 	}
 	return true;
 }
-
-
 
 void DspController::sendCommandEasy(Module module, int code, ParameterValue value){
 	qmDebugMessage(QmDebug::Dump, "sendCommand(%d, %d) transmiting", module, code);
@@ -1325,12 +1286,10 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 
 		switch (code) {
 		case 1:
-			qmToBigEndian(value.frequency, tx_data+tx_data_len);
-			tx_data_len += 4;
+			qmToBigEndian(value.frequency, tx_data+tx_data_len); tx_data_len += 4;
 			break;
 		case 2:
-			qmToBigEndian((uint8_t)value.radio_mode, tx_data+tx_data_len);
-			tx_data_len += 1;
+			qmToBigEndian((uint8_t)value.radio_mode, tx_data+tx_data_len); tx_data_len += 1;
 			break;
 		case 4:
 			if (module == RxRadiopath) {
@@ -1386,7 +1345,6 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 		case RadioModeVirtualPpps:
 		case RadioModeVirtualRvv:
 		{
-
 			qmToBigEndian((uint8_t)value.param, tx_data+tx_data_len); // sync
 			tx_data_len += 1;
 			break;
@@ -1394,7 +1352,6 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 		case PswfRxFrequency:
 		case PswfRxFreqSignal:
 		{
-
 			qmToBigEndian(value.frequency, tx_data+tx_data_len);
 			tx_data_len += 4;
 			if (sms_counter > 38 && sms_counter < 77)
@@ -1411,9 +1368,7 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 				//tx_data_len += 4;
 				qmToBigEndian(abc, tx_data+tx_data_len);
 				tx_data_len += 1;
-
 			}
-
 			break;
 		}
 		default: break;
@@ -1465,12 +1420,8 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 	default: QM_ASSERT(0);
 	}
 
-
 	transport->transmitFrame(tx_address, tx_data, tx_data_len);
-
 }
-
-
 
 void DspController::sendCommand(Module module, int code, ParameterValue value,bool state) {
 		if (pending_command->in_progress) {
@@ -1636,7 +1587,6 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 
 void DspController::sendGuc()
 {
-
     qmDebugMessage(QmDebug::Dump, "sendGuc()");
 
     uint8_t tx_address = 0x7A;
@@ -1648,7 +1598,7 @@ void DspController::sendGuc()
     qmToBigEndian((uint8_t)ContentGuc.type, tx_data + tx_data_len);
     ++tx_data_len;
 
-    ContentGuc.Coord = (isGpsGuc == true) ? 1 : 0;
+    ContentGuc.Coord = isGpsGuc;
 
     uint8_t pack[5] = {0, 0, 0, 0, 0};
     pack[4] = (ContentGuc.S_ADR & 0x1F) << 3;
@@ -1660,7 +1610,6 @@ void DspController::sendGuc()
     pack[2] |= ContentGuc.uin >> 7;
     pack[1] = (ContentGuc.uin & 0x7F) << 1;
     pack[1] |= ContentGuc.Coord & 0x01;
-
 
     for(int i = 4; i >= 0; --i) {
     	qmToBigEndian((uint8_t)pack[i], tx_data + tx_data_len);
@@ -1676,15 +1625,14 @@ void DspController::sendGuc()
         if ((ContentGuc.NUM_com > 6) && (ContentGuc.NUM_com <= 10))    ContentGuc.NUM_com = 10;
         if ((ContentGuc.NUM_com > 10) && (ContentGuc.NUM_com <= 26))   ContentGuc.NUM_com = 26;
         if ((ContentGuc.NUM_com > 26) && (ContentGuc.NUM_com <= 100))  ContentGuc.NUM_com = 100;
-    }  else
-
+    }
+    else
     {
         if (ContentGuc.NUM_com <= 5) ContentGuc.NUM_com = 5;
         if ((ContentGuc.NUM_com > 5) && (ContentGuc.NUM_com <= 11))    ContentGuc.NUM_com = 11;
         if ((ContentGuc.NUM_com > 11) && (ContentGuc.NUM_com <= 25))   ContentGuc.NUM_com = 25;
         if ((ContentGuc.NUM_com > 25) && (ContentGuc.NUM_com <= 100))  ContentGuc.NUM_com = 100;
     }
-
 
     for(int i = 0; i < ContentGuc.NUM_com; i++) {
         qmToBigEndian((uint8_t)ContentGuc.command[i], tx_data + tx_data_len);
@@ -1751,7 +1699,6 @@ void DspController::sendGuc()
     else
     //for(int i = 0; i < crc32_len;i++)
     {
-
     	std::vector<bool> data;
     	for(int i = 0; i<ContentGuc.NUM_com;i++) pack_manager->addBytetoBitsArray(ContentGuc.command[i],data,7);
     	for(int i = 0; i<crc32_len;i++) pack_manager->getArrayByteFromBit(data,ContentGuc.command);
@@ -1770,9 +1717,7 @@ void DspController::sendGuc()
     		for(int i = 0; i<ost;i++) mask +=  1 << (7 - i);
     		crc32_len +=1;
     		ContentGuc.command[crc32_len-1] = ContentGuc.command[crc32_len-1] & mask;
-
     	}
-
     }
      // � � Т‘� � С•� � В±� � В°� � � � � � В»� � Вµ� � � …� � С‘� � Вµ crc32 � � С” � � С—� � В°� � С”� � Вµ� ЎвЂљ� ЎС“ � � Т‘� � В°� � � …� � � …� ЎвЂ№� ЎвЂ¦
      uint32_t crc = pack_manager->CRC32(ContentGuc.command, crc32_len);
@@ -2009,15 +1954,12 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     	if (virtual_mode == false) return;
     	if (indicator == 5)
     	{
-
 			addSeconds(&t);
 
     		if (RtcTxRole)
     		{
-
     			if (count_VrtualTimer <= VrtualTimerMagic)
     			{
-
     				qmDebugMessage(QmDebug::Dump, "0x65 frame");
     				++RtcTxCounter;
 
@@ -2042,7 +1984,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     					sendSynchro(freqVirtual,count_VrtualTimer);
     				}
     			}
-
     			else
     			{
     				if (radio_state == radiostatePswf)
@@ -2054,7 +1995,6 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		//-------- RXROLE------------------------------------
     		if (RtcRxRole)
     		{
-
     			if (count_VrtualTimer > NUMS)
     			{
     				if (radio_state == radiostatePswf)
@@ -2062,14 +2002,12 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     				if (radio_state == radiostateSms)
     					changeSmsFrequency();
     			}
-
     			else
     			{
     				if (IsStart(t.seconds))
     					++count_VrtualTimer;
     			}
     		}
-
     	}
 #endif
     	break;
@@ -2092,13 +2030,13 @@ void *DspController::getContentPSWF()
 
 void DspController::sendSms(Module module)
 {
-    ContentSms.Frequency =  getFrequencySms();
+    ContentSms.Frequency =  getFrequency(1); // sms = 1
     ContentSms.indicator = 20;
     ContentSms.SNR =  7;
 
     int time[4] = {0,0,0,0};
 
-    if (virtual_mode == true)
+    if (virtual_mode)
     {
     	time[0] = d.day;
     	time[1] = t.hours;
@@ -2109,7 +2047,6 @@ void DspController::sendSms(Module module)
     {
     	for(int i = 0; i<4;i++) time[i] = date_time[i];
     }
-
 
     if (sms_counter >= 19 && sms_counter <= 38){
     	ContentSms.L_CODE = navigator->Calc_LCODE_SMS(
@@ -2124,7 +2061,6 @@ void DspController::sendSms(Module module)
     }
     else
     {
-
     	ContentSms.L_CODE = navigator->Calc_LCODE(
     	ContentSms.R_ADR,
 		ContentSms.S_ADR,
@@ -2138,15 +2074,7 @@ void DspController::sendSms(Module module)
 
     qmDebugMessage(QmDebug::Dump, "LCODE: %d",ContentSms.L_CODE);
 
-
-    if (sms_counter > 38 && sms_counter < 76)
-    {
-    	ContentSms.TYPE = 1;
-    }
-    else
-    {
-    	ContentSms.TYPE = 0;
-    }
+    ContentSms.TYPE = (sms_counter > 38 && sms_counter < 76);
 
     uint8_t tx_address = 0x72;
     uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
@@ -2170,24 +2098,17 @@ void DspController::sendSms(Module module)
     	if (counter == 18) counter = 0;
     	++counter;
 
-    	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
-    	++tx_data_len;
-
-
-        qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)counter, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentSms.L_CODE, tx_data+tx_data_len);
-    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);    ++tx_data_len;
+        qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);  ++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len);  ++tx_data_len;
+    	qmToBigEndian((uint8_t)counter, tx_data+tx_data_len);           ++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.L_CODE, tx_data+tx_data_len); ++tx_data_len;
     }
     // tx
     if ((sms_counter > 38 && sms_counter < 77) && (SmsLogicRole == SmsRoleTx))
     {
         uint8_t FST_N = 0;
-        if (virtual_mode == true)
+        if (virtual_mode)
         	FST_N = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,d.day,t.hours,t.minutes,t.seconds,sms_counter - 39);
         else
         	FST_N = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39);
@@ -2212,14 +2133,11 @@ void DspController::sendSms(Module module)
     {
         int wzn = wzn_value;
 
-    	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len); // todo: � � С—� � С•� � С�� � Вµ� � � …� Ў� Џ� � В» � � С�� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � С�� � С‘
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)wzn, tx_data+tx_data_len);
-    	++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);   ++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len); ++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len); ++tx_data_len;
+    	// todo: � � С—� � С•� � С�� � Вµ� � � …� Ў� Џ� � В» � � С�� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � С�� � С‘
+    	qmToBigEndian((uint8_t)wzn, tx_data+tx_data_len);              ++tx_data_len;
 
     	qmDebugMessage(QmDebug::Dump, "SADR: %d",ContentSms.S_ADR);
     	qmDebugMessage(QmDebug::Dump, "RADR: %d",ContentSms.R_ADR);
@@ -2231,21 +2149,13 @@ void DspController::sendSms(Module module)
 
     if ((sms_counter > 76 && sms_counter < 83) && (SmsLogicRole == SmsRoleRx))
     {
-    	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len);
-    	++tx_data_len;
-    	qmToBigEndian((uint8_t)ack, tx_data+tx_data_len);
-    	++tx_data_len;
-
-
+    	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);   ++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.R_ADR, tx_data+tx_data_len); ++tx_data_len;
+    	qmToBigEndian((uint8_t)ContentSms.S_ADR, tx_data+tx_data_len); ++tx_data_len;
+    	qmToBigEndian((uint8_t)ack, tx_data+tx_data_len);              ++tx_data_len;
 
     	uint8_t ack_code  = calc_ack_code(ack);
-    	qmToBigEndian((uint8_t)ack_code, tx_data+tx_data_len);
-    	++tx_data_len;
-
+    	qmToBigEndian((uint8_t)ack_code, tx_data+tx_data_len);         ++tx_data_len;
     }
 
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
@@ -2268,14 +2178,11 @@ void DspController::startGucTransmitting()
     sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
     radio_state = radiostateGucTxPrepare;
     gucTxStateSync = 0;
-
 }
-
-
 
 void DspController::prevTime()
 {
-	if (virtual_mode == true)
+	if (virtual_mode)
 	{
 		qmDebugMessage(QmDebug::Dump, "T: %d", t.seconds);
 		t.seconds = t.seconds - 1;
@@ -2284,42 +2191,18 @@ void DspController::prevTime()
 	else
 	{
 		date_time[3]  = date_time[3] - 1;
-		bool overflow = false;
 	}
-   /* if (date_time[3] < 0)
-    {
-    	date_time[3] = 59; overflow = true;
-    }
-    if (overflow)
-    {
-    	date_time[2] = date_time[2] - 1;
-    	if (date_time[2] > 0) overflow = false;
-    }
-    else
-    {
-    	date_time[2] = 59;
-    }
-    if (overflow)
-    {
-    	date_time[1] = date_time[1] - 1;
-    	if (date_time[1] > 0) overflow = false;
-    }
-    else
-    {
-    	date_time[1] = 11;
-    }*/
 }
-
 
 void DspController::getZone()
 {
 	for(int i = 0; i<18;i++)
 	{
-		if  (waveZone[i] >=0   && waveZone[i] <6 ) syncro_recieve[i] = 0;
-		if  (waveZone[i] > 5   && waveZone[i] <12) syncro_recieve[i] = 1;
-		if  (waveZone[i] >= 12 && waveZone[i] <18) syncro_recieve[i] = 2;
-		if  (waveZone[i] >=18  && waveZone[i] <24) syncro_recieve[i] = 3;
-		if  (waveZone[i] >= 24 && waveZone[i] <30) syncro_recieve[i] = 4;
+		if ( waveZone[i] >= 0  && waveZone[i] < 6  ) syncro_recieve[i] = 0;
+		if ( waveZone[i] >  5  && waveZone[i] < 12 ) syncro_recieve[i] = 1;
+		if ( waveZone[i] >= 12 && waveZone[i] < 18 ) syncro_recieve[i] = 2;
+		if ( waveZone[i] >= 18 && waveZone[i] < 24 ) syncro_recieve[i] = 3;
+		if ( waveZone[i] >= 24 && waveZone[i] < 30 ) syncro_recieve[i] = 4;
     }
 }
 
@@ -2377,10 +2260,8 @@ bool DspController::generateSmsReceived()
             ack = 99;
             return false;
         }
-
         else
         {
-
         	indexSmsLen = 100;
         	for(int i = 0;i<100;i++)
         	{
@@ -2416,39 +2297,35 @@ bool DspController::generateSmsReceived()
 int DspController::wzn_change(std::vector<int> &vect)
 {
     int wzn_mas[5] = {0,0,0,0,0};
-    for(int i = 0; i < vect.size() - 1; i++)
+    for (uint8_t i = 0; i < vect.size() - 1; i++)
     {
         if (vect[i] <= 4) wzn_mas[vect[i]] += 1;
     }
     int index = 0;
-    for(int i = 1; i < 5; i++)
+    for (int i = 1; i < 5; i++)
     {
         if (wzn_mas[index] < wzn_mas[i]) index = i;
     }
-
-
-
     return index;
 }
 
 int DspController::calcFstn(int R_ADR, int S_ADR, int RN_KEY, int DAY, int HRS, int MIN, int SEC, int QNB)
 {
     int FST_N = (R_ADR + S_ADR + RN_KEY + SEC + MIN + HRS + DAY + QNB) % 100;
-    qmDebugMessage(QmDebug::Dump, "calcFstn() R_ADR: %d", R_ADR);
-    qmDebugMessage(QmDebug::Dump, "calcFstn() S_ADR: %d", S_ADR);
-    qmDebugMessage(QmDebug::Dump, "calcFstn() RN_KEY: %d", RN_KEY);
-    qmDebugMessage(QmDebug::Dump, "calcFstn() DAY: %d", DAY);
-    qmDebugMessage(QmDebug::Dump, "calcFstn() HRS: %d", HRS);
-    qmDebugMessage(QmDebug::Dump, "calcFstn() MIN: %d", MIN);
-    qmDebugMessage(QmDebug::Dump, "calcFstn() SEC: %d", SEC);
-    qmDebugMessage(QmDebug::Dump, "calcFstn() QNB: %d", QNB);
-    qmDebugMessage(QmDebug::Dump, "calcFstn() FST_N: %d", FST_N);
+//    qmDebugMessage(QmDebug::Dump, "calcFstn() R_ADR: %d", R_ADR);
+//    qmDebugMessage(QmDebug::Dump, "calcFstn() S_ADR: %d", S_ADR);
+//    qmDebugMessage(QmDebug::Dump, "calcFstn() RN_KEY: %d", RN_KEY);
+//    qmDebugMessage(QmDebug::Dump, "calcFstn() DAY: %d", DAY);
+//    qmDebugMessage(QmDebug::Dump, "calcFstn() HRS: %d", HRS);
+//    qmDebugMessage(QmDebug::Dump, "calcFstn() MIN: %d", MIN);
+//    qmDebugMessage(QmDebug::Dump, "calcFstn() SEC: %d", SEC);
+//    qmDebugMessage(QmDebug::Dump, "calcFstn() QNB: %d", QNB);
+//    qmDebugMessage(QmDebug::Dump, "calcFstn() FST_N: %d", FST_N);
     return FST_N;
 }
 
 int DspController::check_rx_call(int* wzn)
 {
-
 	int snr_mas[5] = {0,0,0,0,0};
 	int wzn_mas[5] = {0,0,0,0,0};
 
@@ -2488,7 +2365,6 @@ uint8_t DspController::calc_ack_code(uint8_t ack)
 {
 	uint8_t ACK_CODE  = 0;
 
-
 	if (virtual_mode == true)
 		ACK_CODE = (ContentSms.R_ADR + ContentSms.S_ADR + ack + ContentSms.RN_KEY +
 				   d.day + t.hours + t.minutes + t.seconds) % 100;
@@ -2526,7 +2402,6 @@ void DspController::setPswfTx()
     comandValue.pswf_indicator = RadioModePSWF;
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
 }
-
 
 void DspController::startPSWFReceiving()
 {
@@ -2746,7 +2621,6 @@ void DspController::sendGucQuit()
 	ContentGuc.WIDTH_SIGNAL = 0; // last value  = 1, thi is freq mode 0 - 3k1, 1 - 20k maybe it works:)
 	//data_storage_fs->getAleStationAddress(ContentGuc.S_ADR);
 
-
 	ContentGuc.ckk = 0;
 	ContentGuc.ckk |= (1 & 0x01);
 	ContentGuc.ckk |= (ContentGuc.WIDTH_SIGNAL & 0x01) << 1;
@@ -2778,40 +2652,36 @@ void DspController::sendGucQuit()
 
 uint8_t *DspController::getGpsGucCoordinat(uint8_t *coord)
 {
+	Navigation::Coord_Date date = navigator->getCoordDate();
+	std::string lon((const char*)date.longitude);
+	std::string lat((const char*)date.latitude);
 
-	    Navigation::Coord_Date date = navigator->getCoordDate();
-	    std::string lon((const char*)date.longitude);
-	    std::string lat((const char*)date.latitude);
+	coord[0] = (uint8_t)atoi(lat.substr(0,2).c_str());
+	coord[1] = (uint8_t)atoi(lat.substr(2,2).c_str());
+	coord[2] = (uint8_t)atoi(lat.substr(5,2).c_str());
+	coord[3] = (uint8_t)atoi(lat.substr(7,2).c_str());
+	coord[4] = (uint8_t)atoi(lon.substr(0,3).c_str());
+	coord[5] = (uint8_t)atoi(lon.substr(3,2).c_str());
+	coord[6] = (uint8_t)atoi(lon.substr(6,2).c_str());
+	coord[7] = (uint8_t)atoi(lon.substr(8,2).c_str());
 
-	    coord[0] = (uint8_t)atoi(lat.substr(0,2).c_str());
-	    coord[1] = (uint8_t)atoi(lat.substr(2,2).c_str());
-	    coord[2] = (uint8_t)atoi(lat.substr(5,2).c_str());
-	    coord[3] = (uint8_t)atoi(lat.substr(7,2).c_str());
-	    coord[4] = (uint8_t)atoi(lon.substr(0,3).c_str());
-	    coord[5] = (uint8_t)atoi(lon.substr(3,2).c_str());
-	    coord[6] = (uint8_t)atoi(lon.substr(6,2).c_str());
-	    coord[7] = (uint8_t)atoi(lon.substr(8,2).c_str());
-
-	    if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"E") !=0)
-	        coord[8] = 0;
-	    if ((strstr((const char*)date.latitude,"S") !=0) && strstr((const char*)date.longitude,"E") !=0)
-	        coord[8] = 1;
-	    if ((strstr((const char*)date.latitude,"S") !=0) && strstr((const char*)date.longitude,"W") !=0)
-	        coord[8] = 2;
-	    if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"W") !=0)
-	        coord[8] = 3;
+	if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"E") !=0)
+		coord[8] = 0;
+	if ((strstr((const char*)date.latitude,"S") !=0) && strstr((const char*)date.longitude,"E") !=0)
+		coord[8] = 1;
+	if ((strstr((const char*)date.latitude,"S") !=0) && strstr((const char*)date.longitude,"W") !=0)
+		coord[8] = 2;
+	if ((strstr((const char*)date.latitude,"N") !=0) && strstr((const char*)date.longitude,"W") !=0)
+		coord[8] = 3;
 
 //	for(int i = 0; i< 9;i++) coord[i] = i+1;
 //	coord[8] = 0xc0;
     return coord;
 }
 
-
-
 uint8_t* DspController::getGucCoord(){
      return guc_coord;
 }
-
 
 void DspController::setSmsRetranslation(uint8_t retr)
 {
@@ -2839,7 +2709,6 @@ void DspController::startGucRecieving()
     comandValue.guc_mode = stationAddress;
     sendCommandEasy(RadioLineNotPswf, 3 ,comandValue);
 
-
     comandValue.guc_mode = 3;
     sendCommandEasy(RadioLineNotPswf, 1, comandValue);
     QmThread::msleep(100);
@@ -2855,8 +2724,6 @@ void DspController::startGucRecieving()
     ContentGuc.stage =  GucRx;
     guc_vector.clear();
 }
-
-
 
 uint8_t* DspController::get_guc_vector()
 {
@@ -2886,8 +2753,6 @@ uint8_t* DspController::get_guc_vector()
         if ((num > 10) && (num <= 26))  count = 26;
         if ((num > 26) && (num <= 100)) count = 100;
     }
-
-
 
     if (isGpsGuc)
     {
@@ -2924,9 +2789,7 @@ uint8_t* DspController::get_guc_vector()
         for(int i = 1; i<9;i++) cord[i] = guc_text[i];
         for(int i = 0;i<num;i++) guc_text[i+1] = guc_text[9+i+1];
         for(int i = 1;i<9; i++)  guc_text[num+i] = cord[i];
-
     }
-
     else
     {
     	std::vector<bool> data;
@@ -2934,17 +2797,7 @@ uint8_t* DspController::get_guc_vector()
         for(int i = 0; i<count;i++) pack_manager->getArrayByteFromBit(data,out);
         guc_text[0] = num;
         for(int i = 0; i<num;i++) guc_text[i+1] = guc_vector.at(0).at(7+i);
-//        for(int i = 0;  i< count;i++){
-//            int sdvig  = (i+1) % 8;
-//            if (sdvig != 0)
-//                out[i] = (guc_text[i+1] << sdvig) + (guc_text[i+2] >> (7 -  sdvig));
-//            else
-//                out[i] = guc_text[i+1];
-//
-//        }
-
     }
-
 
 	// � � Т‘� � С•� Ў� ѓ� ЎвЂљ� � В°� � Вµ� � С� crc32 � Ў� ѓ� ЎС“� � С�� � С�� ЎС“ � � С‘� � В· � � С”� � С•� � � …� ЎвЂ� � � В° � � С—� � В°� � С”� � Вµ� ЎвЂљ� � В°
 	int m = 3;
@@ -2971,7 +2824,6 @@ uint8_t* DspController::get_guc_vector()
         		value +=1;
         		out[value-1] = out[value-1] & mask;
         	}
-
     }
 
     crc = pack_manager->CRC32(out,value);
@@ -2983,7 +2835,6 @@ uint8_t* DspController::get_guc_vector()
         failQuitGuc = true;
     }
 	guc_vector.clear();
-
 
 	return guc_text;
 }
@@ -3133,7 +2984,6 @@ void DspController::startVirtualPpsModeTx()
 
 	count_VrtualTimer = NUMS;
 	txrtx = 0;
-
 }
 
 
@@ -3205,7 +3055,6 @@ void DspController::wakeUpTimer()
 #ifndef PORT__PCSIMULATOR
 	if ((virtual_mode == true) && (RtcRxRole == true) && (!antiSync))
 	{
-
 		t = rtc->getTime();
 
 		if (IsStart(t.seconds))
@@ -3241,7 +3090,6 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 					syncro_recieve.push_back(99);
 				qmDebugMessage(QmDebug::Dump, "sms call received");
 			}
-
 			sms_data_count = 0;
 		}
 
@@ -3276,14 +3124,12 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 					rs_data_clear[index_sms + i ] = data[i+16];
 					qmDebugMessage(QmDebug::Dump, "data[%d] = %d", i, data[i+8]);
 				}
-
 			}
 
 			if (sms_counter > 19 && sms_counter < 38)
 			{
 				tx_call_ask_vector.push_back(data[9]); // wzn response
 				qmDebugMessage(QmDebug::Dump, "wzn = %d", data[9]);
-
 			}
 			if (sms_counter < 19)
 			{
