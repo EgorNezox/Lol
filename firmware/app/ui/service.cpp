@@ -244,6 +244,8 @@ void Service::drawIndicator()
 		{
 			Navigation::Coord_Date date = navigator->getCoordDate();
 			gpsStatus = date.status;
+			if (gpsStatus && !isValidGpsTime)
+				updateSessionTimeSchedule();
 		}
 		indicator->UpdateGpsStatus(gpsStatus);
 		indicator->Draw();
@@ -867,7 +869,7 @@ void Service::keyPressed(UI_Key key)
                         condMsg.push_back((uint8_t)sym[0]);
                         condMsg.push_back((uint8_t)sym[1]);
                         condMsg.push_back((uint8_t)sym[2]);
-                       // storageFs->setCondCommand(&condMsg,DataStorage::FS::FTT_TX);
+                        storageFs->setCondCommand(&condMsg,DataStorage::FS::FTT_TX);
                     }
 
                     for(auto &k: estate.listItem)
@@ -1614,7 +1616,10 @@ void Service::keyPressed(UI_Key key)
                 //                if (menu->rxCondCmdStatus == 2)
                 //                    menu->rxCondCmdStatus--;
                 //                else
-            	menu->recvStage = 0;
+
+            	if (menu->recvStage > 0 )
+            		menu->recvStage--;
+
                 guiTree.backvard();
             }
             if ( key == keyEnter)
@@ -1628,6 +1633,11 @@ void Service::keyPressed(UI_Key key)
 #ifdef _DEBUG_
                     guiTree.resetCurrentState();
 #else
+
+                    menu->recvStage++;
+                    if (menu->recvStage == 2)
+                    	menu->recvStage = 0;
+
                     failFlag = false;
                     voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
 
@@ -2049,6 +2059,7 @@ void Service::keyPressed(UI_Key key)
                 	if (storageFs > 0)
                 		storageFs->setGpsSynchroMode((uint8_t)gpsSynchronization);
                 	isChangeGpsSynch = false;
+                	updateSessionTimeSchedule();
                 }
                 guiTree.backvard();
                 menu->focus = 0;
@@ -2770,7 +2781,7 @@ void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
             condMsg.push_back((uint8_t)sym[1]);
             condMsg.push_back((uint8_t)sym[2]);
 
-         //   storageFs->setCondCommand(&condMsg, DataStorage::FS::FTT_RX);
+           // storageFs->setCondCommand(&condMsg, DataStorage::FS::FTT_RX);
         }
 
          //guiTree.append(messangeWindow, "Принятый пакет ", sym);
@@ -2778,8 +2789,10 @@ void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
          isDrawCondCmd = true;
 
          if (isRec){
-			 if (setAsk)
+			 if (setAsk){
 				 msgBox( cmdRec, (int)packet );
+				 setAsk = false;
+			 }
 			 else
 				 msgBox( recPacket, (int)packet );
          } else
@@ -3049,8 +3062,6 @@ void Service::drawMenu()
         case GuiWindowsSubType::recvCondCmd:
         {
             menu->initRxCondCmdDialog();
-            if (menu->recvStage == 0)
-            	menu->recvStage = (++menu->recvStage) % 2;
             break;
         }
         case GuiWindowsSubType::recvGroupCondCmd:
@@ -3800,22 +3811,23 @@ void Service::onScheduleSessionTimer()
 
 void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
 {
-    uint8_t* time;
+        uint8_t* time;
+        Navigation::Coord_Date date = navigator->getCoordDate();
 
-//    if ( voice_service->getVirtualMode() == true)
-//    {
-    	time = voice_service->getVirtualTime();
-        *hour   = (time[0] - 48) * 10 + (time[1] - 48);
-        *minute = (time[2] - 48) * 10 + (time[3] - 48);
-        *second = (time[4] - 48) * 10 + (time[5] - 48);
-//    }
-//    else
-//    {
-//    	Navigation::Coord_Date date = navigator->getCoordDate();
-//    	*hour   = (date.time[0]-48)*10 + (date.time[1]-48);
-//    	*minute = (date.time[2]-48)*10 + (date.time[3]-48);
-//    	*second = (date.time[4]-48)*10 + (date.time[5]-48);
-//    }
+        isValidGpsTime = date.status;
+        if ( voice_service->getVirtualMode() == true || (voice_service->getVirtualMode() == false && isValidGpsTime == false))
+        {
+        	time = voice_service->getVirtualTime();
+            *hour   = (time[0] - 48) * 10 + (time[1] - 48);
+            *minute = (time[2] - 48) * 10 + (time[3] - 48);
+            *second = (time[4] - 48) * 10 + (time[5] - 48);
+        }
+        else
+        {
+        	*hour   = (date.time[0]-48)*10 + (date.time[1]-48);
+        	*minute = (date.time[2]-48)*10 + (date.time[3]-48);
+        	*second = (date.time[4]-48)*10 + (date.time[5]-48);
+        }
 }
 
 void Service::loadSheldure()

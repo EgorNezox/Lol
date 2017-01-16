@@ -218,9 +218,9 @@ void VoiceServiceInterface::TurnPSWFMode(uint8_t mode, int cmd, int r_adr, int r
 	else
 	{
 		if (mode == 0)
-			dispatcher->dsp_controller->startPSWFTransmitting(false, r_adr, cmd,retr);
+			dispatcher->dsp_controller->startPSWFTransmitting(false, r_adr, cmd, retr);
 		else
-			dispatcher->dsp_controller->startPSWFTransmitting(true, r_adr, cmd,retr);
+			dispatcher->dsp_controller->startPSWFTransmitting(true, r_adr, cmd, retr);
 	}
 
 }

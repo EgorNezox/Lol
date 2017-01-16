@@ -46,6 +46,14 @@ FS::FS(const std::string &dir) :
 //    		file.write((uint8_t*)&fw, 4);
 //    file.close();
 
+//	QmFile file(dir, "AleStationAddress");
+//
+//	uint8_t data1 = 9;
+//	if (!file.open(QmFile::WriteOnly))
+//		return;
+//	file.write((uint8_t *)&data1, 1);
+//	file.close();
+
 }
 
 FS::~FS()

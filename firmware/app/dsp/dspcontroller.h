@@ -541,6 +541,7 @@ private:
     int pswf_rec = 0;                                           // ���� ��� ����������� ��������� ��������� � ��
     bool state_pswf = 0;                                        // ?
     int pswf_in = 0;
+    int pswf_in_virt = 0;
     int wzn_value;                                              // �������� �������� ���� (�� 1 �� 4) ������ ���
     uint8_t sms_retranslation;                                  // ���� ������������ ��� ������ ���
     bool sms_call_received;                                     // ���� ��������� ����������� ������ ��� ���
@@ -586,6 +587,7 @@ private:
 
     uint8_t indexerWaze = 0;
     uint8_t stationAddress;
+    uint8_t VrtualTimerMagic = 10; // synchro packets count = 10   temporary for fast debug = 1
 
 public:
     uint8_t getSmsCounter();

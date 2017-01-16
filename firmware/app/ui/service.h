@@ -265,6 +265,8 @@ private:
     bool isGucCoord = false;
     char gucCoords[26];
 
+    bool isValidGpsTime = false; //
+
 };
 
 } /* namespace Ui */

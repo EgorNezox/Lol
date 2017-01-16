@@ -35,7 +35,7 @@
 
 #define VIRTUAL_TIME 120
 
-#define NUMS 0
+#define NUMS 9 // need = 0   9 for debug
 
 namespace Multiradio {
 
@@ -125,7 +125,6 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     ref_wave = 0;
 
     command_tx30 = 0;
-    command_rx30 = 0;
 
     pswfRxStateSync = 0;
     pswfTxStateSync = 0;
@@ -173,7 +172,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
    data_storage_fs->getAleStationAddress(stationAddress);
     ContentSms.S_ADR = stationAddress;
-
+    ContentPSWF.S_ADR = stationAddress;
     //data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
     QNB = 0;
     pswf_rec = 0;
@@ -549,7 +548,7 @@ void DspController::LogicPswfTx()
     if ((command_tx30 % 3 == 0) && (setAsk == false))
     TxCondCmdPackageTransmit(command_tx30);
 
-	if (command_tx30 <= 31)
+	if (command_tx30 <= 30)
 		sendPswf();
 
 	if (command_tx30 > 31)
@@ -567,41 +566,41 @@ void DspController::LogicPswfTx()
 			radio_state = radiostateSync;
 		}
 	}
+	qmDebugMessage(QmDebug::Dump, "TX____ stationAddress = %d ", stationAddress);
+	qmDebugMessage(QmDebug::Dump, "TX____ ContentPSWF.R_ADR = %d ", ContentPSWF.R_ADR);
+	qmDebugMessage(QmDebug::Dump, "TX____ ContentPSWF.S_ADR = %d ", ContentPSWF.S_ADR);
 }
 
 void DspController::LogicPswfRx()
 {
-
-	if (pswf_rec >= 3 && (command_rx30 > 31) && isPswfFull)
+	if (isPswfFull)
 	{
 		pswf_rec = 0;
-		command_rx30 = 0;
 
-		for(int i = 0; i<30;i++)
-		{
-			if (pswfDataPacket[i] == ContentPSWF.COM_N)  pswfDataPacket[i] = 255;
-		}
+//		for(int i = 0; i<30;i++)
+//		{
+//			if (pswfDataPacket[i] == ContentPSWF.COM_N)  pswfDataPacket[i] = 255;
+//		}
 
 		if (pswf_ack == true)
 		{
 			CondComLogicRole = CondComTx;
 			pswf_ack = false;
-			uint8_t radr = ContentPSWF.R_ADR;
-			if (radr > 32) radr = radr - 32;
 			ContentPSWF.R_ADR = ContentPSWF.S_ADR;
-			ContentPSWF.S_ADR = radr;
+			ContentPSWF.S_ADR = stationAddress;
 			setPswfTx();
 			isPswfFull = false;
-			command_tx30 = 1;
+			command_tx30 = 0;
 		}
-
 		else
 		{
 			radio_state = radiostateSync;
 		}
 	}
 
-
+	qmDebugMessage(QmDebug::Dump, "RX____ stationAddress = %d ", stationAddress);
+	qmDebugMessage(QmDebug::Dump, "RX____ ContentPSWF.R_ADR = %d ", ContentPSWF.R_ADR);
+	qmDebugMessage(QmDebug::Dump, "RX____ ContentPSWF.S_ADR = %d ", ContentPSWF.S_ADR);
 }
 
 
@@ -621,7 +620,6 @@ void DspController::changePswfFrequency()
 	}
 	else if (CondComLogicRole == CondComRx)
 	{
-	    ++command_rx30;
 		LogicPswfRx();
 		setPswfRxFreq();
 	}
@@ -691,7 +689,8 @@ void DspController::RxSmsWork()
 	{
 		if (sms_call_received)
 		{
-			smsFind  = true; sms_call_received = false;
+			smsFind  = true;
+			sms_call_received = false;
 			sms_counter = 19;
 		}
 
@@ -774,7 +773,7 @@ void DspController::TxSmsWork()
 
 void DspController::changeSmsFrequency()
 {
-	if (virtual_mode != true)
+	if (virtual_mode == false)
 	{
 	  getDataTime();
 	  addSeconds(date_time);
@@ -840,8 +839,6 @@ void DspController::setrRxFreq()
 
 void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
 {
-    qmDebugMessage(QmDebug::Dump, "RecievedPswf() command_rx30 = %d", command_rx30);
-
     if (virtual_mode == true)
     {
     	private_lcode = (char)navigator->Calc_LCODE(
@@ -866,17 +863,27 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
 				prevSecond(date_time[3]));
     }
 
-    qmDebugMessage(QmDebug::Dump, "private_lcode = %d,lcode = %d", private_lcode,code);
+    qmDebugMessage(QmDebug::Dump, " >>>>>>>>> recPswf() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
+    qmDebugMessage(QmDebug::Dump, " >>>>>>>>> recPswf() private_lcode = %d,lcode = %d", private_lcode,code);
+    qmDebugMessage(QmDebug::Dump, " >>>>>>>>> recPswf() pswf_in = %d, pswf_rec = %d, pswf_in_virt = %d ",pswf_in, pswf_rec, pswf_in_virt);
 
-    qmDebugMessage(QmDebug::Dump, " >>>>>>>>> pswf_in = %d, pswf_rec = %d ",pswf_in, pswf_rec);
+	if (virtual_mode && indicator == 31){
+		pswf_in_virt++;
+		if (pswf_in_virt > 37 && !pswf_rec){
+			startVirtualPpsModeRx();
+		}
+	}
 
-    if ((code == private_lcode) && (indicator == 30)){
-    	firstTrueCommand = ContentPSWF.COM_N;
-    	++pswf_rec;
-    	if (pswf_rec == 2)
-    	{
-    		ContentPSWF.COM_N = data;
-    		firstPacket(ContentPSWF.COM_N, true);
+
+    if (code == private_lcode){ //lcode can be overflow (==0) TODO fix
+    	if (indicator == 30){
+			firstTrueCommand = ContentPSWF.COM_N;
+			++pswf_rec;
+			if (pswf_rec == 2)
+			{
+				ContentPSWF.COM_N = data;
+				firstPacket(ContentPSWF.COM_N, true);
+			}
     	}
     }
     if (pswf_in < 30)
@@ -900,14 +907,16 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     		{
     			pswf_ack = true;
     			setAsk = true;
-    			ContentPSWF.R_ADR = ContentPSWF.R_ADR - 32;
-    			qmDebugMessage(QmDebug::Dump, "r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
+    			if (pswf_rec >= 2)
+    				isPswfFull = true;
     		}
     	}
+    	pswf_rec = 0;
     	pswf_in = 0;
-    	isPswfFull = true;
-    }
 
+
+    }
+    qmDebugMessage(QmDebug::Dump, "recPswf() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
    // if (pswf_rec == 1)
 }
 
@@ -2053,7 +2062,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		if (RtcTxRole)
     		{
 
-    			if (count_VrtualTimer <= 10)
+    			if (count_VrtualTimer <= VrtualTimerMagic)
     			{
 
     				qmDebugMessage(QmDebug::Dump, "0x65 frame");
@@ -2065,7 +2074,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     					qmDebugMessage(QmDebug::Dump, "0x65 frame %d %d",t.minutes,t.seconds);
     					RtcTxCounter = 1;
     					++count_VrtualTimer;
-    					if (count_VrtualTimer > 10)
+    					if (count_VrtualTimer > VrtualTimerMagic)
     					{
     						addSeconds(&t);
     						if (radio_state == radiostatePswf)
@@ -2093,7 +2102,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		if (RtcRxRole)
     		{
 
-    			if (count_VrtualTimer > 10)
+    			if (count_VrtualTimer > NUMS)
     			{
     				if (radio_state == radiostatePswf)
     					changePswfFrequency();
@@ -2586,6 +2595,7 @@ void DspController::startPSWFReceiving() {
 	pswf_in = 0;
 
 	setAsk = false;
+	isPswfFull = false;
 }
 
 void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,int retr) {
@@ -2606,8 +2616,6 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
     ContentPSWF.S_ADR = stationAddress;
     //data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
 
-    command_rx30  = 0;
-
     CondComLogicRole = CondComTx;
     radio_state = radiostatePswf;
     SmsLogicRole = SmsRoleIdle;
@@ -2618,6 +2626,7 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
     	setPswfTx();
 
 	setAsk = false;
+	isPswfFull = false;
 
 }
 
@@ -3191,6 +3200,8 @@ void DspController::startVirtualPpsModeRx()
 	d = rtc->getDate();
 #endif
 	antiSync = false;
+	pswf_in_virt = 0;
+	count_VrtualTimer = NUMS;
 
 }
 
@@ -3281,7 +3292,6 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
     }
 	else if (indicator == 30)
 	{
-
 		if (SmsLogicRole == SmsRoleIdle)
 		{
 			ContentPSWF.R_ADR = data[7];
