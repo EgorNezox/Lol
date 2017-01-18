@@ -7,7 +7,6 @@
 #include <string.h>
 
 #define FAKE_CALL_FREQS 1
-#define DEFAULT_GENERATOR_FREQ 1805
 
 namespace DataStorage {
 
@@ -66,13 +65,13 @@ bool FS::getGeneratorFreq(uint16_t* data, uint16_t defaultFreq) {
     if (!file.open(QmFile::ReadOnly))
         return false;
     int64_t file_size = file.size();
-    if (!(file_size > 2)){
-        *freq = defaultFreq;
+    if (file_size > 2){
+        *data = defaultFreq;
         return false;
     }
-    int32 len = file.read((uint8_t *)&data, 2);
+    int32_t len = file.read((uint8_t *)data, 2);
     if (len != 2){
-        *freq = defaultFreq;
+        *data = defaultFreq;
         file.close();
         return false;
     }
@@ -85,12 +84,12 @@ bool FS::setGeneratorFreq(uint16_t data)
     QmFile file(dir, "GeneratorFreq");
     if (!file.open(QmFile::WriteOnly))
         return false;
-    int32 len = file.write((uint8_t*)&data, 2);
+    int32_t len = file.write((uint8_t*)&data, 2);
     if (len != 2){
       file.close();
       return false;
     }
-    return false;
+    return true;
 }
 
 bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {

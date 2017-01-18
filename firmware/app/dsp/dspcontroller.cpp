@@ -35,7 +35,7 @@
 
 #define VIRTUAL_TIME 120
 
-#define NUMS 9 // need = 0   9 for debug
+#define NUMS 0 // need = 0   9 for debug
 
 namespace Multiradio {
 

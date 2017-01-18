@@ -79,4 +79,4 @@ void show_message(const char* text) {
 
 } /* namespace QtHwEmu */
 
-void target_device_multiradio_init(void) {}
+void target_device_multiradio_init(uint16_t freq) {}

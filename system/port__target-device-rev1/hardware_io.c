@@ -288,9 +288,9 @@ void stm32f2_hardware_io_init(void)
 	stm32f2_ext_pins_init(platformhwDataFlashSpi);
 }
 
-void target_device_multiradio_init(uint16_t freq) {
+void target_device_multiradio_init(int freq) {
 	init_stm32f2cube_hal();
-        tune_frequency_generator(freq);
+    tune_frequency_generator(freq);
 	init_sky72310();
 	deinit_stm32f2cube_hal();
 }

@@ -812,7 +812,7 @@ HAL_StatusTypeDef HAL_DAC_ConfigChannel(DAC_HandleTypeDef* hdac, DAC_ChannelConf
   */
 HAL_StatusTypeDef HAL_DAC_SetValue(DAC_HandleTypeDef* hdac, uint32_t Channel, uint32_t Alignment, uint32_t Data)
 {  
-	Data = 1805;
+	//Data = 1805;
 
   __IO uint32_t tmp = 0;
   

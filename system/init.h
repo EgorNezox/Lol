@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-void target_device_multiradio_init(void);
+void target_device_multiradio_init(int freq);
 
 #ifdef __cplusplus
 }
