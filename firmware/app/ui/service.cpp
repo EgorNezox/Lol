@@ -70,6 +70,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
         menu = new CGuiMenu(&ui_menu_msg_box_area, mainMenu[0], {alignHCenter,alignTop});
     }
     menu->setFS(storageFs);
+   // storageFs->setVoiceMode(true);
     storageFs->getVoiceMode(&menu->useMode);
     multiradio_service->setVoiceMode((Multiradio::MainServiceInterface::VoiceMode)!menu->useMode);
 

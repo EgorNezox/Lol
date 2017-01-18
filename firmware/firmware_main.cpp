@@ -28,7 +28,10 @@
 #include "power/battery.h"
 #include "ui/service.h"
 
-#define DEFAULT_GENERATOR_FREQ 1810
+#define MIN_GENERATOR_FREQ 900
+#define DEFAULT_GENERATOR_FREQ 1805
+#define MAX_GENERATOR_FREQ 2500
+
 
 void qmMain() {
 	QmApplication app;
@@ -64,14 +67,16 @@ void qmMain() {
 
     DataStorage::FS data_storage_fs("data");
 
-    //bool isSet = data_storage_fs.setGeneratorFreq(genFreqDefault);
+   // bool isSet = data_storage_fs.setGeneratorFreq(genFreqDefault);
     bool isGet = data_storage_fs.getGeneratorFreq(&genFreq, genFreqDefault);
+    if (genFreq < MIN_GENERATOR_FREQ || genFreq > MAX_GENERATOR_FREQ)
+    	genFreq = DEFAULT_GENERATOR_FREQ;
 
     target_device_multiradio_init(genFreq);
 
-    uint64_t u = 0;
-    for (uint64_t i = 0; i < 1000000; i++)
-    	u = i;
+//    uint64_t u = 0;
+//    for (uint64_t i = 0; i < 1000000; i++)
+//    	u = i;
 //    for (uint64_t i = 0; i < 10000000; i++)
 //    	u = i;
 
