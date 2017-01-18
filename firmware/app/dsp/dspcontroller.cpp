@@ -738,14 +738,6 @@ void DspController::changeSmsFrequency()
 	  addSeconds(date_time);
 	  qmDebugMessage(QmDebug::Dump, "getDataTime(): %d %d %d %d", date_time[0], date_time[1], date_time[2], date_time[3]);
 	}
-	else
-	{
-		if (SmsLogicRole == SmsRoleRx && !smsFind){
-				pswf_in_virt++;
-			if (pswf_in_virt >= 90)
-				startVirtualPpsModeRx();
-		}
-	}
 
 	if (SmsLogicRole == SmsRoleTx)
 	{
@@ -1995,7 +1987,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		//-------- RXROLE------------------------------------
     		if (RtcRxRole)
     		{
-    			if (count_VrtualTimer > NUMS)
+    			if (count_VrtualTimer > 10)
     			{
     				if (radio_state == radiostatePswf)
     					changePswfFrequency();
@@ -3072,6 +3064,17 @@ void DspController::wakeUpTimer()
 
 void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_len)
 {
+
+	qmDebugMessage(QmDebug::Dump, "LogicPswfModes() pswf_in_virt = %d ", pswf_in_virt);
+	if (SmsLogicRole == SmsRoleRx && !smsFind){
+		pswf_in_virt++;
+		if (pswf_in_virt >= 90){
+			sms_counter = 0;
+			startVirtualPpsModeRx();
+		}
+	}
+	qmDebugMessage(QmDebug::Dump, "pswf_in_virt");
+
 	if (indicator == 31)
 	{
 		qmDebugMessage(QmDebug::Dump, "0x63 indicator 31");
