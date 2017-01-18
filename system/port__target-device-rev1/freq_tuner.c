@@ -25,7 +25,7 @@ static uint32_t load_dac_output_value(void);
 
 static const int8_t const *freqtuneroffset_value_addr = (int8_t *)0x080E0004;
 
-void tune_frequency_generator(void) {
+void tune_frequency_generator(uint16_t freq) {
 	DAC_HandleTypeDef    DacHandle;
 	DAC_ChannelConfTypeDef sConfig;
 	DacHandle.Instance = DACx;
@@ -34,7 +34,7 @@ void tune_frequency_generator(void) {
 	sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
 	sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
 	HAL_DAC_ConfigChannel(&DacHandle, &sConfig, DACx_CHANNEL);
-	HAL_DAC_SetValue(&DacHandle, DACx_CHANNEL, DAC_ALIGN_12B_R, load_dac_output_value());
+        HAL_DAC_SetValue(&DacHandle, DACx_CHANNEL, DAC_ALIGN_12B_R, freq);
 	HAL_DAC_Start(&DacHandle, DACx_CHANNEL);
 }
 
