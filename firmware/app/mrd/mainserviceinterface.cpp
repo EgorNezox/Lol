@@ -841,8 +841,9 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 		case ALE_TX_CALL_RX_HSHAKE: {
 			ale.timerCallRoffHshakeR->stop();
 			if (evaluatePacketSNR(snr_db_value)) {
-				dispatcher->dsp_controller->setModemReceiverBandwidth(bandwidth);
 				dispatcher->dsp_controller->enableModemTransmitter();
+				dispatcher->dsp_controller->setModemReceiverBandwidth(bandwidth);
+
 				setAlePhase(ALE_TX_CALL_TX_HSHAKE);
 			} else {
 				dispatcher->dsp_controller->disableModemReceiver();
