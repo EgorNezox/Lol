@@ -317,7 +317,7 @@ void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
 		qmToBigEndian(f_crc.result(), (uint8_t *)&(ale.vm_fragments[i].crc));
 	}
 	printDebugVmMessage(ale.vm_size, ale.vm_f_count, message);
-	dispatcher->dsp_controller->setModemReceiverBandwidth(DspController::modembw20kHz);
+	dispatcher->dsp_controller->setModemReceiverBandwidth(DspController::modembwAll);
 	dispatcher->dsp_controller->setModemReceiverTimeSyncMode(DspController::modemtimesyncGPS);
 	dispatcher->dsp_controller->setModemReceiverPhase(DspController::modemphaseALE);
 	dispatcher->dsp_controller->setModemReceiverRole(DspController::modemroleCaller);
@@ -841,6 +841,7 @@ void MainServiceInterface::aleprocessModemPacketReceived(DspController::ModemPac
 		case ALE_TX_CALL_RX_HSHAKE: {
 			ale.timerCallRoffHshakeR->stop();
 			if (evaluatePacketSNR(snr_db_value)) {
+				dispatcher->dsp_controller->setModemReceiverBandwidth(bandwidth);
 				dispatcher->dsp_controller->enableModemTransmitter();
 				setAlePhase(ALE_TX_CALL_TX_HSHAKE);
 			} else {
