@@ -256,15 +256,15 @@ void Navigator::processConfig() {
 	const char * const start =     "$PSTMSETPAR,1201,01184360*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
     uart->writeData((uint8_t *)start, strlen(start));
 
-    const char * const start1 =     "$PSTMSAVEPAR\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-        uart->writeData((uint8_t *)start1, strlen(start1));
+//    const char * const start1 =     "$PSTMSAVEPAR\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+//        uart->writeData((uint8_t *)start1, strlen(start1));
 
 //    const char * const start1 =    "$PSTMGETPAR,1301*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
 //        uart->writeData((uint8_t *)start1, strlen(start1));
 
-    const char * const config_sentences ="$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n"; // "$PKON1,0,2,, ,0000,A*68\r\n" "$PONME,2,4,1*42\r\n"
-    qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
-    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
+//    const char * const config_sentences ="$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n"; // "$PKON1,0,2,, ,0000,A*68\r\n" "$PONME,2,4,1*42\r\n"
+//    qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
+//    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
 }
 
 void Navigator::processSyncPulse(bool overflow) {
