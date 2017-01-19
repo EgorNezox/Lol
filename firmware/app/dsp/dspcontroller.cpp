@@ -437,24 +437,30 @@ void DspController::sendPswf()
 	{
 		for(int i = 0; i<4;i++) time[i] = date_time[i];
 	}
-
-//ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(ContentPSWF.RET_end_adr ? ContentPSWF.RET_end_adr : ContentPSWF.R_ADR,
-//												ContentPSWF.RET_end_adr ? ContentPSWF.R_ADR : ContentPSWF.S_ADR,
-//												ContentPSWF.COM_N,
-//												ContentPSWF.RN_KEY,
-//												time[0],
-//												time[1],
-//												time[2],
-//												time[3]);
-
-ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(ContentPSWF.RET_end_adr ? ContentPSWF.RET_end_adr : ContentPSWF.R_ADR,
-												ContentPSWF.S_ADR,
-												ContentPSWF.COM_N,
-												ContentPSWF.RN_KEY,
-												time[0],
-												time[1],
-												time[2],
-												time[3]);
+	if (ContentPSWF.RET_end_adr > 0)
+	{
+		ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(
+				ContentPSWF.RET_end_adr,
+				ContentPSWF.R_ADR,
+				ContentPSWF.COM_N,
+				ContentPSWF.RN_KEY,
+				time[0],
+				time[1],
+				time[2],
+				time[3]);
+	}
+	else
+	{
+		ContentPSWF.L_CODE = navigator->Calc_LCODE(
+				ContentPSWF.R_ADR,
+				ContentPSWF.S_ADR,
+				ContentPSWF.COM_N,
+				ContentPSWF.RN_KEY,
+				time[0],
+				time[1],
+				time[2],
+				time[3]);
+	}
 
     ContentPSWF.Frequency = getFrequency(0); //pswf = 0, sms = 1
     ContentPSWF.indicator = 20;
@@ -470,7 +476,7 @@ ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(ContentPSWF.RET_end_adr ? Conten
     qmToBigEndian((uint8_t)ContentPSWF.SNR,        tx_data + tx_data_len); ++tx_data_len;
 
     qmToBigEndian((uint8_t)(pswf_retranslator ? ContentPSWF.RET_end_adr : ContentPSWF.R_ADR), tx_data+tx_data_len);  ++tx_data_len;
-    qmToBigEndian((uint8_t)ContentPSWF.S_ADR,  tx_data + tx_data_len); ++tx_data_len;
+    qmToBigEndian((uint8_t)(pswf_retranslator ? ContentPSWF.R_ADR : ContentPSWF.S_ADR),  tx_data + tx_data_len); ++tx_data_len;
     qmToBigEndian((uint8_t)ContentPSWF.COM_N,  tx_data + tx_data_len); ++tx_data_len;
     qmToBigEndian((uint8_t)ContentPSWF.L_CODE, tx_data + tx_data_len); ++tx_data_len;
 
