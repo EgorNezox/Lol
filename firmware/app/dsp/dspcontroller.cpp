@@ -2102,7 +2102,7 @@ void DspController::sendSms(Module module)
 
     qmDebugMessage(QmDebug::Dump, "LCODE: %d",ContentSms.L_CODE);
 
-    ContentSms.TYPE = (sms_counter > 38 && sms_counter < 76);
+    ContentSms.TYPE = (sms_counter > 38 && sms_counter < 76) ? 1 : 0;
 
     uint8_t tx_address = 0x72;
     uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];

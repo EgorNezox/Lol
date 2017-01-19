@@ -1747,6 +1747,7 @@ void Service::keyPressed(UI_Key key)
             	if (cntGucRx == 2)
             	{
             		menu->initRxSmsDialog("...");
+            		//setFreq();
 					#ifndef PORT__PCSIMULATOR
 					voice_service->saveFreq(getFreq());
 					voice_service->TurnGuc();
