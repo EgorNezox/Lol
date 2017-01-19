@@ -385,7 +385,7 @@ private:
     void processReceivedFrame(uint8_t address, uint8_t *data, int data_len);                        // ������� ������ ������ �� DSP
 
 
-    int CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);                              // ������� �������� ������� �������� ��� ��
+    int CalcShiftFreq(int RN_KEY, int DAY, int HRS, int MIN, int SEC);                              // ������� �������� ������� �������� ��� ��
     int CalcSmsTransmitFreq(int RN_KEY, int DAY, int HRS, int MIN, int SEC);                        // ������� �������� ������� �������� ��� ���
     int CalcSmsTransmitRxRoleFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int CalcSmsTransmitTxRoleFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);

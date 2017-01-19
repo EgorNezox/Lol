@@ -438,8 +438,17 @@ void DspController::sendPswf()
 		for(int i = 0; i<4;i++) time[i] = date_time[i];
 	}
 
+//ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(ContentPSWF.RET_end_adr ? ContentPSWF.RET_end_adr : ContentPSWF.R_ADR,
+//												ContentPSWF.RET_end_adr ? ContentPSWF.R_ADR : ContentPSWF.S_ADR,
+//												ContentPSWF.COM_N,
+//												ContentPSWF.RN_KEY,
+//												time[0],
+//												time[1],
+//												time[2],
+//												time[3]);
+
 ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(ContentPSWF.RET_end_adr ? ContentPSWF.RET_end_adr : ContentPSWF.R_ADR,
-												ContentPSWF.RET_end_adr ? ContentPSWF.R_ADR : ContentPSWF.S_ADR,
+												ContentPSWF.S_ADR,
 												ContentPSWF.COM_N,
 												ContentPSWF.RN_KEY,
 												time[0],
@@ -770,7 +779,7 @@ bool DspController::checkForTxAnswer()
 	if (tx_call_ask_vector.size() >= 2)
 	{
 		wzn_value = wzn_change(tx_call_ask_vector);
-		qmDebugMessage(QmDebug::Dump, "wzn_value" ,wzn_value);
+		qmDebugMessage(QmDebug::Dump, "checkForTxAnswer() wzn_value" ,wzn_value);
 		tx_call_ask_vector.resize(0);
 
 		return true;
@@ -866,10 +875,22 @@ int DspController::getFrequency(uint8_t mode) //pswf = 0, sms = 1
 
 	int RN_KEY = mode ? ContentSms.RN_KEY : ContentPSWF.RN_KEY;
 
-	if (virtual_mode)
-		fr_sh = CalcShiftFreq(RN_KEY,t.seconds,d.day,t.hours,t.minutes);
-	else
-		fr_sh = CalcShiftFreq(RN_KEY,date_time[3],date_time[0],date_time[1],date_time[2]);
+	switch (mode){
+		case 0: {
+			if (virtual_mode)
+				fr_sh = CalcShiftFreq(RN_KEY,d.day,t.hours,t.minutes,t.seconds);
+			else
+				fr_sh = CalcShiftFreq(RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3]);
+			break;
+		}
+		case 1: {
+			if (virtual_mode)
+				fr_sh = CalcSmsTransmitFreq(RN_KEY,d.day,t.hours,t.minutes,t.seconds);
+			else
+				fr_sh = CalcSmsTransmitFreq(RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3]);
+			break;
+		}
+	}
 
 	fr_sh += 1622;
 	fr_sh = fr_sh * 1000; // � � вЂњ� ЎвЂ�
@@ -899,7 +920,7 @@ void DspController::resetContentStructState()
     // � � Т‘� � С•� � В±� � В°� � � � � � С‘� ЎвЂљ� Ў� Љ � � С•� � С—� Ў� ‚� � Вµ� � Т‘� � Вµ� � В»� � Вµ� � � …� � С‘� � Вµ � � Т‘� Ў� ‚� ЎС“� � С–� � С‘� ЎвЂ¦ � ЎвЂћ� ЎС“� � � …� � С”� ЎвЂ� � � С‘� � в„–
 }
 
-int DspController::CalcShiftFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN)
+int DspController::CalcShiftFreq(int RN_KEY, int DAY, int HRS, int MIN, int SEC)
 {
     int TOT_W = 6671; // � Ўв‚¬� � С‘� Ў� ‚� � С‘� � � …� � В° � Ў� ‚� � В°� � В·� Ў� ‚� � Вµ� Ўв‚¬� � Вµ� � � …� � � …� ЎвЂ№� ЎвЂ¦ � ЎС“� ЎвЂЎ� � В°� Ў� ѓ� ЎвЂљ� � С”� � С•� � � �
     int SEC_MLT = value_sec[SEC]; // SEC_MLT � � � � � ЎвЂ№� � В±� � С‘� Ў� ‚� � В°� � Вµ� � С� � � � �  � � С�� � В°� Ў� ѓ� Ў� ѓ� � С‘� � � � � � Вµ
@@ -953,6 +974,7 @@ int DspController::CalcSmsTransmitFreq(int RN_KEY, int DAY, int HRS, int MIN, in
     	waveZone.push_back(SEC_MLT / 6);
     }
 
+    qmDebugMessage(QmDebug::Dump, ">>> CalcSmsTransmitFreq() wzn_value %d" ,wzn_value);
     return FR_SH;
 }
 
@@ -3140,7 +3162,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			if (sms_counter > 19 && sms_counter < 38)
 			{
 				tx_call_ask_vector.push_back(data[9]); // wzn response
-				qmDebugMessage(QmDebug::Dump, "wzn = %d", data[9]);
+				qmDebugMessage(QmDebug::Dump, "LogicPswfModes() (19;38) WAVE_ZONE = %d", data[9]);
 			}
 			if (sms_counter < 19)
 			{
@@ -3149,6 +3171,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 
 				syncro_recieve.erase(syncro_recieve.begin());
 				syncro_recieve.push_back(data[9]); // CYC_N
+				qmDebugMessage(QmDebug::Dump, "LogicPswfModes() (0;19) WAVE_ZONE = %d", data[9]);
 
 				qmDebugMessage(QmDebug::Dump, "recieve frame() count = %d", syncro_recieve.size());
 
