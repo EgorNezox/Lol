@@ -36,6 +36,7 @@
 #define VIRTUAL_TIME 120
 
 #define NUMS 0 // need = 0   9 for debug
+#define startVirtTxPhaseIndex 0;
 
 namespace Multiradio {
 
@@ -438,7 +439,7 @@ void DspController::sendPswf()
 	}
 
 ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(ContentPSWF.RET_end_adr ? ContentPSWF.RET_end_adr : ContentPSWF.R_ADR,
-												ContentPSWF.S_ADR,
+												ContentPSWF.RET_end_adr ? ContentPSWF.R_ADR : ContentPSWF.S_ADR,
 												ContentPSWF.COM_N,
 												ContentPSWF.RN_KEY,
 												time[0],
@@ -752,10 +753,7 @@ void DspController::changeSmsFrequency()
     static uint8_t tempCounter = sms_counter;
     if (tempCounter != sms_counter && sms_counter % 11 == 0 )
       smsCounterChanged(sms_counter);
-
-	////////////////////////////////////
 }
-
 
 void DspController::resetSmsState()
 {
@@ -1943,7 +1941,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     {
     	// get number of the catch packet ...
 #ifndef PORT__PCSIMULATOR
-    	if (virtual_mode == false) return;
+    	if (!virtual_mode) return;
     	if (indicator == 5)
     	{
 			addSeconds(&t);
@@ -1952,8 +1950,12 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     		{
     			if (count_VrtualTimer <= VrtualTimerMagic)
     			{
-    				qmDebugMessage(QmDebug::Dump, "0x65 frame");
-    				++RtcTxCounter;
+    				//qmDebugMessage(QmDebug::Dump, "0x65 frame");
+    				qmDebugMessage(QmDebug::Dump, "0x65 count_VrtualTimer %d",count_VrtualTimer);
+    				qmDebugMessage(QmDebug::Dump, "0x65 RtcTxCounter %d",RtcTxCounter);
+
+    				if (RtcTxCounter)
+    					++RtcTxCounter;
 
     				if (IsStart(t.seconds))
     				{
@@ -1963,18 +1965,24 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     					++count_VrtualTimer;
     					if (count_VrtualTimer > VrtualTimerMagic)
     					{
+    						qmDebugMessage(QmDebug::Dump, "0x65 changeFrequency()");
     						addSeconds(&t);
     						if (radio_state == radiostatePswf)
     							changePswfFrequency();
     						if (radio_state == radiostateSms)
     							changeSmsFrequency();
     					}
+    					qmDebugMessage(QmDebug::Dump, "0x65 frame %d %d",t.minutes,t.seconds);
     				}
 
-    				if (RtcTxCounter == 5 && count_VrtualTimer>NUMS)
+    				if (RtcTxCounter == 5)
     				{
     					sendSynchro(freqVirtual,count_VrtualTimer);
+    					qmDebugMessage(QmDebug::Dump, "0x65 sendSynchro");
     				}
+    				qmDebugMessage(QmDebug::Dump, "0x65 count_VrtualTimer %d",count_VrtualTimer);
+    				qmDebugMessage(QmDebug::Dump, "0x65 RtcTxCounter %d",RtcTxCounter);
+
     			}
     			else
     			{
@@ -2974,7 +2982,7 @@ void DspController::startVirtualPpsModeTx()
 	RtcTxCounter = 0;
 	//radio_state = radiostatePswf;
 
-	count_VrtualTimer = NUMS;
+	count_VrtualTimer = startVirtTxPhaseIndex;
 	txrtx = 0;
 }
 
