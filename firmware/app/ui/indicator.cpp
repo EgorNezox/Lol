@@ -33,7 +33,7 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
     date_time = new GUI_EL_Label(&p_label, &icon_geom, (char*)"", (GUI_Obj *)this);
 
     icon_geom = {12+3*ICON_SIZE, 6, 12+4*ICON_SIZE-1, 32};
-    gpsLabel = new GUI_EL_Icon(&GUI_EL_TEMP_CommonIcon, &icon_geom, sym_gps_unlock, (GUI_Obj *)this);
+    gpsLabel = new GUI_EL_Icon(&GUI_EL_TEMP_CommonIcon, &icon_geom, sym_gps, (GUI_Obj *)this);
 
     icon_geom = {12+4*ICON_SIZE, 6, 12+5*ICON_SIZE-1, 29};
     ind_battery = new GUI_EL_Battery(&GUI_EL_TEMP_BatteryIndicator, 75, &icon_geom, (GUI_Obj *)this);
@@ -78,11 +78,12 @@ void GUI_Indicator::UpdateBattery(int new_val){
     ind_battery->charge = new_val;
 }
 
-void GUI_Indicator::UpdateGpsStatus(bool status){
-    if ( status )
-        gpsLabel->icon = sym_gps;
-    else
-        gpsLabel->icon = sym_blank;
+void GUI_Indicator::UpdateGpsStatus(uint8_t status){
+    switch( status ){
+        case 0: gpsLabel->icon = sym_blank; break;
+        case 1: gpsLabel->icon = sym_gps_unlock; break;
+        case 2: gpsLabel->icon = sym_gps; break;
+    }
 }
 
 //-----------------------------
@@ -114,7 +115,7 @@ void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
 void GUI_Indicator::Draw( Multiradio::MainServiceInterface::Status multiradioStatus,
                           Headset::Controller::Status              headsetStatus,
                           int                                      battaryStatus,
-                          bool                                     gpsStatus
+                          uint8_t                                     gpsStatus
                          ){
     gsetcolorb(GENERAL_BACK_COLOR);
     gsetvp(0,0,GDISPW-1, GDISPH-1);

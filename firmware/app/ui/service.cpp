@@ -239,14 +239,20 @@ void Service::updateBattery(int new_val)
 
 void Service::drawIndicator()
 {
+    static uint8_t gpsStatus = 0; //none
 	if ( guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr){
-		bool gpsStatus = false;
 		if (navigator != 0)
 		{
 			Navigation::Coord_Date date = navigator->getCoordDate();
-			gpsStatus = date.status;
-			if (gpsStatus && !isValidGpsTime)
+            uint8_t gpsStatusNew = date.status;
+            if (gpsStatusNew && !isValidGpsTime)
 				updateSessionTimeSchedule();
+            if (gpsStatus == 0 && gpsStatusNew == 1)
+                gpsStatus = 2; //unlock
+            else if (gpsStatus == 2 && gpsStatusNew == 0)
+                gpsStatus = 1; //lock
+            else if (gpsStatus == 1 && gpsStatusNew == 1)
+                gpsStatus = 2; //unlock
 		}
 		indicator->UpdateGpsStatus(gpsStatus);
 		indicator->Draw();
