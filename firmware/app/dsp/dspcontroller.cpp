@@ -30,7 +30,7 @@
 #define hw_rtc                      1
 #define DefkeyValue 631
 
-#define GUC_TIMER_INTERVAL 3000
+//#define GUC_TIMER_INTERVAL 3000
 #define GUC_TIMER_INTERVAL_REC 30000
 
 #define VIRTUAL_TIME 120
@@ -131,7 +131,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     pswfTxStateSync = 0;
     smsRxStateSync = 0;
     smsTxStateSync = 0;
-    gucRxStateSync = 0;
+    //gucRxStateSync = 0;
     gucTxStateSync = 0;
 
     success_pswf = 30;
@@ -160,8 +160,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     }
     	waveZone.push_back(0); // size must be 19
 
-    guc_timer = new QmTimer(true,this);
-    guc_timer->setInterval(GUC_TIMER_INTERVAL);
+    //guc_timer = new QmTimer(true,this);
+    //guc_timer->setInterval(GUC_TIMER_INTERVAL);
 
 
     for(int i = 0;i<50;i++) guc_text[i] = '\0';
@@ -198,7 +198,7 @@ DspController::~DspController()
     delete command_timer;
     delete quit_timer;
     delete sync_pulse_delay_timer;
-    delete guc_timer;
+   // delete guc_timer;
     delete cmd_queue;
     delete rtc;
 }
@@ -398,7 +398,7 @@ void DspController::getDataTime()
     date_time[2] = min;
     date_time[3] = sec;
 
-  //  qmDebugMessage(QmDebug::Dump, "getDataTime(): %d %d %d %d", day, hrs, min, sec);
+    qmDebugMessage(QmDebug::Dump, ">>> getDataTime(): %d %d %d %d", day, hrs, min, sec);
 
     addSeconds(date_time);
 }
@@ -508,7 +508,7 @@ void DspController::addSeconds(QmRtc::Time *t)
         t->minutes++;
         if (t->minutes >= 60) {
             t->minutes %= 60;
-            t->hours++;
+            t->hours++;  //TODO why not check hours overflow?
         }
     }
 }
@@ -1883,7 +1883,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             			guc.push_back(data[i]);
             		}
                     guc_vector.push_back(guc);
-                    guc_timer->start();
+                    //guc_timer->start();
                     (isGpsGuc) ? recievedGucResp(1) : recievedGucResp(0);
                     startGucTransmitting();
             		sendGucQuit();
@@ -2478,7 +2478,7 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
     radio_state = radiostatePswf;
     SmsLogicRole = SmsRoleIdle;
 
-    if (virtual_mode == true)
+    if (virtual_mode)
     	startVirtualPpsModeTx();
     else
     	setPswfTx();
@@ -2591,6 +2591,8 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
 	ContentGuc.chip_time = 3; // super versia new, last value = 2
 	ContentGuc.WIDTH_SIGNAL = 0; // last value  = 1, thi is freq mode 0 - 3k1, 1 - 20k maybe it works:)
     //data_storage_fs->getAleStationAddress(ContentGuc.S_ADR);
+	ContentGuc.S_ADR = stationAddress;
+
     ContentGuc.R_ADR = r_adr;
 
     uint8_t num_cmd = command.size();
@@ -2748,7 +2750,7 @@ void DspController::startGucRecieving()
     comandValue.frequency = freqGucValue;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
 
-    gucRxStateSync = 0;
+   // gucRxStateSync = 0;
     ContentGuc.stage =  GucRx;
     guc_vector.clear();
 }
@@ -3062,26 +3064,27 @@ void DspController::sendSynchro(uint32_t freq, uint8_t cnt)
 	}
 }
 
-
 void DspController::correctTime(uint8_t num)
 {
 	// correction time
+	qmDebugMessage(QmDebug::Dump, "correctTime() data[7] as num %d", num);
+	qmDebugMessage(QmDebug::Dump, "correctTime() before getTime t.seconds %d", t.seconds);
 #ifndef PORT__PCSIMULATOR
 	t = rtc->getTime();
 #endif
-
+	qmDebugMessage(QmDebug::Dump, "correctTime() after getTime t.seconds %d", t.seconds);
 	t.seconds = 12 * (t.seconds / 12) + 7;
+	qmDebugMessage(QmDebug::Dump, "correctTime() after correct t.seconds %d", t.seconds);
 	count_VrtualTimer = num;
 	qmDebugMessage(QmDebug::Dump, "COUNTER VIRTUAL %d",count_VrtualTimer);
 
 	RtcFirstCatch = -1;
 }
 
-
 void DspController::wakeUpTimer()
 {
 #ifndef PORT__PCSIMULATOR
-	if ((virtual_mode == true) && (RtcRxRole == true) && (!antiSync))
+	if ((virtual_mode) && (RtcRxRole) && (!antiSync))
 	{
 		t = rtc->getTime();
 
@@ -3093,7 +3096,6 @@ void DspController::wakeUpTimer()
 			qmDebugMessage(QmDebug::Dump, "freq virtual %d",freqVirtual);
 			sendCommandEasy(RxRadiopath, 1, param);
 		}
-
 	}
 #endif
 }
