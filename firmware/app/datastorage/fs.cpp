@@ -286,6 +286,10 @@ bool FS::getGpsSynchroMode(uint8_t* data) {
  */
 void FS::setVoiceMode(bool data)
 {
+	if (data > 0)
+		data = true;
+	else
+		data = false;
     QmFile file(dir, "VoiceMode");
     if(!file.open(QmFile::WriteOnly))
         return;
@@ -303,6 +307,10 @@ bool FS::getVoiceMode(bool *data)
     if(!file.open(QmFile::ReadOnly))
         return false;
     file.read((uint8_t*)data,1);
+	if (*data > 0)
+		*data = true;
+	else
+		*data = false;
     return true;
 }
 
