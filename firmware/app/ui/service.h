@@ -268,6 +268,7 @@ private:
     bool isValidGpsTime = false; //
 
     //QmTimer synchModeTimer;
+    void showReceivedSms();
 };
 
 } /* namespace Ui */

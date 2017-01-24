@@ -859,16 +859,6 @@ void Service::keyPressed(UI_Key key)
                     }
                     setAsk = false;
 
-                    if (menu->condCmdModeSelect == 0)
-                        voice_service->TurnPSWFMode(1, param[0], 0,0); // групповой вызов
-                    if (menu->condCmdModeSelect == 1)
-                        voice_service->TurnPSWFMode(0, param[0], param[2],param[1]); // индивидуальный вызов
-                    if (menu->condCmdModeSelect == 2){
-                        param[2] +=32;
-                        voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
-                        setAsk = true;
-                    }
-
                     if ((storageFs > 0) && (param[0] != 0))
                     {
                         char sym[4];
@@ -880,6 +870,16 @@ void Service::keyPressed(UI_Key key)
                         condMsg.push_back((uint8_t)sym[1]);
                         condMsg.push_back((uint8_t)sym[2]);
                         storageFs->setCondCommand(&condMsg,DataStorage::FS::FTT_TX);
+                    }
+
+                    if (menu->condCmdModeSelect == 0)
+                        voice_service->TurnPSWFMode(1, param[0], 0,0); // групповой вызов
+                    if (menu->condCmdModeSelect == 1)
+                        voice_service->TurnPSWFMode(0, param[0], param[2],param[1]); // индивидуальный вызов
+                    if (menu->condCmdModeSelect == 2){
+                        param[2] +=32;
+                        voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
+                        setAsk = true;
                     }
 
                     for(auto &k: estate.listItem)
@@ -1156,10 +1156,13 @@ void Service::keyPressed(UI_Key key)
                         guc_command_vector.clear();
 
                         parsingGucCommand((uint8_t*)str);
-                        voice_service->saveFreq(freqs);
-                        voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
+
                         if (storageFs > 0)
                             storageFs->setGroupCondCommand((uint8_t*)str,strlen(str),DataStorage::FS::FTT_TX);
+
+                        voice_service->saveFreq(freqs);
+                        voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
+
 #else
                         for (auto &k: estate.listItem)
                             k->inputStr.clear();
@@ -1380,6 +1383,7 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::txSmsMessage:
         {
+            if (!isSmsMessageRec){
             switch (menu->smsTxStage)
             {
             case 1:
@@ -1558,6 +1562,9 @@ void Service::keyPressed(UI_Key key)
 
                             if (atoi(ch) > 0)
                             {
+                                if (storageFs > 0)
+                                    storageFs->setSms((uint8_t*)msg.c_str(),msg.size(), DataStorage::FS::FTT_TX);
+
                                 voice_service->defaultSMSTrans();
                                 failFlag = false;
 
@@ -1565,8 +1572,7 @@ void Service::keyPressed(UI_Key key)
                                     voice_service->TurnSMSMode(param[2], (char*)msg.c_str(),atoi(dstAddr.c_str())); //retr,msg,radr
                                 else
                                     voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
-                                if (storageFs > 0)
-                                    storageFs->setSms((uint8_t*)msg.c_str(),msg.size(), DataStorage::FS::FTT_TX);
+
                                 for(auto &k: estate.listItem)
                                     k->inputStr.clear();
                                 menu->smsTxStage++;
@@ -1596,6 +1602,7 @@ void Service::keyPressed(UI_Key key)
             }
 
             break;
+            }
         }
         case GuiWindowsSubType::recvVoice:
         {
@@ -1709,7 +1716,8 @@ void Service::keyPressed(UI_Key key)
 
         		if (cntSmsRx >= 2 && isSmsMessageRec == true)
         		{
-                     menu->initTxSmsDialog((char*)"CMC",voice_service->getSmsContent());
+        			showReceivedSms();
+                    // menu->initTxSmsDialog((char*)"CMC",voice_service->getSmsContent());
         		}
 
         	}
@@ -1719,7 +1727,8 @@ void Service::keyPressed(UI_Key key)
 
         		if (cntSmsRx >= 2 && isSmsMessageRec == true)
         		{
-                     menu->initTxSmsDialog((char*)"CMC",voice_service->getSmsContent());
+        			showReceivedSms();
+                     //menu->initTxSmsDialog((char*)"CMC",voice_service->getSmsContent());
         		}
         	}
         	break;
@@ -3001,6 +3010,7 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::txSmsMessage:
         {
+            if (!isSmsMessageRec){
             std::string titleStr, fieldStr;
             switch(menu->smsTxStage)
             {
@@ -3051,14 +3061,14 @@ void Service::drawMenu()
             {
                 uint8_t counter = voice_service->getSmsCounter();
 
-                if (counter == 77)
-                    isSmsCounterFull = true;
+//                if (counter == 77)
+//                    isSmsCounterFull = true;
 
-                if (isSmsCounterFull){
-                     //guiTree.resetCurrentState();
-                     isSmsCounterFull = false;
-                     //drawMainWindow();
-                }
+//                if (isSmsCounterFull){
+//                     //guiTree.resetCurrentState();
+//                     isSmsCounterFull = false;
+//                     //drawMainWindow();
+//                }
 
                 char pac[2];
                 sprintf(pac,"%i", counter);
@@ -3072,9 +3082,11 @@ void Service::drawMenu()
             default:
             { break; }
             }
-            if (!isSmsCounterFull)
+//            if (!isSmsCounterFull)
+
                 menu->initTxSmsDialog( titleStr, fieldStr );
             break;
+            }
         }
         case GuiWindowsSubType::recvCondCmd:
         {
@@ -3525,34 +3537,23 @@ void Service::updateSystemTime()
 
 void Service::smsMessage(int value)
 {
-    char sym[value + 1];//TODO:
-    for(int i = 0; i < value + 1; ++i) sym[i] = 0;
-
-#if smsFlashTest
-    std::string test = "test write to flash memory\0";
-    memcpy(sym, &test[0] , value);
-#else
-    memcpy(sym, voice_service->getSmsContent(), value);
-//    uint8_t* cont = (uint8_t*)voice_service->getSmsContent();
-//    cont[100] = 0;
-#endif
-    sym[value] = 0;
-    sym[value + 1] = 0;
-
     if (storageFs > 0)
-        storageFs->setSms((uint8_t*)&sym[0], value, DataStorage::FS::FTT_RX);
-
-    const char *text;
-    text = &sym[0];
+        storageFs->setSms((uint8_t*)voice_service->getSmsContent(), value, DataStorage::FS::FTT_RX);
 
     isSmsMessageRec = true;
-
-    std::string title = "";
-    std::string text_str = text;
     menu->smsTxStage = 4;
-    menu->initTxSmsDialog(title,text_str);
 
-    setFreq();
+    showReceivedSms();
+
+    //setFreq();
+}
+
+void Service::showReceivedSms()
+{
+    const char *text = (const char*)voice_service->getSmsContent();
+    std::string title = "CMC";
+    std::string text_str = text;
+    menu->initTxSmsDialog(title,text_str);
 }
 
 void Service::updateAleVmProgress(uint8_t t)

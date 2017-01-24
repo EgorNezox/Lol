@@ -183,7 +183,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     retranslation_active = false;
 
-    for(int i = 0;i<100;i++)
+    for(uint8_t i = 0; i <= 100; i++)
     	sms_content[i] = 0;
 
 }
@@ -583,6 +583,7 @@ void DspController::LogicPswfRx()
 
 void DspController::changePswfFrequency()
 {
+	qmDebugMessage(QmDebug::Dump, " >>>>>>>>> changePswfFrequency() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
 	if (!virtual_mode)
 	{
 		getDataTime();
@@ -748,6 +749,7 @@ void DspController::TxSmsWork()
 
 void DspController::changeSmsFrequency()
 {
+	qmDebugMessage(QmDebug::Dump, " >>>>>>>>> changeSmsFrequency() r_adr = %d,s_adr = %d", ContentSms.R_ADR,ContentSms.S_ADR);
 	if (!virtual_mode)
 	{
 	  getDataTime();
@@ -2102,7 +2104,10 @@ void DspController::sendSms(Module module)
 
     qmDebugMessage(QmDebug::Dump, "LCODE: %d",ContentSms.L_CODE);
 
-    ContentSms.TYPE = (sms_counter > 38 && sms_counter < 76) ? 1 : 0;
+    if (sms_counter > 38 && sms_counter < 76)
+        ContentSms.TYPE = 1;
+    else
+        ContentSms.TYPE = 0;
 
     uint8_t tx_address = 0x72;
     uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
@@ -2308,7 +2313,8 @@ bool DspController::generateSmsReceived()
 
           std::copy(&packet[0],&packet[100],sms_content);
           ack = 73;
-
+          for (uint8_t i = indexSmsLen; i <= 100; i++)
+            sms_content[i] = 0;
           return true;
         }
 
@@ -2472,7 +2478,6 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
     ContentPSWF.R_ADR = r_adr;
     if (pswf_retranslator > 0) ContentPSWF.R_ADR += 32;
     ContentPSWF.S_ADR = stationAddress;
-    //data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
 
     CondComLogicRole = CondComTx;
     radio_state = radiostatePswf;
@@ -2500,7 +2505,7 @@ void DspController::startSMSRecieving(SmsStage stage)
     quit_vector.erase(quit_vector.begin(),quit_vector.end());
 
 
-    if (virtual_mode == true) startVirtualPpsModeRx();
+    if (virtual_mode) startVirtualPpsModeRx();
     setRx();
 
     smsRxStateSync = 0;
@@ -2517,6 +2522,9 @@ void DspController::startSMSRecieving(SmsStage stage)
         waveZone.push_back(0);
     }
     	waveZone.push_back(0); // size must be 19
+
+    	   for(uint8_t i = 0; i <= 100; i++)
+    	     sms_content[i] = 0;
 }
 
 
@@ -2533,6 +2541,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
     ContentSms.indicator = 20;
     ContentSms.TYPE = 0;
+    ContentSms.S_ADR = stationAddress;
     ContentSms.R_ADR = r_adr;
     ContentSms.CYC_N = 0;
 
@@ -2575,7 +2584,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
     sms_counter  = 0;
 
-    if (virtual_mode == true)
+    if (virtual_mode)
     	startVirtualPpsModeTx();
     else
     	setTx();
@@ -3104,7 +3113,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 {
 
 	qmDebugMessage(QmDebug::Dump, "LogicPswfModes() pswf_in_virt = %d ", pswf_in_virt);
-	if (SmsLogicRole == SmsRoleRx && !smsFind){
+	if (virtual_mode && SmsLogicRole == SmsRoleRx && !smsFind){
 		pswf_in_virt++;
 		if (pswf_in_virt >= 90){
 			sms_counter = 0;
