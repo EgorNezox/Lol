@@ -103,6 +103,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->gucCrcFailed.connect(sigc::mem_fun(this,&Service::errorGucCrc));
     voice_service->gucCoord.connect(sigc::mem_fun(this,&Service::GucCoord));
     voice_service->startRxQuitSignal.connect(sigc::mem_fun(this, &Service::startRxQuit));
+    voice_service->stationModeIsCompleted.connect(sigc::mem_fun(this,&Service::onCompletedStationMode));
 
     pswf_status = false;
  #if defined (PORT__TARGET_DEVICE_REV1)
@@ -468,7 +469,7 @@ void Service::keyPressed(UI_Key key)
                     main_scr->oFreq.clear();
                     main_scr->oFreq.append(main_scr->nFreq.c_str());
                     int freq = atoi(main_scr->nFreq.c_str());
-                    voice_service->tuneFrequency(freq);
+                    voice_service->tuneFrequency(freq, true);
                 }
                 // ? пїЅпїЅпїЅ
                 switch ( main_scr->mainWindowModeId )
@@ -903,8 +904,7 @@ void Service::keyPressed(UI_Key key)
                 if (menu->txCondCmdStage == 0)
                 {
                     guiTree.backvard();
-                    voice_service->goToVoice(); // add return to voice mode
-                    setFreq();
+                    onCompletedStationMode();
                 }
                 else if (menu->txCondCmdStage == 1)
                 {
@@ -1393,7 +1393,7 @@ void Service::keyPressed(UI_Key key)
                 case keyBack:
                 {
                     guiTree.backvard();
-                    setFreq();
+                    onCompletedStationMode();
                     break;
                 }
                 case keyLeft:
@@ -1594,7 +1594,7 @@ void Service::keyPressed(UI_Key key)
             {
                 menu->smsTxStage = 1;
                 guiTree.resetCurrentState();
-                setFreq();
+                onCompletedStationMode();
             }
             }
             default:
@@ -2229,7 +2229,7 @@ void Service::keyPressed(UI_Key key)
                 main_scr->oFreq.clear();
                 main_scr->oFreq.append( (*iter)->inputStr );
                 int freq = atoi(main_scr->oFreq.c_str());
-                voice_service->tuneFrequency(freq);
+                voice_service->tuneFrequency(freq, true);
 
                 guiTree.resetCurrentState();
                 menu->focus = 0;
@@ -2818,7 +2818,9 @@ void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
          } else
         	 msgBox( notReiableRecPacket, (int)packet );
     }
-     else if ( packet == 100){
+     else {
+        onCompletedStationMode();
+     if ( packet == 100){
          msgBox( gucQuitTextFail );
          setAsk = false;
      }
@@ -2826,7 +2828,7 @@ void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
         msgBox( rxCondErrorStr[0] );
     else
         msgBox( rxCondErrorStr[1] );
-
+    }
     menu->recvStage = 0;
 
      //setFreq();
@@ -3724,6 +3726,7 @@ void Service::showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t mi
     showMessage("",text.c_str(), promptArea);
 
     schedulePromptText = text;
+    playSchedulePromptSignal();
     startSchedulePromptTimer();
 }
 
@@ -3781,9 +3784,12 @@ void Service::calcNextSessionIndex()
 
     for (uint8_t sessionTime = 0; sessionTime < sessionList.size(); sessionTime++){
         if (curTimeInMinutes > sessionList.at(sessionTime).time)
-         continue;
+           continue;
         else
+        {
            nextSessionIndex = sessionTime;
+           break;
+        }
     }
     onScheduleSessionTimer();
 }
@@ -4023,6 +4029,23 @@ void Service::setFreq()
 {
     int freq = atoi(main_scr->oFreq.c_str());
     voice_service->tuneFrequency(freq);
+}
+
+void Service::playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel)
+{
+   voice_service->playSoundSignal(mode, speakerVolume, gain, soundNumber, duration, micLevel);
+}
+
+void Service::playSchedulePromptSignal()
+{
+
+	voice_service->playSoundSignal(4, 100, 100, 2, 200, 100);
+}
+
+void Service::onCompletedStationMode()
+{
+	voice_service->goToVoice();
+    setFreq();
 }
 
 }/* namespace Ui */

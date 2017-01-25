@@ -527,7 +527,7 @@ void DspController::LogicPswfTx()
 	{
 		command_tx30 = 0;
 
-		if(pswf_ack_tx == true)
+        if(pswf_ack_tx)
 		{
 			pswf_ack_tx = false;
 			CondComLogicRole = CondComRx;
@@ -536,7 +536,8 @@ void DspController::LogicPswfTx()
 		}
 		else
 		{
-			radio_state = radiostateSync;
+            stationModeIsCompleted();
+            //radio_state = radiostateSync;
 		}
 	}
 
@@ -545,20 +546,22 @@ void DspController::LogicPswfTx()
 
 void DspController::LogicPswfRx()
 {
+    setPswfRxFreq();
+
 	 qmDebugMessage(QmDebug::Dump, " >>>>>>>>> LogicPswfRx() waitAckTimer = %d", waitAckTimer);
 	if (waitAckTimer){
 		waitAckTimer++;
 		if (waitAckTimer >= 65){
 			waitAckTimer = 0;
 			firstPacket(100, false); // no ack recieved
+            stationModeIsCompleted();
 		}
-
 	}
 	if (isPswfFull)
 	{
 		pswf_rec = 0;
 
-		if (pswf_ack == true)
+		if (pswf_ack)
 		{
 			CondComLogicRole = CondComTx;
 			pswf_ack = false;
@@ -571,11 +574,10 @@ void DspController::LogicPswfRx()
 		}
 		else
 		{
-			radio_state = radiostateSync;
+            //radio_state = radiostateSync;
+            stationModeIsCompleted();
 		}
 	}
-
-	setPswfRxFreq();
 
 	qmDebugMessage(QmDebug::Dump, "RX____ ContentPSWF.R_ADR = %d, ContentPSWF.S_ADR = %d ", ContentPSWF.R_ADR, ContentPSWF.S_ADR);
 }
@@ -711,11 +713,11 @@ void DspController::TxSmsWork()
     	{
     		resetSmsState();
     		smsFailed(0);
-    		goToVoice();
+            //goToVoice();
     	}
     }
 
-    if (sms_counter > 39 && sms_counter <76)
+    if (sms_counter > 39 && sms_counter < 76)
     {
         sendSms(PSWFTransmitter);
     }
@@ -738,11 +740,11 @@ void DspController::TxSmsWork()
     	else
     	{
     		if (smsError >= 1)
-    			smsFailed(0); // negative ack recieved
+    			smsFailed(2); // negative ack recieved
     		else
-    			smsFailed(2); // not ack recieved
+    			smsFailed(1); // not ack recieved
     	}
-    	resetSmsState();
+        resetSmsState();
     }
 
 }
@@ -780,6 +782,7 @@ void DspController::resetSmsState()
 	ok_quit = 0;
 	smsError = 0;
 	std::memset(rs_data_clear,1,sizeof(rs_data_clear));
+    stationModeIsCompleted();
 }
 
 bool DspController::checkForTxAnswer()
@@ -998,7 +1001,7 @@ void DspController::initResetState()
 void DspController::setAdr()
 {
 	ParameterValue param;
-	param.pswf_r_adr = ContentPSWF.S_ADR;
+    param.pswf_r_adr = stationAddress;
 	sendCommand(PSWFReceiver, PswfRxRAdr, param);
 }
 
@@ -1344,6 +1347,18 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 			qmToBigEndian((uint8_t)value.mic_amplify, tx_data+tx_data_len);
 			tx_data_len += 1;
 			break;
+		case AudioSignalNumber:
+			qmToBigEndian((uint8_t)value.signal_number, tx_data+tx_data_len);
+			tx_data_len += 1;
+			break;
+		case AudioSignalDuration:
+			qmToBigEndian((uint8_t)value.signal_duration, tx_data+tx_data_len);
+			tx_data_len += 1;
+			break;
+		case AudioSignalMicLevel:
+			qmToBigEndian((uint8_t)value.signal_mic_level, tx_data+tx_data_len);
+			tx_data_len += 1;
+			break;
 		default: QM_ASSERT(0);
 		}
 		break;
@@ -1506,6 +1521,18 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 				break;
 			case AudioMicAmplify:
 				qmToBigEndian((uint8_t)value.mic_amplify, tx_data+tx_data_len);
+				tx_data_len += 1;
+				break;
+			case AudioSignalNumber:
+				qmToBigEndian((uint8_t)value.signal_number, tx_data+tx_data_len);
+				tx_data_len += 1;
+				break;
+			case AudioSignalDuration:
+				qmToBigEndian((uint8_t)value.signal_duration, tx_data+tx_data_len);
+				tx_data_len += 1;
+				break;
+			case AudioSignalMicLevel:
+				qmToBigEndian((uint8_t)value.signal_mic_level, tx_data+tx_data_len);
 				tx_data_len += 1;
 				break;
 			default: QM_ASSERT(0);
@@ -1672,7 +1699,7 @@ void DspController::sendGuc()
     }
 
     // � � � � � ЎвЂ№� � В±� � С•� Ў� ‚ � � Т‘� � В»� � С‘� � � …� � � …� ЎвЂ№ � � С”� � С•� � Т‘� � С‘� Ў� ‚� ЎС“� � Вµ� � С�� � С•� � С–� � С• � � С�� � В°� Ў� ѓ� Ў� ѓ� � С‘� � � � � � В°
-     crc32_len = (isGpsGuc == true) ? (ContentGuc.NUM_com + 9) : (ContentGuc.NUM_com);
+     crc32_len = (isGpsGuc) ? (ContentGuc.NUM_com + 9) : (ContentGuc.NUM_com);
 
      std::vector<bool> data_guc;
 
@@ -1874,7 +1901,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 {
                 	ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);
                 	recievedGucQuitForTransm(ContentGuc.S_ADR);
-                	goToVoice();
+                    stationModeIsCompleted();
                 }
             	else{
             		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
@@ -2217,13 +2244,15 @@ void DspController::prevTime()
 {
 	if (virtual_mode)
 	{
-		qmDebugMessage(QmDebug::Dump, "T: %d", t.seconds);
+		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", t.seconds);
 		t.seconds = t.seconds - 1;
-		qmDebugMessage(QmDebug::Dump, "T2: %d", t.seconds);
+		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", t.seconds);
 	}
 	else
 	{
+		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", date_time[3]);
 		date_time[3]  = date_time[3] - 1;
+		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", date_time[3]);
 	}
 }
 
@@ -2462,7 +2491,8 @@ void DspController::startPSWFReceiving()
 	waitAckTimer = 0;
 }
 
-void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,int retr) {
+void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,int retr)
+{
 	qmDebugMessage(QmDebug::Dump, "startPSWFTransmitting(%d, %d, %d)", ack, r_adr, cmd);
     QM_ASSERT(is_ready);
 
@@ -2491,7 +2521,6 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
 	setAsk = false;
 	isPswfFull = false;
 	waitAckTimer = 0;
-
 }
 
 void DspController::startSMSRecieving(SmsStage stage)
@@ -2687,6 +2716,7 @@ void DspController::sendGucQuit()
     }
 
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
+    stationModeIsCompleted();
 }
 
 uint8_t *DspController::getGpsGucCoordinat(uint8_t *coord)
@@ -3243,7 +3273,7 @@ bool DspController::getVirtualMode()
 void DspController::setVirtualMode(bool param)
 {
 	virtual_mode = param;
-	if (virtual_mode == false)
+	if (!virtual_mode)
 	{
 		ParameterValue comandValue;  //0x60 2 5 1
 		comandValue.param = 0;
@@ -3317,7 +3347,34 @@ uint8_t* DspController::getVirtualTime()
 	return &virtualTime[0];
 }
 
-} /* namespace Multiradio */
+void DspController::playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel)
+{
+	ParameterValue value;
+
+	if (is_ready){
+
+	value.signal_duration = duration;
+	sendCommandEasy(Module::Audiopath, AudioSignalDuration, value);
+
+	value.signal_number = soundNumber;
+	sendCommandEasy(Module::Audiopath, AudioSignalNumber, value);
+
+	value.audio_mode = (AudioMode)mode;
+	sendCommandEasy(Module::Audiopath, AudioModeParameter, value);
+
+//	value.volume_level = speakerVolume;
+//	sendCommandEasy(Module::Audiopath, AudioVolumeLevel, value);
+//
+//	value.mic_amplify = gain;
+//	sendCommandEasy(Module::Audiopath, AudioMicAmplify, value);
+
+//
+//	value.signal_mic_level = micLevel;
+//	sendCommandEasy(Module::Audiopath, AudioSignalMicLevel, value);
+	}
+}
+}
+/* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
 QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)

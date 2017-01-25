@@ -37,7 +37,7 @@ public:
 	void setCurrentChannelSpeed(voice_channel_speed_t speed);
 	void tuneNextChannel();
 	void tunePreviousChannel();
-    void tuneFrequency(int frequency);
+    void tuneFrequency(int frequency, bool isRecord = false);
     void tuneEmissionType(voice_emission_t type);
     void tuneSquelch(uint8_t value);
     void TuneAudioLevel(uint8_t volume_level);
@@ -72,6 +72,7 @@ public:
 
     uint8_t* requestGucCoord();
 
+    sigc::signal<void> stationModeIsCompleted;
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
     sigc::signal<void,int,bool> firstPacket;
@@ -99,7 +100,10 @@ public:
 
     bool getIsGucCoord();
 
+    void onStationModeIsCompleted(){stationModeIsCompleted();}
+
     uint8_t* getVirtualTime();
+    void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
 private:
     void onSmsCounterChange(int param);
 	friend class Dispatcher;

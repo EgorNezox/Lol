@@ -36,6 +36,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 
     dispatcher->dsp_controller->TxCondCmdPackageTransmit.connect(sigc::mem_fun(this,&VoiceServiceInterface::TxCondCmdTransmit));
     dispatcher->dsp_controller->startRxQuit.connect(sigc::mem_fun(this,&VoiceServiceInterface::startRxQuit));
+    dispatcher->dsp_controller->stationModeIsCompleted.connect(sigc::mem_fun(this,&VoiceServiceInterface::onStationModeIsCompleted));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
@@ -174,11 +175,12 @@ void VoiceServiceInterface::tunePreviousChannel() {
 	dispatcher->saveAnalogHeadsetChannel();
 }
 
-void VoiceServiceInterface::tuneFrequency(int frequency)
+void VoiceServiceInterface::tuneFrequency(int frequency, bool isRecord)
 {
-	dispatcher->data_storage_fs->setVoiceFrequency(frequency);
+    if (isRecord)
+    	dispatcher->data_storage_fs->setVoiceFrequency(frequency);
 	dispatcher->voice_manual_frequency = frequency;
-	if (dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
+	if (isRecord && dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
 		return;
     dispatcher->updateVoiceChannel(true);
 }
@@ -427,6 +429,11 @@ void VoiceServiceInterface::setVirtualMode(bool param)
 bool VoiceServiceInterface::getVirtualMode()
 {
 	return dispatcher->dsp_controller->getVirtualMode();
+}
+
+void VoiceServiceInterface::playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel)
+{
+    dispatcher->dsp_controller->playSoundSignal(mode, speakerVolume, gain, soundNumber, duration, micLevel);
 }
 
 } /* namespace Multiradio */

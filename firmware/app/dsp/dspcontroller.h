@@ -171,6 +171,7 @@ public:
     bool getVirtualMode();
     void setVirtualMode(bool param);
 
+    sigc::signal<void> stationModeIsCompleted;
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void,int,bool> firstPacket;     // ������� ������ ����� � ��
@@ -190,7 +191,7 @@ public:
     sigc::signal<void> gucCrcFailed;                 // ������ crc-�����
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> hardwareFailed;
     sigc::signal<void,int> smsCounterChanged;
-    sigc::signal<void> startRxQuit;
+	sigc::signal<void> startRxQuit;
 
     sigc::signal<void, int/*command_tx30*/> TxCondCmdPackageTransmit;   // �������� ��  ������
 
@@ -230,7 +231,7 @@ public:
     void setVirtualTime(uint8_t *param);
 
     uint8_t* getVirtualTime();
-
+    void completedStationMode(){stationModeIsCompleted();}
 private:
     friend struct DspCommand;
 
@@ -265,7 +266,10 @@ private:
     enum AudioParameterCode {
         AudioModeParameter = 0,
         AudioVolumeLevel = 2,
-        AudioMicAmplify = 3
+        AudioMicAmplify = 3,
+		AudioSignalNumber = 4,
+		AudioSignalDuration = 5,
+		AudioSignalMicLevel = 6
     };
 
     enum PSWF
@@ -303,6 +307,9 @@ private:
         uint8_t squelch;
         uint8_t volume_level;
         uint8_t mic_amplify;
+        uint8_t signal_number;
+        uint8_t signal_duration;
+        uint8_t signal_mic_level;
         uint8_t agc_mode;
         uint8_t pswf_indicator;
         uint8_t pswf_r_adr;
@@ -592,6 +599,7 @@ private:
 public:
     uint8_t getSmsCounter();
     bool getIsGucCoord();
+    void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
 };
 
 

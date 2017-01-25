@@ -143,6 +143,9 @@ public:
     void startSchedulePromptTimer();
     void stopSchedulePromptTimer();
     void showMessage(const char *title, const char *text, MoonsGeometry area);
+    void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
+    void playSchedulePromptSignal();
+    void onCompletedStationMode();
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
