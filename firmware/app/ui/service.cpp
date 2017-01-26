@@ -259,7 +259,10 @@ void Service::drawIndicator()
                 gpsStatus = 2; //unlock
 		}
 		indicator->UpdateGpsStatus(gpsStatus);
-		indicator->Draw();
+        indicator->UpdateBattery(pGetPowerBattery()->getChargeLevel());
+        indicator->UpdateHeadset(pGetHeadsetController()->getStatus());
+        indicator->UpdateMultiradio(pGetMultitradioService()->getStatus());
+        indicator->Draw();
 	}
 }
 
@@ -2927,19 +2930,7 @@ void Service::drawMainWindow()
                    valid_freq
                    );
 
-
-    bool gpsStatus = false;
-
-    if (navigator != 0)
-    {
-        Navigation::Coord_Date date = navigator->getCoordDate();
-        gpsStatus = date.status;
-    }
-
-    indicator->Draw(pGetMultitradioService()->getStatus(),
-                    pGetHeadsetController()->getStatus(),
-                    pGetPowerBattery()->getChargeLevel(),
-                    gpsStatus);
+    drawIndicator();
 }
 
 void Service::drawMenu()

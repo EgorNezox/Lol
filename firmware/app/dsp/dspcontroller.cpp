@@ -713,7 +713,6 @@ void DspController::TxSmsWork()
     	{
     		resetSmsState();
     		smsFailed(0);
-            //goToVoice();
     	}
     }
 
@@ -1901,7 +1900,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 {
                 	ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);
                 	recievedGucQuitForTransm(ContentGuc.S_ADR);
-                    stationModeIsCompleted();
+                	goToVoice();
+                    //stationModeIsCompleted();
                 }
             	else{
             		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
@@ -2335,6 +2335,18 @@ bool DspController::generateSmsReceived()
 
           // 8. calculate text without CRC32 code
           pack_manager->decompressMass(crc_calcs,89,packet,110,7);
+
+          if (indexSmsLen == 88){
+          	indexSmsLen = 100;
+          	for(int i = 0;i<100;i++)
+          	{
+          		if (packet[i] == 0) {
+          			indexSmsLen = i;
+          			break;
+          		}
+          	}
+          }
+
           // 9. interpretate to Win1251 encode
           pack_manager->to_Win1251(packet);
 
@@ -2716,7 +2728,7 @@ void DspController::sendGucQuit()
     }
 
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
-    stationModeIsCompleted();
+    //stationModeIsCompleted();
 }
 
 uint8_t *DspController::getGpsGucCoordinat(uint8_t *coord)
