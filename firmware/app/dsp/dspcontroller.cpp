@@ -357,11 +357,12 @@ void DspController::syncPulseDetected() {
 void DspController::processSyncPulse(){
 	if (!is_ready)
 		return;
-	if (virtual_mode == true)
+    if (virtual_mode)
 		return;
 
 	switch (radio_state) {
-	case radiostatePswf : {
+	case radiostatePswf:
+	{
         changePswfFrequency();
         break;
 	}

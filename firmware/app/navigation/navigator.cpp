@@ -19,7 +19,10 @@
 #include <vector>
 #include <stdlib.h>
 #include <math.h>
+#include "stdio.h"
 #include "navigator.h"
+
+#define NEW_GPS_PARSING 0
 
 namespace Navigation {
 
@@ -36,7 +39,7 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 	uart_config.flow_control = QmUart::FlowControl_None;
 	uart_config.rx_buffer_size = 1024 * 8;
 	uart_config.tx_buffer_size = 1024;
-	uart_config.io_pending_interval = 300;
+    uart_config.io_pending_interval = 200;
 	uart = new QmUart(uart_resource, &uart_config, this);
 	uart->dataReceived.connect(sigc::mem_fun(this, &Navigator::processUartReceivedData));
 	uart->rxError.connect(sigc::mem_fun(this, &Navigator::processUartReceivedErrors));
@@ -95,22 +98,67 @@ int Navigator::Calc_LCODE_SMS(int R_ADR, int S_ADR, int WZN, int RN_KEY, int DAY
 
 //#if defined(PORT__TARGET_DEVICE_REV1)
 void Navigator::processUartReceivedData() {
-	uint8_t data[1024];
-	int64_t data_read = 0;
-	while ((data_read = uart->readData(data, 1024 - 1))) {
+	uint8_t data[2024];
+	int16_t data_read = 0;
+	while ((data_read = uart->readData(data, 2024 - 1))) {
 		data[data_read] = '\0';
+		qmDebugMessage(QmDebug::Warning, "data_read = %d", data_read);
 		parsingData(data);
 	}
+
 	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 }
 
 void Navigator::processUartReceivedErrors(bool data_errors, bool overflow) {
 	if (data_errors)
-		qmDebugMessage(QmDebug::Info, "uart rx data errors");
+		qmDebugMessage(QmDebug::Warning, "uart rx data errors");
 	if (overflow)
-		qmDebugMessage(QmDebug::Info, "uart rx overflow");
+		qmDebugMessage(QmDebug::Warning, "uart rx overflow");
     uart->readData(0, uart->getRxDataAvailable()); // flush received chunks
 }
+
+#if NEW_GPS_PARSING
+
+void Navigator::parsingData(uint8_t data[])
+{
+    // $GPRMC,hhmmss.sss,A,GGMM.MM,P,gggmm.mm,J,v.v,b.b,ddmmyy,x.x,n,m*hh<CR><LF>
+    // $GPZDA,172809.456,12,07,1996,00,00*45
+
+	char *str_data = (char*) data;
+	char *rmc = nullptr;
+	char *zda = nullptr;
+	float val = 0;
+	char valid;
+
+	if (str_data != NULL)
+	{
+	  rmc = strstr((const char*)str_data,(const char*)"$GPRMC");
+	  zda = strstr((const char*)str_data,(const char*)"$GPZDA");
+	}
+
+	if (zda != nullptr)
+	sscanf(zda,"$GPZDA,%6c",(char*)&CoordDate.time);
+	if (rmc != nullptr)
+	sscanf(rmc,"$GPRMC,%f,%c,%11c,%12c",&val,&valid,(char*)&CoordDate.latitude,(char*)&CoordDate.longitude);
+
+	if (valid == 'A'){
+		PswfSignal(true);
+		CoordDate.status = true;
+	}
+	else{
+		PswfSignal(false);
+		CoordDate.status = false;
+	}
+
+    qmDebugMessage(QmDebug::Dump, "parsing result:  %s %s %s %s",
+    (char*)CoordDate.time,
+	(char*)CoordDate.data,
+	(char*)CoordDate.latitude,
+	(char*)CoordDate.longitude);
+
+}
+
+#else
 
 void Navigator::parsingData(uint8_t data[])
 {
@@ -122,10 +170,16 @@ void Navigator::parsingData(uint8_t data[])
     char* zda = (char*)data;
     char* zda_dubl = nullptr;
 
+
+
     while (rmc != NULL){
         rmc = strstr((const char*)rmc,(const char*)"$GPRMC");
-        if (zda != NULL)
+        isZda = false;
+        if (zda != NULL){
+        	isZda = true;
             zda = strstr((const char*)zda,(const char*)"$GPZDA");
+        } else
+        	isZda = false;
         if (rmc != NULL){
             rmc_dubl = rmc;
             *rmc++;
@@ -219,7 +273,10 @@ void Navigator::parsingData(uint8_t data[])
         PswfSignal(true);
     }
 
-    else {PswfSignal(false); CoordDate.status = false;}
+    else {
+    	PswfSignal(false);
+    	CoordDate.status = false;
+    }
     qmDebugMessage(QmDebug::Dump, "parsing result:  %s %s %s %s", (char*)CoordDate.time,(char*)CoordDate.data,(char*)CoordDate.latitude,(char*)CoordDate.longitude);
 
 }
@@ -247,13 +304,17 @@ void Navigator::redactCoordForSpec(uint8_t *input, int val){
 	    }
 }
 
+#endif
 
 void Navigator::processConfig() {
 
 	const char * const pps =    "$PSTMGETPAR,1301,0.005*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
 	uart->writeData((uint8_t *)pps, strlen(pps));
 
-	const char * const start =     "$PSTMSETPAR,1201,01184360*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+//	const char * const start =     "$PSTMSETPAR,1201,01184360*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+//    uart->writeData((uint8_t *)start, strlen(start));
+
+	const char * const start =     "$PSTMSETPAR,1201,00000000*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
     uart->writeData((uint8_t *)start, strlen(start));
 
 //    const char * const start1 =     "$PSTMSAVEPAR\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";

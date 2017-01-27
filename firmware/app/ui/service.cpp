@@ -15,6 +15,7 @@
 #include "../../../system/reset.h"
 
 #define VM_PROGRESS 1
+#define TIME_ON_GPS_MARKER 1
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
@@ -111,11 +112,17 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
 #ifndef PORT__PCSIMULATOR
     navigator->PswfSignal.connect(sigc::mem_fun(this,&Service::setPswfStatus));
+
+#if TIME_ON_GPS_MARKER
+    navigator->syncPulse.connect(sigc::mem_fun(this,&Service::updateSystemTime));
+#else
     systemTimeTimer = new QmTimer(true); // TODO:
     systemTimeTimer->setInterval(1000);
     systemTimeTimer->setSingleShot(false);
     systemTimeTimer->start();
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
+#endif
+
 #endif
 
     menu->supressStatus = 0;
@@ -3377,7 +3384,7 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     str[7] = (char)time[5];
     str[8] = 0;
 
-    qmDebugMessage(QmDebug::Dump, "DATE TIME %s", str.c_str());
+    qmDebugMessage(QmDebug::Warning, "DATE TIME %s, isZda %d ", str.c_str(), navigator->isZda);
     indicator->date_time->SetText((char*)str.c_str());
     //if (guiTree.getCurrentState().getType() == GuiWindowTypes::mainWindow)
     drawIndicator();
