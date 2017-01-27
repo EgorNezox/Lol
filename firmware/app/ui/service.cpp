@@ -113,6 +113,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     navigator->PswfSignal.connect(sigc::mem_fun(this,&Service::setPswfStatus));
     systemTimeTimer = new QmTimer(true); // TODO:
     systemTimeTimer->setInterval(1000);
+    systemTimeTimer->setSingleShot(false);
     systemTimeTimer->start();
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
 #endif
@@ -163,7 +164,7 @@ void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)
 		title = dsphardwarefailure_unknown_title_str;
 		char text_buffer[50];
 		sprintf(text_buffer , dsphardwarefailure_unknown_text_str, subdevice_code, error_code);
-		text = text_buffer;
+        text = text_buffer;
 	}
 	msgBox(title.c_str(), text.c_str());
 	//guiTree.append(messangeWindow, title.c_str(), text.c_str());
@@ -217,17 +218,17 @@ void Service::updateHeadset(Headset::Controller::Status status)
         break;
     }
 
-    indicator->UpdateHeadset(status);
+    //indicator->UpdateHeadset(status);
     drawIndicator();
 }
 
 void Service::updateMultiradio(Multiradio::MainServiceInterface::Status status)
 {
-    indicator->UpdateMultiradio(status);
+    //indicator->UpdateMultiradio(status);
     drawIndicator();
-    CState state = guiTree.getCurrentState();
-    if ( state.getType() == mainWindow)
-    	drawMainWindow();
+//    CState state = guiTree.getCurrentState();
+//    if ( state.getType() == mainWindow)
+//    	drawMainWindow();
 }
 
 void Service::setFreqLabelValue(int value)
@@ -237,7 +238,7 @@ void Service::setFreqLabelValue(int value)
 
 void Service::updateBattery(int new_val)
 {
-    indicator->UpdateBattery(new_val);
+    //indicator->UpdateBattery(new_val);
     drawIndicator();
 }
 
@@ -3357,51 +3358,29 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     	memcpy(menu->coord_log,date.longitude,12);
     }
 
-
+    uint8_t *time;
+    if (voice_service->getVirtualMode())
+    	time = voice_service->getVirtualTime();
+    else
+        time = (uint8_t*)&date.time;
 
     std::string str;
-//    str.push_back((char)date.data[0]);
-//    str.push_back((char)date.data[1]);
-//    str.push_back('.');
-//    str.push_back((char)date.data[2]);
-//    str.push_back((char)date.data[3]);
-//
-//    str.push_back((char)' ');
+    str.resize(9);
 
-    uint8_t *time;
+    str[0] = (char)time[0];
+    str[1] = (char)time[1];
+    str[2] = ':';
+    str[3] = (char)time[2];
+    str[4] = (char)time[3];
+    str[5] = ':';
+    str[6] = (char)time[4];
+    str[7] = (char)time[5];
+    str[8] = 0;
 
-    if (voice_service->getVirtualMode() == true)
-    {
-    	time = voice_service->getVirtualTime();
-
-    		str.push_back((char)time[0]);
-    		str.push_back((char)time[1]);
-    		str.push_back((char)':');
-    		str.push_back((char)time[2]);
-    		str.push_back((char)time[3]);
-    		str.push_back((char)':');
-    		str.push_back((char)time[4]);
-    		str.push_back((char)time[5]);
-
-    }
-    else
-    {
-        str.push_back((char)date.time[0]);
-        str.push_back((char)date.time[1]);
-        str.push_back((char)':');
-        str.push_back((char)date.time[2]);
-        str.push_back((char)date.time[3]);
-        str.push_back((char)':');
-        str.push_back((char)date.time[4]);
-        str.push_back((char)date.time[5]);
-    }
-
-
-    qmDebugMessage(QmDebug::Dump, "DATE TIME %s :", str.c_str());
-    indicator->date_time->SetText((char *)str.c_str());
-    if (guiTree.getCurrentState().getType() == GuiWindowTypes::mainWindow)
-        drawIndicator();
-    str.clear();
+    qmDebugMessage(QmDebug::Dump, "DATE TIME %s", str.c_str());
+    indicator->date_time->SetText((char*)str.c_str());
+    //if (guiTree.getCurrentState().getType() == GuiWindowTypes::mainWindow)
+    drawIndicator();
 }
 
 void Service::gucFrame(int value)
@@ -3503,7 +3482,6 @@ void Service::updateSystemTime()
 {
     if ( true/*gpsSynchronization*/ )
     {
-
         setCoordDate(navigator->getCoordDate());
     }
     else
@@ -3525,7 +3503,7 @@ void Service::updateSystemTime()
         setCoordDate(data );
     }
 
-    systemTimeTimer->start();
+   // systemTimeTimer->start();
 }
 
 void Service::smsMessage(int value)
@@ -4036,7 +4014,9 @@ void Service::playSchedulePromptSignal()
 void Service::onCompletedStationMode()
 {
 	voice_service->goToVoice();
-    setFreq();
+    if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
+        setFreq();
+    }
 }
 
 }/* namespace Ui */

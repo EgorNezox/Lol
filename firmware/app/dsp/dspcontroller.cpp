@@ -398,9 +398,9 @@ void DspController::getDataTime()
     date_time[2] = min;
     date_time[3] = sec;
 
-    qmDebugMessage(QmDebug::Dump, ">>> getDataTime(): %d %d %d %d", day, hrs, min, sec);
-
     addSeconds(date_time);
+
+    //qmDebugMessage(QmDebug::Dump, "getDataTime(): %d %d %d %d", date_time[0], date_time[1], date_time[2], date_time[3]);
 }
 
 void DspController::setRx()
@@ -515,9 +515,11 @@ void DspController::addSeconds(QmRtc::Time *t)
 
 void DspController::LogicPswfTx()
 {
+ // qmDebugMessage(QmDebug::Dump, "LogicPswfTx() in command_tx30 = %d", command_tx30);
+
 	++command_tx30;
 
-    if ((command_tx30 % 3 == 0) && (setAsk == false))
+    if ((command_tx30 % 3 == 0) && (!setAsk))
     	TxCondCmdPackageTransmit(command_tx30);
 
 	if (command_tx30 <= 30)
@@ -541,20 +543,22 @@ void DspController::LogicPswfTx()
 		}
 	}
 
-	qmDebugMessage(QmDebug::Dump, "RX____ ContentPSWF.R_ADR = %d, ContentPSWF.S_ADR = %d ", ContentPSWF.R_ADR, ContentPSWF.S_ADR);
+   // qmDebugMessage(QmDebug::Dump, "LogicPswfTx() out command_tx30 = %d", command_tx30);
+   // qmDebugMessage(QmDebug::Dump, "LogicPswfTx() ContentPSWF.R_ADR = %d, ContentPSWF.S_ADR = %d ", ContentPSWF.R_ADR, ContentPSWF.S_ADR);
 }
 
 void DspController::LogicPswfRx()
 {
     setPswfRxFreq();
 
-	 qmDebugMessage(QmDebug::Dump, " >>>>>>>>> LogicPswfRx() waitAckTimer = %d", waitAckTimer);
+     qmDebugMessage(QmDebug::Dump, "LogicPswfRx() waitAckTimer = %d", waitAckTimer);
 	if (waitAckTimer){
 		waitAckTimer++;
 		if (waitAckTimer >= 65){
 			waitAckTimer = 0;
 			firstPacket(100, false); // no ack recieved
             stationModeIsCompleted();
+            //qmDebugMessage(QmDebug::Dump, "LogicPswfRx() stationModeIsCompleted");
 		}
 	}
 	if (isPswfFull)
@@ -579,13 +583,12 @@ void DspController::LogicPswfRx()
 		}
 	}
 
-	qmDebugMessage(QmDebug::Dump, "RX____ ContentPSWF.R_ADR = %d, ContentPSWF.S_ADR = %d ", ContentPSWF.R_ADR, ContentPSWF.S_ADR);
+    //qmDebugMessage(QmDebug::Dump, "LogicPswfRx() ContentPSWF.R_ADR = %d, ContentPSWF.S_ADR = %d ", ContentPSWF.R_ADR, ContentPSWF.S_ADR);
 }
-
 
 void DspController::changePswfFrequency()
 {
-	qmDebugMessage(QmDebug::Dump, " >>>>>>>>> changePswfFrequency() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
+    qmDebugMessage(QmDebug::Dump, "changePswfFrequency() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
 	if (!virtual_mode)
 	{
 		getDataTime();
@@ -609,7 +612,6 @@ void DspController::setPswfRxFreq()
 	param.frequency = ContentPSWF.Frequency;
 	sendCommandEasy(PSWFReceiver, PswfRxFrequency, param);
 }
-
 
 void DspController::RxSmsWork()
 {
@@ -661,7 +663,8 @@ void DspController::RxSmsWork()
 			smsFind = false;
 			// TODO: recieved
             uint8_t ret = getSmsRetranslation();
-            if (ret == 0) resetSmsState();
+            if (ret == 0)
+                resetSmsState();
 		}
 	}
 	else
@@ -745,24 +748,22 @@ void DspController::TxSmsWork()
     	}
         resetSmsState();
     }
-
 }
 
 void DspController::changeSmsFrequency()
 {
-	qmDebugMessage(QmDebug::Dump, " >>>>>>>>> changeSmsFrequency() r_adr = %d,s_adr = %d", ContentSms.R_ADR,ContentSms.S_ADR);
+    qmDebugMessage(QmDebug::Dump, "changeSmsFrequency() r_adr = %d,s_adr = %d", ContentSms.R_ADR,ContentSms.S_ADR);
 	if (!virtual_mode)
 	{
 	  getDataTime();
 	  addSeconds(date_time);
-	  qmDebugMessage(QmDebug::Dump, "getDataTime(): %d %d %d %d", date_time[0], date_time[1], date_time[2], date_time[3]);
+      //qmDebugMessage(QmDebug::Dump, "changeSmsFrequency()): %d %d %d %d", date_time[0], date_time[1], date_time[2], date_time[3]);
 	}
 
 	if (SmsLogicRole == SmsRoleTx)
 	{
         TxSmsWork();
 	}
-
 	if (SmsLogicRole == SmsRoleRx)
 	{
         RxSmsWork();
@@ -818,9 +819,9 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     else
     	private_lcode = (char)navigator->Calc_LCODE(ContentPSWF.R_ADR, ContentPSWF.S_ADR, data, ContentPSWF.RN_KEY, date_time[0], date_time[1], date_time[2], prevSecond(date_time[3]));
 
-    qmDebugMessage(QmDebug::Dump, " >>>>>>>>> recPswf() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
-    qmDebugMessage(QmDebug::Dump, " >>>>>>>>> recPswf() private_lcode = %d,lcode = %d", private_lcode,code);
-    qmDebugMessage(QmDebug::Dump, " >>>>>>>>> recPswf() pswf_in = %d, pswf_rec = %d, pswf_in_virt = %d ",pswf_in, pswf_rec, pswf_in_virt);
+    //qmDebugMessage(QmDebug::Dump, "recPswf() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
+    qmDebugMessage(QmDebug::Dump, "recPswf() private_lcode = %d,lcode = %d", private_lcode,code);
+    qmDebugMessage(QmDebug::Dump, "recPswf() pswf_in = %d, pswf_rec = %d, pswf_in_virt = %d ",pswf_in, pswf_rec, pswf_in_virt);
 
 
 	if (virtual_mode && indicator == 31){
@@ -2022,7 +2023,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     					++count_VrtualTimer;
     					if (count_VrtualTimer > VrtualTimerMagic)
     					{
-    						qmDebugMessage(QmDebug::Dump, "0x65 changeFrequency()");
+                            //qmDebugMessage(QmDebug::Dump, "0x65 changeFrequency()");
     						addSeconds(&t);
     						if (radio_state == radiostatePswf)
     							changePswfFrequency();
