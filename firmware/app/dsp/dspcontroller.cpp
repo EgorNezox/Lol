@@ -117,7 +117,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     this->data_storage_fs = data_storage_fs;
 
 	sync_pulse_delay_timer = new QmTimer(true, this);
-	sync_pulse_delay_timer->setInterval(100);
+    sync_pulse_delay_timer->setSingleShot(true);
+    sync_pulse_delay_timer->setInterval(100);
 	sync_pulse_delay_timer->timeout.connect(sigc::mem_fun(this, &DspController::processSyncPulse));
 
     cmd_queue = new std::list<DspCommand>();
@@ -354,7 +355,10 @@ void DspController::syncPulseDetected() {
 }
 
 
-void DspController::processSyncPulse(){
+void DspController::processSyncPulse()
+{
+    //qmDebugMessage(QmDebug::Dump, "processSyncPulse()");
+	qmDebugMessage(QmDebug::Dump, "processSyncPulse() SmsLogicRole = %d", SmsLogicRole);
 	if (!is_ready)
 		return;
     if (virtual_mode)
@@ -616,6 +620,7 @@ void DspController::setPswfRxFreq()
 
 void DspController::RxSmsWork()
 {
+    qmDebugMessage(QmDebug::Dump, "TxSmsWork()");
 	if (radio_state == radiostateSync) return;
 
 	if (smsFind)
@@ -686,6 +691,7 @@ void DspController::RxSmsWork()
 
 void DspController::TxSmsWork()
 {
+    qmDebugMessage(QmDebug::Dump, "TxSmsWork()");
 	if (radio_state == radiostateSync) return;
 
     ++sms_counter;
@@ -784,6 +790,7 @@ void DspController::resetSmsState()
 	smsError = 0;
 	std::memset(rs_data_clear,1,sizeof(rs_data_clear));
     stationModeIsCompleted();
+    SmsLogicRole = SmsRoleIdle;
 }
 
 bool DspController::checkForTxAnswer()
@@ -3205,7 +3212,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 		}
 
 		qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");
-		if (SmsLogicRole != SmsRoleIdle)
+        if (SmsLogicRole != SmsRoleIdle){
 
 			qmDebugMessage(QmDebug::Dump, "processReceivedFrame() data_len = %d", data_len);
 			std::vector<uint8_t> sms_data;
@@ -3272,6 +3279,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			pswf_first_packet_received = true;
 		}
 
+    }
 	if (SmsLogicRole == SmsRoleIdle)
 	{
 		recPswf(data[9],data[10],indicator);

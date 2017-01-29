@@ -15,7 +15,7 @@
 #include "../../../system/reset.h"
 
 #define VM_PROGRESS 1
-#define TIME_ON_GPS_MARKER 1
+#define TIME_ON_GPS_MARKER 0
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
@@ -3384,7 +3384,7 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     str[7] = (char)time[5];
     str[8] = 0;
 
-    qmDebugMessage(QmDebug::Warning, "DATE TIME %s, isZda %d ", str.c_str(), navigator->isZda);
+    //qmDebugMessage(QmDebug::Warning, "DATE TIME %s, isZda %d ", str.c_str(), navigator->isZda);
     indicator->date_time->SetText((char*)str.c_str());
     //if (guiTree.getCurrentState().getType() == GuiWindowTypes::mainWindow)
     drawIndicator();

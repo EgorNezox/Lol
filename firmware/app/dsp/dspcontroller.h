@@ -219,7 +219,7 @@ public:
 
 
     uint8_t CondComLogicRole;
-    uint8_t SmsLogicRole;
+    uint8_t SmsLogicRole = SmsRoleIdle;
     uint8_t sms_counter;
 
     void setAdr();

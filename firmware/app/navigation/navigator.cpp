@@ -39,7 +39,7 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 	uart_config.flow_control = QmUart::FlowControl_None;
 	uart_config.rx_buffer_size = 1024 * 8;
 	uart_config.tx_buffer_size = 1024;
-    uart_config.io_pending_interval = 200;
+    uart_config.io_pending_interval = 100;
 	uart = new QmUart(uart_resource, &uart_config, this);
 	uart->dataReceived.connect(sigc::mem_fun(this, &Navigator::processUartReceivedData));
 	uart->rxError.connect(sigc::mem_fun(this, &Navigator::processUartReceivedErrors));
@@ -98,15 +98,19 @@ int Navigator::Calc_LCODE_SMS(int R_ADR, int S_ADR, int WZN, int RN_KEY, int DAY
 
 //#if defined(PORT__TARGET_DEVICE_REV1)
 void Navigator::processUartReceivedData() {
-	uint8_t data[2024];
+    qmDebugMessage(QmDebug::Warning, "processUartReceivedData() start");
+	return; //temp
+
+	uint8_t data[1024];
 	int16_t data_read = 0;
-	while ((data_read = uart->readData(data, 2024 - 1))) {
+	while ((data_read = uart->readData(data, 1024 - 1))) {
 		data[data_read] = '\0';
 		qmDebugMessage(QmDebug::Warning, "data_read = %d", data_read);
 		parsingData(data);
 	}
 
-	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
+	//qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
+	//qmDebugMessage(QmDebug::Warning, "processUartReceivedData() end");
 }
 
 void Navigator::processUartReceivedErrors(bool data_errors, bool overflow) {
@@ -308,17 +312,49 @@ void Navigator::redactCoordForSpec(uint8_t *input, int val){
 
 void Navigator::processConfig() {
 
-	const char * const pps =    "$PSTMGETPAR,1301,0.005*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-	uart->writeData((uint8_t *)pps, strlen(pps));
+//	const char * const pps = "$PSTMGETPAR,1301,0.005*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+//	uart->writeData((uint8_t *)pps, strlen(pps));
 
 //	const char * const start =     "$PSTMSETPAR,1201,01184360*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
 //    uart->writeData((uint8_t *)start, strlen(start));
 
-	const char * const start =     "$PSTMSETPAR,1201,00000000*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-    uart->writeData((uint8_t *)start, strlen(start));
+//    const char * const start = "$PSTMSETPAR,1200,01004160*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+//   uart->writeData((uint8_t *)start, strlen(start));
 
-//    const char * const start1 =     "$PSTMSAVEPAR\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-//        uart->writeData((uint8_t *)start1, strlen(start1));
+//   const char * const start = "$PSTMSETPAR,1190,10*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+//  uart->writeData((uint8_t *)start, strlen(start));
+
+//    const char * const start0 = "$PSTMSETPAR,1121,0*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+//   uart->writeData((uint8_t *)start0, strlen(start0));
+
+//    const char * const start1 = "$PSTMSETPAR,1201,0xFEFFFFFF,2*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+//   uart->writeData((uint8_t *)start1, strlen(start1));
+
+		const char * const pps = "$PSTMGETPAR,1301,0.005000*03\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+		uart->writeData((uint8_t *)pps, strlen(pps));
+
+    const char * const start2 = "$PSTMSETPAR,1201,0x01000040*54\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+   uart->writeData((uint8_t *)start2, strlen(start2));
+
+   const char * const start3 = "$PSTMSETPAR,1210,0x00000000*51\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+  uart->writeData((uint8_t *)start3, strlen(start3));
+
+  const char * const start4 = "$PSTMSETPAR,1211,0x00000000*50\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+ uart->writeData((uint8_t *)start4, strlen(start4));
+
+ const char * const start1 =     "$PSTMSAVEPAR\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+     uart->writeData((uint8_t *)start1, strlen(start1));
+//
+//   const char * const start3 = "$PSTMSEVEPAR\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+//  uart->writeData((uint8_t *)start3, strlen(start3));
+
+//  const char * const start2 = "$PSTMGETPAR,1201*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+// uart->writeData((uint8_t *)start2, strlen(start2));
+
+//    const char * const start2 = "$PSTMGETPAR,1201*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+//    uart->writeData((uint8_t *)start2, strlen(start2));
+
+
 
 //    const char * const start1 =    "$PSTMGETPAR,1301*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
 //        uart->writeData((uint8_t *)start1, strlen(start1));
@@ -328,10 +364,23 @@ void Navigator::processConfig() {
 //    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
 }
 
-void Navigator::processSyncPulse(bool overflow) {
+void Navigator::processSyncPulse(bool overflow)
+{
+    qmDebugMessage(QmDebug::Warning, "processSyncPulse() start");
+	syncPulse();
+
 	if (overflow)
 		qmDebugMessage(QmDebug::Warning, "sync pulse overflow detected !!!");
-	syncPulse();
+
+	uint8_t data[1024];
+	int16_t data_read = 0;
+	data_read = uart->readData(data, 1024 - 1);
+    //qmDebugMessage(QmDebug::Warning, "data_read = %d", data_read);
+	if (data_read > 0){
+		data[data_read] = '\0';
+		parsingData(data);
+	}
+    //qmDebugMessage(QmDebug::Warning, "processSyncPulse() end");
 }
 
 void Navigator::coldStart()
