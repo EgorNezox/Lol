@@ -1106,7 +1106,7 @@ void MainServiceInterface::aleprocessModemPacketFailedRx(DspController::ModemPac
 }
 
 void MainServiceInterface::aleprocess1PPS() {
-    qmDebugMessage(QmDebug::Warning, "aleprocess1PPS()");
+    qmDebugMessage(QmDebug::Info, "aleprocess1PPS()");
 	if (ale.phase == ALE_STOPPED)
 		return;
 	ale.timerGnssSync->start(1500);

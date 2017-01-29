@@ -358,7 +358,7 @@ void DspController::syncPulseDetected() {
 void DspController::processSyncPulse()
 {
     //qmDebugMessage(QmDebug::Dump, "processSyncPulse()");
-	qmDebugMessage(QmDebug::Dump, "processSyncPulse() SmsLogicRole = %d", SmsLogicRole);
+	//qmDebugMessage(QmDebug::Dump, "processSyncPulse() SmsLogicRole = %d", SmsLogicRole);
 	if (!is_ready)
 		return;
     if (virtual_mode)

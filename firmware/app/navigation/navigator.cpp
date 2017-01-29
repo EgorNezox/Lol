@@ -23,6 +23,8 @@
 #include "navigator.h"
 
 #define NEW_GPS_PARSING 0
+#define GPS_CORRECT 1
+#define GPS_CORRECT_VALUE 1
 
 namespace Navigation {
 
@@ -204,6 +206,41 @@ void Navigator::parsingData(uint8_t data[])
 
     memcpy(&CoordDate.time,&zda_text,6);
 
+#if GPS_CORRECT
+
+    char c_sec[3] = {0,0,0};
+    char c_min[3] = {0,0,0};
+    char c_hour[3] = {0,0,0};
+    memcpy(&c_hour[0],&CoordDate.time[0],2);
+    memcpy(&c_min[0],&CoordDate.time[2],2);
+    memcpy(&c_sec[0],&CoordDate.time[4],2);
+    uint8_t sec = atoi(c_sec);
+    uint8_t min = atoi(c_min);
+    uint8_t hour = atoi(c_hour);
+
+    sec += GPS_CORRECT_VALUE;
+    if (sec >= 60) {
+        sec %= 60;
+        min++;
+        if (min >= 60) {
+            min %= 60;
+            hour++;
+            if (hour >= 24) {
+                hour %= 24;
+                min = 0;
+                sec = 0;
+            }
+        }
+    }
+    CoordDate.time[0] = hour/10 + 48;
+    CoordDate.time[1] = hour%10 + 48;
+    CoordDate.time[2] = min/10 + 48;
+    CoordDate.time[3] = min%10 + 48;
+    CoordDate.time[4] = sec/10 + 48;
+    CoordDate.time[5] = sec%10 + 48;
+
+#endif
+
     char* zda_data[3]; char* dat;
     dat = strstr((const char*)zda_dubl,(const char*)",");
     if (dat != NULL){
@@ -366,8 +403,7 @@ void Navigator::processConfig() {
 
 void Navigator::processSyncPulse(bool overflow)
 {
-    qmDebugMessage(QmDebug::Warning, "processSyncPulse() start");
-	syncPulse();
+    //qmDebugMessage(QmDebug::Warning, "processSyncPulse() start");
 
 	if (overflow)
 		qmDebugMessage(QmDebug::Warning, "sync pulse overflow detected !!!");
@@ -380,6 +416,7 @@ void Navigator::processSyncPulse(bool overflow)
 		data[data_read] = '\0';
 		parsingData(data);
 	}
+	syncPulse();
     //qmDebugMessage(QmDebug::Warning, "processSyncPulse() end");
 }
 
