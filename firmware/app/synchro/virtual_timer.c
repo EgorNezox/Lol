@@ -1,7 +1,7 @@
 /*
  * virtual_timer.c
  *
- *  Created on: 28 нояб. 2016 г.
+ *  Created on: 28 пїЅпїЅпїЅпїЅ. 2016 пїЅ.
  *      Author: Pankov_D
  */
 
@@ -22,7 +22,6 @@ int fr_band_commanders[][6] =
 
 };
 
-
 int  getInterval(uint8_t min,uint8_t sec)
 {
 	uint8_t unchet = min % 2;
@@ -36,7 +35,6 @@ uint8_t IsStart(uint8_t sec)
 	if (sec % 12 == 0) return 1;
 	else return 0;
 }
-
 
 int getCommanderFreq(int RN_KEY, uint8_t SEC, uint8_t DAY, uint8_t HRS,uint8_t MIN)
 {
@@ -64,10 +62,3 @@ int CalcShiftCommandFreq(int RN_KEY, uint8_t SEC, uint8_t DAY, uint8_t HRS, uint
 	int FR_SH = (RN_KEY + 47*SEC + 22*MIN + 57*HRS + 43*DAY) % tot_width_int[interval-1];
 	return FR_SH;
 }
-
-
-
-
-
-
-

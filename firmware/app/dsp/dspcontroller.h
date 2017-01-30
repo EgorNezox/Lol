@@ -436,14 +436,12 @@ private:
     void LogicPswfTx();
     void LogicPswfRx();
 
-
     void sendSynchro(uint32_t freq, uint8_t cnt);
     void wakeUpTimer();
     void correctTime(uint8_t num);
     void LogicPswfModes(uint8_t* data, uint8_t indicator, int data_len); // func for 0x63 cadr from dsp
 
     void powerControlAsk();
-
 
     void recGucQuit();
 
@@ -504,16 +502,9 @@ private:
     int ref_wave;
 
     int command_tx30;                                           // ������� ��� tx � sms
-    int command_rx30;                                           // ������� ��� rx � sms
+                                                                // ������� ��� rx � sms
 
     // ����������, ���������� �� ������������� ������ � DSP-������������
-    int pswfRxStateSync;
-    int pswfTxStateSync;
-    int smsRxStateSync;
-    int smsTxStateSync;
-    int gucRxStateSync;
-    int gucTxStateSync;
-    //-------------------
 
     int success_pswf;                                           // ���� �������� �������� ��
     bool pswf_first_packet_received;                            // ����, �����  ������� 3 ������� � ���� ������
@@ -570,11 +561,9 @@ private:
     QmRtc::Time t;
     bool RtcTxRole;
     bool RtcRxRole;
-    uint8_t RtcRxCounter;
     uint8_t RtcTxCounter;
     int8_t RtcFirstCatch;
     bool virtual_mode;
-    uint8_t txrtx = 0;
     uint32_t freqVirtual;
     uint8_t count_VrtualTimer = 0;
     bool antiSync = false;
@@ -591,7 +580,6 @@ private:
 
     std::vector<int> waveZone;
 
-
     uint8_t indexerWaze = 0;
     uint8_t stationAddress;
     uint8_t VrtualTimerMagic = 10; // synchro packets count = 10   temporary for fast debug = 1
@@ -601,8 +589,6 @@ public:
     bool getIsGucCoord();
     void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
 };
-
-
 
 } /* namespace Multiradio */
 

@@ -100,19 +100,10 @@ int Navigator::Calc_LCODE_SMS(int R_ADR, int S_ADR, int WZN, int RN_KEY, int DAY
 
 //#if defined(PORT__TARGET_DEVICE_REV1)
 void Navigator::processUartReceivedData() {
-    qmDebugMessage(QmDebug::Warning, "processUartReceivedData() start");
-	return; //temp
-
-	uint8_t data[1024];
-	int16_t data_read = 0;
-	while ((data_read = uart->readData(data, 1024 - 1))) {
-		data[data_read] = '\0';
-		qmDebugMessage(QmDebug::Warning, "data_read = %d", data_read);
-		parsingData(data);
-	}
-
+   // qmDebugMessage(QmDebug::Warning, "processUartReceivedData() start");
 	//qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 	//qmDebugMessage(QmDebug::Warning, "processUartReceivedData() end");
+    return;
 }
 
 void Navigator::processUartReceivedErrors(bool data_errors, bool overflow) {
@@ -175,8 +166,6 @@ void Navigator::parsingData(uint8_t data[])
     char* rmc_dubl = nullptr;
     char* zda = (char*)data;
     char* zda_dubl = nullptr;
-
-
 
     while (rmc != NULL){
         rmc = strstr((const char*)rmc,(const char*)"$GPRMC");

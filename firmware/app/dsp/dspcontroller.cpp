@@ -128,13 +128,6 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     command_tx30 = 0;
 
-    pswfRxStateSync = 0;
-    pswfTxStateSync = 0;
-    smsRxStateSync = 0;
-    smsTxStateSync = 0;
-    //gucRxStateSync = 0;
-    gucTxStateSync = 0;
-
     success_pswf = 30;
     pswf_first_packet_received = false;
     pswf_ack = false;
@@ -620,7 +613,7 @@ void DspController::setPswfRxFreq()
 
 void DspController::RxSmsWork()
 {
-    qmDebugMessage(QmDebug::Dump, "TxSmsWork()");
+    qmDebugMessage(QmDebug::Dump, "RxSmsWork()");
 	if (radio_state == radiostateSync) return;
 
 	if (smsFind)
@@ -2007,9 +2000,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     {
     	// get number of the catch packet ...
 #ifndef PORT__PCSIMULATOR
-    	if (!virtual_mode) return;
-    	if (indicator == 5)
+        if (!virtual_mode)
+            return;
+        if (indicator == 5)
     	{
+            qmDebugMessage(QmDebug::Dump, "0x65 frame indicator == 5");
 			addSeconds(&t);
 
     		if (RtcTxRole)
@@ -2017,11 +2012,12 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     			if (count_VrtualTimer <= VrtualTimerMagic)
     			{
     				//qmDebugMessage(QmDebug::Dump, "0x65 frame");
-    				qmDebugMessage(QmDebug::Dump, "0x65 count_VrtualTimer %d",count_VrtualTimer);
-    				qmDebugMessage(QmDebug::Dump, "0x65 RtcTxCounter %d",RtcTxCounter);
+                    //qmDebugMessage(QmDebug::Dump, "0x65 count_VrtualTimer %d",count_VrtualTimer);
+                    //qmDebugMessage(QmDebug::Dump, "0x65 RtcTxCounter %d",RtcTxCounter);
 
     				if (RtcTxCounter)
     					++RtcTxCounter;
+    				qmDebugMessage(QmDebug::Dump, "0x65 RtcTxCounter %d",RtcTxCounter);
 
     				if (IsStart(t.seconds))
     				{
@@ -2045,9 +2041,10 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     				{
     					sendSynchro(freqVirtual,count_VrtualTimer);
     					qmDebugMessage(QmDebug::Dump, "0x65 sendSynchro");
+
     				}
-    				qmDebugMessage(QmDebug::Dump, "0x65 count_VrtualTimer %d",count_VrtualTimer);
-    				qmDebugMessage(QmDebug::Dump, "0x65 RtcTxCounter %d",RtcTxCounter);
+                    //qmDebugMessage(QmDebug::Dump, "0x65 count_VrtualTimer %d",count_VrtualTimer);
+
 
     			}
     			else
@@ -2246,7 +2243,7 @@ void DspController::startGucTransmitting()
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue); //  � ·� °С‡� µ� ј � ·� ґ� µСЃСЊ � І� їСЂ� ё� ЅС� � ё� ї� µ ..
     sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
     radio_state = radiostateGucTxPrepare;
-    gucTxStateSync = 0;
+
 }
 
 void DspController::prevTime()
@@ -2494,7 +2491,7 @@ void DspController::startPSWFReceiving()
 
 //	for(int i = 0; i<30;i++) pswfDataPacket[i] = 255;
 
-	if (virtual_mode == true)
+    if (virtual_mode)
 		startVirtualPpsModeRx();
 	else
 		setPswfRx();
@@ -2534,14 +2531,14 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
     radio_state = radiostatePswf;
     SmsLogicRole = SmsRoleIdle;
 
+    setAsk = false;
+    isPswfFull = false;
+    waitAckTimer = 0;
+
     if (virtual_mode)
     	startVirtualPpsModeTx();
     else
     	setPswfTx();
-
-	setAsk = false;
-	isPswfFull = false;
-	waitAckTimer = 0;
 }
 
 void DspController::startSMSRecieving(SmsStage stage)
@@ -2554,29 +2551,28 @@ void DspController::startSMSRecieving(SmsStage stage)
     tx_call_ask_vector.erase(tx_call_ask_vector.begin(),tx_call_ask_vector.end());
     quit_vector.erase(quit_vector.begin(),quit_vector.end());
 
-
-    if (virtual_mode) startVirtualPpsModeRx();
-    setRx();
-
-    smsRxStateSync = 0;
     radio_state = radiostateSms;
     sms_counter  = 0;
 
-	syncro_recieve.clear();
-	snr.clear();
-	waveZone.clear();
+    syncro_recieve.clear();
+    snr.clear();
+    waveZone.clear();
     for(int i = 0; i<18;i++)
     {
         syncro_recieve.push_back(99);
         snr.push_back(0);
         waveZone.push_back(0);
     }
-    	waveZone.push_back(0); // size must be 19
+        waveZone.push_back(0); // size must be 19
 
-    	   for(uint8_t i = 0; i <= 100; i++)
-    	     sms_content[i] = 0;
+           for(uint8_t i = 0; i <= 100; i++)
+             sms_content[i] = 0;
+
+    if (virtual_mode)
+        startVirtualPpsModeRx();
+    setRx();
+
 }
-
 
 void DspController::defaultSMSTransmit()
 {
@@ -2684,7 +2680,6 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
     QmThread::msleep(100);
     sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
     radio_state = radiostateGucTxPrepare;
-    gucTxStateSync = 0;
     command.clear();
 
     sendGuc();
@@ -2810,7 +2805,6 @@ void DspController::startGucRecieving()
     comandValue.frequency = freqGucValue;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
 
-   // gucRxStateSync = 0;
     ContentGuc.stage =  GucRx;
     guc_vector.clear();
 }
@@ -3058,11 +3052,13 @@ bool DspController::getIsGucCoord()
 void DspController::startVirtualPpsModeTx()
 {
 	setPswfTx();
+
 	ParameterValue comandValue;  //0x60 2 5 1
 	comandValue.param = 1;
 	sendCommandEasy(PSWFReceiver,5,comandValue);
 	comandValue.radio_mode = RadioModeOff;
 	sendCommandEasy(VirtualPps,1,comandValue);
+
 #ifndef PORT__PCSIMULATOR
 	t = rtc->getTime();
 	d = rtc->getDate();
@@ -3073,7 +3069,6 @@ void DspController::startVirtualPpsModeTx()
 	//radio_state = radiostatePswf;
 
 	count_VrtualTimer = startVirtTxPhaseIndex;
-	txrtx = 0;
 }
 
 
@@ -3087,7 +3082,6 @@ void DspController::startVirtualPpsModeRx()
 	comandValue.param = 2;
 	sendCommandEasy(PSWFReceiver,4,comandValue);
 
-	RtcRxCounter = 0;
 	RtcRxRole = true;
 	RtcTxRole = false;
 	RtcFirstCatch = 0;
@@ -3136,7 +3130,7 @@ void DspController::correctTime(uint8_t num)
 	t.seconds = 12 * (t.seconds / 12) + 7;
 	qmDebugMessage(QmDebug::Dump, "correctTime() after correct t.seconds %d", t.seconds);
 	count_VrtualTimer = num;
-	qmDebugMessage(QmDebug::Dump, "COUNTER VIRTUAL %d",count_VrtualTimer);
+    qmDebugMessage(QmDebug::Dump, "correctTime() COUNTER VIRTUAL %d",count_VrtualTimer);
 
 	RtcFirstCatch = -1;
 }
@@ -3162,16 +3156,15 @@ void DspController::wakeUpTimer()
 
 void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_len)
 {
-
-	qmDebugMessage(QmDebug::Dump, "LogicPswfModes() pswf_in_virt = %d ", pswf_in_virt);
 	if (virtual_mode && SmsLogicRole == SmsRoleRx && !smsFind){
+        qmDebugMessage(QmDebug::Dump, "LogicPswfModes() pswf_in_virt = %d ", pswf_in_virt);
 		pswf_in_virt++;
 		if (pswf_in_virt >= 90){
 			sms_counter = 0;
 			startVirtualPpsModeRx();
 		}
 	}
-	qmDebugMessage(QmDebug::Dump, "pswf_in_virt");
+    //qmDebugMessage(QmDebug::Dump, "pswf_in_virt");
 
 	if (indicator == 31)
 	{
@@ -3197,12 +3190,13 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
     }
 	else if (indicator == 30)
 	{
+        qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");
+
 		if (SmsLogicRole == SmsRoleIdle)
 		{
 			ContentPSWF.R_ADR = data[7];
 			ContentPSWF.S_ADR = data[8];
-			qmDebugMessage(QmDebug::Dump, "____R_ADR = %d ", ContentPSWF.R_ADR);
-			qmDebugMessage(QmDebug::Dump, "____S_ADR = %d ", ContentPSWF.S_ADR);
+            qmDebugMessage(QmDebug::Dump, "R_ADR = %d, S_ADR = %d", ContentPSWF.R_ADR, ContentPSWF.S_ADR);
 		}
 		if (data[1] == 2)  // synchro packet
 		{
@@ -3211,11 +3205,9 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			correctTime(data[7]);
 		}
 
-		qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");
         if (SmsLogicRole != SmsRoleIdle){
 
 			qmDebugMessage(QmDebug::Dump, "processReceivedFrame() data_len = %d", data_len);
-			std::vector<uint8_t> sms_data;
 			if (sms_counter > 38 && sms_counter < 76)
 			{
 				uint8_t index_sms = 7 * (sms_counter-40);
@@ -3264,7 +3256,6 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 				uint8_t ack_code = data[10];
 				uint8_t ack_code_calc = calc_ack_code(ack);
 
-				qmDebugMessage(QmDebug::Info, "recieve count sms = %d %d", ack_code_calc, data[10]);
 				qmDebugMessage(QmDebug::Dump, "recieve count sms = %d %d", ack_code_calc, data[10]);
 				if (ack_code_calc == ack_code){
 						if (ack == 73)
@@ -3285,7 +3276,6 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 		recPswf(data[9],data[10],indicator);
 	}
 }
-
 
 bool DspController::getVirtualMode()
 {
