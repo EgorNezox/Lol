@@ -583,6 +583,8 @@ private:
     uint8_t indexerWaze = 0;
     uint8_t stationAddress;
     uint8_t VrtualTimerMagic = 10; // synchro packets count = 10   temporary for fast debug = 1
+    uint8_t masterVirtualPps = 0;
+    bool boomVirtualPPS = false;
 
 public:
     uint8_t getSmsCounter();

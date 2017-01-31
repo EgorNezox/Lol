@@ -1837,6 +1837,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 			ParameterValue value;
 			processCommandResponse((indicator == 1), PSWFReceiver, code, value);
 		}
+	if ((indicator == 3) && (virtual_mode == true) && (code == 5)) masterVirtualPps = true;
 		break;
 	}
     case 0x63: {
@@ -2002,9 +2003,10 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 #ifndef PORT__PCSIMULATOR
         if (!virtual_mode)
             return;
-        if (indicator == 5)
+        if ((indicator == 5) && (data[2] == 1))
     	{
             qmDebugMessage(QmDebug::Dump, "0x65 frame indicator == 5");
+            if ((masterVirtualPps == 0) && (RtcTxRole)) return;
 			addSeconds(&t);
 
     		if (RtcTxRole)
@@ -2041,6 +2043,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     				{
     					sendSynchro(freqVirtual,count_VrtualTimer);
     					qmDebugMessage(QmDebug::Dump, "0x65 sendSynchro");
+    					qmDebugMessage(QmDebug::Dump, "tm %d :" ,rtc->getTime().seconds);
 
     				}
                     //qmDebugMessage(QmDebug::Dump, "0x65 count_VrtualTimer %d",count_VrtualTimer);
@@ -2570,7 +2573,8 @@ void DspController::startSMSRecieving(SmsStage stage)
 
     if (virtual_mode)
         startVirtualPpsModeRx();
-    setRx();
+    else
+    	setRx();
 
 }
 
@@ -3053,16 +3057,13 @@ void DspController::startVirtualPpsModeTx()
 {
 	setPswfTx();
 
+	boomVirtualPPS = false;
+	masterVirtualPps = 0;
+
 	ParameterValue comandValue;  //0x60 2 5 1
 	comandValue.param = 1;
 	sendCommandEasy(PSWFReceiver,5,comandValue);
-	comandValue.radio_mode = RadioModeOff;
-	sendCommandEasy(VirtualPps,1,comandValue);
 
-#ifndef PORT__PCSIMULATOR
-	t = rtc->getTime();
-	d = rtc->getDate();
-#endif
 	RtcTxRole = true;
 	RtcRxRole = false;
 	RtcTxCounter = 0;
@@ -3123,9 +3124,7 @@ void DspController::correctTime(uint8_t num)
 	// correction time
 	qmDebugMessage(QmDebug::Dump, "correctTime() data[7] as num %d", num);
 	qmDebugMessage(QmDebug::Dump, "correctTime() before getTime t.seconds %d", t.seconds);
-#ifndef PORT__PCSIMULATOR
-	t = rtc->getTime();
-#endif
+
 	qmDebugMessage(QmDebug::Dump, "correctTime() after getTime t.seconds %d", t.seconds);
 	t.seconds = 12 * (t.seconds / 12) + 7;
 	qmDebugMessage(QmDebug::Dump, "correctTime() after correct t.seconds %d", t.seconds);
@@ -3150,6 +3149,17 @@ void DspController::wakeUpTimer()
 			qmDebugMessage(QmDebug::Dump, "freq virtual %d",freqVirtual);
 			sendCommandEasy(RxRadiopath, 1, param);
 		}
+	}
+	if ((virtual_mode) && (RtcTxRole) && (!boomVirtualPPS) && (masterVirtualPps))
+	{
+#ifndef PORT__PCSIMULATOR
+		t = rtc->getTime();
+		d = rtc->getDate();
+#endif
+		ParameterValue comandValue;
+		comandValue.radio_mode = RadioModeOff;
+		sendCommandEasy(VirtualPps,1,comandValue);
+		boomVirtualPPS = true;
 	}
 #endif
 }
