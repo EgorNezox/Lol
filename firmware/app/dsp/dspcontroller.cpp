@@ -537,7 +537,6 @@ void DspController::LogicPswfTx()
 		else
 		{
             stationModeIsCompleted();
-            //radio_state = radiostateSync;
 		}
 	}
 
@@ -561,22 +560,19 @@ void DspController::LogicPswfRx()
 	}
 	if (isPswfFull)
 	{
-		pswf_rec = 0;
-
 		if (pswf_ack)
 		{
 			CondComLogicRole = CondComTx;
-			pswf_ack = false;
 			ContentPSWF.R_ADR = ContentPSWF.S_ADR;
 			ContentPSWF.S_ADR = stationAddress;
-			setPswfTx();
+			pswf_ack = false;
 			isPswfFull = false;
 			command_tx30 = 1;
+			setPswfTx();
 			sendPswf();
 		}
 		else
 		{
-            //radio_state = radiostateSync;
             stationModeIsCompleted();
 		}
 	}
@@ -782,8 +778,8 @@ void DspController::resetSmsState()
 	ok_quit = 0;
 	smsError = 0;
 	std::memset(rs_data_clear,1,sizeof(rs_data_clear));
-    stationModeIsCompleted();
     SmsLogicRole = SmsRoleIdle;
+    stationModeIsCompleted();
 }
 
 bool DspController::checkForTxAnswer()
@@ -863,12 +859,14 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
 
     		if (ContentPSWF.R_ADR > 32)
     		{
-    			pswf_ack = true;
-    			setAsk = true;
+    			pswf_ack = true; // need transmit ask
+    			setAsk = true; // doing transmit ask
     			if (pswf_rec >= 2)
     				isPswfFull = true;
     		}
     	}
+    	if (!pswf_ack)
+    		stationModeIsCompleted();
     	pswf_rec = 0;
     	pswf_in = 0;
     }
@@ -2527,7 +2525,8 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
     ContentPSWF.TYPE = 0;
     ContentPSWF.COM_N = cmd;
     ContentPSWF.R_ADR = r_adr;
-    if (pswf_retranslator > 0) ContentPSWF.R_ADR += 32;
+    if (pswf_retranslator > 0)
+    	ContentPSWF.R_ADR += 32;
     ContentPSWF.S_ADR = stationAddress;
 
     CondComLogicRole = CondComTx;

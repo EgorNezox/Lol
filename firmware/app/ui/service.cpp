@@ -885,7 +885,7 @@ void Service::keyPressed(UI_Key key)
                     }
 
                     if (menu->condCmdModeSelect == 0)
-                        voice_service->TurnPSWFMode(1, param[0], 0,0); // групповой вызов
+                        voice_service->TurnPSWFMode(0, param[0], 0,0); // групповой вызов
                     if (menu->condCmdModeSelect == 1)
                         voice_service->TurnPSWFMode(0, param[0], param[2],param[1]); // индивидуальный вызов
                     if (menu->condCmdModeSelect == 2){
@@ -994,6 +994,10 @@ void Service::keyPressed(UI_Key key)
                             k->inputStr.clear();
                         guiTree.backvard();
                         menu->focus = 0;
+                        if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
+                        	setFreq();
+                        }
+                       // onCompletedStationMode();
                     }
 
                     if ( key == keyEnter )
@@ -1194,6 +1198,10 @@ void Service::keyPressed(UI_Key key)
                 		menu->groupCondCommStage = 0;
                 		menu->focus = 0;
                 		guiTree.resetCurrentState();
+                       // onCompletedStationMode();
+//                		if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
+//                			setFreq();
+//                		}
                 	}
                 	break;
                 }
@@ -1648,7 +1656,11 @@ void Service::keyPressed(UI_Key key)
             	if (menu->recvStage > 0 )
             		menu->recvStage--;
 
-                guiTree.backvard();
+                if (menu->recvStage == 0){
+                	menu->recvStage = 0;
+                	guiTree.backvard();
+                	onCompletedStationMode();
+                }
             }
             if ( key == keyEnter)
             {
@@ -1663,11 +1675,16 @@ void Service::keyPressed(UI_Key key)
 #else
 
                     menu->recvStage++;
-                    if (menu->recvStage == 2)
+                    if (menu->recvStage == 1){
+                        failFlag = false;
+                        voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
+                    }
+                    if (menu->recvStage == 2){
                     	menu->recvStage = 0;
+                    	guiTree.resetCurrentState();
+                    	onCompletedStationMode();
+                    }
 
-                    failFlag = false;
-                    voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
 
 #endif
                 }
@@ -1688,6 +1705,7 @@ void Service::keyPressed(UI_Key key)
 					isSmsMessageRec = false;
 					menu->smsStage = 0;
 					menu->smsTxStage = 1;
+					onCompletedStationMode();
 					break;
         		}
         	}
@@ -1717,6 +1735,7 @@ void Service::keyPressed(UI_Key key)
                   menu->smsStage = 0;
                   cntSmsRx = -1;
                   menu->smsTxStage = 1;
+                  onCompletedStationMode();
         	  }
         	}
 
@@ -1760,6 +1779,9 @@ void Service::keyPressed(UI_Key key)
         			cntGucRx = -1;
 					guiTree.backvard();
 					menu->focus = 0;
+//            	    if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
+//            	        setFreq();
+//            	    }
 					break;
         		}
         	}
@@ -1787,7 +1809,10 @@ void Service::keyPressed(UI_Key key)
             	if (cntGucRx == 3)
             	{
                     cntGucRx = -1;
-            		guiTree.resetCurrentState();
+//            		guiTree.resetCurrentState();
+//            	    if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
+//            	        setFreq();
+            	    }
             	}
             }
 
@@ -1946,12 +1971,14 @@ void Service::keyPressed(UI_Key key)
             if ( key == keyBack)
             {
                 guiTree.backvard();
-                voice_service->goToVoice();
+                onCompletedStationMode();
+               // voice_service->goToVoice();
                 menu->focus = 0;
             }
             if (key == keyEnter)
             {
-            	voice_service->goToVoice();
+            	onCompletedStationMode();
+            	//voice_service->goToVoice();
             	guiTree.resetCurrentState();
 //#if    1
 //            	voice_service->turnVirtualPswfTx();
