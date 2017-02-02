@@ -15,8 +15,8 @@ public:
                     FT_VM = 3,
                     FT_GRP  = 4};
 
-    enum TransitionFileType { FTT_RX = 0,
-                              FTT_TX = 1};
+    enum TransitionFileType { TFT_RX = 0,
+                              TFT_TX = 1};
 
     struct FileCounter {
         uint8_t count = 0;
@@ -47,14 +47,8 @@ public:
 	bool getAnalogHeadsetChannel(uint8_t &data);
 	void setAnalogHeadsetChannel(uint8_t data);
 
-    bool getCondCommand(std::vector<uint8_t>* data, uint8_t number, TransitionFileType transFileType);
-    void setCondCommand(std::vector<uint8_t> *data, TransitionFileType transFileType);
-    bool getGroupCondCommand(std::vector<uint8_t> *data, uint8_t number, TransitionFileType transFileType);
-    void setGroupCondCommand(uint8_t *data, uint16_t size, TransitionFileType transFileType);
-    bool getSms(std::vector<uint8_t> *data, uint8_t number, TransitionFileType transFileType);
-    void setSms(uint8_t* data, uint16_t size, TransitionFileType transFileType);
-    bool getVoiceMail(std::vector<uint8_t> *data, uint8_t number, TransitionFileType transFileType);
-    void setVoiceMail(std::vector<uint8_t> *data, TransitionFileType transFileType);
+    bool readMessage(FileType fileType, TransitionFileType transFileType, std::vector<uint8_t> *data, uint8_t fileNumber);
+    bool writeMessage(FileType fileType, TransitionFileType transFileType, std::vector<uint8_t> *data);
     void updateFileTree();
     std::vector<std::string> *getFileTree();
     void getFileNamesByType(std::vector<std::string>* typeFiles, FileType fileType);
@@ -80,7 +74,7 @@ private:
     std::string trans[2];
 
     std::string prepareFileStorageToWriting(FileType fileType, TransitionFileType transFileType);
-    std::string generateFileNameByNumber(FileType fileType, TransitionFileType transFileType, uint8_t number);
+    std::string generateFileNameByNumber(FileType fileType, TransitionFileType transFileType, uint8_t fileNumber);
     void prepareFreeFileSlot(FS::FileType fileType, TransitionFileType transFileType);
 };
 

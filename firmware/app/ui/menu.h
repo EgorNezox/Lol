@@ -59,9 +59,6 @@ public:
     virtual ~CGuiMenu();
     void Draw();
 
-    sigc::signal<std::vector<uint8_t>*, uint8_t /*םמלונ פאיכא*/, DataStorage::FS::TransitionFileType> loadVoiceMail;
-    sigc::signal<std::vector<uint8_t>*, DataStorage::FS::FileType /*עטן פאיכא*/, DataStorage::FS::TransitionFileType, uint8_t /*םמלונ פאיכא*/> loadMessage;
-
     uint8_t focus;
     void initItems(std::list<std::string>, const char*, int);
     void initDialog(CEndState);

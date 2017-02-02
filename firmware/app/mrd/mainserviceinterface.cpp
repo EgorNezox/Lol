@@ -377,7 +377,7 @@ uint8_t MainServiceInterface::playVoiceMessage(uint8_t fileNumber, DataStorage::
     uint8_t result = 1; // error read
     if (storageFs > 0){
         voice_message_t msg;
-        if (storageFs->getVoiceMail(&msg, fileNumber, transFileType))
+        if (storageFs->readMessage(DataStorage::FS::FT_VM,transFileType,&msg,fileNumber))
            result = 0;
         dispatcher->headset_controller->setSmartMessageToPlay(msg);
         status = dispatcher->headset_controller->getStatus();
@@ -511,7 +511,7 @@ void MainServiceInterface::stopAleSession(bool isRecord) {
 		printDebugVmMessage(ale.vm_size, ale.vm_f_count, message);
 		dispatcher->headset_controller->setSmartMessageToPlay(message);
         if (storageFs > 0 && isRecord)
-            storageFs->setVoiceMail(&message,DataStorage::FS::FTT_RX);
+        	storageFs->writeMessage(DataStorage::FS::FT_VM,DataStorage::FS::TFT_RX,&message);
 		break;
 	}
 	case alefunctionTx: {

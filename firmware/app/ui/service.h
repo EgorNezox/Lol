@@ -125,8 +125,8 @@ public:
     uint8_t* getGpsGucCoordinat(uint8_t *coord);
     uint8_t &setSheldure();
 
-    std::vector<uint8_t>* onLoadVoiceMail(uint8_t fileNumber, DataStorage::FS::TransitionFileType tft);
-    std::vector<uint8_t>* onLoadMessage(DataStorage::FS::FileType typeF, DataStorage::FS::TransitionFileType tft, uint8_t fileNumber);
+    std::vector<uint8_t>* loadVoiceMail(uint8_t fileNumber, DataStorage::FS::TransitionFileType tft);
+    std::vector<uint8_t>* loadMessage(DataStorage::FS::FileType typeF, DataStorage::FS::TransitionFileType tft, uint8_t fileNumber);
     void showMessage(const char *title, const char *text);
     void showSchedulePrompt(DataStorage::FS::FileType fileType, uint16_t minutes);
     bool checkSessionTimeSchedule();
@@ -246,7 +246,7 @@ private:
     uint8_t cmdDigitCountLast = 0;
     bool isLastFreeSym = false;
 
-    std::vector<uint8_t> fileMessage;
+    std::vector<uint8_t> fileMsg;
     bool flashTestOn = false;
     std::vector<uint8_t> condMsg;
 

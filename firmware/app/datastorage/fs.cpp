@@ -14,25 +14,22 @@ FS::FS(const std::string &dir) :
 	dir(dir)
 {
 
-    trans[FTT_RX] = "r";
-    trans[FTT_TX] = "t";
+    trans[TFT_RX] = "r";
+    trans[TFT_TX] = "t";
 
 	fileTypeInfo[FT_SMS].fileName = "Sms";
 	fileTypeInfo[FT_VM].fileName = "Voice";
 	fileTypeInfo[FT_GRP].fileName = "Group";
 	fileTypeInfo[FT_CND].fileName = "Cond";
-    fileTypeInfo[FT_SP].fileName = "Speach";
 
-    fileTypeInfo[FT_SMS].counter[FTT_RX].maxCount = 10;
-    fileTypeInfo[FT_SMS].counter[FTT_TX].maxCount = 10;
-    fileTypeInfo[FT_GRP].counter[FTT_RX].maxCount = 10;
-    fileTypeInfo[FT_GRP].counter[FTT_TX].maxCount = 10;
-    fileTypeInfo[FT_CND].counter[FTT_RX].maxCount = 10;
-    fileTypeInfo[FT_CND].counter[FTT_TX].maxCount = 10;
-    fileTypeInfo[FT_VM].counter[FTT_RX].maxCount = 1;
-    fileTypeInfo[FT_VM].counter[FTT_TX].maxCount = 1;
-    fileTypeInfo[FT_SP].counter[FTT_RX].maxCount = 1;
-    fileTypeInfo[FT_SP].counter[FTT_TX].maxCount = 1;
+    fileTypeInfo[FT_SMS].counter[TFT_RX].maxCount = 10;
+    fileTypeInfo[FT_SMS].counter[TFT_TX].maxCount = 10;
+    fileTypeInfo[FT_GRP].counter[TFT_RX].maxCount = 10;
+    fileTypeInfo[FT_GRP].counter[TFT_TX].maxCount = 10;
+    fileTypeInfo[FT_CND].counter[TFT_RX].maxCount = 10;
+    fileTypeInfo[FT_CND].counter[TFT_TX].maxCount = 10;
+    fileTypeInfo[FT_VM].counter[TFT_RX].maxCount = 1;
+    fileTypeInfo[FT_VM].counter[TFT_TX].maxCount = 1;
 
     updateFileTree();
 
@@ -336,142 +333,40 @@ bool FS::setSheldure(uint8_t* data, uint16_t size)
     return false;
 }
 
-//-----------------------------------------------------
-
-bool FS::getCondCommand(std::vector<uint8_t>* data, uint8_t number, TransitionFileType transFileType)
+bool FS::readMessage(FileType fileType, TransitionFileType transFileType, std::vector<uint8_t>* data, uint8_t fileNumber)
 {
-    if (number > maxFilesCount - 1) return false;
-    std::string fileName = generateFileNameByNumber(FT_CND, transFileType, number);
+    std::string fileName = generateFileNameByNumber(fileType, transFileType, fileNumber);
     if (fileName != errorFileName){
-    	QmFile file(dir, fileName);
-    	if (!file.open(QmFile::ReadOnly))
-    		return false;
-    	int64_t file_size = file.size();
-    	if (file_size > 3)
-    		return false;
-    	data->resize(file_size);
-    	file.read(data->data(), file_size);
-    	file.close();
-    	return true;
-    } else
-    	return false;
-}
-
-void FS::setCondCommand(std::vector<uint8_t> *data, TransitionFileType transFileType)
-{
-    std::string fileName = prepareFileStorageToWriting(FT_CND, transFileType);
-    if (fileName != errorFileName){
-    	QmFile file(dir, fileName);
-    	if (!file.open(QmFile::WriteOnly))
-    		return;
-    	uint64_t writeSize = file.write(data->data(), data->size());
-    	file.close();
-    	if (writeSize)
-            fileTypeInfo[FT_CND].counter[transFileType].count++;
+        QmFile file(dir, fileName);
+        if (file.open(QmFile::ReadOnly)){
+            uint32_t file_size = file.size();
+            if (file_size > 0){
+                data->resize(file_size);
+                if (file.read(data->data(), file_size))
+                    return true;
+            }
+        }
     }
+    return false;
 }
 
-bool FS::getGroupCondCommand(std::vector<uint8_t>* data, uint8_t number, TransitionFileType transFileType)
+bool FS::writeMessage(FileType fileType, TransitionFileType transFileType, std::vector<uint8_t> *data)
 {
-    if (number > maxFilesCount - 1) return false;
-
-    std::string fileName = generateFileNameByNumber(FT_GRP, transFileType, number);
-    if (fileName != errorFileName){
-    	QmFile file(dir, fileName);
-    	if (!file.open(QmFile::ReadOnly))
-    		return false;
-    	int64_t file_size = file.size();
-    	data->resize(file_size);
-    	file.read(data->data(), file_size);
-    	file.close();
-    	return true;
-    } else
-    	return false;
-}
-
-void FS::setGroupCondCommand(uint8_t* data, uint16_t size, TransitionFileType transFileType)
-{
-    std::string fileName = prepareFileStorageToWriting(FT_GRP, transFileType);
-    if (fileName != errorFileName){
-    	QmFile file(dir, fileName);
-    	if (!file.open(QmFile::WriteOnly))
-    		return;
-    	int64_t writeSize = file.write(data, size);
-    	file.close();
-    	if (writeSize)
-            fileTypeInfo[FT_GRP].counter[transFileType].count++;
+    if (data->size() > 0){
+        std::string fileName = prepareFileStorageToWriting(fileType, transFileType);
+        if (fileName != errorFileName){
+            QmFile file(dir, fileName);
+            if (file.open(QmFile::WriteOnly)){
+                uint32_t writeSize = file.write(data->data(), data->size());
+                if (writeSize){
+                    fileTypeInfo[fileType].counter[transFileType].count++;
+                    return true;
+                }
+            }
+        }
     }
+    return false;
 }
-
-bool FS::getSms(std::vector<uint8_t>* data, uint8_t number, TransitionFileType transFileType)
-{
-    if (number > maxFilesCount - 1) return false;
-
-    std::string fileName = generateFileNameByNumber(FT_SMS, transFileType, number);
-    if (fileName != errorFileName){
-    	QmFile file(dir, fileName);
-    	if (!file.open(QmFile::ReadOnly))
-    		return false;
-    	int64_t file_size = file.size();
-    	if (file_size > 100)
-    		return false;
-    	data->resize(file_size);
-    	file.read(data->data(), file_size);
-    	file.close();
-    	return true;
-    } else
-    	return false;
-}
-
-void FS::setSms(uint8_t* data, uint16_t size, TransitionFileType transFileType)
-{
-    std::string fileName = prepareFileStorageToWriting(FT_SMS, transFileType);
-    if (fileName != errorFileName){
-    	QmFile file(dir, fileName);
-    	if (!file.open(QmFile::WriteOnly))
-    		return;
-    	int64_t writeSize = file.write(data, size);
-    	file.close();
-    	if (writeSize)
-            fileTypeInfo[FT_SMS].counter[transFileType].count++;
-    }
-}
-
-bool FS::getVoiceMail(std::vector<uint8_t>* data, uint8_t number, TransitionFileType transFileType)
-{
-    if (number > maxFilesCount - 1) return false;
-
-    std::string fileName = generateFileNameByNumber(FT_VM, transFileType, number);
-    if (fileName != errorFileName){
-    	QmFile file(dir, fileName);
-    	if (!file.open(QmFile::ReadOnly))
-    		return false;
-    	int64_t file_size = file.size();
-    	if (file_size == 0)
-    		return false;
-    	data->resize(file_size);
-    	file.read(data->data(), file_size);
-    	file.close();
-    	return true;
-    } else
-    	return false;
-}
-
-void FS::setVoiceMail(std::vector<uint8_t>* data, TransitionFileType transFileType)
-{
-    std::string fileName = prepareFileStorageToWriting(FT_VM, transFileType);
-    if (fileName != errorFileName){
-    	QmFile file(dir, fileName);
-    	if (!file.open(QmFile::WriteOnly))
-    		return;
-    	int64_t writeSize = file.write(data->data(), data->size());
-    	file.close();
-    	if (writeSize)
-            fileTypeInfo[FT_VM].counter[transFileType].count++;
-    }
-}
-
-
 
 void FS::setGpsSynchroMode(uint8_t data) {
     QmFile file(dir, "GpsSynchroMode");
@@ -539,17 +434,6 @@ void FS::getFileNamesByType(std::vector<std::string> *typeFiles, FS::FileType fi
     }
 }
 
-uint8_t FS::getFreeFileSlotCount()
-{
-//    uint8_t sum = 0;
-//    for (uint8_t ftype = 0; ftype < 4; ftype++){
-//       sum += fileTypeInfo[ftype].counter[transFileType].count;
-//       if (sum > maxFilesCount) return 0;
-//    }
-//    uint8_t res = maxFilesCount - sum;
-//    return res;
-}
-
 std::string FS::generateFileNameByNumber(FS::FileType fileType, TransitionFileType transFileType, uint8_t number)
 {
     char n[1] = {0};
@@ -585,18 +469,18 @@ std::string FS::prepareFileStorageToWriting(FS::FileType fileType, TransitionFil
 DataStorage::FS::TransitionFileType FS::getTransmitType(FS::FileType fileType, uint8_t fileTreeTypeFocus){
     // fileTreeTypeFocus - focus in one type file list(sms or vm)
     // first loaded files is rx, second is tx =>
-    if (fileTreeTypeFocus >= fileTypeInfo[fileType].counter[FTT_RX].count)
-        return FTT_TX;
+    if (fileTreeTypeFocus >= fileTypeInfo[fileType].counter[TFT_RX].count)
+        return TFT_TX;
     else
-        return FTT_RX;
+        return TFT_RX;
 }
 
 uint8_t FS::getFileNumber(FS::FileType fileType, uint8_t fileTreeTypeFocus){
 
-	if (fileTreeTypeFocus < fileTypeInfo[fileType].counter[FTT_RX].count)
-		return fileTreeTypeFocus;
-	else
-		return fileTreeTypeFocus - fileTypeInfo[fileType].counter[FTT_RX].count;
+    if (fileTreeTypeFocus < fileTypeInfo[fileType].counter[TFT_RX].count)
+        return fileTreeTypeFocus;
+    else
+        return fileTreeTypeFocus - fileTypeInfo[fileType].counter[TFT_RX].count;
 
 }
 } /* namespace DataStorage */
