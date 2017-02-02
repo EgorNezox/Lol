@@ -324,8 +324,8 @@ void MainServiceInterface::startAleTxVoiceMail(uint8_t address) {
 	ale.timerRadioReady->start();
 }
 
-MainServiceInterface::AleResult MainServiceInterface::stopAle() {
-	stopAleSession();
+MainServiceInterface::AleResult MainServiceInterface::stopAle(bool isRecord) {
+	stopAleSession(isRecord);
 	setAlePhase(ALE_STOPPED);
 	ale.f_state = alefunctionIdle;
 	return AleResultNone;
@@ -502,7 +502,7 @@ bool MainServiceInterface::startAleSession() {
 	return true;
 }
 
-void MainServiceInterface::stopAleSession() {
+void MainServiceInterface::stopAleSession(bool isRecord) {
 	qmDebugMessage(QmDebug::Info, "ale session stop");
 	switch (ale.f_state) {
 	case alefunctionRx: {
@@ -510,7 +510,7 @@ void MainServiceInterface::stopAleSession() {
 		voice_message_t message = getAleRxVmMessage();
 		printDebugVmMessage(ale.vm_size, ale.vm_f_count, message);
 		dispatcher->headset_controller->setSmartMessageToPlay(message);
-        if (storageFs > 0)
+        if (storageFs > 0 && isRecord)
             storageFs->setVoiceMail(&message,DataStorage::FS::FTT_RX);
 		break;
 	}

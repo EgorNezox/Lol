@@ -30,7 +30,7 @@
 #define hw_rtc                      1
 #define DefkeyValue 631
 
-//#define GUC_TIMER_INTERVAL 3000
+#define GUC_TIMER_ACK_WAIT_INTERVAL 60000
 #define GUC_TIMER_INTERVAL_REC 30000
 
 #define VIRTUAL_TIME 120
@@ -157,13 +157,15 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     //guc_timer = new QmTimer(true,this);
     //guc_timer->setInterval(GUC_TIMER_INTERVAL);
 
+    guc_rx_quit_timer = new QmTimer(true,this);
+    guc_rx_quit_timer->setInterval(GUC_TIMER_ACK_WAIT_INTERVAL);
+    guc_rx_quit_timer->timeout.connect(sigc::mem_fun(this, &DspController::onGucWaitingQuitTimeout));
 
     for(int i = 0;i<50;i++) guc_text[i] = '\0';
 
 
     sms_call_received = false;
-    for(int i = 0;i<255;i++) rs_data_clear[i] = 1;\
-
+    for(int i = 0;i<255;i++) rs_data_clear[i] = 1;
 
    data_storage_fs->getAleStationAddress(stationAddress);
     ContentSms.S_ADR = stationAddress;
@@ -193,6 +195,7 @@ DspController::~DspController()
     delete quit_timer;
     delete sync_pulse_delay_timer;
    // delete guc_timer;
+    delete guc_rx_quit_timer;
     delete cmd_queue;
     delete rtc;
 }
@@ -536,7 +539,7 @@ void DspController::LogicPswfTx()
 		}
 		else
 		{
-            stationModeIsCompleted();
+			completedStationMode(true);
 		}
 	}
 
@@ -554,8 +557,8 @@ void DspController::LogicPswfRx()
 		if (waitAckTimer >= 65){
 			waitAckTimer = 0;
 			firstPacket(100, false); // no ack recieved
-            stationModeIsCompleted();
-            //qmDebugMessage(QmDebug::Dump, "LogicPswfRx() stationModeIsCompleted");
+			completedStationMode(true);
+            //qmDebugMessage(QmDebug::Dump, "LogicPswfRx() completedStationMode");
 		}
 	}
 	if (isPswfFull)
@@ -573,7 +576,7 @@ void DspController::LogicPswfRx()
 		}
 		else
 		{
-            stationModeIsCompleted();
+			completedStationMode(true);
 		}
 	}
 
@@ -779,7 +782,7 @@ void DspController::resetSmsState()
 	smsError = 0;
 	std::memset(rs_data_clear,1,sizeof(rs_data_clear));
     SmsLogicRole = SmsRoleIdle;
-    stationModeIsCompleted();
+    completedStationMode(true);
 }
 
 bool DspController::checkForTxAnswer()
@@ -866,7 +869,7 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     		}
     	}
     	if (!pswf_ack)
-    		stationModeIsCompleted();
+    		completedStationMode(true);
     	pswf_rec = 0;
     	pswf_in = 0;
     }
@@ -1875,13 +1878,14 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         {
         	if (ContentGuc.stage == GucRx)
         	{
-        		goToVoice();
+        		//completedStationMode(false);
         	}
-        	if (ContentGuc.stage == GucTx)
+            if (ContentGuc.stage == GucTx) // wait recieving ack
         	{
         		startGucRecieving();
         		ContentGuc.stage = GucTx;
         		startRxQuit();
+        		guc_rx_quit_timer->start();
         	}
         }
         break;
@@ -1901,8 +1905,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 {
                 	ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);
                 	recievedGucQuitForTransm(ContentGuc.S_ADR);
-                	goToVoice();
-                    //stationModeIsCompleted();
+                	completedStationMode(false);
+                	guc_rx_quit_timer->stop();
                 }
             	else{
             		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
@@ -2735,7 +2739,6 @@ void DspController::sendGucQuit()
     }
 
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
-    //stationModeIsCompleted();
 }
 
 uint8_t *DspController::getGpsGucCoordinat(uint8_t *coord)
@@ -3174,7 +3177,6 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 		}
 	}
     //qmDebugMessage(QmDebug::Dump, "pswf_in_virt");
-
 	if (indicator == 31)
 	{
 		qmDebugMessage(QmDebug::Dump, "0x63 indicator 31");
@@ -3394,6 +3396,14 @@ void DspController::playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t
 //	sendCommandEasy(Module::Audiopath, AudioSignalMicLevel, value);
 	}
 }
+
+void DspController::onGucWaitingQuitTimeout()
+{
+    recievedGucQuitForTransm(-1);
+	completedStationMode(false);
+}
+
+
 }
 /* namespace Multiradio */
 

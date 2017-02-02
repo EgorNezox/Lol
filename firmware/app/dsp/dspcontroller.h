@@ -171,7 +171,7 @@ public:
     bool getVirtualMode();
     void setVirtualMode(bool param);
 
-    sigc::signal<void> stationModeIsCompleted;
+    sigc::signal<void, bool> stationModeIsCompleted; //bool gotovoice
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
     sigc::signal<void,int,bool> firstPacket;     // ������� ������ ����� � ��
@@ -231,7 +231,7 @@ public:
     void setVirtualTime(uint8_t *param);
 
     uint8_t* getVirtualTime();
-    void completedStationMode(){stationModeIsCompleted();}
+    void completedStationMode(bool isGoToVoice){stationModeIsCompleted(isGoToVoice);}
 private:
     friend struct DspCommand;
 
@@ -586,6 +586,7 @@ private:
     uint8_t masterVirtualPps = 0;
     bool boomVirtualPPS = false;
 
+    void onGucWaitingQuitTimeout();
 public:
     uint8_t getSmsCounter();
     bool getIsGucCoord();

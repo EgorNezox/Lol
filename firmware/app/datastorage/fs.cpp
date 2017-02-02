@@ -36,24 +36,6 @@ FS::FS(const std::string &dir) :
 
     updateFileTree();
 
-//    deleteFile("AleDefaultCallFreqs");
-
-//    QmFile file(dir, "AleDefaultCallFreqs");
-//    	file.open(QmFile::ReadOnly);
-//    		uint32_t f = 4;
-//    		uint8_t fw[4];
-//    		memcpy(&fw, &f, 4);
-//    		file.write((uint8_t*)&fw, 4);
-//    file.close();
-
-//	QmFile file(dir, "AleStationAddress");
-//
-//	uint8_t data1 = 3;
-//	if (!file.open(QmFile::WriteOnly))
-//		return;
-//	file.write((uint8_t *)&data1, 1);
-//	file.close();
-
 }
 
 FS::~FS()
@@ -164,6 +146,20 @@ bool FS::getAleStationAddress(uint8_t& data) {
 	file.read((uint8_t *)&data, 1);
 	file.close();
 	return true;
+}
+
+
+bool FS::setAleStationAddress(uint8_t data)
+{
+    QmFile file(dir, "AleStationAddress");
+    if (!file.open(QmFile::WriteOnly))
+        return false;
+    int64_t file_size = file.size();
+    if (!(file_size == 1))
+        return false;
+    file.write((uint8_t *)&data, 1);
+    file.close();
+    return true;
 }
 
 bool FS::getFhssKey(uint16_t& data) {

@@ -72,7 +72,7 @@ public:
 
     uint8_t* requestGucCoord();
 
-    sigc::signal<void> stationModeIsCompleted;
+    sigc::signal<void, bool> stationModeIsCompleted;
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
     sigc::signal<void,int,bool> firstPacket;
@@ -100,7 +100,7 @@ public:
 
     bool getIsGucCoord();
 
-    void onStationModeIsCompleted(){stationModeIsCompleted();}
+    void onStationModeIsCompleted(bool isGoToVoice){stationModeIsCompleted(isGoToVoice);}
 
     uint8_t* getVirtualTime();
     void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);

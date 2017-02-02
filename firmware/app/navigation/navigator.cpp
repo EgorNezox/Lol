@@ -344,18 +344,6 @@ void Navigator::processConfig() {
 //	const char * const start =     "$PSTMSETPAR,1201,01184360*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
 //    uart->writeData((uint8_t *)start, strlen(start));
 
-//    const char * const start = "$PSTMSETPAR,1200,01004160*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-//   uart->writeData((uint8_t *)start, strlen(start));
-
-//   const char * const start = "$PSTMSETPAR,1190,10*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-//  uart->writeData((uint8_t *)start, strlen(start));
-
-//    const char * const start0 = "$PSTMSETPAR,1121,0*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-//   uart->writeData((uint8_t *)start0, strlen(start0));
-
-//    const char * const start1 = "$PSTMSETPAR,1201,0xFEFFFFFF,2*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-//   uart->writeData((uint8_t *)start1, strlen(start1));
-
 		const char * const pps = "$PSTMGETPAR,1301,0.005000*03\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
 		uart->writeData((uint8_t *)pps, strlen(pps));
 
@@ -370,17 +358,6 @@ void Navigator::processConfig() {
 
  const char * const start1 =     "$PSTMSAVEPAR\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
      uart->writeData((uint8_t *)start1, strlen(start1));
-//
-//   const char * const start3 = "$PSTMSEVEPAR\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-//  uart->writeData((uint8_t *)start3, strlen(start3));
-
-//  const char * const start2 = "$PSTMGETPAR,1201*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-// uart->writeData((uint8_t *)start2, strlen(start2));
-
-//    const char * const start2 = "$PSTMGETPAR,1201*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-//    uart->writeData((uint8_t *)start2, strlen(start2));
-
-
 
 //    const char * const start1 =    "$PSTMGETPAR,1301*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
 //        uart->writeData((uint8_t *)start1, strlen(start1));

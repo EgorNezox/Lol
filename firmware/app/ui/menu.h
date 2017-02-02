@@ -154,6 +154,7 @@ public:
     void incrVolume(){ if ( vol < 100) vol += 5; }
     void decrVolume(){ if ( vol >  0 ) vol -= 5; }
     uint8_t  getVolume(){ return vol;}
+    void  setVolume(uint8_t volume){vol = volume;}
 
     // aru arm
     uint8_t getAruArmAsu() { return aruArmAsuStatus[focus]; }

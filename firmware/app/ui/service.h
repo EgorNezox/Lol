@@ -145,7 +145,7 @@ public:
     void showMessage(const char *title, const char *text, MoonsGeometry area);
     void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
     void playSchedulePromptSignal();
-    void onCompletedStationMode();
+    void onCompletedStationMode(bool isGoToVoice = true);
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
@@ -272,6 +272,8 @@ private:
 
     //QmTimer synchModeTimer;
     void showReceivedSms();
+    uint8_t volumeLevel = 0;
+    bool isVolumeEdit = false;
 };
 
 } /* namespace Ui */

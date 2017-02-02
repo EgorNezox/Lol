@@ -66,6 +66,7 @@ public:
     void setGpsSynchroMode(uint8_t data);
     void setVoiceMode(bool data);
     bool getVoiceMode(bool *data);
+    bool setAleStationAddress(uint8_t data);
 private:
     bool renameFile(std::string oldfileName, std::string newFileName);
     bool deleteFile(std::string fileName);

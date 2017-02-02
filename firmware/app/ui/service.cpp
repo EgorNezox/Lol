@@ -225,17 +225,12 @@ void Service::updateHeadset(Headset::Controller::Status status)
         break;
     }
 
-    //indicator->UpdateHeadset(status);
     drawIndicator();
 }
 
 void Service::updateMultiradio(Multiradio::MainServiceInterface::Status status)
 {
-    //indicator->UpdateMultiradio(status);
     drawIndicator();
-//    CState state = guiTree.getCurrentState();
-//    if ( state.getType() == mainWindow)
-//    	drawMainWindow();
 }
 
 void Service::setFreqLabelValue(int value)
@@ -245,7 +240,6 @@ void Service::setFreqLabelValue(int value)
 
 void Service::updateBattery(int new_val)
 {
-    //indicator->UpdateBattery(new_val);
     drawIndicator();
 }
 
@@ -325,21 +319,17 @@ void Service::setNotification(NotificationType type)
     {
     case NotificationMissingVoiceChannelsTable:
         msgBox(missing_ch_table_txt[getLanguage()]);
-    	//guiTree.append(messangeWindow, missing_ch_table_txt[getLanguage()]);
         break;
     case NotificationMissingOpenVoiceChannels:
         msgBox(missing_open_ch_txt[getLanguage()]);
-        //guiTree.append(messangeWindow, missing_open_ch_txt[getLanguage()]);
         break;
     case NotificationMismatchVoiceChannelsTable:
         msgBox(ch_table_mismatch_txt[getLanguage()]);
-        //guiTree.append(messangeWindow, ch_table_mismatch_txt[getLanguage()]);
         break;
     default:
         QM_ASSERT(0);
         break;
     }
-    //draw();
 }
 
 void Service::keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type){
@@ -677,19 +667,11 @@ void Service::keyPressed(UI_Key key)
         }
 
         menu->oldOffset = menu->offset;
-        if ( menu->focus == 3 && menu->offset == 0) menu->offset = 1;
-        if ( menu->focus == 4 && menu->offset == 1) menu->offset = 2;
-        if ( menu->focus == 5 && menu->offset == 2) menu->offset = 3;
-        if ( menu->focus == 6 && menu->offset == 3) menu->offset = 4;
-        if ( menu->focus == 7 && menu->offset == 4) menu->offset = 5;
-        if ( menu->focus == 8 && menu->offset == 5) menu->offset = 6;
 
-        if ( menu->focus == 0 && menu->offset == 1) menu->offset = 0;
-        if ( menu->focus == 1 && menu->offset == 2) menu->offset = 1;
-        if ( menu->focus == 2 && menu->offset == 3) menu->offset = 2;
-        if ( menu->focus == 3 && menu->offset == 4) menu->offset = 3;
-        if ( menu->focus == 4 && menu->offset == 5) menu->offset = 4;
-        if ( menu->focus == 5 && menu->offset == 6) menu->offset = 5;
+        if (menu->focus + 1 == menu->offset)
+        	menu->offset = menu->focus;
+        else if (menu->focus - 3 == menu->offset)
+        	menu->offset++;
 
         menu->keyPressed(key);
         break;
@@ -848,13 +830,15 @@ void Service::keyPressed(UI_Key key)
                         break;
                     }
 
-                    if ( menu->txCondCmdStage == 2 ||
-                         menu->txCondCmdStage == 3 ||
-                         menu->txCondCmdStage == 4 ||
-                         menu->txCondCmdStage == 5 ||
-                         menu->txCondCmdStage == 6
-                         )
-                     menu->txCondCmdStage++;
+                    auto iter = estate .listItem.begin();
+
+                    switch (menu->txCondCmdStage){
+                        case 2: (*iter)++;            if (!((*iter)->inputStr == ""))    menu->txCondCmdStage++; break;
+                        case 3: (*iter)++; (*iter)++; if ((*iter)->inputStr.size() != 0) menu->txCondCmdStage++; break;
+                        case 4: if ((*iter)->inputStr.size() != 0) menu->txCondCmdStage++; break;
+                        case 5: menu->txCondCmdStage++; break;
+                        case 6: menu->txCondCmdStage++; break;
+                    }
                 }
 
                 // send
@@ -942,7 +926,7 @@ void Service::keyPressed(UI_Key key)
                         if (menu->useCmdRetrans)
                             menu->txCondCmdStage--;
                         else
-                            menu->txCondCmdStage = 1;
+                            menu->txCondCmdStage = 0;
                     }
                 }
                 else if(menu->txCondCmdStage == 4)
@@ -983,7 +967,7 @@ void Service::keyPressed(UI_Key key)
         case GuiWindowsSubType::txGroupCondCmd:
         {
             std::list<SInputItemParameters*>::iterator iter = estate.listItem.begin();
-            int freqs = 0;
+            //static bool isDefaultFreq = false; //freq from main screen
             switch (menu->groupCondCommStage)
             {
                 case 0:     // use coordinate ?
@@ -1003,6 +987,7 @@ void Service::keyPressed(UI_Key key)
                     if ( key == keyEnter )
                     {
                         menu->groupCondCommStage++;
+                        //isDefaultFreq = true;
                     }
 
                     if ( key == keyLeft || key == keyRight )
@@ -1015,6 +1000,9 @@ void Service::keyPressed(UI_Key key)
                 {
                     std::string* freq;
                     freq = &(*iter)->inputStr;
+//                    if (isDefaultFreq){
+//                        *freq = main_scr->oFreq;
+//                    }
 
                     if ( key == keyBack )
                     {
@@ -1054,7 +1042,7 @@ void Service::keyPressed(UI_Key key)
 
                     if ( key == keyLeft || key == keyRight )
                     {
-                        menu->sndMode = menu->sndMode ? false : true;
+                        menu->sndMode = !menu->sndMode;
                     }
                 }
                 break;
@@ -1165,6 +1153,7 @@ void Service::keyPressed(UI_Key key)
                             if (i == 2) str = k->inputStr.c_str();
                             i++;
                         }
+                        int freqs;
                         int r_adr = mas[1];
                         freqs = mas[0];
                         int speed = 0;//atoi(mas[1]);
@@ -1184,6 +1173,23 @@ void Service::keyPressed(UI_Key key)
                         menu->groupCondCommStage = 0;
                         guiTree.resetCurrentState();
 #endif
+
+//                        std::list<SInputItemParameters*>::iterator iterClr = estate.listItem.begin();
+//                        std::string* strClr;
+//                        strClr = &(*iterClr)->inputStr;
+//                        strClr->clear(); //clear freq
+
+//                        iterClr = estate.listItem.begin();
+//                        (*iterClr)++;
+//                        strClr = &(*iterClr)->inputStr;
+//                        strClr->clear(); //clear address
+
+//                        iterClr = estate.listItem.begin();
+//                        (*iterClr)++;
+//                        strClr = &(*iterClr)->inputStr;
+//                        strClr->clear(); //clear cmd's
+//                        menu->cmdCount = 0;
+//                        menu->cmdScrollIndex = 0;
                     }
                     break;
                 }
@@ -1196,12 +1202,8 @@ void Service::keyPressed(UI_Key key)
                 	if ( key == keyEnter )
                 	{
                 		menu->groupCondCommStage = 0;
-                		menu->focus = 0;
                 		guiTree.resetCurrentState();
-                       // onCompletedStationMode();
-//                		if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
-//                			setFreq();
-//                		}
+                       // onCompletedStationMode(false);
                 	}
                 	break;
                 }
@@ -1231,7 +1233,8 @@ void Service::keyPressed(UI_Key key)
                     else
                     {
                         guiTree.backvard();
-                        menu->focus = 0;
+                        menu->offset = 1;
+                        menu->focus = 2;
                         menu->inVoiceMail = false;
                         menu->toVoiceMail = false;
                     }
@@ -1257,26 +1260,21 @@ void Service::keyPressed(UI_Key key)
             {
                 if (key == keyBack)
                 {
-                    headset_controller->stopSmartRecord();
-                	//Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
-//                    if (storageFs > 0)
-//                        storageFs->setVoiceMail(&message, DataStorage::FS::FTT_TX);
+                    multiradio_service->stopAle();
                     menu->putOffVoiceStatus--;
+                    headset_controller->stopSmartRecord();
                 }
 #ifndef _DEBUG_
                 if (key == keyEnter) // && STATUS OK
                 {
                     headset_controller->stopSmartRecord();
-                    Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
-                    if (storageFs > 0)
-                        storageFs->setVoiceMail(&message, DataStorage::FS::FTT_TX);
+                    Headset::Controller::SmartHSState smartState = headset_controller->getSmartHSState();
 
-
-                    if ( headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_READY )
+                    if ( smartState == headset_controller->SmartHSState_SMART_READY )
                         menu->putOffVoiceStatus++;
-                    else if ( headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_RECORD_TIMEOUT ||\
-                              headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_EMPTY_MESSAGE  ||\
-                              headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_ERROR
+                    else if ( smartState == headset_controller->SmartHSState_SMART_RECORD_TIMEOUT ||\
+                              smartState == headset_controller->SmartHSState_SMART_EMPTY_MESSAGE  ||\
+                              smartState == headset_controller->SmartHSState_SMART_ERROR
                               )
                     {
                         multiradio_service->stopAle();
@@ -1287,16 +1285,16 @@ void Service::keyPressed(UI_Key key)
                         guiTree.resetCurrentState();
                     }
                     // repeat
-                    else if (headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_NOT_CONNECTED ||\
-                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_BAD_CHANNEL ||\
-                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL ||\
-                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE ||\
-                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_RECORD_DOWNLOADING ||\
-                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_PLAYING ||\
-                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL ||\
-                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE ||\
-                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_RECORDING ||\
-                             headset_controller->getSmartHSState() == headset_controller->SmartHSState_SMART_RECORD_UPLOADING
+                    else if (smartState == headset_controller->SmartHSState_SMART_NOT_CONNECTED ||\
+                             smartState == headset_controller->SmartHSState_SMART_BAD_CHANNEL ||\
+                             smartState == headset_controller->SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL ||\
+                             smartState == headset_controller->SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE ||\
+                             smartState == headset_controller->SmartHSState_SMART_RECORD_DOWNLOADING ||\
+                             smartState == headset_controller->SmartHSState_SMART_PLAYING ||\
+                             smartState == headset_controller->SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL ||\
+                             smartState == headset_controller->SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE ||\
+                             smartState == headset_controller->SmartHSState_SMART_RECORDING ||\
+                             smartState == headset_controller->SmartHSState_SMART_RECORD_UPLOADING
                              )
                     {}
                 }
@@ -1412,6 +1410,8 @@ void Service::keyPressed(UI_Key key)
                 case keyBack:
                 {
                     guiTree.backvard();
+                    menu->offset = 0;
+                    menu->focus = 1;
                     onCompletedStationMode();
                     break;
                 }
@@ -1642,17 +1642,8 @@ void Service::keyPressed(UI_Key key)
         }
         case GuiWindowsSubType::recvCondCmd:
         {
-            //            if ( menu->rxCondCmdStatus == 1 && (key == keyUp || key == keyDown))
-            //            {
-            //                menu->useTicket = menu->useTicket ? false : true;
-            //            }
-
             if ( key == keyBack)
             {
-                //                if (menu->rxCondCmdStatus == 2)
-                //                    menu->rxCondCmdStatus--;
-                //                else
-
             	if (menu->recvStage > 0 )
             		menu->recvStage--;
 
@@ -1664,11 +1655,6 @@ void Service::keyPressed(UI_Key key)
             }
             if ( key == keyEnter)
             {
-                //                if (menu->rxCondCmdStatus == 1)
-                //                {
-                //                    menu->rxCondCmdStatus++;
-                //                }
-                //                else if( menu->rxCondCmdStatus == 2 )
                 {
 #ifdef _DEBUG_
                     guiTree.resetCurrentState();
@@ -1684,8 +1670,6 @@ void Service::keyPressed(UI_Key key)
                     	guiTree.resetCurrentState();
                     	onCompletedStationMode();
                     }
-
-
 #endif
                 }
             }
@@ -1744,10 +1728,9 @@ void Service::keyPressed(UI_Key key)
                 if (menu->smsScrollIndex > 0)
                     menu->smsScrollIndex--;
 
-        		if (cntSmsRx >= 2 && isSmsMessageRec == true)
+        		if (cntSmsRx >= 2 && isSmsMessageRec)
         		{
         			showReceivedSms();
-                    // menu->initTxSmsDialog((char*)"CMC",voice_service->getSmsContent());
         		}
 
         	}
@@ -1755,21 +1738,15 @@ void Service::keyPressed(UI_Key key)
         	{
                 menu->smsScrollIndex++;
 
-        		if (cntSmsRx >= 2 && isSmsMessageRec == true)
+        		if (cntSmsRx >= 2 && isSmsMessageRec)
         		{
         			showReceivedSms();
-                     //menu->initTxSmsDialog((char*)"CMC",voice_service->getSmsContent());
         		}
         	}
         	break;
         }
         case GuiWindowsSubType::recvGroupCondCmd:
         {
-//            if ( key == keyBack)
-//            {
-//                guiTree.backvard();
-//                menu->focus = 0;
-//            }
         	if ( key == keyBack)
         	{
         		if (cntGucRx > 0)
@@ -1778,10 +1755,9 @@ void Service::keyPressed(UI_Key key)
         		{
         			cntGucRx = -1;
 					guiTree.backvard();
-					menu->focus = 0;
-//            	    if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
-//            	        setFreq();
-//            	    }
+                    menu->offset = 1;
+                    menu->focus = 2;
+                    onCompletedStationMode(false);
 					break;
         		}
         	}
@@ -1797,7 +1773,7 @@ void Service::keyPressed(UI_Key key)
             	}
             	if (cntGucRx == 2)
             	{
-            		menu->initRxSmsDialog("...");
+                    menu->initRxSmsDialog(receiveStatusStr[1]);
             		//setFreq();
 					#ifndef PORT__PCSIMULATOR
 					voice_service->saveFreq(getFreq());
@@ -1809,13 +1785,10 @@ void Service::keyPressed(UI_Key key)
             	if (cntGucRx == 3)
             	{
                     cntGucRx = -1;
-//            		guiTree.resetCurrentState();
-//            	    if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
-//            	        setFreq();
-            	    }
+            		guiTree.resetCurrentState();
+                    onCompletedStationMode(false);
             	}
             }
-
             break;
         }
         case GuiWindowsSubType::rxPutOffVoice:
@@ -1826,7 +1799,8 @@ void Service::keyPressed(UI_Key key)
             {
                 if (key == keyBack)
                 {
-                    menu->focus = 0;
+                    menu->offset = 1;
+                    menu->focus = 3;
                     guiTree.backvard();
                     menu->inVoiceMail = false;
                     menu->toVoiceMail = false;
@@ -1858,9 +1832,27 @@ void Service::keyPressed(UI_Key key)
                 if (key == keyEnter)
                 {
                     uint8_t rxAddr = multiradio_service->getAleRxAddress();
-                    char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
-                    menu->voiceAddr.append(ch);
-                    menu->putOffVoiceStatus++;
+//                    char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
+//                    menu->voiceAddr.append(ch);
+//                    menu->putOffVoiceStatus++;
+
+                    if (rxAddr > 0){
+                        char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
+                        menu->voiceAddr.append(ch);
+                        menu->putOffVoiceStatus++;
+                        multiradio_service->stopAle(true); // write to flash memory
+                    }
+                    else{
+                        multiradio_service->stopAle();
+                        menu->putOffVoiceStatus = 1;
+                        menu->voiceAddr.clear();
+                        menu->channalNum.clear();
+                        menu->offset = 1;
+                        menu->focus = 3;
+                        guiTree.backvard();
+                        menu->inVoiceMail = false;
+                        menu->toVoiceMail = false;
+                    }
                 }
                 break;
             }
@@ -1934,8 +1926,6 @@ void Service::keyPressed(UI_Key key)
                 }
                 break;
             }
-            default:
-            {break;}
             }
             break;
         }
@@ -1943,21 +1933,44 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyRight || key == keyUp )
             {
+                if (!isVolumeEdit)
+                    volumeLevel = menu->getVolume();
                 menu->incrVolume();
                 uint8_t level = menu->getVolume();
                 voice_service->TuneAudioLevel(level);
-
+                isVolumeEdit = true;
             }
             if ( key == keyLeft || key == keyDown )
             {
+                if (!isVolumeEdit)
+                    volumeLevel = menu->getVolume();
                 menu->decrVolume();
                 uint8_t level = menu->getVolume();
                 voice_service->TuneAudioLevel(level);
+                isVolumeEdit = true;
             }
             if ( key == keyBack)
             {
+                if (isVolumeEdit){
+                    menu->setVolume(volumeLevel);
+                    voice_service->TuneAudioLevel(volumeLevel);
+                }
                 guiTree.backvard();
-                menu->focus = 0;
+                menu->offset = 2;
+                menu->focus = 3;
+                isVolumeEdit = false;
+            }
+            if ( key == keyEnter)
+            {
+                if (isVolumeEdit){
+                    volumeLevel = menu->getVolume();
+                    menu->setVolume(volumeLevel);
+                    voice_service->TuneAudioLevel(volumeLevel);
+                }
+                guiTree.backvard();
+                menu->offset = 2;
+                menu->focus = 3;
+                isVolumeEdit = false;
             }
             break;
         }
@@ -1972,19 +1985,13 @@ void Service::keyPressed(UI_Key key)
             {
                 guiTree.backvard();
                 onCompletedStationMode();
-               // voice_service->goToVoice();
-                menu->focus = 0;
+                menu->offset = 1;
+                menu->focus = 2;
             }
             if (key == keyEnter)
             {
             	onCompletedStationMode();
-            	//voice_service->goToVoice();
             	guiTree.resetCurrentState();
-//#if    1
-//            	voice_service->turnVirtualPswfTx();
-//#else
-//            	voice_service->turnVirtualPswfRx();
-//#endif
             }
             break;
         }
@@ -1993,9 +2000,9 @@ void Service::keyPressed(UI_Key key)
             if ( key == keyRight || key == keyLeft )
             {
 
-                if (menu->supressStatus <= 24 && key == keyRight)
+                if (menu->supressStatus < 24 && key == keyRight)
                     ++menu->supressStatus;
-                if (menu->supressStatus >= 6 && key == keyLeft)
+                if (menu->supressStatus > 6 && key == keyLeft)
                     --menu->supressStatus;
                 if (menu->supressStatus > 24 || menu->supressStatus <6)
                     menu->supressStatus = 6;
@@ -2013,7 +2020,8 @@ void Service::keyPressed(UI_Key key)
             if ( key == keyBack)
             {
                 guiTree.backvard();
-                menu->focus = 0;
+                menu->offset = 3;
+                menu->focus = 4;
             }
             if (key == keyEnter)
             {
@@ -2028,34 +2036,29 @@ void Service::keyPressed(UI_Key key)
             {
                 if (menu->displayBrightness > 0)
                 menu->displayBrightness--;
-                //setColorScheme(menu->displayBrightness);
-
-
             }
             if ( key == keyRight)
             {
                 if (menu->displayBrightness < 2)
                 menu->displayBrightness++;
-                //setColorScheme(menu->displayBrightness);
-
             }
             if ( key == keyBack)
             {
                 guiTree.backvard();
-                menu->focus = 0;
-
+                menu->offset = 4;
+                menu->focus = 5;
             }
             if (key == keyEnter)
             {
                 guiTree.backvard();
-                menu->focus = 0;
+                menu->offset = 3;
+                menu->focus = 4;
                 if (menu->displayBrightness == 2)
                     setColorScheme(G_BLACK,G_WHITE);
                 if (menu->displayBrightness == 1)
                     setColorScheme(G_BLACK,G_LLIGHTGREY);
                 if (menu->displayBrightness == 0)
                     setColorScheme(G_BLACK,G_LIGHTGREY);
-                //setColorScheme(menu->displayBrightness);
             }
             break;
         }
@@ -2083,10 +2086,11 @@ void Service::keyPressed(UI_Key key)
 #endif
             }
 
-            if ( key == keyBack)
+            if ( key == keyBack || key == keyEnter)
             {
                 guiTree.backvard();
-                menu->focus = 0;
+                menu->offset = 1;
+                menu->focus = 2;
             }
             break;
         }
@@ -2095,7 +2099,8 @@ void Service::keyPressed(UI_Key key)
             if ( key == keyBack)
             {
                 guiTree.backvard();
-                menu->focus = 0;
+                menu->offset = 2;
+                menu->focus = 3;
             }
             else
             {
@@ -2343,24 +2348,25 @@ void Service::keyPressed(UI_Key key)
             case keyBack:
             {
                 guiTree.backvard();
-                menu->focus = 0;
+                menu->offset = 0;
+                menu->focus = 1;
                 break;
             }
             case keyUp:
-            {
-                if ( currentSpeed > Multiradio::voice_channel_speed_t(1) )
-                {
-                    int i = currentSpeed;
-                    currentSpeed = Multiradio::voice_channel_speed_t(--i);
-                }
-                break;
-            }
-            case keyDown:
             {
                 if ( currentSpeed < Multiradio::voice_channel_speed_t(4) )
                 {
                     int i = currentSpeed;
                     currentSpeed = Multiradio::voice_channel_speed_t(++i);
+                }
+                break;
+            }
+            case keyDown:
+            {
+                if ( currentSpeed > Multiradio::voice_channel_speed_t(1) )
+                {
+                    int i = currentSpeed;
+                    currentSpeed = Multiradio::voice_channel_speed_t(--i);
                 }
                 break;
             }
@@ -2383,13 +2389,13 @@ void Service::keyPressed(UI_Key key)
             }
             if (key == keyBack)
             {
-                if (menu->RN_KEY.size() > 0)
+                if (menu->RN_KEY.size() > 0 && menu->RN_KEY != "0")
                     menu->RN_KEY.pop_back();
                 else
                 {
                     uint16_t t; storageFs->getFhssKey(t);
                     char ch[4]; sprintf(ch, "%d", t); ch[3] = '\0';
-                    menu->RN_KEY.append(ch);
+                    menu->RN_KEY = ch;
                     menu->focus = 4;
                     menu->offset = 3;
                     guiTree.backvard();
@@ -2416,18 +2422,18 @@ void Service::keyPressed(UI_Key key)
                     multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode::VoiceModeManual);
                 storageFs->setVoiceMode(menu->useMode);
                 guiTree.backvard();
-                menu->focus = 0;
-                menu->offset = 0;
+                menu->focus = 6;
+                menu->offset = 5;
             }
             if ( key == keyBack)
             {
                 guiTree.backvard();
-                menu->focus = 0;
-                menu->offset = 0;
+                menu->focus = 6;
+                menu->offset = 5;
             }
             if (key == keyUp || key == keyDown)
             {
-                menu->useMode = menu->useMode ? false : true;
+                menu->useMode = !menu->useMode;
             }
 
             break;
@@ -2442,10 +2448,8 @@ void Service::keyPressed(UI_Key key)
                     voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionUSB);
 
                 guiTree.backvard();
-                menu->focus = 0;
-                menu->offset = 0;
-//                guiTree.advance(menu->focus);
-//                menu->focus = 0;
+                menu->focus = 5;
+                menu->offset = 4;
             }
             if (key == keyUp || key == keyDown)
             {
@@ -2585,8 +2589,8 @@ void Service::keyPressed(UI_Key key)
                 {
                     tempSheldureSession.clear();
                     guiTree.backvard();
-                    menu->focus = 0;
-                    menu->offset = 0;
+                    menu->offset = 4;
+                    menu->focus = 6;
                     break;
                 }
                 if ( key == keyEnter )
@@ -2815,7 +2819,7 @@ int Service::getLanguage()
 void Service::onSmsCounterChange(int param)
 {
     menu->smsTxStage = 6;
-    if ((param > 0 && param < 77) && (failFlag == false))
+    if ((param > 0 && param < 77) && (!failFlag))
     	drawMenu();
     else
     	menu->smsTxStage = 1;
@@ -3033,6 +3037,12 @@ void Service::drawMenu()
             }
 
             menu->initTxPutOffVoiceDialogTest(status);
+            menu->initTxPutOffVoiceDialogTest(status);            bool isDraw = true;
+            if (menu->putOffVoiceStatus == 2 && (status == 8 || status == 9))
+                isDraw = false;
+
+            if (isDraw)
+                menu->initTxPutOffVoiceDialogTest(status);
 
             break;
         }
@@ -3089,15 +3099,6 @@ void Service::drawMenu()
             {
                 uint8_t counter = voice_service->getSmsCounter();
 
-//                if (counter == 77)
-//                    isSmsCounterFull = true;
-
-//                if (isSmsCounterFull){
-//                     //guiTree.resetCurrentState();
-//                     isSmsCounterFull = false;
-//                     //drawMainWindow();
-//                }
-
                 char pac[2];
                 sprintf(pac,"%i", counter);
 
@@ -3110,9 +3111,8 @@ void Service::drawMenu()
             default:
             { break; }
             }
-//            if (!isSmsCounterFull)
 
-                menu->initTxSmsDialog( titleStr, fieldStr );
+            menu->initTxSmsDialog( titleStr, fieldStr );
             break;
             }
         }
@@ -3199,7 +3199,7 @@ void Service::drawMenu()
         case GuiWindowsSubType::setSpeed:
         {
             bool f_error = false;
-            std::string str;
+            std::string str, speed;
 
             switch (currentSpeed)
             {
@@ -3220,13 +3220,14 @@ void Service::drawMenu()
                 break;
             }
             }
+            speed.append(str);
 
             if (currentSpeed != Multiradio::voice_channel_speed_t::voicespeedInvalid && !f_error)
             {  str.append(" ").append(speed_bit); }
 
             str.push_back('\0');
 
-            menu->initSetSpeedDialog(str);
+            menu->initSetSpeedDialog(speed);
             break;
         }
         case GuiWindowsSubType::scan:
@@ -3313,21 +3314,6 @@ void Service::draw()
         	else
         		msg_box->Draw();
         }
-    	//if ( condCmdValue >= 0 && condCmdValue < 100 && isDrawCondCmd)
-
-
-//        if (vect != nullptr){
-//
-//           if (isGucCoord)
-//            	msgBox( titleGuc, vect[position], vect[0], position, (uint8_t*)&gucCoords );
-//           else
-//            	msgBox( titleGuc, vect[position], vect[0], position);
-//
-//           // msgBox(currentState.getName(), vect[position], vect[0], position);
-//           isD
-//        }
-//        if ( condCmdValue >= 0 && condCmdValue < 100 && isDrawCondCmd)
-//           msgBox( currentState.getName(), condCmdValue);
 
         break;
     }
@@ -3616,9 +3602,29 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
 
     if (currentState.getType() == endMenuWindow)
     {
+        static bool isUploaded = false;
+
+        bool isRecord = false;
         GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
-        if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 2)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 5)))
-            drawMenu();
+        if ((subType == txPutOffVoice) && (menu->putOffVoiceStatus == 2)){
+            if (state == Headset::Controller::SmartHSState::SmartHSState_SMART_RECORD_UPLOADING){
+                isUploaded = true;
+            }
+            else
+                if (isUploaded && state == Headset::Controller::SmartHSState::SmartHSState_SMART_READY)
+                    isRecord = true;
+        }
+        if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 2)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 5))){
+            if (isRecord){
+                Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
+                if (storageFs > 0)
+                    storageFs->setVoiceMail(&message, DataStorage::FS::FTT_TX);
+                isUploaded = false;
+                drawMenu();
+            } else
+                drawMenu();
+
+        }
     }
 }
 
@@ -3922,13 +3928,11 @@ void Service::msgGucTXQuit(int ans)
     	char a[3]; a[2] = '\0';
     	sprintf(a,"%d",ans);
         msgBox( gucQuitTextOk, ans);
-       //guiTree.append(messangeWindow, a, "QUIT\0");
         guiTree.resetCurrentState();
     }
     else
     {
         msgBox( "Guc", gucQuitTextFail);
-        //guiTree.append(messangeWindow, gucQuitTextFail, "QUIT\0");
         guiTree.resetCurrentState();
     }
 }
@@ -4030,7 +4034,7 @@ void Service::sheldureToStringList()
 
 void Service::setFreq()
 {
-    int freq = atoi(main_scr->oFreq.c_str());
+	int freq = atoi(main_scr->oFreq.c_str());
     voice_service->tuneFrequency(freq);
 }
 
@@ -4045,9 +4049,10 @@ void Service::playSchedulePromptSignal()
 	voice_service->playSoundSignal(4, 100, 100, 2, 200, 100);
 }
 
-void Service::onCompletedStationMode()
+void Service::onCompletedStationMode(bool isGoToVoice)
 {
-	voice_service->goToVoice();
+	if (isGoToVoice)
+		voice_service->goToVoice();
     if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
         setFreq();
     }

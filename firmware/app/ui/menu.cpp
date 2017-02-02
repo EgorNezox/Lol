@@ -154,7 +154,7 @@ void CGuiMenu::initCondCommDialog(CEndState state) // УК
     }
 
     LabelParams params;
-    if (txCondCmdStage == 4 || txCondCmdStage == 3)
+    if (txCondCmdStage == 4 || txCondCmdStage == 3 || txCondCmdStage == 2)
     params = GUI_EL_TEMP_LabelChannel;
     else
     params = GUI_EL_TEMP_LabelMode;
@@ -611,9 +611,9 @@ void CGuiMenu::initSetParametersDialog(std::string text)
     volume.Draw();
 }
 
-void CGuiMenu::initSetSpeedDialog(std::string text)
+void CGuiMenu::initSetSpeedDialog(std::string speed)
 {
-    MoonsGeometry volume_geom  = {  5,  45,  160,  95 };
+    MoonsGeometry fieldGeom  = {  5,  45,  160,  95 };
     LabelParams label_param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
 
     titleArea = { 5, 10, 160, 35};
@@ -622,29 +622,15 @@ void CGuiMenu::initSetSpeedDialog(std::string text)
 
     label_param[0].element.align = { alignHCenter, alignTop };
     label_param[1].element.align = { alignHCenter, alignTop };
+    speed.append(" ").append(speed_bit);
 
     GUI_EL_Window   window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
     GUI_EL_Label    title (&label_param[0],            &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
-
-//    SpBoxParams spbox_params = GUI_EL_TEMP_CommonSpBox;
-//
-//    SpBoxSettings spbox_settings;
-//
-//                  spbox_settings.value = 600;
-//                  spbox_settings.min = 600;
-//                  spbox_settings.max = 4800;
-//                  spbox_settings.step = 600;
-//                  spbox_settings.spbox_len = 4;
-//                  spbox_settings.cyclic = false;
-
-  //  GUI_EL_SpinBox  volume(&spbox_geom, &spbox_params, &spbox_settings, (GUI_Obj*)this);
-  //  volume.lab_params->font = GUI_EL_TEMP_LabelMode.font;
-  //  volume.SetActiveness(true);
-    GUI_EL_Label volume(&label_param[1],  &volume_geom, (char*)text.c_str(), (GUI_Obj *)this);
+    GUI_EL_Label    field (&label_param[0],            &fieldGeom,   (char*)speed.c_str(), (GUI_Obj *)this);
 
     window.Draw();
     title.Draw();
-    volume.Draw();
+    field.Draw();
 }
 
 void CGuiMenu::initSetDateOrTimeDialog(std::string text)
@@ -1515,7 +1501,7 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
     case 5:     // delite
     {
         MoonsGeometry titleArea     = { 0, 15, 165, 70 };
-        MoonsGeometry scroll_geom = {0, 74, 159, 159};
+        MoonsGeometry scroll_geom = {0, 70, 159, 159};
         item_geom = {(GXT)(0),(GYT)(0),(GXT)(145),(GYT)(25)};
 
         LabelParams titleParam = GUI_EL_TEMP_LabelMode;
@@ -1656,6 +1642,8 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 
     GUI_EL_Label title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
     GUI_EL_Label length (&param[0], &length_geom, (char*)length_message.c_str(), (GUI_Obj *)this);
+    if(smsTxStage == 2)
+        fieldParam = param[2];
     GUI_EL_TextArea field  (&fieldParam, &field_geom, (char*)fieldStr.c_str(), (GUI_Obj *)this);
     field.setVisibleScroll(isDrawScroll);
     smsScrollIndex = field.SetScrollIndex(smsScrollIndex);

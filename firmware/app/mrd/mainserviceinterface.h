@@ -72,7 +72,7 @@ public:
 
 	void startAleRx();
 	void startAleTxVoiceMail(uint8_t address);
-	AleResult stopAle();
+	AleResult stopAle(bool isRecord = false);
 	AleState getAleState();
 	uint8_t getAleVmProgress();
 	uint8_t getAleRxAddress();
@@ -156,7 +156,7 @@ private:
 	void setAlePhase(AlePhase value);
 	void setAleVmProgress(uint8_t value);
 	bool startAleSession();
-	void stopAleSession();
+	void stopAleSession(bool isRecord = false);
 	void stopAleRxTimers();
 	void stopAleTxTimers();
 	void stopVmMsgRxTimers();
