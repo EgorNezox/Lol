@@ -311,7 +311,7 @@ void CGuiMenu::initSuppressDialog()
     sprintf(str,"%d",inclStatus);
     str[2] = '\0';
     if (atoi(str) == 0)
-        volume.SetText((char*)useScanMenu[1]);
+        volume.SetText((char*)useScanMenu[0]);
     else
         volume.SetText((char*)str);
 
@@ -1663,8 +1663,8 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
         }
     }
 
-    labelStr.append(labels[groupCondCommStage - 1]);
-    valueStr.append(values[groupCondCommStage - 1]);
+    labelStr.append(labels[groupCondCommStage]);
+    valueStr.append(values[groupCondCommStage]);
 
                   titleArea = {  5,   5, 150,  18 };
     MoonsGeometry labelArea = {  5,  18, 150,  43 };
@@ -1722,7 +1722,7 @@ void CGuiMenu::initSelectVoiceModeParameters(bool use)
     GUI_EL_Label    label  ( &param[0],                  &labelArea,  (char*)setConnParam[3],  (GUI_Obj*)this );
     GUI_EL_TextArea value  ( &param[1],                  &valueArea,  (char*)"\0",             (GUI_Obj*)this );
 
-    value.SetText(mode_txt[use]);
+    value.SetText(mode_txt[!use]);
 
     window.Draw();
     label.Draw();

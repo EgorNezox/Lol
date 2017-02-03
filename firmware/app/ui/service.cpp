@@ -1367,7 +1367,7 @@ void Service::keyPressed(UI_Key key)
                 case keyLeft:
                 case keyRight:
                 {
-                    menu->useSmsRetrans = menu->useSmsRetrans ? false : true;
+                    menu->useSmsRetrans = !menu->useSmsRetrans;
                     break;
                 }
                 case keyEnter:
@@ -3022,11 +3022,7 @@ void Service::drawMenu()
             case 1:
             {
                 titleStr.append(ticketStr[1]);
-
-                if (menu->useSmsRetrans)
-                    fieldStr.append(useScanMenu[0]);
-                else
-                    fieldStr.append(useScanMenu[1]);
+                fieldStr.append(useScanMenu[menu->useSmsRetrans]);
 
                 break;
             }
