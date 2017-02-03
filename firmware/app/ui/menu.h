@@ -59,7 +59,6 @@ public:
     virtual ~CGuiMenu();
     void Draw();
 
-    uint8_t focus;
     void initItems(std::list<std::string>, const char*, int);
     void initDialog(CEndState);
     void initCondCommDialog(CEndState);
@@ -92,6 +91,8 @@ public:
     std::string dstAddr, newDstAddr;
     std::string message, newMessage;
 
+    MoonsGeometry getDefaultTitleArea();
+    uint8_t focus = 0;
     uint8_t offset = 0;
     uint8_t oldOffset = 0;
 
@@ -120,7 +121,6 @@ public:
 
     // tx group condition commands
     int txGroupCondCommStatus = 1;
-    void initTxGroupCondComm(CEndState);
     bool useSndCoord = false;
     bool sndMode = false;
 

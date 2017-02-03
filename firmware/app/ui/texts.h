@@ -121,11 +121,9 @@ extern const char* titleGuc;
 extern const char* titleCoord;
 extern const char* typeCondCmd;
 
-extern const char* YesGucCoord;
-extern const char* NoGucCoord;
+extern const char* NoYesGucCoord[];
 extern const char* StartGucTx;
-extern const char* GucIndivid;
-extern const char* GucGroup;
+extern const char* GucIndividGroup[];
 extern const char* Sheldure_label;
 extern const char* editSheldure_label;
 extern const char* newSheldure_label;

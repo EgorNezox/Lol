@@ -30,6 +30,21 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, Alignment align):CGui
     inputTimer.setSingleShot(true);
 }
 
+CGuiMenu::~CGuiMenu()
+{
+    if (tx != nullptr)
+        delete tx;
+}
+
+MoonsGeometry CGuiMenu::getDefaultTitleArea()
+{
+   MoonsGeometry defaultTitleArea = {(GXT)(windowArea.xs + MARGIN),
+                                     (GYT)(windowArea.ys + MARGIN),
+                                     (GXT)(windowArea.xe - MARGIN),
+                                     (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )};
+   return defaultTitleArea;
+}
+
 void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
 {
     int i = 0;
@@ -87,10 +102,7 @@ void CGuiMenu::initCondCommDialog(CEndState state) // УК
         {
             // с ретранслятором/ без ретранстятора
             labelStr.append(condCommStr[3]);
-            if (useCmdRetrans)
-                str.append(useScanMenu[0]);
-            else
-                str.append(useScanMenu[1]);
+            str.append(useScanMenu[useCmdRetrans]);
         }
         else
         {
@@ -149,8 +161,6 @@ void CGuiMenu::initCondCommDialog(CEndState state) // УК
         str.append("/30");
         break;
     }
-    default:
-    {break;}
     }
 
     LabelParams params;
@@ -182,11 +192,7 @@ void CGuiMenu::initTwoStateDialog()
                               (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
                              };
 
-    titleArea = {(GXT)(windowArea.xs + MARGIN),
-                 (GYT)(windowArea.ys + MARGIN),
-                 (GXT)(windowArea.xe - MARGIN),
-                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
-                };
+    titleArea = getDefaultTitleArea();
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
     GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
@@ -205,31 +211,24 @@ void CGuiMenu::initTwoStateDialog()
 void CGuiMenu::initVolumeDialog()
 {
     MoonsGeometry volume_geom  = {  20,  20,  120,  90 };
-    GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelChannel, &volume_geom,  NULL, (GUI_Obj*)this);
+    GUI_EL_Label volume(&GUI_EL_TEMP_LabelChannel, &volume_geom,  NULL, (GUI_Obj*)this);
 
     char s[4]; sprintf(s,"%d",vol);
     std::string str;
 
     str.append(s);
     str.push_back(proc);
-    volume->SetText((char *)str.c_str());
+    volume.SetText((char *)str.c_str());
     str.clear();
 
-    // title
-    titleArea = {(GXT)(windowArea.xs + MARGIN),
-                 (GYT)(windowArea.ys + MARGIN),
-                 (GXT)(windowArea.xe - MARGIN),
-                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
-                };
+    titleArea = getDefaultTitleArea();
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
     GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
 
     window.Draw();
     title.Draw();
-    volume->Draw();
-
-    delete volume;
+    volume.Draw();
 }
 
 void CGuiMenu::initAruarmDialog()
@@ -263,22 +262,10 @@ void CGuiMenu::initAruarmDialog()
     volume[1]->SetText((char*)armStr);
     volume[2]->SetText((char*)ausStr);
 
-    //uint8_t focus = 0;
-
     for ( int i = 0; i < 3; i++)
-    {
-        if (aruArmAsuStatus[i] == 1)
-            volume[3+i]->SetText((char *)useScanMenu[0]);
-        else
-            volume[3+i]->SetText((char *)useScanMenu[1]);
-    }
+       volume[3+i]->SetText((char*)useScanMenu[aruArmAsuStatus[i]]);
 
-    // title
-    titleArea = {(GXT)(windowArea.xs + MARGIN),
-                 (GYT)(windowArea.ys + MARGIN),
-                 (GXT)(windowArea.xe - MARGIN),
-                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
-                };
+    titleArea = getDefaultTitleArea();
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
     GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
@@ -301,72 +288,50 @@ void CGuiMenu::initAruarmDialog()
 void CGuiMenu::initIncludeDialog()
 {
     MoonsGeometry volume_geom  = {  35,  40,  105,  70 };
-    GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom,  NULL, (GUI_Obj*)this);
+    GUI_EL_Label volume(&GUI_EL_TEMP_LabelMode, &volume_geom,  NULL, (GUI_Obj*)this);
 
-    if (inclStatus == 1)
-        volume->SetText((char *)useScanMenu[0]);
-    else
-        volume->SetText((char *)useScanMenu[1]);
+    volume.SetText((char *)useScanMenu[inclStatus]);
 
-    // title
-    titleArea = {(GXT)(windowArea.xs + MARGIN),
-                 (GYT)(windowArea.ys + MARGIN),
-                 (GXT)(windowArea.xe - MARGIN),
-                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
-                };
+    titleArea = getDefaultTitleArea();
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
     GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
 
     window.Draw();
     title.Draw();
-    volume->Draw();
-
-    delete volume;
+    volume.Draw();
 }
 
 void CGuiMenu::initSuppressDialog()
 {
     MoonsGeometry volume_geom  = {  10,  45,  95,  70 };
-    GUI_EL_Label *volume = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom,  NULL, (GUI_Obj*)this);
+    GUI_EL_Label volume (&GUI_EL_TEMP_LabelMode, &volume_geom,  NULL, (GUI_Obj*)this);
 
     char str[3];
     sprintf(str,"%d",inclStatus);
     str[2] = '\0';
-    if (atoi(str) == 0) volume->SetText((char*)useScanMenu[1]);
+    if (atoi(str) == 0)
+        volume.SetText((char*)useScanMenu[1]);
     else
-    volume->SetText((char *)str);
+        volume.SetText((char*)str);
 
-    // title
-    titleArea = {(GXT)(windowArea.xs + MARGIN),
-                 (GYT)(windowArea.ys + MARGIN),
-                 (GXT)(windowArea.xe - MARGIN),
-                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
-                };
+    titleArea = getDefaultTitleArea();
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
     GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
 
     window.Draw();
     title.Draw();
-    volume->Draw();
-
-    delete volume;
+    volume.Draw();
 }
-
-
-
 
 void CGuiMenu::initGpsCoordinateDialog(char* coord_lat, char* coord_log)
 {
-    MoonsGeometry volume_geom[2];
-    volume_geom[0]  = {  5,  30,  140,  60 };
-    volume_geom[1]  = {  5,  60,  140,  90 };
+    MoonsGeometry volume_geom0  = {  5,  30,  140,  60 };
+    MoonsGeometry volume_geom1  = {  5,  60,  140,  90 };
 
-    GUI_EL_Label* volume[2];
-
-    volume[0] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[0],  NULL, (GUI_Obj*)this);
-    volume[1] = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &volume_geom[1],  NULL, (GUI_Obj*)this);
+    GUI_EL_Label volume0(&GUI_EL_TEMP_LabelMode, &volume_geom0,  NULL, (GUI_Obj*)this);
+    GUI_EL_Label volume1(&GUI_EL_TEMP_LabelMode, &volume_geom1,  NULL, (GUI_Obj*)this);
 
     if (atoi(coord_lat) == 0)
     {
@@ -375,27 +340,20 @@ void CGuiMenu::initGpsCoordinateDialog(char* coord_lat, char* coord_log)
     }
 
     coord_lat[11] = '\0';
-    volume[1]->SetText(coord_log);
-    volume[0]->SetText(coord_lat);
-    volume[0]->transparent = true;
-    volume[1]->transparent = true;
+    volume1.SetText(coord_log);
+    volume0.SetText(coord_lat);
+    volume0.transparent = true;
+    volume1.transparent = true;
     // title
-    titleArea = {(GXT)(windowArea.xs + MARGIN),
-                 (GYT)(windowArea.ys + MARGIN),
-                 (GXT)(windowArea.xe - MARGIN),
-                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
-                };
+    titleArea = getDefaultTitleArea();
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
     GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
 
     window.Draw();
     title.Draw();
-    volume[0]->Draw();
-    volume[1]->Draw();
-
-    delete volume[0];
-    delete volume[1];
+    volume0.Draw();
+    volume1.Draw();
 }
 
 void CGuiMenu::setTitle(const char* title)
@@ -408,18 +366,10 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
 {
     setTitle(title_str);
     // title
-    titleArea = {(GXT)(windowArea.xs + MARGIN),
-                 (GYT)(windowArea.ys + MARGIN),
-                 (GXT)(windowArea.xe - MARGIN),
-                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
-                };
+    titleArea = getDefaultTitleArea();
 
     titleParams.element.align = {alignHCenter, alignTop};
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
-   // GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
-
-//    window.Draw();
-//    title.Draw();
 
     bool isRepaintItem = false;
 
@@ -493,12 +443,6 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
     itemParams.label_params.color_sch = {GENERAL_TEXT_COLOR, GENERAL_BACK_COLOR};
 }
 
-CGuiMenu::~CGuiMenu()
-{
-    if (tx != nullptr)
-        delete tx;
-}
-
 void CGuiMenu::keyPressed(UI_Key key)
 {
     char value;
@@ -566,27 +510,19 @@ void CGuiMenu::setSttParam(CEndState state, UI_Key key)
     case setSpeed:
     {
         if (key == keyBack && str->size() > 0)
-        {
             str->pop_back();
-        }
         else if (key == keyBack && str->size() == 0)
         {}
+
         if ( key > 5 && key < 16)
         {
             if ( str->size() == 0 && key != key0)
-            {
                 str->push_back(key+42);
-            }
             else if ( str->size() > 0 && str->size() < 8 )
-            {
                 str->push_back(key+42);
-            }
         }
-
         break;
     }
-    default:
-        break;
     }
 }
 
@@ -1583,11 +1519,8 @@ void CGuiMenu::inputSmsAddr(std::string *field, UI_Key key)
     if ( key > 5 && key < 16 && field->size() < 2 )
     {
         field->push_back((char)(42+key));
-        // check
-        int rc = atoi(field->c_str());
-
-        if ( rc > 31 )
-        { field->clear(); }
+        if ( atoi(field->c_str()) > 31 )
+         field->clear();
     }
 }
 
@@ -1654,97 +1587,17 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     field.Draw();
 }
 
-void CGuiMenu::initTxGroupCondComm(CEndState state)
-{
-    std::string str, buttonStr;
-    auto iter = state.listItem.begin();
-
-    switch (txGroupCondCommStatus)
-    {
-    case 1:
-    { // ввод частоты передачи
-        str = (*iter)->inputStr; str.append(" ")\
-                .append(freq_hz);
-        buttonStr.append("next");
-        break;
-    }
-    case 2:
-    { // ввод частоты приема
-        (*iter)++;
-        str = (*iter)->inputStr;  str.append(" ")\
-                .append(freq_hz);
-        buttonStr.append("next");
-        break;
-    }
-    case 3:
-    { // ввод адреса получателя
-        (*iter)++;
-        (*iter)++;
-        str = (*iter)->inputStr;
-        buttonStr.append("next");
-        break;
-    }
-    case 4:
-    { // ввод сообщения
-        (*iter)++;
-        (*iter)++;
-        (*iter)++;
-        str = (*iter)->inputStr;
-        buttonStr.append("send");
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
-    titleArea   = { 5,  5, 150,  20 };
-    MoonsGeometry addrArea    = { 7, 20, 147,  40 };
-    MoonsGeometry volume_geom = { 7, 35, 147, 100 };
-
-    LabelParams param[2] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_CommonTextAreaLT};
-    param[0].element.align = {alignLeft, alignTop};
-    param[1].element.align = {alignLeft, alignTop};
-
-    for (int i = 0; i < 2; i++)
-        param[i].transparent = true;
-
-    if ( focus == 2 ) param[2].transparent = false;
-
-    GUI_EL_Window   window    (&GUI_EL_TEMP_WindowGeneral, &windowArea,                            (GUI_Obj *)this);
-    GUI_EL_Label    title     (&titleParams,               &titleArea,   (char*)titleStr.c_str(),  (GUI_Obj *)this);
-    GUI_EL_TextArea field     (&param[0],                  &addrArea,    (char*)str.c_str(),       (GUI_Obj *)this);
-    GUI_EL_Label    ok_button (&param[1],                  &volume_geom, (char*)buttonStr.c_str(), (GUI_Obj *)this);
-
-    window.Draw();
-    title.Draw();
-    field.Draw();
-    ok_button.Draw();
-}
-
 void CGuiMenu::initRxSmsDialog(std::string str)
 {
-    MoonsGeometry button_geom;
+    MoonsGeometry button_geom = { 10, 40, 150, 80 };
     LabelParams param = GUI_EL_TEMP_LabelMode;
     param.element.align = {alignHCenter, alignVCenter};
-    param.transparent = false;
+    param.transparent = (bool)recvStage;
 
-    GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
+    GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this);
+    GUI_EL_Label    ok_button ( &param, &button_geom, (char*)str.c_str(),(GUI_Obj *)this);
 
     window.Draw();
-
-    if (recvStage == 0)
-    {
-        param.transparent = false;
-        button_geom = { 10, 40, 150, 80 };
-    }
-    else
-    {
-        param.transparent = true;
-        button_geom = { 10, 40, 150, 80 };
-    }
-
-    GUI_EL_Label    ok_button ( &param, &button_geom, (char*)str.c_str(), (GUI_Obj *)this);
     ok_button.Draw();
 }
 
@@ -1755,152 +1608,80 @@ void CGuiMenu::initRxCondCmdDialog()        // Прием УК
     LabelParams param = GUI_EL_TEMP_LabelMode;
     param.element.align = {alignHCenter, alignVCenter};
     param.transparent = false;
+    MoonsGeometry buttonArea  = { 5, 30, 150, 80 };
 
     GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                    (GUI_Obj *)this);
-    GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)ticketStr[0], (GUI_Obj *)this);
+    GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)callSubMenu[0], (GUI_Obj *)this);
+    GUI_EL_Label button ( &param, &buttonArea, (char*)receiveStatusStr[recvStage], (GUI_Obj *)this);
 
     window.Draw();
-
-
-    //    if (rxCondCmdStatus == 1)
-    //    {
-    //        title.Draw();
-    //        param = GUI_EL_TEMP_LabelMode;
-    //        param.transparent = true;
-    //        MoonsGeometry buttonArea  = { 9, 40, 110, 80 };
-    //        GUI_EL_Label    button ( &param, &buttonArea, (char*)useScanMenu[useTicket], (GUI_Obj *)this);
-    //        button.Draw();
-    //    }
-    //    else
-    {
-        title.SetText((char*)callSubMenu[0]);
-        title.Draw();
-//        if (recvStage == 0)
-//            param.transparent = false;
-//        else
-//            param.transparent = true;
-
-        MoonsGeometry buttonArea  = { 5, 30, 150, 80 };
-        GUI_EL_Label button ( &param, &buttonArea, (char*)receiveStatusStr[recvStage], (GUI_Obj *)this);
-        //GUI_EL_Label button ( &param, &buttonArea, (char*)receiveStatusStr[0], (GUI_Obj *)this);
-        button.Draw();
-    }
-
+    title.Draw();
+    button.Draw();
 }
 
 void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
 {
+    // 1 - set frequency
+    // 2 - group vs. indiv.
+    // 3 - set address
+    // 4 - set command
+    // 5 - print report
+
     std::string labelStr, valueStr;
+    std::string labels[6] = {coordinateStr, groupCondCommFreqStr, "\0", callTitle[1], callTitle[0], "\0"};
+    std::string values[6] = {NoYesGucCoord[useSndCoord], "", GucIndividGroup[sndMode], "", "", StartGucTx};
 
-    switch( groupCondCommStage )
-    {
-    case 0: // use coordinate ?
-    {
-        labelStr.append(coordinateStr);
-
-        if (useSndCoord)
-            valueStr.append(YesGucCoord);
-        else
-            valueStr.append(NoGucCoord);
-
-        break;
+    switch( groupCondCommStage ) {
+        case 1:
+        {
+            auto frequency = state.listItem.begin();
+            valueStr = (*frequency)->inputStr;
+            if (valueStr.size() != 0 )
+                valueStr.append(" ").append(freq_hz);
+            break;
+        }
+        case 3:
+        case 4:
+        {
+            auto iter = state.listItem.begin();
+            (*iter)++; if (groupCondCommStage == 4)(*iter)++;
+            if ( (*iter)->inputStr.size() > 0 )
+                valueStr = (*iter)->inputStr;
+            else
+                valueStr.append("--\0");
+            break;
+        }
     }
-    case 1: // set frequency
-    {
-        labelStr.append(groupCondCommFreqStr);
 
-        auto frequency = state.listItem.begin();
-        valueStr = (*frequency)->inputStr;
-        if (valueStr.size() != 0 )
-            valueStr.append(" ")\
-                    .append(freq_hz);
-
-        break;
-    }
-    case 2: // group vs. indiv.
-    {
-        labelStr.append("\0");
-
-        if (sndMode)
-            valueStr.append(GucGroup);
-        else
-            valueStr.append(GucIndivid);
-
-        break;
-    }
-    case 3: // set address
-    {
-        labelStr.append( callTitle[1] );
-
-        auto iter = state.listItem.begin();
-        (*iter)++;
-        if ( (*iter)->inputStr.size() > 0 )
-            valueStr = (*iter)->inputStr;
-        else
-            valueStr.append("--\0");
-        break;
-    }
-    case 4: // set command
-    {
-        labelStr.append( callTitle[0] );
-
-        auto iter = state.listItem.begin();
-        (*iter)++; (*iter)++;
-        if ( (*iter)->inputStr.size() > 0 )
-            valueStr = (*iter)->inputStr;
-        else
-            valueStr.append("--\0");
-        break;
-    }
-    case 5: // start
-    {
-        labelStr.append("\0");
-
-        valueStr.append(StartGucTx);
-
-        break;
-    }
-    case 6: // transmit
-    {
-        labelStr.append("\0");
-
-        valueStr.append(StartCmd);
-
-        break;
-    }
-    default:
-        break;
-    }
+    labelStr.append(labels[groupCondCommStage - 1]);
+    valueStr.append(values[groupCondCommStage - 1]);
 
                   titleArea = {  5,   5, 150,  18 };
     MoonsGeometry labelArea = {  5,  18, 150,  43 };
     MoonsGeometry valueArea = {  5,  52, 150,  85 };
 
-    TextAreaParams textParams = GUI_EL_TEMP_LabelMode;
-    textParams.element.align.align_h = alignHCenter;
-    MoonsGeometry textGeom = {3, 44, 156, 122};
-
     LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
 
-    param[0].transparent = true;
-    param[1].transparent = true;
-
-    param[0].element.align = {alignHCenter, alignVCenter};
-    param[1].element.align = {alignHCenter, alignVCenter};
+    param[0].transparent = param[1].transparent = true;
+    param[0].element.align = param[1].element.align = {alignHCenter, alignVCenter};
 
     GUI_EL_Window window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
     GUI_EL_Label  title  ( &titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj*)this );
     GUI_EL_Label  label  ( &param[0],                  &labelArea,  (char*)labelStr.c_str(), (GUI_Obj*)this );
     GUI_EL_Label  value ( &param[1],&valueArea,  (char*)valueStr.c_str(), (GUI_Obj*)this );
 
-    GUI_EL_TextArea cmdText(&textParams, &textGeom, (char*)valueStr.c_str(), (GUI_Obj*)this);
-
     window.Draw();
     if (groupCondCommStage != 5 && groupCondCommStage != 6)
-    title.Draw();
+        title.Draw();
     label.Draw();
 
     if (groupCondCommStage == 4){
+
+        MoonsGeometry textGeom = {3, 44, 156, 122};
+        TextAreaParams textParams = GUI_EL_TEMP_LabelMode;
+        textParams.element.align.align_h = alignHCenter;
+
+        GUI_EL_TextArea cmdText(&textParams, &textGeom, (char*)valueStr.c_str(), (GUI_Obj*)this);
         cmdText.setVisibleScroll(true);
         cmdScrollIndex = cmdText.SetScrollIndex(cmdScrollIndex);
         cmdText.Draw();
@@ -1925,17 +1706,13 @@ void CGuiMenu::initSelectVoiceModeParameters(bool use)
     param[0].transparent = true;
     param[1].transparent = false;
 
-    param[0].element.align = {alignHCenter, alignVCenter};
-    param[1].element.align = {alignHCenter, alignVCenter};
+    param[0].element.align = param[1].element.align = {alignHCenter, alignVCenter};
 
     GUI_EL_Window   window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj*)this );
     GUI_EL_Label    label  ( &param[0],                  &labelArea,  (char*)setConnParam[3],  (GUI_Obj*)this );
     GUI_EL_TextArea value  ( &param[1],                  &valueArea,  (char*)"\0",             (GUI_Obj*)this );
 
-    if (use)
-        value.SetText(mode_txt[0]);
-    else
-        value.SetText(mode_txt[1]);
+    value.SetText(mode_txt[use]);
 
     window.Draw();
     label.Draw();
@@ -1952,17 +1729,13 @@ void CGuiMenu::initSelectChEmissTypeParameters(bool use)
     param[0].transparent = true;
     param[1].transparent = false;
 
-    param[0].element.align = {alignHCenter, alignVCenter};
-    param[1].element.align = {alignHCenter, alignVCenter};
+    param[0].element.align = param[1].element.align = {alignHCenter, alignVCenter};
 
     GUI_EL_Window   window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                        (GUI_Obj*)this );
     GUI_EL_Label    label  ( &param[0],                  &labelArea, (char*)setConnParam[2], (GUI_Obj*)this );
     GUI_EL_TextArea value  ( &param[1],                  &valueArea, (char*)"\0",            (GUI_Obj*)this );
 
-    if (use)
-        value.SetText((char*)ch_em_type_str[0]);
-    else
-        value.SetText((char*)ch_em_type_str[1]);
+    value.SetText((char*)ch_em_type_str[!use]);
 
     window.Draw();
     label.Draw();
@@ -1972,27 +1745,11 @@ void CGuiMenu::initFailedSms(int stage)
 {
 	std::string str;
 	switch(stage)
-	{
-		case 0:
-		{
-			str.append(sms_quit_fail1);
-			break;
-		}
-		case 1:
-		{
-			str.append(sms_quit_fail2);
-			break;
-		}
-		case 3:
-		{
-			str.append(sms_crc_fail);
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
+    {
+        case 0: str.append(sms_quit_fail1); break;
+        case 1: str.append(sms_quit_fail2); break;
+        case 3: str.append(sms_crc_fail);   break;
+    }
 
 	LabelParams params = GUI_EL_TEMP_LabelMode;
 	params.element.align = {alignHCenter, alignVCenter};
@@ -2029,11 +1786,6 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
     item_geom = {(GXT)(0),(GYT)(0),(GXT)(145),(GYT)(30)};
 
     MenuItemParams item_param;
-
-   // item_param.label_params = GUI_EL_TEMP_LabelChannel;
-//    item_param.label_params.element.align = {alignHCenter, alignVCenter};
-//    item_param.label_params.transparent = true;
-//    item_param.icon_params.icon = sym_blank;
 
     window.Draw();
     const char* titleChar;
@@ -2108,7 +1860,6 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
         TextAreaParams textArea_Params = GUI_EL_TEMP_LabelMode;
         textArea_Params.element.align.align_h = alignLeft;
         textArea_Params.element.align.align_v = alignTop;
-        //MoonsGeometry textArea_Geom = {2, 30, 157, 126};
         MoonsGeometry textArea_Geom = {  5,  18, 155,  124 };
 
         GUI_EL_TextArea textArea(&textArea_Params, &textArea_Geom, fileMessage, (GUI_Obj*)this);
@@ -2128,11 +1879,7 @@ void CGuiMenu::initDisplayBrightnessDialog()
     brightnessParams.element.align.align_h = alignHCenter;
     GUI_EL_Label brightness(&brightnessParams, &brightness_geom,  (char*)displayBrightnessStr[displayBrightness], (GUI_Obj*)this);
 
-    titleArea = {(GXT)(windowArea.xs + MARGIN),
-                 (GYT)(windowArea.ys + MARGIN),
-                 (GXT)(windowArea.xe - MARGIN),
-                 (GYT)(windowArea.ye - ( MARGIN + BUTTON_HEIGHT ) )
-                };
+    titleArea = getDefaultTitleArea();
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
     GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)displayBrightnessTitleStr, (GUI_Obj *)this);

@@ -57,7 +57,7 @@ const char *files[] = {" Файлы\0"};
 
 const char *coordinateStr = "Координаты\0";
 const char *coordNotExistStr = "Координаты\n отсутствуют\0";
-const char *useScanMenu[] = {"ВКЛ\0", "ВЫКЛ\0", "МАЛ","СРЕД","ВЫС"};
+const char *useScanMenu[] = {"ВЫКЛ\0", "ВКЛ\0", "МАЛ\0","СРЕД\0","ВЫС\0"};
 const char *aruStr = "АРУ\0";
 const char *armStr = "АРМ\0";
 const char *ausStr = "АУC\0";
@@ -195,11 +195,9 @@ const char* titleCoord      = "Получены\nкоординаты\0";
 const char* startStr           = "Старт\0";
 
 const char* typeCondCmd         = "Выберите тип\0";
-const char* YesGucCoord         = "Есть\0";
-const char* NoGucCoord          = "Нет\0";
+const char* NoYesGucCoord[]     = {"Нет\0", "Есть\0"};
 const char* StartGucTx          = "Старт\0";
-const char* GucIndivid          = "Одному\0";
-const char* GucGroup            = "Всем\0";
+const char* GucIndividGroup[]   = {"Одному\0", "Всем\0"};
 const char* Sheldure            = "12 000000 Гц\n12:34 ГУК\0";
 const char* Sheldure_label      = "  Расписание";
 const char* editSheldure_label  = "  Редактирование";
