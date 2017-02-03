@@ -171,5 +171,6 @@ extern const char *cmdRec;
 extern const char *notReiableRecPacket;
 
 extern const char *rxCondErrorStr[];
+extern const char *rnKey;
 
 #endif /* TEXTS_H_ */

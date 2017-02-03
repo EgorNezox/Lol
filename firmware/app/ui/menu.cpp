@@ -1262,7 +1262,7 @@ void CGuiMenu::initEditRnKeyDialog()
     str.push_back('\0');
 
     GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                              (GUI_Obj *)this);
-    GUI_EL_Label    label     ( &titleParams,               &labelArea,  (char*)voiceRxTxLabelStr[1], (GUI_Obj *)this);
+    GUI_EL_Label    label     ( &titleParams,               &labelArea,  (char*)rnKey, (GUI_Obj *)this);
     GUI_EL_TextArea addr      ( &param,                     &addrArea,   (char*)str.c_str(),          (GUI_Obj *)this);
 
     window.Draw();
