@@ -274,6 +274,11 @@ private:
     void showReceivedSms();
     uint8_t volumeLevel = 0;
     bool isVolumeEdit = false;
+
+    QmTimer testMsgTimer; // test is completed
+    void onTestMsgTimer();
+    void startTest();
+    bool isStartTestMsg = true;
 };
 
 } /* namespace Ui */

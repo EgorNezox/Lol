@@ -1587,7 +1587,7 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     field.Draw();
 }
 
-void CGuiMenu::initRxSmsDialog(std::string str)
+void CGuiMenu::initRxSmsDialog(std::string str, uint8_t stage)
 {
     MoonsGeometry button_geom = { 10, 40, 150, 80 };
     LabelParams param = GUI_EL_TEMP_LabelMode;
@@ -1598,12 +1598,21 @@ void CGuiMenu::initRxSmsDialog(std::string str)
     GUI_EL_Label    ok_button ( &param, &button_geom, (char*)str.c_str(),(GUI_Obj *)this);
 
     window.Draw();
+    if (stage == 1)
+    {
+        LabelParams titleParam = GUI_EL_TEMP_CommonTextAreaLT;
+        titleParam.element.align = {alignHCenter, alignTop};
+        MoonsGeometry title_geom  = {  5, 5, 150,  20 };
+        std::string titleString = "CMC";
+        GUI_EL_Label title  (&titleParam, &title_geom, (char*)titleString.c_str(), (GUI_Obj *)this);
+        title.Draw();
+    }
     ok_button.Draw();
 }
 
 void CGuiMenu::initRxCondCmdDialog()        // Прием УК
 {
-    titleArea   = { 5,  5, 150, 20 };
+    titleArea   = { 5, 5, 150, 20 };
 
     LabelParams param = GUI_EL_TEMP_LabelMode;
     param.element.align = {alignHCenter, alignVCenter};
@@ -1615,7 +1624,8 @@ void CGuiMenu::initRxCondCmdDialog()        // Прием УК
     GUI_EL_Label button ( &param, &buttonArea, (char*)receiveStatusStr[recvStage], (GUI_Obj *)this);
 
     window.Draw();
-    title.Draw();
+    if (recvStage != 1)
+        title.Draw();
     button.Draw();
 }
 

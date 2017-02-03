@@ -145,7 +145,7 @@ public:
     uint8_t recvStage = 0;
 
     // recv sms
-    void initRxSmsDialog(std::string);   
+    void initRxSmsDialog(std::string, uint8_t stage = 0);
 
     // volume
     void incrVolume(){ if ( vol < 100) vol += 5; }

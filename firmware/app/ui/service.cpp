@@ -131,6 +131,19 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     synchModeTimer.timeout.connect(sigc::mem_fun(this, &Service::readSynchMode));
     synchModeTimer.start(1000);
 
+    testMsgTimer.setSingleShot(true);
+    testMsgTimer.timeout.connect(sigc::mem_fun(this, &Service::onTestMsgTimer));
+    testMsgTimer.start(1500);
+
+    currentSpeed = voice_service->getCurrentChannelSpeed();
+
+    draw();
+
+}
+
+void Service::onTestMsgTimer()
+{
+    isStartTestMsg = false;
     draw();
 }
 
@@ -245,6 +258,7 @@ void Service::updateBattery(int new_val)
 
 void Service::drawIndicator()
 {
+    if (!isStartTestMsg){
     static uint8_t gpsStatus = 0; //none
 	if ( guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr){
 		if (navigator != 0)
@@ -266,6 +280,7 @@ void Service::drawIndicator()
         indicator->UpdateMultiradio(pGetMultitradioService()->getStatus());
         indicator->Draw();
 	}
+    }
 }
 
 void Service::FailedSms(int stage)
@@ -333,58 +348,7 @@ void Service::setNotification(NotificationType type)
 
 void Service::keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type){
     QM_UNUSED(pr_type);
-    switch(matrix_kb.key_id[key_id]){
-    case matrixkbkeyEnter:
-        keyPressed(keyEnter);
-        break;
-    case matrixkbkeyBack:
-        keyPressed(keyBack);
-        break;
-    case matrixkbkeyUp:
-        keyPressed(keyUp);
-        break;
-    case matrixkbkeyDown:
-        keyPressed(keyDown);
-        break;
-    case matrixkbkeyLeft:
-        keyPressed(keyLeft);
-        break;
-    case matrixkbkeyRight:
-        keyPressed(keyRight);
-        break;
-    case matrixkbkey0:
-        keyPressed(key0);
-        break;
-    case matrixkbkey1:
-        keyPressed(key1);
-        break;
-    case matrixkbkey2:
-        keyPressed(key2);
-        break;
-    case matrixkbkey3:
-        keyPressed(key3);
-        break;
-    case matrixkbkey4:
-        keyPressed(key4);
-        break;
-    case matrixkbkey5:
-        keyPressed(key5);
-        break;
-    case matrixkbkey6:
-        keyPressed(key6);
-        break;
-    case matrixkbkey7:
-        keyPressed(key7);
-        break;
-    case matrixkbkey8:
-        keyPressed(key8);
-        break;
-    case matrixkbkey9:
-        keyPressed(key9);
-        break;
-    default:
-        break;
-    }
+    keyPressed((UI_Key)matrix_kb.key_id[key_id]);
 }
 
 Headset::Controller * Service::pGetHeadsetController(){
@@ -545,24 +509,6 @@ void Service::keyPressed(UI_Key key)
                         main_scr->nFreq.clear();
                 }
                 break;
-                //            case keyLeft:
-                //                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
-                //                    main_scr->mainWindowModeId--;
-                //                break;
-                //            case keyRight:
-                //                if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 2)
-                //                    main_scr->mainWindowModeId++;
-                //                break;
-            case key0:
-            {
-//                int p = 10;
-//                char sym[64];
-//                sprintf(sym,"%d",p);
-//                guiTree.append(messangeWindow, (char*)"Receive first packet", sym);
-            }
-                break;
-            default:
-                break;
             }
         }
         break;
@@ -683,9 +629,6 @@ void Service::keyPressed(UI_Key key)
         {
         case GuiWindowsSubType::condCommand:
         {
-            //            if (){ menu->txCondCmdStage}
-            //            else if() {}
-            //            else {}
             //[0] - CMD, [1] - R_ADDR, [2] - retrans
             switch (menu->txCondCmdStage)
             {
@@ -1710,7 +1653,7 @@ void Service::keyPressed(UI_Key key)
         	if ( key == keyBack || key == keyEnter){
         	  if (cntSmsRx == 1)
         	  {
-        		menu->initRxSmsDialog(startStr);
+                menu->initRxSmsDialog(startStr, cntSmsRx);
         		isSmsMessageRec = false;
         	  }
         	  if (cntSmsRx == 2)
@@ -2905,7 +2848,8 @@ void Service::msgBox(const char *title)
     msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, align007);
 
     guiTree.append(messangeWindow, "");
-    msg_box->Draw();
+    if (!isStartTestMsg)
+        msg_box->Draw();
 }
 
 void Service::msgBox(const char *title, const char *text)
@@ -2918,7 +2862,8 @@ void Service::msgBox(const char *title, const char *text)
     msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (char*)text, align007);
 
     guiTree.append(messangeWindow, "");
-    msg_box->Draw();
+    if (!isStartTestMsg)
+        msg_box->Draw();
 }
 
 void Service::msgBox(const char *title, const int condCmd)
@@ -2932,7 +2877,8 @@ void Service::msgBox(const char *title, const int condCmd)
 
     guiTree.append(messangeWindow, "");
     msg_box->setCmd(condCmd);
-    msg_box->Draw();
+    if (!isStartTestMsg)
+        msg_box->Draw();
     isDrawCondCmd = false;
 }
 
@@ -2950,12 +2896,13 @@ void Service::msgBox(const char *title, const int condCmd, const int size, const
     msg_box->position = pos;
 
     guiTree.append(messangeWindow, "");
-    msg_box->DrawWithCoord(coord);
+    if (!isStartTestMsg)
+        msg_box->DrawWithCoord(coord);
 }
 
 void Service::drawMainWindow()
 {
-
+    if (!isStartTestMsg){
     Multiradio::VoiceServiceInterface *voice_service = pGetVoiceService();
 
     Multiradio::voice_emission_t emission_type = voice_service->getCurrentChannelEmissionType();
@@ -2989,6 +2936,7 @@ void Service::drawMainWindow()
                    );
 
     drawIndicator();
+    }
 }
 
 void Service::drawMenu()
@@ -3347,7 +3295,11 @@ void Service::draw()
     }
     if (isShowSchedulePrompt)
     	showMessage("", schedulePromptText.c_str(), promptArea);
-
+    if (isStartTestMsg){
+        GUI_Painter::ClearViewPort();
+        GUI_Painter::DrawRect(0,0,159,127,RDM_FILL);
+        GUI_Painter::DrawText(35,52,GUI_EL_TEMP_CommonTextAreaLT.font,(char*)true_SWF);
+    }
 }
 
 int Service::getFreq()
