@@ -119,6 +119,7 @@ private:
     void responseGuc(int value);
     void smsMessage(int value);
     void onDspStarted(){dspStarted();}
+    void sendBatteryVoltage(int voltage);
 
 	Dispatcher *dispatcher;
     ChannelStatus current_channel_status;

@@ -15,6 +15,8 @@
 
 #include "battery.h"
 
+#define BATTERY_VOLTAGE 1
+
 namespace Power {
 
 #define BATTERY_SMBUS_ADDRESS			0x0B
@@ -45,6 +47,10 @@ int Battery::getChargeLevel() {
 	return charge_level;
 }
 
+int Battery::getVoltage() {
+    return charge_level;
+}
+
 void Battery::setStatus(Status new_status) {
 	if (status != new_status) {
 		status = new_status;
@@ -52,13 +58,28 @@ void Battery::setStatus(Status new_status) {
 	}
 }
 
-void Battery::processBatteryDevicePolling() {
-	bool success = false;
-	requireChargeLevel(&success);
-	if (!success) {
-		setStatus(StatusFailure);
-		return;
-	}
+void Battery::processBatteryDevicePolling()
+{
+    if (recParam == recCharge){
+        bool success = false;
+        requireChargeLevel(&success);
+        if (!success) {
+            setStatus(StatusFailure);
+            recParam == recVoltage;
+            return;
+        }
+        recParam == recVoltage;
+    }
+    else if (recParam == recVoltage){
+        bool success = false;
+        requireVoltage(&success);
+        if (!success) {
+            setStatus(StatusFailure);
+            recParam == recCharge;
+            return;
+        }
+        recParam == recCharge;
+    }
 }
 
 void Battery::requireChargeLevel(bool* success) {
@@ -102,6 +123,10 @@ void Battery::processDataTransferCompleted(QmI2CDevice::TransferResult result) {
 		if (actual_voltage < 0 || actual_voltage > 18000) {
 			setStatus(StatusFailure);
 			break;
+            if (actual_voltage - voltage > deltaVoltage || voltage - actual_voltage > deltaVoltage) {
+                voltage = actual_voltage;
+                voltageChanged(charge_level, voltage);
+            }
 		}
 		voltageReceived(actual_voltage);
 		break;
@@ -119,7 +144,7 @@ void Battery::processDataTransferCompleted(QmI2CDevice::TransferResult result) {
 		}
 		if (actual_charge_level != charge_level) {
 			charge_level = actual_charge_level;
-			chargeLevelChanged(charge_level);
+            chargeLevelChanged(charge_level, voltage);
 			if (charge_level <= BATTERY_LOW_CHARGE_THRESHOLD) {
 				setStatus(StatusLow);
 			} else {
@@ -170,7 +195,8 @@ void Battery::processDataTransferCompleted(QmI2CDevice::TransferResult result) {
 
 #endif
 
-void Battery::setMinimalActivityMode(bool enabled) {
+void Battery::setMinimalActivityMode(bool enabled)
+{
 	if (enabled) {
 		poll_timer->stop();
 	} else {

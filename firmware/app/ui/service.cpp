@@ -81,6 +81,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
+    this->power_battery->voltageChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
 
     this->multiradio_service->aleStateChanged.connect(sigc::mem_fun(this, &Service::updateAleState));
     this->multiradio_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &Service::updateAleVmProgress));
@@ -103,6 +104,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->startRxQuitSignal.connect(sigc::mem_fun(this, &Service::startRxQuit));
     voice_service->stationModeIsCompleted.connect(sigc::mem_fun(this,&Service::onCompletedStationMode));
     voice_service->dspStarted.connect(sigc::mem_fun(this,&Service::onDspStarted));
+
+    power_battery->voltageReceived.connect(sigc::mem_fun(this,&Service::onRecievingBatteryVoltage));
 
     pswf_status = false;
  #if defined (PORT__TARGET_DEVICE_REV1)
@@ -245,7 +248,7 @@ void Service::setFreqLabelValue(int value)
     voice_service->saveFreq(value);
 }
 
-void Service::updateBattery(int new_val)
+void Service::updateBattery(int newCharge, int newVoltage)
 {
     drawIndicator();
 }
@@ -1961,12 +1964,14 @@ void Service::keyPressed(UI_Key key)
                     menu->supressStatus = 6;
 
                 //value =  menu->supressStatus;
-                //voice_service->tuneSquelch(value);
+                voice_service->tuneSquelch(menu->supressStatus);
             }
             if (key == keyDown)
             {
+                if (oldSuppress == -1)
+                    oldSuppress = menu->supressStatus;
                 menu->supressStatus = 0;
-                //voice_service->tuneSquelch(menu->supressStatus);
+                voice_service->tuneSquelch(menu->supressStatus);
             }
 
             if ( key == keyBack)
@@ -1974,13 +1979,16 @@ void Service::keyPressed(UI_Key key)
                 guiTree.backvard();
                 menu->offset = 3;
                 menu->focus = 4;
-                menu->supressStatus = oldSuppress;
+                if (oldSuppress != -1){
+                    menu->supressStatus = oldSuppress;
+                    voice_service->tuneSquelch(menu->supressStatus);
+                }
                 oldSuppress = -1;
 
             }
             if (key == keyEnter)
             {
-                voice_service->tuneSquelch(menu->supressStatus);
+                //voice_service->tuneSquelch(menu->supressStatus);
                 guiTree.backvard();
                 menu->offset = 3;
                 menu->focus = 4;
@@ -2710,9 +2718,9 @@ void Service::keyPressed(UI_Key key)
                 if ( key == keyEnter )
                 {
                     if (menu->sheldureStageFocus[menu->sheldureStage] == 0) // type
-                    menu->sheldureStage = 1;
-                    if (menu->sheldureStageFocus[menu->sheldureStage] == 1) // delete
-                    menu->sheldureStage = 5;
+                    	menu->sheldureStage = 1;
+                    else if (menu->sheldureStageFocus[menu->sheldureStage] == 1) // delete
+                    	menu->sheldureStage = 5;
                     menu->sheldureStageFocus[4] = 0;
                 }
             break;
@@ -4029,6 +4037,19 @@ void Service::onDspStarted()
 {
     isDspStarted = true;
     updateSessionTimeSchedule();
+}
+
+void Service::getBatteryVoltage()
+{
+    if (pGetPowerBattery()->getChargeLevel()){ // if is battery(not power block)
+        bool success = false;
+        power_battery->requireVoltage(&success);
+    }
+}
+
+void Service::onRecievingBatteryVoltage(int voltage)
+{
+    voice_service->sendBatteryVoltage(voltage);
 }
 
 }/* namespace Ui */

@@ -1638,8 +1638,8 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
     // 5 - print report
 
     std::string labelStr, valueStr;
-    std::string labels[6] = {coordinateStr, groupCondCommFreqStr, "\0", callTitle[1], callTitle[0], "\0"};
-    std::string values[6] = {NoYesGucCoord[useSndCoord], "", GucIndividGroup[sndMode], "", "", StartGucTx};
+    std::string labels[7] = {coordinateStr, groupCondCommFreqStr, "\0", callTitle[1], callTitle[0], "\0", "\0"};
+    std::string values[7] = {NoYesGucCoord[useSndCoord], "", GucIndividGroup[sndMode], "", "", StartGucTx, StartCmd};
 
     switch( groupCondCommStage ) {
         case 1:

@@ -317,6 +317,7 @@ private:
         uint8_t guc_mode;
  		uint8_t guc_adr;
  		uint8_t param;
+        uint8_t voltage;
         ModemState modem_rx_state;
         ModemBandwidth modem_rx_bandwidth;
         ModemTimeSyncMode modem_rx_time_sync_mode;
@@ -587,6 +588,7 @@ private:
     bool boomVirtualPPS = false;
 
     void onGucWaitingQuitTimeout();
+    void sendBatteryVoltage(int voltage);
 public:
     uint8_t getSmsCounter();
     bool getIsGucCoord();

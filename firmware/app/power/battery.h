@@ -14,8 +14,6 @@
 #include "sigc++/signal.h"
 #include "qmi2cdevice.h"
 
-#define BATTERY_VOLTAGE 0
-
 class QmTimer;
 
 namespace Power {
@@ -40,9 +38,11 @@ public:
 	void setMinimalActivityMode(bool enabled);
 
 	sigc::signal<void, Status/*new_status*/> statusChanged;
-	sigc::signal<void, int/*new_level*/> chargeLevelChanged;
+	sigc::signal<void, int/*new_level_charge*/, int/*new_level_voltage*/> chargeLevelChanged;
+    sigc::signal<void, int/*new_level_charge*/, int/*new_level_voltage*/> voltageChanged;
 	sigc::signal<void, int/*voltage*/> voltageReceived;
 
+    int getVoltage();
 private:
 	void setStatus(Status new_status);
 	void processBatteryDevicePolling();
@@ -63,8 +63,15 @@ private:
 	State state;
 	Status status;
 	int charge_level;
+    int voltage;
+    int deltaVoltage = 100; //mV
 	QmI2CDevice* battery_device;
 	QmTimer* poll_timer;
+
+    enum {
+        recVoltage = 0,
+        recCharge  = 1
+    } recParam  = recCharge;
 };
 
 } /* namespace Power */

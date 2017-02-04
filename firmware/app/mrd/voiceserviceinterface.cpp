@@ -356,7 +356,12 @@ void VoiceServiceInterface::responseGuc(int value)
 
 void VoiceServiceInterface::smsMessage(int value)
 {
-	smsMess(value);
+    smsMess(value);
+}
+
+void VoiceServiceInterface::sendBatteryVoltage(int voltage)
+{
+   dispatcher->dsp_controller->sendBatteryVoltage(voltage);
 }
 
 void VoiceServiceInterface::gucCoordRec(){

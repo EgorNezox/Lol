@@ -261,12 +261,12 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 }
 
 
-void DspController::powerControlAsk()
+void DspController::sendBatteryVoltage(int voltage)
 {
 	// вольт * 10
-	/*ParameterValue command;
-	ind = 2, param = 10,
-	sendCommandEasy(TxRadioMode,)*/
+    ParameterValue command;
+    command.voltage = voltage * 10;
+    sendCommandEasy(TxRadiopath, 10, command);
 }
 
 void DspController::setRadioOperation(RadioOperation operation) {
@@ -1330,6 +1330,10 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 			qmToBigEndian((uint8_t)value.agc_mode, tx_data+tx_data_len);
 			tx_data_len += 1;
 			break;
+        case 10:
+            qmToBigEndian((uint8_t)value.voltage, tx_data+tx_data_len);
+            tx_data_len += 1;
+            break;
 		default: QM_ASSERT(0);
 		}
 		break;
@@ -1878,7 +1882,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         {
         	if (ContentGuc.stage == GucRx)
         	{
-        		//completedStationMode(false);
+                completedStationMode(true);
         	}
             if (ContentGuc.stage == GucTx) // wait recieving ack
         	{
@@ -1918,7 +1922,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             		}
                     guc_vector.push_back(guc);
                     //guc_timer->start();
-                    (isGpsGuc) ? recievedGucResp(1) : recievedGucResp(0);
+                    recievedGucResp(isGpsGuc);
                     startGucTransmitting();
             		sendGucQuit();
             	}
@@ -3047,6 +3051,9 @@ void DspController::goToVoice(){
 	radio_state = radiostateSync;
 	sendCommandEasy(RxRadiopath,2,comandValue);
 	sendCommandEasy(TxRadiopath,2,comandValue);
+
+//    comandValue.guc_mode = RadioModeSazhenData; // 11 mode
+//    sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
 }
 
 bool DspController::getIsGucCoord()
