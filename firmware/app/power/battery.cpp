@@ -71,6 +71,70 @@ void Battery::requireChargeLevel(bool* success) {
 	*success = battery_device->startTxRxTransfer(false, &tx_data, 1, 1);
 }
 
+#if BATTERY_VOLTAGE
+
+void Battery::requireVoltage(bool* success) {
+	if (state != StateNone) {
+		*success = false;
+		return;
+	}
+	state = StateReqVoltage;
+	uint8_t tx_data = batCmdVoltage;
+	*success = battery_device->startTxRxTransfer(false, &tx_data, 1, 2);
+}
+
+void Battery::processDataTransferCompleted(QmI2CDevice::TransferResult result) {
+	if (state == StateNone)
+		return;
+	if (result != QmI2CDevice::transferSuccess) {
+		setStatus(StatusFailure);
+		state = StateNone;
+		return;
+	}
+	switch (state) {
+	case StateReqVoltage: {
+		uint8_t rx_data[2];
+		if (1 != battery_device->readRxData(rx_data, 2)) {
+			setStatus(StatusFailure);
+			break;
+		}
+		int actual_voltage = *(uint16_t*)rx_data;
+		if (actual_voltage < 0 || actual_voltage > 18000) {
+			setStatus(StatusFailure);
+			break;
+		}
+		voltageReceived(actual_voltage);
+		break;
+	}
+	case StateReqRelativeStateOfCharge: {
+		uint8_t rx_data;
+		if (1 != battery_device->readRxData(&rx_data, 1)) {
+			setStatus(StatusFailure);
+			break;
+		}
+		int actual_charge_level = rx_data;
+		if (actual_charge_level < 0 || actual_charge_level > 100) {
+			setStatus(StatusFailure);
+			break;
+		}
+		if (actual_charge_level != charge_level) {
+			charge_level = actual_charge_level;
+			chargeLevelChanged(charge_level);
+			if (charge_level <= BATTERY_LOW_CHARGE_THRESHOLD) {
+				setStatus(StatusLow);
+			} else {
+				setStatus(StatusNormal);
+			}
+		}
+		break;
+	}
+	default: QM_ASSERT(0); break;
+	}
+	state = StateNone;
+}
+
+#else
+
 void Battery::processDataTransferCompleted(QmI2CDevice::TransferResult result) {
 	switch (state) {
 	case StateReqRelativeStateOfCharge: {
@@ -103,6 +167,8 @@ void Battery::processDataTransferCompleted(QmI2CDevice::TransferResult result) {
 	}
 	state = StateNone;
 }
+
+#endif
 
 void Battery::setMinimalActivityMode(bool enabled) {
 	if (enabled) {

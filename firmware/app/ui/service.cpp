@@ -72,15 +72,12 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     }
     if (storageFs > 0)
     	menu->setFS(storageFs);
-   // storageFs->setVoiceMode(true);
+
     bool useMode = false;
     if (storageFs > 0)
     	storageFs->getVoiceMode(&useMode);
     menu->useMode = (bool)useMode;
     multiradio_service->setVoiceMode((Multiradio::MainServiceInterface::VoiceMode)!menu->useMode);
-
-   // menu->loadVoiceMail.connect(sigc::mem_fun(this, &Service::onLoadVoiceMail));
-   // menu->loadMessage.connect(sigc::mem_fun(this, &Service::onLoadMessage));
 
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
@@ -105,6 +102,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->gucCoord.connect(sigc::mem_fun(this,&Service::GucCoord));
     voice_service->startRxQuitSignal.connect(sigc::mem_fun(this, &Service::startRxQuit));
     voice_service->stationModeIsCompleted.connect(sigc::mem_fun(this,&Service::onCompletedStationMode));
+    voice_service->dspStarted.connect(sigc::mem_fun(this,&Service::onDspStarted));
 
     pswf_status = false;
  #if defined (PORT__TARGET_DEVICE_REV1)
@@ -138,7 +136,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     currentSpeed = voice_service->getCurrentChannelSpeed();
 
     draw();
-
 }
 
 void Service::onTestMsgTimer()
@@ -171,7 +168,6 @@ void Service::setPswfStatus(bool var)
 void Service::showAtuMalfunction()
 {
     msgBox(atumalfunction_title_str, atumalfunction_text_str);
-   // guiTree.append(messangeWindow, atumalfunction_title_str, atumalfunction_text_str);
 }
 
 void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)
@@ -187,13 +183,11 @@ void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)
         text = text_buffer;
 	}
 	msgBox(title.c_str(), text.c_str());
-	//guiTree.append(messangeWindow, title.c_str(), text.c_str());
 }
 
 void Service::errorGucCrc()
 {
     msgBox( "Error ", "Crc error\0");
-    //guiTree.append(messangeWindow, errorCrcGuc, "0\0");
 }
 
 void Service::GucCoord(){
@@ -265,7 +259,7 @@ void Service::drawIndicator()
 		{
 			Navigation::Coord_Date date = navigator->getCoordDate();
             uint8_t gpsStatusNew = date.status;
-            if (gpsStatusNew && !isValidGpsTime)
+            if (gpsStatusNew && !isValidGpsTime && isDspStarted)
 				updateSessionTimeSchedule();
             if (gpsStatus == 0 && gpsStatusNew == 1)
                 gpsStatus = 2; //unlock
@@ -1186,6 +1180,7 @@ void Service::keyPressed(UI_Key key)
                         menu->focus = 2;
                         menu->inVoiceMail = false;
                         menu->toVoiceMail = false;
+                        onCompletedStationMode();
                     }
                 }
 #ifdef _DEBUG_
@@ -1231,6 +1226,7 @@ void Service::keyPressed(UI_Key key)
                         menu->voiceAddr.clear();
                         menu->channalNum.clear();
                         menu->focus = 0;
+                        //onCompletedStationMode();
                         guiTree.resetCurrentState();
                     }
                     // repeat
@@ -3844,7 +3840,8 @@ void Service::loadSheldure()
          sheldureParsing(sheldureMass);
          schedulePromptTimer.timeout.connect(sigc::mem_fun( this, &Service::onScheduleSessionTimer));
          schedulePromptRedrawTimer.timeout.connect(sigc::mem_fun( this, &Service::stopSchedulePromptTimer));
-         updateSessionTimeSchedule();
+         if (isDspStarted)
+            updateSessionTimeSchedule();
        }
 
        if (sheldureMass > 0){
@@ -4026,6 +4023,12 @@ void Service::onCompletedStationMode(bool isGoToVoice)
     if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
         setFreq();
     }
+}
+
+void Service::onDspStarted()
+{
+    isDspStarted = true;
+    updateSessionTimeSchedule();
 }
 
 }/* namespace Ui */

@@ -24,6 +24,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 	dispatcher(dispatcher),
 	current_channel_status(ChannelDisabled)
 {
+    dispatcher->dsp_controller->started.connect(sigc::mem_fun(this,&VoiceServiceInterface::onDspStarted));
     dispatcher->dsp_controller->firstPacket.connect(sigc::mem_fun(this,&VoiceServiceInterface::fistPacketRecieve));
     dispatcher->dsp_controller->smsPacketMessage.connect(sigc::mem_fun(this,&VoiceServiceInterface::smsMessage));
     dispatcher->dsp_controller->smsFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::SmsFailStage));

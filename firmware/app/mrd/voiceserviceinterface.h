@@ -72,6 +72,7 @@ public:
 
     uint8_t* requestGucCoord();
 
+    sigc::signal<void> dspStarted;
     sigc::signal<void, bool> stationModeIsCompleted;
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
@@ -117,6 +118,7 @@ private:
     void fistPacketRecieve(int packet, bool rec);
     void responseGuc(int value);
     void smsMessage(int value);
+    void onDspStarted(){dspStarted();}
 
 	Dispatcher *dispatcher;
     ChannelStatus current_channel_status;

@@ -279,6 +279,8 @@ private:
     void onTestMsgTimer();
     void startTest();
     bool isStartTestMsg = true;
+    void onDspStarted();
+    bool isDspStarted = false;
 };
 
 } /* namespace Ui */

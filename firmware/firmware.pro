@@ -11,6 +11,8 @@ CONFIG += staticlib
 CONFIG -= qt
 CONFIG += c++11
 
+
+
 include(../misc/qt_build_utils.pri)
 
 include(../Qm/Qm.pri)
@@ -42,6 +44,7 @@ INCLUDEPATH += \
     ../system/qm-platform/qt5/port_ramtex_s6d0129_cfg_seps525/qt
 
 DEFINES += PORT__PCSIMULATOR
+
 
 HEADERS += \
     app/ui/menu.h \

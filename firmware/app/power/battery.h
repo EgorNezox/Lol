@@ -14,6 +14,8 @@
 #include "sigc++/signal.h"
 #include "qmi2cdevice.h"
 
+#define BATTERY_VOLTAGE 0
+
 class QmTimer;
 
 namespace Power {
@@ -32,10 +34,14 @@ public:
 	Status getStatus();
 	int getChargeLevel();
 
+	/* Запрос уровня напряжения батареи. Значение возвращается сигналом voltageReceived. */
+	void requireVoltage(bool* success);
+
 	void setMinimalActivityMode(bool enabled);
 
 	sigc::signal<void, Status/*new_status*/> statusChanged;
 	sigc::signal<void, int/*new_level*/> chargeLevelChanged;
+	sigc::signal<void, int/*voltage*/> voltageReceived;
 
 private:
 	void setStatus(Status new_status);
@@ -44,11 +50,13 @@ private:
 	void processDataTransferCompleted(QmI2CDevice::TransferResult result);
 
 	enum {
+		batCmdVoltage 				= 0x09,
 		batCmdRelativeStateOfCharge = 0x0D
 	} batCmd;
 
 	enum State {
 		StateNone,
+		StateReqVoltage,
 		StateReqRelativeStateOfCharge
 	};
 
