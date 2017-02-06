@@ -42,11 +42,18 @@ public:
     }
     void setFreq(const char *fr)
     {
-        std::string str;
-        str.append(fr);
-        str.append(freq_hz);
-        str.push_back('\0');
-        freq->SetText((char*)str.c_str());
+        std::string strIn, strOut;
+        strIn.append(fr);
+        uint8_t size = strIn.size();
+        for (uint8_t i = 0; i < size; i++)
+        {
+            strOut.push_back(strIn[i]);
+            if (i == (size - 4) || i == (size - 7))
+            strOut.push_back('.');
+        }
+        strOut.append(freq_hz);
+        strOut.push_back('\0');
+        freq->SetText((char*)strOut.c_str());
     }
     void editingFreq(UI_Key);
     void keyPressed(UI_Key);

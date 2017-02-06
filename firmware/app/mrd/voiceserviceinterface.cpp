@@ -13,6 +13,7 @@
 #include "voiceserviceinterface.h"
 #include "mainserviceinterface.h"
 #include "dispatcher.h"
+#include "qmthread.h"
 #include <math.h>
 #include "../datastorage/fs.h"
 
@@ -179,7 +180,7 @@ void VoiceServiceInterface::tunePreviousChannel() {
 void VoiceServiceInterface::tuneFrequency(int frequency, bool isRecord)
 {
     if (isRecord)
-    	dispatcher->data_storage_fs->setVoiceFrequency(frequency);
+        dispatcher->data_storage_fs->setVoiceFrequency(frequency);
 	dispatcher->voice_manual_frequency = frequency;
 	if (isRecord && dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
 		return;
