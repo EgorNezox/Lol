@@ -38,8 +38,8 @@ public:
 	void setMinimalActivityMode(bool enabled);
 
 	sigc::signal<void, Status/*new_status*/> statusChanged;
-	sigc::signal<void, int/*new_level_charge*/, int/*new_level_voltage*/> chargeLevelChanged;
-    sigc::signal<void, int/*new_level_charge*/, int/*new_level_voltage*/> voltageChanged;
+	sigc::signal<void, int/*new_level_charge*/> chargeLevelChanged;
+    sigc::signal<void, int/*new_level_voltage*/> voltageChanged;
 	sigc::signal<void, int/*voltage*/> voltageReceived;
 
     int getVoltage();

@@ -364,6 +364,11 @@ void VoiceServiceInterface::sendBatteryVoltage(int voltage)
    dispatcher->dsp_controller->sendBatteryVoltage(voltage);
 }
 
+void VoiceServiceInterface::sendHeadsetType(uint8_t type)
+{
+   dispatcher->dsp_controller->sendHeadsetType(type);
+}
+
 void VoiceServiceInterface::gucCoordRec(){
 	gucCoord();
 }

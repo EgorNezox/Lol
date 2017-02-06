@@ -105,6 +105,8 @@ public:
 
     uint8_t* getVirtualTime();
     void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
+    void sendBatteryVoltage(int voltage);
+    void sendHeadsetType(uint8_t type);
 private:
     void onSmsCounterChange(int param);
 	friend class Dispatcher;
@@ -119,7 +121,7 @@ private:
     void responseGuc(int value);
     void smsMessage(int value);
     void onDspStarted(){dspStarted();}
-    void sendBatteryVoltage(int voltage);
+
 
 	Dispatcher *dispatcher;
     ChannelStatus current_channel_status;

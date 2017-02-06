@@ -106,7 +106,9 @@ public:
     void setNotification(NotificationType type);
     void updateHeadset(Headset::Controller::Status);
     void updateMultiradio(Multiradio::MainServiceInterface::Status);
-    void updateBattery(int newCharge, int newVoltage);
+    void batteryVoltageChanged(int newVoltage);
+    void batteryChargeChanged(int newVoltage);
+    void updateBattery();
     void updateAleState(Multiradio::MainServiceInterface::AleState);
     void updateAleVmProgress(uint8_t);
     void updateHSState(Headset::Controller::SmartHSState);
@@ -283,6 +285,7 @@ private:
     bool isDspStarted = false;
     void getBatteryVoltage();
     void onRecievingBatteryVoltage(int voltage);
+    void checkHeadsetStatus();
 };
 
 } /* namespace Ui */

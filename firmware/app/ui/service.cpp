@@ -80,8 +80,11 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     multiradio_service->setVoiceMode((Multiradio::MainServiceInterface::VoiceMode)!menu->useMode);
 
     this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
-    this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
-    this->power_battery->voltageChanged.connect(sigc::mem_fun(this, &Service::updateBattery));
+
+    this->power_battery->voltageChanged.connect(sigc::mem_fun(this, &Service::batteryVoltageChanged));
+    this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::batteryChargeChanged));
+
+    //this->power_battery->voltageReceived.connect(sigc::mem_fun(this,&Service::onRecievingBatteryVoltage));
 
     this->multiradio_service->aleStateChanged.connect(sigc::mem_fun(this, &Service::updateAleState));
     this->multiradio_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &Service::updateAleVmProgress));
@@ -105,7 +108,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->stationModeIsCompleted.connect(sigc::mem_fun(this,&Service::onCompletedStationMode));
     voice_service->dspStarted.connect(sigc::mem_fun(this,&Service::onDspStarted));
 
-    power_battery->voltageReceived.connect(sigc::mem_fun(this,&Service::onRecievingBatteryVoltage));
+
 
     pswf_status = false;
  #if defined (PORT__TARGET_DEVICE_REV1)
@@ -208,6 +211,8 @@ void Service::GucCoord(){
 
 void Service::updateHeadset(Headset::Controller::Status status)
 {
+    checkHeadsetStatus();
+
     bool open_ch_missing;
     Headset::Controller::SmartStatusDescription smart_status;
 
@@ -248,7 +253,17 @@ void Service::setFreqLabelValue(int value)
     voice_service->saveFreq(value);
 }
 
-void Service::updateBattery(int newCharge, int newVoltage)
+void Service::batteryChargeChanged(int newCharge)
+{
+	updateBattery();
+}
+
+void Service::batteryVoltageChanged(int newVoltage)
+{
+	voice_service->sendBatteryVoltage(newVoltage);
+}
+
+void Service::updateBattery()
 {
     drawIndicator();
 }
@@ -383,8 +398,32 @@ void Service::chPrevHandler()
     }
 }
 
+void Service::checkHeadsetStatus()
+{
+    //  0 - skzi open
+    //  1 - polev open
+    //  2 - skzi close
+
+    uint8_t headsetType = 0;
+    bool chMiss = false;
+    if (pGetHeadsetController()->getAnalogStatus(chMiss)){
+      headsetType = 1;
+      voice_service->sendHeadsetType(headsetType);
+    }
+    else{
+      headsetType = (uint8_t)voice_service->getCurrentChannelType(); // 1 - open 2 - close
+      if (headsetType)// not invalid
+      {
+          if (headsetType == 1)
+              headsetType = 0;
+          voice_service->sendHeadsetType(headsetType);
+      }
+    }
+}
+
 void Service::voiceChannelChanged()
 {
+    checkHeadsetStatus();
     char mas[9];
     sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());
     mas[8] = '\0';
@@ -4037,6 +4076,7 @@ void Service::onDspStarted()
 {
     isDspStarted = true;
     updateSessionTimeSchedule();
+    checkHeadsetStatus();
 }
 
 void Service::getBatteryVoltage()

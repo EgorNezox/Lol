@@ -318,6 +318,7 @@ private:
  		uint8_t guc_adr;
  		uint8_t param;
         uint8_t voltage;
+        uint8_t headsetType;
         ModemState modem_rx_state;
         ModemBandwidth modem_rx_bandwidth;
         ModemTimeSyncMode modem_rx_time_sync_mode;
@@ -588,11 +589,12 @@ private:
     bool boomVirtualPPS = false;
 
     void onGucWaitingQuitTimeout();
-    void sendBatteryVoltage(int voltage);
 public:
     uint8_t getSmsCounter();
     bool getIsGucCoord();
     void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
+    void sendBatteryVoltage(int voltage);
+    void sendHeadsetType(uint8_t type);
 };
 
 } /* namespace Multiradio */

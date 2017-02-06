@@ -65,20 +65,20 @@ void Battery::processBatteryDevicePolling()
         requireChargeLevel(&success);
         if (!success) {
             setStatus(StatusFailure);
-            recParam == recVoltage;
+            recParam = recVoltage;
             return;
         }
-        recParam == recVoltage;
+        recParam = recVoltage;
     }
     else if (recParam == recVoltage){
         bool success = false;
         requireVoltage(&success);
         if (!success) {
             setStatus(StatusFailure);
-            recParam == recCharge;
+            recParam = recCharge;
             return;
         }
-        recParam == recCharge;
+        recParam = recCharge;
     }
 }
 
@@ -115,7 +115,7 @@ void Battery::processDataTransferCompleted(QmI2CDevice::TransferResult result) {
 	switch (state) {
 	case StateReqVoltage: {
 		uint8_t rx_data[2];
-		if (1 != battery_device->readRxData(rx_data, 2)) {
+		if (2 != battery_device->readRxData(rx_data, 2)) {
 			setStatus(StatusFailure);
 			break;
 		}
@@ -123,12 +123,12 @@ void Battery::processDataTransferCompleted(QmI2CDevice::TransferResult result) {
 		if (actual_voltage < 0 || actual_voltage > 18000) {
 			setStatus(StatusFailure);
 			break;
-            if (actual_voltage - voltage > deltaVoltage || voltage - actual_voltage > deltaVoltage) {
-                voltage = actual_voltage;
-                voltageChanged(charge_level, voltage);
-            }
 		}
-		voltageReceived(actual_voltage);
+            if (actual_voltage != voltage) {
+                voltage = actual_voltage;
+                voltageChanged(voltage);
+                voltageReceived(actual_voltage);
+            }
 		break;
 	}
 	case StateReqRelativeStateOfCharge: {
@@ -144,7 +144,7 @@ void Battery::processDataTransferCompleted(QmI2CDevice::TransferResult result) {
 		}
 		if (actual_charge_level != charge_level) {
 			charge_level = actual_charge_level;
-            chargeLevelChanged(charge_level, voltage);
+            chargeLevelChanged(charge_level);
 			if (charge_level <= BATTERY_LOW_CHARGE_THRESHOLD) {
 				setStatus(StatusLow);
 			} else {

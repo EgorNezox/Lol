@@ -265,8 +265,30 @@ void DspController::sendBatteryVoltage(int voltage)
 {
 	// вольт * 10
     ParameterValue command;
-    command.voltage = voltage * 10;
+    command.voltage = voltage / 100;
     sendCommandEasy(TxRadiopath, 10, command);
+}
+
+void DspController::sendHeadsetType(uint8_t type)
+{
+//  0 - skzi open
+//  1 - polev open
+//  2 - skzi close
+
+    ParameterValue command;
+    command.headsetType = type;
+
+    uint8_t tx_address = 0x90;
+    uint8_t indicator = 2;
+    uint8_t valueType = 7;
+    uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
+    uint8_t tx_data_len = 0;
+
+    qmToBigEndian(indicator, tx_data + tx_data_len);             ++tx_data_len;
+    qmToBigEndian(valueType, tx_data + tx_data_len);             ++tx_data_len;
+    qmToBigEndian(command.headsetType, tx_data + tx_data_len);   ++tx_data_len;
+
+    transport->transmitFrame(tx_address, tx_data, tx_data_len);
 }
 
 void DspController::setRadioOperation(RadioOperation operation) {
