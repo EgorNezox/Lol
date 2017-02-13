@@ -7,6 +7,7 @@
 #include <string.h>
 
 #define FAKE_CALL_FREQS 1
+#define FAKE_WORK_FREQS 1
 
 namespace DataStorage {
 
@@ -129,6 +130,37 @@ bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data)
 //	file.write((uint8_t*)&fw, 4);
 	file.close();
 	return true;
+#endif
+}
+
+bool FS::getAleDefaultWorkFreqs(Multiradio::ale_work_freqs_t &data)
+{
+#if FAKE_WORK_FREQS
+
+    data.push_back(5786000);
+    data.push_back(4517000);
+    data.push_back(6197000);
+    data.push_back(4889000);
+    return true;
+
+#else
+
+    data.clear();
+    QmFile file(dir, "AleDefaultWorkFreqs");
+    if (!file.open(QmFile::ReadOnly))
+        return false;
+    int64_t file_size = file.size();
+    if (!(file_size > 4))
+        return false;
+    uint32_t count = 0;
+    file.read((uint8_t *)&count, 4);
+    for (unsigned int i = 0; i < count; i++) {
+        uint32_t entry;
+        file.read((uint8_t *)&entry, 4);
+        data.push_back(entry);
+    }
+    file.close();
+    return true;
 #endif
 }
 

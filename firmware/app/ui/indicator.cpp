@@ -52,19 +52,19 @@ GUI_Indicator::~GUI_Indicator()
 
 //-----------------------------
 
-void GUI_Indicator::UpdateMultiradio(Multiradio::MainServiceInterface::Status status){
+void GUI_Indicator::UpdateMultiradio(Multiradio::VoiceServiceInterface::Status status){
     switch(status){
-        case Multiradio::MainServiceInterface::StatusIdle:
-        case Multiradio::MainServiceInterface::StatusNotReady:
+        case Multiradio::VoiceServiceInterface::StatusIdle:
+        case Multiradio::VoiceServiceInterface::StatusNotReady:
             ind_multiradio->icon = sym_blank;
             break;
-        case Multiradio::MainServiceInterface::StatusVoiceRx:
+        case Multiradio::VoiceServiceInterface::StatusVoiceRx:
             ind_multiradio->icon = sym_rx;
             break;
-        case Multiradio::MainServiceInterface::StatusVoiceTx:
+        case Multiradio::VoiceServiceInterface::StatusVoiceTx:
             ind_multiradio->icon = sym_tx;
             break;
-        case Multiradio::MainServiceInterface::StatusTuningTx:
+        case Multiradio::VoiceServiceInterface::StatusTuningTx:
             ind_multiradio->icon = sym_tx_tune;
             break;
         default:
@@ -112,7 +112,7 @@ void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
 
 //-----------------------------
 
-void GUI_Indicator::Draw( Multiradio::MainServiceInterface::Status multiradioStatus,
+void GUI_Indicator::Draw( Multiradio::VoiceServiceInterface::Status multiradioStatus,
                           Headset::Controller::Status              headsetStatus,
                           int                                      battaryStatus,
                           uint8_t                                     gpsStatus

@@ -45,7 +45,8 @@ typedef std::vector<voice_channel_entry_t> voice_channels_table_t;
 typedef std::vector<uint8_t> voice_message_t;
 
 typedef std::vector<uint32_t> ale_call_freqs_t;
+typedef std::vector<uint32_t> ale_work_freqs_t;
 
-} /* namespace Multiradio */
+}
 
 #endif /* FIRMWARE_APP_MULTIRADIO_H_ */

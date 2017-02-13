@@ -90,12 +90,12 @@ class GUI_Indicator: public GUI_Obj{
         public:
                 GUI_Indicator(MoonsGeometry *area);
         virtual ~GUI_Indicator();
-        void UpdateMultiradio(Multiradio::MainServiceInterface::Status status);
+        void UpdateMultiradio(Multiradio::VoiceServiceInterface::Status status);
         void UpdateHeadset(Headset::Controller::Status status);
         void UpdateBattery(int new_val);
         void UpdateGpsStatus(uint8_t gpsStatus);
         void Draw();
-        virtual void Draw( Multiradio::MainServiceInterface::Status,
+        virtual void Draw( Multiradio::VoiceServiceInterface::Status,
                            Headset::Controller::Status,
                            int,
                            uint8_t

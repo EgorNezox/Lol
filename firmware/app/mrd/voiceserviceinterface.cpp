@@ -8,17 +8,11 @@
  ******************************************************************************
  */
 
-#include "qm.h"
-
 #include "voiceserviceinterface.h"
-#include "mainserviceinterface.h"
-#include "dispatcher.h"
-#include "qmthread.h"
-#include <math.h>
-#include "../datastorage/fs.h"
-
 
 namespace Multiradio {
+
+//typedef AleService::AleState AleState;
 
 VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 	QmObject(dispatcher),
@@ -27,18 +21,32 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 {
     dispatcher->dsp_controller->started.connect(sigc::mem_fun(this,&VoiceServiceInterface::onDspStarted));
     dispatcher->dsp_controller->firstPacket.connect(sigc::mem_fun(this,&VoiceServiceInterface::fistPacketRecieve));
-    dispatcher->dsp_controller->smsPacketMessage.connect(sigc::mem_fun(this,&VoiceServiceInterface::smsMessage));
-    dispatcher->dsp_controller->smsFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::SmsFailStage));
+
     dispatcher->dsp_controller->recievedGucResp.connect(sigc::mem_fun(this,&VoiceServiceInterface::responseGuc));
     dispatcher->dsp_controller->recievedGucQuitForTransm.connect(sigc::mem_fun(this,&VoiceServiceInterface::messageGucQuit));
-
     dispatcher->dsp_controller->gucCrcFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCrcFail));
     dispatcher->dsp_controller->updateGucGpsStatus.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCoordRec));
+
+    dispatcher->dsp_controller->smsPacketMessage.connect(sigc::mem_fun(this,&VoiceServiceInterface::smsMessage));
+    dispatcher->dsp_controller->smsFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::SmsFailStage));
     dispatcher->dsp_controller->smsCounterChanged.connect(sigc::mem_fun(this,&VoiceServiceInterface::onSmsCounterChange));
 
     dispatcher->dsp_controller->TxCondCmdPackageTransmit.connect(sigc::mem_fun(this,&VoiceServiceInterface::TxCondCmdTransmit));
     dispatcher->dsp_controller->startRxQuit.connect(sigc::mem_fun(this,&VoiceServiceInterface::startRxQuit));
     dispatcher->dsp_controller->stationModeIsCompleted.connect(sigc::mem_fun(this,&VoiceServiceInterface::onStationModeIsCompleted));
+
+    current_status = StatusNotReady;
+    current_mode = VoiceModeManual;
+
+    // ---- mainservice signals
+    //dispatcher->dsp_controller->hardwareFailed.connect(sigc::mem_fun(this, &VoiceServiceInterface::forwardDspHardwareFailure));
+    //if (dispatcher->navigator != 0)
+    //	dispatcher->navigator->syncPulse.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocess1PPS));
+    //dispatcher->dsp_controller->transmittedModemPacket.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocessModemPacketTransmitted));
+    //dispatcher->dsp_controller->failedTxModemPacket.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocessModemPacketFailedTx));
+    //dispatcher->dsp_controller->receivedModemPacket.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocessModemPacketReceived));
+    //dispatcher->dsp_controller->startedRxModemPacket_packHead.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocessModemPacketStartedRxPackHead));
+    //dispatcher->dsp_controller->failedRxModemPacket.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocessModemPacketFailedRx));
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
@@ -83,13 +91,13 @@ int VoiceServiceInterface::getCurrentChannelNumber()
 
 int VoiceServiceInterface::getCurrentChannelFrequency()
 {
-	switch (dispatcher->main_service->current_mode) {
-	case MainServiceInterface::VoiceModeAuto: {
+    switch (current_mode) {
+    case VoiceModeAuto: {
 		if (current_channel_status != ChannelDisabled)
 			return dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).frequency;
 		break;
 	}
-	case MainServiceInterface::VoiceModeManual: {
+    case VoiceModeManual: {
 		return dispatcher->voice_manual_frequency;
 	}
 	}
@@ -97,15 +105,15 @@ int VoiceServiceInterface::getCurrentChannelFrequency()
 }
 
 voice_emission_t VoiceServiceInterface::getCurrentChannelEmissionType() {
-	switch (dispatcher->main_service->current_mode) {
-	case MainServiceInterface::VoiceModeAuto: {
+    switch (current_mode) {
+    case VoiceModeAuto: {
 		if (current_channel_status != ChannelDisabled) {
 			uint32_t frequency = dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).frequency;
 			return dispatcher->getVoiceEmissionFromFrequency(frequency);
 		}
 		break;
 	}
-	case MainServiceInterface::VoiceModeManual: {
+    case VoiceModeManual: {
 		return dispatcher->voice_manual_emission_type;
 	}
 	}
@@ -118,14 +126,15 @@ voice_channel_t VoiceServiceInterface::getCurrentChannelType() {
 	return (*(dispatcher->voice_channel)).type;
 }
 
-voice_channel_speed_t VoiceServiceInterface::getCurrentChannelSpeed() {
-	switch (dispatcher->main_service->current_mode) {
-	case MainServiceInterface::VoiceModeAuto: {
+voice_channel_speed_t VoiceServiceInterface::getCurrentChannelSpeed()
+{
+    switch (current_mode) {
+    case VoiceModeAuto: {
 		if (current_channel_status != ChannelDisabled)
 			return dispatcher->voice_channels_table.at(getCurrentChannelNumber()-1).speed;
 		break;
 	}
-	case MainServiceInterface::VoiceModeManual: {
+    case VoiceModeManual: {
 		return dispatcher->voice_manual_channel_speed;
 	}
 	}
@@ -135,7 +144,7 @@ voice_channel_speed_t VoiceServiceInterface::getCurrentChannelSpeed() {
 void VoiceServiceInterface::setCurrentChannelSpeed(voice_channel_speed_t speed) {
 	dispatcher->data_storage_fs->setVoiceChannelSpeed(speed);
 	dispatcher->voice_manual_channel_speed = speed;
-	if (!((dispatcher->main_service->current_mode == MainServiceInterface::VoiceModeManual)
+    if (!((current_mode == VoiceModeManual)
 			&& (dispatcher->headset_controller->getStatus() == Headset::Controller::StatusSmartOk)))
 		return;
 	dispatcher->headset_controller->setSmartCurrentChannelSpeed(speed);
@@ -182,7 +191,7 @@ void VoiceServiceInterface::tuneFrequency(int frequency, bool isRecord)
     if (isRecord)
         dispatcher->data_storage_fs->setVoiceFrequency(frequency);
 	dispatcher->voice_manual_frequency = frequency;
-	if (isRecord && dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
+    if (isRecord && current_mode != VoiceModeManual)
 		return;
     dispatcher->updateVoiceChannel(true);
 }
@@ -190,7 +199,7 @@ void VoiceServiceInterface::tuneFrequency(int frequency, bool isRecord)
 void VoiceServiceInterface::tuneEmissionType(voice_emission_t type) {
 	dispatcher->data_storage_fs->setVoiceEmissionType(type);
 	dispatcher->voice_manual_emission_type = type;
-	if (dispatcher->main_service->current_mode != MainServiceInterface::VoiceModeManual)
+    if (current_mode != VoiceModeManual)
 		return;
     dispatcher->updateVoiceChannel(false);
 }
@@ -329,8 +338,8 @@ void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
 
 void VoiceServiceInterface::updateChannel() {
 	if (dispatcher->voice_channel != dispatcher->voice_channels_table.end()) {
-		if ((dispatcher->main_service->current_mode == MainServiceInterface::VoiceModeAuto)
-				|| ((dispatcher->main_service->current_mode == MainServiceInterface::VoiceModeManual)
+        if ((current_mode == VoiceModeAuto)
+                || ((current_mode == VoiceModeManual)
 						&& (dispatcher->headset_controller->getStatus() == Headset::Controller::StatusSmartOk)))
 			setCurrentChannel(ChannelActive);
 		else
@@ -424,7 +433,8 @@ void VoiceServiceInterface::TxCondCmdTransmit(int value)
 {
     command_tx30(value);
 }
-void VoiceServiceInterface::onSmsCounterChange(int param){
+void VoiceServiceInterface::onSmsCounterChange(int param)
+{
    smsCounterChanged(param);
 }
 
@@ -446,6 +456,97 @@ bool VoiceServiceInterface::getVirtualMode()
 void VoiceServiceInterface::playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel)
 {
     dispatcher->dsp_controller->playSoundSignal(mode, speakerVolume, gain, soundNumber, duration, micLevel);
+}
+
+uint8_t VoiceServiceInterface::playVoiceMessage(uint8_t fileNumber, DataStorage::FS::TransitionFileType transFileType)
+{
+    Headset::Controller::Status status;
+    uint8_t result = 1; // error read
+    if (storageFs > 0){
+        voice_message_t msg;
+        if (storageFs->readMessage(DataStorage::FS::FT_VM,transFileType,&msg,fileNumber))
+           result = 0;
+        dispatcher->headset_controller->setSmartMessageToPlay(msg);
+        status = dispatcher->headset_controller->getStatus();
+        if (status == Headset::Controller::Status::StatusNone)
+            result = 2;
+        else
+            dispatcher->headset_controller->startSmartPlay(2);
+    }
+    return result;
+}
+
+void VoiceServiceInterface::setFS(DataStorage::FS *fs)
+{
+    storageFs = fs;
+}
+
+void VoiceServiceInterface::startAleRx()
+{
+    dispatcher->ale_service->startAleRx();
+}
+
+void VoiceServiceInterface::startAleTx(uint8_t address, voice_message_t message)
+{
+    dispatcher->ale_service->startAleTxVoiceMail(address, message);
+}
+
+void VoiceServiceInterface::stopAle()
+{
+    dispatcher->ale_service->stopAle();
+}
+
+AleState VoiceServiceInterface::getAleState()
+{
+   return dispatcher->ale_service->getAleState();
+}
+
+uint8_t VoiceServiceInterface::getAleVmProgress()
+{
+    return dispatcher->ale_service->getAleVmProgress();
+}
+
+Multiradio::voice_message_t VoiceServiceInterface::getAleRxVmMessage()
+{
+    return dispatcher->ale_service->getAleRxVmMessage();
+}
+
+uint8_t VoiceServiceInterface::getStationAddress()
+{
+    return dispatcher->stationAddress;
+}
+
+uint8_t VoiceServiceInterface::getAleRxAddress()
+{
+    return dispatcher->ale_service->getAleRxAddress();
+}
+
+VoiceServiceInterface::Status VoiceServiceInterface::getStatus()
+{
+    return current_status;
+}
+
+void VoiceServiceInterface::setVoiceMode(VoiceMode mode)
+{
+    if (mode == current_mode)
+        return;
+    current_mode = mode;
+    if ((mode == VoiceModeAuto) && !dispatcher->isVoiceMode())
+        return;
+    dispatcher->updateVoiceChannel(true);
+    dispatcher->headset_controller->setSmartCurrentChannelSpeed(getCurrentChannelSpeed());
+}
+
+VoiceServiceInterface::VoiceMode VoiceServiceInterface::getVoiceMode()
+{
+    return current_mode;
+}
+
+void VoiceServiceInterface::setStatus(Status value) {
+    if (current_status != value) {
+        current_status = value;
+        //statusChanged(value);
+    }
 }
 
 } /* namespace Multiradio */

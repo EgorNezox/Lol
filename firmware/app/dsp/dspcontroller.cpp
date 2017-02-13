@@ -167,10 +167,6 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     sms_call_received = false;
     for(int i = 0;i<255;i++) rs_data_clear[i] = 1;
 
-   data_storage_fs->getAleStationAddress(stationAddress);
-    ContentSms.S_ADR = stationAddress;
-    ContentPSWF.S_ADR = stationAddress;
-    //data_storage_fs->getAleStationAddress(ContentPSWF.S_ADR);
     QNB = 0;
     pswf_rec = 0;
 
@@ -370,6 +366,7 @@ void DspController::getSwr()
 
 void DspController::syncPulseDetected() {
 	sync_pulse_delay_timer->start();
+    vm1Pps();
 }
 
 
@@ -3168,6 +3165,8 @@ void DspController::correctTime(uint8_t num)
 void DspController::wakeUpTimer()
 {
 #ifndef PORT__PCSIMULATOR
+    vm1Pps();
+
 	if ((virtual_mode) && (RtcRxRole) && (!antiSync))
 	{
 		t = rtc->getTime();
@@ -3432,6 +3431,48 @@ void DspController::onGucWaitingQuitTimeout()
 	completedStationMode(false);
 }
 
+void DspController::vm1Pps()
+{
+    int hrs(0), min(0), sec(0);
+
+    if (virtual_mode)
+    {
+#ifndef PORT__PCSIMULATOR
+        QmRtc::Time time;
+        time = rtc->getTime();
+
+        hrs = time.hours;
+        min = time.minutes;
+        sec = time.seconds;
+#endif
+    }
+    else
+    {
+        Navigation::Coord_Date date = navigator->getCoordDate();
+
+        char hr_ch[3] = {0,0,0};
+        char mn_ch[3] = {0,0,0};
+        char sc_ch[3] = {0,0,0};
+
+        memcpy(hr_ch,&date.time[0],2);
+        memcpy(mn_ch,&date.time[2],2);
+        memcpy(sc_ch,&date.time[4],2);
+
+        hrs = atoi(hr_ch);
+        min = atoi(mn_ch);
+        sec = atoi(sc_ch);
+    }
+
+    vm1PpsPulse(hrs, min, sec);
+}
+
+void DspController::setStationAddress(uint8_t address)
+{
+    //data_storage_fs->getAleStationAddress(stationAddress);
+    stationAddress = address;
+     ContentSms.S_ADR = stationAddress;
+     ContentPSWF.S_ADR = stationAddress;
+}
 
 }
 /* namespace Multiradio */

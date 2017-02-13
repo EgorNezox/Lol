@@ -34,7 +34,7 @@ public:
 	bool setGeneratorFreq(uint16_t data);
 
 	bool getVoiceChannelsTable(Multiradio::voice_channels_table_t &data);
-	bool getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data);
+    bool getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data);
 	bool getAleStationAddress(uint8_t &data);
 	bool getFhssKey(uint16_t &data);
 	void setFhssKey(uint16_t data);
@@ -61,6 +61,7 @@ public:
     void setVoiceMode(bool data);
     bool getVoiceMode(bool *data);
     bool setAleStationAddress(uint8_t data);
+    bool getAleDefaultWorkFreqs(Multiradio::ale_work_freqs_t &data);
 private:
     bool renameFile(std::string oldfileName, std::string newFileName);
     bool deleteFile(std::string fileName);

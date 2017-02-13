@@ -69,7 +69,9 @@ Navigator::~Navigator() {
 
 Coord_Date Navigator::getCoordDate()
 {
+#ifndef PORT__PCSIMULATOR
     return CoordDate;
+#endif
 }
 
 int Navigator::Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC)

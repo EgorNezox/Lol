@@ -194,6 +194,7 @@ public:
 	sigc::signal<void> startRxQuit;
 
     sigc::signal<void, int/*command_tx30*/> TxCondCmdPackageTransmit;   // �������� ��  ������
+    sigc::signal<void, int, int, int /*hrs,min,sec*/> vm1PpsPulse;
 
     PackageManager *pack_manager;
     bool retranslation_active = false;
@@ -589,12 +590,14 @@ private:
     bool boomVirtualPPS = false;
 
     void onGucWaitingQuitTimeout();
+    void vm1Pps();
 public:
     uint8_t getSmsCounter();
     bool getIsGucCoord();
     void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
     void sendBatteryVoltage(int voltage);
     void sendHeadsetType(uint8_t type);
+    void setStationAddress(uint8_t address);
 };
 
 } /* namespace Multiradio */

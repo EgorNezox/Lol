@@ -17,11 +17,14 @@
 #include "../atu/atucontroller.h"
 #include "../datastorage/fs.h"
 #include "../power/battery.h"
+#include "aleservice.h"
+#include "ale_fxn.h"
 
 namespace Multiradio {
 
-class MainServiceInterface;
 class VoiceServiceInterface;
+class AleService;
+class AleFxn;
 
 class Dispatcher : public QmObject
 {
@@ -30,12 +33,12 @@ public:
 			Headset::Controller *headset_controller, Navigation::Navigator *navigator, DataStorage::FS *data_storage_fs, Power::Battery *power_battery);
 	~Dispatcher();
 	void startServicing(const Multiradio::voice_channels_table_t &voice_channels_table);
-	MainServiceInterface* getMainServiceInterface();
 	VoiceServiceInterface* getVoiceServiceInterface();
 
 private:
-	friend MainServiceInterface;
+    friend AleService;
 	friend VoiceServiceInterface;
+    friend AleFxn;
 
 	void processDspStartup();
 	bool processHeadsetPttStateChange(bool new_state);
@@ -61,7 +64,7 @@ private:
 	AtuController *atu_controller;
 	Headset::Controller *headset_controller;
 	Navigation::Navigator *navigator;
-	MainServiceInterface *main_service;
+    AleService *ale_service;
 	VoiceServiceInterface *voice_service;
 	voice_channels_table_t voice_channels_table;
 	voice_channels_table_t::iterator voice_channel;
@@ -72,7 +75,9 @@ private:
 	Power::Battery *power_battery;
 
     uint32_t prevFrequency = 0;
+    uint8_t stationAddress = 1;
 
+    void initAle();
 };
 
 } /* namespace Multiradio */

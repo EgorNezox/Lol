@@ -17,7 +17,6 @@
 #include "ui_keys.h"
 #include "datastorage/fs.h"
 #include "../mrd/voiceserviceinterface.h"
-#include "../mrd/mainserviceinterface.h"
 #include "../headset/controller.h"
 #include "../power/battery.h"
 #include "../navigation/navigator.h"
@@ -29,6 +28,7 @@
 #include "gui_obj.h"
 #include "menu.h"
 #include "gui_tree.h"
+#include "../mrd/aleservice.h"
 
 
 
@@ -43,7 +43,6 @@ namespace Headset {
     class Controller;
 }
 namespace Multiradio {
-    class MainServiceInterface;
     class VoiceServiceInterface;
 }
 namespace Power {
@@ -96,7 +95,6 @@ public:
     Service(matrix_keyboard_t matrixkb_desc,
             aux_keyboard_t auxkb_desc,
             Headset::Controller *headset_controller,
-            Multiradio::MainServiceInterface *mr_main_service,
             Multiradio::VoiceServiceInterface *mr_voice_service,
             Power::Battery *power_battery,
             Navigation::Navigator *navigator,
@@ -105,11 +103,11 @@ public:
     ~Service();
     void setNotification(NotificationType type);
     void updateHeadset(Headset::Controller::Status);
-    void updateMultiradio(Multiradio::MainServiceInterface::Status);
+    void updateMultiradio(Multiradio::VoiceServiceInterface::Status);
     void batteryVoltageChanged(int newVoltage);
     void batteryChargeChanged(int newVoltage);
     void updateBattery();
-    void updateAleState(Multiradio::MainServiceInterface::AleState);
+    void updateAleState(AleState);
     void updateAleVmProgress(uint8_t);
     void updateHSState(Headset::Controller::SmartHSState);
     int  getFreq();
@@ -158,7 +156,6 @@ private:
     matrix_keyboard_t matrix_kb;
     aux_keyboard_t aux_kb;
     Headset::Controller *headset_controller;
-    Multiradio::MainServiceInterface *multiradio_service;
     Multiradio::VoiceServiceInterface *voice_service;
     Power::Battery *power_battery;
     QmMatrixKeyboard *keyboard;
@@ -187,7 +184,6 @@ private:
     void keyPressed(UI_Key key);
     void keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type);
     Headset::Controller *pGetHeadsetController();
-    Multiradio::MainServiceInterface* pGetMultitradioService();
     Multiradio::VoiceServiceInterface* pGetVoiceService();
     Power::Battery * pGetPowerBattery();
     int getLanguage();

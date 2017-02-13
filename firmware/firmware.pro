@@ -11,8 +11,6 @@ CONFIG += staticlib
 CONFIG -= qt
 CONFIG += c++11
 
-
-
 include(../misc/qt_build_utils.pri)
 
 include(../Qm/Qm.pri)
@@ -30,7 +28,13 @@ SOURCES += \
     $$wildcardSources(app/ui, *.cpp) \
     app/ui/menu.cpp \
     app/ui/gui_tree.cpp \
-    app/dsp/sheldurer.cpp
+    app/dsp/sheldurer.cpp \
+    app/mrd/ale_data_transport.cpp \
+    app/mrd/ale_main.cpp \
+    app/mrd/ale_com.cpp \
+    app/mrd/continious_timer.cpp \
+    app/mrd/aleservice.cpp \
+    app/mrd/ale_fxn.cpp
 
 #!!! Временный хак для реализации прямого доступа к Ramtex из модуля UI
 #!!! Убрать, когда модуль будет переработан на использование средств Qm
@@ -52,7 +56,6 @@ HEADERS += \
     app/ui/service.h \
     app/ui/gui_tree.h \
     app/mrd/dispatcher.h \
-    app/mrd/mainserviceinterface.h \
     app/mrd/voiceserviceinterface.h \
     app/atu/atucontroller.h \
     app/datastorage/fs.h \
@@ -72,6 +75,13 @@ HEADERS += \
     app/navigation/navigator.h \
     app/messages/rs_tms.h \
     app/dsp/packagemanager.h \
-    app/dsp/sheldurer.h
+    app/dsp/sheldurer.h \
+    app/mrd/ale_data_transport.h \
+    app/mrd/ale_com.h \
+    app/mrd/ale_main.h \
+    app/mrd/ale_const.h \
+    app/mrd/continious_timer.h \
+    app/mrd/aleservice.h \
+    app/mrd/ale_fxn.h
 
 CONFIG(debug, release|debug):DEFINES += _DEBUG_

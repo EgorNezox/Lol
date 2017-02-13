@@ -29,7 +29,6 @@ bool Service::single_instance = false;
 Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   aux_keyboard_t                     auxkb_desc,
                   Headset::Controller               *headset_controller,
-                  Multiradio::MainServiceInterface  *mr_main_service,
                   Multiradio::VoiceServiceInterface *mr_voice_service,
                   Power::Battery                    *power_battery,
                   Navigation::Navigator             *navigator,
@@ -41,7 +40,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->navigator = navigator;
     this->matrix_kb          = matrixkb_desc;
     this->aux_kb             = auxkb_desc;
-    this->multiradio_service = mr_main_service;
     this->voice_service      = mr_voice_service;
     this->power_battery      = power_battery;
     this->headset_controller = headset_controller;
@@ -77,17 +75,17 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     if (storageFs > 0)
     	storageFs->getVoiceMode(&useMode);
     menu->useMode = (bool)useMode;
-    multiradio_service->setVoiceMode((Multiradio::MainServiceInterface::VoiceMode)!menu->useMode);
+    voice_service->setVoiceMode((Multiradio::VoiceServiceInterface::VoiceMode)!menu->useMode);
 
-    this->multiradio_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
+    this->voice_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
 
     this->power_battery->voltageChanged.connect(sigc::mem_fun(this, &Service::batteryVoltageChanged));
     this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::batteryChargeChanged));
 
     //this->power_battery->voltageReceived.connect(sigc::mem_fun(this,&Service::onRecievingBatteryVoltage));
 
-    this->multiradio_service->aleStateChanged.connect(sigc::mem_fun(this, &Service::updateAleState));
-    this->multiradio_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &Service::updateAleVmProgress));
+    this->voice_service->aleStateChanged.connect(sigc::mem_fun(this, &Service::updateAleState));
+    this->voice_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &Service::updateAleVmProgress));
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateHeadset));
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
@@ -100,7 +98,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
     voice_service->respGuc.connect(sigc::mem_fun(this,&Service::gucFrame));
     voice_service->atuMalfunction.connect(sigc::mem_fun(this, &Service::showAtuMalfunction));
-    multiradio_service->dspHardwareFailed.connect(sigc::mem_fun(this, &Service::showDspHardwareFailure));
+    voice_service->dspHardwareFailed.connect(sigc::mem_fun(this, &Service::showDspHardwareFailure));
     voice_service->messageGucTxQuit.connect(sigc::mem_fun(this, &Service::msgGucTXQuit));
     voice_service->gucCrcFailed.connect(sigc::mem_fun(this,&Service::errorGucCrc));
     voice_service->gucCoord.connect(sigc::mem_fun(this,&Service::GucCoord));
@@ -243,7 +241,7 @@ void Service::updateHeadset(Headset::Controller::Status status)
     drawIndicator();
 }
 
-void Service::updateMultiradio(Multiradio::MainServiceInterface::Status status)
+void Service::updateMultiradio(Multiradio::VoiceServiceInterface::Status status)
 {
     drawIndicator();
 }
@@ -289,7 +287,7 @@ void Service::drawIndicator()
 		indicator->UpdateGpsStatus(gpsStatus);
         indicator->UpdateBattery(pGetPowerBattery()->getChargeLevel());
         indicator->UpdateHeadset(pGetHeadsetController()->getStatus());
-        indicator->UpdateMultiradio(pGetMultitradioService()->getStatus());
+        indicator->UpdateMultiradio(pGetVoiceService()->getStatus());
         indicator->Draw();
 	}
     }
@@ -370,11 +368,6 @@ Headset::Controller * Service::pGetHeadsetController(){
 Multiradio::VoiceServiceInterface* Service::pGetVoiceService()
 {
     return voice_service;
-}
-
-Multiradio::MainServiceInterface* Service::pGetMultitradioService()
-{
-    return multiradio_service;
 }
 
 Power::Battery * Service::pGetPowerBattery()
@@ -491,14 +484,14 @@ void Service::keyPressed(UI_Key key)
                 if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
                 {
                     main_scr->mainWindowModeId--;
-                    this->multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode(main_scr->mainWindowModeId));
+                    this->voice_service->setVoiceMode(Multiradio::VoiceServiceInterface::VoiceMode(main_scr->mainWindowModeId));
                 }
                 break;
             case keyRight:
                 if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 1)
                 {
                     main_scr->mainWindowModeId++;
-                    this->multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode(main_scr->mainWindowModeId));
+                    this->voice_service->setVoiceMode(Multiradio::VoiceServiceInterface::VoiceMode(main_scr->mainWindowModeId));
                 }
                 break;
             default:
@@ -538,7 +531,7 @@ void Service::keyPressed(UI_Key key)
                     guiTree.advance(0);
                 if (main_scr->mwFocus >= 0)
                 {
-                    if (this->multiradio_service->getVoiceMode() == Multiradio::MainServiceInterface::VoiceModeManual)
+                    if (this->voice_service->getVoiceMode() == Multiradio::VoiceServiceInterface::VoiceModeManual)
                         main_scr->editing = true;
 
                     if (main_scr->mwFocus == 0)
@@ -605,7 +598,7 @@ void Service::keyPressed(UI_Key key)
                 }
                 else if (estate.subType == GuiWindowsSubType::voiceMode)
                 {
-                    if (multiradio_service->getVoiceMode() == Multiradio::MainServiceInterface::VoiceModeAuto)
+                    if (voice_service->getVoiceMode() == Multiradio::VoiceServiceInterface::VoiceModeAuto)
                         menu->useMode = true;
                     else
                         menu->useMode = false;
@@ -1246,7 +1239,7 @@ void Service::keyPressed(UI_Key key)
             {
                 if (key == keyBack)
                 {
-                    multiradio_service->stopAle();
+                    voice_service->stopAle();
                     menu->putOffVoiceStatus--;
                     headset_controller->stopSmartRecord();
                 }
@@ -1263,7 +1256,7 @@ void Service::keyPressed(UI_Key key)
                               smartState == headset_controller->SmartHSState_SMART_ERROR
                               )
                     {
-                        multiradio_service->stopAle();
+                        voice_service->stopAle();
                         menu->putOffVoiceStatus = 1;
                         menu->voiceAddr.clear();
                         menu->channalNum.clear();
@@ -1344,8 +1337,9 @@ void Service::keyPressed(UI_Key key)
 #else
                 if (key == keyEnter)
                 {
-                	updateAleState(Multiradio::MainServiceInterface::AleState_IDLE);
-                    multiradio_service->startAleTxVoiceMail((uint8_t)atoi(menu->voiceAddr.c_str()));
+                    updateAleState(Multiradio::AleState::AleState_IDLE);
+                    Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
+                    voice_service->startAleTx((uint8_t)atoi(menu->voiceAddr.c_str()),message);
                     menu->putOffVoiceStatus++;
                 }
 #endif
@@ -1357,13 +1351,13 @@ void Service::keyPressed(UI_Key key)
                 {
                     menu->putOffVoiceStatus--;
 #ifndef _DEBUG_
-                    multiradio_service->stopAle();
+                    voice_service->stopAle();
 #endif
                 }
-                if (key == keyEnter /*&& multiradio_service->getAleState() == */)
+                if (key == keyEnter /*&& voice_service->getAleState() == */)
                 {
 #ifndef _DEBUG_
-                    multiradio_service->stopAle();
+                    voice_service->stopAle();
 #endif
                     menu->putOffVoiceStatus = 1;
                     menu->voiceAddr.clear();
@@ -1796,14 +1790,14 @@ void Service::keyPressed(UI_Key key)
                     menu->inVoiceMail = false;
                     menu->toVoiceMail = false;
 #ifndef _DEBUG_
-                    multiradio_service->stopAle();
+                    voice_service->stopAle();
 #endif
                 }
                 if (key == keyEnter)
                 {
 #ifndef _DEBUG_
-                	updateAleState(Multiradio::MainServiceInterface::AleState_IDLE);
-                    multiradio_service->startAleRx();
+                    updateAleState(Multiradio::AleState::AleState_IDLE);
+                    voice_service->startAleRx();
 #endif
                     menu->inVoiceMail = true;
                     menu->putOffVoiceStatus++;
@@ -1815,14 +1809,14 @@ void Service::keyPressed(UI_Key key)
                 if (key == keyBack)
                 {
 #ifndef _DEBUG_
-                    multiradio_service->stopAle();
+                    voice_service->stopAle();
 #endif
                     menu->voiceAddr.clear();
                     menu->putOffVoiceStatus--;
                 }
                 if (key == keyEnter)
                 {
-                    uint8_t rxAddr = multiradio_service->getAleRxAddress();
+                    uint8_t rxAddr = voice_service->getAleRxAddress();
 //                    char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
 //                    menu->voiceAddr.append(ch);
 //                    menu->putOffVoiceStatus++;
@@ -1831,10 +1825,13 @@ void Service::keyPressed(UI_Key key)
                         char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
                         menu->voiceAddr.append(ch);
                         menu->putOffVoiceStatus++;
-                        multiradio_service->stopAle(true); // write to flash memory
+                        voice_service->stopAle();
+                        Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
+                        if (storageFs > 0)
+                            storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
                     }
                     else{
-                        multiradio_service->stopAle();
+                        voice_service->stopAle();
                         menu->putOffVoiceStatus = 1;
                         menu->voiceAddr.clear();
                         menu->channalNum.clear();
@@ -2422,9 +2419,9 @@ void Service::keyPressed(UI_Key key)
             if ( key == keyEnter)
             {
                 if (menu->useMode)
-                    multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode::VoiceModeAuto);
+                    voice_service->setVoiceMode(Multiradio::VoiceServiceInterface::VoiceMode::VoiceModeAuto);
                 else
-                    multiradio_service->setVoiceMode(Multiradio::MainServiceInterface::VoiceMode::VoiceModeManual);
+                    voice_service->setVoiceMode(Multiradio::VoiceServiceInterface::VoiceMode::VoiceModeManual);
                 storageFs->setVoiceMode(menu->useMode);
                 guiTree.backvard();
                 menu->focus = 6;
@@ -2966,10 +2963,10 @@ void Service::drawMainWindow()
 
     main_scr->setModeText(str.c_str());
 
-    auto status = multiradio_service->getStatus();
+    auto status = voice_service->getStatus();
 
     bool valid_freq = true;
-    if ( status == Multiradio::MainServiceInterface::StatusNotReady || status == Multiradio::MainServiceInterface::StatusIdle )
+    if ( status == Multiradio::VoiceServiceInterface::StatusNotReady || status == Multiradio::VoiceServiceInterface::StatusIdle )
         valid_freq = false;
 
     main_scr->Draw(voice_service->getCurrentChannelStatus(),
@@ -3042,8 +3039,8 @@ void Service::drawMenu()
             }
             else if (menu->putOffVoiceStatus == 5)
             {
-                status = multiradio_service->getAleState();
-                menu->vmProgress = multiradio_service->getAleVmProgress();
+                status = voice_service->getAleState();
+                menu->vmProgress = voice_service->getAleVmProgress();
             }
 
             menu->initTxPutOffVoiceDialogTest(status);
@@ -3153,8 +3150,8 @@ void Service::drawMenu()
             }
             else if (menu->putOffVoiceStatus == 2)
             {
-                status   = multiradio_service->getAleState();
-                menu->vmProgress = multiradio_service->getAleVmProgress();
+                status   = voice_service->getAleState();
+                menu->vmProgress = voice_service->getAleVmProgress();
             }
 
             menu->initRxPutOffVoiceDialogTest(status);
@@ -3598,7 +3595,7 @@ void Service::msgBoxSms(const char *text)
 
 }
 
-void Service::updateAleState(Multiradio::MainServiceInterface::AleState state)
+void Service::updateAleState(AleState state)
 {
     QM_UNUSED(state);
 
@@ -3670,7 +3667,7 @@ std::vector<uint8_t>* Service::loadVoiceMail(uint8_t fileNumber, DataStorage::FS
     uint8_t result = 0; // ok
     if (storageFs > 0){
         fileMsg.clear();
-        result = multiradio_service->playVoiceMessage(fileNumber, tft);
+        result = voice_service->playVoiceMessage(fileNumber, tft);
     }
 
     std::string stateStr;
