@@ -30,14 +30,15 @@ AleService::AleService(Dispatcher *dispatcher) :
 {
     dispatcher->dsp_controller->hardwareFailed.connect(sigc::mem_fun(this, &AleService::forwardDspHardwareFailure));
     //if (dispatcher->navigator != 0)
-    //    dispatcher->navigator->syncPulse.connect(sigc::mem_fun(this, &AleService::aleprocess1PPS));
+    dispatcher->dsp_controller->vm1PpsPulse.connect(sigc::mem_fun(this, &AleService::aleprocess1PPS));
     dispatcher->dsp_controller->transmittedModemPacket.connect(sigc::mem_fun(this, &AleService::aleprocessModemPacketTransmitted));
     //dispatcher->dsp_controller->failedTxModemPacket.connect(sigc::mem_fun(this, &MainServiceInterface::aleprocessModemPacketFailedTx));
     dispatcher->dsp_controller->failedTxModemPacket.connect(sigc::mem_fun(this, &AleService::aleprocessModemPacketFailedTx));
     dispatcher->dsp_controller->receivedModemPacket.connect(sigc::mem_fun(this, &AleService::aleprocessModemPacketReceived));
     dispatcher->dsp_controller->startedRxModemPacket_packHead.connect(sigc::mem_fun(this, &AleService::aleprocessModemPacketStartedRxPackHead));
     dispatcher->dsp_controller->failedRxModemPacket.connect(sigc::mem_fun(this, &AleService::aleprocessModemPacketFailedRx));
-    timer = new ContTimer((void*)&timer_fxn);
+    timer = new ContTimer();
+    timer->timerTimeout.connect(sigc::mem_fun(this, &AleService::timer_fxn));
     ale_fxn = new AleFxn( timer, dispatcher, &temp_ale, &ale_settings, &ale);
     ale_main = new AleMain( timer, &temp_ale, &ale_settings , ale_fxn );
     ale_data_transport = new AleDataTransport( timer, &temp_ale, &ale_settings , ale_fxn );
@@ -103,8 +104,10 @@ void AleService::timer_fxn()
                 ale_main->link_set_rx_mgr();
                 break;
 /*SH_PROBE*/case 3:
+                ale_main->short_probe_rx_mgr();
                 break;
 /*SH_QUAL*/	case 4:
+                ale_main->short_sound_qual_rx_mgr();
                 break;
 /*L_PROBE*/	case 5:
                 break;
@@ -114,7 +117,7 @@ void AleService::timer_fxn()
                 ale_data_transport->msg_head_rx_mgr();
                 break;
             case 8:
-                ale_data_transport->msg_head_rx_error_mgr();
+                //ale_data_transport->msg_head_rx_error_mgr();  // THIS CODE IS IN MODE 7
                 break;
 /* DATA */	case 9:
                 ale_data_transport->data_rx_mgr();
@@ -135,6 +138,8 @@ void AleService::initAle(ale_call_freqs_t call_freqs, ale_call_freqs_t work_freq
         ale_settings.call_freq[i]=call_freqs[i];
     for(int8s i=0;i<ale_settings.work_freq_num;i++)
         ale_settings.work_freq[i]=work_freqs[i];
+    ale.ManualTimeMode=false;
+    ale.probe_on=false;
 }
 
 void AleService::setManualTimeMode(bool mode)
@@ -197,7 +202,7 @@ void AleService::startAleTxVoiceMail(uint8_t address, voice_message_t message) {
 	ale.vm_f_count = ceilf((float)message_bits_size/490);
 	ale.vm_fragments.resize(ale.vm_f_count);
 	for (unsigned int i = 0; i < ale.vm_fragments.size(); i++) {
-		ale.vm_fragments[i].num_data[0] = (i & 0x3F) << 2;
+        ale.vm_fragments[i].num_data[0] = (i & 0x3F) << 2;
 		for (unsigned int j = 1; j < sizeof(ale.vm_fragments[0].num_data); j++)
 			ale.vm_fragments[i].num_data[j] = 0;
 	}
@@ -212,9 +217,17 @@ void AleService::startAleTxVoiceMail(uint8_t address, voice_message_t message) {
 	}
 	for (unsigned int i = 0; i < ale.vm_fragments.size(); i++) {
 		CRC32 f_crc;
-		f_crc.update(&(ale.vm_fragments[i].num_data[0]), sizeof(ale.vm_fragments[0].num_data));
+        f_crc.update(&(ale.vm_fragments[i].num_data[0]), sizeof(ale.vm_fragments[i].num_data));
 		qmToBigEndian(f_crc.result(), (uint8_t *)&(ale.vm_fragments[i].crc));
 	}
+    //  COPY DATA TO NEW STRUCT
+    ale_settings.data72bit_length=ale.vm_size;
+    ale_settings.data490bit_length=ale.vm_f_count;
+    for (unsigned int i = 0; i < ale.vm_fragments.size(); i++) {
+        for(unsigned int j=0;j<66;j++)
+            ale_settings.data[i][j]=ale.vm_fragments[i].num_data[j];
+    }
+    //  COPY END
 	printDebugVmMessage(ale.vm_size, ale.vm_f_count, message);
 	
     ale_main->start_fxn( !ale.ManualTimeMode, true, address, ale.probe_on );
@@ -266,26 +279,6 @@ voice_message_t AleService::getAleRxVmMessage() {
     return vm_rx_message;
 }
 
-/*
-uint8_t MainServiceInterface::playVoiceMessage(uint8_t fileNumber, DataStorage::FS::TransitionFileType transFileType)
-{
-    Headset::Controller::Status status;
-    uint8_t result = 1; // error read
-    if (storageFs > 0){
-        voice_message_t msg;
-        if (storageFs->getVoiceMail(&msg, fileNumber, transFileType))
-           result = 0;
-        dispatcher->headset_controller->setSmartMessageToPlay(msg);
-        status = dispatcher->headset_controller->getStatus();
-        if (status == Headset::Controller::Status::StatusNone)
-            result = 2;
-        else
-            dispatcher->headset_controller->startSmartPlay(2);
-    }
-    return result;
-}*/
-
-// �������� ������� �� �����������
 void AleService::setAleVmProgress(uint8_t value) {
 	if (ale.vm_progress != value) {
 		qmDebugMessage(QmDebug::Info, "ale vm progress = %u", value);
@@ -402,6 +395,14 @@ void AleService::forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error
 }
 
 } /* namespace Multiradio */
+
+//void AleService::aleStateChanged(uint8_t subdevice_code, uint8_t error_code) {
+//    dspHardwareFailed.emit(subdevice_code, error_code);
+//}
+
+//void AleService::aleVmProgressUpdated(uint8_t subdevice_code, uint8_t error_code) {
+//    dspHardwareFailed.emit(subdevice_code, error_code);
+//}
 
 #include "qmdebug_domains_start.h"
 QMDEBUG_DEFINE_DOMAIN(mrd_aleservice, LevelDefault)

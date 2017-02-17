@@ -74,8 +74,9 @@ typedef enum {
 
 /* --- use macro qmDebugMessage() instead --- */
 void message(const char * domain_name, msg_type_t type, const char * format, ...) __attribute__ ((format (printf, 3, 4)));
-
+unsigned long getTicks(void);
 }
+
 
 #endif /* QMDEBUG_H_ */
 

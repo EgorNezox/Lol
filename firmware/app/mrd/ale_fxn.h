@@ -18,17 +18,11 @@ private:
     ale_data* temp_ale;
     ext_ale_settings* ale_settings;
     OldAleData* ale;
-    (void*) msg_fxn[24]=
-    { 	(void*)&this->gen_msg_call,
-    							(void*)&gen_msg_call, 0, 0,
-								(void*)&gen_trans_mode,
-								(void*())&gen_call_qual, 0, 0, 0, 0, 0, 0,
-								(void*())&gen_sound_qual, 0, 0, 0, 0, 0, 0, 0, 0,
-								(void*())&gen_msg_head,
-								(void*())&gen_pack_head,
-								(void*())&gen_pack_qual	};
     int16s get_msg_size();
+    void makeTable32();
+    void makeTable16();
 public:
+    int8s get_min_value(int8s* data, int8s length);
     bool check_msg(int8s msg_type, bool rx_stop);
     void set_next_superphase(int8s superphase_num);
     void start_receive_msg(int8s msg_num);
@@ -61,6 +55,8 @@ public:
     void get_msg_fragment(int8s num, int8s* data);
     void aleprocessTX_modem(int8s packet_type, int8s* data, int8s length);
     void set_rx_bw(int8_t bandwidth);
+    static unsigned short CRC16(int8_t *buf, int len);
+    static unsigned int CRC32(int8_t *pData, int len);
 };
 
 }

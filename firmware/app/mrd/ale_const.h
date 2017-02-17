@@ -3,12 +3,52 @@
 
 #include <stdint.h>
 #include "multiradio.h"
+#include "ale_settings.h"
 
 #define	int8s	int8_t
 #define	int16s	int16_t
 #define	int32s	int32_t
 
 #define OLD_DSP_VERSION
+#define NO_CRC16_CHECK
+
+inline void sort_int32s_data(int32s* data, int8s length)
+{
+    int32s j,k,temp;
+    for(j=0;j<(length-1);j++)
+    {
+        for(k=(j+1);k<length;k++)
+        {
+            if(data[k]<data[j])
+            {
+                temp=data[k];
+                data[k]=data[j];
+                data[j]=temp;
+            }
+        }
+    }
+}
+
+inline void sort_int32s_data_and_index(int32s* data, int8s* index, int8s length)
+//  INDEX MUST BE IN FORMAT { 0, 1, 2, 3 ... }
+{
+    int32s j,k,temp;
+    for(j=0;j<(length-1);j++)
+    {
+        for(k=(j+1);k<length;k++)
+        {
+            if(data[k]<data[j])
+            {
+                temp=data[k];
+                data[k]=data[j];
+                data[j]=temp;
+                temp=index[k];
+                index[k]=index[j];
+                index[j]=temp;
+            }
+        }
+    }
+}
 
 typedef struct	{
 	int8s type;
@@ -25,11 +65,12 @@ typedef struct	{
 	int8s tx;
 	int8s rx;
 	//	WORK FREQ FOR PROBE, Fc/2<=Fw<=2*Fc
-	int32s work_probe_freq[32];
-	int8s work_probe_freq_index[32];
-	int8s work_probe_sign_forms[32];	// bit6 - fts16 en, 5 - fts8en, 4 - fts4en, 3 - ft1800en ....
-	int8s work_probe_snr[32];
-	int8s work_probe_freq_num;
+    int32s work_freq[32];       // NOT THE SAME AS IN STRUCT EXT_ALE_SETTINGS. THERE ARE ONLY FREQ FOR PROBE
+    int8s work_freq_index[32];
+    int8s work_freq_sign_forms[32];	// bit6 - fts16 en, 5 - fts8en, 4 - fts4en, 3 - ft1800en ....
+    int8s work_freq_snr[32];
+    int32s work_freq_weights[32];   //  WEIGHT=65536*(bit_sum(work_probe_sign_forms))+256*(64*mft8+32*mft4+16*ft500+8*ft1800+4*fts4+2*fts8+fts16)+snr
+    int8s work_freq_num;
 	//	BEST FREQ AFTER PROBE PHASE
 	int32s best_freq[3];
 	int8s best_freq_sign_form[3];
@@ -53,32 +94,38 @@ typedef struct	{
 	bool last_msg;		//	used only when 2 msg can be received at the same time (CALLER - LR AND RPQ RECEIVE (RPQtime>LRtime), RESPONDER - RECEIVE PACK_HEAD)
 	int pack_head_emit_time,pack_head_phase_time;
 	received_message received_msg;
-	received_message tx_msg;
+    received_message tx_msg;
 }	ale_data;
 
 typedef struct	{
-	int8s gps_en;	// 0 - manual, 1 - gps
-	bool caller;		// true - caller, false - responder
+    int8s gps_en;               // 0 - manual, 1 - gps
+    bool caller;                // true - caller, false - responder
 	int32s call_freq[19];
 	int8s call_freq_num;
-	int32s work_freq[32];
+    int32s work_freq[32];       // NOT THE SAME AS IN STRUCT ALE_DATA. THERE ARE ALL FREQ
 	int8s work_freq_num;
 	int8s own_adress;
 	int8s caller_adress;		// written from ale rx
-	bool probe_on;			// used only in tx (when station is responder, this bit is given from TRANS_MODE)
-	bool schedule;			// used only in tx
-	int8s adress_dst;		// used only in tx (when station is responder, this is a caller station adress)
-	int8s superphase;		// set 0 to turn off ALE, set 1 to start and check for GUI
-							// 0 - OFF, 1 - CALL, 2 - LINK_SET, 3 - SHORT PROBES, 4 - SHORT_PROBES_QUAL, 5 - LONG PROBES,
-							// 6 - LONG_PROBES_QUAL, 7 - MSG HEAD, 8 - MSG HEAD REPEAT, 9 - DATA, 10 - DATA_END
-	int8s result;			// 0 - all ok, 1 - call error, 2 - trans error, 3 - probe error, 4 - data error
+    bool probe_on;              // used only in tx (when station is responder, this bit is given from TRANS_MODE)
+    bool schedule;              // used only in tx
+    int8s adress_dst;           // used only in tx (when station is responder, this is a caller station adress)
+    int8s superphase;           // set 0 to turn off ALE, set 1 to start and check for GUI
+                                // 0 - OFF, 1 - CALL, 2 - LINK_SET, 3 - SHORT PROBES, 4 - SHORT_PROBES_QUAL, 5 - LONG PROBES,
+                                // 6 - LONG_PROBES_QUAL, 7 - MSG HEAD, 8 - MSG HEAD REPEAT, 9 - DATA, 10 - DATA_END
+    int8s result;               // 0 - all ok, 1 - call error, 2 - trans error, 3 - probe error, 4 - data error
 	int8s phase;				// set 0 when ALE starts
-	int8s call_counter;		// set 0 when ALE starts
+    //  CALL TX COUNTERS
+    int8s call_counter;         // set 0 when ALE starts
 	int8s call_supercounter;	// set 0 when ALE starts
-	int8s repeat_counter;	// repeats of phase TRANSMODE, of SOUND QUAL of of VM PACKETS
+    //  COUNTERS FOR ALE LOGIC
+    int8s neg_counter;          // repeats of phase TRANSMODE, of SOUND QUAL of of VM PACKETS
 	int8s nres0;				// only for data tx/rx
 	int8s nres1;				// only for data tx/rx
-	int8s last_data_snr[3];	// only for data tx/rx
+    int8s last_data_snr[3];     // only for data tx/rx
+    //  DATA IN/OUT FOR DATA_TRANSPORT MODE
+    int8s data[37][66];
+    int16s data72bit_length;    //  THIS IS VALUE FROM MSG_HEAD
+    int16s data490bit_length;   //  NUMBER OF PACKETS WHICH NEED TO TRANSMIT/RECEIVE DATA
 }	ext_ale_settings;
 
 enum AleFunctionalState {
@@ -217,8 +264,6 @@ struct OldAleData{
 #define	DSP_MSG_PACK_HEAD_RX_WAITING		1000
 
 //	MIDDLE TIME FOR TIME CORRECTION
-#define	DSP_CALL_WAITING					11
-
 #define	CALL_DSP_TIME						15
 
 #define	CALL_SNR_LIM_HIGH					5
@@ -246,8 +291,13 @@ struct OldAleData{
 #define	MSG_HEAD_PACK_HEAD			25
 #define	RESP_PACK_QUAL_LINK_RELEASE	26
 
-#define	PROBE_SOUND_QUAL_PAUSE		189		// pause between probes and sound_qual
-#define	ALE_DATA_PAUSE				100		// pause between ALE and data tx/rx
+#define	DATA_SIGNAL_FORM_NUM	8
+
+const int pack_head_lim_snr[DATA_SIGNAL_FORM_NUM]=      { 31, 29, 26, 26, 16, 13, 10, 7 };
+const int pack_head_data_time[DATA_SIGNAL_FORM_NUM]=    { 2640, 3960, 7920, 7920, 7392, 14784, 29568, 59136 };
+
+#define	PACK_HEAD_IDEAL_START_EMIT		279
+#define	PACK_HEAD_IDEAL_EMIT_LAST_TIME	1977		//494
 
 #define	IDEAL_PHASE_TIME	0
 #define	IDEAL_START_EMIT	1
@@ -260,18 +310,6 @@ struct OldAleData{
 #define	RECEIVE_PERIOD			4
 #define	RECEIVE_LAST_TIME		5
 #define	PHASE_TIME				6
-
-#define	DATA_SIGNAL_FORM_NUM	8
-
-const int call_snr_lim[]={CALL_SNR_LIM_HIGH,CALL_SNR_LIM_LOW,CALL_SNR_LIM_LOW};
-const int ale_hshake_snr_lim[]={CALL_SNR_LIM_HIGH,CALL_SNR_LIM_LOW,CALL_SNR_LIM_LOW};
-
-const int pack_head_lim_snr[DATA_SIGNAL_FORM_NUM]={10,8,5,5,-5,-8,-11,-14};
-
-const int pack_head_data_time[DATA_SIGNAL_FORM_NUM]={ 2640, 3960, 7920, 7920, 7392, 14784, 29568, 59136 };
-
-#define	PACK_HEAD_IDEAL_START_EMIT		279
-#define	PACK_HEAD_IDEAL_EMIT_LAST_TIME	1977		//494
 
 const int ideal_timings[][3]={
 /* CALL_MANUAL - 0 */				11145,	5925,	4816,
@@ -296,7 +334,7 @@ const int ideal_timings[][3]={
 /* NONE - 19 */						0,		0,		0,
 /* NONE - 20 */						0,		0,		0,
 /* MSG_HEAD - 21 */					3349,	279,	2576,
-/* PACK_HEAD - 22 */				3349,	279,	2576,	// AND TIMING FOR DATA
+/* PACK_HEAD - 22 */				4832,	279,	2576,	// AND TIMING FOR DATA
 /* RESP_PACK_QUAL - 23 */			2565,	279,	1792,
 /* NONE - 24 */						0,		0,		0,
 /* MSG_HEAD+PACK_HEAD - 25 */		3349,	279,	2576,
@@ -309,14 +347,17 @@ const int ideal_timings[][3]={
 #define	CALL_GPS_END_TIME			(CALL_GPS_SUPERPHASE_TIME-ideal_timings[CALL_GPS][IDEAL_PHASE_TIME]-2*ideal_timings[HSHAKE][IDEAL_PHASE_TIME])
 #define	TRANS_MODE_SUPERPHASE_TIME	(ideal_timings[RESP_CALL_QUAL][IDEAL_PHASE_TIME]+ideal_timings[TRANS_MODE][IDEAL_PHASE_TIME]+2*ideal_timings[HSHAKE][IDEAL_PHASE_TIME])
 
-const int8s call_dwell_time[]		=	{ 19, 6 };
+const int8s call_dwell_time[]		=	{ 19, 6 };                                      //  TIME IN SECONDS
 const int32s call_superphase_time[]	=	{ CALL_MANUAL_SUPERPHASE_TIME, CALL_GPS_SUPERPHASE_TIME };
-const int32s call_end_time[]		=	{ CALL_MANUAL_END_TIME, CALL_GPS_END_TIME };
-const int32s call_end_temp_ale[]	=	{ CALL_MANUAL_END_TIME, CALL_GPS_END_TIME };
+const int32s call_end_time[]		=	{ CALL_MANUAL_END_TIME, CALL_GPS_END_TIME };    //  INC TIME OF CALL SUPERPHASE
 
-const int32s ale_call_superphase_time[]	=	{ CALL_MANUAL_SUPERPHASE_TIME / 1000, CALL_GPS_SUPERPHASE_TIME / 1000 };
-const int32s ale_max_supercounter[]		=	{ 1, 3 };
+const int32s ale_max_supercounter[]	=	{ 1, 3 };
 
+const int call_snr_lim[]={CALL_SNR_LIM_HIGH,CALL_SNR_LIM_LOW,CALL_SNR_LIM_LOW};
+const int ale_hshake_snr_lim[]={CALL_SNR_LIM_HIGH,CALL_SNR_LIM_LOW,CALL_SNR_LIM_LOW};
+
+#define	SOUND_QUAL_START_TIME   189		// time after probes, before sound qual
+#define	MSG_HEAD_START_TIME		100		// pause between ALE and data tx/rx
 
 //	CALC SNR:
 //	MFT8 - snr = 9.5819 * ln(x+1) - 11.159

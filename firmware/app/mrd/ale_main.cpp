@@ -19,13 +19,13 @@ AleMain::AleMain(ContTimer* tmr, ale_data* tmp_ale, ext_ale_settings* ale_s, Ale
 			{
                 temp_ale->time[i][START_RECEIVE]=ideal_timings[i][IDEAL_START_EMIT]-DT_MANUAL-DSP_RX_TURN_ON_WAITING;
                 temp_ale->time[i][RECEIVE_PERIOD]=ideal_timings[i][EMIT_PERIOD]+2*DT_MANUAL+DSP_RX_TURN_ON_WAITING+DSP_LIGHT_MSG_RX_WAITING;
-                temp_ale->time[i][RECEIVE_LAST_TIME]=ideal_timings[i][IDEAL_PHASE_TIME]-ideal_timings[i][IDEAL_START_EMIT]-ideal_timings[i][IDEAL_EMIT_PERIOD]-DSP_CALL_WAITING;
+                temp_ale->time[i][RECEIVE_LAST_TIME]=ideal_timings[i][IDEAL_PHASE_TIME]-ideal_timings[i][IDEAL_START_EMIT]-ideal_timings[i][IDEAL_EMIT_PERIOD]-CALL_DSP_TIME;
 			}
 			else if(i==CALL_GPS)
 			{
                 temp_ale->time[i][START_RECEIVE]=ideal_timings[i][IDEAL_START_EMIT]-DT_GPS-DSP_RX_TURN_ON_WAITING;
                 temp_ale->time[i][RECEIVE_PERIOD]=ideal_timings[i][EMIT_PERIOD]+2*DT_GPS+DSP_RX_TURN_ON_WAITING+DSP_LIGHT_MSG_RX_WAITING;
-                temp_ale->time[i][RECEIVE_LAST_TIME]=ideal_timings[i][IDEAL_PHASE_TIME]-ideal_timings[i][IDEAL_START_EMIT]-ideal_timings[i][IDEAL_EMIT_PERIOD]-DSP_CALL_WAITING;
+                temp_ale->time[i][RECEIVE_LAST_TIME]=ideal_timings[i][IDEAL_PHASE_TIME]-ideal_timings[i][IDEAL_START_EMIT]-ideal_timings[i][IDEAL_EMIT_PERIOD]-CALL_DSP_TIME;
 			}
 			else
 			{
@@ -70,8 +70,10 @@ void AleMain::call_tx_mgr()
 			{
                 if((!ale_fxn->check_msg(HSHAKE,true))||(temp_ale->received_msg.snr<ale_hshake_snr_lim[ale_settings->call_supercounter]))
 				{
+#ifndef CALLER_IGNORE_RX
                     ale_fxn->return_to_call();
 					break;
+#endif
 				}
                 timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+temp_ale->time[HSHAKE][START_EMIT]);
                 ale_fxn->set_rx_bw(temp_ale->received_msg.bandwidth);
@@ -83,8 +85,7 @@ void AleMain::call_tx_mgr()
                 ale_fxn->send_tx_msg(HSHAKE);
 			else
 			{
-                ale_fxn->wait_end_tx(HSHAKE,RESP_CALL_QUAL,false,call_end_temp_ale[ale_settings->gps_en]);
-				//	GOTO NEXT SUPERPHASE
+                ale_fxn->wait_end_tx(HSHAKE,RESP_CALL_QUAL,false,call_end_time[ale_settings->gps_en]);
                 ale_fxn->set_next_superphase(2);
 			}
 			break;
@@ -109,13 +110,15 @@ void AleMain::link_set_tx_mgr()
 			{
                 if(!ale_fxn->check_msg(RESP_CALL_QUAL,true))
 				{
+#ifndef CALLER_IGNORE_RX
                     ale_settings->phase=0;
-                    ale_settings->repeat_counter++;
-                    if(ale_settings->repeat_counter>=MAX_TRANSMODE_REPEAT)
+                    ale_settings->neg_counter++;
+                    if(ale_settings->neg_counter>=MAX_TRANSMODE_REPEAT)
                         ale_fxn->return_to_call();
 					else
                         timer->set_timer(TRANS_MODE_SUPERPHASE_TIME-temp_ale->time[RESP_CALL_QUAL][RECEIVE_PERIOD]);
 					break;
+#endif
 				}
                 if(!check_resp_call_qual(temp_ale->received_msg.data))
                     ale_fxn->return_to_call();
@@ -139,16 +142,19 @@ void AleMain::link_set_tx_mgr()
 			{
                 if(!ale_fxn->check_msg(HSHAKE,true))
 				{	
+#ifndef CALLER_IGNORE_RX
                     ale_settings->phase=0;
-                    ale_settings->repeat_counter++;
-                    if(ale_settings->repeat_counter>=MAX_TRANSMODE_REPEAT)
+                    ale_settings->neg_counter++;
+                    if(ale_settings->neg_counter>=MAX_TRANSMODE_REPEAT)
                         ale_fxn->return_to_call();
                     timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+
                                      temp_ale->time[HSHAKE][PHASE_TIME]+
                                      temp_ale->time[RESP_CALL_QUAL][START_RECEIVE]);
 					break;
+#endif
 				}
-                timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+temp_ale->time[HSHAKE][START_EMIT]);
+                timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+
+                                 temp_ale->time[HSHAKE][START_EMIT]);
                 ale_settings->phase=3;
 			}
 			break;
@@ -166,15 +172,14 @@ void AleMain::link_set_tx_mgr()
 					else
                     {
                         ale_fxn->wait_end_tx(HSHAKE,SHORT_SOUND,true);
-                        ale_fxn->set_freq(temp_ale->work_probe_freq[0]);
+                        ale_fxn->set_freq(temp_ale->work_freq[0]);
 					}
 				}
 				else
 				{
                     temp_ale->freq_num_now=0;
-                    ale_fxn->set_freq(temp_ale->best_freq[temp_ale->freq_num_now]);
                     ale_fxn->set_next_superphase(7);
-                    ale_fxn->wait_end_tx(HSHAKE,MSG_HEAD,true,ALE_DATA_PAUSE);
+                    ale_fxn->wait_end_tx(HSHAKE,MSG_HEAD,true,MSG_HEAD_START_TIME);
 				}
 			}
 			break;
@@ -274,8 +279,8 @@ void AleMain::link_set_rx_mgr()
                 if(!ale_fxn->check_msg(TRANS_MODE,true))
 				{
                     ale_settings->phase=0;
-                    ale_settings->repeat_counter++;
-                    if(ale_settings->repeat_counter>MAX_TRANSMODE_REPEAT)
+                    ale_settings->neg_counter++;
+                    if(ale_settings->neg_counter>=MAX_TRANSMODE_REPEAT)
                         ale_fxn->return_to_call();
 					else
                         timer->set_timer(temp_ale->time[TRANS_MODE][RECEIVE_LAST_TIME]+
@@ -311,8 +316,8 @@ void AleMain::link_set_rx_mgr()
                 if(!ale_fxn->check_msg(HSHAKE,true))
 				{	
                     ale_settings->phase=0;
-                    ale_settings->repeat_counter++;
-                    if(ale_settings->repeat_counter>MAX_TRANSMODE_REPEAT)
+                    ale_settings->neg_counter++;
+                    if(ale_settings->neg_counter>=MAX_TRANSMODE_REPEAT)
                         ale_fxn->return_to_call();
 					else
                         timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+temp_ale->time[RESP_CALL_QUAL][START_EMIT]);
@@ -327,7 +332,7 @@ void AleMain::link_set_rx_mgr()
 					else
                     {
                         ale_fxn->wait_end_tx(HSHAKE,SHORT_SOUND,true);
-                        ale_fxn->set_freq(temp_ale->work_probe_freq[0]);
+                        ale_fxn->set_freq(temp_ale->work_freq[0]);
 					}
 				}
 				else
@@ -335,7 +340,7 @@ void AleMain::link_set_rx_mgr()
                     temp_ale->freq_num_now=0;
                     temp_ale->best_freq[0]=temp_ale->call_freq;
                     ale_fxn->set_next_superphase(7);
-                    ale_fxn->wait_end_tx(HSHAKE,MSG_HEAD,true,ALE_DATA_PAUSE);
+                    ale_fxn->wait_end_tx(HSHAKE,MSG_HEAD,true,SOUND_QUAL_START_TIME);
                     ale_fxn->set_freq(temp_ale->best_freq[temp_ale->freq_num_now]);
 				}
 			}
@@ -352,47 +357,80 @@ void AleMain::short_probe_tx_mgr()
 	else
 	{
         ale_settings->phase++;
-        if(ale_settings->phase<temp_ale->work_probe_freq_num)
+        if(ale_settings->phase<temp_ale->work_freq_num)
 		{
             ale_fxn->wait_end_tx(SHORT_SOUND,SHORT_SOUND,true);
-            ale_fxn->set_freq(temp_ale->work_probe_freq[ale_settings->phase]);
+            ale_fxn->set_freq(temp_ale->work_freq[ale_settings->phase]);
 		}
 		else
 		{
-            ale_fxn->wait_end_tx(SHORT_SOUND,SOUND_QUAL,false,189);
+            ale_fxn->wait_end_tx(SHORT_SOUND,SOUND_QUAL,false,SOUND_QUAL_START_TIME);
             ale_fxn->set_freq(temp_ale->call_freq);
-            ale_settings->phase=0;
-            ale_settings->superphase=4;
-            ale_settings->repeat_counter=0;
+            ale_fxn->set_next_superphase(4);
 		}
 	}
 }
 
+void AleMain::calc_sign_forms()
+{
+    temp_ale->best_freq_num=0;
+    for(int8s i=0;i<3;i++)
+    {
+        temp_ale->best_freq_num++;
+        if((temp_ale->best_freq_sign_form[i]&0x0F)==0x0F)
+            temp_ale->best_freq_sign_form[i]=0;
+        else if((temp_ale->best_freq_sign_form[i]&0x0E)==0x0E)
+            temp_ale->best_freq_sign_form[i]=1;
+        else if((temp_ale->best_freq_sign_form[i]&0x04)==0x04)
+            temp_ale->best_freq_sign_form[i]=2;
+        else if((temp_ale->best_freq_sign_form[i]&0x08)==0x08)
+            temp_ale->best_freq_sign_form[i]=3;
+        else if((temp_ale->best_freq_sign_form[i]&0x70)==0x70)
+            temp_ale->best_freq_sign_form[i]=4;
+        else if((temp_ale->best_freq_sign_form[i]&0x60)==0x60)
+            temp_ale->best_freq_sign_form[i]=5;
+        else if((temp_ale->best_freq_sign_form[i]&0x40)==0x40)
+            temp_ale->best_freq_sign_form[i]=6;
+        else if(temp_ale->best_freq_sign_form[i]==0)
+            temp_ale->best_freq_num--;
+        else
+            temp_ale->best_freq_sign_form[i]=7;
+    }
+}
+
 void AleMain::short_sound_qual_tx_mgr()
 {
+    int16s crc16;
     switch(ale_settings->phase)
 	{
 		case 0:
             if(temp_ale->pause_state==true)
                 ale_fxn->start_receive_msg(SOUND_QUAL);
 			else
-			{
-                ale_fxn->set_rx_mode(0);
-                temp_ale->pause_state=true;
+            {
+                crc16=AleCom::get_sound_qual_crc16(temp_ale->received_msg.data);
+#ifndef  NO_CRC16_CHECK
+                if((!ale_fxn->check_msg(SOUND_QUAL, true))||(crc16!=ale_fxn->CRC16(temp_ale->received_msg.data,7)))
+#else
                 if(!ale_fxn->check_msg(SOUND_QUAL, true))
-				{	
-                    ale_settings->repeat_counter++;
-                    if(ale_settings->repeat_counter>=MAX_SHORT_PROBE_REPEAT)
+#endif
+                {
+                    ale_settings->neg_counter++;
+                    if(ale_settings->neg_counter>=MAX_SHORT_PROBE_REPEAT)
                         ale_fxn->return_to_call();
-                    timer->set_timer(temp_ale->time[SOUND_QUAL][RECEIVE_LAST_TIME]+temp_ale->time[HSHAKE][PHASE_TIME]+temp_ale->time[SOUND_QUAL][START_RECEIVE]);
+                    timer->set_timer(temp_ale->time[SOUND_QUAL][RECEIVE_LAST_TIME]+
+                                     temp_ale->time[HSHAKE][PHASE_TIME]+
+                                     temp_ale->time[SOUND_QUAL][START_RECEIVE]);
 					break;
-				}
-                //temp_ale->best_freq_num=get_sound_qual_freq_info(temp_ale->received_msg.data,temp_ale->best_freq_index,temp_ale->best_freq_sign_form);
+                }
+                temp_ale->best_freq_num=AleCom::get_sound_qual_freq_info(temp_ale->received_msg.data,temp_ale->best_freq_index,temp_ale->best_freq_sign_form);
+                calc_sign_forms();
                 for(int8s i=0;i<temp_ale->best_freq_num;i++)
-                    temp_ale->best_freq[i]=temp_ale->work_probe_freq[temp_ale->best_freq_index[i]];
+                    temp_ale->best_freq[i]=temp_ale->work_freq[temp_ale->best_freq_index[i]];
                 if(temp_ale->best_freq_num==0)
                     ale_fxn->return_to_call();
-                timer->set_timer(temp_ale->time[SOUND_QUAL][RECEIVE_LAST_TIME]+temp_ale->time[HSHAKE][START_EMIT]);
+                timer->set_timer(temp_ale->time[SOUND_QUAL][RECEIVE_LAST_TIME]+
+                                 temp_ale->time[HSHAKE][START_EMIT]);
                 ale_settings->phase=1;
 			}
 			break;
@@ -401,13 +439,11 @@ void AleMain::short_sound_qual_tx_mgr()
                 ale_fxn->send_tx_msg(HSHAKE);
 			else
 			{
-                ale_fxn->wait_end_tx(HSHAKE,MSG_HEAD,true,100);
+                ale_fxn->wait_end_tx(HSHAKE,MSG_HEAD,true,MSG_HEAD_START_TIME);
                 ale_fxn->set_freq(temp_ale->best_freq[0]);
                 temp_ale->sign_form=temp_ale->best_freq_sign_form[0];
                 temp_ale->freq_num_now=0;
-                ale_settings->phase=0;
-                ale_settings->superphase=7;		// GOTO MSG_HEAD
-                ale_settings->repeat_counter=0;
+                ale_fxn->set_next_superphase(7);        //  NO LONG PROBES
 			}
 			break;
 	}
@@ -415,27 +451,137 @@ void AleMain::short_sound_qual_tx_mgr()
 
 void AleMain::short_probe_rx_mgr()
 {
+    int32s temp[32];
     if(temp_ale->pause_state)
         ale_fxn->start_receive_msg(SHORT_SOUND);
 	else
 	{
-        ale_settings->phase++;
         if(!ale_fxn->check_msg(SHORT_SOUND, true))
-        if(ale_settings->phase<temp_ale->work_probe_freq_num)
+        {
+            temp_ale->received_msg.snr=0;
+            temp_ale->received_msg.error=0;
+        }
+        temp_ale->work_freq_sign_forms[ale_settings->phase]=temp_ale->received_msg.error;
+        temp_ale->work_freq_snr[ale_settings->phase]=temp_ale->received_msg.snr;
+        temp_ale->work_freq_weights[ale_settings->phase]=temp_ale->received_msg.snr;
+        temp_ale->work_freq_index[ale_settings->phase]=ale_settings->phase;
+        for(int8s i=0;i<7;i++)     //  SEE WEIGHT DESCRIPTION IN STRUCT COMMENTS
+            temp_ale->work_freq_weights[ale_settings->phase]=temp_ale->work_freq_weights[ale_settings->phase]+
+                ((int32s)((temp_ale->received_msg.error>>i)&1))*(65536+(1<<(6-((int32s)i))*256));
+        ale_settings->phase++;
+        if(ale_settings->phase<temp_ale->work_freq_num)
 		{
-            ale_fxn->wait_end_tx(SHORT_SOUND,SHORT_SOUND,true);
-            ale_fxn->set_freq(temp_ale->work_probe_freq[ale_settings->phase]);
+            ale_fxn->wait_end_tx(SHORT_SOUND,SHORT_SOUND,false);
+            ale_fxn->set_freq(temp_ale->work_freq[ale_settings->phase]);
 		}
 		else
 		{
-            ale_fxn->wait_end_tx(SHORT_SOUND,SOUND_QUAL,false,189);
-            ale_settings->phase=0;
-            ale_settings->superphase=4;
-            ale_settings->repeat_counter=0;
+            ale_fxn->wait_end_tx(SHORT_SOUND,SOUND_QUAL,true,SOUND_QUAL_START_TIME);            
+            ale_fxn->set_freq(temp_ale->call_freq);
+            ale_fxn->set_next_superphase(4);
+            //  CALC FREQ PARAMS
+            for(int8s i=0;i<temp_ale->work_freq_num;i++)
+                temp_ale->work_freq_index[i]=i;
+            sort_int32s_data_and_index(temp_ale->work_freq_weights, temp_ale->work_freq_index, temp_ale->work_freq_num);
+            for(int8s i=0;i<temp_ale->work_freq_num;i++)
+                temp[i]=temp_ale->work_freq_sign_forms[i];
+            for(int8s i=0;i<temp_ale->work_freq_num;i++)
+                temp_ale->work_freq_sign_forms[i]=temp[temp_ale->work_freq_index[i]];
+            for(int8s i=0;i<temp_ale->work_freq_num;i++)
+                temp[i]=temp_ale->work_freq_snr[i];
+            for(int8s i=0;i<temp_ale->work_freq_num;i++)
+                temp_ale->work_freq_snr[i]=temp[temp_ale->work_freq_index[i]];
+            for(int8s i=0;i<temp_ale->work_freq_num;i++)
+                temp[i]=temp_ale->work_freq[i];
+            for(int8s i=0;i<temp_ale->work_freq_num;i++)
+                temp_ale->work_freq[i]=temp[temp_ale->work_freq_index[i]];
+            int8s freq_counter=0;
+            for(int8s i=0;i<temp_ale->work_freq_num;i++)
+            {
+                if((temp_ale->work_freq_snr[0]-temp_ale->work_freq_snr[i])>20)
+                    temp_ale->work_freq_sign_forms[i]=0;
+                if(temp_ale->work_freq_sign_forms[i]!=0)
+                    freq_counter++;
+            }
+            if(freq_counter<2)
+                return;
+            for(int8s i=0;i<temp_ale->work_freq_num;i++)
+            {
+                if(temp_ale->work_freq_snr[0]<15)
+                    temp_ale->work_freq_sign_forms[i]=0;
+            }
+            freq_counter=0;
+            for(int8s i=0;i<3;i++)
+            {
+                for(int8s j=i;j<temp_ale->work_freq_num;j++)
+                {
+                    if(temp_ale->work_freq_sign_forms[j]!=0)
+                    {
+                        //  REPLACE FREQ DATA
+                        temp_ale->work_freq_sign_forms[i]=temp_ale->work_freq_sign_forms[j];
+                        temp_ale->work_freq_snr[i]=temp_ale->work_freq_snr[j];
+                        temp_ale->work_freq_index[i]=temp_ale->work_freq_index[j];
+                        temp_ale->work_freq[i]=temp_ale->work_freq[j];
+                        temp_ale->work_freq_weights[i]=temp_ale->work_freq_weights[j];
+                        //  COPY BEST FREQ DATA
+                        temp_ale->best_freq[i]=temp_ale->work_freq[i];
+                        temp_ale->best_freq_sign_form[i]=temp_ale->work_freq_sign_forms[i];
+                        temp_ale->best_freq_index[i]=temp_ale->work_freq_index[i];
+                        temp_ale->best_freq_snr[i]=temp_ale->work_freq_snr[i];
+                        if(i!=j)
+                            temp_ale->work_freq_sign_forms[j]=0;
+                        break;
+                    }
+                }
+                if(temp_ale->work_freq_sign_forms[i]!=0)
+                    freq_counter++;
+            }
+            temp_ale->work_freq_num=freq_counter;
+            temp_ale->best_freq_num=temp_ale->work_freq_num;
 		}
 	}
 }
 
+void AleMain::short_sound_qual_rx_mgr()
+{
+    switch(ale_settings->phase)
+    {
+        case 0:
+            if(temp_ale->pause_state)
+                ale_fxn->send_tx_msg(SOUND_QUAL);
+            else
+            {
+                ale_fxn->wait_end_tx(SOUND_QUAL,HSHAKE,false);
+                ale_settings->phase++;
+            }
+            break;
+        case 1:
+            if(temp_ale->pause_state==true)
+                ale_fxn->start_receive_msg(HSHAKE);
+            else
+            {
+                if(!ale_fxn->check_msg(HSHAKE, true))
+                {
+                    ale_settings->neg_counter++;
+                    if(ale_settings->neg_counter>=MAX_SHORT_PROBE_REPEAT)
+                        ale_fxn->return_to_call();
+                    timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+
+                                     temp_ale->time[SOUND_QUAL][PHASE_TIME]+
+                                     temp_ale->time[HSHAKE][START_RECEIVE]);
+                    ale_settings->phase=0;
+                    break;
+                }
+                timer->set_timer(temp_ale->time[SOUND_QUAL][RECEIVE_LAST_TIME]+MSG_HEAD_START_TIME+
+                                 temp_ale->time[MSG_HEAD][START_RECEIVE]);
+                calc_sign_forms();
+                ale_fxn->set_freq(temp_ale->best_freq[0]);
+                temp_ale->sign_form=temp_ale->best_freq_sign_form[0];
+                temp_ale->freq_num_now=0;
+                ale_fxn->set_next_superphase(7);        //  NO LONG PROBES
+            }
+            break;
+    }
+}
 
 void AleMain::fxn_1pps(int h, int m, int s)
 {
@@ -445,7 +591,7 @@ void AleMain::fxn_1pps(int h, int m, int s)
         ale_settings->superphase=0;	//	TURN OFF IF NO CALL FREQ FOUND
     if(ale_settings->superphase==0)
 		return;						//	RETURN IF ALE TURN OFF
-    if(((real_time_sec % ale_call_superphase_time[ale_settings->gps_en])!=0)||((24*60*60-real_time_sec)<ale_call_superphase_time[ale_settings->gps_en]))
+    if(((real_time_sec % call_dwell_time[ale_settings->gps_en])!=0)||((24*60*60-real_time_sec)<call_dwell_time[ale_settings->gps_en]))
 		return;						//	RETURN IF NO DWELL START DETECTED	
     if(ale_settings->caller)
 	{
@@ -453,7 +599,8 @@ void AleMain::fxn_1pps(int h, int m, int s)
         if(ale_settings->call_counter==ale_settings->call_freq_num)
 		{
             ale_settings->call_counter=0;
-            if(ale_settings->call_supercounter!=127)			ale_settings->call_supercounter++;
+            if(ale_settings->call_supercounter!=127)
+                ale_settings->call_supercounter++;
 		}
 	}
     if(timer->get_timer_state())
@@ -477,13 +624,13 @@ void AleMain::fxn_1pps(int h, int m, int s)
     ale_fxn->set_rx_bw(3);
 	//	IF WE WORK IN CALL FREQ WE MUST WRITE ONLY THIS FREQ TO BEST WORK FREQ TABLE
     temp_ale->best_freq_num = 1;
-    temp_ale->best_freq[0]=ale_settings->call_freq[(real_time_sec/ale_call_superphase_time[ale_settings->gps_en])%ale_settings->call_freq_num];
+    temp_ale->best_freq[0]=ale_settings->call_freq[(real_time_sec/call_dwell_time[ale_settings->gps_en])%ale_settings->call_freq_num];
     temp_ale->best_freq_sign_form[0]=6;	// DEFAULT START
     temp_ale->call_freq=temp_ale->best_freq[0];
 #ifdef	OLD_DSP_VERSION
     ale_fxn->set_caller_mode(ale_settings->caller);		//	ONLY FOR OLD DSP VERSIONS
 #endif	
-    ale_fxn->set_freq(ale_settings->call_freq[(real_time_sec/ale_call_superphase_time[ale_settings->gps_en])%ale_settings->call_freq_num]);
+    ale_fxn->set_freq(ale_settings->call_freq[(real_time_sec/call_dwell_time[ale_settings->gps_en])%ale_settings->call_freq_num]);
 }
 
 void AleMain::start_fxn(int8s gps_en, bool caller, int8s adress_dst, bool probe_on)
@@ -496,7 +643,7 @@ void AleMain::start_fxn(int8s gps_en, bool caller, int8s adress_dst, bool probe_
     ale_settings->call_supercounter=0;
     ale_settings->phase=0;
     ale_settings->superphase=1;
-    ale_settings->repeat_counter=0;
+    ale_settings->neg_counter=0;
 }
 
 void AleMain::stop_fxn()
@@ -512,24 +659,24 @@ void AleMain::modem_packet_receiver(int8s type, int8s snr, int8s error, int8s ba
     temp_ale->received_msg.snr=snr; // FOR CORRECT SNR IN RESP PACK QUAL, IF PACKET DATA NOT RECEIVED
     if(temp_ale->rx==0)
 		return;
+    if(error==100)
+        return;
     if(!((type==PACK_HEAD)&&(data_length==2)))
         ale_fxn->set_rx_mode(0);
-	if(error==100)
-		return;
 	if((type==CALL_MANUAL)||(type==CALL_GPS))
 	{
 		if(!check_call_rx(data,snr))
+        {
             timer->stop_timer();
-		else
-		{
-            timer->start_timer( temp_ale->time[CALL_MANUAL+ale_settings->gps_en][RECEIVE_LAST_TIME]+
-                                temp_ale->time[HSHAKE][START_EMIT]);
-            temp_ale->call_err=temp_ale->received_msg.error;
-            temp_ale->call_snr=temp_ale->received_msg.snr;
-            ale_fxn->set_rx_bw(bandwidth);
-            temp_ale->pause_state=true;
-            ale_settings->phase=1;
-		}
+            return;
+        }
+        timer->start_timer( temp_ale->time[CALL_MANUAL+ale_settings->gps_en][RECEIVE_LAST_TIME]+
+                            temp_ale->time[HSHAKE][START_EMIT]);
+        temp_ale->call_err=temp_ale->received_msg.error;
+        temp_ale->call_snr=temp_ale->received_msg.snr;
+        ale_fxn->set_rx_bw(bandwidth);
+        temp_ale->pause_state=true;
+        ale_settings->phase=1;
 	}
     temp_ale->received_msg.time = timer->get_timer_counter();
     temp_ale->received_msg.type=type;
@@ -539,7 +686,7 @@ void AleMain::modem_packet_receiver(int8s type, int8s snr, int8s error, int8s ba
     temp_ale->received_msg.error=error;
     temp_ale->received_msg.bandwidth=bandwidth;
     temp_ale->received_msg.data_length=data_length;
-	for(int i=0;i<data_length;i++)
+    for(int8s i=0;i<data_length;i++)
         temp_ale->received_msg.data[i]=data[i];
 
 }

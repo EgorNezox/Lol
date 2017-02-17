@@ -2,6 +2,9 @@
 
 namespace Multiradio {
 
+unsigned short table16[256];    //  CRC
+unsigned int table32[256];      //  CRC
+
 AleFxn::AleFxn(ContTimer *tmr, Dispatcher *disp, ale_data* tmp_ale, ext_ale_settings* ale_s,  OldAleData* oldAle )
 {
     timer=tmr;
@@ -10,8 +13,16 @@ AleFxn::AleFxn(ContTimer *tmr, Dispatcher *disp, ale_data* tmp_ale, ext_ale_sett
     ale_settings=ale_s;
 }
 
-void AleFxn::aleprocessTimerRxPacketTxLinkReleaseExpired() {
-    dispatcher->dsp_controller->sendModemPacket(DspController::modempacket_LinkRelease, DspController::modembw20kHz, 0, 0);
+int8s AleFxn::get_min_value(int8s* data, int8s length)
+{
+    int8s min;
+    min=data[0];
+    for(int8s i=1;i<length;i++)
+    {
+        if(data[i]<min)
+            min=data[i];
+    }
+    return min;
 }
 
 void AleFxn::aleprocessTX_modem(int8s packet_type, int8s* data, int8s length) {
@@ -85,11 +96,10 @@ void AleFxn::ale_logic_error(int8s error_num)
 
 void AleFxn::tx_off_control()
 {
-    if(temp_ale->tx!=0)
-    {
-        set_tx_mode(0);
-        error_detect(2);
-    }
+    if(temp_ale->tx==0)
+        return;
+    set_tx_mode(0);
+    error_detect(2);
 }
 
 void AleFxn::return_to_call()
@@ -97,46 +107,48 @@ void AleFxn::return_to_call()
     timer->stop_timer();
     ale_settings->superphase=1;
     ale_settings->phase=0;
-    ale_settings->repeat_counter=0;
+    ale_settings->neg_counter=0;
     set_tx_mode(0);
     set_rx_mode(0);
 }
 
 void AleFxn::gen_msg_call()
 {
-    AleCom::generate_call(temp_ale->tx_msg.data, true, ale_settings->call_supercounter, ale_settings->adress_dst);
-    temp_ale->tx_msg.data_length=2;
+    temp_ale->tx_msg.data_length=AleCom::generate_call(temp_ale->tx_msg.data, true,
+                                          ale_settings->call_supercounter, ale_settings->adress_dst);
 }
 
 void AleFxn::gen_trans_mode()
 {
     if(ale_settings->probe_on)
-        AleCom::generate_trans_mode(temp_ale->tx_msg.data, 3, 3, 1, ale_settings->schedule, ale_settings->own_adress);
+        temp_ale->tx_msg.data_length=AleCom::generate_trans_mode(temp_ale->tx_msg.data, 3, 3, 1,
+                                             ale_settings->schedule, ale_settings->own_adress);
     else
-        AleCom::generate_trans_mode(temp_ale->tx_msg.data, 0, 3, 1, ale_settings->schedule, ale_settings->own_adress);
-    temp_ale->tx_msg.data_length=3;
+        temp_ale->tx_msg.data_length=AleCom::generate_trans_mode(temp_ale->tx_msg.data, 0, 3, 1,
+                                             ale_settings->schedule, ale_settings->own_adress);
 }
 
 void AleFxn::gen_call_qual()
 {
-    AleCom::generate_resp_call_qual(temp_ale->tx_msg.data, (int8s)(((int16s)temp_ale->call_err)*19/100), temp_ale->call_snr);
-    temp_ale->tx_msg.data_length=2;
+    temp_ale->tx_msg.data_length=AleCom::generate_resp_call_qual(temp_ale->tx_msg.data,
+                                 (int8s)(((int16s)temp_ale->call_err)*19/100), temp_ale->call_snr);
 }
 
 void AleFxn::gen_sound_qual()
 {
-    //	FOR PROBES
+    temp_ale->tx_msg.data_length=AleCom::generate_sound_qual(temp_ale->tx_msg.data,temp_ale->best_freq_index,
+                                         temp_ale->best_freq_snr,temp_ale->best_freq_sign_form);
 }
 
 void AleFxn::gen_msg_head()
 {
-    AleCom::generate_msg_head(temp_ale->tx_msg.data, get_msg_size());
-    temp_ale->tx_msg.data_length=2;
+    temp_ale->tx_msg.data_length=AleCom::generate_msg_head(temp_ale->tx_msg.data, get_msg_size());
 }
 
 int16s AleFxn::get_msg_size()
+//  RETURN LENGTH IN 72 BIT FORMAT
 {
-    return ale->vm_fragments.size();
+    return ale_settings->data72bit_length;
 }
 
 void AleFxn::gen_pack_head()
@@ -149,8 +161,8 @@ void AleFxn::gen_pack_head()
 
 void AleFxn::gen_pack_qual()
 {
-    AleCom::generate_resp_pack_qual(temp_ale->tx_msg.data, temp_ale->pack_result,temp_ale->pack_snr);
-    temp_ale->tx_msg.data_length=2;
+    temp_ale->tx_msg.data_length=
+            AleCom::generate_resp_pack_qual(temp_ale->tx_msg.data, temp_ale->pack_result,temp_ale->pack_snr);
 }
 
 bool AleFxn::get_work_freq()
@@ -161,11 +173,11 @@ bool AleFxn::get_work_freq()
     {
         if((ale_settings->work_freq[i]>=(temp_ale->call_freq/2))&&(ale_settings->work_freq[i]<=(temp_ale->call_freq*2)))
         {
-            temp_ale->work_probe_freq[counter]=ale_settings->work_freq[i];
+            temp_ale->work_freq[counter]=ale_settings->work_freq[i];
             counter++;
         }
     }
-    temp_ale->work_probe_freq_num=counter;
+    temp_ale->work_freq_num=counter;
     if(counter==0)
         return false;
     return true;
@@ -174,9 +186,34 @@ bool AleFxn::get_work_freq()
 void AleFxn::send_tx_msg(int8s msg_num)
 {
     set_tx_mode(11);
-    temp_ale->tx_msg.data_length=0;
-    if(msg_fxn[msg_num]!=0)
-        msg_fxn[msg_num];
+    switch(msg_num)
+    {
+        case 0:
+        case 1:
+            gen_msg_call();
+            break;
+        case 4:
+            gen_trans_mode();
+            break;
+        case 5:
+            gen_call_qual();
+            break;
+        case 12:
+            gen_sound_qual();
+            break;
+        case 21:
+            gen_msg_head();
+            break;
+        case 22:
+            temp_ale->time[PACK_HEAD][EMIT_PERIOD]=ideal_timings[PACK_HEAD][IDEAL_EMIT_PERIOD]+DSP_MSG_PACK_HEAD_TX_WAITING+pack_head_data_time[temp_ale->sign_form]+DSP_TX_STOP_TIME;
+            gen_pack_head();
+            break;
+        case 23:
+            gen_pack_qual();
+            break;
+        default:
+            temp_ale->tx_msg.data_length=0;
+    }
     aleprocessTX_modem(msg_num,temp_ale->tx_msg.data,temp_ale->received_msg.data_length);
     timer->set_timer(temp_ale->time[msg_num][EMIT_PERIOD]);
     temp_ale->pause_state=false;
@@ -223,7 +260,7 @@ void AleFxn::set_next_superphase(int8s superphase_num)
 {
     ale_settings->phase=0;
     ale_settings->superphase=superphase_num;
-    ale_settings->repeat_counter=0;
+    ale_settings->neg_counter=0;
     ale_settings->nres0=0;
     ale_settings->nres1=0;
 }
@@ -240,7 +277,7 @@ bool AleFxn::check_msg(int8s msg_type, bool rx_stop)
     else
     {
         temp_ale->last_msg=true;
-        if(temp_ale->received_msg.data_length!=0)
+        if(temp_ale->received_msg.data_length!=-1)
             return true;
     }
     return false;
@@ -248,7 +285,7 @@ bool AleFxn::check_msg(int8s msg_type, bool rx_stop)
 
 int8s AleFxn::get_packet_num()
 {
-    return ale->vm_f_count;
+    return ale_settings->data490bit_length;
 }
 
 int8s AleFxn::set_packet_num(int8s num_msg_head)
@@ -256,15 +293,68 @@ int8s AleFxn::set_packet_num(int8s num_msg_head)
     ale->vm_size = num_msg_head;
     ale->vm_f_count = ceilf((float)ale->vm_size*72/490);
     ale->vm_fragments.resize(ale->vm_f_count);
+    ale_settings->data72bit_length=ale->vm_size;
+    ale_settings->data490bit_length=ale->vm_f_count;
     return ale->vm_f_count;
 }
 
 void AleFxn::get_msg_fragment(int8s num, int8s* data)
 {
     for(int8s i = 0; i < 66; i++)
-        data[i]=ale->vm_fragments[num].num_data[i];
+        data[i]=ale_settings->data[num][i];    //ale->vm_fragments[num].num_data[i];
 }
 
+void AleFxn::makeTable16()
+{
+    unsigned short r;
+    for(int i=0; i<256; i++)
+    {
+        r = ((unsigned short)i)<<8;
+        for(unsigned char j=0; j<8; j++)
+        {
+            if(r&(1<<15)) r=(r<<1)^0x8005;
+            else r=r<<1;
+        }
+        table16[i]=r;
+    }
+}
 
+//Функция вычисления CRC
+unsigned short AleFxn::CRC16(int8s *buf, int len)
+{
+    unsigned short crc;
+    crc = 0xFFFF;
+    while(len--)
+    {
+        crc = table16[((crc>>8)^*buf++)&0xFF] ^ (crc<<8);
+    }
+    crc ^= 0xFFFF;
+    return crc;
+}
+
+void AleFxn::makeTable32()
+{
+    const unsigned int CRC_POLY = 0xEDB88320;
+    unsigned int i, j, r;
+    for (i = 0; i< 256; i++)
+    {
+        for (r = i, j = 8; j; j--)
+            r = r &1? (r>> 1) ^ CRC_POLY: r >> 1;
+        table32[i] = r;
+    }
+}
+
+//Функция вычисления CRC
+unsigned int AleFxn::CRC32(int8s* pData, int len)
+{
+    const unsigned int CRC_MASK = 0xD202EF8D;
+    unsigned int crc = 0;
+    while (len--)
+{
+        crc = table32[(unsigned char)crc ^ *pData++] ^ crc>> 8;
+        crc ^= CRC_MASK;
+    }
+    return crc;
+}
 
 }

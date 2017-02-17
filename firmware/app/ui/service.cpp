@@ -1337,7 +1337,7 @@ void Service::keyPressed(UI_Key key)
 #else
                 if (key == keyEnter)
                 {
-                    updateAleState(Multiradio::AleState::AleState_IDLE);
+                    updateAleState(AleState_IDLE);
                     Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
                     voice_service->startAleTx((uint8_t)atoi(menu->voiceAddr.c_str()),message);
                     menu->putOffVoiceStatus++;
@@ -1796,7 +1796,7 @@ void Service::keyPressed(UI_Key key)
                 if (key == keyEnter)
                 {
 #ifndef _DEBUG_
-                    updateAleState(Multiradio::AleState::AleState_IDLE);
+                    updateAleState(AleState_IDLE);
                     voice_service->startAleRx();
 #endif
                     menu->inVoiceMail = true;

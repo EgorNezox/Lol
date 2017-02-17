@@ -61,6 +61,17 @@ void QmDebug::message(const char * domain_name, msg_type_t type, const char * fo
 	va_end(args);
 }
 
+unsigned long QmDebug::getTicks()
+{
+	qmdebug_mutex.lock();
+
+#ifdef QM_PLATFORM_STM32F2XX
+	return	xTaskGetTickCount();
+#endif
+
+	qmdebug_mutex.unlock();
+}
+
 #include "qmdebug_domains_start.h"
 QMDEBUG_DEFINE_DOMAIN(QmCore, LevelDefault)
 #include "qmdebug_domains_end.h"
