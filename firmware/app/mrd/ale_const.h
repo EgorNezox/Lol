@@ -255,8 +255,8 @@ struct OldAleData{
 #define	DT_ALE								90
 
 //	MAXIMUM TIMES
-#define	DSP_LIGHT_MSG_TX_WAITING			30
-#define	DSP_MSG_PACK_HEAD_TX_WAITING		50
+#define	DSP_LIGHT_MSG_TX_WAITING			60
+#define	DSP_MSG_PACK_HEAD_TX_WAITING		100
 #define	DSP_TX_STOP_TIME					50
 
 #define	DSP_RX_TURN_ON_WAITING				20

@@ -3033,7 +3033,7 @@ void DspController::disableModemTransmitter() {
 
 void DspController::sendModemPacket(ModemPacketType type,
 		ModemBandwidth bandwidth, const uint8_t *data, int data_len) {
-	QM_ASSERT(type != modempacket_packHead);
+	//QM_ASSERT(type != modempacket_packHead);
 	std::vector<uint8_t> payload(5);
 	payload[0] = 20;
 	payload[1] = bandwidth;

@@ -63,13 +63,13 @@ void QmDebug::message(const char * domain_name, msg_type_t type, const char * fo
 
 unsigned long QmDebug::getTicks()
 {
-	qmdebug_mutex.lock();
+	//qmdebug_mutex.lock();
 
 #ifdef QM_PLATFORM_STM32F2XX
 	return	xTaskGetTickCount();
 #endif
 
-	qmdebug_mutex.unlock();
+	//qmdebug_mutex.unlock();
 }
 
 #include "qmdebug_domains_start.h"
