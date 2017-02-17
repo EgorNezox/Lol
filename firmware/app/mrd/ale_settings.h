@@ -1,0 +1,7 @@
+#ifndef ALE_SETTINGS_H
+#define ALE_SETTINGS_H
+
+#define CALLER_IGNORE_RX
+
+#endif // ALE_SETTINGS_H
+
