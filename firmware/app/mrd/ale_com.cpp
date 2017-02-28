@@ -52,7 +52,8 @@ void AleCom::resize_symbols(int8s* data_in, int8s* data_out, int16s size_in, int
 int8s AleCom::generate_call(int8s* data, bool line_type, int8s cycle_num, int8s resp_addr)
 {
     data_bit[0]=(int8s)line_type;
-    resize_symbols(&cycle_num,&(data_bit[1]),4,1,1);
+    data_bit[12]=cycle_num+1;
+    resize_symbols(&(data_bit[12]),&(data_bit[1]),4,1,1);
     resize_symbols(&resp_addr,&(data_bit[5]),5,1,1);
     resize_symbols(data_bit,data,1,8,16);
     return 2;
@@ -97,10 +98,12 @@ int8s AleCom::generate_sound_qual(int8s* data, int8s* indexes, int8s* snr, int8s
 
 int8s AleCom::generate_msg_head(int8s* data, int16s msg_size)
 {
-    data_bit[526]=(msg_size>>8)&0xFF;
-    data_bit[527]=(msg_size>>0)&0xFF;
-    resize_symbols(&(data_bit[526]),&(data_bit[0]),2,1,1);
-    resize_symbols(&(data_bit[4]),data,1,8,16);
+    //data_bit[526]=(msg_size>>8)&0xFF;
+    //data_bit[527]=(msg_size>>0)&0xFF;
+    data[0]=(msg_size>>3)&0xFF;
+    data[1]=(msg_size<<5)&0xE0;
+    //resize_symbols(&(data_bit[526]),&(data_bit[0]),8,1,2);
+    //resize_symbols(&(data_bit[5]),data,1,8,16);
     return 2;
 }
 
@@ -171,7 +174,7 @@ bool AleCom::get_call_line_type(int8s* data)
 
 int8s AleCom::get_call_cycle_num(int8s* data)
 {
-	return ((data[0]&0x78)>>3);
+	return (((data[0]&0x78)>>3)+1);
 }
 
 int8s AleCom::get_call_resp_addr(int8s* data)
@@ -208,6 +211,11 @@ int16s AleCom::get_sound_qual_crc16(int8s* data)
     data[7]=((data[7]&0xFC)>>2)|((data[6]&0x03)<<6);
     data[6]=data[6]&0xFC;
     return ((((int16s)data[7])<<8)|(((int16s)data[8])<<0));
+}
+
+int8s AleCom::get_packet_num(int8s* data)
+{
+    return ((data[0]&0xFC)>>2);
 }
 
 int8s AleCom::get_short_sound_snr(int8s* data)

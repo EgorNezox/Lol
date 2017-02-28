@@ -123,7 +123,8 @@ typedef struct	{
 	int8s nres1;				// only for data tx/rx
     int8s last_data_snr[3];     // only for data tx/rx
     //  DATA IN/OUT FOR DATA_TRANSPORT MODE
-    int8s data[37][66];
+    int8s data_packs[37][66];
+    int8s data[2250];
     int16s data72bit_length;    //  THIS IS VALUE FROM MSG_HEAD
     int16s data490bit_length;   //  NUMBER OF PACKETS WHICH NEED TO TRANSMIT/RECEIVE DATA
 }	ext_ale_settings;
@@ -252,7 +253,7 @@ struct OldAleData{
 
 #define	DT_GPS								250
 #define	DT_MANUAL							5000
-#define	DT_ALE								90
+#define	DT_ALE								240	//90
 
 //	MAXIMUM TIMES
 #define	DSP_LIGHT_MSG_TX_WAITING			60
@@ -266,8 +267,8 @@ struct OldAleData{
 //	MIDDLE TIME FOR TIME CORRECTION
 #define	CALL_DSP_TIME						15
 
-#define	CALL_SNR_LIM_HIGH					5
-#define	CALL_SNR_LIM_LOW					-5
+#define	CALL_SNR_LIM_HIGH					26
+#define	CALL_SNR_LIM_LOW					16
 
 #define	MAX_TRANSMODE_REPEAT				3
 #define	MAX_MSG_HEAD_REPEAT					3
@@ -313,11 +314,11 @@ const int pack_head_data_time[DATA_SIGNAL_FORM_NUM]=    { 2640, 3960, 7920, 7920
 
 const int ideal_timings[][3]={
 /* CALL_MANUAL - 0 */				11145,	5925,	4816,
-/* CALL_GPS - 1 */					3301,	769,	2128,
-/* HSHAKE (ACK)  - 2 */				1221,	361,	448,
+/* CALL_GPS - 1 */					3301,	769,	2128,	//	404
+/* HSHAKE (ACK)  - 2 */				1221,	279,	448,	//	494
 /* NONE - 3 */						0,		0,		0,
-/* TRANS_MODE - 4 */				3797,	279,	3024,
-/* RESP_CALL_QUAL - 5 */			2901,	279,	2128,
+/* TRANS_MODE - 4 */				3797,	279,	3024,	//	494
+/* RESP_CALL_QUAL - 5 */			2901,	279,	2128,	//	494
 /* LINK_RELEASE - 6 */				1547,	279,	784,
 /* NONE - 7 */						0,		0,		0,
 /* NONE - 8 */						0,		0,		0,
@@ -333,8 +334,8 @@ const int ideal_timings[][3]={
 /* NONE - 18 */						0,		0,		0,
 /* NONE - 19 */						0,		0,		0,
 /* NONE - 20 */						0,		0,		0,
-/* MSG_HEAD - 21 */					3349,	279,	2576,
-/* PACK_HEAD - 22 */				4832,	279,	2576,	// AND TIMING FOR DATA
+/* MSG_HEAD - 21 */					3349,	279,	2576,	//	494
+/* PACK_HEAD - 22 */				4914,	279,	2576,	// AND TIMING FOR DATA
 /* RESP_PACK_QUAL - 23 */			2565,	279,	1792,
 /* NONE - 24 */						0,		0,		0,
 /* MSG_HEAD+PACK_HEAD - 25 */		3349,	279,	2576,
@@ -343,7 +344,7 @@ const int ideal_timings[][3]={
 
 #define	CALL_MANUAL_SUPERPHASE_TIME	14000
 #define	CALL_MANUAL_END_TIME		(CALL_MANUAL_SUPERPHASE_TIME-ideal_timings[CALL_MANUAL][IDEAL_PHASE_TIME]-2*ideal_timings[HSHAKE][IDEAL_PHASE_TIME])
-#define	CALL_GPS_SUPERPHASE_TIME	6000
+#define	CALL_GPS_SUPERPHASE_TIME	5750
 #define	CALL_GPS_END_TIME			(CALL_GPS_SUPERPHASE_TIME-ideal_timings[CALL_GPS][IDEAL_PHASE_TIME]-2*ideal_timings[HSHAKE][IDEAL_PHASE_TIME])
 #define	TRANS_MODE_SUPERPHASE_TIME	(ideal_timings[RESP_CALL_QUAL][IDEAL_PHASE_TIME]+ideal_timings[TRANS_MODE][IDEAL_PHASE_TIME]+2*ideal_timings[HSHAKE][IDEAL_PHASE_TIME])
 

@@ -225,7 +225,7 @@ void AleService::startAleTxVoiceMail(uint8_t address, voice_message_t message) {
     ale_settings.data490bit_length=ale.vm_f_count;
     for (unsigned int i = 0; i < ale.vm_fragments.size(); i++) {
         for(unsigned int j=0;j<66;j++)
-            ale_settings.data[i][j]=ale.vm_fragments[i].num_data[j];
+            ale_settings.data[i*66+j]=ale.vm_fragments[i].num_data[j];
     }
     //  COPY END
 	printDebugVmMessage(ale.vm_size, ale.vm_f_count, message);

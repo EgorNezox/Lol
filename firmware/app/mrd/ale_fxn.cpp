@@ -214,7 +214,8 @@ void AleFxn::send_tx_msg(int8s msg_num)
         default:
             temp_ale->tx_msg.data_length=0;
     }
-    aleprocessTX_modem(msg_num,temp_ale->tx_msg.data,temp_ale->received_msg.data_length);
+    QmDebug::message("ALE_TX", QmDebug::Info, "Send msg, type %u", msg_num);
+    aleprocessTX_modem(msg_num,temp_ale->tx_msg.data,temp_ale->tx_msg.data_length);
     timer->set_timer(temp_ale->time[msg_num][EMIT_PERIOD]);
     temp_ale->pause_state=false;
 }
@@ -243,8 +244,8 @@ void AleFxn::wait_end_tx(int8s msg_num, int8s next_msg_num, bool next_mode, int3
 void AleFxn::start_receive_msg(int8s msg_num)
 {
 #ifdef	OLD_DSP_VERSION
-    int8s msg_num_to_old_dsp_version[]={ 0, 0, 0, 0, 1,		1, 2, 0, 0, 0,		3, 4, 1, 0, 0,		0, 0, 0, 0, 0,		0, 2, 2, 2, 0,		2, 2 };
-   set_wait_msg(msg_num_to_old_dsp_version[msg_num]);
+    int8s msg_num_to_old_dsp_version[]={ 0, 0, 1, 0, 1,		1, 2, 0, 0, 0,		3, 4, 1, 0, 0,		0, 0, 0, 0, 0,		0, 2, 2, 2, 0,		2, 2 };
+    set_wait_msg(msg_num_to_old_dsp_version[msg_num]);
 #else
     set_wait_msg(msg_num);
 #endif
@@ -267,19 +268,15 @@ void AleFxn::set_next_superphase(int8s superphase_num)
 
 bool AleFxn::check_msg(int8s msg_type, bool rx_stop)
 {
+	if(rx_stop)
+	{
+        temp_ale->pause_state=true;
+        set_rx_mode(0);
+	}
+	else
+        temp_ale->last_msg=true;
     if((temp_ale->received_msg.data_length!=-1)&&(temp_ale->received_msg.type==msg_type)&&(temp_ale->received_msg.error!=100))
         return true;
-    if(rx_stop)
-    {
-        set_rx_mode(0);
-        temp_ale->pause_state=true;
-    }
-    else
-    {
-        temp_ale->last_msg=true;
-        if(temp_ale->received_msg.data_length!=-1)
-            return true;
-    }
     return false;
 }
 
@@ -298,10 +295,15 @@ int8s AleFxn::set_packet_num(int8s num_msg_head)
     return ale->vm_f_count;
 }
 
-void AleFxn::get_msg_fragment(int8s num, int8s* data)
+bool AleFxn::check_pack_head_crc(int8s* data)
 {
-    for(int8s i = 0; i < 66; i++)
-        data[i]=ale_settings->data[num][i];    //ale->vm_fragments[num].num_data[i];
+    return true;
+}
+
+void AleFxn::get_msg_fragment(int16s num, int8s* data)
+{
+    for(int16s i = 0; i < 66; i++)
+        data[i]=ale_settings->data[num*66+i];    //ale->vm_fragments[num].num_data[i];
 }
 
 void AleFxn::makeTable16()

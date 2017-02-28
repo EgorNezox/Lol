@@ -18,19 +18,19 @@ AleMain::AleMain(ContTimer* tmr, ale_data* tmp_ale, ext_ale_settings* ale_s, Ale
 			if(i==CALL_MANUAL)
 			{
                 temp_ale->time[i][START_RECEIVE]=ideal_timings[i][IDEAL_START_EMIT]-DT_MANUAL-DSP_RX_TURN_ON_WAITING;
-                temp_ale->time[i][RECEIVE_PERIOD]=ideal_timings[i][EMIT_PERIOD]+2*DT_MANUAL+DSP_RX_TURN_ON_WAITING+DSP_LIGHT_MSG_RX_WAITING;
+                temp_ale->time[i][RECEIVE_PERIOD]=ideal_timings[i][IDEAL_EMIT_PERIOD]+2*DT_MANUAL+DSP_RX_TURN_ON_WAITING+DSP_LIGHT_MSG_RX_WAITING;
                 temp_ale->time[i][RECEIVE_LAST_TIME]=ideal_timings[i][IDEAL_PHASE_TIME]-ideal_timings[i][IDEAL_START_EMIT]-ideal_timings[i][IDEAL_EMIT_PERIOD]-CALL_DSP_TIME;
 			}
 			else if(i==CALL_GPS)
 			{
                 temp_ale->time[i][START_RECEIVE]=ideal_timings[i][IDEAL_START_EMIT]-DT_GPS-DSP_RX_TURN_ON_WAITING;
-                temp_ale->time[i][RECEIVE_PERIOD]=ideal_timings[i][EMIT_PERIOD]+2*DT_GPS+DSP_RX_TURN_ON_WAITING+DSP_LIGHT_MSG_RX_WAITING;
+                temp_ale->time[i][RECEIVE_PERIOD]=ideal_timings[i][IDEAL_EMIT_PERIOD]+2*DT_GPS+DSP_RX_TURN_ON_WAITING+DSP_LIGHT_MSG_RX_WAITING;
                 temp_ale->time[i][RECEIVE_LAST_TIME]=ideal_timings[i][IDEAL_PHASE_TIME]-ideal_timings[i][IDEAL_START_EMIT]-ideal_timings[i][IDEAL_EMIT_PERIOD]-CALL_DSP_TIME;
 			}
 			else
 			{
                 temp_ale->time[i][START_RECEIVE]=ideal_timings[i][IDEAL_START_EMIT]-DT_ALE-DSP_RX_TURN_ON_WAITING;
-                temp_ale->time[i][RECEIVE_PERIOD]=ideal_timings[i][EMIT_PERIOD]+2*DT_ALE+DSP_RX_TURN_ON_WAITING+DSP_LIGHT_MSG_RX_WAITING;
+                temp_ale->time[i][RECEIVE_PERIOD]=ideal_timings[i][IDEAL_EMIT_PERIOD]+2*DT_ALE+DSP_RX_TURN_ON_WAITING+DSP_LIGHT_MSG_RX_WAITING;
                 temp_ale->time[i][RECEIVE_LAST_TIME]=ideal_timings[i][IDEAL_PHASE_TIME]-temp_ale->time[i][START_RECEIVE]-temp_ale->time[i][RECEIVE_PERIOD];
 			}
             temp_ale->time[i][EMIT_LAST_TIME]=ideal_timings[i][IDEAL_PHASE_TIME]-temp_ale->time[i][START_EMIT]-temp_ale->time[i][EMIT_PERIOD];
@@ -42,7 +42,7 @@ AleMain::AleMain(ContTimer* tmr, ale_data* tmp_ale, ext_ale_settings* ale_s, Ale
             temp_ale->time[i][EMIT_PERIOD]=ideal_timings[i][IDEAL_EMIT_PERIOD]+DSP_MSG_PACK_HEAD_TX_WAITING+29568+DSP_TX_STOP_TIME;
             temp_ale->time[i][EMIT_LAST_TIME]=PACK_HEAD_IDEAL_EMIT_LAST_TIME-DSP_TX_STOP_TIME;
             temp_ale->time[i][START_RECEIVE]=ideal_timings[i][IDEAL_START_EMIT]-DT_ALE-DSP_RX_TURN_ON_WAITING;
-            temp_ale->time[i][RECEIVE_PERIOD]=ideal_timings[i][EMIT_PERIOD]+2*DT_ALE+DSP_RX_TURN_ON_WAITING+DSP_LIGHT_MSG_RX_WAITING;
+            temp_ale->time[i][RECEIVE_PERIOD]=ideal_timings[i][IDEAL_EMIT_PERIOD]+2*DT_ALE+DSP_RX_TURN_ON_WAITING+DSP_LIGHT_MSG_RX_WAITING;
             temp_ale->time[i][RECEIVE_LAST_TIME]=PACK_HEAD_IDEAL_EMIT_LAST_TIME-DSP_MSG_PACK_HEAD_RX_WAITING-DT_ALE;
 		}	
 	}
@@ -59,7 +59,11 @@ void AleMain::call_tx_mgr()
                 ale_fxn->send_tx_msg(CALL_MANUAL+ale_settings->gps_en);
 			else
 			{
+#ifndef		CALLER_DT_INCREMENT
                 ale_fxn->wait_end_tx(CALL_MANUAL+ale_settings->gps_en,HSHAKE,false);
+#else
+                ale_fxn->wait_end_tx(CALL_MANUAL+ale_settings->gps_en,HSHAKE,false,CALLER_DT_INCREMENT);
+#endif
                 ale_settings->phase=1;
 			}
 			break;
@@ -661,9 +665,11 @@ void AleMain::modem_packet_receiver(int8s type, int8s snr, int8s error, int8s ba
 		return;
     if(error==100)
         return;
+#ifndef	NOT_TURN_OFF_RX_WHEN_MSG_RECEIVED
     if(!((type==PACK_HEAD)&&(data_length==2)))
         ale_fxn->set_rx_mode(0);
-	if((type==CALL_MANUAL)||(type==CALL_GPS))
+#endif
+    if((type==CALL_MANUAL)||(type==CALL_GPS))
 	{
 		if(!check_call_rx(data,snr))
         {
@@ -688,7 +694,7 @@ void AleMain::modem_packet_receiver(int8s type, int8s snr, int8s error, int8s ba
     temp_ale->received_msg.data_length=data_length;
     for(int8s i=0;i<data_length;i++)
         temp_ale->received_msg.data[i]=data[i];
-
+    QmDebug::message("ALE_RX", QmDebug::Info, "Received msg, type %u", type);
 }
 
 void AleMain::modem_packet_transmitter_complete()

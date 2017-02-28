@@ -125,9 +125,15 @@ void AleDataTransport::data_tx_mgr()
                     if(!ale_fxn->check_msg(RESP_PACK_QUAL, true))	// NO RESP PACK QUAL
 					{	
                         ale_settings->phase--;	ale_settings->neg_counter++;		ale_settings->nres1=0;
+#ifndef	TX_DATA_SUPERPHASE_INC_TIME
                         timer->set_timer(temp_ale->time[RESP_PACK_QUAL][RECEIVE_LAST_TIME]+
                                          temp_ale->time[HSHAKE][PHASE_TIME]+
                                          temp_ale->time[PACK_HEAD][START_EMIT]);
+#else
+                        timer->set_timer(temp_ale->time[RESP_PACK_QUAL][RECEIVE_LAST_TIME]+
+                                         temp_ale->time[HSHAKE][PHASE_TIME]+
+                                         temp_ale->time[PACK_HEAD][START_EMIT]+TX_DATA_SUPERPHASE_INC_TIME);
+#endif
                         if(ale_settings->neg_counter>MAX_PACK_HEAD_REPEAT)
 						{
 							ale_settings->nres0=0;
@@ -204,7 +210,7 @@ void AleDataTransport::data_tx_mgr()
 									if(temp_ale->snr>=pack_head_lim_snr[temp_ale->sign_form])
 										break;
 								}
-								if(temp_ale->snr==2)		temp_ale->snr=3;
+                                if(temp_ale->sign_form==2)		temp_ale->sign_form=3;
 							}							
 						}
                         timer->set_timer(temp_ale->time[RESP_PACK_QUAL][RECEIVE_LAST_TIME]+
@@ -218,7 +224,11 @@ void AleDataTransport::data_tx_mgr()
                 ale_fxn->send_tx_msg(HSHAKE);
 			else
 			{
+#ifndef	TX_DATA_SUPERPHASE_INC_TIME
                 ale_fxn->wait_end_tx(HSHAKE,PACK_HEAD,true);
+#else
+                ale_fxn->wait_end_tx(HSHAKE,PACK_HEAD,true,TX_DATA_SUPERPHASE_INC_TIME);
+#endif
 				ale_settings->phase++;
                 ale_settings->neg_counter=0;
                 ale_fxn->set_freq(temp_ale->best_freq[temp_ale->freq_num_now]);
@@ -398,6 +408,8 @@ void AleDataTransport::data_rx_mgr()
                         ale_fxn->set_rx_mode(0);
                         break;
                     }
+                    if(temp_ale->sign_form!=temp_ale->received_msg.data[0])
+                        ale_settings->nres0=0;
                     temp_ale->sign_form=temp_ale->received_msg.data[0];
                     timer->set_timer(   pack_head_data_time[temp_ale->sign_form]+
                                         DSP_MSG_PACK_HEAD_RX_WAITING-DSP_LIGHT_MSG_RX_WAITING   );
@@ -405,7 +417,7 @@ void AleDataTransport::data_rx_mgr()
 				else
 				{					
                     temp_ale->pack_snr=temp_ale->received_msg.snr;
-                    if(!ale_fxn->check_msg(PACK_HEAD,true))
+                    if((!ale_fxn->check_msg(PACK_HEAD,true))||(!ale_fxn->check_pack_head_crc(temp_ale->received_msg.data)))
 					{
 						ale_settings->phase=ale_settings->phase-2;
 						ale_settings->nres0++;
@@ -432,6 +444,7 @@ void AleDataTransport::data_rx_mgr()
 					{
                         ale_settings->nres0=0;	ale_settings->neg_counter=0;
 						temp_ale->pack_result=1;
+                        ale_settings->phase=AleCom::get_packet_num(temp_ale->received_msg.data)*3+1;
 					}
                     timer->set_timer(temp_ale->time[PACK_HEAD][RECEIVE_LAST_TIME]+
                                      temp_ale->time[RESP_PACK_QUAL][START_EMIT]);

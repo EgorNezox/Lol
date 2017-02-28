@@ -52,11 +52,13 @@ public:
     void set_tx_mode(int mode);
     int8s get_packet_num();
     int8s set_packet_num(int8s num_msg_head);
-    void get_msg_fragment(int8s num, int8s* data);
+    void get_msg_fragment(int16s num, int8s* data);
     void aleprocessTX_modem(int8s packet_type, int8s* data, int8s length);
     void set_rx_bw(int8_t bandwidth);
     static unsigned short CRC16(int8_t *buf, int len);
     static unsigned int CRC32(int8_t *pData, int len);
+    bool check_pack_head_crc(int8s *data);
+    void ale_log(const char* text, int arg);
 };
 
 }

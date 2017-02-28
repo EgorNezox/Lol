@@ -31,6 +31,7 @@ public:
     static int8s get_short_sound_snr(int8s* data);
     static int8s get_short_sound_sign_forms(int8s* data);
     static int16s get_sound_qual_crc16(int8s* data);
+    static int8s get_packet_num(int8s* data);
     static void resize_symbols(int8_t *data_in, int8_t *data_out, int16_t size_in, int16_t size_out, int16_t length_in);
 };
 
