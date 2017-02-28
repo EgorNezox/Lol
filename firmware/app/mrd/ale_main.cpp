@@ -182,6 +182,7 @@ void AleMain::link_set_tx_mgr()
 				else
 				{
                     temp_ale->freq_num_now=0;
+                    temp_ale->sign_form=temp_ale->best_freq_sign_form[0];
                     ale_fxn->set_next_superphase(7);
                     ale_fxn->wait_end_tx(HSHAKE,MSG_HEAD,true,MSG_HEAD_START_TIME);
 				}
@@ -618,10 +619,14 @@ void AleMain::fxn_1pps(int h, int m, int s)
     if((ale_settings->caller)&&(ale_settings->call_supercounter>=ale_max_supercounter[ale_settings->gps_en]))
 	{
         ale_settings->superphase=0;
+        ale_fxn->ale_log("TX call limit reached, end TX");
 		return;
 	}
     if(ale_settings->caller)		//	CALLER
+    {
         timer->start_timer(temp_ale->time[CALL_MANUAL+ale_settings->gps_en][START_EMIT]);
+        ale_fxn->ale_log("TX call emit, counter %u, supercounter %u", ale_settings->call_counter, ale_settings->call_supercounter);
+    }
 	else			//	RESPONDER
         timer->start_timer(temp_ale->time[CALL_MANUAL+ale_settings->gps_en][START_RECEIVE]);
     temp_ale->pause_state=true;
@@ -694,7 +699,8 @@ void AleMain::modem_packet_receiver(int8s type, int8s snr, int8s error, int8s ba
     temp_ale->received_msg.data_length=data_length;
     for(int8s i=0;i<data_length;i++)
         temp_ale->received_msg.data[i]=data[i];
-    QmDebug::message("ALE_RX", QmDebug::Info, "Received msg, type %u", type);
+    if(type!=RESP_PACK_QUAL)
+    	ale_fxn->ale_log("Received msg, type %u", type);
 }
 
 void AleMain::modem_packet_transmitter_complete()

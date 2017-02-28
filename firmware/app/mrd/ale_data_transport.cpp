@@ -1,5 +1,6 @@
 
 #include "ale_data_transport.h"
+//#include "ale_settings.h"
 
 namespace Multiradio {
 
@@ -49,12 +50,14 @@ void AleDataTransport::msg_head_tx_mgr()
                             ale_fxn->set_freq(temp_ale->best_freq[temp_ale->freq_num_now]);
 						}
 					}
+                    ale_fxn->ale_log("Msg resp pack qual NOT received");
 					break;
 #endif
 				}				
                 timer->set_timer(temp_ale->time[RESP_PACK_QUAL][RECEIVE_LAST_TIME]+
                                  temp_ale->time[HSHAKE][START_EMIT]);
 				ale_settings->phase=2;
+                ale_fxn->ale_log("Msg resp pack qual received OK");
 			}
 			break;
 		case 2: // hshake tx
@@ -77,12 +80,17 @@ void AleDataTransport::data_tx_mgr()
 	{
 		case 0:
 			if(temp_ale->pause_state)
-			{				
-               ale_fxn->send_tx_msg(PACK_HEAD);
+			{
+#ifdef	MIN_SIGN_FORM_TX
+				if(temp_ale->sign_form<MIN_SIGN_FORM_TX)
+					temp_ale->sign_form=MIN_SIGN_FORM_TX;
+#endif
+				ale_fxn->send_tx_msg(PACK_HEAD);
 			}
 			else
 			{
                 ale_fxn->wait_end_tx(PACK_HEAD,RESP_PACK_QUAL,false);
+                ale_fxn->ale_log("Sending packet, phase %u, sign form %u", ale_settings->phase, temp_ale->sign_form);
 				ale_settings->phase++;
 			}	
 			break;
@@ -134,7 +142,7 @@ void AleDataTransport::data_tx_mgr()
                                          temp_ale->time[HSHAKE][PHASE_TIME]+
                                          temp_ale->time[PACK_HEAD][START_EMIT]+TX_DATA_SUPERPHASE_INC_TIME);
 #endif
-                        if(ale_settings->neg_counter>MAX_PACK_HEAD_REPEAT)
+                        if(ale_settings->neg_counter>=MAX_PACK_HEAD_REPEAT)
 						{
 							ale_settings->nres0=0;
                             ale_settings->neg_counter=0;
@@ -147,6 +155,7 @@ void AleDataTransport::data_tx_mgr()
                                 ale_fxn->set_freq(temp_ale->best_freq[temp_ale->freq_num_now]);
 							}
 						}
+                        ale_fxn->ale_log("No pack qual, phase %u", ale_settings->phase);
 					}
 					// IF RESP PACK QUAL RESULT = 0
                     else if(!AleCom::check_resp_pack_qual(temp_ale->received_msg.data))
@@ -162,7 +171,7 @@ void AleDataTransport::data_tx_mgr()
 							temp_ale->freq_num_now++;
 							temp_ale->sign_form=temp_ale->best_freq_sign_form[temp_ale->freq_num_now];
 						}
-						else if(ale_settings->nres0>MAX_PACK_HEAD_NRES0)
+						else if(ale_settings->nres0>=MAX_PACK_HEAD_NRES0)
 						{
                             ale_settings->nres0=0;	ale_settings->neg_counter=0;
 							if(temp_ale->sign_form==(DATA_SIGNAL_FORM_NUM-1))
@@ -186,6 +195,7 @@ void AleDataTransport::data_tx_mgr()
 								}
 							}
 						}
+                        ale_fxn->ale_log("Bad pack, phase %u, snr %u", ale_settings->phase, AleCom::get_resp_pack_qual_snr(temp_ale->received_msg.data));
 					}
 					//	IF RESULT OK
 					else																			
@@ -193,7 +203,7 @@ void AleDataTransport::data_tx_mgr()
 						ale_settings->phase++;
                         ale_settings->nres0=0;	ale_settings->neg_counter=0;		ale_settings->nres1++;
                         ale_settings->last_data_snr[ale_settings->nres1-1]=AleCom::get_resp_pack_qual_snr(temp_ale->received_msg.data);
-						if(ale_settings->nres1>MAX_PACK_HEAD_NRES1)
+						if(ale_settings->nres1>=MAX_PACK_HEAD_NRES1)
 						{
                             temp_ale->snr=ale_fxn->get_min_value(ale_settings->last_data_snr,MAX_PACK_HEAD_NRES1);
 							if(temp_ale->snr<=pack_head_lim_snr[temp_ale->sign_form])		//	CANNOT SPPED SHIFT
@@ -215,6 +225,7 @@ void AleDataTransport::data_tx_mgr()
 						}
                         timer->set_timer(temp_ale->time[RESP_PACK_QUAL][RECEIVE_LAST_TIME]+
                                          temp_ale->time[HSHAKE][START_EMIT]);
+                        ale_fxn->ale_log("Good pack, phase %u, snr %u", ale_settings->phase, AleCom::get_resp_pack_qual_snr(temp_ale->received_msg.data));
 					}	
 				}		
 			}

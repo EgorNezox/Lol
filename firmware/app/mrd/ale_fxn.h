@@ -58,7 +58,11 @@ public:
     static unsigned short CRC16(int8_t *buf, int len);
     static unsigned int CRC32(int8_t *pData, int len);
     bool check_pack_head_crc(int8s *data);
+    void ale_log(const char* text);
     void ale_log(const char* text, int arg);
+    void ale_log(const char* text, int arg1, int arg2);
+    void ale_log(const char* text, int arg1, int arg2, int arg3);
+    void ale_log(const char* text, int arg1, int arg2, int arg3, int arg4);
 };
 
 }

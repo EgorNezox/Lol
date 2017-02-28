@@ -33,7 +33,7 @@ void ContTimer::start_timer(unsigned int interval)
 	LAST_INTERVAL=interval;
 	SYSTEM_TICK = START_TICK + interval;
 	HI_level_timer->start(interval);    
-    QmDebug::message("ALE_timer", QmDebug::Info, "Timer START, interval %u", interval);
+    //QmDebug::message("ALE_timer", QmDebug::Info, "Timer START, interval %u", interval);
     RUN = true;
 }
 
@@ -78,7 +78,7 @@ bool ContTimer::set_timer(unsigned int interval)
         START_TICK=CurrentTick;
         SYSTEM_TICK = START_TICK + interval;
         HI_level_timer->start(interval);
-        QmDebug::message("ALE_timer", QmDebug::Info, "Timer set error, interval %u", (interval));
+        //QmDebug::message("ALE_timer", QmDebug::Info, "Timer set error, interval %u", (interval));
 	}
 	else
 	{
@@ -86,7 +86,7 @@ bool ContTimer::set_timer(unsigned int interval)
 		DiffTick = CurrentTick - SYSTEM_TICK;
 		SYSTEM_TICK = SYSTEM_TICK + interval;
 		HI_level_timer->start(interval-DiffTick);
-        QmDebug::message("ALE_timer", QmDebug::Info, "Timer set, interval %u", (interval-DiffTick));
+        //QmDebug::message("ALE_timer", QmDebug::Info, "Timer set, interval %u", (interval-DiffTick));
 	}
 	LAST_INTERVAL=interval;
 	return rez;

@@ -1,5 +1,7 @@
 #include "ale_fxn.h"
 
+#define QMDEBUGDOMAIN	ALE
+
 namespace Multiradio {
 
 unsigned short table16[256];    //  CRC
@@ -34,6 +36,7 @@ void AleFxn::aleprocessTX_modem(int8s packet_type, int8s* data, int8s length) {
 void AleFxn::set_freq(long freq)
 {
     dispatcher->dsp_controller->tuneModemFrequency(freq);
+    //ale_log("Set ALE freq %u",(int)(freq));
 }
 
 void AleFxn::set_tx(int8s mode)
@@ -104,6 +107,7 @@ void AleFxn::tx_off_control()
 
 void AleFxn::return_to_call()
 {
+    ale_log("ALE error, superphase %u, phase %u", ale_settings->superphase, ale_settings->phase);
     timer->stop_timer();
     ale_settings->superphase=1;
     ale_settings->phase=0;
@@ -214,7 +218,9 @@ void AleFxn::send_tx_msg(int8s msg_num)
         default:
             temp_ale->tx_msg.data_length=0;
     }
-    QmDebug::message("ALE_TX", QmDebug::Info, "Send msg, type %u", msg_num);
+    //QmDebug::message("ALE_TX", QmDebug::Info, "Send msg, type %u", msg_num);
+    if(msg_num!=PACK_HEAD)
+    	ale_log("Send msg, type %u", msg_num);
     aleprocessTX_modem(msg_num,temp_ale->tx_msg.data,temp_ale->tx_msg.data_length);
     timer->set_timer(temp_ale->time[msg_num][EMIT_PERIOD]);
     temp_ale->pause_state=false;
@@ -352,11 +358,40 @@ unsigned int AleFxn::CRC32(int8s* pData, int len)
     const unsigned int CRC_MASK = 0xD202EF8D;
     unsigned int crc = 0;
     while (len--)
-{
+    {
         crc = table32[(unsigned char)crc ^ *pData++] ^ crc>> 8;
         crc ^= CRC_MASK;
     }
     return crc;
 }
 
+void AleFxn::ale_log(const char* text)
+{
+    QmDebug::message("ALE", QmDebug::Info, text);
 }
+
+void AleFxn::ale_log(const char* text, int arg)
+{
+    QmDebug::message("ALE", QmDebug::Info, text, arg);
+}
+
+void AleFxn::ale_log(const char* text, int arg1, int arg2)
+{
+    QmDebug::message("ALE", QmDebug::Info, text, arg1, arg2);
+}
+
+void AleFxn::ale_log(const char* text, int arg1, int arg2, int arg3)
+{
+    QmDebug::message("ALE", QmDebug::Info, text, arg1, arg2, arg3);
+}
+
+void AleFxn::ale_log(const char* text, int arg1, int arg2, int arg3, int arg4)
+{
+    QmDebug::message("ALE", QmDebug::Info, text, arg1, arg2, arg3, arg4);
+}
+
+}
+
+#include "qmdebug_domains_start.h"
+QMDEBUG_DEFINE_DOMAIN(ALE, LevelVerbose)
+#include "qmdebug_domains_end.h"

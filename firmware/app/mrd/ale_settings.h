@@ -6,7 +6,7 @@
 //#define	CALLER_DT_INCREMENT					(-300)
 #define	TX_DATA_SUPERPHASE_INC_TIME			100
 
-
+#define	MIN_SIGN_FORM_TX					4
 
 #endif // ALE_SETTINGS_H
 

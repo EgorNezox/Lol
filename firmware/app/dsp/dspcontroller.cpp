@@ -3478,5 +3478,5 @@ void DspController::setStationAddress(uint8_t address)
 /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelOff)//LevelVerbose)
 #include "qmdebug_domains_end.h"
