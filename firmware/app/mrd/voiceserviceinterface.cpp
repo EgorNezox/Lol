@@ -446,6 +446,7 @@ bool VoiceServiceInterface::getIsGucCoord()
 void VoiceServiceInterface::setVirtualMode(bool param)
 {
 	dispatcher->dsp_controller->setVirtualMode(param);
+	dispatcher->ale_service->setManualTimeMode(param);
 }
 
 bool VoiceServiceInterface::getVirtualMode()
@@ -496,7 +497,7 @@ void VoiceServiceInterface::stopAle()
     dispatcher->ale_service->stopAle();
 }
 
-AleState VoiceServiceInterface::getAleState()
+int VoiceServiceInterface::getAleState()	//AleState VoiceServiceInterface::getAleState()
 {
    return dispatcher->ale_service->getAleState();
 }

@@ -31,7 +31,7 @@ class AleDataTransport;
 class AleService : public QmObject
 {
 public:
-
+	int AleState1;
 
 
 	void initAle(ale_call_freqs_t call_freqs, ale_call_freqs_t work_freqs, int8s own_adress);
@@ -41,7 +41,7 @@ public:
 	void startAleRx();
     void startAleTxVoiceMail(uint8_t address, voice_message_t message);
 	AleResult stopAle();
-	AleState getAleState();
+	int getAleState();//AleState getAleState();
 	void setAleState(bool caller, int8s superphase);
 	uint8_t getAleVmProgress();
 	uint8_t getAleRxAddress();
@@ -70,7 +70,7 @@ public:
 
     //sigc::signal<void, Status/*new_status*/> statusChanged;
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> dspHardwareFailed;
-	sigc::signal<void, AleState/*new_state*/> aleStateChanged;
+	sigc::signal<void, int/*new_state*/> aleStateChanged;
 	sigc::signal<void, uint8_t/*new_value*/> aleVmProgressUpdated;
 
 private:
@@ -87,7 +87,7 @@ private:
     AleMain* ale_main;
     AleDataTransport* ale_data_transport;
     AleFxn* ale_fxn;
-    AleState current_state;
+    //AleState current_state;
 
     AleService(Dispatcher* dispatcher);
     ~AleService();

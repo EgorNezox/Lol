@@ -58,60 +58,7 @@ void AleService::aleprocessModemPacketFailedTx()
 
 void AleService::setAleState(bool caller, int8s superphase)
 {
-	AleState state;
-	if(caller)
-	{
-		switch (superphase)
-		{
-			case 0:
-				state=AleState_TX_VM_COMPLETE_FULL;
-				break;
-			case 1:
-				state=AleState_TX_CALLING;
-				break;
-			case 2:
-				state=AleState_TX_VM_TRANSFER;
-				break;
-			case 7:
-				state=AleState_TX_VM_COMPLETE_PARTIAL;
-				break;
-			case 9:
-				state=AleState_TX_VM_TRANSFER;
-				break;
-			case 10:
-				state=AleState_TX_VM_COMPLETE_FULL;
-				break;
-			default:
-				state=AleState_IDLE;
-		}
-	}
-	else
-	{
-		switch (superphase)
-		{
-			case 0:
-				state=AleState_RX_VM_COMPLETE_FULL;
-				break;
-			case 1:
-				state=AleState_RX_SCANNING;
-				break;
-			case 2:
-				state=AleState_RX_VM_TRANSFER;
-				break;
-			case 7:
-				state=AleState_RX_VM_COMPLETE_PARTIAL;
-				break;
-			case 9:
-				state=AleState_RX_VM_COMPLETE_PARTIAL;
-				break;
-			default:
-				state=AleState_IDLE;
-		}
-	}
-	if(state==current_state)
-		return;
-	current_state=state;
-	aleStateChanged(current_state);
+
 }
 
 void AleService::timer_fxn()
@@ -299,8 +246,8 @@ AleResult AleService::stopAle() {
 	return AleResultNone;
 }
 
-AleState AleService::getAleState() {		//	REWRITE !!!!
-	return ale.state;
+int AleService::getAleState() {	//AleState AleService::getAleState() {		//	REWRITE !!!!
+	return ale_settings.ale_state;//return ale.state;
 }
 
 uint8_t Multiradio::AleService::getAleVmProgress() {				//	CHECK !!!
@@ -387,6 +334,12 @@ void AleService::aleprocessModemPacketStartedRxPackHead(uint8_t snr, uint8_t err
 void AleService::aleprocess1PPS(	int hrs ,int min , int sec )
 {
     ale_main->fxn_1pps(hrs, min, sec);
+    if(AleState1!=ale_settings.ale_state)
+    {
+    	AleState1=ale_settings.ale_state;
+    	aleStateChanged(AleState1);
+    	ale_fxn->ale_log("INTERFACE CHANGED, STATE %u",AleState1);
+    }
 }
 
 //void AleService::get_msg_size()

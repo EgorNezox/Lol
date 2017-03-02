@@ -660,7 +660,8 @@ void AleMain::start_fxn(int8s gps_en, bool caller, int8s adress_dst, bool probe_
 void AleMain::stop_fxn()
 {
     timer->stop_timer();
-    ale_settings->superphase=0;
+    //ale_settings->superphase=0;
+    ale_fxn->set_next_superphase(0);
     ale_fxn->set_tx_mode(0);
     ale_fxn->set_rx_mode(0);
 }
@@ -706,8 +707,8 @@ void AleMain::modem_packet_receiver(int8s type, int8s snr, int8s error, int8s ba
     temp_ale->received_msg.data_length=data_length;
     for(int8s i=0;i<data_length;i++)
         temp_ale->received_msg.data[i]=data[i];
-    if(type!=RESP_PACK_QUAL)
-    	ale_fxn->ale_log("Received msg, type %s", msg_names[type]);
+    if((type!=RESP_PACK_QUAL)&&(type!=PACK_HEAD))
+    	ale_fxn->ale_log("Received msg, type %s, SNR %u, ERROR_RATE %u", msg_names[type],snr, error);
 }
 
 void AleMain::modem_packet_transmitter_complete()

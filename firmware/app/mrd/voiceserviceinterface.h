@@ -167,7 +167,7 @@ public:
     void startAleRx();
     void startAleTx(uint8_t address, voice_message_t message);
     void stopAle();
-    AleState getAleState();
+    int getAleState();//AleState getAleState();
     uint8_t getAleVmProgress();
     void initAle(ale_call_freqs_t call_freqs, ale_call_freqs_t work_freqs, int8_t own_adress);
     uint8_t getAleRxAddress();

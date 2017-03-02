@@ -97,7 +97,18 @@ public:
     enum ModemPhase {
     	modemphaseWaitingCall = 0,
 		modemphaseALE = 1,
-		modemphaseLinkEstablished = 2
+		modemphaseLinkEstablished = 2,
+		mm1 = 4,
+		mm2 = 5,
+		mm3 = 6,
+		mm4 = 10,
+		mm5 = 11,
+		mm6 = 12,
+		mm7 = 21,
+		mm8 = 22,
+		mm9 = 23,
+		mm10 = 25,
+		mm11 = 26,
     };
     enum ModemRole {
     	modemroleResponder = 0,

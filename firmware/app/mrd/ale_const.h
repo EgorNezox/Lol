@@ -9,7 +9,7 @@
 #define	int16s	int16_t
 #define	int32s	int32_t
 
-#define OLD_DSP_VERSION
+//#define OLD_DSP_VERSION
 #define NO_CRC16_CHECK
 
 inline void sort_int32s_data(int32s* data, int8s length)
@@ -114,6 +114,9 @@ typedef struct	{
                                 // 6 - LONG_PROBES_QUAL, 7 - MSG HEAD, 8 - MSG HEAD REPEAT, 9 - DATA, 10 - DATA_END
     int8s result;               // 0 - all ok, 1 - call error, 2 - trans error, 3 - probe error, 4 - data error
 	int8s phase;				// set 0 when ALE starts
+	//	INTERFACE VARS
+	int ale_state;				// see ui/texts.cpp, str 113, var const char* aleStateStr[]
+	int ale_packet_counter;
     //  CALL TX COUNTERS
     int8s call_counter;         // set 0 when ALE starts
 	int8s call_supercounter;	// set 0 when ALE starts

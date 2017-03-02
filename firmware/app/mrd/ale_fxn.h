@@ -64,6 +64,7 @@ public:
     void ale_log(const char* text, int arg1, int arg2);
     void ale_log(const char* text, int arg1, int arg2, int arg3);
     void ale_log(const char* text, int arg1, int arg2, int arg3, int arg4);
+    void ale_log(const char* text, const char* arg1, int arg2, int arg3);
 };
 
 }

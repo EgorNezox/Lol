@@ -142,9 +142,14 @@ void AleFxn::return_to_call()
 	if((ale_settings->phase==2)||(ale_settings->superphase!=1))
 		ale_log("ALE error, superphase %u, phase %u", ale_settings->superphase, ale_settings->phase);
     timer->stop_timer();
-    ale_settings->superphase=1;
-    ale_settings->phase=0;
-    ale_settings->neg_counter=0;
+    ale_settings->result=1;		//	ERROR DETECTED
+    if(ale_settings->superphase<7)
+    	set_next_superphase(1);	//	IF ALE, RETURN TO CALL PROCEDURE
+    else
+    	set_next_superphase(0);	//	if DATA_TRANSPORT, RETURN TO IDLE
+    //ale_settings->superphase=1;
+    //ale_settings->phase=0;
+    //ale_settings->neg_counter=0;
     set_tx_mode(0);
     set_rx_mode(0);
 }
@@ -253,8 +258,7 @@ void AleFxn::send_tx_msg(int8s msg_num)
         default:
             temp_ale->tx_msg.data_length=0;
     }
-    //QmDebug::message("ALE_TX", QmDebug::Info, "Send msg, type %u", msg_num);
-    if(msg_num!=PACK_HEAD)
+    if((msg_num!=PACK_HEAD)&&(msg_num!=RESP_PACK_QUAL))
     	ale_log("Send msg, type %s", msg_names[msg_num]);
     aleprocessTX_modem(msg_num,temp_ale->tx_msg.data,temp_ale->tx_msg.data_length);
     timer->set_timer(temp_ale->time[msg_num][EMIT_PERIOD]);
@@ -297,10 +301,83 @@ void AleFxn::start_receive_msg(int8s msg_num)
     temp_ale->last_msg=false;
 }
 
+#define	ALE_UNKNOWN_STATE	25
 void AleFxn::set_next_superphase(int8s superphase_num)
 //	DO NOT USE IN MIX MSG AND PACK HEAD !!!
 {
     ale_settings->phase=0;
+    if(ale_settings->caller)
+    {
+		switch(superphase_num)
+		{
+			case 0:
+				if(ale_settings->superphase==1)
+					ale_settings->ale_state=11;	//	TX_CALL_FAIL
+				else if(((ale_settings->superphase==10)||(ale_settings->superphase==9))&&(ale_settings->result==0))
+					ale_settings->ale_state=16;	//	TX DATA FULL
+				else if((ale_settings->superphase==9)&&(ale_settings->result!=0))
+					ale_settings->ale_state=15;	//	TX DATA PART
+				else if((ale_settings->superphase==7)&&(ale_settings->result!=0))
+					ale_settings->ale_state=14;	//	TX DATA FAIL (MSG_HEAD UNCORRECT)
+				else
+					ale_settings->ale_state=ALE_UNKNOWN_STATE;
+				break;
+			case 1:
+				ale_settings->ale_state=10;		//	TX_CALLING
+				break;
+			case 2:
+				ale_settings->ale_state=12;		//	TX_CALL_NEG
+				break;
+			case 3:
+				ale_settings->ale_state=21;		//	TX_PROBE
+				break;
+			case 4:
+				ale_settings->ale_state=22;		//	TX_PROBE_QUAL
+				break;
+			case 7:
+			case 9:
+			case 10:
+				ale_settings->ale_state=13;		//	TX_DATA_TRANS
+				break;
+			default:
+				ale_settings->ale_state=ALE_UNKNOWN_STATE;
+		}
+    }
+    else
+    {
+    	switch(superphase_num)
+		{
+			case 0:
+				if(ale_settings->superphase==1)
+					ale_settings->ale_state=11;	//	TX_CALL_FAIL
+				else if((ale_settings->superphase==10)&&(ale_settings->result==0))
+					ale_settings->ale_state=16;	//	TX DATA FULL
+				else if((ale_settings->superphase==9)&&(ale_settings->result!=0))
+					ale_settings->ale_state=15;	//	TX DATA PART
+				else if((ale_settings->superphase==7)&&(ale_settings->result!=0))
+					ale_settings->ale_state=14;	//	TX DATA FAIL (MSG_HEAD UNCORRECT)
+				else
+					ale_settings->ale_state=ALE_UNKNOWN_STATE;
+				break;
+			case 1:
+				ale_settings->ale_state=10;		//	TX_CALLING
+				break;
+			case 2:
+				ale_settings->ale_state=12;		//	TX_CALL_NEG
+				break;
+			case 3:
+				ale_settings->ale_state=21;		//	TX_PROBE
+				break;
+			case 4:
+				ale_settings->ale_state=22;		//	TX_PROBE_QUAL
+				break;
+			case 7:
+			case 9:
+			case 10:
+				ale_settings->ale_state=13;		//	TX_DATA_TRANS
+				break;
+		}
+    }
     ale_settings->superphase=superphase_num;
     ale_settings->neg_counter=0;
     ale_settings->nres0=0;
@@ -406,6 +483,8 @@ void AleFxn::ale_log(const char* text)
     QmDebug::message("ALE", QmDebug::Info, text);
 }
 
+
+
 void AleFxn::ale_log(const char* text, const char* arg)
 {
     QmDebug::message("ALE", QmDebug::Info, text, arg);
@@ -429,6 +508,11 @@ void AleFxn::ale_log(const char* text, int arg1, int arg2, int arg3)
 void AleFxn::ale_log(const char* text, int arg1, int arg2, int arg3, int arg4)
 {
     QmDebug::message("ALE", QmDebug::Info, text, arg1, arg2, arg3, arg4);
+}
+
+void AleFxn::ale_log(const char* text, const char* arg1, int arg2, int arg3)
+{
+    QmDebug::message("ALE", QmDebug::Info, text, arg1, arg2, arg3);
 }
 
 }
