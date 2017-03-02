@@ -7,12 +7,44 @@ namespace Multiradio {
 unsigned short table16[256];    //  CRC
 unsigned int table32[256];      //  CRC
 
+const char unk[]="unknown";
+const char call_manual[]="CALL_MANUAL";
+const char call_gps[]="CALL_GPS";
+const char hshake[]="HSHAKE";
+const char trans_mode[]="TRANS_MODE";
+const char call_qual[]="CALL_QUAL";
+const char link_release[]="LINK_RELEASE";
+const char short_sound[]="SHORT_SOUND";
+const char long_sound[]="LONG_SOUND";
+const char sound_qual[]="SOUND_QUAL";
+const char msg_head[]="MSG_HEAD";
+const char pack_head[]="PACK_HEAD";
+const char pack_qual[]="PACK_QUAL";
+
+const char* msg_names[]={ 	call_manual, 	call_gps,		hshake, 		hshake,		trans_mode,
+							call_qual, 		link_release,	unk,			unk,		unk,
+							short_sound,	long_sound,		sound_qual,		unk,		unk,
+							unk,			unk,			unk,			unk,		unk,
+							unk,			msg_head,		pack_head,		pack_qual,	unk	};
+
+const char off[]="OFF";
+const char call[]="CALL";
+const char trans[]="TRANSMODE";
+const char probe[]="PROBES";
+const char probe_qual[]="PROBE_QUAL";
+//const char msg_head[]="MSG_HEAD";
+const char data_trans[]="DATA_TRANSPORT";
+const char data_end[]="END_OF_TRANSPORT";
+
+const char* superphase_names[]={ off, call, trans, probe, probe_qual, off, off, msg_head, off, data_trans, data_end };
+
 AleFxn::AleFxn(ContTimer *tmr, Dispatcher *disp, ale_data* tmp_ale, ext_ale_settings* ale_s,  OldAleData* oldAle )
 {
     timer=tmr;
     dispatcher=disp;
     temp_ale=tmp_ale;
     ale_settings=ale_s;
+    ale=oldAle;
 }
 
 int8s AleFxn::get_min_value(int8s* data, int8s length)
@@ -107,7 +139,8 @@ void AleFxn::tx_off_control()
 
 void AleFxn::return_to_call()
 {
-    ale_log("ALE error, superphase %u, phase %u", ale_settings->superphase, ale_settings->phase);
+	if((ale_settings->phase==2)||(ale_settings->superphase!=1))
+		ale_log("ALE error, superphase %u, phase %u", ale_settings->superphase, ale_settings->phase);
     timer->stop_timer();
     ale_settings->superphase=1;
     ale_settings->phase=0;
@@ -167,6 +200,7 @@ void AleFxn::gen_pack_qual()
 {
     temp_ale->tx_msg.data_length=
             AleCom::generate_resp_pack_qual(temp_ale->tx_msg.data, temp_ale->pack_result,temp_ale->pack_snr);
+    ale_log("Send PACK_QUAL, RES %u, SNR %u",(int)temp_ale->pack_result, temp_ale->pack_snr);
 }
 
 bool AleFxn::get_work_freq()
@@ -211,6 +245,7 @@ void AleFxn::send_tx_msg(int8s msg_num)
         case 22:
             temp_ale->time[PACK_HEAD][EMIT_PERIOD]=ideal_timings[PACK_HEAD][IDEAL_EMIT_PERIOD]+DSP_MSG_PACK_HEAD_TX_WAITING+pack_head_data_time[temp_ale->sign_form]+DSP_TX_STOP_TIME;
             gen_pack_head();
+            ale_log("Send PACK_HEAD, sign_form %u",temp_ale->sign_form);
             break;
         case 23:
             gen_pack_qual();
@@ -220,7 +255,7 @@ void AleFxn::send_tx_msg(int8s msg_num)
     }
     //QmDebug::message("ALE_TX", QmDebug::Info, "Send msg, type %u", msg_num);
     if(msg_num!=PACK_HEAD)
-    	ale_log("Send msg, type %u", msg_num);
+    	ale_log("Send msg, type %s", msg_names[msg_num]);
     aleprocessTX_modem(msg_num,temp_ale->tx_msg.data,temp_ale->tx_msg.data_length);
     timer->set_timer(temp_ale->time[msg_num][EMIT_PERIOD]);
     temp_ale->pause_state=false;
@@ -270,6 +305,7 @@ void AleFxn::set_next_superphase(int8s superphase_num)
     ale_settings->neg_counter=0;
     ale_settings->nres0=0;
     ale_settings->nres1=0;
+    ale_log("----------- SUPERPHASE: %s ------------",superphase_names[superphase_num]);
 }
 
 bool AleFxn::check_msg(int8s msg_type, bool rx_stop)
@@ -368,6 +404,11 @@ unsigned int AleFxn::CRC32(int8s* pData, int len)
 void AleFxn::ale_log(const char* text)
 {
     QmDebug::message("ALE", QmDebug::Info, text);
+}
+
+void AleFxn::ale_log(const char* text, const char* arg)
+{
+    QmDebug::message("ALE", QmDebug::Info, text, arg);
 }
 
 void AleFxn::ale_log(const char* text, int arg)

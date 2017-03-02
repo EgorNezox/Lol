@@ -42,6 +42,7 @@ public:
     void startAleTxVoiceMail(uint8_t address, voice_message_t message);
 	AleResult stopAle();
 	AleState getAleState();
+	void setAleState(bool caller, int8s superphase);
 	uint8_t getAleVmProgress();
 	uint8_t getAleRxAddress();
 	voice_message_t getAleRxVmMessage();
@@ -86,6 +87,7 @@ private:
     AleMain* ale_main;
     AleDataTransport* ale_data_transport;
     AleFxn* ale_fxn;
+    AleState current_state;
 
     AleService(Dispatcher* dispatcher);
     ~AleService();

@@ -265,7 +265,7 @@ struct OldAleData{
 #define	DSP_MSG_PACK_HEAD_RX_WAITING		1000
 
 //	MIDDLE TIME FOR TIME CORRECTION
-#define	CALL_DSP_TIME						15
+#define	CALL_DSP_TIME						0
 
 #define	CALL_SNR_LIM_HIGH					26
 #define	CALL_SNR_LIM_LOW					16

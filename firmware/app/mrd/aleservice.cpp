@@ -56,9 +56,68 @@ void AleService::aleprocessModemPacketFailedTx()
     // send to log
 }
 
+void AleService::setAleState(bool caller, int8s superphase)
+{
+	AleState state;
+	if(caller)
+	{
+		switch (superphase)
+		{
+			case 0:
+				state=AleState_TX_VM_COMPLETE_FULL;
+				break;
+			case 1:
+				state=AleState_TX_CALLING;
+				break;
+			case 2:
+				state=AleState_TX_VM_TRANSFER;
+				break;
+			case 7:
+				state=AleState_TX_VM_COMPLETE_PARTIAL;
+				break;
+			case 9:
+				state=AleState_TX_VM_TRANSFER;
+				break;
+			case 10:
+				state=AleState_TX_VM_COMPLETE_FULL;
+				break;
+			default:
+				state=AleState_IDLE;
+		}
+	}
+	else
+	{
+		switch (superphase)
+		{
+			case 0:
+				state=AleState_RX_VM_COMPLETE_FULL;
+				break;
+			case 1:
+				state=AleState_RX_SCANNING;
+				break;
+			case 2:
+				state=AleState_RX_VM_TRANSFER;
+				break;
+			case 7:
+				state=AleState_RX_VM_COMPLETE_PARTIAL;
+				break;
+			case 9:
+				state=AleState_RX_VM_COMPLETE_PARTIAL;
+				break;
+			default:
+				state=AleState_IDLE;
+		}
+	}
+	if(state==current_state)
+		return;
+	current_state=state;
+	aleStateChanged(current_state);
+}
+
 void AleService::timer_fxn()
 {
     if(ale_settings.superphase==0)
+
         return;
     if(ale_settings.caller)
 //	CALLER LOGIC
@@ -127,6 +186,7 @@ void AleService::timer_fxn()
                 break;
         }
     }
+    setAleState(ale_settings.caller,ale_settings.superphase);
 }
 
 void AleService::initAle(ale_call_freqs_t call_freqs, ale_call_freqs_t work_freqs, int8s own_adress)

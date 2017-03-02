@@ -592,6 +592,7 @@ void AleMain::fxn_1pps(int h, int m, int s)
 {
 	int32s real_time_sec;
 	real_time_sec=3600*h+60*m+s;
+    //ale_fxn->ale_log("1 PPS, time %u : %u : %u",h,m,s);
     if(ale_settings->call_freq_num==0)
         ale_settings->superphase=0;	//	TURN OFF IF NO CALL FREQ FOUND
     if(ale_settings->superphase==0)
@@ -650,9 +651,10 @@ void AleMain::start_fxn(int8s gps_en, bool caller, int8s adress_dst, bool probe_
     ale_settings->probe_on=probe_on;
     ale_settings->call_counter=0;
     ale_settings->call_supercounter=0;
-    ale_settings->phase=0;
-    ale_settings->superphase=1;
-    ale_settings->neg_counter=0;
+    //ale_settings->phase=0;
+    //ale_settings->superphase=1;
+    //ale_settings->neg_counter=0;
+    ale_fxn->set_next_superphase(1);
 }
 
 void AleMain::stop_fxn()
@@ -662,6 +664,8 @@ void AleMain::stop_fxn()
     ale_fxn->set_tx_mode(0);
     ale_fxn->set_rx_mode(0);
 }
+
+extern const char* msg_names[];
 
 void AleMain::modem_packet_receiver(int8s type, int8s snr, int8s error, int8s bandwidth, int8s* data, int8s data_length)
 {
@@ -688,6 +692,9 @@ void AleMain::modem_packet_receiver(int8s type, int8s snr, int8s error, int8s ba
         ale_fxn->set_rx_bw(bandwidth);
         temp_ale->pause_state=true;
         ale_settings->phase=1;
+#ifdef	NOT_TURN_OFF_RX_WHEN_MSG_RECEIVED
+        ale_fxn->set_rx_mode(0);
+#endif
 	}
     temp_ale->received_msg.time = timer->get_timer_counter();
     temp_ale->received_msg.type=type;
@@ -700,7 +707,7 @@ void AleMain::modem_packet_receiver(int8s type, int8s snr, int8s error, int8s ba
     for(int8s i=0;i<data_length;i++)
         temp_ale->received_msg.data[i]=data[i];
     if(type!=RESP_PACK_QUAL)
-    	ale_fxn->ale_log("Received msg, type %u", type);
+    	ale_fxn->ale_log("Received msg, type %s", msg_names[type]);
 }
 
 void AleMain::modem_packet_transmitter_complete()

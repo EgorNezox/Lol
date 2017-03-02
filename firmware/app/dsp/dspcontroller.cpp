@@ -366,7 +366,7 @@ void DspController::getSwr()
 
 void DspController::syncPulseDetected() {
 	sync_pulse_delay_timer->start();
-    vm1Pps();
+    if (!virtual_mode) {vm1Pps();};
 }
 
 
@@ -3165,7 +3165,7 @@ void DspController::correctTime(uint8_t num)
 void DspController::wakeUpTimer()
 {
 #ifndef PORT__PCSIMULATOR
-    vm1Pps();
+  if(virtual_mode) { vm1Pps();};
 
 	if ((virtual_mode) && (RtcRxRole) && (!antiSync))
 	{
