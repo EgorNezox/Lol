@@ -256,7 +256,7 @@ struct OldAleData{
 
 #define	DT_GPS								250
 #define	DT_MANUAL							5000
-#define	DT_ALE								240	//90
+#define	DT_ALE								50	//90
 
 //	MAXIMUM TIMES
 #define	DSP_LIGHT_MSG_TX_WAITING			60

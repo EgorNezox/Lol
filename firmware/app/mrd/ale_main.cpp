@@ -236,7 +236,8 @@ void AleMain::call_rx_mgr()
 					break;
 				}
                 timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+
-                                 temp_ale->time[RESP_CALL_QUAL][START_EMIT]);
+                                 temp_ale->time[RESP_CALL_QUAL][START_EMIT]+
+								 call_end_time[ale_settings->gps_en]);
                 temp_ale->pause_state=true;
 				//	GOTO NEXT SUPERPHASE
                 ale_fxn->set_next_superphase(2);
@@ -336,7 +337,8 @@ void AleMain::link_set_rx_mgr()
                         ale_fxn->return_to_call();
 					else
                     {
-                        ale_fxn->wait_end_tx(HSHAKE,SHORT_SOUND,true);
+						timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+temp_ale->time[SHORT_SOUND][START_EMIT]);
+                        //ale_fxn->wait_end_tx(HSHAKE,SHORT_SOUND,true);
                         ale_fxn->set_freq(temp_ale->work_freq[0]);
 					}
 				}
@@ -345,7 +347,8 @@ void AleMain::link_set_rx_mgr()
                     temp_ale->freq_num_now=0;
                     temp_ale->best_freq[0]=temp_ale->call_freq;
                     ale_fxn->set_next_superphase(7);
-                    ale_fxn->wait_end_tx(HSHAKE,MSG_HEAD,true,SOUND_QUAL_START_TIME);
+                    timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+temp_ale->time[MSG_HEAD][START_EMIT]+MSG_HEAD_START_TIME);
+                    //ale_fxn->wait_end_tx(HSHAKE,MSG_HEAD,false,MSG_HEAD_START_TIME);
                     ale_fxn->set_freq(temp_ale->best_freq[temp_ale->freq_num_now]);
 				}
 			}
@@ -635,7 +638,11 @@ void AleMain::fxn_1pps(int h, int m, int s)
 	//	IF WE WORK IN CALL FREQ WE MUST WRITE ONLY THIS FREQ TO BEST WORK FREQ TABLE
     temp_ale->best_freq_num = 1;
     temp_ale->best_freq[0]=ale_settings->call_freq[(real_time_sec/call_dwell_time[ale_settings->gps_en])%ale_settings->call_freq_num];
+#ifndef	START_SIGN_FORM
     temp_ale->best_freq_sign_form[0]=6;	// DEFAULT START
+#else
+    temp_ale->best_freq_sign_form[0]=START_SIGN_FORM;	// DEFAULT START
+#endif
     temp_ale->call_freq=temp_ale->best_freq[0];
 #ifdef	OLD_DSP_VERSION
     ale_fxn->set_caller_mode(ale_settings->caller);		//	ONLY FOR OLD DSP VERSIONS
