@@ -10,5 +10,7 @@
 //#define	MIN_SIGN_FORM_TX					4
 #define	START_SIGN_FORM						0		//	STT SIGN FORM FOR CALL FREQ WORKING
 
+//#define	PACKET_TEST							1
+
 #endif // ALE_SETTINGS_H
 

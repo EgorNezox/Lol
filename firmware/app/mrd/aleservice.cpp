@@ -132,6 +132,11 @@ void AleService::timer_fxn()
                 //data_end_rx_mgr();
                 break;
         }
+        if((ale_settings.phase==((ale_fxn->get_packet_num()-1)*3+2))&&(!temp_ale.pause_state))
+        {
+        	ale_fxn->ale_log("ALL DATA RECEIVED");
+        	ale.vm_progress=100;
+        }
     }
     setAleState(ale_settings.caller,ale_settings.superphase);
 }
@@ -251,7 +256,10 @@ int AleService::getAleState() {	//AleState AleService::getAleState() {		//	REWRI
 }
 
 uint8_t Multiradio::AleService::getAleVmProgress() {				//	CHECK !!!
-    return ale.vm_progress;
+	if(ale.vm_progress!=100)
+		return ale.vm_progress;
+	ale.vm_progress=0;
+    return 100;
 }
 
 uint8_t AleService::getAleRxAddress() {
@@ -259,6 +267,9 @@ uint8_t AleService::getAleRxAddress() {
 }
 
 voice_message_t AleService::getAleRxVmMessage() {
+	ale.vm_size=ale_settings.data72bit_length;
+	ale.vm_f_idx=ale_settings.data490bit_length;
+	ale.vm_f_count=ale_settings.data490bit_length;
 	if (ale.vm_size == 0)
 		return voice_message_t();
 	int message_bits_size;
@@ -278,6 +289,7 @@ voice_message_t AleService::getAleRxVmMessage() {
 			int f_byte_bit = 7 - (f_bit_i % 8);
 			int m_byte_i = message_bits_offset / 8;
 			int m_byte_bit = 7 - (message_bits_offset % 8);
+			ale.vm_fragments[f_i].num_data[f_byte_i]=ale_settings.data_packs[f_i][f_byte_i];
 			if ((ale.vm_fragments[f_i].num_data[f_byte_i] & (1 << f_byte_bit)) != 0)
 				vm_rx_message[m_byte_i] |= (1 << m_byte_bit);
 			message_bits_offset++;

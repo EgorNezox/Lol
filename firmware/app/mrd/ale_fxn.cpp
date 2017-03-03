@@ -348,33 +348,33 @@ void AleFxn::set_next_superphase(int8s superphase_num)
     	switch(superphase_num)
 		{
 			case 0:
-				if(ale_settings->superphase==1)
-					ale_settings->ale_state=11;	//	TX_CALL_FAIL
-				else if((ale_settings->superphase==10)&&(ale_settings->result==0))
-					ale_settings->ale_state=16;	//	TX DATA FULL
+				//if(ale_settings->superphase==1)
+				//	ale_settings->ale_state=11;	//	TX_CALL_FAIL
+				/*else*/ if((ale_settings->superphase==10)&&(ale_settings->result==0))
+					ale_settings->ale_state=20;	//	RX DATA FULL
 				else if((ale_settings->superphase==9)&&(ale_settings->result!=0))
-					ale_settings->ale_state=15;	//	TX DATA PART
+					ale_settings->ale_state=19;	//	RX DATA PART
 				else if((ale_settings->superphase==7)&&(ale_settings->result!=0))
-					ale_settings->ale_state=14;	//	TX DATA FAIL (MSG_HEAD UNCORRECT)
+					ale_settings->ale_state=18;	//	RX DATA FAIL (MSG_HEAD UNCORRECT)
 				else
 					ale_settings->ale_state=ALE_UNKNOWN_STATE;
 				break;
 			case 1:
-				ale_settings->ale_state=10;		//	TX_CALLING
+				ale_settings->ale_state=6;		//	RX_SCANNING
 				break;
 			case 2:
-				ale_settings->ale_state=12;		//	TX_CALL_NEG
+				ale_settings->ale_state=7;		//	RX_CALL_NEG
 				break;
 			case 3:
-				ale_settings->ale_state=21;		//	TX_PROBE
+				ale_settings->ale_state=23;		//	RX_PROBE
 				break;
 			case 4:
-				ale_settings->ale_state=22;		//	TX_PROBE_QUAL
+				ale_settings->ale_state=24;		//	RX_PROBE_QUAL
 				break;
 			case 7:
 			case 9:
 			case 10:
-				ale_settings->ale_state=13;		//	TX_DATA_TRANS
+				ale_settings->ale_state=9;		//	RX_DATA_TRANS
 				break;
 		}
     }
@@ -395,7 +395,10 @@ bool AleFxn::check_msg(int8s msg_type, bool rx_stop)
 	else
         temp_ale->last_msg=true;
     if((temp_ale->received_msg.data_length!=-1)&&(temp_ale->received_msg.type==msg_type)&&(temp_ale->received_msg.error!=100))
-        return true;
+    {
+    	temp_ale->received_msg.data_length=-1;
+    	return true;
+    }
     return false;
 }
 
@@ -422,7 +425,11 @@ bool AleFxn::check_pack_head_crc(int8s* data)
 void AleFxn::get_msg_fragment(int16s num, int8s* data)
 {
     for(int16s i = 0; i < 66; i++)
+#ifndef	PACKET_TEST
         data[i]=ale_settings->data[num*66+i];    //ale->vm_fragments[num].num_data[i];
+#else
+    	data[i]=i;    //ale->vm_fragments[num].num_data[i];
+#endif
 }
 
 void AleFxn::makeTable16()

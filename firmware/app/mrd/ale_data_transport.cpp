@@ -23,6 +23,7 @@ void AleDataTransport::msg_head_tx_mgr()
 			{
                 ale_fxn->wait_end_tx(MSG_HEAD,RESP_PACK_QUAL,false);
 				ale_settings->phase=1;
+				ale_fxn->ale_log("Number of data blocks: %u", ale_settings->data490bit_length);
 			}
 			break;
 		case 1:	// resp pack qual wait
@@ -313,6 +314,7 @@ void AleDataTransport::msg_head_rx_mgr()
                     ale_fxn->set_packet_num(AleCom::get_msg_head_msg_size(temp_ale->received_msg.data));
                     timer->set_timer(temp_ale->time[MSG_HEAD][RECEIVE_LAST_TIME]+
                                      temp_ale->time[RESP_PACK_QUAL][START_EMIT]);
+    				ale_fxn->ale_log("Number of data blocks: %u", ale_settings->data490bit_length);
                     temp_ale->pack_result=true;
                     temp_ale->pack_snr=temp_ale->received_msg.snr;
                 }
@@ -469,7 +471,11 @@ void AleDataTransport::data_rx_mgr()
                         ale_settings->nres0=0;	ale_settings->neg_counter=0;
 						temp_ale->pack_result=1;
                         ale_settings->phase=AleCom::get_packet_num(temp_ale->received_msg.data)*3+1;
-                        ale_fxn->ale_log("PACK_DATA RECEIVED OK, SNR %u, PHASE %u",temp_ale->pack_snr, ale_settings->phase);
+                        for(int8s i=0;i<66;i++)
+                        	ale_settings->data_packs[ale_settings->phase/3][i]=temp_ale->received_msg.data[i];
+                        //std::copy(packet->num_data, packet->num_data + sizeof(packet->num_data), ale.vm_fragments[ale.vm_f_idx].num_data);
+
+                        ale_fxn->ale_log("PACK_DATA RECEIVED OK, SNR %u, NUM %u, PHASE %u",temp_ale->pack_snr, AleCom::get_packet_num(temp_ale->received_msg.data), ale_settings->phase);
 					}
                     timer->set_timer(temp_ale->time[PACK_HEAD][RECEIVE_LAST_TIME]+
                                      temp_ale->time[RESP_PACK_QUAL][START_EMIT]);
@@ -496,7 +502,7 @@ void AleDataTransport::data_rx_mgr()
                     ale_fxn->wait_end_tx(RESP_PACK_QUAL,HSHAKE,false);
 					ale_settings->phase++;
 				}
-			}					
+			}
 			break;	
 		case 2:
             if((ale_settings->phase/3)==(ale_fxn->get_packet_num()-1))

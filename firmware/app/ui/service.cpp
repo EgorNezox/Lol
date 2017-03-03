@@ -3041,6 +3041,18 @@ void Service::drawMenu()
             {
                 status = voice_service->getAleState();
                 menu->vmProgress = voice_service->getAleVmProgress();
+
+
+            	if(menu->vmProgress==100)
+            	{
+                    //char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
+                    //menu->voiceAddr.append(ch);
+                    //menu->putOffVoiceStatus++;
+                    //voice_service->stopAle();
+                    Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
+                    if (storageFs > 0)
+                        storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
+            	}
             }
 
             menu->initTxPutOffVoiceDialogTest(status);
@@ -3153,6 +3165,17 @@ void Service::drawMenu()
                 status   = voice_service->getAleState();
                 menu->vmProgress = voice_service->getAleVmProgress();
             }
+
+        	if(menu->vmProgress==100)
+        	{
+                //char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
+                //menu->voiceAddr.append(ch);
+                //menu->putOffVoiceStatus++;
+                //voice_service->stopAle();
+                Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
+                if (storageFs > 0)
+                    storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
+        	}
 
             menu->initRxPutOffVoiceDialogTest(status);
 

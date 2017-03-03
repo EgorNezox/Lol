@@ -256,19 +256,19 @@ struct OldAleData{
 
 #define	DT_GPS								250
 #define	DT_MANUAL							5000
-#define	DT_ALE								50	//90
+#define	DT_ALE								100	//90
 
 //	MAXIMUM TIMES
 #define	DSP_LIGHT_MSG_TX_WAITING			60
 #define	DSP_MSG_PACK_HEAD_TX_WAITING		100
 #define	DSP_TX_STOP_TIME					50
 
-#define	DSP_RX_TURN_ON_WAITING				20
+#define	DSP_RX_TURN_ON_WAITING				50
 #define	DSP_LIGHT_MSG_RX_WAITING			20
 #define	DSP_MSG_PACK_HEAD_RX_WAITING		1000
 
 //	MIDDLE TIME FOR TIME CORRECTION
-#define	CALL_DSP_TIME						0
+//#define	CALL_DSP_TIME						0
 
 #define	CALL_SNR_LIM_HIGH					26
 #define	CALL_SNR_LIM_LOW					16
@@ -316,7 +316,7 @@ const int pack_head_data_time[DATA_SIGNAL_FORM_NUM]=    { 2640, 3960, 7920, 7920
 #define	PHASE_TIME				6
 
 const int ideal_timings[][3]={
-/* CALL_MANUAL - 0 */				11145,	5925,	4816,
+/* CALL_MANUAL - 0 */				11145,	5925,	4816,	//	404
 /* CALL_GPS - 1 */					3301,	769,	2128,	//	404
 /* HSHAKE (ACK)  - 2 */				1221,	279,	448,	//	494
 /* NONE - 3 */						0,		0,		0,
@@ -354,6 +354,7 @@ const int ideal_timings[][3]={
 const int8s call_dwell_time[]		=	{ 19, 6 };                                      //  TIME IN SECONDS
 const int32s call_superphase_time[]	=	{ CALL_MANUAL_SUPERPHASE_TIME, CALL_GPS_SUPERPHASE_TIME };
 const int32s call_end_time[]		=	{ CALL_MANUAL_END_TIME, CALL_GPS_END_TIME };    //  INC TIME OF CALL SUPERPHASE
+const int32s call_dsp_time[]		=	{ 0, 0 };	//	TIME OF DEMODULATING, DECODING AND TRANSPORTING TO HOST CALL MSG
 
 const int32s ale_max_supercounter[]	=	{ 1, 3 };
 

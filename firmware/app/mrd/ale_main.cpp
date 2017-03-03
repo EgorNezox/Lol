@@ -19,13 +19,13 @@ AleMain::AleMain(ContTimer* tmr, ale_data* tmp_ale, ext_ale_settings* ale_s, Ale
 			{
                 temp_ale->time[i][START_RECEIVE]=ideal_timings[i][IDEAL_START_EMIT]-DT_MANUAL-DSP_RX_TURN_ON_WAITING;
                 temp_ale->time[i][RECEIVE_PERIOD]=ideal_timings[i][IDEAL_EMIT_PERIOD]+2*DT_MANUAL+DSP_RX_TURN_ON_WAITING+DSP_LIGHT_MSG_RX_WAITING;
-                temp_ale->time[i][RECEIVE_LAST_TIME]=ideal_timings[i][IDEAL_PHASE_TIME]-ideal_timings[i][IDEAL_START_EMIT]-ideal_timings[i][IDEAL_EMIT_PERIOD]-CALL_DSP_TIME;
+                temp_ale->time[i][RECEIVE_LAST_TIME]=ideal_timings[i][IDEAL_PHASE_TIME]-ideal_timings[i][IDEAL_START_EMIT]-ideal_timings[i][IDEAL_EMIT_PERIOD]-call_dsp_time[0];
 			}
 			else if(i==CALL_GPS)
 			{
                 temp_ale->time[i][START_RECEIVE]=ideal_timings[i][IDEAL_START_EMIT]-DT_GPS-DSP_RX_TURN_ON_WAITING;
                 temp_ale->time[i][RECEIVE_PERIOD]=ideal_timings[i][IDEAL_EMIT_PERIOD]+2*DT_GPS+DSP_RX_TURN_ON_WAITING+DSP_LIGHT_MSG_RX_WAITING;
-                temp_ale->time[i][RECEIVE_LAST_TIME]=ideal_timings[i][IDEAL_PHASE_TIME]-ideal_timings[i][IDEAL_START_EMIT]-ideal_timings[i][IDEAL_EMIT_PERIOD]-CALL_DSP_TIME;
+                temp_ale->time[i][RECEIVE_LAST_TIME]=ideal_timings[i][IDEAL_PHASE_TIME]-ideal_timings[i][IDEAL_START_EMIT]-ideal_timings[i][IDEAL_EMIT_PERIOD]-call_dsp_time[1];
 			}
 			else
 			{
@@ -55,6 +55,7 @@ void AleMain::call_tx_mgr()
     switch(ale_settings->phase)
 	{
 		case 0:	// call tx
+#ifndef	PACKET_TEST
             if(temp_ale->pause_state)	// wait to start emit call
                 ale_fxn->send_tx_msg(CALL_MANUAL+ale_settings->gps_en);
 			else
@@ -66,6 +67,13 @@ void AleMain::call_tx_mgr()
 #endif
                 ale_settings->phase=1;
 			}
+#else
+            temp_ale->sign_form=PACKET_TEST;
+            if(temp_ale->pause_state)	// wait to start emit call
+                ale_fxn->send_tx_msg(PACK_HEAD);
+			else
+				ale_fxn->return_to_call();
+#endif
 			break;
 		case 1:	// hshake wait
             if(temp_ale->pause_state)	// wait to start receive
@@ -207,6 +215,7 @@ void AleMain::call_rx_mgr()
     switch(ale_settings->phase)
 	{
 		case 0:	// call tx
+#ifndef	PACKET_TEST
             if(temp_ale->pause_state)	// wait to start emit call
                 ale_fxn->start_receive_msg(CALL_MANUAL+ale_settings->gps_en);
 			else
@@ -215,6 +224,35 @@ void AleMain::call_rx_mgr()
                     ale_fxn->return_to_call();
 				//	OTHER LOGIC IS IN COM RECEIVER
 			}
+#else
+            if(temp_ale->pause_state)	// wait to start emit call
+				ale_fxn->start_receive_msg(PACK_HEAD);
+			else
+			{
+				if(!temp_ale->last_msg)
+                {
+                    if(!ale_fxn->check_msg(PACK_HEAD,false))
+                    {
+                        ale_fxn->return_to_call();
+                        ale_fxn->ale_log("PACK_HEAD NOT RECEIVED");
+                        break;
+                    }
+                    temp_ale->sign_form=temp_ale->received_msg.data[0];
+                    ale_fxn->ale_log("PACK_HEAD RECEIVED, SPEED %u",temp_ale->sign_form);
+                    timer->set_timer(   pack_head_data_time[temp_ale->sign_form]+
+                                        DSP_MSG_PACK_HEAD_RX_WAITING-DSP_LIGHT_MSG_RX_WAITING   );
+				}
+				else
+				{
+                    temp_ale->pack_snr=temp_ale->received_msg.snr;
+                    if((!ale_fxn->check_msg(PACK_HEAD,true))||(!ale_fxn->check_pack_head_crc(temp_ale->received_msg.data)))
+						ale_fxn->ale_log("PACK_DATA NOT RECEIVED, SNR %u",temp_ale->pack_snr);
+					else
+                        ale_fxn->ale_log("PACK_DATA RECEIVED OK, SNR %u, PHASE %u",temp_ale->pack_snr, ale_settings->phase);
+                    ale_fxn->return_to_call();
+				}
+			}
+#endif
 			break;
 		case 1:	// hshake tx
             if(temp_ale->pause_state)	// wait to start emit call
@@ -337,7 +375,7 @@ void AleMain::link_set_rx_mgr()
                         ale_fxn->return_to_call();
 					else
                     {
-						timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+temp_ale->time[SHORT_SOUND][START_EMIT]);
+						timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+temp_ale->time[SHORT_SOUND][START_RECEIVE]);
                         //ale_fxn->wait_end_tx(HSHAKE,SHORT_SOUND,true);
                         ale_fxn->set_freq(temp_ale->work_freq[0]);
 					}
@@ -347,7 +385,7 @@ void AleMain::link_set_rx_mgr()
                     temp_ale->freq_num_now=0;
                     temp_ale->best_freq[0]=temp_ale->call_freq;
                     ale_fxn->set_next_superphase(7);
-                    timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+temp_ale->time[MSG_HEAD][START_EMIT]+MSG_HEAD_START_TIME);
+                    timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+temp_ale->time[MSG_HEAD][START_RECEIVE]+MSG_HEAD_START_TIME);
                     //ale_fxn->wait_end_tx(HSHAKE,MSG_HEAD,false,MSG_HEAD_START_TIME);
                     ale_fxn->set_freq(temp_ale->best_freq[temp_ale->freq_num_now]);
 				}
@@ -678,6 +716,7 @@ extern const char* msg_names[];
 void AleMain::modem_packet_receiver(int8s type, int8s snr, int8s error, int8s bandwidth, int8s* data, int8s data_length)
 {
     temp_ale->received_msg.snr=snr; // FOR CORRECT SNR IN RESP PACK QUAL, IF PACKET DATA NOT RECEIVED
+    temp_ale->received_msg.error=error;
     if(temp_ale->rx==0)
 		return;
     if(error==100)
@@ -709,7 +748,6 @@ void AleMain::modem_packet_receiver(int8s type, int8s snr, int8s error, int8s ba
     if(temp_ale->received_msg.type==3)		//	FOR OLD VERSION
         temp_ale->received_msg.type=HSHAKE;
     temp_ale->received_msg.snr=snr;
-    temp_ale->received_msg.error=error;
     temp_ale->received_msg.bandwidth=bandwidth;
     temp_ale->received_msg.data_length=data_length;
     for(int8s i=0;i<data_length;i++)
