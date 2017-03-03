@@ -1340,6 +1340,10 @@ void Service::keyPressed(UI_Key key)
                     updateAleState(AleState_IDLE);
                     Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
                     voice_service->startAleTx((uint8_t)atoi(menu->voiceAddr.c_str()),message);
+                    //Запись во флеш
+		                if (storageFs > 0)
+		                    storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
+
                     menu->putOffVoiceStatus++;
                 }
 #endif
@@ -3657,8 +3661,8 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
         if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 2)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 5))){
             if (isRecord){
                 Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
-                if (storageFs > 0)
-                    storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
+              //  if (storageFs > 0)
+              //      storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
                 isUploaded = false;
                 drawMenu();
             } else
