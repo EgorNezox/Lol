@@ -362,7 +362,7 @@ const int call_snr_lim[]={CALL_SNR_LIM_HIGH,CALL_SNR_LIM_LOW,CALL_SNR_LIM_LOW};
 const int ale_hshake_snr_lim[]={CALL_SNR_LIM_HIGH,CALL_SNR_LIM_LOW,CALL_SNR_LIM_LOW};
 
 #define	SOUND_QUAL_START_TIME   189		// time after probes, before sound qual
-#define	MSG_HEAD_START_TIME		100		// pause between ALE and data tx/rx
+#define	MSG_HEAD_START_TIME		(100+323)		// pause between ALE and data tx/rx
 
 //	CALC SNR:
 //	MFT8 - snr = 9.5819 * ln(x+1) - 11.159
