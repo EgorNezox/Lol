@@ -407,10 +407,14 @@ int8s AleFxn::get_packet_num()
     return ale_settings->data490bit_length;
 }
 
-int8s AleFxn::set_packet_num(int8s num_msg_head)
+int8s AleFxn::set_packet_num(int16s num_msg_head)
 {
     ale->vm_size = num_msg_head;
+#ifndef	NEW_MSG_HEAD
     ale->vm_f_count = ceilf((float)ale->vm_size*72/490);
+#else
+    ale->vm_f_count = ceilf((float)ale->vm_size*8/490);
+#endif
     ale->vm_fragments.resize(ale->vm_f_count);
     ale_settings->data72bit_length=ale->vm_size;
     ale_settings->data490bit_length=ale->vm_f_count;

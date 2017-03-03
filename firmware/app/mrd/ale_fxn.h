@@ -51,7 +51,7 @@ public:
     void set_caller_mode(bool mode);
     void set_tx_mode(int mode);
     int8s get_packet_num();
-    int8s set_packet_num(int8s num_msg_head);
+    int8s set_packet_num(int16s num_msg_head);
     void get_msg_fragment(int16s num, int8s* data);
     void aleprocessTX_modem(int8s packet_type, int8s* data, int8s length);
     void set_rx_bw(int8_t bandwidth);

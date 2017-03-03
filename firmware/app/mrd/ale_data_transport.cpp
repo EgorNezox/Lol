@@ -23,7 +23,7 @@ void AleDataTransport::msg_head_tx_mgr()
 			{
                 ale_fxn->wait_end_tx(MSG_HEAD,RESP_PACK_QUAL,false);
 				ale_settings->phase=1;
-				ale_fxn->ale_log("Number of data blocks: %u", ale_settings->data490bit_length);
+				ale_fxn->ale_log("Number of data blocks: %u, bytes: %u", ale_settings->data490bit_length, ale_settings->data72bit_length);
 			}
 			break;
 		case 1:	// resp pack qual wait
@@ -314,7 +314,7 @@ void AleDataTransport::msg_head_rx_mgr()
                     ale_fxn->set_packet_num(AleCom::get_msg_head_msg_size(temp_ale->received_msg.data));
                     timer->set_timer(temp_ale->time[MSG_HEAD][RECEIVE_LAST_TIME]+
                                      temp_ale->time[RESP_PACK_QUAL][START_EMIT]);
-    				ale_fxn->ale_log("Number of data blocks: %u", ale_settings->data490bit_length);
+                    ale_fxn->ale_log("Number of data blocks: %u, bytes: %u", ale_settings->data490bit_length, ale_settings->data72bit_length);
                     temp_ale->pack_result=true;
                     temp_ale->pack_snr=temp_ale->received_msg.snr;
                 }

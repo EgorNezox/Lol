@@ -1,6 +1,8 @@
 #ifndef ALE_SETTINGS_H
 #define ALE_SETTINGS_H
 
+#define	NEW_MSG_HEAD
+
 //#define CALLER_IGNORE_RX
 #define	NOT_TURN_OFF_RX_WHEN_MSG_RECEIVED
 //#define	CALLER_DT_INCREMENT					(-300)

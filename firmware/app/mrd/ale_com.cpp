@@ -100,8 +100,13 @@ int8s AleCom::generate_msg_head(int8s* data, int16s msg_size)
 {
     //data_bit[526]=(msg_size>>8)&0xFF;
     //data_bit[527]=(msg_size>>0)&0xFF;
+#ifndef	NEW_MSG_HEAD
     data[0]=(msg_size>>3)&0xFF;
     data[1]=(msg_size<<5)&0xE0;
+#else
+    data[0]=(msg_size>>4)&0xFF;
+    data[1]=(msg_size<<4)&0xE0;
+#endif
     //resize_symbols(&(data_bit[526]),&(data_bit[0]),8,1,2);
     //resize_symbols(&(data_bit[5]),data,1,8,16);
     return 2;
@@ -184,7 +189,11 @@ int8s AleCom::get_call_resp_addr(int8s* data)
 
 int16s AleCom::get_msg_head_msg_size(int8s* data)
 {
+#ifndef	NEW_MSG_HEAD
     return (((((int16s)(data[0]))&0xFF)<<3)|((((int16s)(data[1]))&0xE0)>>5));
+#else
+    return (((((int16s)(data[0]))&0xFF)<<4)|((((int16s)(data[1]))&0xE0)>>4));
+#endif
 }
 
 int8s AleCom::get_pack_head_sign_form(int8s* data)

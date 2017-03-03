@@ -206,11 +206,15 @@ void AleService::startAleTxVoiceMail(uint8_t address, voice_message_t message) {
 //	setAleState(AleState_TX_CALLING);
 	ale.supercycle = 1;
 	ale.cycle = 1;
+	int message_bits_size = message.size()*8;
+#ifndef	NEW_MSG_HEAD
 	int message_size_mismatch = message.size() % 9;
 	if (message_size_mismatch > 0)
 		message.resize((message.size() + (9 - message_size_mismatch)), 0);
-	int message_bits_size = message.size()*8;
 	ale.vm_size = message_bits_size/72;
+#else
+	ale.vm_size = message_bits_size/8;
+#endif
 	ale.vm_f_count = ceilf((float)message_bits_size/490);
 	ale.vm_fragments.resize(ale.vm_f_count);
 	for (unsigned int i = 0; i < ale.vm_fragments.size(); i++) {
@@ -274,16 +278,27 @@ voice_message_t AleService::getAleRxVmMessage() {
 		return voice_message_t();
 	int message_bits_size;
 	if (ale.vm_f_idx == ale.vm_f_count) {
+#ifndef	NEW_MSG_HEAD
 		message_bits_size = ale.vm_size*72;
+#else
+		message_bits_size = ale.vm_size*8;
+#endif
 	} else {
 		message_bits_size = ale.vm_f_idx*490;
+#ifndef	NEW_MSG_HEAD
 		if (!((message_bits_size % 72) == 0))
 			message_bits_size += 72 - (message_bits_size % 72);
+#endif
 	}
 	voice_message_t vm_rx_message(message_bits_size/8, 0);
+	ale_fxn->ale_log("Data length to output - %u bytes",vm_rx_message.size());
 	int message_bits_offset = 0;
 	for (int f_i = 0; f_i < ale.vm_f_idx; f_i++) {
+#ifndef	NEW_MSG_HEAD
 		int f_bits_size = (f_i == (ale.vm_f_count - 1))?(ale.vm_size*72 - (ale.vm_f_count - 1)*490):(490);
+#else
+		int f_bits_size = (f_i == (ale.vm_f_count - 1))?(ale.vm_size*8 - (ale.vm_f_count - 1)*490):(490);
+#endif
 		for (int f_bit_i = 6; f_bit_i < (6 + f_bits_size); f_bit_i++) {
 			int f_byte_i = f_bit_i / 8;
 			int f_byte_bit = 7 - (f_bit_i % 8);
@@ -295,6 +310,7 @@ voice_message_t AleService::getAleRxVmMessage() {
 			message_bits_offset++;
 		}
 	}
+	ale_fxn->ale_log("ALE DATA REQUEST FROM INTERFACE");
     return vm_rx_message;
 }
 
