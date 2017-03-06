@@ -3,6 +3,7 @@
 #include "ale_fxn.h"
 
 int8s data_bit[528];
+unsigned short crcTable[256];   //!< Таблица расчета CRC
 
 AleCom::AleCom()
 {
@@ -16,6 +17,46 @@ void AleCom::resize_symbols(int8s* data_in, int8s* data_out, int16s size_in, int
     static int8s i,j,mul,mask,temp;
     if((data_in==data_out)&&(size_in==size_out))
         return;
+    if(size_in==size_out)
+    {
+        for(i=0;i<length_in;i++)
+            data_out[i]=data_in[i];
+        return;
+    }
+    if(size_in>size_out)
+    {
+        mul=size_in/size_out;
+        mask=(1<<size_out)-1;
+        for(i=(length_in-1);i>=0;i--)
+        {
+            temp=data_in[i];
+            for(j=0;j<mul;j++)
+                data_out[j+i*mul]=(temp>>((mul-j-1)*size_out))&mask;
+        }
+        return;
+    }
+    if(size_in<size_out)
+    {
+        mul=size_out/size_in;
+        mask=(1<<size_in)-1;
+        for(i=0;i<length_in/mul;i++)
+        {
+            temp=0;
+            for(j=0;j<mul;j++)
+                temp=temp|((data_in[i*mul+j]&mask)<<((mul-j-1)*size_in));
+            data_out[i]=temp;
+        }
+        return;
+    }
+}
+
+void AleCom::resize_symbols(int16s* data_in, int8s* data_out, int16s size_in, int16s size_out, int16s length_in)
+// --- size - number of bits in symbol
+// --- size out%size_in==0 || size_in%size_out==0
+{
+    static int16s i,j,mul,mask,temp;
+    //if((data_in==data_out)&&(size_in==size_out))
+    //    return;
     if(size_in==size_out)
     {
         for(i=0;i<length_in;i++)
@@ -89,11 +130,12 @@ int8s AleCom::generate_sound_qual(int8s* data, int8s* indexes, int8s* snr, int8s
         resize_symbols(&(snr[i]),&(data_bit[i*(5+6+7)+5]),6,1,1);
         resize_symbols(&(sign_forms[i]),&(data_bit[i*(5+6+7)+5+6]),7,1,1);
     }
-    resize_symbols(data_bit,data,1,8,56);
-    crc16=Multiradio::AleFxn::CRC16(data,7);
-    data_bit[526]=(crc16>>8)&0xFF;
-    data_bit[527]=(crc16>>0)&0xFF;
-    resize_symbols(&(data_bit[526]),&(data_bit[(5+6+7)*3]),8,1,2);
+    //resize_symbols(data_bit,data,1,8,56);
+    //crc16=Multiradio::AleFxn::CRC16(data,7);
+    crc16=CRCBit(data_bit, ((5+6+7)*3), 0);
+    //data_bit[526]=(crc16>>8)&0xFF;
+    //data_bit[527]=(crc16>>0)&0xFF;
+    resize_symbols(&crc16,&(data_bit[(5+6+7)*3]),16,1,1);
     resize_symbols(data_bit,data,1,8,72);
     return 9;
 }
@@ -107,7 +149,7 @@ int8s AleCom::generate_msg_head(int8s* data, int16s msg_size)
     data[1]=(msg_size<<5)&0xE0;
 #else
     data[0]=(msg_size>>4)&0xFF;
-    data[1]=(msg_size<<4)&0xE0;
+    data[1]=(msg_size<<4)&0xF0;
 #endif
     //resize_symbols(&(data_bit[526]),&(data_bit[0]),8,1,2);
     //resize_symbols(&(data_bit[5]),data,1,8,16);
@@ -194,7 +236,7 @@ int16s AleCom::get_msg_head_msg_size(int8s* data)
 #ifndef	NEW_MSG_HEAD
     return (((((int16s)(data[0]))&0xFF)<<3)|((((int16s)(data[1]))&0xE0)>>5));
 #else
-    return (((((int16s)(data[0]))&0xFF)<<4)|((((int16s)(data[1]))&0xE0)>>4));
+    return (((((int16s)(data[0]))&0xFF)<<4)|((((int16s)(data[1]))&0xF0)>>4));
 #endif
 }
 
@@ -234,12 +276,53 @@ int8s AleCom::get_packet_num(int8s* data)
     return ((data[0]&0xFC)>>2);
 }
 
-int8s AleCom::get_short_sound_snr(int8s* data)
+unsigned int AleCom::CRCBit(int8s *data, unsigned int size, unsigned int beg) // size - bit_num, beg - start
 {
+    unsigned short r;
+    for(int i=0; i<256; i++)
+    {
+        r = ((unsigned short)i)<<8;
+        for(unsigned char j=0; j<8; j++)
+        {
+            if(r&(1<<15)) r=(r<<1)^0x8005;
+            else r=r<<1;
+        }
+        crcTable[i]=r;
+    }
 
-}
+    unsigned short crc=0xFFFF;
+    unsigned char word=0;
 
-int8s AleCom::get_short_sound_sign_forms(int8s* data)
-{
+    unsigned int countBit=0;
+    unsigned short symbol;
 
+    //LogC::LoggerStream stream=TraceINFO("CRC16");
+    //stream<<"size:  "<<size<<" sumbol: ";
+
+    for(unsigned int i=0;i<size;i++)
+    {
+        symbol=data[beg+i];             //извлекаем символ (бит)
+        symbol=symbol<<(7-countBit);
+        word=word|symbol;               //собираем слово
+        countBit++;                     //количество заполненных бит в слове
+
+        if(countBit==8)                 //собрали слово
+        {
+            crc = crcTable[((crc>>8)^word)&0xFF] ^ (crc<<8);
+
+            //stream<<int(word)<<" ";
+            word=0;
+            countBit=0;
+        }
+    }
+
+    if(countBit!=0)    //если не хватило данных до полного слова
+    {
+        //stream<<int(word)<<" ";
+        crc = crcTable[((crc>>8)^word)&0xFF] ^ (crc<<8);
+    }
+    crc ^= 0xFFFF;
+    //stream.flush();
+
+    return (unsigned int)crc;
 }

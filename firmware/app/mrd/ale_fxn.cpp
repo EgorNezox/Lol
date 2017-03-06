@@ -225,6 +225,7 @@ void AleFxn::gen_sound_qual()
 void AleFxn::gen_msg_head()
 {
     temp_ale->tx_msg.data_length=AleCom::generate_msg_head(temp_ale->tx_msg.data, get_msg_size());
+    //ale_log("SEND MSG HEAD, DATA_0 0x%X, DATA_1 0x%X",temp_ale->tx_msg.data[0],temp_ale->tx_msg.data[1]);
 }
 
 int16s AleFxn::get_msg_size()
@@ -254,7 +255,7 @@ bool AleFxn::get_work_freq()
     counter=0;
     for(int8s i=0;i<ale_settings->work_freq_num;i++)
     {
-        if((ale_settings->work_freq[i]>(temp_ale->call_freq/2))&&(ale_settings->work_freq[i]<(temp_ale->call_freq*2)))
+        if((ale_settings->work_freq[i]>(temp_ale->call_freq/2))&&(ale_settings->work_freq[i]<(temp_ale->call_freq*2))&&(ale_settings->work_freq[i]!=temp_ale->call_freq))
         {
             temp_ale->work_freq[counter]=ale_settings->work_freq[i];
             counter++;

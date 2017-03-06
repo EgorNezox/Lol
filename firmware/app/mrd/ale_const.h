@@ -296,7 +296,7 @@ struct OldAleData{
 //	MIDDLE TIME FOR TIME CORRECTION
 //#define	CALL_DSP_TIME						0
 
-#define	CALL_SNR_LIM_HIGH					26
+#define	CALL_SNR_LIM_HIGH					20	//26
 #define	CALL_SNR_LIM_LOW					16
 
 #define	MAX_TRANSMODE_REPEAT				3

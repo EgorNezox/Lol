@@ -455,6 +455,7 @@ void AleMain::short_sound_qual_tx_mgr()
 			else
             {
                 crc16=AleCom::get_sound_qual_crc16(temp_ale->received_msg.data);
+#ifndef	SEND_HSHAKE_AFTER_BAD_SOUND_QUAL
 #ifndef  NO_CRC16_CHECK
                 if((!ale_fxn->check_msg(SOUND_QUAL, true))||(crc16!=ale_fxn->CRC16(temp_ale->received_msg.data,7)))
 #else
@@ -469,6 +470,7 @@ void AleMain::short_sound_qual_tx_mgr()
                                      temp_ale->time[SOUND_QUAL][START_RECEIVE]);
 					break;
                 }
+#endif
                 timer->set_timer(temp_ale->time[SOUND_QUAL][RECEIVE_LAST_TIME]+
                                  temp_ale->time[HSHAKE][START_EMIT]);
                 temp_ale->best_freq_num=AleCom::get_sound_qual_freq_info(temp_ale->received_msg.data,temp_ale->best_freq_index,temp_ale->best_freq_sign_form);
@@ -488,6 +490,7 @@ void AleMain::short_sound_qual_tx_mgr()
                 ale_fxn->send_tx_msg(HSHAKE);
 			else
 			{
+#ifndef	SEND_HSHAKE_AFTER_BAD_SOUND_QUAL
                 ale_fxn->wait_end_tx(HSHAKE,MSG_HEAD,true,MSG_HEAD_START_TIME);
                 ale_fxn->set_freq(temp_ale->best_freq[0]);
                 temp_ale->sign_form=temp_ale->best_freq_sign_form[0];
@@ -496,6 +499,10 @@ void AleMain::short_sound_qual_tx_mgr()
                     ale_fxn->return_to_call();
                 else
                 	ale_fxn->set_next_superphase(7);        //  NO LONG PROBES
+#else
+                ale_fxn->wait_end_tx(HSHAKE,SOUND_QUAL,false);
+				ale_fxn->set_next_superphase(4);        //  NO LONG PROBES
+#endif
 			}
 			break;
 	}
