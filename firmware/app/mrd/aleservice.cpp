@@ -141,7 +141,7 @@ void AleService::timer_fxn()
     setAleState(ale_settings.caller,ale_settings.superphase);
 }
 
-void AleService::initAle(ale_call_freqs_t call_freqs, ale_call_freqs_t work_freqs, int8s own_adress)
+void AleService::initAle(ale_call_freqs_t call_freqs, ale_call_freqs_t work_freqs, int8s own_adress, bool probe_on)
 {
     ale_settings.own_adress=own_adress;
     ale_settings.call_freq_num=call_freqs.size();
@@ -151,7 +151,8 @@ void AleService::initAle(ale_call_freqs_t call_freqs, ale_call_freqs_t work_freq
     for(int8s i=0;i<ale_settings.work_freq_num;i++)
         ale_settings.work_freq[i]=work_freqs[i];
     ale.ManualTimeMode=false;
-    ale.probe_on=false;
+    ale.probe_on=probe_on;
+    ale_settings.probe_on=probe_on;
 }
 
 void AleService::setManualTimeMode(bool mode)

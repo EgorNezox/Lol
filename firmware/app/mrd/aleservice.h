@@ -34,7 +34,7 @@ public:
 	int AleState1;
 
 
-	void initAle(ale_call_freqs_t call_freqs, ale_call_freqs_t work_freqs, int8s own_adress);
+	void initAle(ale_call_freqs_t call_freqs, ale_call_freqs_t work_freqs, int8s own_adress, bool probe_on);
     void setManualTimeMode(bool mode);
     void setProbeMode(bool probe_on);
     //Status getStatus();

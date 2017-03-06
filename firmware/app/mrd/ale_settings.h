@@ -14,5 +14,15 @@
 
 //#define	PACKET_TEST							1
 
+//	bit0 - mft8, bit1 - mft4, bit2 - ft500, bit3 - ft1800, bit4 - fts4, bit5 - fts8, bit6 - fts16
+#define	PROBES_ENABLED	{ 0x23, 0x61, 0x7C, 0x13 }//, 0x52, 0x6F, 0x63, 0x7F, 0x7F }
+//#define	NOT_TX_PROBE_MFT8
+//#define	NOT_TX_PROBE_MFT4
+//#define	NOT_TX_PROBE_FT500
+//#define	NOT_TX_PROBE_FT1800
+//#define	NOT_TX_PROBE_FTS4
+//#define	NOT_TX_PROBE_FTS8
+//#define	NOT_TX_PROBE_FTS16
+
 #endif // ALE_SETTINGS_H
 

@@ -293,9 +293,9 @@ bool AleMain::check_trans_mode(int8s* data)
     if(AleCom::get_trans_mode_param_mode(data)!=1)
 		return false;
     if(AleCom::get_trans_mode_sound_type(data)==3)
-        ale_settings->probe_on=true;
+        ale_settings->rx_probe_on=true;
     else if(AleCom::get_trans_mode_sound_type(data)==0)
-        ale_settings->probe_on=false;
+        ale_settings->rx_probe_on=false;
 	else
 		return false;
     ale_settings->caller_adress=AleCom::get_trans_mode_caller(data);
@@ -368,7 +368,7 @@ void AleMain::link_set_rx_mgr()
 					break;
 				}
 				//	GOTO NEXT SUPERPHASE
-                if(ale_settings->probe_on)
+                if(ale_settings->rx_probe_on)
 				{
                     ale_fxn->set_next_superphase(3);
                     if(!ale_fxn->get_work_freq())
@@ -469,14 +469,17 @@ void AleMain::short_sound_qual_tx_mgr()
                                      temp_ale->time[SOUND_QUAL][START_RECEIVE]);
 					break;
                 }
-                temp_ale->best_freq_num=AleCom::get_sound_qual_freq_info(temp_ale->received_msg.data,temp_ale->best_freq_index,temp_ale->best_freq_sign_form);
-                calc_sign_forms();
-                for(int8s i=0;i<temp_ale->best_freq_num;i++)
-                    temp_ale->best_freq[i]=temp_ale->work_freq[temp_ale->best_freq_index[i]];
-                if(temp_ale->best_freq_num==0)
-                    ale_fxn->return_to_call();
                 timer->set_timer(temp_ale->time[SOUND_QUAL][RECEIVE_LAST_TIME]+
                                  temp_ale->time[HSHAKE][START_EMIT]);
+                temp_ale->best_freq_num=AleCom::get_sound_qual_freq_info(temp_ale->received_msg.data,temp_ale->best_freq_index,temp_ale->best_freq_sign_form);
+                for(int8s i=0;i<temp_ale->best_freq_num;i++)
+                    temp_ale->best_freq[i]=temp_ale->work_freq[temp_ale->best_freq_index[i]];
+                ale_fxn->ale_log("Best freq indexes: fr0 - %u, fr1 - %u, fr2 - %u",temp_ale->best_freq_index[0],temp_ale->best_freq_index[1],temp_ale->best_freq_index[2]);
+                ale_fxn->ale_log("Best freq: fr0 - %u, fr1 - %u, fr2 - %u",temp_ale->best_freq[0],temp_ale->best_freq[1],temp_ale->best_freq[2]);
+                ale_fxn->ale_log("Best freq signals enable: fr0 - 0x%X, fr1 - 0x%X, fr2 - 0x%X",temp_ale->best_freq_sign_form[0],temp_ale->best_freq_sign_form[1],temp_ale->best_freq_sign_form[2]);
+                calc_sign_forms();
+                ale_fxn->ale_log("Best freq signal forms: fr0 - %u, fr1 - %u, fr2 - %u",temp_ale->best_freq_sign_form[0],temp_ale->best_freq_sign_form[1],temp_ale->best_freq_sign_form[2]);
+                ale_fxn->ale_log("Total work freq num: %u", temp_ale->best_freq_num);
                 ale_settings->phase=1;
 			}
 			break;
@@ -489,7 +492,10 @@ void AleMain::short_sound_qual_tx_mgr()
                 ale_fxn->set_freq(temp_ale->best_freq[0]);
                 temp_ale->sign_form=temp_ale->best_freq_sign_form[0];
                 temp_ale->freq_num_now=0;
-                ale_fxn->set_next_superphase(7);        //  NO LONG PROBES
+                if(temp_ale->best_freq_num==0)
+                    ale_fxn->return_to_call();
+                else
+                	ale_fxn->set_next_superphase(7);        //  NO LONG PROBES
 			}
 			break;
 	}
@@ -514,21 +520,26 @@ void AleMain::short_probe_rx_mgr()
         for(int8s i=0;i<7;i++)     //  SEE WEIGHT DESCRIPTION IN STRUCT COMMENTS
             temp_ale->work_freq_weights[ale_settings->phase]=temp_ale->work_freq_weights[ale_settings->phase]+
                 ((int32s)((temp_ale->received_msg.error>>i)&1))*(65536+(1<<(6-((int32s)i))*256));
+        ale_fxn->ale_log("Probe %u received, sign_forms 0x%X, snr %u, total_weight %u", ale_settings->phase, temp_ale->received_msg.error, temp_ale->received_msg.snr,temp_ale->work_freq_weights[ale_settings->phase]);
         ale_settings->phase++;
         if(ale_settings->phase<temp_ale->work_freq_num)
 		{
-            ale_fxn->wait_end_tx(SHORT_SOUND,SHORT_SOUND,false);
+            //ale_fxn->wait_end_tx(SHORT_SOUND,SHORT_SOUND,false);
+        	timer->set_timer(temp_ale->time[SHORT_SOUND][RECEIVE_LAST_TIME]+
+        	                 temp_ale->time[SHORT_SOUND][START_RECEIVE]);
             ale_fxn->set_freq(temp_ale->work_freq[ale_settings->phase]);
 		}
 		else
 		{
-            ale_fxn->wait_end_tx(SHORT_SOUND,SOUND_QUAL,true,SOUND_QUAL_START_TIME);            
+            //ale_fxn->wait_end_tx(SHORT_SOUND,SOUND_QUAL,true,SOUND_QUAL_START_TIME);
+        	timer->set_timer(temp_ale->time[SHORT_SOUND][RECEIVE_LAST_TIME]+SOUND_QUAL_START_TIME+
+        	                 temp_ale->time[SOUND_QUAL][START_EMIT]);
             ale_fxn->set_freq(temp_ale->call_freq);
             ale_fxn->set_next_superphase(4);
             //  CALC FREQ PARAMS
             for(int8s i=0;i<temp_ale->work_freq_num;i++)
                 temp_ale->work_freq_index[i]=i;
-            sort_int32s_data_and_index(temp_ale->work_freq_weights, temp_ale->work_freq_index, temp_ale->work_freq_num);
+            sort_int32s_data_and_index_inv(temp_ale->work_freq_weights, temp_ale->work_freq_index, temp_ale->work_freq_num);
             for(int8s i=0;i<temp_ale->work_freq_num;i++)
                 temp[i]=temp_ale->work_freq_sign_forms[i];
             for(int8s i=0;i<temp_ale->work_freq_num;i++)
@@ -549,13 +560,30 @@ void AleMain::short_probe_rx_mgr()
                 if(temp_ale->work_freq_sign_forms[i]!=0)
                     freq_counter++;
             }
-            if(freq_counter<2)
-                return;
+            //if(freq_counter<2)
+            //    return;
+            freq_counter=0;
             for(int8s i=0;i<temp_ale->work_freq_num;i++)
             {
-                if(temp_ale->work_freq_snr[0]<15)
+                if(temp_ale->work_freq_snr[i]<15)
                     temp_ale->work_freq_sign_forms[i]=0;
+                if(temp_ale->work_freq_sign_forms[i]!=0)
+                {
+                	temp[freq_counter]=i;
+                	freq_counter++;
+                }
             }
+            ale_fxn->ale_log("Work freq enabled: %u", freq_counter);
+            if(freq_counter>3)
+            	freq_counter=3;
+            for(int8s i=0;i<freq_counter;i++)
+            {
+                temp_ale->best_freq[i]=temp_ale->work_freq[temp[i]];
+                temp_ale->best_freq_sign_form[i]=temp_ale->work_freq_sign_forms[temp[i]];
+                temp_ale->best_freq_index[i]=temp_ale->work_freq_index[temp[i]];
+                temp_ale->best_freq_snr[i]=temp_ale->work_freq_snr[temp[i]];
+            }
+            /*
             freq_counter=0;
             for(int8s i=0;i<3;i++)
             {
@@ -582,6 +610,7 @@ void AleMain::short_probe_rx_mgr()
                 if(temp_ale->work_freq_sign_forms[i]!=0)
                     freq_counter++;
             }
+            */
             temp_ale->work_freq_num=freq_counter;
             temp_ale->best_freq_num=temp_ale->work_freq_num;
 		}
@@ -612,14 +641,20 @@ void AleMain::short_sound_qual_rx_mgr()
                     if(ale_settings->neg_counter>=MAX_SHORT_PROBE_REPEAT)
                         ale_fxn->return_to_call();
                     timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+
-                                     temp_ale->time[SOUND_QUAL][PHASE_TIME]+
-                                     temp_ale->time[HSHAKE][START_RECEIVE]);
+                                     temp_ale->time[SOUND_QUAL][START_EMIT]);
                     ale_settings->phase=0;
                     break;
                 }
-                timer->set_timer(temp_ale->time[SOUND_QUAL][RECEIVE_LAST_TIME]+MSG_HEAD_START_TIME+
+                timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+MSG_HEAD_START_TIME+
                                  temp_ale->time[MSG_HEAD][START_RECEIVE]);
+                ale_fxn->ale_log("Best freq indexes: fr0 - %u, fr1 - %u, fr2 - %u",temp_ale->best_freq_index[0],temp_ale->best_freq_index[1],temp_ale->best_freq_index[2]);
+                ale_fxn->ale_log("Best freq: fr0 - %u, fr1 - %u, fr2 - %u",temp_ale->best_freq[0],temp_ale->best_freq[1],temp_ale->best_freq[2]);
+                temp_ale->best_freq_num=AleCom::get_sound_qual_freq_info(temp_ale->received_msg.data,temp_ale->best_freq_index,temp_ale->best_freq_sign_form);
+                ale_fxn->ale_log("Best freq signals enable: fr0 - 0x%X, fr1 - 0x%X, fr2 - 0x%X",temp_ale->best_freq_sign_form[0],temp_ale->best_freq_sign_form[1],temp_ale->best_freq_sign_form[2]);
                 calc_sign_forms();
+                ale_fxn->ale_log("Best freq signal forms: fr0 - %u, fr1 - %u, fr2 - %u",temp_ale->best_freq_sign_form[0],temp_ale->best_freq_sign_form[1],temp_ale->best_freq_sign_form[2]);
+                ale_fxn->ale_log("Total work freq num: %u", temp_ale->best_freq_num);
+                //calc_sign_forms();
                 ale_fxn->set_freq(temp_ale->best_freq[0]);
                 temp_ale->sign_form=temp_ale->best_freq_sign_form[0];
                 temp_ale->freq_num_now=0;
@@ -728,20 +763,20 @@ void AleMain::modem_packet_receiver(int8s type, int8s snr, int8s error, int8s ba
     if((type==CALL_MANUAL)||(type==CALL_GPS))
 	{
 		if(!check_call_rx(data,snr))
-        {
-            timer->stop_timer();
-            return;
-        }
-        timer->start_timer( temp_ale->time[CALL_MANUAL+ale_settings->gps_en][RECEIVE_LAST_TIME]+
-                            temp_ale->time[HSHAKE][START_EMIT]);
-        temp_ale->call_err=temp_ale->received_msg.error;
-        temp_ale->call_snr=temp_ale->received_msg.snr;
-        ale_fxn->set_rx_bw(bandwidth);
-        temp_ale->pause_state=true;
-        ale_settings->phase=1;
+            ale_fxn->ale_log("Received unresolved CALL");
+		else
+		{
+			timer->start_timer( temp_ale->time[CALL_MANUAL+ale_settings->gps_en][RECEIVE_LAST_TIME]+
+								temp_ale->time[HSHAKE][START_EMIT]);
+			temp_ale->call_err=temp_ale->received_msg.error;
+			temp_ale->call_snr=temp_ale->received_msg.snr;
+			ale_fxn->set_rx_bw(bandwidth);
+			temp_ale->pause_state=true;
+			ale_settings->phase=1;
 #ifdef	NOT_TURN_OFF_RX_WHEN_MSG_RECEIVED
-        ale_fxn->set_rx_mode(0);
+			ale_fxn->set_rx_mode(0);
 #endif
+		}
 	}
     temp_ale->received_msg.time = timer->get_timer_counter();
     temp_ale->received_msg.type=type;

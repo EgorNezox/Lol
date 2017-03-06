@@ -18,6 +18,7 @@ class AleDataTransport
 {
 public:
     AleDataTransport(ContTimer* tmr, ale_data* tmp_ale, ext_ale_settings* ale_s, AleFxn* ale_f);
+    void get_next_freq(bool set_freq);
     void msg_head_tx_mgr();
     void data_tx_mgr();
     void data_end_tx_mgr();

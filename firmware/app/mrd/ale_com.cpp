@@ -81,7 +81,9 @@ int8s AleCom::generate_trans_mode(int8s* data, int8s sound_type, int8s work_mode
 int8s AleCom::generate_sound_qual(int8s* data, int8s* indexes, int8s* snr, int8s* sign_forms)
 {
     int16s crc16;
-    for(int8s i=0;i<3;i++)
+    for(int16s i=0;i<528;i++)
+    	data_bit[i]=0;
+    for(int16s i=0;i<3;i++)
     {
         resize_symbols(&(indexes[i]),&(data_bit[i*(5+6+7)]),5,1,1);
         resize_symbols(&(snr[i]),&(data_bit[i*(5+6+7)+5]),6,1,1);
@@ -211,6 +213,11 @@ int8s AleCom::get_sound_qual_freq_info(int8s* data, int8s* out_indexes, int8s* o
 	out_sign_form[0]=((data[1]&0x1F)<<2)|((data[2]&0xC0)>>6);
 	out_sign_form[1]=((data[3]&0x07)<<4)|((data[4]&0xF0)>>4);
     out_sign_form[2]=((data[5]&0x01)<<6)|((data[6]&0xFC)>>2);
+    for(int8s i=0;i<3;i++)
+    {
+    	if(out_sign_form[i]!=0)
+    		counter++;
+    }
 	return counter;
 }
 

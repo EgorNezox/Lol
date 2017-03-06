@@ -33,6 +33,7 @@ public:
     void gen_pack_qual();
     void gen_pack_head();
     void gen_msg_head();
+    void gen_short_sound();
     void gen_sound_qual();
     void gen_call_qual();
     void gen_trans_mode();

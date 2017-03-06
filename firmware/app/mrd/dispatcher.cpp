@@ -84,11 +84,13 @@ void Dispatcher::initAle()
 {
     ale_call_freqs_t call_freqs;
     ale_work_freqs_t work_freqs;
+    bool probe_on=true;
     if (data_storage_fs > 0){
         data_storage_fs->getAleDefaultWorkFreqs(work_freqs);
         data_storage_fs->getAleDefaultCallFreqs(call_freqs);
+        //	probe_on=data_storage_fs->getAleProbeState();	//	TODO: WRITE THIS FXN !!!
     }
-    ale_service->initAle(call_freqs,work_freqs,stationAddress);
+    ale_service->initAle(call_freqs,work_freqs,stationAddress,probe_on);
 }
 
 VoiceServiceInterface* Dispatcher::getVoiceServiceInterface()

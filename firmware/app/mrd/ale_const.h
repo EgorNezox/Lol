@@ -6,6 +6,7 @@
 #include "ale_settings.h"
 
 #define	int8s	int8_t
+#define	int8u	uint8_t
 #define	int16s	int16_t
 #define	int32s	int32_t
 
@@ -50,6 +51,27 @@ inline void sort_int32s_data_and_index(int32s* data, int8s* index, int8s length)
     }
 }
 
+inline void sort_int32s_data_and_index_inv(int32s* data, int8s* index, int8s length)
+//  INDEX MUST BE IN FORMAT { 0, 1, 2, 3 ... }
+{
+    int32s j,k,temp;
+    for(j=0;j<(length-1);j++)
+    {
+        for(k=(j+1);k<length;k++)
+        {
+            if(data[k]>data[j])
+            {
+                temp=data[k];
+                data[k]=data[j];
+                data[j]=temp;
+                temp=index[k];
+                index[k]=index[j];
+                index[j]=temp;
+            }
+        }
+    }
+}
+
 typedef struct	{
 	int8s type;
 	int8s snr;
@@ -64,6 +86,7 @@ typedef struct	{
     int32s time[27][7];                 // ALL_TIMINGS FOR TX AND RX
 	int8s tx;
 	int8s rx;
+	int32s frequency;
 	//	WORK FREQ FOR PROBE, Fc/2<=Fw<=2*Fc
     int32s work_freq[32];       // NOT THE SAME AS IN STRUCT EXT_ALE_SETTINGS. THERE ARE ONLY FREQ FOR PROBE
     int8s work_freq_index[32];
@@ -86,7 +109,8 @@ typedef struct	{
 	int8s pack_snr;				//	only for responder, for resp pack qual
 	//
 	int8s freq_num_now;			//	freq num which used now
-	int8s sign_form;				//	signal for of last pack_head
+	int8s sign_form;			//	signal for of last pack_head
+	bool freq_change_flag;		//	flag of change freq in packet mode
 	int8s snr;					//	snr of last packet (used in call, hshake and pack_head)
 	int8s packet_result;			//	result of data in last pack_head (0 - none, 1 - ok)
 	//
@@ -106,7 +130,9 @@ typedef struct	{
 	int8s work_freq_num;
 	int8s own_adress;
 	int8s caller_adress;		// written from ale rx
-    bool probe_on;              // used only in tx (when station is responder, this bit is given from TRANS_MODE)
+    bool probe_on;              // used only in tx (can change in init fxn)
+    bool rx_probe_on;           // used only in rx (when station is responder, this bit is given from TRANS_MODE)
+
     bool schedule;              // used only in tx
     int8s adress_dst;           // used only in tx (when station is responder, this is a caller station adress)
     int8s superphase;           // set 0 to turn off ALE, set 1 to start and check for GUI
@@ -326,9 +352,9 @@ const int ideal_timings[][3]={
 /* NONE - 7 */						0,		0,		0,
 /* NONE - 8 */						0,		0,		0,
 /* NONE - 9 */						0,		0,		0,
-/* SHORT_SOUND - 10 */				1670,	468,	708,
+/* SHORT_SOUND - 10 */				1670,	468,	708,	//	494
 /* LONG_SOUND - 11 */				32218,	468,	31256,
-/* SOUND_QUAL - 12 */				5589,	279,	4816,
+/* SOUND_QUAL - 12 */				5589,	279,	4816,	//	494
 /* NONE - 13 */						0,		0,		0,
 /* NONE - 14 */						0,		0,		0,
 /* NONE - 15 */						0,		0,		0,
@@ -361,8 +387,9 @@ const int32s ale_max_supercounter[]	=	{ 1, 3 };
 const int call_snr_lim[]={CALL_SNR_LIM_HIGH,CALL_SNR_LIM_LOW,CALL_SNR_LIM_LOW};
 const int ale_hshake_snr_lim[]={CALL_SNR_LIM_HIGH,CALL_SNR_LIM_LOW,CALL_SNR_LIM_LOW};
 
-#define	SOUND_QUAL_START_TIME   189		// time after probes, before sound qual
-#define	MSG_HEAD_START_TIME		(100+323)		// pause between ALE and data tx/rx
+#define	SOUND_QUAL_START_TIME  			189		// time after probes, before sound qual
+#define	DATA_TRANSPORT_FREQ_CHANGE_TIME	323
+#define	MSG_HEAD_START_TIME				(100+DATA_TRANSPORT_FREQ_CHANGE_TIME)		// pause between ALE and data tx/rx
 
 //	CALC SNR:
 //	MFT8 - snr = 9.5819 * ln(x+1) - 11.159

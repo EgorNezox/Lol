@@ -68,7 +68,9 @@ void AleFxn::aleprocessTX_modem(int8s packet_type, int8s* data, int8s length) {
 void AleFxn::set_freq(long freq)
 {
     dispatcher->dsp_controller->tuneModemFrequency(freq);
-    //ale_log("Set ALE freq %u",(int)(freq));
+    temp_ale->frequency=freq;
+    if(ale_settings->superphase>1)
+    	ale_log("Set ALE frequency %u",(int)(freq));
 }
 
 void AleFxn::set_tx(int8s mode)
@@ -176,6 +178,44 @@ void AleFxn::gen_call_qual()
                                  (int8s)(((int16s)temp_ale->call_err)*19/100), temp_ale->call_snr);
 }
 
+#ifdef	PROBES_ENABLED
+int8s probe_signals_tx[]=PROBES_ENABLED;
+#endif
+
+void AleFxn::gen_short_sound()
+{
+	temp_ale->tx_msg.data_length=1;
+#ifdef	PROBES_ENABLED
+	if(((int8u)(ale_settings->phase))<sizeof(probe_signals_tx))
+		temp_ale->tx_msg.data[0]=probe_signals_tx[ale_settings->phase];
+	else
+		temp_ale->tx_msg.data[0]=0x7F;
+#else
+	temp_ale->tx_msg.data[0]=0x7F;
+#endif
+#ifdef	NOT_TX_PROBE_MFT8
+	temp_ale->tx_msg.data[0]=temp_ale->tx_msg.data[0]&(~0x01);
+#endif
+#ifdef	NOT_TX_PROBE_MFT4
+	temp_ale->tx_msg.data[0]=temp_ale->tx_msg.data[0]&(~0x02);
+#endif
+#ifdef	NOT_TX_PROBE_FT500
+	temp_ale->tx_msg.data[0]=temp_ale->tx_msg.data[0]&(~0x04);
+#endif
+#ifdef	NOT_TX_PROBE_FT1800
+	temp_ale->tx_msg.data[0]=temp_ale->tx_msg.data[0]&(~0x08);
+#endif
+#ifdef	NOT_TX_PROBE_FTS4
+	temp_ale->tx_msg.data[0]=temp_ale->tx_msg.data[0]&(~0x10);
+#endif
+#ifdef	NOT_TX_PROBE_FTS8
+	temp_ale->tx_msg.data[0]=temp_ale->tx_msg.data[0]&(~0x20);
+#endif
+#ifdef	NOT_TX_PROBE_FTS16
+	temp_ale->tx_msg.data[0]=temp_ale->tx_msg.data[0]&(~0x40);
+#endif
+}
+
 void AleFxn::gen_sound_qual()
 {
     temp_ale->tx_msg.data_length=AleCom::generate_sound_qual(temp_ale->tx_msg.data,temp_ale->best_freq_index,
@@ -214,7 +254,7 @@ bool AleFxn::get_work_freq()
     counter=0;
     for(int8s i=0;i<ale_settings->work_freq_num;i++)
     {
-        if((ale_settings->work_freq[i]>=(temp_ale->call_freq/2))&&(ale_settings->work_freq[i]<=(temp_ale->call_freq*2)))
+        if((ale_settings->work_freq[i]>(temp_ale->call_freq/2))&&(ale_settings->work_freq[i]<(temp_ale->call_freq*2)))
         {
             temp_ale->work_freq[counter]=ale_settings->work_freq[i];
             counter++;
@@ -241,6 +281,9 @@ void AleFxn::send_tx_msg(int8s msg_num)
         case 5:
             gen_call_qual();
             break;
+        case 10:
+        	gen_short_sound();
+        	break;
         case 12:
             gen_sound_qual();
             break;
@@ -258,11 +301,11 @@ void AleFxn::send_tx_msg(int8s msg_num)
         default:
             temp_ale->tx_msg.data_length=0;
     }
-    if((msg_num!=PACK_HEAD)&&(msg_num!=RESP_PACK_QUAL))
-    	ale_log("Send msg, type %s", msg_names[msg_num]);
     aleprocessTX_modem(msg_num,temp_ale->tx_msg.data,temp_ale->tx_msg.data_length);
     timer->set_timer(temp_ale->time[msg_num][EMIT_PERIOD]);
     temp_ale->pause_state=false;
+    if((msg_num!=PACK_HEAD)&&(msg_num!=RESP_PACK_QUAL))
+    	ale_log("Send msg, type %s, freq %u, time %u", msg_names[msg_num],temp_ale->frequency,temp_ale->time[msg_num][EMIT_PERIOD]);
 }
 
 void AleFxn::wait_end_tx(int8s msg_num, int8s next_msg_num, bool next_mode)	// next mode true - TX
@@ -297,6 +340,10 @@ void AleFxn::start_receive_msg(int8s msg_num)
     temp_ale->received_msg.data_length=-1;
     set_rx_mode(11);
     timer->set_timer(temp_ale->time[msg_num][RECEIVE_PERIOD]);
+    if(msg_num==RESP_PACK_QUAL_LINK_RELEASE)
+    	ale_log("LINK RELEASE RECEIVING...");
+    if(msg_num==MSG_HEAD_PACK_HEAD)
+        ale_log("MSG AND PACK HEAD RECEIVING...");
     temp_ale->pause_state=false;
     temp_ale->last_msg=false;
 }
@@ -382,6 +429,7 @@ void AleFxn::set_next_superphase(int8s superphase_num)
     ale_settings->neg_counter=0;
     ale_settings->nres0=0;
     ale_settings->nres1=0;
+    temp_ale->freq_change_flag=false;
     ale_log("----------- SUPERPHASE: %s ------------",superphase_names[superphase_num]);
 }
 
