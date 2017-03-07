@@ -158,8 +158,12 @@ void AleFxn::return_to_call()
 
 void AleFxn::gen_msg_call()
 {
-    temp_ale->tx_msg.data_length=AleCom::generate_call(temp_ale->tx_msg.data, true,
+	if(ale_settings->call_counter>0)
+		temp_ale->tx_msg.data_length=AleCom::generate_call(temp_ale->tx_msg.data, true,
                                           ale_settings->call_supercounter, ale_settings->adress_dst);
+	else
+		temp_ale->tx_msg.data_length=AleCom::generate_call(temp_ale->tx_msg.data, true,
+		                                          (ale_settings->call_supercounter-1), ale_settings->adress_dst);
 }
 
 void AleFxn::gen_trans_mode()

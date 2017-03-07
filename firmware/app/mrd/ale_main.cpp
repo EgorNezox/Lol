@@ -682,6 +682,7 @@ void AleMain::fxn_1pps(int h, int m, int s)
 		return;						//	RETURN IF ALE TURN OFF
     if(((real_time_sec % call_dwell_time[ale_settings->gps_en])!=0)||((24*60*60-real_time_sec)<call_dwell_time[ale_settings->gps_en]))
 		return;						//	RETURN IF NO DWELL START DETECTED	
+    //temp_supercounter=ale_settings->call_supercounter;
     if(ale_settings->caller)
 	{
         ale_settings->call_counter++;
@@ -700,7 +701,7 @@ void AleMain::fxn_1pps(int h, int m, int s)
         ale_fxn->set_rx_mode(0);
         ale_fxn->error_detect(1);
 	}
-    if((ale_settings->caller)&&(ale_settings->call_supercounter>=ale_max_supercounter[ale_settings->gps_en]))
+    if((ale_settings->caller)&&(ale_settings->call_supercounter>=ale_max_supercounter[ale_settings->gps_en])&&(ale_settings->call_counter>0))
 	{
         ale_settings->superphase=0;
         ale_fxn->ale_log("TX call limit reached, end TX");
