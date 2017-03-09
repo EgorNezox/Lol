@@ -281,8 +281,8 @@ void AleDataTransport::data_end_tx_mgr()
 	else
 	{
         ale_fxn->wait_end_tx(LINK_RELEASE,LINK_RELEASE,false);
-        ale_fxn->set_next_superphase(0);
 		ale_settings->result=0;
+        ale_fxn->set_next_superphase(0);
 		//	THE END OF TX CALLER
 	}
 }
@@ -549,9 +549,9 @@ void AleDataTransport::data_rx_mgr()
 				{
                     ale_fxn->set_rx_mode(0);
 					temp_ale->pause_state=true;
-                    ale_fxn->set_next_superphase(0);
 					//	END OF DATA
 					ale_settings->result=0;
+                    ale_fxn->set_next_superphase(0);
 				}
 			}
 			else

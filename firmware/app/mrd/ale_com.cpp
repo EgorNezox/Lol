@@ -231,6 +231,20 @@ int8s AleCom::get_call_resp_addr(int8s* data)
 	return (((data[0]&0x07)<<2)|((data[1]&0xC0)>>6));
 }
 
+bool AleCom::check_sound_qual_crc(int8s* data)
+{
+	int16s crc16;
+	resize_symbols(data, data_bit, 8, 1, 9);
+	crc16=CRCBit(data_bit,54,0);
+	resize_symbols(&crc16, &(data_bit[72]), 16, 1, 1);
+	for(int8s i=0;i<16;i++)
+	{
+		if(data_bit[54+i]!=data_bit[72+i])
+			return false;
+	}
+	return true;
+}
+
 int16s AleCom::get_msg_head_msg_size(int8s* data)
 {
 #ifndef	NEW_MSG_HEAD

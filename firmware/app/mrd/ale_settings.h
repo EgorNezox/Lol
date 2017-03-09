@@ -3,6 +3,9 @@
 
 #define	NEW_MSG_HEAD
 
+//#define NO_CRC16_CHECK
+//#define NO_CRC32_CHECK
+
 //#define CALLER_IGNORE_RX
 #define	NOT_TURN_OFF_RX_WHEN_MSG_RECEIVED
 //#define	CALLER_DT_INCREMENT					(-300)

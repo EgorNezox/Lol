@@ -1,8 +1,12 @@
 #include "ale_fxn.h"
+#include "qmcrc.h"
+#include "qmendian.h"
 
 #define QMDEBUGDOMAIN	ALE
 
 namespace Multiradio {
+
+typedef QmCrc<uint32_t, 32, 0x04c11db7, 0xffffffff, true, 0xffffffff> CRC32;
 
 unsigned short table16[256];    //  CRC
 unsigned int table32[256];      //  CRC
@@ -37,6 +41,8 @@ const char data_trans[]="DATA_TRANSPORT";
 const char data_end[]="END_OF_TRANSPORT";
 
 const char* superphase_names[]={ off, call, trans, probe, probe_qual, off, off, msg_head, off, data_trans, data_end };
+
+
 
 AleFxn::AleFxn(ContTimer *tmr, Dispatcher *disp, ale_data* tmp_ale, ext_ale_settings* ale_s,  OldAleData* oldAle )
 {
@@ -158,12 +164,8 @@ void AleFxn::return_to_call()
 
 void AleFxn::gen_msg_call()
 {
-	if(ale_settings->call_counter>0)
-		temp_ale->tx_msg.data_length=AleCom::generate_call(temp_ale->tx_msg.data, true,
-                                          ale_settings->call_supercounter, ale_settings->adress_dst);
-	else
-		temp_ale->tx_msg.data_length=AleCom::generate_call(temp_ale->tx_msg.data, true,
-		                                          (ale_settings->call_supercounter-1), ale_settings->adress_dst);
+	temp_ale->tx_msg.data_length=AleCom::generate_call(temp_ale->tx_msg.data, true,
+									  ale_settings->call_supercounter, ale_settings->adress_dst);
 }
 
 void AleFxn::gen_trans_mode()
@@ -345,10 +347,10 @@ void AleFxn::start_receive_msg(int8s msg_num)
     temp_ale->received_msg.data_length=-1;
     set_rx_mode(11);
     timer->set_timer(temp_ale->time[msg_num][RECEIVE_PERIOD]);
-    if(msg_num==RESP_PACK_QUAL_LINK_RELEASE)
-    	ale_log("LINK RELEASE RECEIVING...");
-    if(msg_num==MSG_HEAD_PACK_HEAD)
-        ale_log("MSG AND PACK HEAD RECEIVING...");
+    //if(msg_num==RESP_PACK_QUAL_LINK_RELEASE)
+    //	ale_log("LINK RELEASE RECEIVING...");
+    //if(msg_num==MSG_HEAD_PACK_HEAD)
+    //	ale_log("MSG AND PACK HEAD RECEIVING...");
     temp_ale->pause_state=false;
     temp_ale->last_msg=false;
 }
@@ -402,7 +404,7 @@ void AleFxn::set_next_superphase(int8s superphase_num)
 			case 0:
 				//if(ale_settings->superphase==1)
 				//	ale_settings->ale_state=11;	//	TX_CALL_FAIL
-				/*else*/ if((ale_settings->superphase==10)&&(ale_settings->result==0))
+				/*else*/ if((ale_settings->superphase>8)&&(ale_settings->result==0))
 					ale_settings->ale_state=20;	//	RX DATA FULL
 				else if((ale_settings->superphase==9)&&(ale_settings->result!=0))
 					ale_settings->ale_state=19;	//	RX DATA PART
@@ -428,6 +430,8 @@ void AleFxn::set_next_superphase(int8s superphase_num)
 			case 10:
 				ale_settings->ale_state=9;		//	RX_DATA_TRANS
 				break;
+			default:
+				ale_settings->ale_state=ALE_UNKNOWN_STATE;
 		}
     }
     ale_settings->superphase=superphase_num;
@@ -476,6 +480,15 @@ int8s AleFxn::set_packet_num(int16s num_msg_head)
 
 bool AleFxn::check_pack_head_crc(int8s* data)
 {
+#ifndef	NO_CRC32_CHECK
+	AleVmPacket *packet = (AleVmPacket *)data;
+	CRC32 crc;
+	crc.update(packet->num_data, sizeof(packet->num_data));
+	if (!(crc.result() == qmFromBigEndian<uint32_t>((uint8_t *)&(packet->crc)))) {
+		ale_log("CRC32 ERROR");
+		return false;
+	}
+#endif
     return true;
 }
 
@@ -530,7 +543,7 @@ void AleFxn::makeTable32()
 }
 
 //Функция вычисления CRC
-unsigned int AleFxn::CRC32(int8s* pData, int len)
+/*unsigned int AleFxn::CRC32(int8s* pData, int len)
 {
     const unsigned int CRC_MASK = 0xD202EF8D;
     unsigned int crc = 0;
@@ -540,7 +553,7 @@ unsigned int AleFxn::CRC32(int8s* pData, int len)
         crc ^= CRC_MASK;
     }
     return crc;
-}
+}*/
 
 void AleFxn::ale_log(const char* text)
 {

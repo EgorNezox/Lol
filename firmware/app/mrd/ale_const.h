@@ -11,7 +11,6 @@
 #define	int32s	int32_t
 
 //#define OLD_DSP_VERSION
-#define NO_CRC16_CHECK
 
 inline void sort_int32s_data(int32s* data, int8s length)
 {

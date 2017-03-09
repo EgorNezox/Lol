@@ -57,7 +57,7 @@ public:
     void aleprocessTX_modem(int8s packet_type, int8s* data, int8s length);
     void set_rx_bw(int8_t bandwidth);
     static unsigned short CRC16(int8_t *buf, int len);
-    static unsigned int CRC32(int8_t *pData, int len);
+    //static unsigned int CRC32(int8_t *pData, int len);
     bool check_pack_head_crc(int8s *data);
     void ale_log(const char* text);
     void ale_log(const char* text, const char* arg);

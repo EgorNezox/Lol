@@ -64,7 +64,6 @@ void AleService::setAleState(bool caller, int8s superphase)
 void AleService::timer_fxn()
 {
     if(ale_settings.superphase==0)
-
         return;
     if(ale_settings.caller)
 //	CALLER LOGIC
@@ -262,7 +261,10 @@ int AleService::getAleState() {	//AleState AleService::getAleState() {		//	REWRI
 
 uint8_t Multiradio::AleService::getAleVmProgress() {				//	CHECK !!!
 	if(ale.vm_progress!=100)
+	{
+		ale.vm_progress=(int8s)((100*(((int16s)(ale_settings.phase))/3))/((int16s)(ale_settings.data490bit_length)));
 		return ale.vm_progress;
+	}
 	ale.vm_progress=0;
     return 100;
 }
@@ -367,7 +369,10 @@ void AleService::aleprocess1PPS(	int hrs ,int min , int sec )
     {
     	AleState1=ale_settings.ale_state;
     	aleStateChanged(AleState1);
-    	ale_fxn->ale_log("INTERFACE CHANGED, STATE %u",AleState1);
+    	if(AleState1!=25)
+    		ale_fxn->ale_log("INTERFACE CHANGED, STATE %u",AleState1);
+    	else
+    		ale_fxn->ale_log("INTERFACE CHANGED, STATE ALE ERROR",AleState1);
     }
 }
 
