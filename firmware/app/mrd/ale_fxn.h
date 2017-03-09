@@ -26,6 +26,9 @@ public:
     bool check_msg(int8s msg_type, bool rx_stop);
     void set_next_superphase(int8s superphase_num);
     void start_receive_msg(int8s msg_num);
+
+    void set_modem_enable(int modem_state);
+
     void wait_end_tx(int8s msg_num, int8s next_msg_num, bool next_mode, int32s inc);
     void wait_end_tx(int8s msg_num, int8s next_msg_num, bool next_mode);
     void send_tx_msg(int8s msg_num);

@@ -116,7 +116,8 @@ void AleFxn::set_rx_mode(int mode)
     if(temp_ale->rx==mode)
         return;
     temp_ale->rx=mode;
-    set_rx(mode);
+    //set_rx(mode);
+    dispatcher->dsp_controller->setReceiverState(mode);
 }
 
 void AleFxn::set_tx_mode(int mode)
@@ -124,7 +125,16 @@ void AleFxn::set_tx_mode(int mode)
     if(temp_ale->tx==mode)
         return;
     temp_ale->tx=mode;
-    set_tx(mode);
+    //set_tx(mode);
+    dispatcher->dsp_controller->setTransmitterState(mode);
+}
+
+void AleFxn::set_modem_enable(int modem_state)
+{
+	if(temp_ale->modem_enable==modem_state)
+		return;
+	temp_ale->modem_enable=modem_state;
+	dispatcher->dsp_controller->setModemState(modem_state);
 }
 
 void AleFxn::error_detect(int error_num)
@@ -261,7 +271,7 @@ bool AleFxn::get_work_freq()
     counter=0;
     for(int8s i=0;i<ale_settings->work_freq_num;i++)
     {
-        if((ale_settings->work_freq[i]>(temp_ale->call_freq/2))&&(ale_settings->work_freq[i]<(temp_ale->call_freq*2))&&(ale_settings->work_freq[i]!=temp_ale->call_freq))
+        if((ale_settings->work_freq[i]>(temp_ale->call_freq/2))&&(ale_settings->work_freq[i]<(temp_ale->call_freq*2))/*&&(ale_settings->work_freq[i]!=temp_ale->call_freq)*/)
         {
             temp_ale->work_freq[counter]=ale_settings->work_freq[i];
             counter++;
@@ -360,6 +370,10 @@ void AleFxn::set_next_superphase(int8s superphase_num)
 //	DO NOT USE IN MIX MSG AND PACK HEAD !!!
 {
     ale_settings->phase=0;
+    if(superphase_num==0)
+    	set_modem_enable(0);
+    else
+    	set_modem_enable(3);
     if(ale_settings->caller)
     {
 		switch(superphase_num)

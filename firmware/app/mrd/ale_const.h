@@ -85,6 +85,7 @@ typedef struct	{
     int32s time[27][7];                 // ALL_TIMINGS FOR TX AND RX
 	int8s tx;
 	int8s rx;
+	int8s modem_enable;
 	int32s frequency;
 	//	WORK FREQ FOR PROBE, Fc/2<=Fw<=2*Fc
     int32s work_freq[32];       // NOT THE SAME AS IN STRUCT EXT_ALE_SETTINGS. THERE ARE ONLY FREQ FOR PROBE
@@ -284,7 +285,7 @@ struct OldAleData{
 #define	DT_ALE								100	//90
 
 //	MAXIMUM TIMES
-#define	DSP_LIGHT_MSG_TX_WAITING			60
+#define	DSP_LIGHT_MSG_TX_WAITING			55
 #define	DSP_MSG_PACK_HEAD_TX_WAITING		100
 #define	DSP_TX_STOP_TIME					50
 

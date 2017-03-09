@@ -738,6 +738,14 @@ void AleMain::start_fxn(int8s gps_en, bool caller, int8s adress_dst, bool probe_
     ale_settings->call_counter=ale_settings->call_freq_num-1;
     ale_settings->call_supercounter=-1;
     ale_settings->result=1;					//	NO RESULT
+
+    temp_ale->tx=-1;
+    temp_ale->rx=-1;
+    temp_ale->modem_enable=-1;
+    ale_fxn->set_rx_mode(0);
+    ale_fxn->set_tx_mode(0);
+    ale_fxn->set_modem_enable(3);
+
     //ale_settings->phase=0;
     //ale_settings->superphase=1;
     //ale_settings->neg_counter=0;
@@ -749,8 +757,12 @@ void AleMain::stop_fxn()
     timer->stop_timer();
     //ale_settings->superphase=0;
     ale_fxn->set_next_superphase(0);
-    ale_fxn->set_tx_mode(0);
+    temp_ale->tx=-1;
+    temp_ale->rx=-1;
+    temp_ale->modem_enable=-1;
     ale_fxn->set_rx_mode(0);
+    ale_fxn->set_tx_mode(0);
+    ale_fxn->set_modem_enable(0);
 }
 
 extern const char* msg_names[];

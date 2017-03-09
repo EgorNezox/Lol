@@ -2965,6 +2965,37 @@ void DspController::tuneModemFrequency(uint32_t value) {
 	sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
 }
 
+void DspController::setReceiverState(int state)
+{
+	//disableModemTransmitter();
+	//current_radio_mode = RadioModeSazhenData;
+	ParameterValue comandValue;
+	comandValue.radio_mode = (RadioMode)state;
+	sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
+	//comandValue.modem_rx_state = ModemRxDetectingStart;
+	//sendCommandEasy(ModemReceiver, ModemRxState, comandValue);
+	//modem_rx_on = true;
+}
+
+void DspController::setTransmitterState(int state)
+{
+	//disableModemTransmitter();
+	//current_radio_mode = RadioModeSazhenData;
+	ParameterValue comandValue;
+	comandValue.radio_mode = (RadioMode)state;
+	sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
+	//comandValue.modem_rx_state = ModemRxDetectingStart;
+	//sendCommandEasy(ModemReceiver, ModemRxState, comandValue);
+	//modem_rx_on = true;
+}
+
+void DspController::setModemState(int state)
+{
+	ParameterValue comandValue;
+	comandValue.modem_rx_state = (ModemState)state;
+	sendCommandEasy(ModemReceiver, ModemRxState, comandValue);
+}
+
 void DspController::enableModemReceiver() {
 	disableModemTransmitter();
 	current_radio_mode = RadioModeSazhenData;

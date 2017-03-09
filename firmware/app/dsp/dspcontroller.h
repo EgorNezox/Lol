@@ -161,6 +161,11 @@ public:
     uint8_t* get_guc_vector();          // ������� ������� � ��������� ��
 
 	void tuneModemFrequency(uint32_t value);
+
+	void setReceiverState(int state);
+	void setTransmitterState(int state);
+	void setModemState(int state);
+
     void enableModemReceiver();
     void disableModemReceiver();
     void setModemReceiverBandwidth(ModemBandwidth value);
