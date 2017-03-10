@@ -673,7 +673,7 @@ void Controller::setSmartMessageToPlay(Multiradio::voice_message_t data) {
 void Controller::setSmartHSState(SmartHSState state) {
 	qmDebugMessage(QmDebug::Dump, "setSmartHSState() state = %d", state);
 	hs_state = state;
-	smartHSStateChanged(hs_state);
+	//smartHSStateChanged(hs_state);
 }
 
 void Controller::sendHSMessageData() {

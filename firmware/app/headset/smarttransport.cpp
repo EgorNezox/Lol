@@ -89,6 +89,8 @@ void SmartTransport::transmitCmd(uint8_t cmd, uint8_t *data, int data_len) {
 	written += uart->writeData(frame, frame_len);
 	written += uart->writeData(&frame_stop, 1);
 	QM_ASSERT(written == (2 + frame_len));
+
+	qmDebugMessage(QmDebug::Info, "send", cmd, data_len);
 }
 
 void SmartTransport::repeatLastCmd() {
@@ -205,5 +207,5 @@ int SmartTransport::decodeFrameData(uint8_t* input_data, uint8_t* output_data, i
 } /* namespace Headset */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(hstransport, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(hstransport, LevelVerbose)
 #include "qmdebug_domains_end.h"
