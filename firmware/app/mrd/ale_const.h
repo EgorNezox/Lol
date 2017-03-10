@@ -153,7 +153,7 @@ typedef struct	{
     int8s last_data_snr[3];     // only for data tx/rx
     //  DATA IN/OUT FOR DATA_TRANSPORT MODE
     int8s data_packs[37][66];
-    int8s data[2250];
+    int8s data[2500];
     int16s data72bit_length;    //  THIS IS VALUE FROM MSG_HEAD
     int16s data490bit_length;   //  NUMBER OF PACKETS WHICH NEED TO TRANSMIT/RECEIVE DATA
 }	ext_ale_settings;

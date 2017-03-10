@@ -41,7 +41,7 @@ void AleDataTransport::msg_head_tx_mgr()
                 ale_fxn->start_receive_msg(RESP_PACK_QUAL);
 			else
 			{
-                if(!ale_fxn->check_msg(RESP_PACK_QUAL,true))
+                if((!ale_fxn->check_msg(RESP_PACK_QUAL,true))||(!AleCom::check_resp_pack_qual(temp_ale->received_msg.data)))
                 {
 #ifndef CALLER_IGNORE_RX
 					ale_settings->phase--;

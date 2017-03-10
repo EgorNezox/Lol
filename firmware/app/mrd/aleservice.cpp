@@ -239,6 +239,7 @@ void AleService::startAleTxVoiceMail(uint8_t address, voice_message_t message) {
     //  COPY DATA TO NEW STRUCT
     ale_settings.data72bit_length=ale.vm_size;
     ale_settings.data490bit_length=ale.vm_f_count;
+    ale_fxn->ale_log("Transmitting %u blocks, %u bytes",ale_settings.data490bit_length,ale_settings.data72bit_length );
     for (unsigned int i = 0; i < ale.vm_fragments.size(); i++) {
         for(unsigned int j=0;j<66;j++)
             ale_settings.data[i*66+j]=ale.vm_fragments[i].num_data[j];
