@@ -197,6 +197,11 @@ void AleService::startAleRx() {
 
 void AleService::startAleTxVoiceMail(uint8_t address, voice_message_t message) {
 	qmDebugMessage(QmDebug::Info, "starting ALE tx voice mail (address = %02u)", address);
+	if(message.size()==0)
+	{
+		ale_settings.ale_state=26;	//
+		return;
+	}
 	if (!startAleSession())
 		return;
 	ale.f_state = alefunctionTx;
