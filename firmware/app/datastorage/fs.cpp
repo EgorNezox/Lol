@@ -6,8 +6,8 @@
 
 #include <string.h>
 
-#define FAKE_CALL_FREQS 1
-#define FAKE_WORK_FREQS 1
+#define FAKE_CALL_FREQS 0
+#define FAKE_WORK_FREQS 0
 
 namespace DataStorage {
 
@@ -112,22 +112,16 @@ bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data)
 	if (!file.open(QmFile::ReadOnly))
 		return false;
 	int64_t file_size = file.size();
-	if (!(file_size > 4))
+	if (!(file_size > 4) || (file_size % 4 != 0))
 		return false;
 	uint32_t count = 0;
 	file.read((uint8_t *)&count, 4);
-//	if (!(file_size == (4 + 4*count)))
-//		return false;
-	for (unsigned int i = 0; i < count; i++) {
-//	for (unsigned int i = 0; i < 5; i++) {
+	for (unsigned int i = 0; i < count; i++)
+	{
 		uint32_t entry;
 		file.read((uint8_t *)&entry, 4);
 		data.push_back(entry);
 	}
-//	uint32_t f = 6779000;
-//	uint8_t fw[4];
-//	memcpy(&fw, &f, 4);
-//	file.write((uint8_t*)&fw, 4);
 	file.close();
 	return true;
 #endif
@@ -146,11 +140,11 @@ bool FS::getAleDefaultWorkFreqs(Multiradio::ale_work_freqs_t &data)
 #else
 
     data.clear();
-    QmFile file(dir, "AleDefaultWorkFreqs");
+    QmFile file(dir, "AleSessionFreqs");
     if (!file.open(QmFile::ReadOnly))
         return false;
     int64_t file_size = file.size();
-    if (!(file_size > 4))
+    if (!(file_size > 4) || (file_size % 4 != 0))
         return false;
     uint32_t count = 0;
     file.read((uint8_t *)&count, 4);
