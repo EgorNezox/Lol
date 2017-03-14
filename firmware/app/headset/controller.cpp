@@ -38,7 +38,7 @@ namespace Headset {
 
 #define HS_CHANNELS_COUNT			98
 
-#define PTT_DEBOUNCE_TIMEOUT		50
+#define PTT_DEBOUNCE_TIMEOUT		5
 #define HS_UART_POLLING_INTERVAL	1000
 #define HS_RESPONCE_TIMEOUT			100
 

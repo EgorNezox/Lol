@@ -60,6 +60,8 @@ private:
 	void processAtuModeChange(AtuController::Mode new_mode);
 	void processAtuRequestTx(bool enable);
 
+	void latencyGui();
+
 	DspController *dsp_controller;
 	AtuController *atu_controller;
 	Headset::Controller *headset_controller;
@@ -76,6 +78,8 @@ private:
 
     uint32_t prevFrequency = 0;
     uint8_t stationAddress = 1;
+
+    QmTimer *latency_draw;
 
     void initAle();
 };

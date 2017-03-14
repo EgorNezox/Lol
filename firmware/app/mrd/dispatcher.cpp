@@ -51,6 +51,11 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 	voice_service = new VoiceServiceInterface(this);
     voice_service->setFS(data_storage_fs);
 
+
+    latency_draw = new QmTimer();
+    latency_draw->setInterval(200);
+    latency_draw->timeout.connect(sigc::mem_fun(this,&Dispatcher::latencyGui));
+
     if (data_storage_fs)
         data_storage_fs->getAleStationAddress(stationAddress);
     dsp_controller->setStationAddress(stationAddress);
@@ -78,6 +83,13 @@ void Dispatcher::startServicing(const Multiradio::voice_channels_table_t& voice_
 	dsp_controller->startServicing();
 	atu_controller->startServicing();
     initAle();
+}
+
+
+void Dispatcher::latencyGui()
+{
+	latency_draw->stop();
+	voice_service->updateChannel();
 }
 
 void Dispatcher::initAle()
@@ -361,7 +373,8 @@ void Dispatcher::processAtuModeChange(AtuController::Mode new_mode)
         switch (voice_service->current_status) {
         case VoiceServiceInterface::StatusTuningTx:
 			startVoiceTx();
-			voice_service->updateChannel();
+			//voice_service->updateChannel();
+			latency_draw->start();
 			break;
 		default:
 			atu_controller->enterBypassMode(voice_service->getCurrentChannelFrequency());

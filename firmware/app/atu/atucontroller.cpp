@@ -39,10 +39,10 @@ AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *pa
 	uart_config.stop_bits = QmUart::StopBits_1;
 	uart_config.parity = QmUart::Parity_Even;
 	uart_config.flow_control = QmUart::FlowControl_None;
-	uart_config.rx_buffer_size = 512;
-	uart_config.tx_buffer_size = 512;
+	uart_config.rx_buffer_size = 1024;
+	uart_config.tx_buffer_size = 1024;
 	uart_config.io_pending_interval = 1;
-	uart = new QmUart(uart_resource, &uart_config, this);
+	uart = new QmUart(uart_resource, &uart_config, this,1);
 	uart->dataReceived.connect(sigc::mem_fun(this, &AtuController::processUartReceivedData));
 	scan_timer = new QmTimer(false, this);
 	scan_timer->setInterval(1000);
@@ -50,7 +50,7 @@ AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *pa
 	command_timeout_timer = new QmTimer(true, this);
 	command_timeout_timer->timeout.connect(sigc::mem_fun(this, &AtuController::tryRepeatCommand));
 	tx_tune_timer = new QmTimer(true, this);
-	tx_tune_timer->setInterval(100);
+	tx_tune_timer->setInterval(20);
 	tx_tune_timer->timeout.connect(sigc::mem_fun(this, &AtuController::processTxTuneTimeout));
 	poff_iopin = new QmIopin(iopin_resource, this);
 }
@@ -236,10 +236,10 @@ void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data) {
 			break;
 		case frameid_U:
 		case frameid_D:
-			command_timeout_timer->stop();
-			tx_tune_timer->stop();
 			tx_tuning_power_state = (id == frameid_U)?true:false;
 			setRadioPowerOff(!tx_tuning_power_state);
+			command_timeout_timer->stop();
+			tx_tune_timer->stop();
 			acknowledgeTxRequest();
 			break;
 		case frameid_F:
@@ -515,5 +515,5 @@ void AtuController::startFullTuning() {
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(atucontroller, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(atucontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"
