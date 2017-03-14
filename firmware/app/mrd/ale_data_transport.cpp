@@ -41,12 +41,12 @@ void AleDataTransport::msg_head_tx_mgr()
                 ale_fxn->start_receive_msg(RESP_PACK_QUAL);
 			else
 			{
-                if(!ale_fxn->check_msg(RESP_PACK_QUAL,true))
+                if((!ale_fxn->check_msg(RESP_PACK_QUAL,true))||(!AleCom::check_resp_pack_qual(temp_ale->received_msg.data)))
                 {
 #ifndef CALLER_IGNORE_RX
 					ale_settings->phase--;
                     ale_settings->neg_counter++;
-                    if(ale_settings->neg_counter>MAX_MSG_HEAD_REPEAT)
+                    if(ale_settings->neg_counter>=MAX_MSG_HEAD_REPEAT)
 					{
                         ale_settings->neg_counter=0;
 						if(temp_ale->freq_num_now==(temp_ale->best_freq_num-1))
@@ -155,27 +155,15 @@ void AleDataTransport::data_tx_mgr()
 							else
 							{
 								get_next_freq(true);
-#ifndef	TX_DATA_SUPERPHASE_INC_TIME
                                 timer->set_timer(temp_ale->time[RESP_PACK_QUAL][RECEIVE_LAST_TIME]+
                                          	 	 temp_ale->time[HSHAKE][PHASE_TIME]+DATA_TRANSPORT_FREQ_CHANGE_TIME+
 												 temp_ale->time[PACK_HEAD][START_EMIT]);
-#else
-                                timer->set_timer(temp_ale->time[RESP_PACK_QUAL][RECEIVE_LAST_TIME]+
-                                         	 	 temp_ale->time[HSHAKE][PHASE_TIME]+DATA_TRANSPORT_FREQ_CHANGE_TIME+
-												 temp_ale->time[PACK_HEAD][START_EMIT]+TX_DATA_SUPERPHASE_INC_TIME);
-#endif
 							}
 						}
                         else
-#ifndef	TX_DATA_SUPERPHASE_INC_TIME
                         	timer->set_timer(temp_ale->time[RESP_PACK_QUAL][RECEIVE_LAST_TIME]+
                                          	 temp_ale->time[HSHAKE][PHASE_TIME]+
 											 temp_ale->time[PACK_HEAD][START_EMIT]);
-#else
-                        	timer->set_timer(temp_ale->time[RESP_PACK_QUAL][RECEIVE_LAST_TIME]+
-                                         	 temp_ale->time[HSHAKE][PHASE_TIME]+
-											 temp_ale->time[PACK_HEAD][START_EMIT]+TX_DATA_SUPERPHASE_INC_TIME);
-#endif
                         ale_fxn->ale_log("No pack qual, phase %u", ale_settings->phase);
 					}
 					// IF RESP PACK QUAL RESULT = 0
@@ -255,20 +243,12 @@ void AleDataTransport::data_tx_mgr()
 				ale_settings->phase++;
                 if(temp_ale->freq_change_flag)
                 {
-#ifndef	TX_DATA_SUPERPHASE_INC_TIME
                 	ale_fxn->wait_end_tx(HSHAKE,PACK_HEAD,true,DATA_TRANSPORT_FREQ_CHANGE_TIME);
-#else
-                	ale_fxn->wait_end_tx(HSHAKE,PACK_HEAD,true,(TX_DATA_SUPERPHASE_INC_TIME+DATA_TRANSPORT_FREQ_CHANGE_TIME));
-#endif
                 	ale_fxn->set_freq(temp_ale->best_freq[temp_ale->freq_num_now]);
 					temp_ale->freq_change_flag=false;
                 }
                 else
-#ifndef	TX_DATA_SUPERPHASE_INC_TIME
                 	ale_fxn->wait_end_tx(HSHAKE,PACK_HEAD,true);
-#else
-                	ale_fxn->wait_end_tx(HSHAKE,PACK_HEAD,true,TX_DATA_SUPERPHASE_INC_TIME);
-#endif
 			}
 			break;
 	}
@@ -306,7 +286,7 @@ void AleDataTransport::msg_head_rx_mgr()
                 {
                     ale_settings->phase=0;
                     ale_settings->neg_counter++;
-                    if(ale_settings->neg_counter>MAX_MSG_HEAD_REPEAT)
+                    if(ale_settings->neg_counter>=MAX_MSG_HEAD_REPEAT)
                     {
                         ale_settings->neg_counter=0;
                         if(temp_ale->freq_num_now==(temp_ale->best_freq_num-1))
@@ -356,6 +336,7 @@ void AleDataTransport::msg_head_rx_mgr()
                         temp_ale->received_msg.data_length=-1;
                     }
                     ale_settings->superphase=9; //  GOTO DATA RECEIVING
+                    ale_settings->neg_counter=0;
                 }
 			}
 			break;
@@ -379,7 +360,7 @@ void AleDataTransport::msg_head_rx_mgr()
                 if(!ale_fxn->check_msg(HSHAKE,true))
                 {
                     ale_settings->neg_counter++;
-                    if(ale_settings->neg_counter>MAX_MSG_HEAD_REPEAT)
+                    if(ale_settings->neg_counter>=MAX_MSG_HEAD_REPEAT)
 					{
                         ale_settings->neg_counter=0;
 						if(temp_ale->freq_num_now==(temp_ale->best_freq_num-1))
@@ -419,51 +400,27 @@ void AleDataTransport::data_rx_mgr()
                     if(!ale_fxn->check_msg(PACK_HEAD,false))
                     {
                         ale_settings->neg_counter++;
-                        if(ale_settings->neg_counter>MAX_MSG_HEAD_REPEAT)
+                        if(ale_settings->neg_counter>=MAX_MSG_HEAD_REPEAT)
                         {
                             ale_settings->neg_counter=0;	ale_settings->nres0=0;
                             if(temp_ale->freq_num_now==(temp_ale->best_freq_num-1))
                                 ale_fxn->return_to_call();
                             else
                             {
-#ifndef		RX_DATA_SUPERPHASE_INC_TIME
-                            	timer->set_timer(   pack_head_data_time[temp_ale->sign_form]
-                                                +DSP_MSG_PACK_HEAD_RX_WAITING
-                                                -DSP_LIGHT_MSG_RX_WAITING
-                                                +temp_ale->time[PACK_HEAD][RECEIVE_LAST_TIME]
-                                                +temp_ale->time[RESP_PACK_QUAL][PHASE_TIME]
-                                                +temp_ale->time[HSHAKE][PHASE_TIME]+DATA_TRANSPORT_FREQ_CHANGE_TIME
-                                                +temp_ale->time[PACK_HEAD][START_RECEIVE]   );
-#else
-                            	timer->set_timer(   pack_head_data_time[temp_ale->sign_form]
-                                                +DSP_MSG_PACK_HEAD_RX_WAITING
-                                                -DSP_LIGHT_MSG_RX_WAITING
-                                                +temp_ale->time[PACK_HEAD][RECEIVE_LAST_TIME]
-                                                +temp_ale->time[RESP_PACK_QUAL][PHASE_TIME]
-                                                +temp_ale->time[HSHAKE][PHASE_TIME]+DATA_TRANSPORT_FREQ_CHANGE_TIME
-                                                +temp_ale->time[PACK_HEAD][START_RECEIVE]+RX_DATA_SUPERPHASE_INC_TIME   );
-#endif
+                            	timer->set_timer(	pack_head_data_time[temp_ale->sign_form]-DT_ALE-
+                            						DSP_LIGHT_MSG_RX_WAITING+PACK_HEAD_IDEAL_EMIT_LAST_TIME+
+													temp_ale->time[RESP_PACK_QUAL][PHASE_TIME]+
+													temp_ale->time[HSHAKE][PHASE_TIME]+DATA_TRANSPORT_FREQ_CHANGE_TIME+
+													temp_ale->time[PACK_HEAD][START_RECEIVE]   );
                                 get_next_freq(true);
                             }
                         }
                         else
-#ifndef		RX_DATA_SUPERPHASE_INC_TIME
-                        	timer->set_timer(   pack_head_data_time[temp_ale->sign_form]
-                                            +DSP_MSG_PACK_HEAD_RX_WAITING
-                                            -DSP_LIGHT_MSG_RX_WAITING
-                                            +temp_ale->time[PACK_HEAD][RECEIVE_LAST_TIME]
-                                            +temp_ale->time[RESP_PACK_QUAL][PHASE_TIME]
-                                            +temp_ale->time[HSHAKE][PHASE_TIME]
-                                            +temp_ale->time[PACK_HEAD][START_RECEIVE]   );
-#else
-                        	timer->set_timer(   pack_head_data_time[temp_ale->sign_form]
-                                            +DSP_MSG_PACK_HEAD_RX_WAITING
-                                            -DSP_LIGHT_MSG_RX_WAITING
-                                            +temp_ale->time[PACK_HEAD][RECEIVE_LAST_TIME]
-                                            +temp_ale->time[RESP_PACK_QUAL][PHASE_TIME]
-                                            +temp_ale->time[HSHAKE][PHASE_TIME]
-                                            +temp_ale->time[PACK_HEAD][START_RECEIVE]+RX_DATA_SUPERPHASE_INC_TIME   );
-#endif
+                        	timer->set_timer(	pack_head_data_time[temp_ale->sign_form]-DT_ALE-
+                        						DSP_LIGHT_MSG_RX_WAITING+PACK_HEAD_IDEAL_EMIT_LAST_TIME+
+												temp_ale->time[RESP_PACK_QUAL][PHASE_TIME]+
+												temp_ale->time[HSHAKE][PHASE_TIME]+
+												temp_ale->time[PACK_HEAD][START_RECEIVE]   );
                         temp_ale->pause_state=true;
                         ale_fxn->set_rx_mode(0);
                         ale_fxn->ale_log("PACK_HEAD NOT RECEIVED");
@@ -476,7 +433,7 @@ void AleDataTransport::data_rx_mgr()
                     timer->set_timer(   pack_head_data_time[temp_ale->sign_form]+
                                         DSP_MSG_PACK_HEAD_RX_WAITING-DSP_LIGHT_MSG_RX_WAITING   );
 				}
-				else
+				else	//	LAST MSG OK
 				{					
                     temp_ale->pack_snr=temp_ale->received_msg.snr;
                     if((!ale_fxn->check_msg(PACK_HEAD,true))||(!ale_fxn->check_pack_head_crc(temp_ale->received_msg.data)))
@@ -488,7 +445,7 @@ void AleDataTransport::data_rx_mgr()
                             ale_settings->nres0=0;	ale_settings->neg_counter=0;
 							get_next_freq(false);
 						}
-						else if(ale_settings->nres0>MAX_PACK_HEAD_NRES0)
+						else if(ale_settings->nres0>=MAX_PACK_HEAD_NRES0)
 						{
                             ale_settings->nres0=0;	ale_settings->neg_counter=0;
 							if(temp_ale->sign_form==(DATA_SIGNAL_FORM_NUM-1))
@@ -510,10 +467,9 @@ void AleDataTransport::data_rx_mgr()
                         for(int8s i=0;i<66;i++)
                         	ale_settings->data_packs[ale_settings->phase/3][i]=temp_ale->received_msg.data[i];
                         //std::copy(packet->num_data, packet->num_data + sizeof(packet->num_data), ale.vm_fragments[ale.vm_f_idx].num_data);
-
                         ale_fxn->ale_log("PACK_DATA RECEIVED OK, SNR %u, NUM %u, PHASE %u",temp_ale->pack_snr, AleCom::get_packet_num(temp_ale->received_msg.data), ale_settings->phase);
 					}
-                    timer->set_timer(temp_ale->time[PACK_HEAD][RECEIVE_LAST_TIME]+
+                    timer->set_timer(PACK_HEAD_IDEAL_EMIT_LAST_TIME-DT_ALE-DSP_MSG_PACK_HEAD_RX_WAITING+//temp_ale->time[PACK_HEAD][RECEIVE_LAST_TIME]+
                                      temp_ale->time[RESP_PACK_QUAL][START_EMIT]);
 				}
 			}
@@ -565,27 +521,16 @@ void AleDataTransport::data_rx_mgr()
 					ale_settings->phase++;
 					if(temp_ale->freq_change_flag)
 					{
-#ifndef		RX_DATA_SUPERPHASE_INC_TIME
 						timer->set_timer(	temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+
 											DATA_TRANSPORT_FREQ_CHANGE_TIME+
                                      	 	temp_ale->time[PACK_HEAD][START_RECEIVE]);
-#else
-						timer->set_timer(	temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+
-											DATA_TRANSPORT_FREQ_CHANGE_TIME+
-											temp_ale->time[PACK_HEAD][START_RECEIVE]+RX_DATA_SUPERPHASE_INC_TIME);
-#endif
 						ale_fxn->set_freq(temp_ale->best_freq[temp_ale->freq_num_now]);
 						temp_ale->freq_change_flag=false;
 					}
 					else
 					{
-#ifndef		RX_DATA_SUPERPHASE_INC_TIME
-                    timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+
-                                     temp_ale->time[PACK_HEAD][START_RECEIVE]);
-#else
-                    timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+
-                                     temp_ale->time[PACK_HEAD][START_RECEIVE]+RX_DATA_SUPERPHASE_INC_TIME);
-#endif
+						timer->set_timer(temp_ale->time[HSHAKE][RECEIVE_LAST_TIME]+
+                                     	 temp_ale->time[PACK_HEAD][START_RECEIVE]);
 					}
 				}
 			}
