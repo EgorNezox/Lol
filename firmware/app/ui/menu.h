@@ -47,6 +47,7 @@ public:
     virtual ~CGuiDialog(){}
     void Draw();
     MoonsGeometry windowArea;
+    MoonsGeometry miniArea;
     MoonsGeometry titleArea;
     LabelParams   titleParams;
     std::string   titleStr;
@@ -225,6 +226,7 @@ public:
     void RxVoiceDialogStatus2(int status, bool isClear = false);
     void RxVoiceDialogStatus1(int status, bool isClear = false);
     void initRxPutOffVoiceDialogTest(int status);
+    void RxSmsStatusPost(int value, bool clear = false);
 
     uint8_t cmdCount = 0;
     uint16_t cmdScrollIndex = 0;

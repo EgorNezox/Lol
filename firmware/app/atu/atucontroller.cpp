@@ -42,7 +42,7 @@ AtuController::AtuController(int uart_resource, int iopin_resource, QmObject *pa
 	uart_config.rx_buffer_size = 1024;
 	uart_config.tx_buffer_size = 1024;
 	uart_config.io_pending_interval = 1;
-	uart = new QmUart(uart_resource, &uart_config, this,1);
+    uart = new QmUart(uart_resource, &uart_config, this);
 	uart->dataReceived.connect(sigc::mem_fun(this, &AtuController::processUartReceivedData));
 	scan_timer = new QmTimer(false, this);
 	scan_timer->setInterval(1000);
