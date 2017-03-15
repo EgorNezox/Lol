@@ -15,6 +15,7 @@
 #include "../../../system/reset.h"
 
 #define VM_PROGRESS 1
+#define SMS_PROGRESS 1
 #define TIME_ON_GPS_MARKER 0
 
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
@@ -106,6 +107,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->stationModeIsCompleted.connect(sigc::mem_fun(this,&Service::onCompletedStationMode));
     voice_service->dspStarted.connect(sigc::mem_fun(this,&Service::onDspStarted));
 
+    valueRxSms = 0;
 
 
     pswf_status = false;
@@ -1698,10 +1700,15 @@ void Service::keyPressed(UI_Key key)
 				#ifndef PORT__PCSIMULATOR
         		voice_service->TurnSMSMode();
 				#endif
-        		menu->initRxSmsDialog(receiveStatusStr[1]);
+                menu->initRxSmsDialog(receiveStatusStr[1]);
         	  }
-
-        	  if (cntSmsRx == 3)
+              if (cntSmsRx == 3)
+              {
+                 menu->VoiceDialogClearWindow();
+                 menu->RxSmsStatusPost(valueRxSms);
+                
+              }
+              if (cntSmsRx == 4)
         	  {
                   //smsMessage(13);
                   guiTree.resetCurrentState();
@@ -2826,11 +2833,27 @@ int Service::getLanguage()
 
 void Service::onSmsCounterChange(int param)
 {
-    menu->smsTxStage = 6;
-    if ((param > 0 && param < 77) && (!failFlag))
-    	drawMenu();
+    if (cntSmsRx != 3)
+    {
+        menu->smsTxStage = 6;
+        if ((param > 0 && param < 77) && (!failFlag)) drawMenu();
+        else menu->smsTxStage = 1;
+    }
     else
-    	menu->smsTxStage = 1;
+    {
+#if SMS_PROGRESS
+        CState currentState;
+        guiTree.getLastElement(currentState);
+
+        valueRxSms = param;
+
+        if (currentState.getType() == endMenuWindow)
+        {
+            GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
+            if ((subType == rxSmsMessage) && (cntSmsRx == 3))  drawMenu();
+        }
+#endif
+    }
 }
 
 void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
@@ -3144,7 +3167,7 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::recvGroupCondCmd:
         {
-        	if (cntGucRx == -1){
+            if (cntGucRx == -1){
         		cntGucRx = 0;
         		keyPressed(keyEnter);
         	}
@@ -3155,8 +3178,14 @@ void Service::drawMenu()
         {
         	if (cntSmsRx == -1){
         		cntSmsRx = 0;
+        		valueRxSms = 0;
         		keyPressed(keyEnter);
         	}
+            if (cntSmsRx == 3)
+            {
+                GUI_Painter::DrawRect(45, 5, 110, 15, RDM_FILL);
+                menu->RxSmsStatusPost(valueRxSms,1);
+            }
             break;
         }
         case GuiWindowsSubType::rxPutOffVoice:
@@ -3610,6 +3639,7 @@ void Service::updateAleVmProgress(uint8_t t)
 #endif
 }
 
+
 void Service::msgBoxSms(const char *text)
 {
 
@@ -3883,6 +3913,7 @@ void Service::onScheduleSessionTimer()
 
 void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
 {
+#ifndef _DEBUG_
         uint8_t* time;
         Navigation::Coord_Date date = navigator->getCoordDate();
 
@@ -3900,6 +3931,7 @@ void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
         	*minute = (date.time[2]-48)*10 + (date.time[3]-48);
         	*second = (date.time[4]-48)*10 + (date.time[5]-48);
         }
+ #endif
 }
 
 void Service::loadSheldure()

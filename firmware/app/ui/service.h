@@ -282,6 +282,7 @@ private:
     void getBatteryVoltage();
     void onRecievingBatteryVoltage(int voltage);
     void checkHeadsetStatus();
+    int valueRxSms;
 
     void garnitureStart();
 };

@@ -788,7 +788,7 @@ void DspController::changeSmsFrequency()
 	}
 
     static uint8_t tempCounter = sms_counter;
-    if (tempCounter != sms_counter && sms_counter % 11 == 0 )
+    if (tempCounter != sms_counter && sms_counter % 2 == 0 )
       smsCounterChanged(sms_counter);
 }
 
