@@ -1796,6 +1796,7 @@ void Service::keyPressed(UI_Key key)
                     menu->toVoiceMail = false;
 #ifndef _DEBUG_
                     voice_service->stopAle();
+                    onCompletedStationMode();
 #endif
                 }
                 if (key == keyEnter)
@@ -4094,6 +4095,8 @@ void Service::onCompletedStationMode(bool isGoToVoice)
 		voice_service->goToVoice();
     if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
         setFreq();
+
+        garnitureStart();
     }
 }
 
@@ -4115,6 +4118,12 @@ void Service::getBatteryVoltage()
 void Service::onRecievingBatteryVoltage(int voltage)
 {
     voice_service->sendBatteryVoltage(voltage);
+}
+
+
+void Service::garnitureStart()
+{
+	headset_controller->GarnitureStart();
 }
 
 }/* namespace Ui */

@@ -785,6 +785,11 @@ uint16_t Controller::calcPacketCrc(uint8_t* data, int data_len) {
 	return result;
 }
 
+void Controller::GarnitureStart()
+{
+	ptt_key->stateChanged();
+}
+
 } /* namespace Headset */
 
 #include "qmdebug_domains_start.h"

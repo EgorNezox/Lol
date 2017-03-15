@@ -282,6 +282,8 @@ private:
     void getBatteryVoltage();
     void onRecievingBatteryVoltage(int voltage);
     void checkHeadsetStatus();
+
+    void garnitureStart();
 };
 
 } /* namespace Ui */

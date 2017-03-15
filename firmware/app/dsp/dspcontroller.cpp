@@ -3097,9 +3097,10 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 
 void DspController::goToVoice(){
 	ParameterValue comandValue;
-	comandValue.radio_mode = RadioModeOff;
+	comandValue.radio_mode = current_radio_mode;
 	radio_state = radiostateSync;
 	sendCommandEasy(RxRadiopath,2,comandValue);
+	comandValue.radio_mode = RadioModeOff;
 	sendCommandEasy(TxRadiopath,2,comandValue);
 
 //    comandValue.guc_mode = RadioModeSazhenData; // 11 mode

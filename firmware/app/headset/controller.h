@@ -166,6 +166,8 @@ public:
 	 */
 	sigc::signal<void, SmartHSState/*new_state*/> smartHSStateChanged;
 
+	void GarnitureStart();
+
 private:
 	/*!< Состояние подключения гарнитуры */
 	enum State {

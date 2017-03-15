@@ -47,8 +47,8 @@ public:
     enum RadioMode {
         RadioModeOff = 0,
         RadioModeCarrierTx = 1,
-        RadioModeUSB = 7,
-        RadioModeFM = 9,
+        RadioModeUSB = 7, // J3E
+        RadioModeFM = 9,  // F3E
         RadioModeSazhenData = 11,
         RadioModePSWF = 20,
 		RadioModeVirtualPpps = 5,
