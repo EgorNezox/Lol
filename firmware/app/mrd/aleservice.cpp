@@ -276,7 +276,7 @@ uint8_t Multiradio::AleService::getAleVmProgress() {				//	CHECK !!!
 }
 
 uint8_t AleService::getAleRxAddress() {
-	return ale.address;
+	return ale_settings.caller_adress;//ale.address;
 }
 
 voice_message_t AleService::getAleRxVmMessage() {

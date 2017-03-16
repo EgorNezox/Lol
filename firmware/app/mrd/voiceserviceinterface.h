@@ -191,6 +191,9 @@ private:
     void smsMessage(int value);
     void onDspStarted(){dspStarted();}
 
+    void updateAleState(int state);
+    void updateAleVmProgress(uint8_t progress);
+
 	Dispatcher *dispatcher;
     ChannelStatus current_channel_status;
 

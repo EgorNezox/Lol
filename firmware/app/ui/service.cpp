@@ -14,6 +14,7 @@
 #include <string>
 #include "../../../system/reset.h"
 
+#define VM_STATE 1
 #define VM_PROGRESS 1
 #define SMS_PROGRESS 1
 #define TIME_ON_GPS_MARKER 0
@@ -3074,13 +3075,13 @@ void Service::drawMenu()
 
             	if(menu->vmProgress==100)
             	{
-                    //char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
-                    //menu->voiceAddr.append(ch);
-                    //menu->putOffVoiceStatus++;
+//                    char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
+//                    menu->voiceAddr.append(ch);
+//                    menu->putOffVoiceStatus++;
                     //voice_service->stopAle();
-                    Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
-                    if (storageFs > 0)
-                        storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
+//                    Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
+//                    if (storageFs > 0)
+//                        storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
             	}
             }
 
@@ -3203,13 +3204,13 @@ void Service::drawMenu()
 
         	if(menu->vmProgress==100)
         	{
-                //char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
-                //menu->voiceAddr.append(ch);
-                //menu->putOffVoiceStatus++;
+//                char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
+//                menu->voiceAddr.append(ch);
+//                menu->putOffVoiceStatus++;
                 //voice_service->stopAle();
-                Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
-                if (storageFs > 0)
-                    storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
+//                Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
+//                if (storageFs > 0)
+//                    storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
         	}
 
             menu->initRxPutOffVoiceDialogTest(status);
@@ -3661,12 +3662,16 @@ void Service::updateAleState(AleState state)
     CState currentState;
     guiTree.getLastElement(currentState);
 
+#if VM_STATE
+
     if (currentState.getType() == endMenuWindow)
     {
         GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
         if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 5)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 2)))
             drawMenu();
     }
+
+#endif
 }
 
 void Service::updateHSState(Headset::Controller::SmartHSState state)

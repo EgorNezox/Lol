@@ -35,6 +35,9 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     dispatcher->dsp_controller->startRxQuit.connect(sigc::mem_fun(this,&VoiceServiceInterface::startRxQuit));
     dispatcher->dsp_controller->stationModeIsCompleted.connect(sigc::mem_fun(this,&VoiceServiceInterface::onStationModeIsCompleted));
 
+    dispatcher->ale_service->aleStateChanged.connect(sigc::mem_fun(this, &VoiceServiceInterface::updateAleState));
+    dispatcher->ale_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &VoiceServiceInterface::updateAleVmProgress));
+
     current_status = StatusNotReady;
     current_mode = VoiceModeManual;
 
@@ -543,11 +546,23 @@ VoiceServiceInterface::VoiceMode VoiceServiceInterface::getVoiceMode()
     return current_mode;
 }
 
-void VoiceServiceInterface::setStatus(Status value) {
+void VoiceServiceInterface::setStatus(Status value)
+{
     if (current_status != value) {
         current_status = value;
-        //statusChanged(value);
+        statusChanged(value);
     }
 }
+
+void VoiceServiceInterface::updateAleState(int state)
+{
+	aleStateChanged((AleState)state);
+}
+
+void VoiceServiceInterface::updateAleVmProgress(uint8_t progress)
+{
+	aleVmProgressUpdated(progress);
+}
+
 
 } /* namespace Multiradio */

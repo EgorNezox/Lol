@@ -279,6 +279,7 @@ void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len) {
 	default:
 		qmDebugMessage(QmDebug::Dump, "receved unknown cmd 0x%02X", cmd);
 	}
+	checkUpdateSmartHSState();
 }
 
 void Controller::processReceivedStatus(uint8_t* data, int data_len) {
@@ -389,6 +390,7 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 	default:
 		QM_ASSERT(0);
 	}
+	checkUpdateSmartHSState();
 }
 
 void Controller::processReceivedStatusAsync(uint8_t* data, int data_len) {
@@ -448,6 +450,7 @@ void Controller::processReceivedStatusAsync(uint8_t* data, int data_len) {
 	default:
 		break;
 	}
+	checkUpdateSmartHSState();
 }
 
 void Controller::updateState(State new_state) {
@@ -473,6 +476,7 @@ void Controller::updateState(State new_state) {
 		default: QM_ASSERT(0);
 		}
 	}
+	checkUpdateSmartHSState();
 }
 
 void Controller::updateStatus(Status new_status) {
@@ -567,12 +571,14 @@ void Controller::startSmartPlay(uint8_t channel) {
 	if (ch_table->at(channel - 1).type != Multiradio::channelClose) {
 		qmDebugMessage(QmDebug::Warning, "startSmartPlay() channel %d is not close", channel);
 		setSmartHSState(SmartHSState_SMART_BAD_CHANNEL);
+		checkUpdateSmartHSState();
 		return;
 	}
 	qmDebugMessage(QmDebug::Dump, "startSmartPlay() channel %d", channel);
 	if (message_to_play_data.size() == 0) {
 		qmDebugMessage(QmDebug::Warning, "startSmartPlay() message is empty");
 		setSmartHSState(SmartHSState_SMART_EMPTY_MESSAGE);
+		checkUpdateSmartHSState();
 		return;
 	}
 	if (hs_state != SmartHSState_SMART_READY) {
@@ -583,6 +589,7 @@ void Controller::startSmartPlay(uint8_t channel) {
 	messageToPlayDataPack();
 	ch_number = channel;
 	synchronizeHSState();
+	checkUpdateSmartHSState();
 }
 
 void Controller::startMessagePlay() {
@@ -603,12 +610,14 @@ void Controller::startMessagePlay() {
 		data[i] = 0;
 	cmd_resp_timer->setInterval(3000);
 	transmitCmd(HS_CMD_SET_MODE, data, data_size);
+	checkUpdateSmartHSState();
 }
 
 void Controller::stopSmartPlay() {
 	qmDebugMessage(QmDebug::Dump, "stopSmartPlay()");
 	setSmartHSState(SmartHSState_SMART_READY);
 	synchronizeHSState();
+	checkUpdateSmartHSState();
 }
 
 void Controller::startSmartRecord(uint8_t channel) {
@@ -616,6 +625,7 @@ void Controller::startSmartRecord(uint8_t channel) {
 	if (ch_table->at(channel - 1).type != Multiradio::channelClose) {
 		qmDebugMessage(QmDebug::Warning, "startSmartRecord() channel %d is not close", channel);
 		setSmartHSState(SmartHSState_SMART_BAD_CHANNEL);
+		checkUpdateSmartHSState();
 		return;
 	}
 	if (hs_state != SmartHSState_SMART_READY) {
@@ -628,6 +638,7 @@ void Controller::startSmartRecord(uint8_t channel) {
 	setSmartHSState(SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL);
 	ch_number = channel;
 	synchronizeHSState();
+	checkUpdateSmartHSState();
 }
 
 void Controller::startMessageRecord() {
@@ -647,12 +658,14 @@ void Controller::startMessageRecord() {
 	for (int i = 6; i < data_size; ++i)
 		data[i] = 0;
 	transmitCmd(HS_CMD_SET_MODE, data, data_size);
+	checkUpdateSmartHSState();
 }
 
 void Controller::stopSmartRecord() {
 	qmDebugMessage(QmDebug::Dump, "stopSmartRecord()");
 	setSmartHSState(SmartHSState_SMART_READY);
 	synchronizeHSState();
+	checkUpdateSmartHSState();
 }
 
 Controller::SmartHSState Controller::getSmartHSState() {
@@ -672,8 +685,20 @@ void Controller::setSmartMessageToPlay(Multiradio::voice_message_t data) {
 
 void Controller::setSmartHSState(SmartHSState state) {
 	qmDebugMessage(QmDebug::Dump, "setSmartHSState() state = %d", state);
-	hs_state = state;
+	if (state != hs_state){
+		hs_state = state;
+		isSmartHSStateChange = true;
+	}
 	//smartHSStateChanged(hs_state);
+}
+
+void Controller::checkUpdateSmartHSState()
+{
+	if (isSmartHSStateChange)
+	{
+	  isSmartHSStateChange = false;
+	  smartHSStateChanged(hs_state);
+	}
 }
 
 void Controller::sendHSMessageData() {
@@ -762,6 +787,8 @@ void Controller::messagePacketReceived(uint8_t* data, int data_len) {
 		message_record_data.push_back(data[i]);
 	}
 	messagePacketResponce(packet_number);
+	checkUpdateSmartHSState();
+
 }
 
 void Controller::messagePacketResponce(int packet_number) {

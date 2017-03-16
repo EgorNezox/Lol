@@ -304,6 +304,9 @@ private:
 	 */
 	uint16_t calcPacketCrc(uint8_t* data, int data_len);
 
+	bool isSmartHSStateChange = false;
+	void checkUpdateSmartHSState();
+
 	State state;
 	Status status;
 	QmPushButtonKey* ptt_key;
