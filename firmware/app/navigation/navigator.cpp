@@ -23,7 +23,7 @@
 #include "navigator.h"
 
 #define NEW_GPS_PARSING 0
-#define GPS_CORRECT 1
+#define GPS_CORRECT 0
 #define GPS_CORRECT_VALUE 1
 
 namespace Navigation {

@@ -3493,6 +3493,22 @@ void DspController::vm1Pps()
         hrs = atoi(hr_ch);
         min = atoi(mn_ch);
         sec = atoi(sc_ch);
+
+        sec += 1;
+        if (sec >= 60) {
+        	sec %= 60;
+        	min++;
+        	if (min >= 60) {
+        		min %= 60;
+        		hrs++;
+        		if (hrs >= 24) {
+        			hrs %= 24;
+        			min = 0;
+        			sec = 0;
+        		}
+        	}
+        }
+
     }
 
     vm1PpsPulse(hrs, min, sec);
