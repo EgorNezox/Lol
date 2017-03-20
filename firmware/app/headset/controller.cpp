@@ -68,6 +68,10 @@ Controller::Controller(int rs232_uart_resource, int ptt_iopin_resource) :
 	cmd_resp_timer->timeout.connect(sigc::mem_fun(this, &Controller::processCmdResponceTimeout));
 	cmd_resp_timer->setInterval(HS_RESPONCE_TIMEOUT);
 	smart_status_description.channels_mismatch = false;
+
+	delay_timer = new QmTimer(false, this);
+	delay_timer->setInterval(300);
+	delay_timer->timeout.connect(sigc::mem_fun(this, &Controller::setUpdateState));
 }
 
 Controller::~Controller() {
@@ -280,6 +284,12 @@ void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len) {
 		qmDebugMessage(QmDebug::Dump, "receved unknown cmd 0x%02X", cmd);
 	}
 	checkUpdateSmartHSState();
+}
+
+void Controller::setUpdateState()
+{
+	delay_timer->stop();
+	smartHSStateChanged(hs_state);
 }
 
 void Controller::processReceivedStatus(uint8_t* data, int data_len) {
@@ -697,7 +707,7 @@ void Controller::checkUpdateSmartHSState()
 	if (isSmartHSStateChange)
 	{
 	  isSmartHSStateChange = false;
-	  smartHSStateChanged(hs_state);
+	  delay_timer->start();
 	}
 }
 

@@ -380,6 +380,15 @@ void AleService::aleprocess1PPS(	int hrs ,int min , int sec )
     	else
     		ale_fxn->ale_log("INTERFACE CHANGED, STATE ALE ERROR",AleState1);
     }
+    if((AleVmProgress1!=(ale_settings.phase/3))&&(ale_settings.superphase==9))
+	{
+    	AleVmProgress1=(ale_settings.phase/3);
+		aleStateChanged(AleState1);
+		if(AleState1!=25)
+			ale_fxn->ale_log("INTERFACE CHANGED, STATE %u",AleState1);
+		else
+			ale_fxn->ale_log("INTERFACE CHANGED, STATE ALE ERROR",AleState1);
+	}
 }
 
 //void AleService::get_msg_size()

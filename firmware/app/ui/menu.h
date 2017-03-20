@@ -226,7 +226,7 @@ public:
     void RxVoiceDialogStatus2(int status, bool isClear = false);
     void RxVoiceDialogStatus1(int status, bool isClear = false);
     void initRxPutOffVoiceDialogTest(int status);
-    void RxSmsStatusPost(int value, bool clear = false);
+    void RxSmsStatusPost(int value, bool clear = false,bool clearAll = false);
 
     uint8_t cmdCount = 0;
     uint16_t cmdScrollIndex = 0;

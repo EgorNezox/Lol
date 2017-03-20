@@ -1701,15 +1701,15 @@ void Service::keyPressed(UI_Key key)
 				#ifndef PORT__PCSIMULATOR
         		voice_service->TurnSMSMode();
 				#endif
+        		if (valueRxSms == 0)
                 menu->initRxSmsDialog(receiveStatusStr[1]);
+        		else
+        		{
+        			menu->VoiceDialogClearWindow();
+        			menu->RxSmsStatusPost(valueRxSms);
+        		}
         	  }
               if (cntSmsRx == 3)
-              {
-                 menu->VoiceDialogClearWindow();
-                 menu->RxSmsStatusPost(valueRxSms);
-                
-              }
-              if (cntSmsRx == 4)
         	  {
                   //smsMessage(13);
                   guiTree.resetCurrentState();
@@ -2834,7 +2834,7 @@ int Service::getLanguage()
 
 void Service::onSmsCounterChange(int param)
 {
-    if (cntSmsRx != 3)
+    if (cntSmsRx != 2)
     {
         menu->smsTxStage = 6;
         if ((param > 0 && param < 77) && (!failFlag)) drawMenu();
@@ -2843,16 +2843,25 @@ void Service::onSmsCounterChange(int param)
     else
     {
 #if SMS_PROGRESS
-        CState currentState;
-        guiTree.getLastElement(currentState);
 
-        valueRxSms = param;
+    	if (param > 0 && param < 79)
+    	{
+    		CState currentState;
+    		guiTree.getLastElement(currentState);
 
-        if (currentState.getType() == endMenuWindow)
-        {
-            GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
-            if ((subType == rxSmsMessage) && (cntSmsRx == 3))  drawMenu();
-        }
+    		valueRxSms = param;
+
+    		if (currentState.getType() == endMenuWindow)
+    		{
+    			GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
+    			if ((subType == rxSmsMessage) && (cntSmsRx == 2))  drawMenu();
+    		}
+
+    	}
+    	else
+    	{
+    		menu->smsTxStage = 6;
+    	}
 #endif
     }
 }
@@ -3182,10 +3191,15 @@ void Service::drawMenu()
         		valueRxSms = 0;
         		keyPressed(keyEnter);
         	}
-            if (cntSmsRx == 3)
+            if (cntSmsRx == 2)
             {
-                GUI_Painter::DrawRect(45, 5, 110, 15, RDM_FILL);
-                menu->RxSmsStatusPost(valueRxSms,1);
+                if (valueRxSms > 0 && valueRxSms < 78)
+                {
+                	if (valueRxSms == 20)
+                		menu->RxSmsStatusPost(valueRxSms,1,true);
+                	else
+                		menu->RxSmsStatusPost(valueRxSms,1);
+                }
             }
             break;
         }

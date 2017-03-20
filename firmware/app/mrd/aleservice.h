@@ -32,7 +32,7 @@ class AleService : public QmObject
 {
 public:
 	int AleState1;
-
+	int AleVmProgress1;
 
 	void initAle(ale_call_freqs_t call_freqs, ale_call_freqs_t work_freqs, int8s own_adress, bool probe_on);
     void setManualTimeMode(bool mode);

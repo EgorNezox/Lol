@@ -986,7 +986,7 @@ void CGuiMenu::RxVoiceDialogStatus1(int status, bool isClear )
      GUI_Painter::DrawText(5,28,voiceFont,(char*)voiceRxStr[0],cst);
 }
 
-void CGuiMenu::RxSmsStatusPost(int value, bool clear)
+void CGuiMenu::RxSmsStatusPost(int value, bool clear,bool clearAll)
 {
    static std::string strTodo;
    ColorSchemeType cst;
@@ -994,12 +994,20 @@ void CGuiMenu::RxSmsStatusPost(int value, bool clear)
    strTodo = "";
    char ch[3];
    sprintf(ch, "%3d", value);
-   strTodo.append(ch).append(" %");
+   strTodo.append(ch).append("/79");
 
-   GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &miniArea, (GUI_Obj *)this);
-    window.Draw();
+   if (clearAll)
+   {
+	   GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this);
+	   window.Draw();
+   }
+   else
+   {
+	   GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &miniArea, (GUI_Obj *)this);
+	   window.Draw();
+   }
 
-   GUI_Painter::DrawText(40,50,voiceDigitFont,(char*)strTodo.c_str(),cst);
+   GUI_Painter::DrawText(40,50,voiceFont,(char*)strTodo.c_str(),cst);
 }
 
 

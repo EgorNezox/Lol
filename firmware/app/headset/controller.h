@@ -306,6 +306,7 @@ private:
 
 	bool isSmartHSStateChange = false;
 	void checkUpdateSmartHSState();
+	void setUpdateState();
 
 	State state;
 	Status status;
@@ -318,6 +319,8 @@ private:
 	QmTimer* poll_timer;
 	QmTimer* cmd_resp_timer;
 	int cmd_repeats_counter;
+
+	QmTimer* delay_timer;
 
 	SmartStatusDescription smart_status_description;
 	const Multiradio::voice_channels_table_t* ch_table;

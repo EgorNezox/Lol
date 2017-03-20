@@ -152,8 +152,8 @@ typedef struct	{
 	int8s nres1;				// only for data tx/rx
     int8s last_data_snr[3];     // only for data tx/rx
     //  DATA IN/OUT FOR DATA_TRANSPORT MODE
-    int8s data_packs[37][66];
-    int8s data[2500];
+    int8s data_packs[63][66];
+    int8s data[4096];
     int16s data72bit_length;    //  THIS IS VALUE FROM MSG_HEAD
     int16s data490bit_length;   //  NUMBER OF PACKETS WHICH NEED TO TRANSMIT/RECEIVE DATA
 }	ext_ale_settings;
@@ -289,15 +289,15 @@ struct OldAleData{
 #define	DSP_MSG_PACK_HEAD_TX_WAITING		55	//100
 #define	DSP_TX_STOP_TIME					50
 
-#define	DSP_RX_TURN_ON_WAITING				50
-#define	DSP_LIGHT_MSG_RX_WAITING			20
+#define	DSP_RX_TURN_ON_WAITING				60		//	50
+#define	DSP_LIGHT_MSG_RX_WAITING			100		//	20
 #define	DSP_MSG_PACK_HEAD_RX_WAITING		1000
 
 //	MIDDLE TIME FOR TIME CORRECTION
 //#define	CALL_DSP_TIME						0
 
-#define	CALL_SNR_LIM_HIGH					20	//26
-#define	CALL_SNR_LIM_LOW					16
+#define	CALL_SNR_LIM_HIGH					11	//26
+#define	CALL_SNR_LIM_LOW					1
 
 #define	MAX_TRANSMODE_REPEAT				3
 #define	MAX_MSG_HEAD_REPEAT					3
