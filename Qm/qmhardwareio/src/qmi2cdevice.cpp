@@ -31,3 +31,8 @@ bool QmI2CDevice::isTransferInProgress() {
 	QM_D(QmI2CDevice);
 	return d->transfer_in_progress;
 }
+
+void QmI2CDevice::setAdress(uint8_t address)
+{ QM_D(QmI2CDevice);
+  d->i2c_transfer.device.address = address;
+}

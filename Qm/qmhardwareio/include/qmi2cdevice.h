@@ -49,6 +49,8 @@ public:
 
 	bool startTxRxTransfer(bool use_pec, uint8_t *tx_data, uint32_t tx_size, uint32_t rx_size);
 
+	void setAdress(uint8_t address);
+
 	int64_t readRxData(uint8_t *buffer, uint32_t size, int offset = 0);
 
 	sigc::signal<void, TransferResult/*result*/> transferCompleted;
