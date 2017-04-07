@@ -99,10 +99,11 @@ bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data)
 {
 #if FAKE_CALL_FREQS
 
-	data.push_back(5786000);
 	data.push_back(4517000);
-	data.push_back(6197000);
+	data.push_back(3288000);
+	data.push_back(6779000);
 	data.push_back(4889000);
+	data.push_back(7000000);
 	return true;
 
 #else
@@ -131,10 +132,11 @@ bool FS::getAleDefaultWorkFreqs(Multiradio::ale_work_freqs_t &data)
 {
 #if FAKE_WORK_FREQS
 
-    data.push_back(5786000);
     data.push_back(4517000);
-    data.push_back(6197000);
+    data.push_back(3288000);
+    data.push_back(6779000);
     data.push_back(4889000);
+    data.push_back(8000000);
     return true;
 
 #else

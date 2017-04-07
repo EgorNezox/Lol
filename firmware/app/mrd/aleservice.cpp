@@ -28,7 +28,6 @@ AleService::AleService(Dispatcher *dispatcher) :
 	QmObject(dispatcher),
 	dispatcher(dispatcher)
 {
-    dispatcher->dsp_controller->hardwareFailed.connect(sigc::mem_fun(this, &AleService::forwardDspHardwareFailure));
     //if (dispatcher->navigator != 0)
     dispatcher->dsp_controller->vm1PpsPulse.connect(sigc::mem_fun(this, &AleService::aleprocess1PPS));
     dispatcher->dsp_controller->transmittedModemPacket.connect(sigc::mem_fun(this, &AleService::aleprocessModemPacketTransmitted));
@@ -164,11 +163,6 @@ void AleService::setProbeMode(bool probe_on)
    ale.probe_on=probe_on;
 }
 
-#if 0 
-void AleServiceInterface::forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code) {
-	dspHardwareFailed.emit(subdevice_code, error_code);
-}
-#endif
 void AleService::printDebugVmMessage(int groups, int packets, voice_message_t &message) {
 	qmDebugMessage(QmDebug::Info, "voice message: %d groups, %d packets", groups, packets);
 	if (qmDebugIsVerbose()) {
@@ -452,9 +446,6 @@ void AleService::aleprocessModemPacketFailedRx(DspController::ModemPacketType ty
     }
 }
 
-void AleService::forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code) {
-    dspHardwareFailed.emit(subdevice_code, error_code);
-}
 
 } /* namespace Multiradio */
 

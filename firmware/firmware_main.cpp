@@ -96,6 +96,8 @@ void qmMain() {
             &headset_controller, 0, &data_storage_fs, &power_battery);
 #endif
 
+    mr_dispatcher.DspReset();
+
     Ui::matrix_keyboard_t ui_matrixkb_desc;
     Ui::aux_keyboard_t ui_auxkb_desc;
     QmIopin kb_light_iopin(platformhwKeyboardsLightIopin);

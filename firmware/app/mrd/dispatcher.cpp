@@ -406,6 +406,11 @@ void Dispatcher::processAtuRequestTx(bool enable)
 	dsp_controller->setRadioOperation((enable)?(DspController::RadioOperationCarrierTx):(DspController::RadioOperationOff));
 }
 
+void Dispatcher::DspReset()
+{
+	dsp_controller->dspReset();
+}
+
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"

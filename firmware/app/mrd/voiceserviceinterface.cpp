@@ -42,7 +42,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     current_mode = VoiceModeManual;
 
     // ---- mainservice signals
-    //dispatcher->dsp_controller->hardwareFailed.connect(sigc::mem_fun(this, &VoiceServiceInterface::forwardDspHardwareFailure));
+    dispatcher->dsp_controller->hardwareFailed.connect(sigc::mem_fun(this, &VoiceServiceInterface::forwardDspHardwareFailure));
     //if (dispatcher->navigator != 0)
     //	dispatcher->navigator->syncPulse.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocess1PPS));
     //dispatcher->dsp_controller->transmittedModemPacket.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocessModemPacketTransmitted));
@@ -60,6 +60,12 @@ VoiceServiceInterface::~VoiceServiceInterface()
 void VoiceServiceInterface::startRxQuit()
 {
 	startRxQuitSignal();
+}
+
+
+void VoiceServiceInterface::forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)
+{
+	dspHardwareFailed(subdevice_code,error_code);
 }
 
 void VoiceServiceInterface::messageGucQuit(int ans){

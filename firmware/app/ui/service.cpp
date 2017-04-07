@@ -1894,6 +1894,7 @@ void Service::keyPressed(UI_Key key)
                     if (menu->channalNum.size()>0)
                     {
 #ifndef _DEBUG_
+                    	headset_controller->setSmartMessageToPlay(voice_service->getAleRxVmMessage());
                         headset_controller->startSmartPlay((uint8_t)atoi(menu->channalNum.c_str()));
 #endif
                         menu->putOffVoiceStatus++;

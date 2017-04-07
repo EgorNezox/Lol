@@ -175,6 +175,9 @@ public:
     void setStatus(Status value);
     uint8_t getStationAddress();
     VoiceServiceInterface::Status getStatus();
+
+    void forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
+
 private:
     friend class Dispatcher;
 

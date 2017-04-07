@@ -124,7 +124,7 @@ typedef struct	{
 typedef struct	{
     int8s gps_en;               // 0 - manual, 1 - gps
     bool caller;                // true - caller, false - responder
-	int32s call_freq[19];
+	int32s call_freq[32];
 	int8s call_freq_num;
     int32s work_freq[32];       // NOT THE SAME AS IN STRUCT ALE_DATA. THERE ARE ALL FREQ
 	int8s work_freq_num;

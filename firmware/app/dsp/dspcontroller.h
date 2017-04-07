@@ -241,6 +241,8 @@ public:
 
     void setAdr();
 
+    void dspReset();
+
     void startVirtualPpsModeTx();
     void startVirtualPpsModeRx();
 

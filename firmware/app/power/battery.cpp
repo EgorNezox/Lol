@@ -19,7 +19,7 @@
 
 namespace Power {
 
-#define BATTERY_SMBUS_ADDRESS			0x05
+#define BATTERY_SMBUS_ADDRESS			0x0b
 #define BATTERY_LOW_CHARGE_THRESHOLD	10//%
 #define BATTERY_UPDATE_INTERVAL			4000
 
@@ -103,11 +103,6 @@ void Battery::requireVoltage(bool* success) {
 	uint8_t tx_data = batCmdVoltage;
 	*success = battery_device->startTxRxTransfer(false, &tx_data, 1, 2);
 
-	static int protect_counter=5;
-	if (protect_counter>0)
-	{protect_counter--;
-	 if (protect_counter==1){battery_device->setAdress(0x0b); };
-	};
 
 }
 

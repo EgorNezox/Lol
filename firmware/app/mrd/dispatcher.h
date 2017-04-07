@@ -34,6 +34,7 @@ public:
 	~Dispatcher();
 	void startServicing(const Multiradio::voice_channels_table_t &voice_channels_table);
 	VoiceServiceInterface* getVoiceServiceInterface();
+	void DspReset();
 
 private:
     friend AleService;

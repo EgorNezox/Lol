@@ -196,6 +196,13 @@ DspController::~DspController()
     delete rtc;
 }
 
+void DspController::dspReset()
+{
+	reset_iopin->writeOutput(QmIopin::Level_Low);
+	QmThread::msleep(10);
+	reset_iopin->writeOutput(QmIopin::Level_High);
+}
+
 bool DspController::isReady() {
 	return is_ready;
 }
@@ -1034,6 +1041,7 @@ void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t
 		is_ready = true;
 	} else {
 		qmDebugMessage(QmDebug::Warning, "DSP restart detected");
+		 hardwareFailed.emit(2, 99);
 		initResetState();
 	}
 	started();
