@@ -199,7 +199,7 @@ DspController::~DspController()
 void DspController::dspReset()
 {
 	reset_iopin->writeOutput(QmIopin::Level_Low);
-	QmThread::msleep(10);
+	QmThread::msleep(20);
 	reset_iopin->writeOutput(QmIopin::Level_High);
 }
 
@@ -211,9 +211,16 @@ void DspController::startServicing() {
 	qmDebugMessage(QmDebug::Info, "start servicing...");
 	initResetState();
 	reset_iopin->writeOutput(QmIopin::Level_Low);
-	QmThread::msleep(10);
-	transport->enable();
+	QmThread::msleep(20);
 	reset_iopin->writeOutput(QmIopin::Level_High);
+	QmThread::msleep(8000);
+	transport->enable();
+	ParameterValue command;
+	command.radio_mode = RadioModeUSB;
+	sendCommandEasy(TxRadiopath, 2, command);
+	QmThread::msleep(4000);
+	dspReset();
+
 	startup_timer->start(10000);
 }
 
