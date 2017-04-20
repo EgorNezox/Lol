@@ -960,7 +960,7 @@ void Service::keyPressed(UI_Key key)
 
                     if ( key == keyEnter )
                     {
-                        menu->groupCondCommStage++;
+                        menu->groupCondCommStage += 2;
                         //isDefaultFreq = true;
                     }
 
@@ -970,41 +970,11 @@ void Service::keyPressed(UI_Key key)
                     }
                 }
                 break;
-                case 1:     // frequency
-                {
-                    std::string* freq;
-                    freq = &(*iter)->inputStr;
-//                    if (isDefaultFreq){
-//                        *freq = main_scr->oFreq;
-//                    }
-
-                    if ( key == keyBack )
-                    {
-                        if(freq->size() > 0)
-                        {
-                            freq->pop_back();
-                        }else
-                            menu->groupCondCommStage--;
-                    }
-
-                    if ( key == keyEnter )
-                    {
-                        if(freq->size() > 4 && freq->size() < 9)
-                            menu->groupCondCommStage++;
-                    }
-
-                    if ( key >= key0 && key <= key9 )
-                    {
-                        if (freq->size() < 8 )
-                            freq->push_back((char)key + 42);
-                    }
-                }
-                break;
                 case 2:     // group vs. indiv.
                 {
                     if ( key == keyBack )
                     {
-                        menu->groupCondCommStage--;
+                        menu->groupCondCommStage -= 2;
                     }
 
                     if ( key == keyEnter )
@@ -3746,7 +3716,8 @@ std::vector<uint8_t>* Service::loadVoiceMail(uint8_t fileNumber, DataStorage::FS
     uint8_t result = 0; // ok
     if (storageFs > 0){
         fileMsg.clear();
-        result = voice_service->playVoiceMessage(fileNumber, tft);
+
+        result = voice_service->playVoiceMessage(fileNumber, tft, (uint8_t)atoi(menu->channalNum.c_str()) );
     }
 
     std::string stateStr;

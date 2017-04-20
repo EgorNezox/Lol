@@ -162,7 +162,7 @@ public:
     void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
     void sendBatteryVoltage(int voltage);
     void sendHeadsetType(uint8_t type);
-    uint8_t playVoiceMessage(uint8_t fileNumber, DataStorage::FS::TransitionFileType transFileType);
+    uint8_t playVoiceMessage(uint8_t fileNumber, DataStorage::FS::TransitionFileType transFileType, uint8_t num);
     void setFS(DataStorage::FS* fs);
     void startAleRx();
     void startAleTx(uint8_t address, voice_message_t message);

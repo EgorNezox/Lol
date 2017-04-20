@@ -468,7 +468,7 @@ void VoiceServiceInterface::playSoundSignal(uint8_t mode, uint8_t speakerVolume,
     dispatcher->dsp_controller->playSoundSignal(mode, speakerVolume, gain, soundNumber, duration, micLevel);
 }
 
-uint8_t VoiceServiceInterface::playVoiceMessage(uint8_t fileNumber, DataStorage::FS::TransitionFileType transFileType)
+uint8_t VoiceServiceInterface::playVoiceMessage(uint8_t fileNumber, DataStorage::FS::TransitionFileType transFileType, uint8_t num)
 {
     Headset::Controller::Status status;
     uint8_t result = 1; // error read
@@ -481,7 +481,10 @@ uint8_t VoiceServiceInterface::playVoiceMessage(uint8_t fileNumber, DataStorage:
         if (status == Headset::Controller::Status::StatusNone)
             result = 2;
         else
-            dispatcher->headset_controller->startSmartPlay(2);
+        {
+
+            dispatcher->headset_controller->startSmartPlay(num);
+        }
     }
     return result;
 }

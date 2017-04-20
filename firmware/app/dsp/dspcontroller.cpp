@@ -2715,12 +2715,12 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
 
     //initResetState();
     ParameterValue comandValue;
-    comandValue.radio_mode = RadioModeOff;//
+    comandValue.radio_mode = RadioModeOff;
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
     comandValue.guc_mode = RadioModeSazhenData;
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     if (freqGucValue != 0)
-    comandValue.frequency =  freqGucValue;//3000000;
+    comandValue.frequency =  freqGucValue;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
     QmThread::msleep(100);
     sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
