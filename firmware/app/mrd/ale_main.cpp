@@ -582,6 +582,8 @@ void AleMain::short_probe_rx_mgr()
             ale_fxn->ale_log("Work freq enabled: %u", freq_counter);
             if(freq_counter>3)
             	freq_counter=3;
+            for(int8s i=0;i<3;i++)
+                temp_ale->best_freq_sign_form[i]=0;
             for(int8s i=0;i<freq_counter;i++)
             {
                 temp_ale->best_freq[i]=temp_ale->work_freq[temp[i]];
