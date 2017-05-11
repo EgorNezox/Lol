@@ -194,8 +194,14 @@ void AleService::startAleTxVoiceMail(uint8_t address, voice_message_t message) {
 	qmDebugMessage(QmDebug::Info, "starting ALE tx voice mail (address = %02u)", address);
 	if(message.size()==0)
 	{
+#ifndef	TX_RANDOM_DATA
 		ale_settings.ale_state=26;	//
 		return;
+#else
+		//message.size=TX_RANDOM_DATA;
+		for(int i=0;i<TX_RANDOM_DATA;i++)
+			message.push_back((int8s)i);
+#endif
 	}
 	if (!startAleSession())
 		return;

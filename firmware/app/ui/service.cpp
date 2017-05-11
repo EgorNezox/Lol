@@ -3753,7 +3753,11 @@ std::vector<uint8_t>* Service::loadVoiceMail(uint8_t fileNumber, DataStorage::FS
     if (storageFs > 0){
         fileMsg.clear();
 
-        result = voice_service->playVoiceMessage(fileNumber, tft, (uint8_t)atoi(menu->channalNum.c_str()) );
+        int channelNum;
+        Multiradio::voice_channel_t type;
+        headset_controller->getSmartCurrentChannel(channelNum, type);
+
+        result = voice_service->playVoiceMessage(fileNumber, tft, channelNum );
     }
 
     std::string stateStr;
