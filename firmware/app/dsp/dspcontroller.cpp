@@ -178,6 +178,9 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     for(uint8_t i = 0; i <= 100; i++)
     	sms_content[i] = 0;
 
+    swr_timer.setInterval(2000);
+    swr_timer.timeout.connect(sigc::mem_fun(this, &DspController::getSwr));
+
 }
 DspController::~DspController()
 
@@ -370,8 +373,8 @@ void DspController::getSwr()
         return;
 
     ParameterValue commandValue;
-    commandValue.swf_mode = 5;
-    sendCommand(TxRadiopath,0,commandValue);
+//    commandValue.swf_mode = 5;
+//    sendCommand(TxRadiopath,0,commandValue);
 
     commandValue.swf_mode = 6;
     sendCommand(TxRadiopath,0,commandValue);
@@ -444,6 +447,7 @@ void DspController::setRx()
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     comandValue.pswf_indicator = RadioModePSWF;
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
+    rxModeSetting();
 }
 
 void DspController::setTx()
@@ -453,6 +457,7 @@ void DspController::setTx()
 	sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
 	comandValue.pswf_indicator = RadioModePSWF;
 	sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
+    txModeSetting();
 }
 
 void DspController::sendPswf()
@@ -1059,6 +1064,7 @@ void DspController::processStartupTimeout()
 	qmDebugMessage(QmDebug::Warning, "DSP startup timeout");
 	is_ready = true;
 	started();
+    swr_timer.start();
 }
 
 bool DspController::startRadioOff()
@@ -1841,30 +1847,34 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	}
 	case 0x51:
 	case 0x81: {
-		if ((indicator == 3) || (indicator == 4)) { // "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � � � � � ЎвЂ№� � С—� � С•� � В»� � � …� � Вµ� � � …� � В°", "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � � � …� � Вµ � � � � � ЎвЂ№� � С—� � С•� � В»� � � …� � Вµ� � � …� � В°" ?
+        if ((indicator == 3) || (indicator == 4))
+        { // "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � � � � � ЎвЂ№� � С—� � С•� � В»� � � …� � Вµ� � � …� � В°", "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � � � …� � Вµ � � � � � ЎвЂ№� � С—� � С•� � В»� � � …� � Вµ� � � …� � В°" ?
 			ParameterValue value;
-			if ((code == 1) && (value_len == 4)) {
+            if ((code == 1) && (value_len == 4))
+            {
 				value.frequency = qmFromBigEndian<uint32_t>(value_ptr+0);
-			} else if ((code == 2) && (value_len == 1)) {
+            } else if ((code == 2) && (value_len == 1))
+            {
                 value.radio_mode = (RadioMode)qmFromBigEndian<uint8_t>(value_ptr+0);
-			} else {
-//				break;
-			}
+            } else if (code == 6)
+            {
+                ref_wave = qmFromBigEndian<uint16_t>(value_ptr+0);
+                fwd_wave = qmFromBigEndian<uint16_t>(value_ptr+2);
+
+                if (fwd_wave > 0 && (fwd_wave - ref_wave != 0))
+                {
+                    swf_res = (fwd_wave + ref_wave) / (fwd_wave - ref_wave);
+                }
+                power_res = (fwd_wave * fwd_wave) / 280000; //W
+                waveInfoRecieved(swf_res, power_res);
+            }
+
 			Module module;
 			if (address == 0x51)
 				module = RxRadiopath;
 			else
 				module = TxRadiopath;
-            if (code == 5)
-                fwd_wave = qmFromBigEndian<uint32_t>(value_ptr+0);
-            if (code == 6)
-            {
-                ref_wave = qmFromBigEndian<uint32_t>(value_ptr+0);
-                if (fwd_wave > 0)
-                {
-                    swf_res = (fwd_wave+ref_wave)/(fwd_wave-ref_wave);
-                }
-            }
+
 			processCommandResponse((indicator == 3), module, code, value);
 		}
 		break;
@@ -2990,6 +3000,7 @@ void DspController::setReceiverState(int state)
 	//comandValue.modem_rx_state = ModemRxDetectingStart;
 	//sendCommandEasy(ModemReceiver, ModemRxState, comandValue);
 	//modem_rx_on = true;
+    rxModeSetting();
 }
 
 void DspController::setTransmitterState(int state)
@@ -3002,6 +3013,7 @@ void DspController::setTransmitterState(int state)
 	//comandValue.modem_rx_state = ModemRxDetectingStart;
 	//sendCommandEasy(ModemReceiver, ModemRxState, comandValue);
 	//modem_rx_on = true;
+    txModeSetting();
 }
 
 void DspController::setModemState(int state)

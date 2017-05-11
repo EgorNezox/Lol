@@ -35,8 +35,15 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     dispatcher->dsp_controller->startRxQuit.connect(sigc::mem_fun(this,&VoiceServiceInterface::startRxQuit));
     dispatcher->dsp_controller->stationModeIsCompleted.connect(sigc::mem_fun(this,&VoiceServiceInterface::onStationModeIsCompleted));
 
+    dispatcher->dsp_controller->waveInfoRecieved.connect(sigc::mem_fun(this,&VoiceServiceInterface::onWaveInfoRecieved));
+
+    dispatcher->dsp_controller->rxModeSetting.connect(sigc::mem_fun(this,&VoiceServiceInterface::onRxModeSetting));
+    dispatcher->dsp_controller->txModeSetting.connect(sigc::mem_fun(this,&VoiceServiceInterface::onTxModeSetting));
+
     dispatcher->ale_service->aleStateChanged.connect(sigc::mem_fun(this, &VoiceServiceInterface::updateAleState));
     dispatcher->ale_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &VoiceServiceInterface::updateAleVmProgress));
+
+    dispatcher->ale_service->settingAleFreq.connect(sigc::mem_fun(this, &VoiceServiceInterface::onSettingAleFreq));
 
     current_status = StatusNotReady;
     current_mode = VoiceModeManual;
@@ -573,5 +580,24 @@ void VoiceServiceInterface::updateAleVmProgress(uint8_t progress)
 	aleVmProgressUpdated(progress);
 }
 
+void VoiceServiceInterface::onWaveInfoRecieved(float wave, float power)
+{
+    waveInfoRecieved(wave, power);
+}
+
+void VoiceServiceInterface::onRxModeSetting()
+{
+    rxModeSetting();
+}
+
+void VoiceServiceInterface::onTxModeSetting()
+{
+    txModeSetting();
+}
+
+void VoiceServiceInterface::onSettingAleFreq(uint32_t freq)
+{
+    settingAleFreq(freq);
+}
 
 } /* namespace Multiradio */

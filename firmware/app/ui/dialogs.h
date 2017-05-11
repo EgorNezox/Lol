@@ -36,32 +36,14 @@ public:
                        bool valid_freq
                        );
     void setModeText(const char*);
-    void setFocus(int newFocus)
-    {
-        focus = newFocus;
-    }
-    void setFreq(const char *fr)
-    {
-        std::string strIn, strOut;
-        strIn.append(fr);
-        uint8_t size = strIn.size();
-        for (uint8_t i = 0; i < size; i++)
-        {
-            strOut.push_back(strIn[i]);
-            if (i == (size - 4) || i == (size - 7))
-            strOut.push_back('.');
-        }
-        strOut.append(freq_hz);
-        strOut.push_back('\0');
-        freq->SetText((char*)strOut.c_str());
-    }
+    void setFocus(int newFocus);
+    void setFreq(const char *fr);
     void editingFreq(UI_Key);
     void keyPressed(UI_Key);
-    bool isEditing(){ if(editing) return true; else return false; }
-    bool editing;
+    bool isEditing();
+    bool editing = false;
+    bool channelEditing = false;
     std::string nFreq, oFreq;
-
-
 
 private:
     GUI_EL_Window *window;

@@ -285,6 +285,17 @@ private:
     int valueRxSms;
 
     void garnitureStart();
+    void onWaveInfoRecieved(float wave, float power);
+
+    float weveValue = 0;
+    float powerValue = 0;
+    uint8_t curMode = 1; //rx = 1; tx = 2
+    void onRxModeSetting();
+    void onTxModeSetting();
+    void drawWaveInfo();
+    void onSettingAleFreq(uint32_t freq);
+
+    uint32_t curAleFreq = 0;
 };
 
 } /* namespace Ui */

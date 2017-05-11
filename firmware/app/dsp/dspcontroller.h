@@ -187,6 +187,9 @@ public:
     bool getVirtualMode();
     void setVirtualMode(bool param);
 
+    sigc::signal<void> rxModeSetting;
+    sigc::signal<void> txModeSetting;
+    sigc::signal<void, float, float> waveInfoRecieved; //wave, power
     sigc::signal<void, bool> stationModeIsCompleted; //bool gotovoice
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
@@ -203,7 +206,9 @@ public:
     sigc::signal<void,int> recievedGucResp;    // ����� �� ������ ��
     sigc::signal<void,int> recievedGucQuitForTransm; // ����� ��������� ����� ��
 
-    sigc::signal<void> updateGucGpsStatus;    float swf_res = 2; // ���� �������� �������� �� ������ ����������
+    sigc::signal<void> updateGucGpsStatus;
+    float swf_res = 2; // ���� �������� �������� �� ������ ����������
+    float power_res = 0;
     sigc::signal<void> gucCrcFailed;                 // ������ crc-�����
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> hardwareFailed;
     sigc::signal<void,int> smsCounterChanged;
@@ -481,6 +486,7 @@ private:
     QmTimer *sync_pulse_delay_timer; //delay is needed for Navigator NMEA processing after sync pulse
     QmTimer *guc_timer;
     QmTimer *guc_rx_quit_timer;
+    QmTimer swr_timer;
 
     enum {
         radiostateSync,

@@ -246,3 +246,6 @@ const char *rxtxFiledSmsStr[] = {"Принятый пакет\0", "Ошибка СМС\0"};
 
 const char *rxCondErrorStr[] = {"Принятый пакет:\n\tОшибка\t\0", "Принятый пакет:\n\tНеизвестная\n\tошибка\t\0" };
 const char *rnKey = "Ключ радиосети\0";
+
+const char *waitingStr = "Ожидайте.\0";
+const char *flashProcessingStr = "Идет работа\n с памятью\0";

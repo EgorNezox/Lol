@@ -134,12 +134,18 @@ public:
     sigc::signal<void> PswfRead;
     sigc::signal<void,int,bool> firstPacket;
 
+    sigc::signal<void, float, float> waveInfoRecieved; //wave, power
+
+    sigc::signal<void> rxModeSetting;
+    sigc::signal<void> txModeSetting;
+
 
     sigc::signal<void> atuMalfunction;
 
 
 
     sigc::signal<void> startRxQuitSignal;
+    sigc::signal<void, uint32_t> settingAleFreq;
 
     sigc::signal<void, int> command_tx30;   // Передача УК  пакеты
     void TxCondCmdTransmit(int value);
@@ -205,6 +211,10 @@ private:
 
     uint8_t param[6];
     DataStorage::FS* storageFs = 0;
+    void onWaveInfoRecieved(float wave, float power);
+    void onRxModeSetting();
+    void onTxModeSetting();
+    void onSettingAleFreq(uint32_t freq);
 };
 
 } /* namespace Multiradio */

@@ -108,6 +108,13 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->stationModeIsCompleted.connect(sigc::mem_fun(this,&Service::onCompletedStationMode));
     voice_service->dspStarted.connect(sigc::mem_fun(this,&Service::onDspStarted));
 
+    voice_service->waveInfoRecieved.connect(sigc::mem_fun(this,&Service::onWaveInfoRecieved));
+
+    voice_service->rxModeSetting.connect(sigc::mem_fun(this,&Service::onRxModeSetting));
+    voice_service->txModeSetting.connect(sigc::mem_fun(this,&Service::onTxModeSetting));
+
+    voice_service->settingAleFreq.connect(sigc::mem_fun(this,&Service::onSettingAleFreq));
+
     valueRxSms = 0;
 
 
@@ -530,8 +537,13 @@ void Service::keyPressed(UI_Key key)
                 main_scr->setFocus(1-main_scr->mwFocus);
                 break;
             case keyEnter:
-                if (main_scr->mwFocus < 0)
+                if (main_scr->mwFocus == -2)
                     guiTree.advance(0);
+                if (main_scr->mwFocus == -1)
+                {
+                    if (this->voice_service->getVoiceMode() == Multiradio::VoiceServiceInterface::VoiceModeManual)
+                    main_scr->channelEditing = true;
+                }
                 if (main_scr->mwFocus >= 0)
                 {
                     if (this->voice_service->getVoiceMode() == Multiradio::VoiceServiceInterface::VoiceModeManual)
@@ -839,7 +851,10 @@ void Service::keyPressed(UI_Key key)
                         fileMsg.push_back((uint8_t)sym[0]);
                         fileMsg.push_back((uint8_t)sym[1]);
                         fileMsg.push_back((uint8_t)sym[2]);
+
+                        showMessage(waitingStr, flashProcessingStr, promptArea);
                         storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_TX, &fileMsg);
+                        draw();
                     }
 
                     if (menu->condCmdModeSelect == 0)
@@ -1112,8 +1127,11 @@ void Service::keyPressed(UI_Key key)
                         memcpy(fileMsg.data(), &dataStr[0], size);
 
                         if (storageFs > 0)
+                        {
+                            showMessage(waitingStr, flashProcessingStr, promptArea);
                             storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_TX, &fileMsg );
-
+                            draw();
+                        }
 
                         voice_service->saveFreq(freqs);
                         voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
@@ -1312,8 +1330,12 @@ void Service::keyPressed(UI_Key key)
                 {
                     updateAleState(AleState_IDLE);
                     Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
-                           if (storageFs > 0)
-                  		                    storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
+                    if (storageFs > 0)
+                    {
+                        showMessage(waitingStr, flashProcessingStr, promptArea);
+                        storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
+                        draw();
+                    }
                     voice_service->startAleTx((uint8_t)atoi(menu->voiceAddr.c_str()),message);
                     //Запись во флеш
 
@@ -1544,7 +1566,9 @@ void Service::keyPressed(UI_Key key)
                                     fileMsg.clear();
                                     fileMsg.resize(msg.size());
                                     memcpy(fileMsg.data(), &msg[0], msg.size());
+                                    showMessage(waitingStr, flashProcessingStr, promptArea);
                                     storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_TX, &fileMsg);
+                                    draw();
                                 }
 
                                 voice_service->defaultSMSTrans();
@@ -1812,7 +1836,11 @@ void Service::keyPressed(UI_Key key)
                         voice_service->stopAle();
                         Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
                         if (storageFs > 0)
+                        {
+                            showMessage(waitingStr, flashProcessingStr, promptArea);
                             storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
+                            draw();
+                        }
                     }
                     else{
                         voice_service->stopAle();
@@ -2855,7 +2883,9 @@ void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
             fileMsg.push_back((uint8_t)sym[1]);
             fileMsg.push_back((uint8_t)sym[2]);
 
+            showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_RX, &fileMsg);
+            draw();
         }
 
          //guiTree.append(messangeWindow, "Принятый пакет ", sym);
@@ -3375,7 +3405,8 @@ void Service::draw()
     }
     if (isShowSchedulePrompt)
     	showMessage("", schedulePromptText.c_str(), promptArea);
-    if (isStartTestMsg){
+    if (isStartTestMsg)
+    {
         GUI_Painter::ClearViewPort();
         GUI_Painter::DrawRect(0,0,159,127,RDM_FILL);
         GUI_Painter::DrawText(35,52,GUI_EL_TEMP_CommonTextAreaLT.font,(char*)true_SWF);
@@ -3539,7 +3570,9 @@ void Service::gucFrame(int value)
             fileMsg.resize(fullSize);
             memcpy(fileMsg.data(), &cmdv, fullSize);
 
+            showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_RX, &fileMsg);
+            draw();
         }
         //guiTree.append(messangeWindow, sym, ch);
         if (isGucCoord)
@@ -3583,13 +3616,16 @@ void Service::updateSystemTime()
 
 void Service::smsMessage(int value)
 {
-    if (storageFs > 0){
+    if (storageFs > 0)
+    {
         fileMsg.clear();
         fileMsg.resize(value);
         const char *text = (const char*)voice_service->getSmsContent();
         std::string text_str = text;
         memcpy(fileMsg.data(), &text[0], value);
+        showMessage(waitingStr, flashProcessingStr, promptArea);
         storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_RX, &fileMsg);
+        draw();
     }
 
     isSmsMessageRec = true;
@@ -4148,6 +4184,55 @@ void Service::garnitureStart()
 {
 	headset_controller->GarnitureStart();
 }
+
+void Service::onWaveInfoRecieved(float wave, float power)
+{
+    weveValue = wave;
+    powerValue = power;
+}
+
+void Service::onRxModeSetting()
+{
+    curMode = 1;
+}
+
+void Service::onTxModeSetting()
+{
+    curMode = 2;
+}
+
+void Service::onSettingAleFreq(uint32_t freq)
+{
+    curAleFreq = freq;
+}
+
+void Service::drawWaveInfo()
+{
+    MoonsGeometry windowArea = {  0, 0, 159, 20 };
+    MoonsGeometry txrxArea   = {  0, 0,  10, 20 };
+    MoonsGeometry waveArea   = { 15, 0,  75, 20 };
+    MoonsGeometry powerArea  = { 75, 0, 155, 20 };
+
+    std::string rxtxStr(curMode == 1 ? "Rx" : "Tx");
+
+    char var[4] = {0,0,0,0};
+    sprintf(var,"%3.2f",weveValue);
+    std::string waveStr(var);
+    sprintf(var,"%3.2f",powerValue);
+    std::string powerStr(var);
+
+    GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)this);
+    GUI_EL_Label  rxtxLabel  (&GUI_EL_TEMP_LabelTitle,    &txrxArea,   (char*)rxtxStr.c_str(), (GUI_Obj *)this);
+    GUI_EL_Label  waveLabel  (&GUI_EL_TEMP_LabelTitle,    &waveArea,   (char*)waveStr.c_str(), (GUI_Obj *)this);
+    GUI_EL_Label  powerLabel (&GUI_EL_TEMP_LabelTitle,    &powerArea,  (char*)powerStr.c_str(),(GUI_Obj *)this);
+
+    window.Draw();
+    rxtxLabel.Draw();
+    waveLabel.Draw();
+    powerLabel.Draw();
+}
+
+
 
 }/* namespace Ui */
 

@@ -173,4 +173,7 @@ extern const char *notReiableRecPacket;
 extern const char *rxCondErrorStr[];
 extern const char *rnKey;
 
+extern const char *waitingStr;
+extern const char *flashProcessingStr;
+
 #endif /* TEXTS_H_ */

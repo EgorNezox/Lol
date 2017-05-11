@@ -22,6 +22,8 @@ private:
     void makeTable32();
     void makeTable16();
 public:
+    sigc::signal<void, uint32_t> settingAleFreq;
+
     int8s get_min_value(int8s* data, int8s length);
     bool check_msg(int8s msg_type, bool rx_stop);
     void set_next_superphase(int8s superphase_num);

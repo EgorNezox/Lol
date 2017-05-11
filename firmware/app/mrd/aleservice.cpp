@@ -41,6 +41,7 @@ AleService::AleService(Dispatcher *dispatcher) :
     ale_fxn = new AleFxn( timer, dispatcher, &temp_ale, &ale_settings, &ale);
     ale_main = new AleMain( timer, &temp_ale, &ale_settings , ale_fxn );
     ale_data_transport = new AleDataTransport( timer, &temp_ale, &ale_settings , ale_fxn );
+    ale_fxn->settingAleFreq.connect(sigc::mem_fun(this, &AleService::onSettingAleFreq));
 }
 
 AleService::~AleService()
@@ -444,6 +445,11 @@ void AleService::aleprocessModemPacketFailedRx(DspController::ModemPacketType ty
         ale.vm_packet_result = false;
         //startRxPacketResponse();
     }
+}
+
+void AleService::onSettingAleFreq(uint32_t freq)
+{
+
 }
 
 

@@ -72,14 +72,12 @@ public:
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> dspHardwareFailed;
 	sigc::signal<void, int/*new_state*/> aleStateChanged;
 	sigc::signal<void, uint8_t/*new_value*/> aleVmProgressUpdated;
+    sigc::signal<void, uint32_t/*freq*/> settingAleFreq;
 
 private:
 	friend class Dispatcher;
     friend class AleMain;
     friend class VoiceService;
-
-
-
 
     ale_data temp_ale;
     ext_ale_settings ale_settings;
@@ -110,6 +108,7 @@ private:
     void forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
     void timer_fxn();
     void aleprocessModemPacketFailedTx();
+    void onSettingAleFreq(uint32_t freq);
 };
 
 }

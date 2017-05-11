@@ -77,6 +77,7 @@ void AleFxn::set_freq(long freq)
     temp_ale->frequency=freq;
     if(ale_settings->superphase>1)
     	ale_log("Set ALE frequency %u",(int)(freq));
+    settingAleFreq(freq);
 }
 
 void AleFxn::set_tx(int8s mode)

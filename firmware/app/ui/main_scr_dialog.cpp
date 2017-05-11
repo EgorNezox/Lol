@@ -75,7 +75,10 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
     mode_text->Draw();
 
   freq->transparent = true; // todo : поменял значение
-  if (focus == 1){ freq->transparent = false; }
+  if (focus == 1)
+  {
+      freq->transparent = false;
+  }
 
   if (valid_freq)
     freq->Draw();
@@ -203,4 +206,29 @@ void GUI_Dialog_MainScr::keyPressed(UI_Key key)
       if ( mwFocus == 0 ) // setFrequence
       {}
   }
+}
+
+void GUI_Dialog_MainScr::setFocus(int newFocus)
+{
+    focus = newFocus;
+}
+void GUI_Dialog_MainScr::setFreq(const char *fr)
+{
+    std::string strIn, strOut;
+    strIn.append(fr);
+    uint8_t size = strIn.size();
+    for (uint8_t i = 0; i < size; i++)
+    {
+        strOut.push_back(strIn[i]);
+        if (i == (size - 4) || i == (size - 7))
+        strOut.push_back('.');
+    }
+    strOut.append(freq_hz);
+    strOut.push_back('\0');
+    freq->SetText((char*)strOut.c_str());
+}
+
+bool GUI_Dialog_MainScr::isEditing()
+{
+    return editing;
 }
