@@ -296,6 +296,8 @@ private:
     void onSettingAleFreq(uint32_t freq);
 
     uint32_t curAleFreq = 0;
+
+    Multiradio::VoiceServiceInterface::Status multiradioStatus;
 };
 
 } /* namespace Ui */

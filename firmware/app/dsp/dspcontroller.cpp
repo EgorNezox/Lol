@@ -178,7 +178,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     for(uint8_t i = 0; i <= 100; i++)
     	sms_content[i] = 0;
 
-    swr_timer.setInterval(2000);
+    swr_timer.setInterval(500);
     swr_timer.timeout.connect(sigc::mem_fun(this, &DspController::getSwr));
 
 }
@@ -377,7 +377,9 @@ void DspController::getSwr()
 //    sendCommand(TxRadiopath,0,commandValue);
 
     commandValue.swf_mode = 6;
-    sendCommand(TxRadiopath,0,commandValue);
+    //commandValue.swf_mode = 0;
+    //sendCommand(TxRadiopath,0,commandValue);
+    sendCommandEasy(TxRadiopath, 6, commandValue);
 }
 
 
@@ -1051,6 +1053,7 @@ void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t
 		qmDebugMessage(QmDebug::Info, "DSP started (id=0x%02X, version=%u.%u)", id, major_version, minor_version);
 		startup_timer->stop();
 		is_ready = true;
+        swr_timer.start();
 	} else {
 		qmDebugMessage(QmDebug::Warning, "DSP restart detected");
 		 hardwareFailed.emit(2, 99);
@@ -1064,7 +1067,7 @@ void DspController::processStartupTimeout()
 	qmDebugMessage(QmDebug::Warning, "DSP startup timeout");
 	is_ready = true;
 	started();
-    swr_timer.start();
+    //swr_timer.start();
 }
 
 bool DspController::startRadioOff()
@@ -1365,6 +1368,13 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 				tx_data_len += 1;
 			}
 			break;
+		case 6:
+		{
+			//qmToBigEndian((uint8_t)value.swf_mode, tx_data+tx_data_len);
+			//tx_data_len += 1;
+			tx_data[0] = 0;
+			break;
+		}
 		case 7:
 		case 8:
 			qmToBigEndian((uint8_t)value.agc_mode, tx_data+tx_data_len);
@@ -1846,8 +1856,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     	break;
 	}
 	case 0x51:
-	case 0x81: {
-        if ((indicator == 3) || (indicator == 4))
+	case 0x81:
+	{
+        if ((indicator == 1) || (indicator == 3) || (indicator == 4))
         { // "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � � � � � ЎвЂ№� � С—� � С•� � В»� � � …� � Вµ� � � …� � В°", "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � � � …� � Вµ � � � � � ЎвЂ№� � С—� � С•� � В»� � � …� � Вµ� � � …� � В°" ?
 			ParameterValue value;
             if ((code == 1) && (value_len == 4))
@@ -1856,7 +1867,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             } else if ((code == 2) && (value_len == 1))
             {
                 value.radio_mode = (RadioMode)qmFromBigEndian<uint8_t>(value_ptr+0);
-            } else if (code == 6)
+            } else if (indicator == 1 && code == 6)
             {
                 ref_wave = qmFromBigEndian<uint16_t>(value_ptr+0);
                 fwd_wave = qmFromBigEndian<uint16_t>(value_ptr+2);
@@ -1865,6 +1876,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 {
                     swf_res = (fwd_wave + ref_wave) / (fwd_wave - ref_wave);
                 }
+                if (fwd_wave < ref_wave)
+                	swf_res = 99;
+
                 power_res = (fwd_wave * fwd_wave) / 280000; //W
                 waveInfoRecieved(swf_res, power_res);
             }

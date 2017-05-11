@@ -19,10 +19,17 @@
 #define SMS_PROGRESS 1
 #define TIME_ON_GPS_MARKER 0
 
+#define PARAMS_DRAW 1
+
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
-MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
+
+#if PARAMS_DRAW
+    MoonsGeometry ui_indicator_area     = { 15,0,140,23};
+#else
+    MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
+#endif
 
 namespace Ui {
 
@@ -253,7 +260,9 @@ void Service::updateHeadset(Headset::Controller::Status status)
 
 void Service::updateMultiradio(Multiradio::VoiceServiceInterface::Status status)
 {
+    multiradioStatus = status;
     drawIndicator();
+    drawWaveInfo();
 }
 
 void Service::setFreqLabelValue(int value)
@@ -2874,7 +2883,8 @@ void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
         char sym[3];
         sprintf(sym,"%d",packet);
 
-        if (storageFs > 0 && !isRec){
+        if (storageFs > 0 && isRec)
+        {
 
             if (packet < 10) sym[1] = 0;
             sym[2] = 0;
@@ -4193,6 +4203,11 @@ void Service::onWaveInfoRecieved(float wave, float power)
 {
     weveValue = wave;
     powerValue = power;
+    qmDebugMessage(QmDebug::Warning, "SWR = %f, POWER = %f ", weveValue, powerValue);
+#if PARAMS_DRAW
+    //if (weveValue > 0 && powerValue > 0)
+    	drawWaveInfo();
+#endif
 }
 
 void Service::onRxModeSetting()
@@ -4212,28 +4227,47 @@ void Service::onSettingAleFreq(uint32_t freq)
 
 void Service::drawWaveInfo()
 {
-    MoonsGeometry windowArea = {  0, 0, 159, 20 };
-    MoonsGeometry txrxArea   = {  0, 0,  10, 20 };
-    MoonsGeometry waveArea   = { 15, 0,  75, 20 };
-    MoonsGeometry powerArea  = { 75, 0, 155, 20 };
+    if (guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr)
+    {
+		if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx)
+		{
+			MoonsGeometry objArea = {  0, 0, 159, 127 };
+			MoonsGeometry windowArea = {  125, 0, 159, 40 };
+			MoonsGeometry txrxArea   = {  0, 0,  10, 20 };
+			MoonsGeometry waveArea   = { 125, 0,  125 + 35, 15 };
+			MoonsGeometry powerArea  = {125, 15, 125 + 35, 30 };
 
-    std::string rxtxStr(curMode == 1 ? "Rx" : "Tx");
+			std::string rxtxStr(curMode == 1 ? "Rx" : "Tx");
 
-    char var[4] = {0,0,0,0};
-    sprintf(var,"%3.2f",weveValue);
-    std::string waveStr(var);
-    sprintf(var,"%3.2f",powerValue);
-    std::string powerStr(var);
+			char var[4] = {0,0,0,0};
+			sprintf(var,"%3.1f",weveValue);
+			std::string waveStr("S: " + std::string(var));
+			memset(&var, 0, 4);
+			sprintf(var,"%3.1f",powerValue);
+			std::string powerStr("P: " + std::string(var));
 
-    GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)this);
-    GUI_EL_Label  rxtxLabel  (&GUI_EL_TEMP_LabelTitle,    &txrxArea,   (char*)rxtxStr.c_str(), (GUI_Obj *)this);
-    GUI_EL_Label  waveLabel  (&GUI_EL_TEMP_LabelTitle,    &waveArea,   (char*)waveStr.c_str(), (GUI_Obj *)this);
-    GUI_EL_Label  powerLabel (&GUI_EL_TEMP_LabelTitle,    &powerArea,  (char*)powerStr.c_str(),(GUI_Obj *)this);
+			GUI_Obj obj(&objArea);
 
-    window.Draw();
-    rxtxLabel.Draw();
-    waveLabel.Draw();
-    powerLabel.Draw();
+			GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
+		   // GUI_EL_Label  rxtxLabel  (&GUI_EL_TEMP_LabelTitle,    &txrxArea,   (char*)rxtxStr.c_str(), (GUI_Obj *)this);
+			GUI_EL_Label  waveLabel  (&GUI_EL_TEMP_LabelTitle,    &waveArea,   (char*)waveStr.c_str(), (GUI_Obj *)&obj);
+			GUI_EL_Label  powerLabel (&GUI_EL_TEMP_LabelTitle,    &powerArea,  (char*)powerStr.c_str(),(GUI_Obj *)&obj);
+
+			window.Draw();
+			//rxtxLabel.Draw();
+			waveLabel.Draw();
+			powerLabel.Draw();
+		}
+		else
+		{
+			MoonsGeometry windowArea = {  125, 0, 159, 40 };
+			MoonsGeometry objArea = {  0, 0, 159, 127 };
+			GUI_Obj obj(&objArea);
+
+			GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
+			window.Draw();
+		}
+    }
 }
 
 
