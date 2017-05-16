@@ -1053,7 +1053,6 @@ void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t
 		qmDebugMessage(QmDebug::Info, "DSP started (id=0x%02X, version=%u.%u)", id, major_version, minor_version);
 		startup_timer->stop();
 		is_ready = true;
-        swr_timer.start();
 	} else {
 		qmDebugMessage(QmDebug::Warning, "DSP restart detected");
 		 hardwareFailed.emit(2, 99);
@@ -1869,15 +1868,15 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 value.radio_mode = (RadioMode)qmFromBigEndian<uint8_t>(value_ptr+0);
             } else if (indicator == 1 && code == 6)
             {
-                ref_wave = qmFromBigEndian<uint16_t>(value_ptr+0);
-                fwd_wave = qmFromBigEndian<uint16_t>(value_ptr+2);
+                ref_wave = (float)qmFromBigEndian<uint16_t>(value_ptr+0);
+                fwd_wave = (float)qmFromBigEndian<uint16_t>(value_ptr+2);
 
                 if (fwd_wave > 0 && (fwd_wave - ref_wave != 0))
                 {
                     swf_res = (fwd_wave + ref_wave) / (fwd_wave - ref_wave);
                 }
                 if (fwd_wave < ref_wave)
-                	swf_res = 99;
+                	swf_res = 99.0;
 
                 power_res = (fwd_wave * fwd_wave) / 280000; //W
                 waveInfoRecieved(swf_res, power_res);

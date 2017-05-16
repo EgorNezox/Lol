@@ -26,7 +26,7 @@ MoonsGeometry ui_msg_box_area       = { 20,29,GDISPW-21,GDISPH-11 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
 #if PARAMS_DRAW
-    MoonsGeometry ui_indicator_area     = { 15,0,140,23};
+    MoonsGeometry ui_indicator_area     = { 0,0,110,23};
 #else
     MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
 #endif
@@ -261,6 +261,10 @@ void Service::updateHeadset(Headset::Controller::Status status)
 void Service::updateMultiradio(Multiradio::VoiceServiceInterface::Status status)
 {
     multiradioStatus = status;
+    if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx)
+    	voice_service->setSwrTimerState(true);
+    else
+    	voice_service->setSwrTimerState(false);
     drawIndicator();
     drawWaveInfo();
 }
@@ -308,6 +312,26 @@ void Service::drawIndicator()
         indicator->UpdateHeadset(pGetHeadsetController()->getStatus());
         indicator->UpdateMultiradio(pGetVoiceService()->getStatus());
         indicator->Draw();
+
+
+		MoonsGeometry objArea = {  0, 0, 159, 127 };
+		MoonsGeometry batArea   = {  70, 29,  90, 41 };
+
+		int charge = pGetPowerBattery()->getChargeLevel();
+		//charge = 100;
+
+		char var[4] = {0,0,0,0};
+		sprintf(var,"%03i",charge);
+		std::string chargeStr(var);
+
+		GUI_Obj obj(&objArea);
+		GUI_EL_Label  batLabel  (&GUI_EL_TEMP_LabelTitle,    &batArea,   (char*)chargeStr.c_str(), (GUI_Obj *)&obj);
+
+		MoonsGeometry windowArea = {  70, 29, 90, 41 };
+		GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
+
+		window.Draw();
+		batLabel.Draw();
 	}
     }
 }
@@ -3026,6 +3050,8 @@ void Service::drawMainWindow()
                    );
 
     drawIndicator();
+    drawWaveInfo();
+
     }
 }
 
@@ -4227,31 +4253,36 @@ void Service::onSettingAleFreq(uint32_t freq)
 
 void Service::drawWaveInfo()
 {
-    if (guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr)
+    if (guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr )
     {
-		if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx)
+		if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx && (weveValue > 0.000 && powerValue > 0.000))
 		{
 			MoonsGeometry objArea = {  0, 0, 159, 127 };
-			MoonsGeometry windowArea = {  125, 0, 159, 40 };
-			MoonsGeometry txrxArea   = {  0, 0,  10, 20 };
-			MoonsGeometry waveArea   = { 125, 0,  125 + 35, 15 };
-			MoonsGeometry powerArea  = {125, 15, 125 + 35, 30 };
+			MoonsGeometry windowArea = {  90, 0, 159, 40 };
+			//MoonsGeometry txrxArea   = {  0, 0,  10, 20 };
+			MoonsGeometry waveArea   = { 105, 0,  150, 16 };
+			MoonsGeometry powerArea  = {105, 16, 150, 32 };
 
-			std::string rxtxStr(curMode == 1 ? "Rx" : "Tx");
+			//std::string rxtxStr(curMode == 1 ? "Rx" : "Tx");
 
-			char var[4] = {0,0,0,0};
-			sprintf(var,"%3.1f",weveValue);
+			char var[5] = {0,0,0,0,0};
+			sprintf(var,"%03.1f",weveValue);
+			//var[3] = 0;
 			std::string waveStr("S: " + std::string(var));
-			memset(&var, 0, 4);
-			sprintf(var,"%3.1f",powerValue);
+			memset(&var, 0, 5);
+			sprintf(var,"%03.1f",powerValue);
+			//var[3] = 0;
 			std::string powerStr("P: " + std::string(var));
 
 			GUI_Obj obj(&objArea);
 
+			LabelParams param = GUI_EL_TEMP_LabelTitle;
+			param.element.align.align_h = alignLeft;
+
 			GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
 		   // GUI_EL_Label  rxtxLabel  (&GUI_EL_TEMP_LabelTitle,    &txrxArea,   (char*)rxtxStr.c_str(), (GUI_Obj *)this);
-			GUI_EL_Label  waveLabel  (&GUI_EL_TEMP_LabelTitle,    &waveArea,   (char*)waveStr.c_str(), (GUI_Obj *)&obj);
-			GUI_EL_Label  powerLabel (&GUI_EL_TEMP_LabelTitle,    &powerArea,  (char*)powerStr.c_str(),(GUI_Obj *)&obj);
+			GUI_EL_Label  waveLabel  (&param,    &waveArea,   (char*)waveStr.c_str(), (GUI_Obj *)&obj);
+			GUI_EL_Label  powerLabel (&param,    &powerArea,  (char*)powerStr.c_str(),(GUI_Obj *)&obj);
 
 			window.Draw();
 			//rxtxLabel.Draw();
@@ -4260,12 +4291,16 @@ void Service::drawWaveInfo()
 		}
 		else
 		{
-			MoonsGeometry windowArea = {  125, 0, 159, 40 };
+			MoonsGeometry windowArea = { 90, 0, 159, 40 };
 			MoonsGeometry objArea = {  0, 0, 159, 127 };
 			GUI_Obj obj(&objArea);
 
 			GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
 			window.Draw();
+
+//			MoonsGeometry windowArea2 = {  0, 0, 15, 25 };
+//			GUI_EL_Window window2     (&GUI_EL_TEMP_WindowGeneral, &windowArea2,                         (GUI_Obj *)&obj);
+//			window2.Draw();
 		}
     }
 }

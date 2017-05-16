@@ -600,4 +600,13 @@ void VoiceServiceInterface::onSettingAleFreq(uint32_t freq)
     settingAleFreq(freq);
 }
 
+void VoiceServiceInterface::setSwrTimerState(bool state)
+{
+	if (state && dispatcher->dsp_controller->isReady())
+		dispatcher->dsp_controller->swr_timer.start();
+	else
+		dispatcher->dsp_controller->swr_timer.stop();
+
+}
+
 } /* namespace Multiradio */

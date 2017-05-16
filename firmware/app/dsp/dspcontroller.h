@@ -187,6 +187,8 @@ public:
     bool getVirtualMode();
     void setVirtualMode(bool param);
 
+    QmTimer swr_timer;
+
     sigc::signal<void> rxModeSetting;
     sigc::signal<void> txModeSetting;
     sigc::signal<void, float, float> waveInfoRecieved; //wave, power
@@ -486,7 +488,7 @@ private:
     QmTimer *sync_pulse_delay_timer; //delay is needed for Navigator NMEA processing after sync pulse
     QmTimer *guc_timer;
     QmTimer *guc_rx_quit_timer;
-    QmTimer swr_timer;
+
 
     enum {
         radiostateSync,
@@ -525,8 +527,8 @@ private:
 
     std::list<DspCommand> *cmd_queue;
 
-    int fwd_wave;
-    int ref_wave;
+    float fwd_wave;
+    float ref_wave;
 
     int command_tx30;                                           // ������� ��� tx � sms
                                                                 // ������� ��� rx � sms

@@ -39,7 +39,7 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
 //#if PARAMS_DRAW
 //    icon_geom = {0, 35, 100, 60};
 //#else
-    icon_geom = {5, 35, 154, 60};
+    icon_geom = {5, 40, 154, 66};
 //#endif
 
     LabelParams p_label = GUI_EL_TEMP_LabelMode;
@@ -135,7 +135,7 @@ void GUI_Indicator::Draw( Multiradio::VoiceServiceInterface::Status multiradioSt
                          ){
     gsetcolorb(GENERAL_BACK_COLOR);
     gsetvp(0,0,GDISPW-1, GDISPH-1);
-    groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe,ui_indicator_area.ye,0,GFILL);
+    groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe - 20 ,ui_indicator_area.ye,0,GFILL);
 
     UpdateMultiradio(multiradioStatus /*service->pGetMultitradioService()->getStatus()*/);
     UpdateHeadset   (headsetStatus /*service->pGetHeadsetController()->getStatus()*/);
@@ -152,7 +152,7 @@ void GUI_Indicator::Draw( Multiradio::VoiceServiceInterface::Status multiradioSt
 void GUI_Indicator::Draw(){
     gsetcolorb(GENERAL_BACK_COLOR);
     gsetvp(0,0,GDISPW-1, GDISPH-1);
-    groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe,ui_indicator_area.ye,0,GFILL);
+    groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe-20,ui_indicator_area.ye,0,GFILL);
 
     ind_battery->Draw();
     ind_headset->Draw();

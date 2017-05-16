@@ -184,6 +184,8 @@ public:
 
     void forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
 
+    void setSwrTimerState(bool state);
+
 private:
     friend class Dispatcher;
 

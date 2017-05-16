@@ -549,7 +549,8 @@ void GUI_EL_Battery::Draw(){
 		}
 	}
 	GYT battery_column_h=(GYT)(((int32_t)(content.H-3)*(int32_t)charge)/(int32_t)100);
-	if(battery_column_h>0){
+	if(battery_column_h>0)
+	{
 		groundrect(content.x+1, CONTENT_YE(content)-battery_column_h, CONTENT_XE(content)-1, CONTENT_YE(content)-1, 0, GFILL);//рисуем заряд батарейки
 	}
 }
