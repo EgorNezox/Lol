@@ -367,7 +367,7 @@ void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
 }
 
 void DspController::getSwr()
-{
+{return;
     QM_ASSERT(is_ready);
     if (!resyncPendingCommand())
         return;
