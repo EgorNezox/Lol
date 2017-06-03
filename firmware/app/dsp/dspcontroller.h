@@ -617,6 +617,8 @@ private:
 
     void onGucWaitingQuitTimeout();
     void vm1Pps();
+
+    bool isGucWaitReceipt = false;
 public:
     uint8_t getSmsCounter();
     bool getIsGucCoord();

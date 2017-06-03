@@ -367,7 +367,7 @@ void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
 }
 
 void DspController::getSwr()
-{return;
+{//return;
     QM_ASSERT(is_ready);
     if (!resyncPendingCommand())
         return;
@@ -1941,12 +1941,20 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         	{
                 completedStationMode(true);
         	}
-            if (ContentGuc.stage == GucTx) // wait recieving ack
+        	else if (ContentGuc.stage == GucTx) // wait recieving ack
         	{
-        		startGucRecieving();
-        		ContentGuc.stage = GucTx;
-        		startRxQuit();
-        		guc_rx_quit_timer->start();
+            	if (isGucWaitReceipt)
+            	{
+					startGucRecieving();
+					ContentGuc.stage = GucTx;
+					startRxQuit();
+					guc_rx_quit_timer->start();
+            	}
+            	else
+            	{
+            		startRxQuit();
+            		completedStationMode(true);
+            	}
         	}
         }
         break;
@@ -2717,6 +2725,10 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
 	ContentGuc.S_ADR = stationAddress;
 
     ContentGuc.R_ADR = r_adr;
+    if (r_adr == 0)
+    	isGucWaitReceipt = false;
+    else
+    	isGucWaitReceipt = true;
 
     uint8_t num_cmd = command.size();
     ContentGuc.NUM_com = num_cmd;

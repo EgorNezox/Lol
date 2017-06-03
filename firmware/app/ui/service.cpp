@@ -4192,9 +4192,12 @@ void Service::onCompletedStationMode(bool isGoToVoice)
 {
 	if (isGoToVoice)
 		voice_service->goToVoice();
-    if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
-        setFreq();
 
+	Headset::Controller::Status st = pGetHeadsetController()->getStatus();
+
+    if (st ==  Headset::Controller::Status::StatusSmartOk || st == Headset::Controller::Status::StatusAnalog)
+    {
+        setFreq();
         garnitureStart();
     }
 }
