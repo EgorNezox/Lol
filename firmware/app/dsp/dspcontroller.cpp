@@ -1940,6 +1940,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         	if (ContentGuc.stage == GucRx)
         	{
                 completedStationMode(true);
+                magic();
         	}
         	else if (ContentGuc.stage == GucTx) // wait recieving ack
         	{
@@ -1988,8 +1989,12 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                     guc_vector.push_back(guc);
                     //guc_timer->start();
                     recievedGucResp(isGpsGuc);
-                    startGucTransmitting();
-            		sendGucQuit();
+                    if (ContentGuc.S_ADR != 0)
+                    {
+                    	startGucTransmitting();
+                    	sendGucQuit();
+                    }
+
             	}
             }
         }
@@ -3155,9 +3160,17 @@ void DspController::goToVoice(){
 	comandValue.radio_mode = RadioModeOff;
 	sendCommandEasy(TxRadiopath,2,comandValue);
 
-//    comandValue.guc_mode = RadioModeSazhenData; // 11 mode
-//    sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
+
 }
+
+void DspController::magic()
+{
+	ParameterValue comandValue;
+	comandValue.guc_mode = RadioModeSazhenData; // 11 mode
+	sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
+}
+
+
 
 bool DspController::getIsGucCoord()
 {

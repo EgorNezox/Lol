@@ -223,6 +223,7 @@ public:
     bool retranslation_active = false;
 
     void goToVoice();
+    void magic();
 
     void resetSmsState();
 
