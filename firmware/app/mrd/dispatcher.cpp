@@ -114,6 +114,7 @@ void Dispatcher::processDspStartup()
 {
 	setupVoiceMode(headset_controller->getStatus());
 	dsp_controller->setAdr();
+	navigator->coldStart();
 }
 
 bool Dispatcher::processHeadsetPttStateChange(bool new_state)

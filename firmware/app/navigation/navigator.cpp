@@ -390,15 +390,18 @@ void Navigator::processSyncPulse(bool overflow)
 
 void Navigator::coldStart()
 {
-	const char * const config_sentences = "$PORST,F*20\r\n";
-    qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
-    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
+//	const char * const config_sentences = "$PORST,F*20\r\n";
+//    qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
+//    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
+//
+//    QmThread::msleep(5000);
+//
+//    const char * const start_sentences = "$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n";
+//    qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
+//    uart->writeData((uint8_t *)start_sentences, strlen(start_sentences));
 
-    QmThread::msleep(5000);
-
-    const char * const start_sentences = "$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n";
-    qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
-    uart->writeData((uint8_t *)start_sentences, strlen(start_sentences));
+	const char * const config_sentences = "$PSTM,8\r\n";
+	uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
 }
 
 void Navigator::setMinimalActivityMode(bool enabled) {
