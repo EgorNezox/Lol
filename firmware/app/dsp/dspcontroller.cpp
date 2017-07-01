@@ -1878,7 +1878,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 if (fwd_wave < ref_wave)
                 	swf_res = 99.0;
 
-                power_res = (fwd_wave * fwd_wave) / 280000; //W
+                power_res = (fwd_wave * fwd_wave) / 201600; //280000 - sazhen 201600 -tropa
                 waveInfoRecieved(swf_res, power_res);
             }
 

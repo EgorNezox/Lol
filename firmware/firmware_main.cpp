@@ -29,7 +29,7 @@
 #include "ui/service.h"
 
 #define MIN_GENERATOR_FREQ 620
-#define DEFAULT_GENERATOR_FREQ 1805
+#define DEFAULT_GENERATOR_FREQ 1900
 #define MAX_GENERATOR_FREQ 3100
 
 
@@ -68,7 +68,7 @@ void qmMain() {
     uint16_t genFreq;
     uint16_t genFreqDefault = DEFAULT_GENERATOR_FREQ;
 
-   // bool isSet = data_storage_fs.setGeneratorFreq(genFreqDefault);
+    //bool isSet = data_storage_fs.setGeneratorFreq(genFreqDefault);
     bool isGet = data_storage_fs.getGeneratorFreq(&genFreq, genFreqDefault);
     if (genFreq < MIN_GENERATOR_FREQ || genFreq > MAX_GENERATOR_FREQ || (!isGet))
     	genFreq = DEFAULT_GENERATOR_FREQ;
