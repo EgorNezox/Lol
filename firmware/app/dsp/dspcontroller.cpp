@@ -1939,13 +1939,16 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         {
         	if (ContentGuc.stage == GucRx)
         	{
+        		qmDebugMessage(QmDebug::Dump, "---- 0x7B indicator:22 GucRx");
                 completedStationMode(true);
                 magic();
         	}
         	else if (ContentGuc.stage == GucTx) // wait recieving ack
         	{
+        		qmDebugMessage(QmDebug::Dump, "---- 0x7B indicator:22 GucTx");
             	if (isGucWaitReceipt)
             	{
+            		qmDebugMessage(QmDebug::Dump, "---- isGucWaitReceipt");
 					startGucRecieving();
 					ContentGuc.stage = GucTx;
 					startRxQuit();
@@ -1953,6 +1956,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             	}
             	else
             	{
+            		qmDebugMessage(QmDebug::Dump, "---- NOT isGucWaitReceipt");
             		startRxQuit();
             		completedStationMode(true);
             	}
@@ -1967,23 +1971,27 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         	if (indicator == 32){
                 qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: indicator %d", indicator);
         	}
-            if (indicator == 30) {
+            if (indicator == 30)
+            {
                 ContentGuc.R_ADR = ((data[2] & 0xF8) >> 3);
             	ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
                 isGpsGuc = data[5] & 0x1;
+                ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);
                 if (ContentGuc.stage == GucTx)
                 {
-                	ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);
+                	//ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);
+                	qmDebugMessage(QmDebug::Dump, "---- 0x6B indicator:30 stage: GucTx R_ADR: %d S_ADR: %d", ContentGuc.R_ADR, ContentGuc.S_ADR);
                 	recievedGucQuitForTransm(ContentGuc.S_ADR);
                 	completedStationMode(false);
                 	guc_rx_quit_timer->stop();
                 }
-            	else{
-            		qmDebugMessage(QmDebug::Dump, "0x6B R_ADR %d : ", ContentGuc.R_ADR);
+            	else
+            	{
+            		qmDebugMessage(QmDebug::Dump, "---- 0x6B indicator:30 stage: GucRx R_ADR: %d S_ADR: %d", ContentGuc.R_ADR, ContentGuc.S_ADR);
             		std::vector<uint8_t> guc;
             		for(int i = 0;i<data_len;i++)
             		{
-            			qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , num %d", data[i],i);
+            			//qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , num %d", data[i],i);
             			guc.push_back(data[i]);
             		}
                     guc_vector.push_back(guc);
@@ -3591,5 +3599,5 @@ void DspController::setStationAddress(uint8_t address)
 /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelOff)//LevelVerbose)//LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)//LevelVerbose)//LevelVerbose)
 #include "qmdebug_domains_end.h"
