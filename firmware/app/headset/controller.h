@@ -166,6 +166,7 @@ public:
 	 */
 	sigc::signal<void, SmartHSState/*new_state*/> smartHSStateChanged;
 
+	sigc::signal<void/*new_state*/> BOOM;
 	void GarnitureStart();
 
 private:

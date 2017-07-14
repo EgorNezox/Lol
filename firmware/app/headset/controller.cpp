@@ -366,6 +366,7 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 			break;
 		}
 		case SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE: {
+			//BOOM();
 			cmd_resp_timer->setInterval(HS_RESPONCE_TIMEOUT); //TODO: fix it
 			if (mode_mask & 0x10) {
 				setSmartHSState(SmartHSState_SMART_RECORDING);
@@ -560,17 +561,25 @@ void Controller::synchronizeHSState() {
 	data[0] = 0xAB;
 	data[1] = 0xBA;
 	data[2] = 0x01;
-	switch (ch_speed) {
-	case Multiradio::voicespeed600: data[2] |= 0x02; break;
-	case Multiradio::voicespeed1200: data[2] |= 0x06; break;
-	case Multiradio::voicespeed2400: data[2] |= 0x08; break;
-	case Multiradio::voicespeed4800: data[2] |= 0x0B; break;
-	default: data[2] |= 0x02; break;
+
+	if (ch_number == 2)
+	{
+		ch_speed = Multiradio::voicespeed600;
+		// data[2] |= 0x02;
+	}
+
+	switch (ch_speed)
+	{
+		case Multiradio::voicespeed600: data[2] |= 0x02; break;
+		case Multiradio::voicespeed1200: data[2] |= 0x06; break;
+		case Multiradio::voicespeed2400: data[2] |= 0x08; break;
+		case Multiradio::voicespeed4800: data[2] |= 0x0B; break;
+		default: data[2] |= 0x02; break;
 	}
 	data[2] |= (uint8_t)((squelch_enable ? 0 : 1) << 5); // mode mask
 	data[3] = ch_number; // channel number
 	data[4] = 0xFF; // reserved
-	data[5] = 0x01 | (uint8_t)((indication_enable ? 0 : 1) << 2);
+	data[5] = 0; //0x01 | (uint8_t)((indication_enable ? 0 : 1) << 2);
 	for (int i = 6; i < data_size; ++i)
 		data[i] = 0;
 	transmitCmd(HS_CMD_SET_MODE, data, data_size);
@@ -830,5 +839,5 @@ void Controller::GarnitureStart()
 } /* namespace Headset */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(hscontroller, LevelInfo)
+QMDEBUG_DEFINE_DOMAIN(hscontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"

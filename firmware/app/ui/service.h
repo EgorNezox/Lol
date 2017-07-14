@@ -146,6 +146,7 @@ public:
     void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
     void playSchedulePromptSignal();
     void onCompletedStationMode(bool isGoToVoice = true);
+    void onStartCondReceiving();
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
@@ -178,6 +179,12 @@ private:
     CGuiMenu *menu;
     CGuiTree  guiTree;
 
+    bool isStartCond = false;
+    bool isWaitAnswer = false;
+    bool isGucAnswerWaiting = false;
+
+    void resetLogicDSPforGarniture();
+
     void voiceChannelChanged();
     void chNextHandler();
     void chPrevHandler();
@@ -193,7 +200,7 @@ private:
 
     void GucCoord();
 
-    void FirstPacketPSWFRecieved(int packet, bool isRec);
+    void FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec);
     void smsMessage(int value);
 
     void drawMainWindow();

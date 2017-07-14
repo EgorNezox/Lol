@@ -63,6 +63,8 @@ private:
 
 	void latencyGui();
 
+	bool vals;
+
 	DspController *dsp_controller;
 	AtuController *atu_controller;
 	Headset::Controller *headset_controller;

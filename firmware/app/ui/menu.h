@@ -28,9 +28,9 @@
 #define smsflashTest_size 27
 
 #if flashTest
-    #define grpFlashTest 1 // ГУК
-    #define smsFlashTest 1 // СМС
-    #define cndFlashTest 1 // УК
+    #define grpFlashTest 1 // пїЅпїЅпїЅ
+    #define smsFlashTest 1 // пїЅпїЅпїЅ
+    #define cndFlashTest 1 // пїЅпїЅ
 #endif
 
 #define MARGIN			4
@@ -62,8 +62,8 @@ public:
 
     void initItems(std::list<std::string>, const char*, int);
     void initDialog(CEndState);
-    void initCondCommDialog(CEndState);
-    void initGroupCondCmd(CEndState);
+    void initCondCommDialog(CEndState, bool isSynch = false, bool isWaitingAnswer = false);
+    void initGroupCondCmd(CEndState, bool isWatingAnswer = false);
     void initVolumeDialog();
     void initScanDialog();
     void initAruarmDialog();
@@ -86,7 +86,7 @@ public:
 
     void setFS(DataStorage::FS* fs);
 
-    void TxCondCmdPackage(int value);    // Передача УК  пакеты
+    void TxCondCmdPackage(int value);    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ  пїЅпїЅпїЅпїЅпїЅпїЅ
     int command_tx30 = 0;
 
     std::string dstAddr, newDstAddr;
@@ -103,7 +103,7 @@ public:
     int condCmdModeSelect = 0;
     void setCondCommParam(CEndState, UI_Key);
     // rx cond cmd
-    void initRxCondCmdDialog();
+    void initRxCondCmdDialog(bool isSynch = false);
     int rxCondCmdStatus = 1;
     bool useTicket = false;
 

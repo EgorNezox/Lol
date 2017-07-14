@@ -45,6 +45,8 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 
     dispatcher->ale_service->settingAleFreq.connect(sigc::mem_fun(this, &VoiceServiceInterface::onSettingAleFreq));
 
+    dispatcher->dsp_controller->startCondReceiving.connect(sigc::mem_fun(this,&VoiceServiceInterface::onStartCondReceiving));
+
     current_status = StatusNotReady;
     current_mode = VoiceModeManual;
 
@@ -353,21 +355,24 @@ void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
 }
 
 void VoiceServiceInterface::updateChannel() {
-	if (dispatcher->voice_channel != dispatcher->voice_channels_table.end()) {
-        if ((current_mode == VoiceModeAuto)
-                || ((current_mode == VoiceModeManual)
-						&& (dispatcher->headset_controller->getStatus() == Headset::Controller::StatusSmartOk)))
+	if (dispatcher->voice_channel != dispatcher->voice_channels_table.end())
+	{
+        if ((current_mode == VoiceModeAuto) ||
+           ((current_mode == VoiceModeManual) &&
+           (dispatcher->headset_controller->getStatus() == Headset::Controller::StatusSmartOk)))
 			setCurrentChannel(ChannelActive);
 		else
 			setCurrentChannel(ChannelDisabled);
-	} else {
+	}
+	else
+	{
 		setCurrentChannel(ChannelInvalid);
 	}
 }
 
-void VoiceServiceInterface::fistPacketRecieve(int packet, bool rec)
+void VoiceServiceInterface::fistPacketRecieve(int packet, uint8_t address, bool rec)
 {
-    firstPacket(packet, rec);
+    firstPacket(packet, address, rec);
 }
 
 void VoiceServiceInterface::saveFreq(int value)
@@ -408,6 +413,11 @@ uint8_t VoiceServiceInterface::getSmsCounter()
 {
    return dispatcher->dsp_controller->getSmsCounter();
 
+}
+
+void VoiceServiceInterface::resetDSPLogic()
+{
+	dispatcher->dsp_controller->initResetState();
 }
 
 void VoiceServiceInterface::setVirtualDate(std::string s)
@@ -607,6 +617,11 @@ void VoiceServiceInterface::setSwrTimerState(bool state)
 	else
 		dispatcher->dsp_controller->swr_timer.stop();
 
+}
+
+void VoiceServiceInterface::onStartCondReceiving()
+{
+	startCondReceiving();
 }
 
 } /* namespace Multiradio */

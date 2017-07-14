@@ -83,7 +83,7 @@ void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
     }
 }
 
-void CGuiMenu::initCondCommDialog(CEndState state) // УК
+void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingAnswer ) // УК
 {
     std::string str, labelStr;
     auto iter = state.listItem.begin();
@@ -156,10 +156,22 @@ void CGuiMenu::initCondCommDialog(CEndState state) // УК
     }
     case 6:
     { //stage send
-        char pac[] = {0,0};
-        sprintf(pac,"%i",command_tx30);
-        str.append(pac);
-        str.append("/30");
+    	if (isSynch)
+    	{
+    		str.append(syncWaitingStr);
+    	}
+    	else
+    	{
+    		if (isWaitingAnswer)
+    			str.append(rxSmsResultStatus[3]);
+    		else
+    		{
+				char pac[] = {0,0};
+				sprintf(pac,"%i",command_tx30);
+				str.append(pac);
+				str.append("/30");
+    		}
+    	}
         break;
     }
     }
@@ -173,7 +185,7 @@ void CGuiMenu::initCondCommDialog(CEndState state) // УК
     params.transparent = true;
 
     MoonsGeometry localLabelArea = { 7,  5, 150,  39 };
-    MoonsGeometry localFieldArea = { 7, 40, 150, 90 };
+    MoonsGeometry localFieldArea = { 7, 40, 150, 100 };
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                               (GUI_Obj *)this);
     GUI_EL_Label  label (&GUI_EL_TEMP_LabelTitle,    &localLabelArea,  (char*)labelStr.c_str(), (GUI_Obj *)this);
@@ -1636,7 +1648,7 @@ void CGuiMenu::initRxSmsDialog(std::string str, uint8_t stage)
     ok_button.Draw();
 }
 
-void CGuiMenu::initRxCondCmdDialog()        // Прием УК
+void CGuiMenu::initRxCondCmdDialog(bool isSynch)        // Прием УК
 {
     titleArea   = { 5, 5, 150, 20 };
 
@@ -1645,9 +1657,15 @@ void CGuiMenu::initRxCondCmdDialog()        // Прием УК
     param.transparent = false;
     MoonsGeometry buttonArea  = { 5, 30, 150, 80 };
 
-    GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                    (GUI_Obj *)this);
+    GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)this);
     GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)callSubMenu[0], (GUI_Obj *)this);
-    GUI_EL_Label button ( &param, &buttonArea, (char*)receiveStatusStr[recvStage], (GUI_Obj *)this);
+
+    std::string str;
+    if (isSynch)
+    	str = syncWaitingStr;
+    else
+    	str = (char*)receiveStatusStr[recvStage];
+    GUI_EL_Label button ( &param, &buttonArea, (char*)str.c_str(), (GUI_Obj *)this);
 
     window.Draw();
     if (recvStage != 1)
@@ -1655,7 +1673,7 @@ void CGuiMenu::initRxCondCmdDialog()        // Прием УК
     button.Draw();
 }
 
-void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
+void CGuiMenu::initGroupCondCmd( CEndState state, bool isWaitingAnswer)  // ГУК
 {
     // 1 - set frequency
     // 2 - group vs. indiv.
@@ -1692,9 +1710,12 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
     labelStr.append(labels[groupCondCommStage]);
     valueStr.append(values[groupCondCommStage]);
 
+    if (groupCondCommStage == 6 and not sndMode && isWaitingAnswer)
+    	valueStr = rxSmsResultStatus[3];
+
                   titleArea = {  5,   5, 150,  18 };
     MoonsGeometry labelArea = {  5,  18, 150,  43 };
-    MoonsGeometry valueArea = {  5,  52, 150,  85 };
+    MoonsGeometry valueArea = {  5,  42, 150,  105 };
 
     LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
 
@@ -1711,8 +1732,8 @@ void CGuiMenu::initGroupCondCmd( CEndState state )  // ГУК
         title.Draw();
     label.Draw();
 
-    if (groupCondCommStage == 4){
-
+    if (groupCondCommStage == 4)
+    {
         MoonsGeometry textGeom = {3, 44, 156, 122};
         TextAreaParams textParams = GUI_EL_TEMP_LabelMode;
         textParams.element.align.align_h = alignHCenter;

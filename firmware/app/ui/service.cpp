@@ -102,6 +102,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     command_rx_30 = 0;
 
+
+    this->headset_controller->BOOM.connect(sigc::mem_fun(this, &Service::resetLogicDSPforGarniture));
+
     voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
     voice_service->smsMess.connect(sigc::mem_fun(this,&Service::smsMessage));
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
@@ -121,6 +124,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->txModeSetting.connect(sigc::mem_fun(this,&Service::onTxModeSetting));
 
     voice_service->settingAleFreq.connect(sigc::mem_fun(this,&Service::onSettingAleFreq));
+
+    voice_service->startCondReceiving.connect(sigc::mem_fun(this,&Service::onStartCondReceiving));
 
     valueRxSms = 0;
 
@@ -159,6 +164,11 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     draw();
 }
 
+void Service::resetLogicDSPforGarniture()
+{
+     voice_service->resetDSPLogic();
+}
+
 void Service::onTestMsgTimer()
 {
     isStartTestMsg = false;
@@ -175,9 +185,7 @@ void Service::readSynchMode()
 
 void Service::startRxQuit()
 {
-	menu->groupCondCommStage = 0;
-	menu->focus = 0;
-	guiTree.resetCurrentState();
+	isGucAnswerWaiting = true;
 	draw();
 }
 
@@ -1367,6 +1375,7 @@ void Service::keyPressed(UI_Key key)
                     {
                         showMessage(waitingStr, flashProcessingStr, promptArea);
                         storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
+                        menu->toVoiceMail = false;
                         draw();
                     }
                     voice_service->startAleTx((uint8_t)atoi(menu->voiceAddr.c_str()),message);
@@ -1385,6 +1394,7 @@ void Service::keyPressed(UI_Key key)
                     menu->putOffVoiceStatus--;
 #ifndef _DEBUG_
                     voice_service->stopAle();
+                    //onCompletedStationMode();
 #endif
                 }
                 if (key == keyEnter /*&& voice_service->getAleState() == */)
@@ -1400,6 +1410,7 @@ void Service::keyPressed(UI_Key key)
                     guiTree.resetCurrentState();
                     menu->inVoiceMail = false;
                     menu->toVoiceMail = false;
+                    onCompletedStationMode();
 #endif
                     guiTree.resetCurrentState();
                 }
@@ -1667,7 +1678,9 @@ void Service::keyPressed(UI_Key key)
             	if (menu->recvStage > 0 )
             		menu->recvStage--;
 
-                if (menu->recvStage == 0){
+                if (menu->recvStage == 0)
+                {
+                	isStartCond = false;
                 	menu->recvStage = 0;
                 	guiTree.backvard();
                 	onCompletedStationMode();
@@ -1681,14 +1694,17 @@ void Service::keyPressed(UI_Key key)
 #else
 
                     menu->recvStage++;
-                    if (menu->recvStage == 1){
+                    if (menu->recvStage == 1)
+                    {
                         failFlag = false;
                         voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
                     }
-                    if (menu->recvStage == 2){
+                    if (menu->recvStage == 2)
+                    {
                     	menu->recvStage = 0;
                     	guiTree.resetCurrentState();
                     	onCompletedStationMode();
+                    	isStartCond = false;
                     }
 #endif
                 }
@@ -1729,7 +1745,12 @@ void Service::keyPressed(UI_Key key)
         		voice_service->TurnSMSMode();
 				#endif
         		if (valueRxSms == 0)
-                menu->initRxSmsDialog(receiveStatusStr[1]);
+        		{
+        			if ( voice_service->getVirtualMode() )
+        				menu->initRxSmsDialog(syncWaitingStr);
+        			else
+        				menu->initRxSmsDialog(receiveStatusStr[1]);
+        		}
         		else
         		{
         			menu->VoiceDialogClearWindow();
@@ -1857,35 +1878,38 @@ void Service::keyPressed(UI_Key key)
                 }
                 if (key == keyEnter)
                 {
-                    uint8_t rxAddr = voice_service->getAleRxAddress();
+                 //    uint8_t rxAddr = voice_service->getAleRxAddress();
 //                    char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
 //                    menu->voiceAddr.append(ch);
 //                    menu->putOffVoiceStatus++;
 
-                    if (rxAddr > 0){
-                        char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
-                        menu->voiceAddr.append(ch);
-                        menu->putOffVoiceStatus++;
-                        voice_service->stopAle();
-                        Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
-                        if (storageFs > 0)
-                        {
-                            showMessage(waitingStr, flashProcessingStr, promptArea);
-                            storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
-                            draw();
-                        }
-                    }
-                    else{
-                        voice_service->stopAle();
-                        menu->putOffVoiceStatus = 1;
-                        menu->voiceAddr.clear();
-                        menu->channalNum.clear();
-                        menu->offset = 1;
-                        menu->focus = 3;
-                        guiTree.backvard();
-                        menu->inVoiceMail = false;
-                        menu->toVoiceMail = false;
-                    }
+//                    if (rxAddr > 0)
+//                    {
+//                        char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
+//                        menu->voiceAddr.append(ch);
+//                        menu->putOffVoiceStatus++;
+//                        voice_service->stopAle();
+//                        Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
+//                        if (storageFs > 0)
+//                        {
+//                            showMessage(waitingStr, flashProcessingStr, promptArea);
+//                            storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
+//                            draw();
+//                        }
+//                    }
+
+//                    if (rxAddr == 0)
+//                    {
+//                        voice_service->stopAle();
+//                        menu->putOffVoiceStatus = 1;
+//                        menu->voiceAddr.clear();
+//                        menu->channalNum.clear();
+//                        menu->offset = 1;
+//                        menu->focus = 3;
+//                        guiTree.backvard();
+//                        menu->inVoiceMail = false;
+//                        menu->toVoiceMail = false;
+//                    }
                 }
                 break;
             }
@@ -2898,9 +2922,9 @@ void Service::onSmsCounterChange(int param)
     }
 }
 
-void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
+void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
 {
-     if ( packet >= 0 && packet < 100 )
+    if ( packet >= 0 && packet < 100 )
     {
 //    	guiTree.resetCurrentState();
 //    	drawMainWindow();
@@ -2909,7 +2933,6 @@ void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
 
         if (storageFs > 0 && isRec)
         {
-
             if (packet < 10) sym[1] = 0;
             sym[2] = 0;
             fileMsg.clear();
@@ -2926,19 +2949,39 @@ void Service::FirstPacketPSWFRecieved(int packet, bool isRec)
          condCmdValue = packet;
          isDrawCondCmd = true;
 
-         if (isRec){
-			 if (setAsk){
-				 msgBox( cmdRec, (int)packet );
+         if (isRec)
+         {
+			 if (setAsk)
+			 {
+				 guiTree.resetCurrentState();
+				 menu->txCondCmdStage = 0;
+				 isWaitAnswer = false;
+
+				 char addressStr[4] = {0,0,0,0};
+				 sprintf(addressStr, "%d", address);
+				 std::string str(cmdRec);
+				 str.append(" ").append(fromStr).append(" ").append(addressStr);
+				 msgBox( str.c_str(), (int)packet );
 				 setAsk = false;
 			 }
 			 else
+			 {
 				 msgBox( recPacket, (int)packet );
-         } else
+			 }
+         }
+         else
+         {
         	 msgBox( notReiableRecPacket, (int)packet );
+         }
     }
-     else {
+     else
+     {
         onCompletedStationMode();
-     if ( packet == 100){
+     if ( packet == 100)
+     {
+		 guiTree.resetCurrentState();
+		 menu->txCondCmdStage = 0;
+		 isWaitAnswer = false;
          msgBox( gucQuitTextFail );
          setAsk = false;
      }
@@ -3096,14 +3139,14 @@ void Service::drawMenu()
 
         switch( st.subType )
         {
-        case GuiWindowsSubType::condCommand:
+        case GuiWindowsSubType::condCommand: //txCond
         {
-            menu->initCondCommDialog(st);
+            menu->initCondCommDialog(st, voice_service->getVirtualMode(), isWaitAnswer);
             break;
         }
         case GuiWindowsSubType::txGroupCondCmd:
         {
-            menu->initGroupCondCmd(st);
+            menu->initGroupCondCmd(st, isGucAnswerWaiting);
             break;
         }
         case GuiWindowsSubType::txPutOffVoice:
@@ -3118,21 +3161,11 @@ void Service::drawMenu()
                 status = voice_service->getAleState();
                 menu->vmProgress = voice_service->getAleVmProgress();
 
-
-            	if(menu->vmProgress==100)
-            	{
-//                    char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
-//                    menu->voiceAddr.append(ch);
-//                    menu->putOffVoiceStatus++;
-                    //voice_service->stopAle();
-//                    Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
-//                    if (storageFs > 0)
-//                        storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
-            	}
             }
 
-            menu->initTxPutOffVoiceDialogTest(status);
-            menu->initTxPutOffVoiceDialogTest(status);            bool isDraw = true;
+            if (menu->putOffVoiceStatus == 1) voice_service->resetDSPLogic();
+
+            bool isDraw = true;
             if (menu->putOffVoiceStatus == 2 && (status == 8 || status == 9))
                 isDraw = false;
 
@@ -3188,15 +3221,22 @@ void Service::drawMenu()
             }
             case 6:
             {
-                uint8_t counter = voice_service->getSmsCounter();
 
-                char pac[2];
-                sprintf(pac,"%i", counter);
+            	uint8_t counter = voice_service->getSmsCounter();
+            	bool isSynch = voice_service->getVirtualMode() && !counter;
 
-                fieldStr.clear();
-                fieldStr.append(pac);
-                fieldStr.append("/79");
+            	fieldStr.clear();
 
+            	if (isSynch)
+            		fieldStr.append(syncWaitingStr);
+            	else
+            	{
+					char pac[2];
+					sprintf(pac,"%i", counter);
+
+					fieldStr.append(pac);
+					fieldStr.append("/79");
+            	}
                 break;
             }
             default:
@@ -3209,7 +3249,8 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::recvCondCmd:
         {
-            menu->initRxCondCmdDialog();
+        	bool isSynch = voice_service->getVirtualMode() && !isStartCond;
+            menu->initRxCondCmdDialog(isSynch);
             break;
         }
         case GuiWindowsSubType::recvGroupCondCmd:
@@ -3253,16 +3294,40 @@ void Service::drawMenu()
                 menu->vmProgress = voice_service->getAleVmProgress();
             }
 
-        	if(menu->vmProgress==100)
-        	{
-//                char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
-//                menu->voiceAddr.append(ch);
-//                menu->putOffVoiceStatus++;
-                //voice_service->stopAle();
-//                Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
-//                if (storageFs > 0)
-//                    storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
-        	}
+            if (menu->vmProgress == 100)
+            {
+            	uint8_t rxAddr = voice_service->getAleRxAddress();
+            	if (rxAddr > 0)
+            	{
+            		char ch[3];
+            		sprintf(ch, "%d", rxAddr);
+            		ch[2] = '\0';
+            		menu->voiceAddr.append(ch);
+            		menu->putOffVoiceStatus++;
+            		voice_service->stopAle();
+            		Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
+            		if (storageFs > 0)
+            		{
+            			showMessage(waitingStr, flashProcessingStr, promptArea);
+            			storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
+            			//draw();
+            			menu->toVoiceMail = false;
+            		}
+            	}
+            	else
+            	{
+            		voice_service->stopAle();
+            		menu->putOffVoiceStatus = 1;
+            		menu->voiceAddr.clear();
+            		menu->channalNum.clear();
+            		menu->offset = 1;
+            		menu->focus = 3;
+            		guiTree.backvard();
+            		menu->inVoiceMail = false;
+            		menu->toVoiceMail = false;
+            	}
+            	menu->vmProgress == 0;
+            }
 
             menu->initRxPutOffVoiceDialogTest(status);
 
@@ -3274,7 +3339,7 @@ void Service::drawMenu()
             setCoordDate(navigator->getCoordDate());
 #endif
             if (menu->coord_log[0] == '0')
-            menu->initGpsCoordinateDialog( menu->coord_lat, &menu->coord_log[1]);
+            	menu->initGpsCoordinateDialog( menu->coord_lat, &menu->coord_log[1]);
             else
             	menu->initGpsCoordinateDialog( menu->coord_lat, menu->coord_log);
             break;
@@ -3445,7 +3510,10 @@ void Service::draw()
     {
         GUI_Painter::ClearViewPort();
         GUI_Painter::DrawRect(0,0,159,127,RDM_FILL);
-        GUI_Painter::DrawText(35,52,GUI_EL_TEMP_CommonTextAreaLT.font,(char*)true_SWF);
+
+        GUI_Painter::DrawText(35,15,GUI_EL_TEMP_CommonTextAreaLT.font,(char*)radioStationStr);
+        GUI_Painter::DrawText(45,30,GUI_EL_TEMP_CommonTextAreaLT.font,(char*)sazhenNameStr);
+        GUI_Painter::DrawText(35,65,GUI_EL_TEMP_CommonTextAreaLT.font,(char*)true_SWF);
     }
 }
 
@@ -3735,6 +3803,26 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
 {
     QM_UNUSED(state);
 
+    std::string str;
+    switch(state)
+    {
+		case Headset::Controller::SmartHSState_SMART_EMPTY_MESSAGE: str = "SmartHSState_SMART_EMPTY_MESSAGE"; break;
+		case Headset::Controller::SmartHSState_SMART_NOT_CONNECTED: str = "SmartHSState_SMART_NOT_CONNECTED"; break;
+		case Headset::Controller::SmartHSState_SMART_ERROR: str = "SmartHSState_SMART_ERROR"; break;
+		case Headset::Controller::SmartHSState_SMART_BAD_CHANNEL: str = "SmartHSState_SMART_BAD_CHANNEL"; break;
+		case Headset::Controller::SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL: str = "SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL"; break;
+		case Headset::Controller::SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE: str = "SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE"; break;
+		case Headset::Controller::SmartHSState_SMART_RECORD_DOWNLOADING: str = "SmartHSState_SMART_RECORD_DOWNLOADING"; break;
+		case Headset::Controller::SmartHSState_SMART_PLAYING: str = "SmartHSState_SMART_PLAYING"; break;
+		case Headset::Controller::SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL: str = "SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL"; break;
+		case Headset::Controller::SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE: str = "SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE"; break;
+		case Headset::Controller::SmartHSState_SMART_RECORDING: str = "SmartHSState_SMART_RECORDING"; break;
+		case Headset::Controller::SmartHSState_SMART_RECORD_UPLOADING: str = "SmartHSState_SMART_RECORD_UPLOADING"; break;
+		case Headset::Controller::SmartHSState_SMART_RECORD_TIMEOUT: str = "SmartHSState_SMART_RECORD_TIMEOUT"; break;
+		case Headset::Controller::SmartHSState_SMART_READY: str = "SmartHSState_SMART_READY"; break;
+    }
+    qmDebugMessage(QmDebug::Warning, "%s", str.c_str());
+
     CState currentState;
     guiTree.getLastElement(currentState);
 
@@ -3744,24 +3832,31 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
 
         bool isRecord = false;
         GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
-        if ((subType == txPutOffVoice) && (menu->putOffVoiceStatus == 2)){
-            if (state == Headset::Controller::SmartHSState::SmartHSState_SMART_RECORD_UPLOADING){
+        if ((subType == txPutOffVoice) && (menu->putOffVoiceStatus == 2))
+        {
+            if (state == Headset::Controller::SmartHSState::SmartHSState_SMART_RECORD_UPLOADING)
+            {
                 isUploaded = true;
             }
             else
+            {
                 if (isUploaded && state == Headset::Controller::SmartHSState::SmartHSState_SMART_READY)
                     isRecord = true;
+            }
         }
-        if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 2)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 5))){
-            if (isRecord){
+
+        if ( (subType == txPutOffVoice && (menu->putOffVoiceStatus == 2)) || (subType == rxPutOffVoice && (menu->putOffVoiceStatus == 5)))
+        {
+            if (isRecord)
+            {
                 Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
               //  if (storageFs > 0)
               //      storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
                 isUploaded = false;
                 drawMenu();
-            } else
+            }
+            else
                 drawMenu();
-
         }
     }
 }
@@ -3770,10 +3865,17 @@ void Service::TxCondCmdPackage(int value)
 {
     if (value == 30)
     {
-        guiTree.resetCurrentState();
-        menu->TxCondCmdPackage(0);
-        menu->txCondCmdStage = 0;
-        draw();
+    	menu->TxCondCmdPackage(0);
+    	if (setAsk)
+    	{
+    		isWaitAnswer = true;
+    	}
+    	else
+    	{
+			guiTree.resetCurrentState();
+			menu->txCondCmdStage = 0;
+    	}
+    	draw();
     }
     else
     {
@@ -4063,17 +4165,20 @@ void Service::uploadSheldure()
 
 void Service::msgGucTXQuit(int ans)
 {
-    if (ans != -1){
+    if (ans != -1)
+    {
     	char a[3]; a[2] = '\0';
     	sprintf(a,"%d",ans);
         msgBox( gucQuitTextOk, ans);
-        guiTree.resetCurrentState();
     }
     else
     {
         msgBox( "Guc", gucQuitTextFail);
-        guiTree.resetCurrentState();
     }
+    isGucAnswerWaiting = false;
+	menu->groupCondCommStage = 0;
+	menu->focus = 0;
+	guiTree.resetCurrentState();
 }
 
 void Service::sheldureParsing(uint8_t* sMass)
@@ -4308,7 +4413,11 @@ void Service::drawWaveInfo()
     }
 }
 
-
+void Service::onStartCondReceiving()
+{
+    isStartCond = true;
+	draw();
+}
 
 }/* namespace Ui */
 

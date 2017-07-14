@@ -59,10 +59,13 @@ public:
 		ChannelInvalid
 	};
 
+	void initResetState();
+
     sigc::signal<void, Status/*new_status*/> statusChanged;
     sigc::signal<void, uint8_t/*subdevice_code*/, uint8_t/*error_code*/> dspHardwareFailed;
     sigc::signal<void, AleState/*new_state*/> aleStateChanged;
     sigc::signal<void, uint8_t/*new_value*/> aleVmProgressUpdated;
+    sigc::signal<void> startCondReceiving;
 
 	ChannelStatus getCurrentChannelStatus();
 	int getCurrentChannelNumber();
@@ -82,7 +85,7 @@ public:
     const char* ReturnSwfStatus();
 
 
-
+    void resetDSPLogic();
 
     void setRnKey(int value);
 
@@ -132,7 +135,7 @@ public:
     sigc::signal<void, bool> stationModeIsCompleted;
 	sigc::signal<void> currentChannelChanged;
     sigc::signal<void> PswfRead;
-    sigc::signal<void,int,bool> firstPacket;
+    sigc::signal<void,int,uint8_t,bool> firstPacket;
 
     sigc::signal<void, float, float> waveInfoRecieved; //wave, power
 
@@ -185,6 +188,7 @@ public:
     void forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
 
     void setSwrTimerState(bool state);
+    void onStartCondReceiving();
 
 private:
     friend class Dispatcher;
@@ -197,7 +201,7 @@ private:
 	void setCurrentChannel(ChannelStatus status);
 	void updateChannel();
 
-    void fistPacketRecieve(int packet, bool rec);
+    void fistPacketRecieve(int packet, uint8_t address, bool rec);
     void responseGuc(int value);
     void smsMessage(int value);
     void onDspStarted(){dspStarted();}

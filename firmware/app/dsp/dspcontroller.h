@@ -195,7 +195,7 @@ public:
     sigc::signal<void, bool> stationModeIsCompleted; //bool gotovoice
     sigc::signal<void> started;
     sigc::signal<void> setRadioCompleted;
-    sigc::signal<void,int,bool> firstPacket;     // ������� ������ ����� � ��
+    sigc::signal<void,int,uint8_t,bool> firstPacket;     // ������� ������ ����� � ��
     sigc::signal<void> smsReceived;         // ������� ���
     sigc::signal<void,int> smsFailed;       // ������ ������ ���
     sigc::signal<void,int> smsPacketMessage;    // ����� ��������� �� �����
@@ -218,6 +218,8 @@ public:
 
     sigc::signal<void, int/*command_tx30*/> TxCondCmdPackageTransmit;   // �������� ��  ������
     sigc::signal<void, int, int, int /*hrs,min,sec*/> vm1PpsPulse;
+
+    sigc::signal<void> startCondReceiving;
 
     PackageManager *pack_manager;
     bool retranslation_active = false;
@@ -402,7 +404,7 @@ private:
 
     } ContentGuc;
 
-    void initResetState();
+
     void processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version);
     void processStartupTimeout();
     bool startRadioOff();
@@ -621,6 +623,7 @@ private:
 
     bool isGucWaitReceipt = false;
 public:
+    void initResetState();
     uint8_t getSmsCounter();
     bool getIsGucCoord();
     void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);

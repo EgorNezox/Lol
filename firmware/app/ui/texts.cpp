@@ -177,7 +177,7 @@ const char *rxSmsResultStatus[] = {
     "Ожидание вызова\0",
     "Получение ответа\0",
     "Прием данных\0",
-    "Ожидание квитанции\0"
+    " Ожидание\n квитанции\0"
 };
 
 const char* voiceRxStr[] = {"Нажмите Ввод\n для запуска\n приема\0", "От:\0", "Нажмите ввод\0"};
@@ -249,3 +249,10 @@ const char *rnKey = "Ключ радиосети\0";
 
 const char *waitingStr = "Ожидайте.\0";
 const char *flashProcessingStr = "Идет работа\n с памятью\0";
+
+const char *radioStationStr = "Радиостанция\0";
+const char *sazhenNameStr = "САЖЕНЬ-Н\0";
+
+const char *fromStr = "от\0";
+
+const char *syncWaitingStr = "Синхро...\0";

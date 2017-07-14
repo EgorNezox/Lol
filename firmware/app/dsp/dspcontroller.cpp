@@ -596,7 +596,7 @@ void DspController::LogicPswfRx()
 		waitAckTimer++;
 		if (waitAckTimer >= 65){
 			waitAckTimer = 0;
-			firstPacket(100, false); // no ack recieved
+			firstPacket(100, ContentPSWF.R_ADR, false); // no ack recieved
 			completedStationMode(true);
             //qmDebugMessage(QmDebug::Dump, "LogicPswfRx() completedStationMode");
 		}
@@ -864,24 +864,28 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     qmDebugMessage(QmDebug::Dump, "recPswf() pswf_in = %d, pswf_rec = %d, pswf_in_virt = %d ",pswf_in, pswf_rec, pswf_in_virt);
 
 
-	if (virtual_mode && indicator == 31){
+	if (virtual_mode && indicator == 31)
+	{
 		pswf_in_virt++;
 		uint8_t counter = 37;
 		if (virtual_mode)
 		   counter += 65;
-		if (pswf_in_virt > counter && !pswf_rec){
+		if (pswf_in_virt > counter && !pswf_rec)
+		{
 			startVirtualPpsModeRx();
 		}
 	}
 
-    if (code == private_lcode){ //lcode can be overflow (==0) TODO fix
-    	if (indicator == 30){
+    if (code == private_lcode)
+    { //lcode can be overflow (==0) TODO fix
+    	if (indicator == 30)
+    	{
 			firstTrueCommand = ContentPSWF.COM_N;
 			++pswf_rec;
 			if (pswf_rec == 2)
 			{
 				ContentPSWF.COM_N = data;
-				firstPacket(ContentPSWF.COM_N, true);
+				firstPacket(ContentPSWF.COM_N, ContentPSWF.R_ADR, true);
 				waitAckTimer = 0;
 			}
     	}
@@ -889,14 +893,18 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     if (pswf_in < 30)
     {
     	if (pswf_rec)
+    	{
     		pswf_in++;
+    		if (pswf_in == 1)
+    			startCondReceiving();
+    	}
     }
     else
     {
     	if (pswf_rec >= 1)
     	{
     		if (pswf_rec == 1){
-    			firstPacket(firstTrueCommand, false); // false - not reliable data
+    			firstPacket(firstTrueCommand, ContentPSWF.R_ADR, false); // false - not reliable data
     			waitAckTimer = 0;
     		}
 
@@ -1308,23 +1316,23 @@ void DspController::processCommandResponse(bool success, Module module, int code
 void DspController::syncPendingCommand()
 {
 	qmDebugMessage(QmDebug::Dump,"reload progress state");
-	pending_command->in_progress = false;
-	switch (pending_command->module) {
-	case RxRadiopath:
-	case TxRadiopath:
-		if (pending_command->sync_next)
-			syncNextRadioState();
-		processRadioState();
-		break;
-    case Audiopath:
-        radio_state = radiostateSync;
-        break;
-    case PSWFReceiver:
-    case PSWFTransmitter:
-    	break;
-    default:
-    	break;
-	}
+//	pending_command->in_progress = false;
+//	switch (pending_command->module) {
+//	case RxRadiopath:
+//	case TxRadiopath:
+//		if (pending_command->sync_next)
+//			syncNextRadioState();
+//		processRadioState();
+//		break;
+//    case Audiopath:
+//        radio_state = radiostateSync;
+//        break;
+//    case PSWFReceiver:
+//    case PSWFTransmitter:
+//    	break;
+//    default:
+//    	break;
+//	}
 }
 
 bool DspController::resyncPendingCommand()
@@ -2533,7 +2541,7 @@ uint8_t DspController::calc_ack_code(uint8_t ack)
 {
 	uint8_t ACK_CODE  = 0;
 
-	if (virtual_mode == true)
+	if (virtual_mode)
 		ACK_CODE = (ContentSms.R_ADR + ContentSms.S_ADR + ack + ContentSms.RN_KEY +
 				   d.day + t.hours + t.minutes + t.seconds) % 100;
 	else
@@ -3301,10 +3309,12 @@ void DspController::wakeUpTimer()
 
 void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_len)
 {
-	if (virtual_mode && SmsLogicRole == SmsRoleRx && !smsFind){
+	if (virtual_mode && SmsLogicRole == SmsRoleRx && !smsFind)
+	{
         qmDebugMessage(QmDebug::Dump, "LogicPswfModes() pswf_in_virt = %d ", pswf_in_virt);
 		pswf_in_virt++;
-		if (pswf_in_virt >= 90){
+		if (pswf_in_virt >= 90)
+		{
 			sms_counter = 0;
 			startVirtualPpsModeRx();
 		}
@@ -3349,8 +3359,8 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			correctTime(data[7]);
 		}
 
-        if (SmsLogicRole != SmsRoleIdle){
-
+        if (SmsLogicRole != SmsRoleIdle)
+        {
 			qmDebugMessage(QmDebug::Dump, "processReceivedFrame() data_len = %d", data_len);
 			if (sms_counter > 38 && sms_counter < 76)
 			{
