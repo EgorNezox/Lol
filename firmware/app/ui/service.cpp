@@ -551,6 +551,59 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
         }
+        else if (main_scr->channelEditing)
+        {
+        	if (key >= key0 && key <= key9) // 1 - 98
+        	{
+        		if (channelNumberSyms == 0)
+        		{
+        			channelNumberEditing += key - 6;
+        			if (key > key0 )
+        				channelNumberSyms = 1;
+        		}
+        		else if (channelNumberSyms == 1)
+        		{
+        			if (not (channelNumberEditing == 9 && key == key9) )
+        			{
+						channelNumberEditing *= 10;
+						channelNumberEditing += key - 6;
+						channelNumberSyms = 2;
+        			}
+        		}
+        	}
+        	if (key == keyEnter)
+        	{
+        		if (channelNumberEditing > 0 && channelNumberEditing < 99)
+        		{
+        			headset_controller->setChannel(channelNumberEditing);
+        			channelNumberEditing = 0;
+        			channelNumberSyms = 0;
+        		    main_scr->channelEditing = false;
+        			main_scr->mwFocus = -2;
+        			main_scr->setFocus(1-main_scr->mwFocus);
+        		}
+        	}
+        	if (key == keyBack)
+        	{
+        		if (channelNumberSyms == 2)
+        		{
+       				channelNumberEditing /= 10;
+        			channelNumberSyms = 1;
+        		}
+        		else if (channelNumberSyms == 1)
+        		{
+        			channelNumberEditing = 0;
+        			channelNumberSyms = 0;
+        		}
+        		else if (channelNumberSyms == 0)
+        		{
+        			channelNumberEditing = 0;
+        		    main_scr->channelEditing = false;
+        			main_scr->mwFocus = -2;
+        			main_scr->setFocus(1-main_scr->mwFocus);
+        		}
+        	}
+        }
         else
         {
             switch(key)
@@ -566,8 +619,8 @@ void Service::keyPressed(UI_Key key)
                 main_scr->setFocus(1-main_scr->mwFocus);
                 break;
             case keyUp:
-                if (main_scr->mwFocus < 1)
-                    main_scr->mwFocus++;
+                if (main_scr->mwFocus > -2)
+                    main_scr->mwFocus--;
                 main_scr->setFocus(1-main_scr->mwFocus);
                 break;
             case keyDown:
@@ -584,6 +637,7 @@ void Service::keyPressed(UI_Key key)
                 {
                     if (this->voice_service->getVoiceMode() == Multiradio::VoiceServiceInterface::VoiceModeManual)
                     main_scr->channelEditing = true;
+                    oldChannelNumber = voice_service->getCurrentChannelNumber();
                 }
                 if (main_scr->mwFocus >= 0)
                 {
@@ -3086,9 +3140,23 @@ void Service::drawMainWindow()
     if ( status == Multiradio::VoiceServiceInterface::StatusNotReady || status == Multiradio::VoiceServiceInterface::StatusIdle )
         valid_freq = false;
 
+    int ch_num;
+    Multiradio::voice_channel_t channelType;
+
+    if (main_scr->channelEditing && channelNumberSyms)
+    {
+    	ch_num = channelNumberEditing;
+    	channelType = headset_controller->getChannelType(channelNumberEditing);
+    }
+    else
+    {
+    	ch_num = voice_service->getCurrentChannelNumber();
+    	channelType = voice_service->getCurrentChannelType();
+    }
+
     main_scr->Draw(voice_service->getCurrentChannelStatus(),
-                   voice_service->getCurrentChannelNumber(),
-                   voice_service->getCurrentChannelType(),
+    		       ch_num,
+				   channelType,
                    valid_freq
                    );
 
@@ -3508,12 +3576,20 @@ void Service::draw()
     	showMessage("", schedulePromptText.c_str(), promptArea);
     if (isStartTestMsg)
     {
-        GUI_Painter::ClearViewPort();
-        GUI_Painter::DrawRect(0,0,159,127,RDM_FILL);
+    	uint8_t address = voice_service->getStationAddress();
+    	char add[3] = {0,0,0};
+    	sprintf(add, "%d", address);
+    	std::string str;
+    	str.append(sazhenNameStr);
+    	str.append(" # ");
+    	str.append(add);
 
-        GUI_Painter::DrawText(35,15,GUI_EL_TEMP_CommonTextAreaLT.font,(char*)radioStationStr);
-        GUI_Painter::DrawText(45,30,GUI_EL_TEMP_CommonTextAreaLT.font,(char*)sazhenNameStr);
-        GUI_Painter::DrawText(35,65,GUI_EL_TEMP_CommonTextAreaLT.font,(char*)true_SWF);
+        GUI_Painter::ClearViewPort();
+        GUI_Painter::DrawRect(0, 0, 159, 127, RDM_FILL);
+
+        GUI_Painter::DrawText(35, 15, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)radioStationStr);
+        GUI_Painter::DrawText(35, 30, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)str.c_str());
+        GUI_Painter::DrawText(35, 65, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)true_SWF);
     }
 }
 
@@ -3856,7 +3932,9 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
                 drawMenu();
             }
             else
+            {
                 drawMenu();
+            }
         }
     }
 }

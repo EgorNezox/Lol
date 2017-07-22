@@ -61,8 +61,11 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
 
   window->Draw();
 
-  //ch_num_label->transparent = false;
-
+  ch_num_label->transparent = true;
+  if (focus == 2)
+  {
+	  ch_num_label->transparent = false;
+  }
   ch_num_label->Draw();
 
   if (cur_ch_invalid)

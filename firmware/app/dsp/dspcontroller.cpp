@@ -53,18 +53,16 @@ struct DspCommand {
 
 static int value_sec[60] =
 {
-
-    0,        5,       10,       15 ,      20,       25,
-    1,        6,       11 ,      16,       21,       26,
+    0,        5,       10,       15,       20,       25,
+    1,        6,       11,       16,       21,       26,
     2,        7,       12,       17,       22,       27,
     3,        8,       13,       18,       23,       28,
     4,        9,       14,       19,       24,       29,
     0,        5,       10,       15,       20,       25,
-    1,        6,       11 ,      16 ,      21,       26,
+    1,        6,       11,       16,       21,       26,
     2,        7,       12,       17,       22,       27,
     3,        8,       13,       18,       23,       28,
-    4,        9,       14 ,      19,       24,       29
-
+    4,        9,       14,       19,       24,       29
 };
 
 static int frequence_bandwidth[34] =
@@ -1316,23 +1314,23 @@ void DspController::processCommandResponse(bool success, Module module, int code
 void DspController::syncPendingCommand()
 {
 	qmDebugMessage(QmDebug::Dump,"reload progress state");
-//	pending_command->in_progress = false;
-//	switch (pending_command->module) {
-//	case RxRadiopath:
-//	case TxRadiopath:
-//		if (pending_command->sync_next)
-//			syncNextRadioState();
-//		processRadioState();
-//		break;
-//    case Audiopath:
-//        radio_state = radiostateSync;
-//        break;
-//    case PSWFReceiver:
-//    case PSWFTransmitter:
-//    	break;
-//    default:
-//    	break;
-//	}
+	pending_command->in_progress = false;
+	switch (pending_command->module) {
+	case RxRadiopath:
+	case TxRadiopath:
+		if (pending_command->sync_next)
+			syncNextRadioState();
+		processRadioState();
+		break;
+    case Audiopath:
+        radio_state = radiostateSync;
+        break;
+    case PSWFReceiver:
+    case PSWFTransmitter:
+    	break;
+    default:
+    	break;
+	}
 }
 
 bool DspController::resyncPendingCommand()

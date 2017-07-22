@@ -140,7 +140,14 @@ public:
 	 * \param data сообщение для воспроизведения
 	 */
 	void setSmartMessageToPlay(Multiradio::voice_message_t data);
+	/*!
+	 * \brief Устанавливает канал на гарнитуре СКЗИ
+	 * \param channel номер канала
+	 */
+	void setChannel(uint8_t channel);
 
+	Multiradio::voice_channel_t getChannelType(int channel);
+	Multiradio::voice_channel_speed_t getChannelSpeed(int channel);
 
 	/*!
 	 * \brief Сигнал изменения статуса подключения гарнитуры
@@ -168,6 +175,7 @@ public:
 
 	sigc::signal<void/*new_state*/> BOOM;
 	void GarnitureStart();
+	void onInitModuleTimer();
 
 private:
 	/*!< Состояние подключения гарнитуры */
@@ -322,6 +330,7 @@ private:
 	int cmd_repeats_counter;
 
 	QmTimer* delay_timer;
+	QmTimer* initModuleTimer;
 
 	SmartStatusDescription smart_status_description;
 	const Multiradio::voice_channels_table_t* ch_table;

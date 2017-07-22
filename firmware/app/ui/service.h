@@ -168,6 +168,10 @@ private:
     GUI_Indicator       *indicator;
     GUI_Dialog_MsgBox   *msg_box = nullptr;
 
+    int oldChannelNumber = 2;
+    uint8_t channelNumberSyms = 0;
+    int channelNumberEditing = 0;
+
     int condCmdValue = 0 ;
     bool isDrawCondCmd = false;
     DataStorage::FS *storageFs = 0;
