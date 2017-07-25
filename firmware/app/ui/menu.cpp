@@ -156,7 +156,7 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
     }
     case 6:
     { //stage send
-    	if (isSynch)
+    	if (isSynch & !isWaitingAnswer)
     	{
     		str.append(syncWaitingStr);
     	}
@@ -1648,7 +1648,7 @@ void CGuiMenu::initRxSmsDialog(std::string str, uint8_t stage)
     ok_button.Draw();
 }
 
-void CGuiMenu::initRxCondCmdDialog(bool isSynch)        // Прием УК
+void CGuiMenu::initRxCondCmdDialog(bool isSynch, bool isStart)        // Прием УК
 {
     titleArea   = { 5, 5, 150, 20 };
 
@@ -1661,7 +1661,7 @@ void CGuiMenu::initRxCondCmdDialog(bool isSynch)        // Прием УК
     GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)callSubMenu[0], (GUI_Obj *)this);
 
     std::string str;
-    if (isSynch)
+    if (isSynch && !isStart && (recvStage > 0))
     	str = syncWaitingStr;
     else
     	str = (char*)receiveStatusStr[recvStage];

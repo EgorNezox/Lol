@@ -103,7 +103,7 @@ public:
     int condCmdModeSelect = 0;
     void setCondCommParam(CEndState, UI_Key);
     // rx cond cmd
-    void initRxCondCmdDialog(bool isSynch = false);
+    void initRxCondCmdDialog(bool isSynch = false, bool isStart = false);
     int rxCondCmdStatus = 1;
     bool useTicket = false;
 

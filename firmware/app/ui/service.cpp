@@ -947,6 +947,7 @@ void Service::keyPressed(UI_Key key)
                         fileMsg.push_back((uint8_t)sym[1]);
                         fileMsg.push_back((uint8_t)sym[2]);
 
+                        GUI_Painter::ClearViewPort();
                         showMessage(waitingStr, flashProcessingStr, promptArea);
                         storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_TX, &fileMsg);
                         draw();
@@ -1223,6 +1224,7 @@ void Service::keyPressed(UI_Key key)
 
                         if (storageFs > 0)
                         {
+                        	GUI_Painter::ClearViewPort();
                             showMessage(waitingStr, flashProcessingStr, promptArea);
                             storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_TX, &fileMsg );
                             draw();
@@ -1427,6 +1429,7 @@ void Service::keyPressed(UI_Key key)
                     Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
                     if (storageFs > 0)
                     {
+                    	GUI_Painter::ClearViewPort();
                         showMessage(waitingStr, flashProcessingStr, promptArea);
                         storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
                         menu->toVoiceMail = false;
@@ -1664,6 +1667,7 @@ void Service::keyPressed(UI_Key key)
                                     fileMsg.clear();
                                     fileMsg.resize(msg.size());
                                     memcpy(fileMsg.data(), &msg[0], msg.size());
+                                    GUI_Painter::ClearViewPort();
                                     showMessage(waitingStr, flashProcessingStr, promptArea);
                                     storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_TX, &fileMsg);
                                     draw();
@@ -3317,8 +3321,8 @@ void Service::drawMenu()
         }
         case GuiWindowsSubType::recvCondCmd:
         {
-        	bool isSynch = voice_service->getVirtualMode() && !isStartCond;
-            menu->initRxCondCmdDialog(isSynch);
+        	bool isSynch = voice_service->getVirtualMode();
+            menu->initRxCondCmdDialog(isSynch, isStartCond);
             break;
         }
         case GuiWindowsSubType::recvGroupCondCmd:
@@ -3750,15 +3754,21 @@ void Service::gucFrame(int value)
             fileMsg.resize(fullSize);
             memcpy(fileMsg.data(), &cmdv, fullSize);
 
+            GUI_Painter::ClearViewPort();
             showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_RX, &fileMsg);
             draw();
         }
+        gucAdd = (uint8_t)value;
         //guiTree.append(messangeWindow, sym, ch);
+        char add[4] = {0,0,0,0};
+        sprintf(add,"%d", gucAdd);
+        std::string str(titleGuc);
+        str.append(" ").append(fromStr).append("#").append(" ").append(add);
         if (isGucCoord)
-        	msgBox( titleGuc, vect[1], size, 0, (uint8_t*)&gucCoords );
+        	msgBox( str.c_str(), vect[1], size, 0, (uint8_t*)&gucCoords );
         else
-        	msgBox( titleGuc, vect[1], size, 0);
+        	msgBox( str.c_str(), vect[1], size, 0);
 
     }
     cntGucRx = 1;

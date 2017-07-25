@@ -213,14 +213,15 @@ void DspController::startServicing() {
 	initResetState();
 	reset_iopin->writeOutput(QmIopin::Level_Low);
 	QmThread::msleep(20);
-	reset_iopin->writeOutput(QmIopin::Level_High);
-	QmThread::msleep(8000);
+//	reset_iopin->writeOutput(QmIopin::Level_High);
+//	QmThread::msleep(8000);
 	transport->enable();
-	ParameterValue command;
-	command.radio_mode = RadioModeUSB;
-	sendCommandEasy(TxRadiopath, 2, command);
-	QmThread::msleep(4000);
-	dspReset();
+	reset_iopin->writeOutput(QmIopin::Level_High);
+//	ParameterValue command;
+//	command.radio_mode = RadioModeUSB;
+//	sendCommandEasy(TxRadiopath, 2, command);
+//	QmThread::msleep(4000);
+//	dspReset();
 
 	startup_timer->start(10000);
 }
@@ -2002,7 +2003,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             		}
                     guc_vector.push_back(guc);
                     //guc_timer->start();
-                    recievedGucResp(isGpsGuc);
+                    recievedGucResp(ContentGuc.R_ADR);
                     if (ContentGuc.S_ADR != 0)
                     {
                     	startGucTransmitting();

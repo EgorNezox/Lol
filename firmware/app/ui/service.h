@@ -250,6 +250,8 @@ private:
     bool isSmsMessageRec = false;
     bool failFlag;
 
+    uint8_t gucAdd = 0;
+
     uint8_t cmdSpaceCount = 0;
     uint8_t cmdDigitCount = 0;
     uint8_t cmdDigitCountLast = 0;
