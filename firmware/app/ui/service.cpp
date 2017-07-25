@@ -2948,6 +2948,7 @@ int Service::getLanguage()
 
 void Service::onSmsCounterChange(int param)
 {
+    qmDebugMessage(QmDebug::Warning, "______sms counter: %d ", param);
     if (cntSmsRx != 2)
     {
         menu->smsTxStage = 6;
@@ -2998,6 +2999,7 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
             fileMsg.push_back((uint8_t)sym[1]);
             fileMsg.push_back((uint8_t)sym[2]);
 
+            GUI_Painter::ClearViewPort();
             showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_RX, &fileMsg);
             draw();
@@ -3007,6 +3009,9 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
          condCmdValue = packet;
          isDrawCondCmd = true;
 
+		 char addressStr[4] = {0,0,0,0};
+		 sprintf(addressStr, "%d", address);
+
          if (isRec)
          {
 			 if (setAsk)
@@ -3015,8 +3020,6 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
 				 menu->txCondCmdStage = 0;
 				 isWaitAnswer = false;
 
-				 char addressStr[4] = {0,0,0,0};
-				 sprintf(addressStr, "%d", address);
 				 std::string str(cmdRec);
 				 str.append(" ").append(fromStr).append(" ").append(addressStr);
 				 msgBox( str.c_str(), (int)packet );
@@ -3024,12 +3027,16 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
 			 }
 			 else
 			 {
-				 msgBox( recPacket, (int)packet );
+				 std::string str(recPacket);
+				 str.append(" ").append(fromStr).append(" ").append(addressStr);
+				 msgBox( str.c_str(), (int)packet );
 			 }
          }
          else
          {
-        	 msgBox( notReiableRecPacket, (int)packet );
+			 std::string str(notReiableRecPacket);
+			 str.append(" ").append(fromStr).append(" ").append(addressStr);
+        	 msgBox(  str.c_str(), (int)packet );
          }
     }
      else
@@ -3380,6 +3387,7 @@ void Service::drawMenu()
             		Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
             		if (storageFs > 0)
             		{
+            			GUI_Painter::ClearViewPort();
             			showMessage(waitingStr, flashProcessingStr, promptArea);
             			storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
             			//draw();
@@ -3813,6 +3821,7 @@ void Service::smsMessage(int value)
         const char *text = (const char*)voice_service->getSmsContent();
         std::string text_str = text;
         memcpy(fileMsg.data(), &text[0], value);
+        GUI_Painter::ClearViewPort();
         showMessage(waitingStr, flashProcessingStr, promptArea);
         storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_RX, &fileMsg);
         draw();

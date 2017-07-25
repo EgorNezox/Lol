@@ -595,7 +595,7 @@ void DspController::LogicPswfRx()
 		waitAckTimer++;
 		if (waitAckTimer >= 65){
 			waitAckTimer = 0;
-			firstPacket(100, ContentPSWF.R_ADR, false); // no ack recieved
+			firstPacket(100, ContentPSWF.S_ADR - 32, false); // no ack recieved
 			completedStationMode(true);
             //qmDebugMessage(QmDebug::Dump, "LogicPswfRx() completedStationMode");
 		}
@@ -903,7 +903,7 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     	if (pswf_rec >= 1)
     	{
     		if (pswf_rec == 1){
-    			firstPacket(firstTrueCommand, ContentPSWF.R_ADR, false); // false - not reliable data
+    			firstPacket(firstTrueCommand, ContentPSWF.R_ADR - 32, false); // false - not reliable data
     			waitAckTimer = 0;
     		}
 
