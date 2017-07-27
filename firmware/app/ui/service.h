@@ -147,6 +147,8 @@ public:
     void playSchedulePromptSignal();
     void onCompletedStationMode(bool isGoToVoice = true);
     void onStartCondReceiving();
+    void onVirtualCounterChanged(uint8_t counter);
+    void onTransmitAsk(bool on);
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
@@ -179,6 +181,8 @@ private:
     MoonsGeometry promptArea = {15,62,140,124};
 
     QmTimer *systemTimeTimer;
+
+    bool isTurnGuc = false;
 
     CGuiMenu *menu;
     CGuiTree  guiTree;

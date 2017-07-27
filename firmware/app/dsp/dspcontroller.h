@@ -220,6 +220,8 @@ public:
     sigc::signal<void, int, int, int /*hrs,min,sec*/> vm1PpsPulse;
 
     sigc::signal<void> startCondReceiving;
+    sigc::signal<void, uint8_t> virtualCounterChanged;
+    sigc::signal<void, bool> transmitAsk;
 
     PackageManager *pack_manager;
     bool retranslation_active = false;
@@ -261,6 +263,7 @@ public:
 
     uint8_t* getVirtualTime();
     void completedStationMode(bool isGoToVoice){stationModeIsCompleted(isGoToVoice);}
+    QmTimer *guc_rx_quit_timer = 0;
 private:
     friend struct DspCommand;
 
@@ -490,7 +493,7 @@ private:
     QmTimer *quit_timer;
     QmTimer *sync_pulse_delay_timer; //delay is needed for Navigator NMEA processing after sync pulse
     QmTimer *guc_timer;
-    QmTimer *guc_rx_quit_timer;
+
 
 
     enum {
@@ -588,6 +591,8 @@ private:
 
     int CondCmdRxIndexer = 0;
 
+    uint8_t smsSmallCounter = 0;
+
     //----------- RTC LOGIC
     QmRtc *rtc;
     QmRtc::Time t;
@@ -622,6 +627,8 @@ private:
     void vm1Pps();
 
     bool isGucWaitReceipt = false;
+
+    uint8_t virtGuiCounter = 0;
 public:
     void initResetState();
     uint8_t getSmsCounter();

@@ -66,6 +66,8 @@ public:
     sigc::signal<void, AleState/*new_state*/> aleStateChanged;
     sigc::signal<void, uint8_t/*new_value*/> aleVmProgressUpdated;
     sigc::signal<void> startCondReceiving;
+    sigc::signal<void, uint8_t> virtualCounterChanged;
+    sigc::signal<void, bool> transmitAsk;
 
 	ChannelStatus getCurrentChannelStatus();
 	int getCurrentChannelNumber();
@@ -117,6 +119,8 @@ public:
 
     void setVirtualMode(bool param);
     bool getVirtualMode();
+
+    void stopGucQuit();
 
 
     // ----- GUC -------
@@ -189,6 +193,8 @@ public:
 
     void setSwrTimerState(bool state);
     void onStartCondReceiving();
+    void onVirtualCounterChanged(uint8_t counter);
+    void onTransmitAsk(bool on);
 
 private:
     friend class Dispatcher;

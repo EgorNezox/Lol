@@ -158,7 +158,9 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
     { //stage send
     	if (isSynch & !isWaitingAnswer)
     	{
-    		str.append(syncWaitingStr);
+    		char syn[4] = {0,0,0,0};
+    		sprintf(syn, "%d", virtCounter);
+    		str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 12");
     	}
     	else
     	{
@@ -998,7 +1000,7 @@ void CGuiMenu::RxVoiceDialogStatus1(int status, bool isClear )
      GUI_Painter::DrawText(5,28,voiceFont,(char*)voiceRxStr[0],cst);
 }
 
-void CGuiMenu::RxSmsStatusPost(int value, bool clear,bool clearAll)
+void CGuiMenu::RxSmsStatusPost(int value, bool clear, bool clearAll)
 {
    static std::string strTodo;
    ColorSchemeType cst;
@@ -1566,7 +1568,7 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 {
     GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this);
     MoonsGeometry title_geom  = {  5,   5, 150,  20 };
-    MoonsGeometry field_geom  = {  7,  40, 147,  60 };
+    MoonsGeometry field_geom  = {  7,  40, 150,  100 };
     MoonsGeometry length_geom = { 110,  5,  160,  20};
 
     LabelParams param[3] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelChannel};
@@ -1627,7 +1629,7 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 
 void CGuiMenu::initRxSmsDialog(std::string str, uint8_t stage)
 {
-    MoonsGeometry button_geom = { 10, 40, 150, 80 };
+    MoonsGeometry button_geom = { 10, 40, 150, 100 };
     LabelParams param = GUI_EL_TEMP_LabelMode;
     param.element.align = {alignHCenter, alignVCenter};
     param.transparent = (bool)recvStage;
@@ -1655,16 +1657,23 @@ void CGuiMenu::initRxCondCmdDialog(bool isSynch, bool isStart)        // При�
     LabelParams param = GUI_EL_TEMP_LabelMode;
     param.element.align = {alignHCenter, alignVCenter};
     param.transparent = false;
-    MoonsGeometry buttonArea  = { 5, 30, 150, 80 };
+    MoonsGeometry buttonArea  = { 5, 30, 150, 90 };
 
     GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)this);
     GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)callSubMenu[0], (GUI_Obj *)this);
 
     std::string str;
     if (isSynch && !isStart && (recvStage > 0))
-    	str = syncWaitingStr;
+    {
+		char syn[4] = {0,0,0,0};
+		sprintf(syn, "%d", virtCounter);
+		str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 12");
+    }
     else
+    {
     	str = (char*)receiveStatusStr[recvStage];
+    }
+
     GUI_EL_Label button ( &param, &buttonArea, (char*)str.c_str(), (GUI_Obj *)this);
 
     window.Draw();

@@ -202,6 +202,8 @@ void DspController::dspReset()
 	reset_iopin->writeOutput(QmIopin::Level_Low);
 	QmThread::msleep(20);
 	reset_iopin->writeOutput(QmIopin::Level_High);
+	if (guc_rx_quit_timer)
+		guc_rx_quit_timer->stop();
 }
 
 bool DspController::isReady() {
@@ -591,9 +593,11 @@ void DspController::LogicPswfRx()
     setPswfRxFreq();
 
      qmDebugMessage(QmDebug::Dump, "LogicPswfRx() waitAckTimer = %d", waitAckTimer);
-	if (waitAckTimer){
+	if (waitAckTimer)
+	{
 		waitAckTimer++;
-		if (waitAckTimer >= 65){
+		if (waitAckTimer >= 65)
+		{
 			waitAckTimer = 0;
 			firstPacket(100, ContentPSWF.S_ADR - 32, false); // no ack recieved
 			completedStationMode(true);
@@ -612,6 +616,7 @@ void DspController::LogicPswfRx()
 			command_tx30 = 1;
 			setPswfTx();
 			sendPswf();
+			transmitAsk(true);
 		}
 		else
 		{
@@ -654,9 +659,17 @@ void DspController::RxSmsWork()
     qmDebugMessage(QmDebug::Dump, "RxSmsWork()");
 	if (radio_state == radiostateSync) return;
 
+	if (sms_counter < 20)
+	{
+		 qmDebugMessage(QmDebug::Dump, "_____RxSmsWork() smsSmallCounter = %d", smsSmallCounter);
+	     if (syncro_recieve.size() % 2 == 0 )
+		   smsCounterChanged(smsSmallCounter);
+	}
+
 	if (smsFind)
 	{
 		++sms_counter;
+
 
 		if (sms_counter ==  20)
 		{
@@ -696,6 +709,7 @@ void DspController::RxSmsWork()
         	}
 
 			sms_counter = 0;
+			smsSmallCounter = 0;
 			setRx();
 			smsFind = false;
 			// TODO: recieved
@@ -807,6 +821,7 @@ void DspController::changeSmsFrequency()
         RxSmsWork();
 	}
 
+	 qmDebugMessage(QmDebug::Dump, "changeSmsFrequency() sms_counter = %d", sms_counter);
     static uint8_t tempCounter = sms_counter;
     if (tempCounter != sms_counter && sms_counter % 2 == 0 )
       smsCounterChanged(sms_counter);
@@ -814,6 +829,7 @@ void DspController::changeSmsFrequency()
 
 void DspController::resetSmsState()
 {
+	smsSmallCounter = 0;
 	sms_counter = 0;
 	radio_state = radiostateSync;
 	smsFind  = false;
@@ -884,7 +900,7 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
 			if (pswf_rec == 2)
 			{
 				ContentPSWF.COM_N = data;
-				firstPacket(ContentPSWF.COM_N, ContentPSWF.R_ADR, true);
+				firstPacket(ContentPSWF.COM_N, ContentPSWF.S_ADR , true);
 				waitAckTimer = 0;
 			}
     	}
@@ -902,8 +918,9 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     {
     	if (pswf_rec >= 1)
     	{
-    		if (pswf_rec == 1){
-    			firstPacket(firstTrueCommand, ContentPSWF.R_ADR - 32, false); // false - not reliable data
+    		if (pswf_rec == 1)
+    		{
+    			firstPacket(firstTrueCommand, ContentPSWF.S_ADR - 32, false); // false - not reliable data
     			waitAckTimer = 0;
     		}
 
@@ -1045,6 +1062,8 @@ void DspController::initResetState()
 	current_radio_mode = RadioModeOff;
     current_radio_frequency = 0;
 	pending_command->in_progress = false;
+	if (guc_rx_quit_timer)
+	guc_rx_quit_timer->stop();
 }
 
 void DspController::setAdr()
@@ -2114,6 +2133,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 
     				if (IsStart(t.seconds))
     				{
+    					virtGuiCounter++;
     					freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
     					qmDebugMessage(QmDebug::Dump, "0x65 frame %d %d",t.minutes,t.seconds);
     					RtcTxCounter = 1;
@@ -2128,6 +2148,9 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     							changeSmsFrequency();
     					}
     					qmDebugMessage(QmDebug::Dump, "0x65 frame %d %d",t.minutes,t.seconds);
+    					virtualCounterChanged(virtGuiCounter);
+    					if (virtGuiCounter == 12)
+    						virtGuiCounter = 0;
     				}
 
     				if (RtcTxCounter == 5)
@@ -2162,7 +2185,13 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     			else
     			{
     				if (IsStart(t.seconds))
+    				{
+    					virtGuiCounter++;
+    					virtualCounterChanged(virtGuiCounter);
+    					if (virtGuiCounter == 12)
+    						virtGuiCounter = 0;
     					++count_VrtualTimer;
+    				}
     			}
     		}
     	}
@@ -2648,6 +2677,7 @@ void DspController::startSMSRecieving(SmsStage stage)
 
     radio_state = radiostateSms;
     sms_counter  = 0;
+    smsSmallCounter = 0;
 
     syncro_recieve.clear();
     snr.clear();
@@ -2725,6 +2755,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     radio_state = radiostateSms;
 
     sms_counter  = 0;
+    smsSmallCounter = 0;
 
     if (virtual_mode)
     	startVirtualPpsModeTx();
@@ -3174,7 +3205,9 @@ void DspController::goToVoice(){
 	sendCommandEasy(RxRadiopath,2,comandValue);
 	comandValue.radio_mode = RadioModeOff;
 	sendCommandEasy(TxRadiopath,2,comandValue);
-
+	virtGuiCounter = 0;
+	if (guc_rx_quit_timer)
+	guc_rx_quit_timer->stop();
 
 }
 
@@ -3207,6 +3240,7 @@ void DspController::startVirtualPpsModeTx()
 	RtcTxRole = true;
 	RtcRxRole = false;
 	RtcTxCounter = 0;
+	virtGuiCounter = 0;
 	//radio_state = radiostatePswf;
 
 	count_VrtualTimer = startVirtTxPhaseIndex;
@@ -3234,6 +3268,7 @@ void DspController::startVirtualPpsModeRx()
 	pswf_in_virt = 0;
 	count_VrtualTimer = NUMS;
 
+	virtGuiCounter = 0;
 }
 
 void DspController::sendSynchro(uint32_t freq, uint8_t cnt)
@@ -3315,6 +3350,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 		if (pswf_in_virt >= 90)
 		{
 			sms_counter = 0;
+			smsSmallCounter = 0;
 			startVirtualPpsModeRx();
 		}
 	}
@@ -3356,6 +3392,10 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			antiSync = true;
 			qmDebugMessage(QmDebug::Dump, "Sync anti turn on");
 			correctTime(data[7]);
+			virtGuiCounter = data[7];
+			virtualCounterChanged(virtGuiCounter);
+			if (virtGuiCounter == 12)
+				virtGuiCounter = 0;
 		}
 
         if (SmsLogicRole != SmsRoleIdle)
@@ -3384,6 +3424,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 
 				syncro_recieve.erase(syncro_recieve.begin());
 				syncro_recieve.push_back(data[9]); // CYC_N
+				smsSmallCounter++;
 				qmDebugMessage(QmDebug::Dump, "LogicPswfModes() (0;19) WAVE_ZONE = %d", data[9]);
 
 				qmDebugMessage(QmDebug::Dump, "recieve frame() count = %d", syncro_recieve.size());
@@ -3443,6 +3484,7 @@ void DspController::setVirtualMode(bool param)
 		ParameterValue comandValue;  //0x60 2 5 1
 		comandValue.param = 0;
 		sendCommandEasy(PSWFReceiver,5,comandValue);
+		virtGuiCounter = 0;
 	}
 }
 

@@ -47,6 +47,10 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 
     dispatcher->dsp_controller->startCondReceiving.connect(sigc::mem_fun(this,&VoiceServiceInterface::onStartCondReceiving));
 
+    dispatcher->dsp_controller->virtualCounterChanged.connect(sigc::mem_fun(this,&VoiceServiceInterface::onVirtualCounterChanged));
+
+    dispatcher->dsp_controller->transmitAsk.connect(sigc::mem_fun(this,&VoiceServiceInterface::onTransmitAsk));
+
     current_status = StatusNotReady;
     current_mode = VoiceModeManual;
 
@@ -622,6 +626,22 @@ void VoiceServiceInterface::setSwrTimerState(bool state)
 void VoiceServiceInterface::onStartCondReceiving()
 {
 	startCondReceiving();
+}
+
+void VoiceServiceInterface::onVirtualCounterChanged(uint8_t counter)
+{
+	virtualCounterChanged(counter);
+}
+
+void VoiceServiceInterface::onTransmitAsk(bool on)
+{
+	transmitAsk(on);
+}
+
+void VoiceServiceInterface::stopGucQuit()
+{
+	if (dispatcher->dsp_controller->guc_rx_quit_timer != 0)
+		dispatcher->dsp_controller->guc_rx_quit_timer->stop();
 }
 
 } /* namespace Multiradio */

@@ -183,4 +183,6 @@ extern const char *fromStr;
 
 extern const char *syncWaitingStr;
 
+extern const char *txQwit;
+
 #endif /* TEXTS_H_ */

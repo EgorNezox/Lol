@@ -197,6 +197,8 @@ public:
     uint16_t textAreaScrollIndex;
     uint16_t filesScrollIndex;
 
+    uint8_t virtCounter = 0;
+    bool isTransmitAsk = false;
     //
     bool useMode = false;
     bool ch_emiss_type = false;

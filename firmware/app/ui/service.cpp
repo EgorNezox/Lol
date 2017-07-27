@@ -126,6 +126,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->settingAleFreq.connect(sigc::mem_fun(this,&Service::onSettingAleFreq));
 
     voice_service->startCondReceiving.connect(sigc::mem_fun(this,&Service::onStartCondReceiving));
+    voice_service->virtualCounterChanged.connect(sigc::mem_fun(this,&Service::onVirtualCounterChanged));
+
+    voice_service->transmitAsk.connect(sigc::mem_fun(this,&Service::onTransmitAsk));
 
     valueRxSms = 0;
 
@@ -773,8 +776,21 @@ void Service::keyPressed(UI_Key key)
             {
             case 0:
             {
-                if (key == keyLeft) { if (menu->condCmdModeSelect > 0) menu->condCmdModeSelect--; }
-                if (key == keyRight){ if (menu->condCmdModeSelect < 2) menu->condCmdModeSelect++; }
+                if (key == keyLeft)
+                {
+                	if (menu->condCmdModeSelect > 0)
+                		menu->condCmdModeSelect--;
+                	else
+                	{
+                        guiTree.backvard();
+                        onCompletedStationMode();
+                	}
+                }
+                if (key == keyRight)
+                {
+                	if (menu->condCmdModeSelect < 2)
+                		menu->condCmdModeSelect++;
+                }
                 break;
             }
             case 1:
@@ -918,7 +934,13 @@ void Service::keyPressed(UI_Key key)
                         case 3: (*iter)++; (*iter)++; if ((*iter)->inputStr.size() != 0) menu->txCondCmdStage++; break;
                         case 4: if ((*iter)->inputStr.size() != 0) menu->txCondCmdStage++; break;
                         case 5: menu->txCondCmdStage++; break;
-                        case 6: menu->txCondCmdStage++; break;
+                        case 6:
+                        {
+                        	menu->txCondCmdStage = 0;
+                            guiTree.backvard();
+                            onCompletedStationMode();
+                        	break;
+                        }
                     }
                 }
 
@@ -952,6 +974,8 @@ void Service::keyPressed(UI_Key key)
                         storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_TX, &fileMsg);
                         draw();
                     }
+
+                    menu->virtCounter = 0;
 
                     if (menu->condCmdModeSelect == 0)
                         voice_service->TurnPSWFMode(0, param[0], 0,0); // групповой вызов
@@ -1066,7 +1090,8 @@ void Service::keyPressed(UI_Key key)
                         if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
                         	setFreq();
                         }
-                       // onCompletedStationMode();
+                        isTurnGuc = false;
+                        onCompletedStationMode(true);
                     }
 
                     if ( key == keyEnter )
@@ -1232,6 +1257,7 @@ void Service::keyPressed(UI_Key key)
 
                         voice_service->saveFreq(freqs);
                         voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
+                        isTurnGuc = true;
 
 #else
                         for (auto &k: estate.listItem)
@@ -1269,7 +1295,8 @@ void Service::keyPressed(UI_Key key)
                 	{
                 		menu->groupCondCommStage = 0;
                 		guiTree.resetCurrentState();
-                       // onCompletedStationMode(false);
+                		isTurnGuc = false;
+                        onCompletedStationMode(true);
                 	}
                 	break;
                 }
@@ -1495,6 +1522,7 @@ void Service::keyPressed(UI_Key key)
                     menu->offset = 0;
                     menu->focus = 1;
                     onCompletedStationMode();
+					menu->virtCounter = 0;
                     break;
                 }
                 case keyLeft:
@@ -1636,6 +1664,7 @@ void Service::keyPressed(UI_Key key)
                         menu->smsStage = 0;
                         menu->smsTxStage = 1;
                         guiTree.resetCurrentState();
+    					menu->virtCounter = 0;
                     }
                     else if (menu->smsStage == 0x0F){   /*menu->smsStage = 0;*/  }
                     else
@@ -1670,12 +1699,14 @@ void Service::keyPressed(UI_Key key)
                                     GUI_Painter::ClearViewPort();
                                     showMessage(waitingStr, flashProcessingStr, promptArea);
                                     storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_TX, &fileMsg);
+                                    menu->virtCounter = 0;
                                     draw();
                                 }
 
                                 voice_service->defaultSMSTrans();
                                 failFlag = false;
 
+            					menu->virtCounter = 0;
                                 if (param[2] > 0)
                                     voice_service->TurnSMSMode(param[2], (char*)msg.c_str(),atoi(dstAddr.c_str())); //retr,msg,radr
                                 else
@@ -1703,6 +1734,7 @@ void Service::keyPressed(UI_Key key)
                 menu->smsTxStage = 1;
                 guiTree.resetCurrentState();
                 onCompletedStationMode();
+				menu->virtCounter = 0;
             }
             }
             default:
@@ -1739,9 +1771,10 @@ void Service::keyPressed(UI_Key key)
                 if (menu->recvStage == 0)
                 {
                 	isStartCond = false;
-                	menu->recvStage = 0;
-                	guiTree.backvard();
+                    guiTree.resetCurrentState();
+                	//guiTree.backvard();
                 	onCompletedStationMode();
+					menu->virtCounter = 0;
                 }
             }
             if ( key == keyEnter)
@@ -1755,14 +1788,17 @@ void Service::keyPressed(UI_Key key)
                     if (menu->recvStage == 1)
                     {
                         failFlag = false;
+    					menu->virtCounter = 0;
                         voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
                     }
                     if (menu->recvStage == 2)
                     {
                     	menu->recvStage = 0;
+                    	//guiTree.backvard();
                     	guiTree.resetCurrentState();
                     	onCompletedStationMode();
                     	isStartCond = false;
+    					menu->virtCounter = 0;
                     }
 #endif
                 }
@@ -1784,6 +1820,7 @@ void Service::keyPressed(UI_Key key)
 					menu->smsStage = 0;
 					menu->smsTxStage = 1;
 					onCompletedStationMode();
+					menu->virtCounter = 0;
 					break;
         		}
         	}
@@ -1794,6 +1831,7 @@ void Service::keyPressed(UI_Key key)
         	if ( key == keyBack || key == keyEnter){
         	  if (cntSmsRx == 1)
         	  {
+        		menu->virtCounter = 0;
                 menu->initRxSmsDialog(startStr, cntSmsRx);
         		isSmsMessageRec = false;
         	  }
@@ -1805,7 +1843,15 @@ void Service::keyPressed(UI_Key key)
         		if (valueRxSms == 0)
         		{
         			if ( voice_service->getVirtualMode() )
-        				menu->initRxSmsDialog(syncWaitingStr);
+        			{
+        				menu->virtCounter = 0;
+        				std::string str;
+        	    		char syn[4] = {0,0,0,0};
+        	    		sprintf(syn, "%d", menu->virtCounter);
+        	    		str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 12");
+                		menu->virtCounter = 0;
+        				menu->initRxSmsDialog(str.c_str());
+        			}
         			else
         				menu->initRxSmsDialog(receiveStatusStr[1]);
         		}
@@ -1824,6 +1870,7 @@ void Service::keyPressed(UI_Key key)
                   cntSmsRx = -1;
                   menu->smsTxStage = 1;
                   onCompletedStationMode();
+                  menu->virtCounter = 0;
         	  }
         	}
 
@@ -3056,7 +3103,7 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
         msgBox( rxCondErrorStr[1] );
     }
     menu->recvStage = 0;
-
+    isStartCond = false;
      //setFreq();
 }
 
@@ -3307,7 +3354,11 @@ void Service::drawMenu()
             	fieldStr.clear();
 
             	if (isSynch)
-            		fieldStr.append(syncWaitingStr);
+            	{
+            		char syn[4] = {0,0,0,0};
+            		sprintf(syn, "%d", menu->virtCounter);
+            		fieldStr.append("\t").append(syncWaitingStr).append("\n ").append(syn).append(" / 12");
+            	}
             	else
             	{
 					char pac[2];
@@ -3350,12 +3401,17 @@ void Service::drawMenu()
         	}
             if (cntSmsRx == 2)
             {
-                if (valueRxSms > 0 && valueRxSms < 78)
+                if (valueRxSms > 0 && valueRxSms < 81)
                 {
-                	if (valueRxSms == 20)
                 		menu->RxSmsStatusPost(valueRxSms,1,true);
-                	else
-                		menu->RxSmsStatusPost(valueRxSms,1);
+                }
+                else if ( voice_service->getVirtualMode() && menu->smsTxStage != 6)
+                {
+       				std::string str;
+       				char syn[4] = {0,0,0,0};
+       				sprintf(syn, "%d", menu->virtCounter);
+       				str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 12");
+       				menu->initRxSmsDialog(str.c_str());
                 }
             }
             break;
@@ -4395,6 +4451,8 @@ void Service::onCompletedStationMode(bool isGoToVoice)
 	if (isGoToVoice)
 		voice_service->goToVoice();
 
+	voice_service->stopGucQuit();
+
 	Headset::Controller::Status st = pGetHeadsetController()->getStatus();
 
     if (st ==  Headset::Controller::Status::StatusSmartOk || st == Headset::Controller::Status::StatusAnalog)
@@ -4513,6 +4571,19 @@ void Service::drawWaveInfo()
 void Service::onStartCondReceiving()
 {
     isStartCond = true;
+	draw();
+}
+
+void Service::onVirtualCounterChanged(uint8_t counter)
+{
+	menu->virtCounter = counter + 1;
+    qmDebugMessage(QmDebug::Warning, "_____virtual counetr = %d ", menu->virtCounter);
+	draw();
+}
+
+void Service::onTransmitAsk(bool on)
+{
+	menu->isTransmitAsk = on;
 	draw();
 }
 
