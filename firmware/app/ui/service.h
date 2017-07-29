@@ -114,7 +114,7 @@ public:
     void setFreq(int isFreq);
     void parsingGucCommand(uint8_t *str);
     void setCoordDate(Navigation::Coord_Date);
-    void gucFrame(int value);
+    void gucFrame(int value, bool isTxAsk);
     void showAtuMalfunction();
     void showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
     void errorGucCrc();
@@ -148,6 +148,7 @@ public:
     void onCompletedStationMode(bool isGoToVoice = true);
     void onStartCondReceiving();
     void onVirtualCounterChanged(uint8_t counter);
+    void onQwitCounterChanged(uint8_t counter, uint8_t all);
     void onTransmitAsk(bool on);
 private:
     void msgBox(const char*);
@@ -183,6 +184,9 @@ private:
     QmTimer *systemTimeTimer;
 
     bool isTurnGuc = false;
+
+    bool isCondModeQwitTx = false;
+    bool isGucModeQwitTx = false;
 
     CGuiMenu *menu;
     CGuiTree  guiTree;

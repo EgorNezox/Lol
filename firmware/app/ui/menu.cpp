@@ -88,6 +88,11 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
     std::string str, labelStr;
     auto iter = state.listItem.begin();
 
+    char count[5] = {0,0,0,0,0};
+    sprintf(count, "%d", qwitCounter);
+    std::string counterStr(" ");
+    counterStr.append(count);
+
     //[0] - CMD, [1] -retrans , [2] - R_ADDR
     switch (txCondCmdStage)
     {
@@ -113,39 +118,18 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
 
         break;
     }
-    case 2:
-    { // ввод адреса ретранслятора
-        (*iter)++;
+    case 4: // ввод условной команды                   // num 2
+    case 3: (*iter)++; // ввод адреса ретранслятора    // num 0
+    case 2: (*iter)++;// ввод адреса получателя        // num 1
+    {
         if ((*iter)->inputStr.size() == 0)
             str.append("--");
         else if ((*iter)->inputStr.size() == 1)
         { str.append("-"); }
 
         str.append((*iter)->inputStr);
-        labelStr.append(condCommStr[1]);
-        break;
-    }
-    case 3:
-    { // ввод адреса получателя
-        (*iter)++;(*iter)++;
-        if ((*iter)->inputStr.size() == 0)
-            str.append("--");
-        else if ((*iter)->inputStr.size() == 1)
-        { str.append("-"); }
-
-        str.append((*iter)->inputStr);
-        labelStr.append(condCommStr[0]);
-        break;
-    }
-    case 4:
-    { // ввод условной команды
-        if ((*iter)->inputStr.size() == 0)
-            str.append("--");
-        else if ((*iter)->inputStr.size() == 1)
-        { str.append("-"); }
-
-        str.append((*iter)->inputStr);
-        labelStr.append(condCommStr[2]);
+        uint8_t num = txCondCmdStage == 2 ? 1 : txCondCmdStage == 3 ? 0 : 2;
+        labelStr.append(condCommStr[num]);
         break;
     }
     case 5:
@@ -160,7 +144,7 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
     	{
     		char syn[4] = {0,0,0,0};
     		sprintf(syn, "%d", virtCounter);
-    		str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 12");
+    	    str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 120");
     	}
     	else
     	{
@@ -180,22 +164,26 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
 
     LabelParams params;
     if (txCondCmdStage == 4 || txCondCmdStage == 3 || txCondCmdStage == 2)
-    params = GUI_EL_TEMP_LabelChannel;
+    	params = GUI_EL_TEMP_LabelChannel;
     else
-    params = GUI_EL_TEMP_LabelMode;
+    	params = GUI_EL_TEMP_LabelMode;
     params.element.align = {alignHCenter, alignVCenter};
     params.transparent = true;
 
     MoonsGeometry localLabelArea = { 7,  5, 150,  39 };
     MoonsGeometry localFieldArea = { 7, 40, 150, 100 };
+    MoonsGeometry local1FieldArea = { 7, 90, 150, 120 };
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                               (GUI_Obj *)this);
     GUI_EL_Label  label (&GUI_EL_TEMP_LabelTitle,    &localLabelArea,  (char*)labelStr.c_str(), (GUI_Obj *)this);
     GUI_EL_Label  field (&params,                    &localFieldArea,  (char*)str.c_str(),      (GUI_Obj *)this);
+    GUI_EL_Label  field1 (&params,                   &local1FieldArea,  (char*)counterStr.c_str(),      (GUI_Obj *)this);
 
     window.Draw();
     label.Draw();
     field.Draw();
+    if (isWaitingAnswer)
+    	field1.Draw();
 }
 
 void CGuiMenu::initTwoStateDialog()
@@ -610,129 +598,6 @@ void CGuiMenu::initSetDateOrTimeDialog(std::string text)
     volume.Draw();
 }
 
-void CGuiMenu::initTxPutOffVoiceDialog(int status)  //  ГП
-{
-    MoonsGeometry titleArea  = { 7,  6, 147,  20 };
-    MoonsGeometry labelArea  = { 7, 21, 147,  35 };
-    MoonsGeometry fieldArea  = { 5, 40, 147, 140 };
-
-    LabelParams param;
-
-    switch (putOffVoiceStatus)
-    {
-    case 1:
-    {
-        LabelParams param = GUI_EL_TEMP_LabelChannel;
-        param.element.align = {alignHCenter, alignTop};
-        param.transparent = true;
-
-        std::string str;
-        if (channalNum.size() == 0)
-            str.append("__");
-        else if (channalNum.size() == 1)
-        {
-            str.push_back('_');
-            str.append(channalNum);
-        }
-        else
-            str.append(channalNum);
-
-        str.push_back('\0');
-
-        GUI_EL_Window window ( &GUI_EL_TEMP_WindowGeneralBack, &windowArea,                              (GUI_Obj *)this);
-        GUI_EL_Label  title  ( &titleParams,                   &titleArea,  (char*)voicePostTitleStr[0], (GUI_Obj *)this);
-        GUI_EL_Label  label  ( &titleParams,                   &labelArea,  (char*)voiceRxTxLabelStr[0], (GUI_Obj *)this);
-        GUI_EL_Label  field  ( &param,                         &fieldArea,  (char*)str.c_str(),          (GUI_Obj *)this);
-
-        window.Draw();
-        title.Draw();
-        label.Draw();
-        field.Draw();
-        break;
-    }
-    case 2:
-    {
-        param = GUI_EL_TEMP_LabelMode;//GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignLeft,alignTop};
-        param.transparent = true;
-
-        GUI_EL_Label label( &titleParams, &labelArea, (char*)voiceRxTxLabelStr[2], (GUI_Obj *)this);
-        GUI_EL_Label field( &param,       &fieldArea, (char*)smatrHSStateStr[status], (GUI_Obj *)this);
-
-        label.Draw();
-        field.Draw();
-        break;
-    }
-    case 3:
-    {
-        param = GUI_EL_TEMP_LabelChannel;
-        param.element.align = {alignHCenter, alignTop};
-        param.transparent = true;
-
-        std::string str;
-        if (voiceAddr.size() == 0)
-            str.append("__");
-        else if (voiceAddr.size() == 1)
-        {
-            str.push_back('_');
-            str.append(voiceAddr);
-        }
-        else
-            str.append(voiceAddr);
-
-        str.push_back('\0');
-
-        GUI_EL_Label label( &titleParams, &labelArea, (char*)voiceRxTxLabelStr[4], (GUI_Obj *)this);
-        GUI_EL_Label field( &param,       &fieldArea, (char*)str.c_str(),          (GUI_Obj *)this);
-
-        label.Draw();
-        field.Draw();
-        break;
-    }
-    case 4:
-    {
-        param   = GUI_EL_TEMP_LabelMode;
-        param.element.align = {alignLeft, alignTop};
-        param.transparent   = true;
-
-        GUI_EL_Label label( &titleParams, &labelArea, (char*)"", (GUI_Obj *)this);
-        GUI_EL_Label field( &param, &fieldArea, (char*)startAleTxVoiceMailStr, (GUI_Obj *)this);
-
-        label.Draw();
-        field.Draw();
-        break;
-    }
-    case 5:
-    {
-        param = GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignLeft, alignTop};
-        param.transparent   = true;
-
-        std::string str; str.append(aleStateStr[status]);
-        if (status == 13)
-        {
-        	char ch[100];
-        	sprintf(ch, "%3d%%       \n            \n            \n", vmProgress);
-        	str.append(ch);
-        }
-
-        GUI_EL_Label label( &titleParams, &labelArea, (char*)"",          (GUI_Obj *)this);
-        GUI_EL_Label field( &param,       &fieldArea, (char*)str.c_str(), (GUI_Obj *)this);
-        if (status != 0) {
-        	label.setSkipTextBackgronundFilling(true);
-        	field.setSkipTextBackgronundFilling(true);
-        }
-
-        label.Draw();
-        field.Draw();
-
-        break;
-    }
-    default:
-        break;
-    }
-}
-
 //--------------------------------------------------------------------
 
 void CGuiMenu::VoiceDialogClearWindow()
@@ -1008,7 +873,7 @@ void CGuiMenu::RxSmsStatusPost(int value, bool clear, bool clearAll)
    strTodo = "";
    char ch[3];
    sprintf(ch, "%3d", value);
-   strTodo.append(ch).append("/79");
+   strTodo.append(ch).append("/82");
 
    if (clearAll)
    {
@@ -1140,138 +1005,6 @@ void CGuiMenu::RxVoiceDialogStatus5(int status, bool isClear )
 }
 
 //-----------------------------------------------------------
-
-void CGuiMenu::initRxPutOffVoiceDialog(int status)
-{
-    MoonsGeometry title_geom  = { 5,  5, 150,  19 };
-    MoonsGeometry label_geom  = { 5, 20, 150,  34 };
-    MoonsGeometry field_geom  = { 30, 35, 107, 110 };
-
-    LabelParams label_param = GUI_EL_TEMP_CommonTextAreaLT;
-    label_param.element.align = {alignHCenter, alignTop};
-    label_param.transparent = true;
-
-    switch(putOffVoiceStatus)
-    {
-    case 1:
-    {
-        LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignHCenter, alignTop};
-        param.transparent = true;
-
-        GUI_EL_Window window( &GUI_EL_TEMP_WindowGeneral, &windowArea,                              (GUI_Obj *)this);
-        GUI_EL_Label  title ( &label_param,               &title_geom, (char*)voicePostTitleStr[1], (GUI_Obj *)this);
-        GUI_EL_Label  label ( &label_param,               &label_geom, (char*)"",                   (GUI_Obj *)this);
-        GUI_EL_Label  field ( &param,                     &field_geom, (char*)voiceRxStr[0],        (GUI_Obj *)this);
-
-        window.Draw();
-        title.Draw();
-        label.Draw();
-        field.Draw();
-        break;
-    }
-    case 2:
-    {
-        LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignLeft, alignTop};
-        param.transparent = true;
-
-        std::string str; str.append(aleStateStr[status]);
-        if (status == 9)
-        {
-        	char ch[100];
-        	sprintf(ch, "%3d%%       \n            \n            \n", vmProgress);
-        	str.append(ch);
-        }
-
-        GUI_EL_Label label( &label_param, &label_geom, (char*)"", (GUI_Obj *)this);
-        GUI_EL_Label field( &param,       &field_geom, (char*)str.c_str(),      (GUI_Obj *)this);
-        if (status != 0) {
-        	label.setSkipTextBackgronundFilling(true);
-        	field.setSkipTextBackgronundFilling(true);
-        }
-
-        label.Draw();
-        field.Draw();
-        break;
-    }
-    case 3:
-    {
-        MoonsGeometry labelArea   = {  7, 20, 147,  24 };
-        MoonsGeometry textArea    = {  7, 25,  59,  84 };
-        MoonsGeometry addrArea    = { 60, 25, 147,  84 };
-        MoonsGeometry volume_geom = {  7, 85, 147, 125 };
-
-        LabelParams param[3] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelChannel, GUI_EL_TEMP_CommonTextAreaLT};
-        param[0].element.align = {alignRight,   alignVCenter};
-        param[1].element.align = {alignLeft,    alignTop};
-        param[2].element.align = {alignHCenter, alignTop};
-
-        for (int i = 0; i < 3; i++)
-            param[i].transparent = true;
-
-        std::string str;
-        if (voiceAddr.size() < 1)
-            str.append("--\0");
-        else
-            str.append(voiceAddr);
-
-        GUI_EL_Label    label     ( &titleParams, &labelArea,   (char*)voiceRxTxLabelStr[5], (GUI_Obj *)this);
-        GUI_EL_Label    text      ( &param[0],    &textArea,    (char*)voiceRxStr[1],        (GUI_Obj *)this);
-        GUI_EL_Label    addr      ( &param[1],    &addrArea,    (char*)str.c_str(),          (GUI_Obj *)this);
-        GUI_EL_Label    prompt    ( &param[2],    &volume_geom, (char*)voiceRxStr[2],        (GUI_Obj *)this);
-
-        label.Draw();
-        text.Draw();
-        addr.Draw();
-        prompt.Draw();
-        break;
-    }
-    case 4:
-    {
-        LabelParams param = GUI_EL_TEMP_LabelChannel;
-        param.element.align = {alignHCenter, alignVCenter};
-        param.transparent = true;
-
-        std::string str;
-        if (channalNum.size() == 0)
-            str.append("__");
-        else if (channalNum.size() == 1)
-        {
-            str.push_back('_');
-            str.append(channalNum);
-        }
-        else
-            str.append(channalNum);
-
-        str.push_back('\0');
-
-        GUI_EL_Label label( &label_param, &label_geom, (char*)voiceRxTxLabelStr[1], (GUI_Obj *)this);
-        GUI_EL_Label field( &param,       &field_geom, (char*)str.c_str(),          (GUI_Obj *)this);
-
-        label.Draw();
-        field.Draw();
-        break;
-    }
-    case 5:
-    {
-        LabelParams param = GUI_EL_TEMP_CommonTextAreaLT;
-        param.element.align = {alignLeft, alignVCenter};
-        param.transparent = true;
-
-        GUI_EL_Label label     ( &titleParams, &label_geom, (char*)voiceRxTxLabelStr[3],      (GUI_Obj *)this);
-        GUI_EL_Label field     ( &param,       &field_geom, (char*)smatrHSStateStr[status],   (GUI_Obj *)this);
-
-        label.Draw();
-        field.Draw();
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
-}
 
 void CGuiMenu::initEditRnKeyDialog()
 {
@@ -1627,7 +1360,7 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     field.Draw();
 }
 
-void CGuiMenu::initRxSmsDialog(std::string str, uint8_t stage)
+void CGuiMenu::initRxSmsDialog(std::string str, uint8_t stage) // + guc rx (hack)
 {
     MoonsGeometry button_geom = { 10, 40, 150, 100 };
     LabelParams param = GUI_EL_TEMP_LabelMode;
@@ -1647,6 +1380,15 @@ void CGuiMenu::initRxSmsDialog(std::string str, uint8_t stage)
         GUI_EL_Label title  (&titleParam, &title_geom, (char*)titleString.c_str(), (GUI_Obj *)this);
         title.Draw();
     }
+//    if (stage == 10)// guc qwit tx
+//    {
+//    	char counter[4] = {0,0,0,0};
+//    	sprintf(counter, "%d", qwitCounter);
+//    	std::string counterStr(counter);
+//	    MoonsGeometry local1FieldArea = { 7, 90, 150, 120 };
+//	    GUI_EL_Label  field1 (&param, &local1FieldArea,  (char*)counterStr.c_str(),      (GUI_Obj *)this);
+//    	field1.Draw();
+//    }
     ok_button.Draw();
 }
 
@@ -1658,28 +1400,49 @@ void CGuiMenu::initRxCondCmdDialog(bool isSynch, bool isStart)        // При�
     param.element.align = {alignHCenter, alignVCenter};
     param.transparent = false;
     MoonsGeometry buttonArea  = { 5, 30, 150, 90 };
+    MoonsGeometry local1FieldArea = { 7, 90, 150, 120 };
 
     GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)this);
     GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)callSubMenu[0], (GUI_Obj *)this);
 
+
     std::string str;
-    if (isSynch && !isStart && (recvStage > 0))
+    std::string counterStr;
+
+    if (recvStage == 3) // tx qwit
     {
-		char syn[4] = {0,0,0,0};
-		sprintf(syn, "%d", virtCounter);
-		str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 12");
+    	str.append(txQwit);
+
+    	char counter[4] = {0,0,0,0};
+    	sprintf(counter, "%d", qwitCounter);
+    	counterStr.append(counter);
     }
     else
     {
-    	str = (char*)receiveStatusStr[recvStage];
+		if (isSynch && !isStart && (recvStage > 0))
+		{
+			char syn[4] = {0,0,0,0};
+			sprintf(syn, "%d", virtCounter);
+			if (virtCounter)
+				str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 120");
+			else
+				str.append(receiveStatusStr[1]);
+		}
+		else
+		{
+			str = (char*)receiveStatusStr[recvStage];
+		}
     }
 
     GUI_EL_Label button ( &param, &buttonArea, (char*)str.c_str(), (GUI_Obj *)this);
+    GUI_EL_Label  field1 (&param, &local1FieldArea,  (char*)counterStr.c_str(),      (GUI_Obj *)this);
 
     window.Draw();
-    if (recvStage != 1)
+    if (recvStage != 1 && recvStage != 3)
         title.Draw();
     button.Draw();
+    if (recvStage == 3)
+    	field1.Draw();
 }
 
 void CGuiMenu::initGroupCondCmd( CEndState state, bool isWaitingAnswer)  // ГУК
@@ -1718,13 +1481,20 @@ void CGuiMenu::initGroupCondCmd( CEndState state, bool isWaitingAnswer)  // ГУ
 
     labelStr.append(labels[groupCondCommStage]);
     valueStr.append(values[groupCondCommStage]);
+    std::string valueStr1;
 
     if (groupCondCommStage == 6 and not sndMode && isWaitingAnswer)
+    {
     	valueStr = rxSmsResultStatus[3];
+    	char counter[5] = {0,0,0,0,0};
+    	sprintf(counter, "%d", qwitCounter);
+    	valueStr1.append("\t ").append(counter);
+    }
 
                   titleArea = {  5,   5, 150,  18 };
     MoonsGeometry labelArea = {  5,  18, 150,  43 };
-    MoonsGeometry valueArea = {  5,  42, 150,  105 };
+    MoonsGeometry valueArea = {  5,  40, 150,  105 };
+    MoonsGeometry valueArea1 = {  5,  90, 150,  124 };
 
     LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
 
@@ -1735,6 +1505,7 @@ void CGuiMenu::initGroupCondCmd( CEndState state, bool isWaitingAnswer)  // ГУ
     GUI_EL_Label  title  ( &titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj*)this );
     GUI_EL_Label  label  ( &param[0],                  &labelArea,  (char*)labelStr.c_str(), (GUI_Obj*)this );
     GUI_EL_Label  value ( &param[1],&valueArea,  (char*)valueStr.c_str(), (GUI_Obj*)this );
+    GUI_EL_Label  value1 ( &param[1],&valueArea1,  (char*)valueStr1.c_str(), (GUI_Obj*)this );
 
     window.Draw();
     if (groupCondCommStage != 5 && groupCondCommStage != 6)
@@ -1760,6 +1531,8 @@ void CGuiMenu::initGroupCondCmd( CEndState state, bool isWaitingAnswer)  // ГУ
     }
     else
         value.Draw();
+    if (isWaitingAnswer)
+    	value1.Draw();
 }
 
 void CGuiMenu::initSelectVoiceModeParameters(bool use)

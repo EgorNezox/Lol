@@ -199,6 +199,9 @@ public:
 
     uint8_t virtCounter = 0;
     bool isTransmitAsk = false;
+    uint8_t qwitCounter = 0;
+    uint8_t qwitCounterAll = 0;
+
     //
     bool useMode = false;
     bool ch_emiss_type = false;

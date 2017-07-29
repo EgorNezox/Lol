@@ -49,6 +49,8 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 
     dispatcher->dsp_controller->virtualCounterChanged.connect(sigc::mem_fun(this,&VoiceServiceInterface::onVirtualCounterChanged));
 
+    dispatcher->dsp_controller->qwitCounterChanged.connect(sigc::mem_fun(this,&VoiceServiceInterface::onQwitCounterChanged));
+
     dispatcher->dsp_controller->transmitAsk.connect(sigc::mem_fun(this,&VoiceServiceInterface::onTransmitAsk));
 
     current_status = StatusNotReady;
@@ -384,9 +386,9 @@ void VoiceServiceInterface::saveFreq(int value)
     dispatcher->dsp_controller->setFreq(value);
 }
 
-void VoiceServiceInterface::responseGuc(int value)
+void VoiceServiceInterface::responseGuc(int value, bool isTxAsk)
 {
-    respGuc(value);
+    respGuc(value, isTxAsk);
 }
 
 void VoiceServiceInterface::smsMessage(int value)
@@ -631,6 +633,11 @@ void VoiceServiceInterface::onStartCondReceiving()
 void VoiceServiceInterface::onVirtualCounterChanged(uint8_t counter)
 {
 	virtualCounterChanged(counter);
+}
+
+void VoiceServiceInterface::onQwitCounterChanged(uint8_t counter, uint8_t all)
+{
+	qwitCounterChanged(counter, all);
 }
 
 void VoiceServiceInterface::onTransmitAsk(bool on)

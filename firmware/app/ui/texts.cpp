@@ -257,4 +257,4 @@ const char *fromStr = "от\0";
 
 const char *syncWaitingStr = "Синхро...\0";
 
-const char *txQwit  = "Отправка\n квитанции\0";
+const char *txQwit  = " Отправка\n квитанции\0";

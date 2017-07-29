@@ -67,6 +67,7 @@ public:
     sigc::signal<void, uint8_t/*new_value*/> aleVmProgressUpdated;
     sigc::signal<void> startCondReceiving;
     sigc::signal<void, uint8_t> virtualCounterChanged;
+    sigc::signal<void, uint8_t, uint8_t> qwitCounterChanged;
     sigc::signal<void, bool> transmitAsk;
 
 	ChannelStatus getCurrentChannelStatus();
@@ -124,7 +125,7 @@ public:
 
 
     // ----- GUC -------
-    sigc::signal<void,int> respGuc;
+    sigc::signal<void,int,bool> respGuc;
     sigc::signal<void,int> messageGucTxQuit;
     sigc::signal<void> gucCrcFailed;
     sigc::signal<void> gucCoord;
@@ -194,6 +195,7 @@ public:
     void setSwrTimerState(bool state);
     void onStartCondReceiving();
     void onVirtualCounterChanged(uint8_t counter);
+    void onQwitCounterChanged(uint8_t counter, uint8_t all);
     void onTransmitAsk(bool on);
 
 private:
@@ -208,7 +210,7 @@ private:
 	void updateChannel();
 
     void fistPacketRecieve(int packet, uint8_t address, bool rec);
-    void responseGuc(int value);
+    void responseGuc(int value, bool isTxAsk);
     void smsMessage(int value);
     void onDspStarted(){dspStarted();}
 

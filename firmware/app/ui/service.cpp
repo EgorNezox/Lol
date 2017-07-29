@@ -128,6 +128,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->startCondReceiving.connect(sigc::mem_fun(this,&Service::onStartCondReceiving));
     voice_service->virtualCounterChanged.connect(sigc::mem_fun(this,&Service::onVirtualCounterChanged));
 
+    voice_service->qwitCounterChanged.connect(sigc::mem_fun(this,&Service::onQwitCounterChanged));
+
     voice_service->transmitAsk.connect(sigc::mem_fun(this,&Service::onTransmitAsk));
 
     valueRxSms = 0;
@@ -357,6 +359,7 @@ void Service::FailedSms(int stage)
 		case  3: { msgBox( rxtxFiledSmsStr[1], sms_crc_fail);   break; }
     }
     failFlag = true;
+    menu->virtCounter = 0;
 }
 
 void Service::setColorScheme(uint32_t back,uint32_t front)
@@ -518,20 +521,6 @@ void Service::keyPressed(UI_Key key)
                     int freq = atoi(main_scr->nFreq.c_str());
                     voice_service->tuneFrequency(freq, true);
                 }
-                // ? пїЅпїЅпїЅ
-                switch ( main_scr->mainWindowModeId )
-                {
-                case 0:
-                {}
-                    // пїЅпїЅпїЅ
-                case 1:
-                {}
-                    // пїЅпїЅпїЅ
-                case 2:
-                {}
-                default:
-                    break;
-                }
 
                 break;
             case keyLeft:
@@ -671,7 +660,14 @@ void Service::keyPressed(UI_Key key)
 
             vect = nullptr;
             position = 1;
-            guiTree.resetCurrentState();
+            if (isCondModeQwitTx || isGucModeQwitTx)
+            {
+            	//guiTree.backvard();
+            }
+            else
+            {
+            	guiTree.resetCurrentState();
+            }
         }
         else
         {
@@ -807,51 +803,23 @@ void Service::keyPressed(UI_Key key)
                 break;
             }
             case 2:
-            {
-                if ( key > 5 && key < 16)
-                {
-                    auto iter = estate.listItem.begin();
-                    (*iter)++;
-                    if ( (*iter)->inputStr.size() < 2 )
-                    {
-                        (*iter)->inputStr.push_back((char)(42+key));
-                        // check
-                        int rc = atoi((*iter)->inputStr.c_str());
-                        if ( rc > 31 )
-                        { (*iter)->inputStr.clear(); }
-                    }
-                }
-                break;
-            }
             case 3:
-            {
-                if ( key > 5 && key < 16)
-                {
-                    auto iter = estate.listItem.begin();
-                    (*iter)++;(*iter)++;
-                    if ( (*iter)->inputStr.size() < 2 )
-                    {
-                        (*iter)->inputStr.push_back((char)(42+key));
-                        // check
-                        int rc = atoi((*iter)->inputStr.c_str());
-                        if ( rc > 31 )
-                        { (*iter)->inputStr.clear(); }
-                    }
-                }
-                break;
-            }
             case 4:
             {
                 if ( key > 5 && key < 16)
                 {
                     auto iter = estate.listItem.begin();
-
+                    if (menu->txCondCmdStage != 4)
+                    {
+                    	(*iter)++; if (menu->txCondCmdStage == 3) (*iter)++;
+                    }
                     if ( (*iter)->inputStr.size() < 2 )
                     {
                         (*iter)->inputStr.push_back((char)(42+key));
                         // check
                         int rc = atoi((*iter)->inputStr.c_str());
-                        if ( rc > 99 )
+                        uint8_t num = menu->txCondCmdStage == 4 ? 99 : 31;
+                        if ( rc > num )
                         { (*iter)->inputStr.clear(); }
                     }
                 }
@@ -877,14 +845,13 @@ void Service::keyPressed(UI_Key key)
                     {
                         menu->txCondCmdStage = 4;
                         auto iter = estate.listItem.begin();
-                        (*iter)++;
-                        (*iter)->inputStr.clear();
-                        (*iter)->inputStr.push_back((char)(42+key0));
-                        (*iter)->inputStr.push_back((char)(42+key0));
-                        (*iter)++;
-                        (*iter)->inputStr.clear();
-                        (*iter)->inputStr.push_back((char)(42+key0));
-                        (*iter)->inputStr.push_back((char)(42+key0));
+                        for (uint8_t i = 0; i < 2; i++)
+                        {
+                            (*iter)++;
+                            (*iter)->inputStr.clear();
+                            (*iter)->inputStr.push_back((char)(42+key0));
+                            (*iter)->inputStr.push_back((char)(42+key0));
+                        }
                         break;
                     }
 
@@ -945,7 +912,7 @@ void Service::keyPressed(UI_Key key)
                 }
 
                 // send
-                if ( menu->txCondCmdStage == size )
+                if ( menu->txCondCmdStage == 6 )
                 {
 #ifndef _DEBUG_
 
@@ -999,73 +966,84 @@ void Service::keyPressed(UI_Key key)
 
 #endif
                 }
+
                 break;
             }
             case keyBack:
             {
                 auto iter = estate.listItem.begin();
 
-                if (menu->txCondCmdStage == 0)
+                switch(menu->txCondCmdStage)
                 {
-                    guiTree.backvard();
-                    onCompletedStationMode();
-                }
-                else if (menu->txCondCmdStage == 1)
-                {
-                    menu->txCondCmdStage--;
-                }
-                else if(menu->txCondCmdStage == 2)
-                {
-                    (*iter)++;
-                    if ((*iter)->inputStr.size() > 0)
-                        (*iter)->inputStr.pop_back();
-                    else
-                        menu->txCondCmdStage = 1;
-                }
-                else if(menu->txCondCmdStage == 3 )
-                {
-                    (*iter)++;(*iter)++;
-                    if ((*iter)->inputStr.size() > 0)
-                        (*iter)->inputStr.pop_back();
-                    else
-                    {
-                        if ( menu->condCmdModeSelect == 2)
-                            menu->txCondCmdStage = 0;
+					case 0:
+					{
+						guiTree.backvard();
+						onCompletedStationMode();
+						break;
+					}
+					case 1:
+					{
+						 menu->txCondCmdStage--;
+						 break;
+					}
+					case 2:
+					{
+		                   (*iter)++;
+		                    if ((*iter)->inputStr.size() > 0)
+		                        (*iter)->inputStr.pop_back();
+		                    else
+		                        menu->txCondCmdStage = 1;
 
-                        if (menu->useCmdRetrans)
-                            menu->txCondCmdStage--;
-                        else
-                            menu->txCondCmdStage = 0;
-                    }
-                }
-                else if(menu->txCondCmdStage == 4)
-                {
-                    // CMD
-                    if ((*iter)->inputStr.size() > 0)
-                        (*iter)->inputStr.pop_back();
-                    else
-                    {
-                        if ( menu->condCmdModeSelect == 0 )
-                        {
-                            for(auto &k: estate.listItem)
-                            {
-                                k->inputStr.clear();
-                            }
-                            menu->txCondCmdStage = 0;
-                        }
-                        else
-                        {
-                            menu->txCondCmdStage--;
-                        }
-                    }
-                }
-                else if(menu->txCondCmdStage == 5)
-                {
-                    menu->txCondCmdStage--;
-                }
-                    break;
-                {
-                    menu->txCondCmdStage--;
+		                    break;
+					}
+					case 3:
+					{
+	                    (*iter)++;(*iter)++;
+	                    if ((*iter)->inputStr.size() > 0)
+	                        (*iter)->inputStr.pop_back();
+	                    else
+	                    {
+	                        if ( menu->condCmdModeSelect == 2)
+	                            menu->txCondCmdStage = 0;
+
+	                        if (menu->useCmdRetrans)
+	                            menu->txCondCmdStage--;
+	                        else
+	                            menu->txCondCmdStage = 0;
+	                    }
+	                    break;
+					}
+					case 4:
+					{
+	                    // CMD
+	                    if ((*iter)->inputStr.size() > 0)
+	                        (*iter)->inputStr.pop_back();
+	                    else
+	                    {
+	                        if ( menu->condCmdModeSelect == 0 )
+	                        {
+	                            for(auto &k: estate.listItem)
+	                            {
+	                                k->inputStr.clear();
+	                            }
+	                            menu->txCondCmdStage = 0;
+	                        }
+	                        else
+	                        {
+	                            menu->txCondCmdStage--;
+	                        }
+	                    }
+	                    break;
+					}
+					case 5:
+					{
+	                    menu->txCondCmdStage--;
+	                    break;
+					}
+					case 6:
+					{
+						break;
+					}
                 }
             }
             default:
@@ -1102,7 +1080,7 @@ void Service::keyPressed(UI_Key key)
 
                     if ( key == keyLeft || key == keyRight )
                     {
-                        menu->useSndCoord = menu->useSndCoord ? false : true;
+                        menu->useSndCoord = not menu->useSndCoord;
                     }
                 }
                 break;
@@ -1300,6 +1278,7 @@ void Service::keyPressed(UI_Key key)
                 	}
                 	break;
                 }
+
             }
             break;
         }
@@ -1380,18 +1359,18 @@ void Service::keyPressed(UI_Key key)
                         guiTree.resetCurrentState();
                     }
                     // repeat
-                    else if (smartState == headset_controller->SmartHSState_SMART_NOT_CONNECTED ||\
-                             smartState == headset_controller->SmartHSState_SMART_BAD_CHANNEL ||\
-                             smartState == headset_controller->SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL ||\
-                             smartState == headset_controller->SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE ||\
-                             smartState == headset_controller->SmartHSState_SMART_RECORD_DOWNLOADING ||\
-                             smartState == headset_controller->SmartHSState_SMART_PLAYING ||\
-                             smartState == headset_controller->SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL ||\
-                             smartState == headset_controller->SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE ||\
-                             smartState == headset_controller->SmartHSState_SMART_RECORDING ||\
-                             smartState == headset_controller->SmartHSState_SMART_RECORD_UPLOADING
-                             )
-                    {}
+//                    else if (smartState == headset_controller->SmartHSState_SMART_NOT_CONNECTED ||\
+//                             smartState == headset_controller->SmartHSState_SMART_BAD_CHANNEL ||\
+//                             smartState == headset_controller->SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL ||\
+//                             smartState == headset_controller->SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE ||\
+//                             smartState == headset_controller->SmartHSState_SMART_RECORD_DOWNLOADING ||\
+//                             smartState == headset_controller->SmartHSState_SMART_PLAYING ||\
+//                             smartState == headset_controller->SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL ||\
+//                             smartState == headset_controller->SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE ||\
+//                             smartState == headset_controller->SmartHSState_SMART_RECORDING ||\
+//                             smartState == headset_controller->SmartHSState_SMART_RECORD_UPLOADING
+//                             )
+//                    {}
                 }
 #else
                 if (key == keyEnter)
@@ -1765,26 +1744,36 @@ void Service::keyPressed(UI_Key key)
         {
             if ( key == keyBack)
             {
-            	if (menu->recvStage > 0 )
-            		menu->recvStage--;
-
-                if (menu->recvStage == 0)
-                {
-                	isStartCond = false;
-                    guiTree.resetCurrentState();
-                	//guiTree.backvard();
-                	onCompletedStationMode();
-					menu->virtCounter = 0;
-                }
+            	switch (menu->recvStage)
+            	{
+					case 0:
+					case 3:
+					{
+						isStartCond = false;
+						guiTree.resetCurrentState();
+						//guiTree.backvard();
+						onCompletedStationMode();
+						menu->virtCounter = 0;
+						menu->recvStage = 0;
+						break;
+					}
+					case 1:
+					case 2:
+					{
+						menu->recvStage--;
+						break;
+					}
+            	}
             }
+
             if ( key == keyEnter)
             {
                 {
 #ifdef _DEBUG_
                     guiTree.resetCurrentState();
 #else
-
-                    menu->recvStage++;
+                    if (menu->recvStage != 3)
+                    	menu->recvStage++;
                     if (menu->recvStage == 1)
                     {
                         failFlag = false;
@@ -1848,7 +1837,7 @@ void Service::keyPressed(UI_Key key)
         				std::string str;
         	    		char syn[4] = {0,0,0,0};
         	    		sprintf(syn, "%d", menu->virtCounter);
-        	    		str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 12");
+        	    		str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 120");
                 		menu->virtCounter = 0;
         				menu->initRxSmsDialog(str.c_str());
         			}
@@ -1900,16 +1889,25 @@ void Service::keyPressed(UI_Key key)
         {
         	if ( key == keyBack)
         	{
-        		if (cntGucRx > 0)
-        			--cntGucRx;
-        		if (cntGucRx == 0)
+        		switch (cntGucRx)
         		{
-        			cntGucRx = -1;
-					guiTree.backvard();
-                    menu->offset = 1;
-                    menu->focus = 2;
-                    onCompletedStationMode(false);
-					break;
+					case 0:
+					case 4:
+					{
+	        			cntGucRx = -1;
+						guiTree.backvard();
+	                    menu->offset = 1;
+	                    menu->focus = 2;
+	                    onCompletedStationMode(false);
+						break;
+					}
+					case 1:
+					case 2:
+					case 3:
+					{
+						--cntGucRx;
+						break;
+					}
         		}
         	}
             if ( key == keyEnter)
@@ -1918,27 +1916,39 @@ void Service::keyPressed(UI_Key key)
             }
             if ( key == keyBack || key == keyEnter)
             {
-            	if (cntGucRx == 1)
-            	{
-            		menu->initRxSmsDialog(STARTS);
-            	}
-            	if (cntGucRx == 2)
-            	{
-                    menu->initRxSmsDialog(receiveStatusStr[1]);
-            		//setFreq();
-					#ifndef PORT__PCSIMULATOR
-					voice_service->saveFreq(getFreq());
-					voice_service->TurnGuc();
-					#else
-	                guiTree.resetCurrentState();
-					#endif
-            	}
-            	if (cntGucRx == 3)
-            	{
-                    cntGucRx = -1;
-            		guiTree.resetCurrentState();
-                    onCompletedStationMode(false);
-            	}
+
+        		switch (cntGucRx)
+        		{
+					case 1:
+					{
+						menu->initRxSmsDialog(STARTS);
+						break;
+					}
+					case 2:
+					{
+	                    menu->initRxSmsDialog(receiveStatusStr[1]);
+	            		//setFreq();
+						#ifndef PORT__PCSIMULATOR
+						voice_service->saveFreq(getFreq());
+						voice_service->TurnGuc();
+						#else
+		                guiTree.resetCurrentState();
+						#endif
+						break;
+					}
+					case 3:
+					{
+	                    cntGucRx = -1;
+	            		guiTree.resetCurrentState();
+	                    onCompletedStationMode(false);
+	                    break;
+					}
+					case 4:
+					{
+						menu->initRxSmsDialog(txQwit,10);
+						break;
+					}
+        		}
             }
             break;
         }
@@ -2996,17 +3006,20 @@ int Service::getLanguage()
 void Service::onSmsCounterChange(int param)
 {
     qmDebugMessage(QmDebug::Warning, "______sms counter: %d ", param);
+    menu->virtCounter = 0;
     if (cntSmsRx != 2)
     {
         menu->smsTxStage = 6;
-        if ((param > 0 && param < 77) && (!failFlag)) drawMenu();
-        else menu->smsTxStage = 1;
+        if ((param > 0 && param < 84) && (!failFlag))
+        	drawMenu();
+        else
+        	menu->smsTxStage = 1;
     }
     else
     {
 #if SMS_PROGRESS
 
-    	if (param > 0 && param < 79)
+    	if (param > 0 && param < 84)
     	{
     		CState currentState;
     		guiTree.getLastElement(currentState);
@@ -3016,7 +3029,8 @@ void Service::onSmsCounterChange(int param)
     		if (currentState.getType() == endMenuWindow)
     		{
     			GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
-    			if ((subType == rxSmsMessage) && (cntSmsRx == 2))  drawMenu();
+    			if ((subType == rxSmsMessage) && (cntSmsRx == 2))
+    				drawMenu();
     		}
 
     	}
@@ -3077,6 +3091,7 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
 				 std::string str(recPacket);
 				 str.append(" ").append(fromStr).append(" ").append(addressStr);
 				 msgBox( str.c_str(), (int)packet );
+				 isCondModeQwitTx = true;
 			 }
          }
          else
@@ -3102,7 +3117,10 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
     else
         msgBox( rxCondErrorStr[1] );
     }
-    menu->recvStage = 0;
+    if (isCondModeQwitTx)
+    	menu->recvStage = 3;
+    else
+    	menu->recvStage = 0;
     isStartCond = false;
      //setFreq();
 }
@@ -3304,39 +3322,32 @@ void Service::drawMenu()
         {
             if (!isSmsMessageRec){
             std::string titleStr, fieldStr;
+
+        	auto iter = st.listItem.begin();
+            uint8_t num = 0;
+            if (menu->smsTxStage >= 2 && menu->smsTxStage <= 4)
+            {
+                switch(menu->smsTxStage)
+                 {
+                 	case 2: num = 1; break;
+                 	case 4: num = 4; break;
+                 }
+            }
+
             switch(menu->smsTxStage)
             {
             case 1:
             {
                 titleStr.append(ticketStr[1]);
                 fieldStr.append(useScanMenu[menu->useSmsRetrans]);
-
                 break;
             }
-            case 2:
+            case 3:            // address dst
+            case 4: (*iter)++; // message
+            case 2: (*iter)++; // address retr
             {
-                auto iter = st.listItem.begin();
-                (*iter)++; (*iter)++;
-
-                titleStr.append(condCommStr[1]);
+                titleStr.append(condCommStr[num]);
                 fieldStr.append((*iter)->inputStr); // address retr
-                break;
-            }
-            case 3:
-            {
-                auto iter = st.listItem.begin();
-
-                titleStr.append(condCommStr[0]);
-                fieldStr.append((*iter)->inputStr); // address dst
-                break;
-            }
-            case 4:
-            {
-                auto iter = st.listItem.begin();
-                (*iter)++;
-
-                titleStr.append(condCommStr[4]);
-                fieldStr.append((*iter)->inputStr); // message
                 break;
             }
             case 5:
@@ -3357,7 +3368,10 @@ void Service::drawMenu()
             	{
             		char syn[4] = {0,0,0,0};
             		sprintf(syn, "%d", menu->virtCounter);
-            		fieldStr.append("\t").append(syncWaitingStr).append("\n ").append(syn).append(" / 12");
+            		//if (menu->virtCounter)
+            		fieldStr.append("\t").append(syncWaitingStr).append("\n ").append(syn).append(" / 120");
+//            		else
+//            			fieldStr.append(receiveStatusStr[1]);
             	}
             	else
             	{
@@ -3365,7 +3379,7 @@ void Service::drawMenu()
 					sprintf(pac,"%i", counter);
 
 					fieldStr.append(pac);
-					fieldStr.append("/79");
+					fieldStr.append("/82");
             	}
                 break;
             }
@@ -3401,7 +3415,7 @@ void Service::drawMenu()
         	}
             if (cntSmsRx == 2)
             {
-                if (valueRxSms > 0 && valueRxSms < 81)
+                if (valueRxSms > 0 && valueRxSms < 84)
                 {
                 		menu->RxSmsStatusPost(valueRxSms,1,true);
                 }
@@ -3410,8 +3424,8 @@ void Service::drawMenu()
        				std::string str;
        				char syn[4] = {0,0,0,0};
        				sprintf(syn, "%d", menu->virtCounter);
-       				str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 12");
-       				menu->initRxSmsDialog(str.c_str());
+       				str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 120");
+       				menu->initRxSmsDialog(menu->virtCounter ? str.c_str() : receiveStatusStr[1]);
                 }
             }
             break;
@@ -3733,7 +3747,7 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     drawIndicator();
 }
 
-void Service::gucFrame(int value)
+void Service::gucFrame(int value, bool isTxAsk)
 {       
 #if grpFlashTest
 
@@ -3835,7 +3849,10 @@ void Service::gucFrame(int value)
         	msgBox( str.c_str(), vect[1], size, 0);
 
     }
-    cntGucRx = 1;
+    if (isTxAsk)
+    	isGucModeQwitTx = true;
+    else
+    	cntGucRx = 1;
 
 #endif
 }
@@ -3883,6 +3900,7 @@ void Service::smsMessage(int value)
         draw();
     }
 
+    menu->virtCounter = 0;
     isSmsMessageRec = true;
     menu->smsTxStage = 4;
 
@@ -3897,6 +3915,7 @@ void Service::showReceivedSms()
     std::string title = "CMC";
     std::string text_str = text;
     menu->initTxSmsDialog(title,text_str);
+    menu->virtCounter = 0;
 }
 
 void Service::updateAleVmProgress(uint8_t t)
@@ -3928,6 +3947,7 @@ void Service::msgBoxSms(const char *text)
 	}
 
 	msg_box->Draw_Sms();
+    menu->virtCounter = 0;
 
 }
 
@@ -3954,25 +3974,25 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
 {
     QM_UNUSED(state);
 
-    std::string str;
-    switch(state)
-    {
-		case Headset::Controller::SmartHSState_SMART_EMPTY_MESSAGE: str = "SmartHSState_SMART_EMPTY_MESSAGE"; break;
-		case Headset::Controller::SmartHSState_SMART_NOT_CONNECTED: str = "SmartHSState_SMART_NOT_CONNECTED"; break;
-		case Headset::Controller::SmartHSState_SMART_ERROR: str = "SmartHSState_SMART_ERROR"; break;
-		case Headset::Controller::SmartHSState_SMART_BAD_CHANNEL: str = "SmartHSState_SMART_BAD_CHANNEL"; break;
-		case Headset::Controller::SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL: str = "SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL"; break;
-		case Headset::Controller::SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE: str = "SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE"; break;
-		case Headset::Controller::SmartHSState_SMART_RECORD_DOWNLOADING: str = "SmartHSState_SMART_RECORD_DOWNLOADING"; break;
-		case Headset::Controller::SmartHSState_SMART_PLAYING: str = "SmartHSState_SMART_PLAYING"; break;
-		case Headset::Controller::SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL: str = "SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL"; break;
-		case Headset::Controller::SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE: str = "SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE"; break;
-		case Headset::Controller::SmartHSState_SMART_RECORDING: str = "SmartHSState_SMART_RECORDING"; break;
-		case Headset::Controller::SmartHSState_SMART_RECORD_UPLOADING: str = "SmartHSState_SMART_RECORD_UPLOADING"; break;
-		case Headset::Controller::SmartHSState_SMART_RECORD_TIMEOUT: str = "SmartHSState_SMART_RECORD_TIMEOUT"; break;
-		case Headset::Controller::SmartHSState_SMART_READY: str = "SmartHSState_SMART_READY"; break;
-    }
-    qmDebugMessage(QmDebug::Warning, "%s", str.c_str());
+//    std::string str;
+//    switch(state)
+//    {
+//		case Headset::Controller::SmartHSState_SMART_EMPTY_MESSAGE: str = "SmartHSState_SMART_EMPTY_MESSAGE"; break;
+//		case Headset::Controller::SmartHSState_SMART_NOT_CONNECTED: str = "SmartHSState_SMART_NOT_CONNECTED"; break;
+//		case Headset::Controller::SmartHSState_SMART_ERROR: str = "SmartHSState_SMART_ERROR"; break;
+//		case Headset::Controller::SmartHSState_SMART_BAD_CHANNEL: str = "SmartHSState_SMART_BAD_CHANNEL"; break;
+//		case Headset::Controller::SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL: str = "SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL"; break;
+//		case Headset::Controller::SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE: str = "SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE"; break;
+//		case Headset::Controller::SmartHSState_SMART_RECORD_DOWNLOADING: str = "SmartHSState_SMART_RECORD_DOWNLOADING"; break;
+//		case Headset::Controller::SmartHSState_SMART_PLAYING: str = "SmartHSState_SMART_PLAYING"; break;
+//		case Headset::Controller::SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL: str = "SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL"; break;
+//		case Headset::Controller::SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE: str = "SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE"; break;
+//		case Headset::Controller::SmartHSState_SMART_RECORDING: str = "SmartHSState_SMART_RECORDING"; break;
+//		case Headset::Controller::SmartHSState_SMART_RECORD_UPLOADING: str = "SmartHSState_SMART_RECORD_UPLOADING"; break;
+//		case Headset::Controller::SmartHSState_SMART_RECORD_TIMEOUT: str = "SmartHSState_SMART_RECORD_TIMEOUT"; break;
+//		case Headset::Controller::SmartHSState_SMART_READY: str = "SmartHSState_SMART_READY"; break;
+//    }
+//    qmDebugMessage(QmDebug::Warning, "%s", str.c_str());
 
     CState currentState;
     guiTree.getLastElement(currentState);
@@ -4460,6 +4480,21 @@ void Service::onCompletedStationMode(bool isGoToVoice)
         setFreq();
         garnitureStart();
     }
+
+    menu->qwitCounter = 0;
+    // qwit tx exit menu
+
+    if (isCondModeQwitTx || isGucModeQwitTx)
+    {
+    	isCondModeQwitTx = false;
+    	isGucModeQwitTx = false;
+
+		menu->virtCounter = 0;
+		menu->recvStage = 0;
+		cntGucRx = -1;
+		guiTree.resetCurrentState();
+		draw();
+    }
 }
 
 void Service::onDspStarted()
@@ -4577,7 +4612,9 @@ void Service::onStartCondReceiving()
 void Service::onVirtualCounterChanged(uint8_t counter)
 {
 	menu->virtCounter = counter + 1;
-    qmDebugMessage(QmDebug::Warning, "_____virtual counetr = %d ", menu->virtCounter);
+	if (menu->virtCounter > 120)
+		menu->virtCounter = 120;
+    qmDebugMessage(QmDebug::Warning, "_____virtual counter = %d ", menu->virtCounter);
 	draw();
 }
 
@@ -4585,6 +4622,20 @@ void Service::onTransmitAsk(bool on)
 {
 	menu->isTransmitAsk = on;
 	draw();
+}
+
+void Service::onQwitCounterChanged(uint8_t counter, uint8_t all)
+{
+	menu->qwitCounter = counter;
+	menu->qwitCounterAll = all;
+
+    qmDebugMessage(QmDebug::Warning, "____qwitCounter    = %d ", menu->qwitCounter);
+    qmDebugMessage(QmDebug::Warning, "____qwitCounterAll = %d ", menu->qwitCounterAll);
+
+    //if (isCondModeQwitTx)
+    CState state = guiTree.getCurrentState();
+    if(state.getType() != messangeWindow)
+    	draw();
 }
 
 }/* namespace Ui */

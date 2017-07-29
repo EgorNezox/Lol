@@ -30,7 +30,7 @@
 #define hw_rtc                      1
 #define DefkeyValue 631
 
-#define GUC_TIMER_ACK_WAIT_INTERVAL 60000
+#define GUC_TIMER_ACK_WAIT_INTERVAL 180000
 #define GUC_TIMER_INTERVAL_REC 30000
 
 #define VIRTUAL_TIME 120
@@ -156,7 +156,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     //guc_timer->setInterval(GUC_TIMER_INTERVAL);
 
     guc_rx_quit_timer = new QmTimer(true,this);
-    guc_rx_quit_timer->setInterval(GUC_TIMER_ACK_WAIT_INTERVAL);
+    guc_rx_quit_timer->setInterval(1000);
+    guc_rx_quit_timer->setSingleShot(true);
     guc_rx_quit_timer->timeout.connect(sigc::mem_fun(this, &DspController::onGucWaitingQuitTimeout));
 
     for(int i = 0;i<50;i++) guc_text[i] = '\0';
@@ -203,7 +204,7 @@ void DspController::dspReset()
 	QmThread::msleep(20);
 	reset_iopin->writeOutput(QmIopin::Level_High);
 	if (guc_rx_quit_timer)
-		guc_rx_quit_timer->stop();
+		stopGucTimer();
 }
 
 bool DspController::isReady() {
@@ -479,6 +480,7 @@ void DspController::sendPswf()
 	{
 		for(int i = 0; i<4;i++) time[i] = date_time[i];
 	}
+
 	if (ContentPSWF.RET_end_adr > 0)
 	{
 		ContentPSWF.L_CODE = navigator->Calc_LCODE_RETR(
@@ -561,6 +563,11 @@ void DspController::LogicPswfTx()
 
 	++command_tx30;
 
+	if (isTxAsk)
+	{
+		qwitCounterChanged(32 - command_tx30, 0);
+	}
+
     if ((command_tx30 % 3 == 0) && (!setAsk))
     	TxCondCmdPackageTransmit(command_tx30);
 
@@ -570,13 +577,15 @@ void DspController::LogicPswfTx()
 	if (command_tx30 > 31)
 	{
 		command_tx30 = 0;
+		isTxAsk = false;
 
-        if(pswf_ack_tx)
+        if (pswf_ack_tx)
 		{
 			pswf_ack_tx = false;
 			CondComLogicRole = CondComRx;
 			waitAckTimer = 1;
 			setPswfRx();
+			qwitCounterChanged(65 - waitAckTimer, 0);
 		}
 		else
 		{
@@ -596,6 +605,7 @@ void DspController::LogicPswfRx()
 	if (waitAckTimer)
 	{
 		waitAckTimer++;
+		qwitCounterChanged(65 - waitAckTimer, 0);
 		if (waitAckTimer >= 65)
 		{
 			waitAckTimer = 0;
@@ -617,6 +627,7 @@ void DspController::LogicPswfRx()
 			setPswfTx();
 			sendPswf();
 			transmitAsk(true);
+			isTxAsk = true;
 		}
 		else
 		{
@@ -686,7 +697,7 @@ void DspController::RxSmsWork()
 			setrRxFreq();
 		}
 
-		if (sms_counter > 39 && sms_counter<76)
+		if (sms_counter > 39 && sms_counter < 76)
 		{
 			setrRxFreq();
 		}
@@ -875,7 +886,7 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     	private_lcode = (char)navigator->Calc_LCODE(ContentPSWF.R_ADR, ContentPSWF.S_ADR, data, ContentPSWF.RN_KEY, date_time[0], date_time[1], date_time[2], prevSecond(date_time[3]));
 
     //qmDebugMessage(QmDebug::Dump, "recPswf() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
-    qmDebugMessage(QmDebug::Dump, "recPswf() private_lcode = %d,lcode = %d", private_lcode,code);
+    qmDebugMessage(QmDebug::Dump, "recPswf() private_lcode = %d, lcode = %d", private_lcode,code);
     qmDebugMessage(QmDebug::Dump, "recPswf() pswf_in = %d, pswf_rec = %d, pswf_in_virt = %d ",pswf_in, pswf_rec, pswf_in_virt);
 
 
@@ -902,6 +913,10 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
 				ContentPSWF.COM_N = data;
 				firstPacket(ContentPSWF.COM_N, ContentPSWF.S_ADR , true);
 				waitAckTimer = 0;
+			}
+			if (pswf_rec >= 2)
+			{
+				qwitCounterChanged(60 - pswf_in , 0);
 			}
     	}
     }
@@ -1063,7 +1078,7 @@ void DspController::initResetState()
     current_radio_frequency = 0;
 	pending_command->in_progress = false;
 	if (guc_rx_quit_timer)
-	guc_rx_quit_timer->stop();
+		stopGucTimer();
 }
 
 void DspController::setAdr()
@@ -1748,7 +1763,8 @@ void DspController::sendGuc()
     int real_len = crc32_len;
 
     // � � вЂ™� ЎвЂ№� � В±� � С•� Ў� ‚ � � С”� � С•� � В»� � С‘� ЎвЂЎ� � Вµ� Ў� ѓ� ЎвЂљ� � � � � � В° � � С—� � Вµ� Ў� ‚� � Вµ� � Т‘� � В°� � � � � � В°� � Вµ� � С�� ЎвЂ№� ЎвЂ¦ � � В±� � В°� � в„–� ЎвЂљ� � С•� � � �  � Ў� ѓ � � С”� � С•� � С•� Ў� ‚� � Т‘� � С‘� � � …� � В°� ЎвЂљ� � В°� � С�� � С‘ � � С‘� � В»� � С‘ � � В±� � Вµ� � В· � � С—� � С• � Ў� ‚� � Вµ� � С–� � В»� � В°� � С�� � Вµ� � � …� ЎвЂљ� ЎС“
-    if (isGpsGuc){
+    if (isGpsGuc)
+    {
         if (ContentGuc.NUM_com <= 6) ContentGuc.NUM_com = 6;
         if ((ContentGuc.NUM_com > 6) && (ContentGuc.NUM_com <= 10))    ContentGuc.NUM_com = 10;
         if ((ContentGuc.NUM_com > 10) && (ContentGuc.NUM_com <= 26))   ContentGuc.NUM_com = 26;
@@ -1978,7 +1994,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 					startGucRecieving();
 					ContentGuc.stage = GucTx;
 					startRxQuit();
-					guc_rx_quit_timer->start();
+					startGucTimer();
             	}
             	else
             	{
@@ -2009,7 +2025,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 	qmDebugMessage(QmDebug::Dump, "---- 0x6B indicator:30 stage: GucTx R_ADR: %d S_ADR: %d", ContentGuc.R_ADR, ContentGuc.S_ADR);
                 	recievedGucQuitForTransm(ContentGuc.S_ADR);
                 	completedStationMode(false);
-                	guc_rx_quit_timer->stop();
+                	stopGucTimer();
                 }
             	else
             	{
@@ -2022,7 +2038,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             		}
                     guc_vector.push_back(guc);
                     //guc_timer->start();
-                    recievedGucResp(ContentGuc.R_ADR);
+                    recievedGucResp(ContentGuc.R_ADR, ContentGuc.S_ADR != 0);
                     if (ContentGuc.S_ADR != 0)
                     {
                     	startGucTransmitting();
@@ -2131,9 +2147,11 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     					++RtcTxCounter;
     				qmDebugMessage(QmDebug::Dump, "0x65 RtcTxCounter %d",RtcTxCounter);
 
+
+
     				if (IsStart(t.seconds))
     				{
-    					virtGuiCounter++;
+
     					freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
     					qmDebugMessage(QmDebug::Dump, "0x65 frame %d %d",t.minutes,t.seconds);
     					RtcTxCounter = 1;
@@ -2148,9 +2166,18 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     							changeSmsFrequency();
     					}
     					qmDebugMessage(QmDebug::Dump, "0x65 frame %d %d",t.minutes,t.seconds);
-    					virtualCounterChanged(virtGuiCounter);
-    					if (virtGuiCounter == 12)
-    						virtGuiCounter = 0;
+    				}
+
+    				//static bool isCor = false;
+    				if (count_VrtualTimer)
+    				{
+						virtGuiCounter++;
+						if ( virtGuiCounter >= 2)
+							virtualCounterChanged(virtGuiCounter - 2);
+//						else
+//							virtualCounterChanged(virtGuiCounter);
+		//					if (virtGuiCounter == 120)
+		//						virtGuiCounter = 0;
     				}
 
     				if (RtcTxCounter == 5)
@@ -2186,11 +2213,15 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
     			{
     				if (IsStart(t.seconds))
     				{
-    					virtGuiCounter++;
-    					virtualCounterChanged(virtGuiCounter);
-    					if (virtGuiCounter == 12)
-    						virtGuiCounter = 0;
     					++count_VrtualTimer;
+    				}
+
+    				if (antiSync)
+    				{
+						virtGuiCounter++;
+						virtualCounterChanged(virtGuiCounter);
+		//					if (virtGuiCounter == 120)
+		//						virtGuiCounter = 0;
     				}
     			}
     		}
@@ -2234,7 +2265,8 @@ void DspController::sendSms(Module module)
     	for(int i = 0; i<4;i++) time[i] = date_time[i];
     }
 
-    if (sms_counter >= 19 && sms_counter <= 38){
+    if (sms_counter >= 19 && sms_counter <= 38)
+    {
     	ContentSms.L_CODE = navigator->Calc_LCODE_SMS(
     	ContentSms.R_ADR,
 		ContentSms.S_ADR,
@@ -2387,7 +2419,7 @@ void DspController::prevTime()
 
 void DspController::getZone()
 {
-	for(int i = 0; i<18;i++)
+	for(int i = 0; i < 18; i++)
 	{
 		if ( waveZone[i] >= 0  && waveZone[i] < 6  ) syncro_recieve[i] = 0;
 		if ( waveZone[i] >  5  && waveZone[i] < 12 ) syncro_recieve[i] = 1;
@@ -3207,7 +3239,7 @@ void DspController::goToVoice(){
 	sendCommandEasy(TxRadiopath,2,comandValue);
 	virtGuiCounter = 0;
 	if (guc_rx_quit_timer)
-	guc_rx_quit_timer->stop();
+		stopGucTimer();
 
 }
 
@@ -3339,6 +3371,7 @@ void DspController::wakeUpTimer()
 		boomVirtualPPS = true;
 	}
 #endif
+	//guc_rx_quit_timer->
 }
 
 void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_len)
@@ -3349,6 +3382,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 		pswf_in_virt++;
 		if (pswf_in_virt >= 90)
 		{
+			virtGuiCounter = 0;
 			sms_counter = 0;
 			smsSmallCounter = 0;
 			startVirtualPpsModeRx();
@@ -3392,10 +3426,10 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			antiSync = true;
 			qmDebugMessage(QmDebug::Dump, "Sync anti turn on");
 			correctTime(data[7]);
-			virtGuiCounter = data[7];
+			virtGuiCounter = data[7] * 12 - 7;
 			virtualCounterChanged(virtGuiCounter);
-			if (virtGuiCounter == 12)
-				virtGuiCounter = 0;
+//			if (virtGuiCounter == 120)
+//				virtGuiCounter = 0;
 		}
 
         if (SmsLogicRole != SmsRoleIdle)
@@ -3403,7 +3437,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			qmDebugMessage(QmDebug::Dump, "processReceivedFrame() data_len = %d", data_len);
 			if (sms_counter > 38 && sms_counter < 76)
 			{
-				uint8_t index_sms = 7 * (sms_counter-40);
+				uint8_t index_sms = 7 * (sms_counter - 40);
 				for(int i = 0; i <  7; i++)
 				{
 					smsDataPacket[index_sms + i ] = data[i+8];
@@ -3583,8 +3617,31 @@ void DspController::playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t
 
 void DspController::onGucWaitingQuitTimeout()
 {
-    recievedGucQuitForTransm(-1);
-	completedStationMode(false);
+	if (guc_rx_quit_timer_counter)
+	{
+		guc_rx_quit_timer->start();
+		guc_rx_quit_timer_counter--;
+		qwitCounterChanged(guc_rx_quit_timer_counter, 0);
+	}
+	else
+	{
+		recievedGucQuitForTransm(-1);
+		completedStationMode(false);
+	}
+}
+
+void DspController::startGucTimer()
+{
+	guc_rx_quit_timer_counter = 180;
+	qwitCounterChanged(guc_rx_quit_timer_counter, 0);
+	guc_rx_quit_timer->start();
+}
+
+void DspController::stopGucTimer()
+{
+	guc_rx_quit_timer->stop();
+	guc_rx_quit_timer_counter = 180;
+	//qwitCounterChanged(guc_rx_quit_timer_counter);
 }
 
 void DspController::vm1Pps()

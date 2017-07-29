@@ -205,7 +205,7 @@ public:
     sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, uint8_t/*errors*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket;
     sigc::signal<void, uint8_t/*snr*/, uint8_t/*errors*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket_packHead;
     sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
-    sigc::signal<void,int> recievedGucResp;    // ����� �� ������ ��
+    sigc::signal<void,int,bool> recievedGucResp;    // ����� �� ������ ��
     sigc::signal<void,int> recievedGucQuitForTransm; // ����� ��������� ����� ��
 
     sigc::signal<void> updateGucGpsStatus;
@@ -221,6 +221,7 @@ public:
 
     sigc::signal<void> startCondReceiving;
     sigc::signal<void, uint8_t> virtualCounterChanged;
+    sigc::signal<void, uint8_t, uint8_t> qwitCounterChanged;
     sigc::signal<void, bool> transmitAsk;
 
     PackageManager *pack_manager;
@@ -264,6 +265,13 @@ public:
     uint8_t* getVirtualTime();
     void completedStationMode(bool isGoToVoice){stationModeIsCompleted(isGoToVoice);}
     QmTimer *guc_rx_quit_timer = 0;
+    uint32_t guc_rx_quit_timer_counter = 0;
+
+    void startGucTimer();
+    void stopGucTimer();
+
+    bool isTxAsk = false;
+
 private:
     friend struct DspCommand;
 
@@ -586,6 +594,7 @@ private:
     uint8_t guc_coord[10];                                      // ������ ��� �������� ��������� � ���
     int  freqGucValue = 0;                                      // ������� ��� ��������� � ���
     uint8_t waitAckTimer = 0;
+    uint8_t txAckTimer = 0;
     uint8_t smsDataPacket[255];
     uint8_t pswfDataPacket[30];
 
