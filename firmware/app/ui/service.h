@@ -148,7 +148,7 @@ public:
     void onCompletedStationMode(bool isGoToVoice = true);
     void onStartCondReceiving();
     void onVirtualCounterChanged(uint8_t counter);
-    void onQwitCounterChanged(uint8_t counter, uint8_t all);
+    void onQwitCounterChanged(uint8_t counter);
     void onTransmitAsk(bool on);
 private:
     void msgBox(const char*);
@@ -319,6 +319,37 @@ private:
     uint32_t curAleFreq = 0;
 
     Multiradio::VoiceServiceInterface::Status multiradioStatus;
+
+    void mainWindow_keyPressed(UI_Key key);
+    void messangeWindow_keyPressed(UI_Key key);
+    void menuWindow_keyPressed(UI_Key key);
+    void endMenuWindow_keyPressed(UI_Key key);
+
+    void condCommand_keyPressed(UI_Key key);
+    void txGroupCondCmd_keyPressed(UI_Key key);
+    void txPutOffVoice_keyPressed(UI_Key key);
+    void txSmsMessage_keyPressed(UI_Key key);
+    void recvVoice_keyPressed(UI_Key key);
+    void recvCondCmd_keyPressed(UI_Key key);
+    void rxSmsMessage_keyPressed(UI_Key key);
+    void recvGroupCondCmd_keyPressed(UI_Key key);
+    void rxPutOffVoice_keyPressed(UI_Key key);
+    void volume_keyPressed(UI_Key key);
+    void scan_keyPressed(UI_Key key);
+    void suppress_keyPressed(UI_Key key);
+    void display_keyPressed(UI_Key key);
+    void aruarmaus_keyPressed(UI_Key key);
+    void gpsCoord_keyPressed(UI_Key key);
+    void gpsSync_keyPressed(UI_Key key);
+    void setDate_keyPressed(UI_Key key);
+    void setTime_keyPressed(UI_Key key);
+    void setFreq_keyPressed(UI_Key key);
+    void setSpeed_keyPressed(UI_Key key);
+    void editRnKey_keyPressed(UI_Key key);
+    void voiceMode_keyPressed(UI_Key key);
+    void channelEmissionType_keyPressed(UI_Key key);
+    void filetree_keyPressed(UI_Key key);
+    void sheldure_keyPressed(UI_Key key);
 };
 
 } /* namespace Ui */

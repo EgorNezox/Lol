@@ -221,7 +221,7 @@ public:
 
     sigc::signal<void> startCondReceiving;
     sigc::signal<void, uint8_t> virtualCounterChanged;
-    sigc::signal<void, uint8_t, uint8_t> qwitCounterChanged;
+    sigc::signal<void, uint8_t> qwitCounterChanged;
     sigc::signal<void, bool> transmitAsk;
 
     PackageManager *pack_manager;

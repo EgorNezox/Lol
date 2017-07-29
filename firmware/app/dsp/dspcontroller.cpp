@@ -565,7 +565,7 @@ void DspController::LogicPswfTx()
 
 	if (isTxAsk)
 	{
-		qwitCounterChanged(32 - command_tx30, 0);
+		qwitCounterChanged(32 - command_tx30);
 	}
 
     if ((command_tx30 % 3 == 0) && (!setAsk))
@@ -585,7 +585,7 @@ void DspController::LogicPswfTx()
 			CondComLogicRole = CondComRx;
 			waitAckTimer = 1;
 			setPswfRx();
-			qwitCounterChanged(65 - waitAckTimer, 0);
+			qwitCounterChanged(65 - waitAckTimer);
 		}
 		else
 		{
@@ -605,7 +605,7 @@ void DspController::LogicPswfRx()
 	if (waitAckTimer)
 	{
 		waitAckTimer++;
-		qwitCounterChanged(65 - waitAckTimer, 0);
+		qwitCounterChanged(65 - waitAckTimer);
 		if (waitAckTimer >= 65)
 		{
 			waitAckTimer = 0;
@@ -916,7 +916,7 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
 			}
 			if (pswf_rec >= 2)
 			{
-				qwitCounterChanged(60 - pswf_in , 0);
+				qwitCounterChanged(60 - pswf_in);
 			}
     	}
     }
@@ -3621,7 +3621,7 @@ void DspController::onGucWaitingQuitTimeout()
 	{
 		guc_rx_quit_timer->start();
 		guc_rx_quit_timer_counter--;
-		qwitCounterChanged(guc_rx_quit_timer_counter, 0);
+		qwitCounterChanged(guc_rx_quit_timer_counter);
 	}
 	else
 	{
@@ -3633,7 +3633,7 @@ void DspController::onGucWaitingQuitTimeout()
 void DspController::startGucTimer()
 {
 	guc_rx_quit_timer_counter = 180;
-	qwitCounterChanged(guc_rx_quit_timer_counter, 0);
+	qwitCounterChanged(guc_rx_quit_timer_counter);
 	guc_rx_quit_timer->start();
 }
 

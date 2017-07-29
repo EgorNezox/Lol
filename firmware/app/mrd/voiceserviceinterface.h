@@ -67,7 +67,7 @@ public:
     sigc::signal<void, uint8_t/*new_value*/> aleVmProgressUpdated;
     sigc::signal<void> startCondReceiving;
     sigc::signal<void, uint8_t> virtualCounterChanged;
-    sigc::signal<void, uint8_t, uint8_t> qwitCounterChanged;
+    sigc::signal<void, uint8_t> qwitCounterChanged;
     sigc::signal<void, bool> transmitAsk;
 
 	ChannelStatus getCurrentChannelStatus();
@@ -195,7 +195,7 @@ public:
     void setSwrTimerState(bool state);
     void onStartCondReceiving();
     void onVirtualCounterChanged(uint8_t counter);
-    void onQwitCounterChanged(uint8_t counter, uint8_t all);
+    void onQwitCounterChanged(uint8_t counter);
     void onTransmitAsk(bool on);
 
 private:

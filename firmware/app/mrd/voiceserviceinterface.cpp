@@ -635,9 +635,9 @@ void VoiceServiceInterface::onVirtualCounterChanged(uint8_t counter)
 	virtualCounterChanged(counter);
 }
 
-void VoiceServiceInterface::onQwitCounterChanged(uint8_t counter, uint8_t all)
+void VoiceServiceInterface::onQwitCounterChanged(uint8_t counter)
 {
-	qwitCounterChanged(counter, all);
+	qwitCounterChanged(counter);
 }
 
 void VoiceServiceInterface::onTransmitAsk(bool on)
