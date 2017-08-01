@@ -205,7 +205,8 @@ void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len) {
 		}
 		if (state == StateSmartOk && !cmd_resp_timer->isActive()) {
 			qmDebugMessage(QmDebug::Dump, "asynchronous cmd HS_CMD_STATUS");
-			processReceivedStatusAsync(data, data_len);
+			processReceivedStatus(data, data_len);
+			//processReceivedStatusAsync(data, data_len);
 			break;
 		}
 		cmd_resp_timer->stop();
@@ -364,13 +365,13 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 		uint8_t isDelayPlayingImpDevice = data[19] & 0x10; // packets from many devices
 
 
-		qmDebugMessage(QmDebug::Dump, "chan_number: %d", chan_number);
-		qmDebugMessage(QmDebug::Dump, "ch_mask: 0x%X", ch_mask);
-		qmDebugMessage(QmDebug::Dump, "mode_mask: 0x%X", mode_mask);
-		qmDebugMessage(QmDebug::Dump, "mode_mask_add: 0x%X", mode_mask_add);
+//		qmDebugMessage(QmDebug::Dump, "chan_number: %d", chan_number);
+//		qmDebugMessage(QmDebug::Dump, "ch_mask: 0x%X", ch_mask);
+//		qmDebugMessage(QmDebug::Dump, "mode_mask: 0x%X", mode_mask);
+//		qmDebugMessage(QmDebug::Dump, "mode_mask_add: 0x%X", mode_mask_add);
 
-		qmDebugMessage(QmDebug::Dump, "energy: %d", energy);
-		qmDebugMessage(QmDebug::Dump, "modeKB: %d", modeKB);
+//		qmDebugMessage(QmDebug::Dump, "energy: %d", energy);
+//		qmDebugMessage(QmDebug::Dump, "modeKB: %d", modeKB);
 		qmDebugMessage(QmDebug::Dump, "delaySpechRecord: %d", delaySpechRecord);
 		qmDebugMessage(QmDebug::Dump, "rxtxMode: %d", rxtxMode);
 		qmDebugMessage(QmDebug::Dump, "delayMsgOn: %d", delayMsgOn);
@@ -402,6 +403,20 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 			updateState(StateSmartMalfunction);
 			break;
 		}
+
+		//static bool isNotInit = false;
+		//isNotInit = isNotInitModule > 0;
+		if (isNotInitModule && statusCounter < 2)
+		{
+			statusCounter++;
+			QmThread::msleep(1000);
+//			setSmartHSState(SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL);
+//			transmitCmd(HS_CMD_STATUS, NULL, 0);
+//			QmThread::msleep(2000);
+			synchronizeHSState();
+			return;
+		}
+		//else if ()
 
 
 		Multiradio::voice_channel_t chan_type = Multiradio::channelInvalid;
@@ -646,7 +661,7 @@ void Controller::synchronizeHSState()
 //		ch_speed = Multiradio::voicespeed600;
 //	}
 
-	ch_speed = Multiradio::voicespeed600;
+//	ch_speed = Multiradio::voicespeed600;
 
 	switch (ch_speed)
 	{
@@ -659,7 +674,7 @@ void Controller::synchronizeHSState()
 	data[2] |= (uint8_t)((squelch_enable ? 0 : 1) << 5); // mode mask
 	data[3] = ch_number; // channel number
 	data[4] = 0xFF; // reserved
-	data[5] = 0x01 | (uint8_t)((indication_enable ? 0 : 1) << 2);
+	data[5] = 0x01;// | (uint8_t)((indication_enable ? 0 : 1) << 2);
 	for (int i = 6; i < data_size; ++i)
 		data[i] = 0;
 	transmitCmd(HS_CMD_SET_MODE, data, data_size);
@@ -918,27 +933,27 @@ void Controller::GarnitureStart()
 
 void Controller::setChannel(uint8_t channel)
 {
-	//ch_number = channel;
-	//ch_speed = getChannelSpeed(channel);
-	synchronizeHSState();
+	ch_number = channel;
+	ch_speed = getChannelSpeed(channel);
+	//synchronizeHSState();
 
 //	qmDebugMessage(QmDebug::Warning, "setChannel() %d", channel);
 //	setSmartHSState(SmartHSState_SMART_READY);
-//	const int data_size = 16;
-//	uint8_t data[data_size];
-//	data[0] = 0xAB;
-//	data[1] = 0xBA;
-//	//data[2] = 0x01;
-//	data[2] = 35;
-//	//data[2] |= (uint8_t)((squelch_enable ? 0 : 1) << 5); // mode mask
-//	data[3] = channel; // channel number
-//	data[4] = 0xFF; // reserved
-//	data[5] = 0x01;// | (uint8_t)((indication_enable ? 0 : 1) << 2);
-//	for (int i = 6; i < data_size; ++i)
-//		data[i] = 0;
-//	cmd_resp_timer->setInterval(3000);
-//	transmitCmd(HS_CMD_SET_MODE, data, data_size);
-//	checkUpdateSmartHSState();
+	const int data_size = 16;
+	uint8_t data[data_size];
+	data[0] = 0xAB;
+	data[1] = 0xBA;
+	//data[2] = 0x01;
+	data[2] = 35;
+	//data[2] |= (uint8_t)((squelch_enable ? 0 : 1) << 5); // mode mask
+	data[3] = channel; // channel number
+	data[4] = 0xFF; // reserved
+	data[5] = 0x01;// | (uint8_t)((indication_enable ? 0 : 1) << 2);
+	for (int i = 6; i < data_size; ++i)
+		data[i] = 0;
+	cmd_resp_timer->setInterval(3000);
+	transmitCmd(HS_CMD_SET_MODE, data, data_size);
+	checkUpdateSmartHSState();
 }
 
 Multiradio::voice_channel_t Controller::getChannelType(int channel)

@@ -834,55 +834,50 @@ void Service::drawMenu()
 
             switch(menu->smsTxStage)
             {
-            case 1:
-            {
-                titleStr.append(ticketStr[1]);
-                fieldStr.append(useScanMenu[menu->useSmsRetrans]);
-                break;
-            }
-            case 3:            // address dst
-            case 4: (*iter)++; // message
-            case 2: (*iter)++; // address retr
-            {
-                titleStr.append(condCommStr[num]);
-                fieldStr.append((*iter)->inputStr); // address retr
-                break;
-            }
-            case 5:
-            {
-                fieldStr.clear();
-                fieldStr.append(startStr);
-                break;
-            }
-            case 6:
-            {
+				case 1:
+				{
+					titleStr.append(ticketStr[1]);
+					fieldStr.append(useScanMenu[menu->useSmsRetrans]);
+					break;
+				}
+				case 2: (*iter)++; // address retr
+				case 4: (*iter)++; // message
+				case 3:            // address dst
+				{
+					titleStr.append(condCommStr[num]);
+					fieldStr.append((*iter)->inputStr); // address retr
+					break;
+				}
+				case 5:
+				{
+					fieldStr.clear();
+					fieldStr.append(startStr);
+					break;
+				}
+				case 6:
+				{
 
-            	uint8_t counter = voice_service->getSmsCounter();
-            	bool isSynch = voice_service->getVirtualMode() && !counter;
+					uint8_t counter = voice_service->getSmsCounter();
+					bool isSynch = voice_service->getVirtualMode() && !counter;
 
-            	fieldStr.clear();
+					fieldStr.clear();
 
-            	if (isSynch)
-            	{
-            		char syn[4] = {0,0,0,0};
-            		sprintf(syn, "%d", menu->virtCounter);
-            		//if (menu->virtCounter)
-            		fieldStr.append("\t").append(syncWaitingStr).append("\n ").append(syn).append(" / 120");
-//            		else
-//            			fieldStr.append(receiveStatusStr[1]);
-            	}
-            	else
-            	{
-					char pac[2];
-					sprintf(pac,"%i", counter);
+					if (isSynch)
+					{
+						char syn[4] = {0,0,0,0};
+						sprintf(syn, "%d", menu->virtCounter);
+						fieldStr.append("\t").append(syncWaitingStr).append("\n ").append(syn).append(" / 120");
+					}
+					else
+					{
+						char pac[2];
+						sprintf(pac,"%i", counter);
 
-					fieldStr.append(pac);
-					fieldStr.append("/82");
-            	}
-                break;
-            }
-            default:
-            { break; }
+						fieldStr.append(pac);
+						fieldStr.append("/82");
+					}
+					break;
+				}
             }
 
             menu->initTxSmsDialog( titleStr, fieldStr );

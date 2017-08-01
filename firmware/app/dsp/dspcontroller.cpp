@@ -474,7 +474,7 @@ void DspController::sendPswf()
 		time[1] = t.hours;
 		time[2] = t.minutes;
 		time[3] = t.seconds;
-		qmDebugMessage(QmDebug::Dump, "time now: %d %d %d %d" ,d.day,t.hours,t.minutes,t.seconds);
+		//qmDebugMessage(QmDebug::Dump, "time now: %d %d %d %d" ,d.day,t.hours,t.minutes,t.seconds);
 	}
 	else
 	{
@@ -601,7 +601,7 @@ void DspController::LogicPswfRx()
 {
     setPswfRxFreq();
 
-     qmDebugMessage(QmDebug::Dump, "LogicPswfRx() waitAckTimer = %d", waitAckTimer);
+   //  qmDebugMessage(QmDebug::Dump, "LogicPswfRx() waitAckTimer = %d", waitAckTimer);
 	if (waitAckTimer)
 	{
 		waitAckTimer++;
@@ -640,7 +640,7 @@ void DspController::LogicPswfRx()
 
 void DspController::changePswfFrequency()
 {
-    qmDebugMessage(QmDebug::Dump, "changePswfFrequency() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
+ //   qmDebugMessage(QmDebug::Dump, "changePswfFrequency() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
 	if (!virtual_mode)
 	{
 		getDataTime();
@@ -667,12 +667,12 @@ void DspController::setPswfRxFreq()
 
 void DspController::RxSmsWork()
 {
-    qmDebugMessage(QmDebug::Dump, "RxSmsWork()");
+  //  qmDebugMessage(QmDebug::Dump, "RxSmsWork()");
 	if (radio_state == radiostateSync) return;
 
 	if (sms_counter < 20)
 	{
-		 qmDebugMessage(QmDebug::Dump, "_____RxSmsWork() smsSmallCounter = %d", smsSmallCounter);
+	//	 qmDebugMessage(QmDebug::Dump, "_____RxSmsWork() smsSmallCounter = %d", smsSmallCounter);
 	     if (syncro_recieve.size() % 2 == 0 )
 		   smsCounterChanged(smsSmallCounter);
 	}
@@ -747,7 +747,7 @@ void DspController::RxSmsWork()
 
 void DspController::TxSmsWork()
 {
-    qmDebugMessage(QmDebug::Dump, "TxSmsWork()");
+ //   qmDebugMessage(QmDebug::Dump, "TxSmsWork()");
 	if (radio_state == radiostateSync) return;
 
     ++sms_counter;
@@ -815,7 +815,7 @@ void DspController::TxSmsWork()
 
 void DspController::changeSmsFrequency()
 {
-    qmDebugMessage(QmDebug::Dump, "changeSmsFrequency() r_adr = %d,s_adr = %d", ContentSms.R_ADR,ContentSms.S_ADR);
+ //   qmDebugMessage(QmDebug::Dump, "changeSmsFrequency() r_adr = %d,s_adr = %d", ContentSms.R_ADR,ContentSms.S_ADR);
 	if (!virtual_mode)
 	{
 	  getDataTime();
@@ -832,7 +832,7 @@ void DspController::changeSmsFrequency()
         RxSmsWork();
 	}
 
-	 qmDebugMessage(QmDebug::Dump, "changeSmsFrequency() sms_counter = %d", sms_counter);
+//	 qmDebugMessage(QmDebug::Dump, "changeSmsFrequency() sms_counter = %d", sms_counter);
     static uint8_t tempCounter = sms_counter;
     if (tempCounter != sms_counter && sms_counter % 2 == 0 )
       smsCounterChanged(sms_counter);

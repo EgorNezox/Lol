@@ -118,10 +118,11 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
 
         break;
     }
-    case 4: // ввод условной команды                   // num 2
     case 3: (*iter)++; // ввод адреса ретранслятора    // num 0
     case 2: (*iter)++;// ввод адреса получателя        // num 1
+    case 4: // ввод условной команды                   // num 2
     {
+
         if ((*iter)->inputStr.size() == 0)
             str.append("--");
         else if ((*iter)->inputStr.size() == 1)

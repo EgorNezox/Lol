@@ -350,6 +350,8 @@ private:
 	uint8_t message_to_play_last_packet_data_size;
 
 	bool minimal_activity_mode;
+
+	uint8_t statusCounter = 0;
 };
 
 } /* namespace Headset */

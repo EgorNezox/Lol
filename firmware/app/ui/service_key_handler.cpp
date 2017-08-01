@@ -15,6 +15,40 @@
 
 namespace Ui {
 
+void Service::endMenuWindow_keyPressed(UI_Key key)
+{
+    CEndState estate = (CEndState&)guiTree.getCurrentState();
+
+    switch(estate.subType)
+    {
+		case GuiWindowsSubType::condCommand:     	 condCommand_keyPressed(key); break;
+		case GuiWindowsSubType::txGroupCondCmd:		 txGroupCondCmd_keyPressed(key); break;
+		case GuiWindowsSubType::txPutOffVoice:		 txPutOffVoice_keyPressed(key); break;
+		case GuiWindowsSubType::txSmsMessage:	     txSmsMessage_keyPressed(key); break;
+		case GuiWindowsSubType::recvVoice:			 recvVoice_keyPressed(key); break;
+		case GuiWindowsSubType::recvCondCmd:		 recvCondCmd_keyPressed(key); break;
+		case GuiWindowsSubType::rxSmsMessage:		 rxSmsMessage_keyPressed(key); break;
+		case GuiWindowsSubType::recvGroupCondCmd:	 recvGroupCondCmd_keyPressed(key); break;
+		case GuiWindowsSubType::rxPutOffVoice:		 rxPutOffVoice_keyPressed(key); break;
+		case GuiWindowsSubType::volume:				 volume_keyPressed(key); break;
+		case GuiWindowsSubType::scan:				 scan_keyPressed(key); break;
+		case GuiWindowsSubType::suppress:			 suppress_keyPressed(key); break;
+		case GuiWindowsSubType::display:			 display_keyPressed(key); break;
+		case GuiWindowsSubType::aruarmaus:			 aruarmaus_keyPressed(key); break;
+		case GuiWindowsSubType::gpsCoord:			 gpsCoord_keyPressed(key); break;
+		case GuiWindowsSubType::gpsSync:			 gpsSync_keyPressed(key); break;
+		case GuiWindowsSubType::setDate:			 setDate_keyPressed(key); break;
+		case GuiWindowsSubType::setTime:			 setTime_keyPressed(key); break;
+		case GuiWindowsSubType::setFreq: 			 setFreq_keyPressed(key); break;
+		case GuiWindowsSubType::setSpeed: 			 setSpeed_keyPressed(key); break;
+		case GuiWindowsSubType::editRnKey:			 editRnKey_keyPressed(key); break;
+		case GuiWindowsSubType::voiceMode:           voiceMode_keyPressed(key); break;
+		case GuiWindowsSubType::channelEmissionType: channelEmissionType_keyPressed(key); break;
+		case GuiWindowsSubType::filetree: 			 filetree_keyPressed(key); break;
+		case GuiWindowsSubType::sheldure:            sheldure_keyPressed(key); break;
+    }
+}
+
 void Service::mainWindow_keyPressed(UI_Key key)
 {
     if (main_scr->isEditing())
@@ -284,41 +318,6 @@ void Service::menuWindow_keyPressed(UI_Key key)
     menu->keyPressed(key);
 }
 
-
-void Service::endMenuWindow_keyPressed(UI_Key key)
-{
-    CEndState estate = (CEndState&)guiTree.getCurrentState();
-
-    switch(estate.subType)
-    {
-		case GuiWindowsSubType::condCommand:     	 condCommand_keyPressed(key); break;
-		case GuiWindowsSubType::txGroupCondCmd:		 txGroupCondCmd_keyPressed(key); break;
-		case GuiWindowsSubType::txPutOffVoice:		 txPutOffVoice_keyPressed(key); break;
-		case GuiWindowsSubType::txSmsMessage:	     txSmsMessage_keyPressed(key); break;
-		case GuiWindowsSubType::recvVoice:			 recvVoice_keyPressed(key); break;
-		case GuiWindowsSubType::recvCondCmd:		 recvCondCmd_keyPressed(key); break;
-		case GuiWindowsSubType::rxSmsMessage:		 rxSmsMessage_keyPressed(key); break;
-		case GuiWindowsSubType::recvGroupCondCmd:	 recvGroupCondCmd_keyPressed(key); break;
-		case GuiWindowsSubType::rxPutOffVoice:		 rxPutOffVoice_keyPressed(key); break;
-		case GuiWindowsSubType::volume:				 volume_keyPressed(key); break;
-		case GuiWindowsSubType::scan:				 scan_keyPressed(key); break;
-		case GuiWindowsSubType::suppress:			 suppress_keyPressed(key); break;
-		case GuiWindowsSubType::display:			 display_keyPressed(key); break;
-		case GuiWindowsSubType::aruarmaus:			 aruarmaus_keyPressed(key); break;
-		case GuiWindowsSubType::gpsCoord:			 gpsCoord_keyPressed(key); break;
-		case GuiWindowsSubType::gpsSync:			 gpsSync_keyPressed(key); break;
-		case GuiWindowsSubType::setDate:			 setDate_keyPressed(key); break;
-		case GuiWindowsSubType::setTime:			 setTime_keyPressed(key); break;
-		case GuiWindowsSubType::setFreq: 			 setFreq_keyPressed(key); break;
-		case GuiWindowsSubType::setSpeed: 			 setSpeed_keyPressed(key); break;
-		case GuiWindowsSubType::editRnKey:			 editRnKey_keyPressed(key); break;
-		case GuiWindowsSubType::voiceMode:           voiceMode_keyPressed(key); break;
-		case GuiWindowsSubType::channelEmissionType: channelEmissionType_keyPressed(key); break;
-		case GuiWindowsSubType::filetree: 			 filetree_keyPressed(key); break;
-		case GuiWindowsSubType::sheldure:            sheldure_keyPressed(key); break;
-    }
-}
-
 void Service::condCommand_keyPressed(UI_Key key)
 {
 	CEndState estate = (CEndState&)guiTree.getCurrentState();
@@ -349,7 +348,9 @@ void Service::condCommand_keyPressed(UI_Key key)
 			if ( estate.subType == condCommand && estate.listItem.size() == 3)
 			{
 				if (key == keyLeft || key == keyRight)
-				{ menu->useCmdRetrans = menu->useCmdRetrans ? false : true; }
+				{
+					menu->useCmdRetrans = not menu->useCmdRetrans;
+				}
 			}
 			else
 			{
@@ -364,19 +365,20 @@ void Service::condCommand_keyPressed(UI_Key key)
 			if ( key > 5 && key < 16)
 			{
 				auto iter = estate.listItem.begin();
+
 				if (menu->txCondCmdStage != 4)
-				{
-					(*iter)++; if (menu->txCondCmdStage == 3) (*iter)++;
-				}
-				if ( (*iter)->inputStr.size() < 2 )
+					(*iter)++;
+				if (menu->txCondCmdStage == 3)
+					(*iter)++;
+
+				if ((*iter)->inputStr.size() < 2 )
 				{
 					(*iter)->inputStr.push_back((char)(42+key));
-					// check
 					int rc = atoi((*iter)->inputStr.c_str());
 					uint8_t num = menu->txCondCmdStage == 4 ? 99 : 31;
 					if ( rc > num )
-					{ (*iter)->inputStr.clear(); }
-				}
+					  (*iter)->inputStr.clear();
+			 	}
 			}
 			break;
 		}
@@ -405,7 +407,7 @@ void Service::condCommand_keyPressed(UI_Key key)
                     (*iter)->inputStr.push_back((char)(42+key0));
                     (*iter)->inputStr.push_back((char)(42+key0));
                 }
-                break;
+//                break;
             }
 
             // indiv
@@ -664,16 +666,15 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
 
             if ( key == keyBack )
             {
-                if(address->size() > 0)
-                {
+                if (address->size() > 0)
                     address->pop_back();
-                }else
+                else
                     menu->groupCondCommStage--;
             }
 
             if ( key == keyEnter )
             {
-                if(address->size() > 0)
+                if (address->size() > 0)
                     menu->groupCondCommStage++;
             }
 
@@ -719,7 +720,8 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
             }
             if ( key == keyUp )
             {
-                if(menu->cmdScrollIndex > 0) menu->cmdScrollIndex--;
+                if(menu->cmdScrollIndex > 0)
+                	menu->cmdScrollIndex--;
             }
 
             if ( key == keyDown )
@@ -1448,7 +1450,7 @@ void Service::recvGroupCondCmd_keyPressed(UI_Key key)
 			case 4:
 			{
     			cntGucRx = -1;
-                onCompletedStationMode(false);
+                onCompletedStationMode(true);
 				break;
 			}
 			case 1:
