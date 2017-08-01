@@ -317,6 +317,8 @@ private:
 	void checkUpdateSmartHSState();
 	void setUpdateState();
 
+	void testProcessReceivedCmd(uint8_t cmd, uint8_t* data, int data_len);
+
 	State state;
 	Status status;
 	QmPushButtonKey* ptt_key;
@@ -352,6 +354,8 @@ private:
 	bool minimal_activity_mode;
 
 	uint8_t statusCounter = 0;
+	bool _isNotInitModule = false;
+	bool isToOpenChannel = false;
 };
 
 } /* namespace Headset */

@@ -127,6 +127,7 @@ void Service::mainWindow_keyPressed(UI_Key key)
     		if (channelNumberEditing > 0 && channelNumberEditing < 99)
     		{
     			headset_controller->setChannel(channelNumberEditing);
+    			onCompletedStationMode(true);
     			channelNumberEditing = 0;
     			channelNumberSyms = 0;
     		    main_scr->channelEditing = false;
@@ -862,7 +863,8 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
                 menu->focus = 2;
                 menu->inVoiceMail = false;
                 menu->toVoiceMail = false;
-                onCompletedStationMode();
+                voice_service->stopAle();
+                onCompletedStationMode(true);
             }
         }
 #ifdef _DEBUG_
