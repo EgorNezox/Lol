@@ -639,27 +639,53 @@ void CGuiMenu::TxVoiceDialogStatus1(int status, bool isClear)
     str = "";
     ColorSchemeType cst;
 
-    if (!isClear){
-        cst = CST_DEFAULT;
-        if (channalNum.size() == 0)
-            str.append("__");
-        else if (channalNum.size() == 1){
-            str.push_back('_');
-            str.append(channalNum);
+    if (voiceMailSource != VMS_CHANNEL)
+    {
+        if (!isClear)
+        {
+            cst = CST_DEFAULT;
+            str = voiceMailSource == VMS_TX_FILE ? "Tx" : "Rx";
+            str.push_back('\0');
+            strOld = str;
         }
-        else
-            str.append(channalNum);
-
-        str.push_back('\0');
-        strOld = str;
+		else
+		{
+			cst = CST_INVERSE;
+			str = strOld;
+		}
     }
-    else{
-        str = strOld;
-        cst = CST_INVERSE;
+    else
+    {
+		if (!isClear)
+		{
+			cst = CST_DEFAULT;
+			if (channalNum.size() == 0)
+				str.append("__");
+			else if (channalNum.size() == 1){
+				str.push_back('_');
+				str.append(channalNum);
+			}
+			else
+				str.append(channalNum);
+
+			str.push_back('\0');
+			strOld = str;
+		}
+		else
+		{
+			str = strOld;
+			cst = CST_INVERSE;
+		}
     }
 
     GUI_Painter::DrawText(15,35,voiceFont,(char*)voiceRxTxLabelStr[0],cst);
-    GUI_Painter::DrawText(55,75,voiceDigitFont,(char*)str.c_str(),cst);
+    if (!isClear)
+    	GUI_Painter::DrawText(55,75,voiceMailSource == VMS_CHANNEL ? voiceDigitFont : voiceFont,(char*)str.c_str(),cst);
+    else
+    {
+    	GUI_Painter::DrawText(55,75,voiceFont,(char*)str.c_str(),cst);
+        GUI_Painter::DrawText(55,75,voiceDigitFont,(char*)str.c_str(),cst);
+    }
 }
 
 void CGuiMenu::TxVoiceDialogStatus2(int status, bool isClear)
@@ -690,24 +716,28 @@ void CGuiMenu::TxVoiceDialogStatus3(int status, bool isClear)
     ColorSchemeType cst;
     str = "";
 
-    if (!isClear){
-        cst = CST_DEFAULT;
-    if (voiceAddr.size() == 0)
-        str.append("__");
-    else if (voiceAddr.size() == 1){
-        str.push_back('_');
-        str.append(voiceAddr);
+    if (!isClear)
+    {
+    	cst = CST_DEFAULT;
+    	if (voiceAddr.size() == 0)
+    		str.append("__");
+    	else if (voiceAddr.size() == 1)
+    	{
+    		str.push_back('_');
+    		str.append(voiceAddr);
+    	}
+    	else
+    		str.append(voiceAddr);
+
+    	str.push_back('\0');
+    	strOld = str;
     }
     else
-        str.append(voiceAddr);
+    {
+    	str = strOld;
+    	cst = CST_INVERSE;
+    }
 
-    str.push_back('\0');
-    strOld = str;
-    }
-    else{
-    str = strOld;
-    cst = CST_INVERSE;
-    }
     GUI_Painter::DrawText(15,27,voiceFont,(char*)voiceRxTxLabelStr[4],cst);
     GUI_Painter::DrawText(50,75,voiceDigitFont,(char*)str.c_str(),cst);
 }

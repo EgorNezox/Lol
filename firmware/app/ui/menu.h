@@ -40,6 +40,13 @@
 extern MoonsGeometry ui_common_dialog_area;
 extern MoonsGeometry ui_indicator_area;
 
+enum VoiceMailSource
+{
+	VMS_CHANNEL = 0,
+	VMS_TX_FILE = 1,
+	VMS_RX_FILE = 2
+};
+
 class CGuiDialog: public GUI_Obj
 {
 public:
@@ -214,6 +221,9 @@ public:
     bool inVoiceMail = false;
     PGFONT voiceFont = GUI_EL_TEMP_LabelMode.font;
     PGFONT voiceDigitFont = GUI_EL_TEMP_LabelChannel.font;
+
+    VoiceMailSource old_voiceMailSource = VMS_CHANNEL;
+    VoiceMailSource voiceMailSource = VMS_CHANNEL;
 
     void TxVoiceDialogInitPaint(bool isClear = false);
     void VoiceDialogClearWindow();

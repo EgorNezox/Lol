@@ -60,6 +60,7 @@ private:
 	void prepareTuningTx();
 	void processAtuModeChange(AtuController::Mode new_mode);
 	void processAtuRequestTx(bool enable);
+	//voice_emission_t onGetEmissionType();
 
 	void latencyGui();
 

@@ -46,6 +46,8 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 	atu_controller->modeChanged.connect(sigc::mem_fun(this, &Dispatcher::processAtuModeChange));
 	atu_controller->requestTx.connect(sigc::mem_fun(this, &Dispatcher::processAtuRequestTx));
 
+	//dsp_controller->getEmissionType.connect(sigc::mem_fun(this, &Dispatcher::onGetEmissionType));
+
     ale_service = new AleService(this);
 
 	voice_service = new VoiceServiceInterface(this);
@@ -63,7 +65,10 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 	if (!data_storage_fs->getVoiceFrequency(voice_manual_frequency))
 		voice_manual_frequency = 10000000;
 	if (!data_storage_fs->getVoiceEmissionType(voice_manual_emission_type))
+	{
 		voice_manual_emission_type = voiceemissionUSB;
+		dsp_controller->emissionType = voice_manual_emission_type;
+	}
 	if (!data_storage_fs->getVoiceChannelSpeed(voice_manual_channel_speed))
 		voice_manual_channel_speed = voicespeed1200;
 
@@ -211,9 +216,14 @@ void Dispatcher::setVoiceDirection(bool ptt_state)
 
 voice_emission_t Dispatcher::getVoiceEmissionFromFrequency(uint32_t frequency)
 {
-	if ((1500000 <= frequency) && (frequency < 30000000)) {
+	if ((1500000 <= frequency) && (frequency < 30000000))
+	{
+		dsp_controller->emissionType = voiceemissionUSB;
 		return voiceemissionUSB;
-	} else if ((30000000 <= frequency) && (frequency < 300000000)) {
+	}
+	else if ((30000000 <= frequency) && (frequency < 300000000))
+	{
+		dsp_controller->emissionType = voiceemissionFM;
 		return voiceemissionFM;
 	}
 	return voiceemissionInvalid;
@@ -411,6 +421,11 @@ void Dispatcher::DspReset()
 {
 	dsp_controller->dspReset();
 }
+
+//voice_emission_t Dispatcher::onGetEmissionType()
+//{
+//	return voice_manual_emission_type;
+//}
 
 } /* namespace Multiradio */
 

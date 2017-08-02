@@ -886,8 +886,8 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     	private_lcode = (char)navigator->Calc_LCODE(ContentPSWF.R_ADR, ContentPSWF.S_ADR, data, ContentPSWF.RN_KEY, date_time[0], date_time[1], date_time[2], prevSecond(date_time[3]));
 
     //qmDebugMessage(QmDebug::Dump, "recPswf() r_adr = %d,s_adr = %d", ContentPSWF.R_ADR,ContentPSWF.S_ADR);
-    qmDebugMessage(QmDebug::Dump, "recPswf() private_lcode = %d, lcode = %d", private_lcode,code);
-    qmDebugMessage(QmDebug::Dump, "recPswf() pswf_in = %d, pswf_rec = %d, pswf_in_virt = %d ",pswf_in, pswf_rec, pswf_in_virt);
+  //  qmDebugMessage(QmDebug::Dump, "recPswf() private_lcode = %d, lcode = %d", private_lcode,code);
+  //  qmDebugMessage(QmDebug::Dump, "recPswf() pswf_in = %d, pswf_rec = %d, pswf_in_virt = %d ",pswf_in, pswf_rec, pswf_in_virt);
 
 
 	if (virtual_mode && indicator == 31)
@@ -1017,7 +1017,7 @@ int DspController::CalcShiftFreq(int RN_KEY, int DAY, int HRS, int MIN, int SEC)
     int TOT_W = 6671; // � Ўв‚¬� � С‘� Ў� ‚� � С‘� � � …� � В° � Ў� ‚� � В°� � В·� Ў� ‚� � Вµ� Ўв‚¬� � Вµ� � � …� � � …� ЎвЂ№� ЎвЂ¦ � ЎС“� ЎвЂЎ� � В°� Ў� ѓ� ЎвЂљ� � С”� � С•� � � �
     int SEC_MLT = value_sec[SEC]; // SEC_MLT � � � � � ЎвЂ№� � В±� � С‘� Ў� ‚� � В°� � Вµ� � С� � � � �  � � С�� � В°� Ў� ѓ� Ў� ѓ� � С‘� � � � � � Вµ
     int FR_SH = (RN_KEY + 230*SEC_MLT + 19*MIN + 31*HRS + 37*DAY)% TOT_W;
-    qmDebugMessage(QmDebug::Dump, "Calc freq formula %d", FR_SH);
+    //qmDebugMessage(QmDebug::Dump, "Calc freq formula %d", FR_SH);
     return FR_SH;
 }
 
@@ -1066,7 +1066,7 @@ int DspController::CalcSmsTransmitFreq(int RN_KEY, int DAY, int HRS, int MIN, in
     	waveZone.push_back(SEC_MLT / 6);
     }
 
-    qmDebugMessage(QmDebug::Dump, ">>> CalcSmsTransmitFreq() wzn_value %d" ,wzn_value);
+    //qmDebugMessage(QmDebug::Dump, ">>> CalcSmsTransmitFreq() wzn_value %d" ,wzn_value);
     return FR_SH;
 }
 
@@ -3230,17 +3230,23 @@ void DspController::sendModemPacket_packHead(ModemBandwidth bandwidth,
 	transport->transmitFrame(0x7E, &payload[0], payload.size());
 }
 
-void DspController::goToVoice(){
+void DspController::goToVoice()
+{
 	ParameterValue comandValue;
-	comandValue.radio_mode = current_radio_mode;
-	radio_state = radiostateSync;
+
+	switch (emissionType)
+	{
+		case voiceemissionUSB: comandValue.radio_mode = RadioModeUSB;
+		case voiceemissionFM: comandValue.radio_mode = RadioModeFM;
+		default: comandValue.radio_mode = current_radio_mode;
+	}
 	sendCommandEasy(RxRadiopath,2,comandValue);
 	comandValue.radio_mode = RadioModeOff;
 	sendCommandEasy(TxRadiopath,2,comandValue);
 	virtGuiCounter = 0;
 	if (guc_rx_quit_timer)
 		stopGucTimer();
-
+	radio_state = radiostateCmdRxMode;//radiostateSync;
 }
 
 void DspController::magic()

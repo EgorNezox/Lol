@@ -223,6 +223,7 @@ void VoiceServiceInterface::tuneFrequency(int frequency, bool isRecord)
 void VoiceServiceInterface::tuneEmissionType(voice_emission_t type) {
 	dispatcher->data_storage_fs->setVoiceEmissionType(type);
 	dispatcher->voice_manual_emission_type = type;
+	dispatcher->dsp_controller->emissionType = type;
     if (current_mode != VoiceModeManual)
 		return;
     dispatcher->updateVoiceChannel(false);
@@ -505,7 +506,6 @@ uint8_t VoiceServiceInterface::playVoiceMessage(uint8_t fileNumber, DataStorage:
             result = 2;
         else
         {
-
             dispatcher->headset_controller->startSmartPlay(num);
         }
     }

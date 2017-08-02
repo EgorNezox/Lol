@@ -224,6 +224,8 @@ public:
     sigc::signal<void, uint8_t> qwitCounterChanged;
     sigc::signal<void, bool> transmitAsk;
 
+    //sigc::signal<voice_emission_t> getEmissionType;
+
     PackageManager *pack_manager;
     bool retranslation_active = false;
 
@@ -272,6 +274,7 @@ public:
 
     bool isTxAsk = false;
 
+    voice_emission_t emissionType;
 private:
     friend struct DspCommand;
 

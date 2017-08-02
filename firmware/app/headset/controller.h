@@ -173,9 +173,10 @@ public:
 	 */
 	sigc::signal<void, SmartHSState/*new_state*/> smartHSStateChanged;
 
+	sigc::signal<void, bool> delaySpeachStateChanged;
+
 	sigc::signal<void/*new_state*/> BOOM;
 	void GarnitureStart();
-	void onInitModuleTimer();
 
 private:
 	/*!< Состояние подключения гарнитуры */

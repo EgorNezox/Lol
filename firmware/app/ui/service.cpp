@@ -98,6 +98,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateHeadset));
     this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
 
+    this->headset_controller->delaySpeachStateChanged.connect(sigc::mem_fun(this, &Service::onDelaySpeachStateChanged));
+
+
     voice_service->command_tx30.connect(sigc::mem_fun(this, &Service::TxCondCmdPackage));
 
     command_rx_30 = 0;
@@ -506,7 +509,7 @@ int Service::getLanguage()
 
 void Service::onSmsCounterChange(int param)
 {
-    qmDebugMessage(QmDebug::Warning, "______sms counter: %d ", param);
+  //  qmDebugMessage(QmDebug::Warning, "______sms counter: %d ", param);
     menu->virtCounter = 0;
     if (cntSmsRx != 2)
     {
@@ -802,7 +805,6 @@ void Service::drawMenu()
             {
                 status = voice_service->getAleState();
                 menu->vmProgress = voice_service->getAleVmProgress();
-
             }
 
             if (menu->putOffVoiceStatus == 1) voice_service->resetDSPLogic();
@@ -939,9 +941,9 @@ void Service::drawMenu()
             else if (menu->putOffVoiceStatus == 2)
             {
                 status   = voice_service->getAleState();
-                menu->vmProgress = voice_service->getAleVmProgress();
             }
 
+            menu->vmProgress = voice_service->getAleVmProgress();
             if (menu->vmProgress == 100)
             {
             	uint8_t rxAddr = voice_service->getAleRxAddress();
@@ -975,7 +977,7 @@ void Service::drawMenu()
             		menu->inVoiceMail = false;
             		menu->toVoiceMail = false;
             	}
-            	menu->vmProgress == 0;
+            	menu->vmProgress = 0;
             }
 
             menu->initRxPutOffVoiceDialogTest(status);
@@ -1972,8 +1974,7 @@ void Service::playSchedulePromptSignal()
 
 void Service::onCompletedStationMode(bool isGoToVoice)
 {
-	if (isGoToVoice)
-		voice_service->goToVoice();
+
 
 	voice_service->stopGucQuit();
 
@@ -1984,6 +1985,9 @@ void Service::onCompletedStationMode(bool isGoToVoice)
         setFreq();
         garnitureStart();
     }
+
+	if (isGoToVoice)
+		voice_service->goToVoice();
 
     menu->qwitCounter = 0;
     // qwit tx exit menu
@@ -2031,7 +2035,7 @@ void Service::onWaveInfoRecieved(float wave, float power)
 {
     weveValue = wave;
     powerValue = power;
-    qmDebugMessage(QmDebug::Warning, "SWR = %f, POWER = %f ", weveValue, powerValue);
+//    qmDebugMessage(QmDebug::Warning, "SWR = %f, POWER = %f ", weveValue, powerValue);
 #if PARAMS_DRAW
     //if (weveValue > 0 && powerValue > 0)
     	drawWaveInfo();
@@ -2118,7 +2122,7 @@ void Service::onVirtualCounterChanged(uint8_t counter)
 	menu->virtCounter = counter + 1;
 	if (menu->virtCounter > 120)
 		menu->virtCounter = 120;
-    qmDebugMessage(QmDebug::Warning, "_____virtual counter = %d ", menu->virtCounter);
+ //   qmDebugMessage(QmDebug::Warning, "_____virtual counter = %d ", menu->virtCounter);
 	draw();
 }
 
@@ -2133,13 +2137,24 @@ void Service::onQwitCounterChanged(uint8_t counter)
 	menu->qwitCounter = counter;
 	//menu->qwitCounterAll = all;
 
-    qmDebugMessage(QmDebug::Warning, "____qwitCounter    = %d ", menu->qwitCounter);
+   // qmDebugMessage(QmDebug::Warning, "____qwitCounter    = %d ", menu->qwitCounter);
    // qmDebugMessage(QmDebug::Warning, "____qwitCounterAll = %d ", menu->qwitCounterAll);
 
     //if (isCondModeQwitTx)
     CState state = guiTree.getCurrentState();
     if(state.getType() != messangeWindow)
     	draw();
+}
+
+void Service::onDelaySpeachStateChanged(bool isOn)
+{
+	CEndState estate = (CEndState&)guiTree.getCurrentState();
+	if ((not isOn) and (estate.subType == txPutOffVoice) and (menu->putOffVoiceStatus == 2))
+	{
+		menu->putOffVoiceStatus = 1;
+		menu->toVoiceMail = false;
+	    draw();
+	}
 }
 
 }/* namespace Ui */

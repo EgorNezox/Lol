@@ -15,6 +15,8 @@
 
 namespace Ui {
 
+#define TEST_VM_MESSAGE_TX 1
+
 void Service::endMenuWindow_keyPressed(UI_Key key)
 {
     CEndState estate = (CEndState&)guiTree.getCurrentState();
@@ -408,7 +410,7 @@ void Service::condCommand_keyPressed(UI_Key key)
                     (*iter)->inputStr.push_back((char)(42+key0));
                     (*iter)->inputStr.push_back((char)(42+key0));
                 }
-//                break;
+                break;
             }
 
             // indiv
@@ -842,7 +844,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
     {
     case 1:
     {
-        if ( key > 5 && key < 16 && menu->channalNum.size() < 2 )
+        if ( menu->voiceMailSource == VMS_CHANNEL && key > 5 && key < 16 && menu->channalNum.size() < 2 )
         {
             menu->channalNum.push_back((char)(42+key));
             // check
@@ -854,18 +856,45 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
         }
         if (key == keyBack)
         {
-            if (menu->channalNum.size() > 0)
-                menu->channalNum.pop_back();
-            else
-            {
-                guiTree.backvard();
-                menu->offset = 1;
-                menu->focus = 2;
-                menu->inVoiceMail = false;
-                menu->toVoiceMail = false;
-                voice_service->stopAle();
-                onCompletedStationMode(true);
-            }
+        	if (menu->voiceMailSource != VMS_CHANNEL)
+        	{
+            	while (menu->channalNum.size() > 0)
+        		{
+            		menu->channalNum.pop_back();
+        		}
+        	}
+        	else if (menu->channalNum.size() > 0)
+        		menu->channalNum.pop_back();
+
+        	if (menu->voiceMailSource == VMS_CHANNEL && menu->channalNum.size() == 0 || menu->voiceMailSource != VMS_CHANNEL)
+        	{
+        		guiTree.backvard();
+        		menu->offset = 1;
+        		menu->focus = 2;
+        		menu->inVoiceMail = false;
+        		menu->toVoiceMail = false;
+        		voice_service->stopAle();
+        		onCompletedStationMode(true);
+        	}
+
+        }
+        if (key == keyUp)
+        {
+        	switch (menu->voiceMailSource)
+        	{
+        		case VMS_CHANNEL: menu->voiceMailSource = VMS_TX_FILE; menu->old_voiceMailSource = VMS_CHANNEL; break;
+        		case VMS_TX_FILE: menu->voiceMailSource = VMS_RX_FILE; menu->old_voiceMailSource = VMS_TX_FILE; break;
+        	}
+        	menu->inVoiceMail = true;
+        }
+        if (key == keyDown)
+        {
+        	switch (menu->voiceMailSource)
+        	{
+        		case VMS_TX_FILE: menu->voiceMailSource = VMS_CHANNEL; menu->old_voiceMailSource = VMS_TX_FILE; break;
+        		case VMS_RX_FILE: menu->voiceMailSource = VMS_TX_FILE; menu->old_voiceMailSource = VMS_RX_FILE; break;
+        	}
+        	menu->inVoiceMail = true;
         }
 #ifdef _DEBUG_
         if (key == keyEnter)
@@ -876,10 +905,15 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
             }
         }
 #else
-        if (key == keyEnter && menu->channalNum.size() > 0)
+        if (key == keyEnter && menu->voiceMailSource == VMS_CHANNEL && menu->channalNum.size() > 0)
         {
             headset_controller->startSmartRecord((uint8_t)atoi( menu->channalNum.c_str()));
             menu->putOffVoiceStatus++;
+        }
+        if (key == keyEnter && menu->voiceMailSource != VMS_CHANNEL)
+        {
+        	menu->putOffVoiceStatus++;
+        	menu->putOffVoiceStatus++;
         }
 #endif
         break;
@@ -952,7 +986,9 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
                 menu->voiceAddr.pop_back();
             else
             {
-                menu->putOffVoiceStatus--;
+            	menu->putOffVoiceStatus--;
+            	if (menu->voiceMailSource != VMS_CHANNEL)
+            			menu->putOffVoiceStatus--;
             }
         }
 
@@ -987,18 +1023,33 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
         if (key == keyEnter)
         {
             updateAleState(AleState_IDLE);
-            Multiradio::voice_message_t message = headset_controller->getRecordedSmartMessage();
-            if (storageFs > 0)
-            {
-            	GUI_Painter::ClearViewPort();
-                showMessage(waitingStr, flashProcessingStr, promptArea);
-                storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
-                menu->toVoiceMail = false;
-                draw();
-            }
-            voice_service->startAleTx((uint8_t)atoi(menu->voiceAddr.c_str()),message);
-            //Запись во флеш
+        	Multiradio::voice_message_t message;
 
+//#if TEST_VM_MESSAGE_TX
+
+        	if (menu->voiceMailSource != VMS_CHANNEL)
+        	{
+				if (storageFs > 0)
+				{
+					storageFs->readMessage(DataStorage::FS::FT_VM, menu->voiceMailSource == VMS_TX_FILE ? DataStorage::FS::TFT_TX : DataStorage::FS::TFT_RX, &message, 0);
+				}
+				voice_service->startAleTx((uint8_t)atoi(menu->voiceAddr.c_str()),message);
+        	}
+        	else
+        	{
+				message = headset_controller->getRecordedSmartMessage();
+
+				if (storageFs > 0)
+				{
+					GUI_Painter::ClearViewPort();
+					showMessage(waitingStr, flashProcessingStr, promptArea);
+					storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
+					menu->toVoiceMail = false;
+					draw();
+				}
+				voice_service->startAleTx((uint8_t)atoi(menu->voiceAddr.c_str()),message);
+				//Запись во флеш
+        	}
 
             menu->putOffVoiceStatus++;
         }
@@ -1028,7 +1079,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
             guiTree.resetCurrentState();
             menu->inVoiceMail = false;
             menu->toVoiceMail = false;
-            onCompletedStationMode();
+            onCompletedStationMode(true);
 #endif
             guiTree.resetCurrentState();
         }
@@ -1647,6 +1698,8 @@ void Service::rxPutOffVoice_keyPressed(UI_Key key)
             guiTree.resetCurrentState();
             menu->inVoiceMail = false;
             menu->toVoiceMail = false;
+            voice_service->stopAle();
+            onCompletedStationMode(true);
 #endif
 
         }

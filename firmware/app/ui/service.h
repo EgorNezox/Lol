@@ -150,6 +150,7 @@ public:
     void onVirtualCounterChanged(uint8_t counter);
     void onQwitCounterChanged(uint8_t counter);
     void onTransmitAsk(bool on);
+    void onDelaySpeachStateChanged(bool isOn);
 private:
     void msgBox(const char*);
     void msgBox(const char*, const char*);
