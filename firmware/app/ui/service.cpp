@@ -564,7 +564,7 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
             fileMsg.push_back((uint8_t)sym[1]);
             fileMsg.push_back((uint8_t)sym[2]);
 
-            GUI_Painter::ClearViewPort();
+            GUI_Painter::ClearViewPort(true);
             showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_RX, &fileMsg);
             draw();
@@ -958,7 +958,7 @@ void Service::drawMenu()
             		Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
             		if (storageFs > 0)
             		{
-            			GUI_Painter::ClearViewPort();
+            			GUI_Painter::ClearViewPort(true);
             			showMessage(waitingStr, flashProcessingStr, promptArea);
             			storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
             			//draw();
@@ -1167,7 +1167,7 @@ void Service::draw()
     	str.append(" # ");
     	str.append(add);
 
-        GUI_Painter::ClearViewPort();
+        GUI_Painter::ClearViewPort(true);
         GUI_Painter::DrawRect(0, 0, 159, 127, RDM_FILL);
 
         GUI_Painter::DrawText(35, 15, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)radioStationStr);
@@ -1333,7 +1333,7 @@ void Service::gucFrame(int value, bool isTxAsk)
             fileMsg.resize(fullSize);
             memcpy(fileMsg.data(), &cmdv, fullSize);
 
-            GUI_Painter::ClearViewPort();
+            GUI_Painter::ClearViewPort(true);
             showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_RX, &fileMsg);
             draw();
@@ -1400,7 +1400,7 @@ void Service::smsMessage(int value)
         const char *text = (const char*)voice_service->getSmsContent();
         std::string text_str = text;
         memcpy(fileMsg.data(), &text[0], value);
-        GUI_Painter::ClearViewPort();
+        GUI_Painter::ClearViewPort(true);
         showMessage(waitingStr, flashProcessingStr, promptArea);
         storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_RX, &fileMsg);
         draw();
@@ -1789,15 +1789,18 @@ void Service::loadSheldure()
        if (sheldureMass == 0)
           sheldureMass = new uint8_t[651];
 
-       if (storageFs->getSheldure(sheldureMass)){
+       schedulePromptTimer.timeout.connect(sigc::mem_fun( this, &Service::onScheduleSessionTimer));
+       schedulePromptRedrawTimer.timeout.connect(sigc::mem_fun( this, &Service::stopSchedulePromptTimer));
+
+       if (storageFs->getSheldure(sheldureMass))
+       {
          sheldureParsing(sheldureMass);
-         schedulePromptTimer.timeout.connect(sigc::mem_fun( this, &Service::onScheduleSessionTimer));
-         schedulePromptRedrawTimer.timeout.connect(sigc::mem_fun( this, &Service::stopSchedulePromptTimer));
          if (isDspStarted)
             updateSessionTimeSchedule();
        }
 
-       if (sheldureMass > 0){
+       if (sheldureMass > 0)
+       {
             delete []sheldureMass;
             sheldureMass = 0;
        }
@@ -1826,12 +1829,18 @@ void Service::loadSheldure()
 void Service::uploadSheldure()
 {
 #ifndef _DEBUG_
-    if (storageFs > 0){
+    if (storageFs > 0)
+    {
+        GUI_Painter::ClearViewPort(true);
+        showMessage(waitingStr, flashProcessingStr, promptArea);
+
         if (sheldureMass == 0)
            sheldureMass = new uint8_t[1 + sheldure.size() * 13];
 
         sheldureUnparsing(sheldureMass);
         storageFs->setSheldure(sheldureMass, sheldure.size() * 13 + 1);
+
+        draw();
 
         if (sheldureMass > 0){
              delete []sheldureMass;

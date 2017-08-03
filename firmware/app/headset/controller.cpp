@@ -436,8 +436,9 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 	//		}
 			qmDebugMessage(QmDebug::Dump, "headset channel speed = %d", ((ch_mask & 0x1C) >> 2));
 
-			if (ch_number != chan_number || ch_type != chan_type)
+			if (old_ch_number != chan_number || ch_type != chan_type)
 			{
+				old_ch_number = ch_number;
 				ch_number = chan_number;
 				ch_type = chan_type;
 				updateState(StateSmartOk);
@@ -978,8 +979,9 @@ void Controller::GarnitureStart()
 
 void Controller::setChannel(uint8_t channel)
 {
-	if (getChannelType(ch_number) != getChannelType(channel) && getChannelType(channel) == Multiradio::channelOpen)
-		isToOpenChannel = true;
+//	if (getChannelType(ch_number) != getChannelType(channel) && getChannelType(channel) == Multiradio::channelOpen)
+//		isToOpenChannel = true;
+	old_ch_number = ch_number;
 	ch_number = channel;
 	ch_speed = getChannelSpeed(channel);
 	synchronizeHSState();

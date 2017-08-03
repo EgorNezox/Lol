@@ -80,10 +80,26 @@ void Service::mainWindow_keyPressed(UI_Key key)
                 main_scr->oFreq.clear();
                 main_scr->oFreq.append(main_scr->nFreq.c_str());
                 int freq = atoi(main_scr->nFreq.c_str());
+
+                showMessage(waitingStr, flashProcessingStr, promptArea);
                 voice_service->tuneFrequency(freq, true);
             }
 
             break;
+        case keyUp:
+			main_scr->mwFocus = -1;
+			isFirstInputFreqEdit = true;
+			main_scr->channelEditing = true;
+        case keyDown:
+        {
+        	main_scr->editing = false;
+            if (key == keyDown)
+            	main_scr->mwFocus = -2;
+            main_scr->setFocus(1-main_scr->mwFocus);
+            main_scr->nFreq.clear();
+            main_scr->setFreq(main_scr->oFreq.c_str());
+            break;
+        }
         case keyLeft:
             if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
             {
@@ -100,7 +116,14 @@ void Service::mainWindow_keyPressed(UI_Key key)
             break;
         default:
             if ( main_scr->mwFocus == 0 )
+            {
+            	if (isFirstInputFreqEdit && key > 5 && key < 17)
+            	{
+            		isFirstInputFreqEdit = false;
+            		main_scr->nFreq.clear();
+            	}
                 main_scr->editingFreq(key);
+            }
             break;
         }
     }
@@ -135,6 +158,7 @@ void Service::mainWindow_keyPressed(UI_Key key)
     		    main_scr->channelEditing = false;
     			main_scr->mwFocus = -2;
     			main_scr->setFocus(1-main_scr->mwFocus);
+    			isFirstInputFreqEdit = false;
     		}
     	}
     	if (key == keyBack)
@@ -157,51 +181,78 @@ void Service::mainWindow_keyPressed(UI_Key key)
     			main_scr->setFocus(1-main_scr->mwFocus);
     		}
     	}
+    	if (key == keyDown)
+    	{
+    		{
+    			channelNumberSyms = 0;
+    			channelNumberEditing = 0;
+    		    main_scr->channelEditing = false;
+    		    if (this->voice_service->getVoiceMode() == Multiradio::VoiceServiceInterface::VoiceModeManual)
+    		    {
+    		    	main_scr->mwFocus = 0;
+    		    	main_scr->editing = true;
+    		    }
+    		    else
+    		    	main_scr->mwFocus = -2;
+    			main_scr->setFocus(1-main_scr->mwFocus);
+    		}
+    	}
+    	if (key == keyUp)
+    	{
+    		{
+    			isFirstInputFreqEdit = false;
+    			channelNumberSyms = 0;
+    			channelNumberEditing = 0;
+    		    main_scr->channelEditing = false;
+    		    main_scr->mwFocus = -2;
+    			main_scr->setFocus(1-main_scr->mwFocus);
+    		}
+    	}
     }
     else
     {
         switch(key)
         {
-        case keyChNext:
-            pGetVoiceService()->tuneNextChannel();
-            break;
-        case keyChPrev:
-            pGetVoiceService()->tunePreviousChannel();
-            break;
-        case keyBack:
-            main_scr->mwFocus = -2;
-            main_scr->setFocus(1-main_scr->mwFocus);
-            break;
-        case keyUp:
-            if (main_scr->mwFocus > -2)
-                main_scr->mwFocus--;
-            main_scr->setFocus(1-main_scr->mwFocus);
-            break;
-        case keyDown:
-            if (main_scr->mwFocus < 0)
-                main_scr->mwFocus++;
-            if (main_scr->mwFocus > 0)
-                main_scr->mwFocus--;
-            main_scr->setFocus(1-main_scr->mwFocus);
-            break;
-        case keyEnter:
-            if (main_scr->mwFocus == -2)
-                guiTree.advance(0);
-            if (main_scr->mwFocus == -1)
+			case keyChNext:
+				pGetVoiceService()->tuneNextChannel();
+				break;
+			case keyChPrev:
+				pGetVoiceService()->tunePreviousChannel();
+				break;
+			case keyBack:
+				main_scr->mwFocus = -2;
+				main_scr->setFocus(1-main_scr->mwFocus);
+				break;
+			case keyUp:
+				if (main_scr->mwFocus > -2)
+					main_scr->mwFocus--;
+				main_scr->setFocus(1-main_scr->mwFocus);
+				break;
+			case keyDown:
+				if (main_scr->mwFocus < 0)
+					main_scr->mwFocus++;
+				if (main_scr->mwFocus > 0)
+					main_scr->mwFocus--;
+				main_scr->setFocus(1-main_scr->mwFocus);
+				break;
+			case keyEnter:
+				if (main_scr->mwFocus == -2)
+					guiTree.advance(0);
+				break;
+        }
+        if (main_scr->mwFocus == -1)
+        {
+            main_scr->channelEditing = true;
+            oldChannelNumber = voice_service->getCurrentChannelNumber();
+        }
+        if (main_scr->mwFocus == 0)
+        {
+            if (this->voice_service->getVoiceMode() == Multiradio::VoiceServiceInterface::VoiceModeManual)
             {
-                if (this->voice_service->getVoiceMode() == Multiradio::VoiceServiceInterface::VoiceModeManual)
-                main_scr->channelEditing = true;
-                oldChannelNumber = voice_service->getCurrentChannelNumber();
+                main_scr->editing = true;
+                if (not isFirstInputFreqEdit)
+                	isFirstInputFreqEdit = true;
             }
-            if (main_scr->mwFocus >= 0)
-            {
-                if (this->voice_service->getVoiceMode() == Multiradio::VoiceServiceInterface::VoiceModeManual)
-                    main_scr->editing = true;
-
-                if (main_scr->mwFocus == 0)
-                    main_scr->nFreq.clear();
-            }
-            break;
         }
     }
 }
@@ -494,7 +545,7 @@ void Service::condCommand_keyPressed(UI_Key key)
                 fileMsg.push_back((uint8_t)sym[1]);
                 fileMsg.push_back((uint8_t)sym[2]);
 
-                GUI_Painter::ClearViewPort();
+                GUI_Painter::ClearViewPort(true);
                 showMessage(waitingStr, flashProcessingStr, promptArea);
                 storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_TX, &fileMsg);
                 draw();
@@ -784,7 +835,7 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
 
                 if (storageFs > 0)
                 {
-                	GUI_Painter::ClearViewPort();
+                	GUI_Painter::ClearViewPort(true);
                     showMessage(waitingStr, flashProcessingStr, promptArea);
                     storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_TX, &fileMsg );
                     draw();
@@ -1041,7 +1092,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
 
 				if (storageFs > 0)
 				{
-					GUI_Painter::ClearViewPort();
+					GUI_Painter::ClearViewPort(true);
 					showMessage(waitingStr, flashProcessingStr, promptArea);
 					storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
 					menu->toVoiceMail = false;
@@ -1277,7 +1328,7 @@ void Service::txSmsMessage_keyPressed(UI_Key key)
 								fileMsg.clear();
 								fileMsg.resize(msg.size());
 								memcpy(fileMsg.data(), &msg[0], msg.size());
-								GUI_Painter::ClearViewPort();
+								GUI_Painter::ClearViewPort(true);
 								showMessage(waitingStr, flashProcessingStr, promptArea);
 								storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_TX, &fileMsg);
 								menu->virtCounter = 0;
@@ -1913,7 +1964,12 @@ void Service::gpsSync_keyPressed(UI_Key key)
 			if (isChangeGpsSynch){
 				voice_service->setVirtualMode(!gpsSynchronization);
 				if (storageFs > 0)
+				{
+			        GUI_Painter::ClearViewPort(true);
+			        showMessage(waitingStr, flashProcessingStr, promptArea);
 					storageFs->setGpsSynchroMode((uint8_t)gpsSynchronization);
+					//draw();
+				}
 				isChangeGpsSynch = false;
 				updateSessionTimeSchedule();
 			}
@@ -2066,7 +2122,11 @@ void Service::setFreq_keyPressed(UI_Key key)
         main_scr->oFreq.clear();
         main_scr->oFreq.append( (*iter)->inputStr );
         int freq = atoi(main_scr->oFreq.c_str());
+
+        GUI_Painter::ClearViewPort(true);
+        showMessage(waitingStr, flashProcessingStr, promptArea);
         voice_service->tuneFrequency(freq, true);
+        //draw();
 
         guiTree.resetCurrentState();
         menu->focus = 0;
@@ -2136,6 +2196,8 @@ void Service::setSpeed_keyPressed(UI_Key key)
     {
 		case keyEnter:
 		{
+            GUI_Painter::ClearViewPort(true);
+            showMessage(waitingStr, flashProcessingStr, promptArea);
 			voice_service->setCurrentChannelSpeed(currentSpeed);
 			break;
 		}
@@ -2147,6 +2209,7 @@ void Service::setSpeed_keyPressed(UI_Key key)
 			break;
 		}
 		case keyUp:
+		case keyRight:
 		{
 			if ( currentSpeed < Multiradio::voice_channel_speed_t(4) )
 			{
@@ -2156,6 +2219,7 @@ void Service::setSpeed_keyPressed(UI_Key key)
 			break;
 		}
 		case keyDown:
+		case keyLeft:
 		{
 			if ( currentSpeed > Multiradio::voice_channel_speed_t(1) )
 			{
@@ -2185,7 +2249,8 @@ void Service::editRnKey_keyPressed(UI_Key key)
             menu->RN_KEY.pop_back();
         else
         {
-            uint16_t t; storageFs->getFhssKey(t);
+            uint16_t t;
+            storageFs->getFhssKey(t);
             char ch[4]; sprintf(ch, "%d", t); ch[3] = '\0';
             menu->RN_KEY = ch;
             menu->focus = 4;
@@ -2195,7 +2260,13 @@ void Service::editRnKey_keyPressed(UI_Key key)
     }
     if (key == keyEnter)
     {
-        storageFs->setFhssKey((uint16_t)atoi(menu->RN_KEY.c_str()));
+    	if (storageFs)
+    	{
+            GUI_Painter::ClearViewPort(true);
+            showMessage(waitingStr, flashProcessingStr, promptArea);
+    		storageFs->setFhssKey((uint16_t)atoi(menu->RN_KEY.c_str()));
+    		//draw();
+    	}
         voice_service->setRnKey(atoi(menu->RN_KEY.c_str()));
         menu->focus = 4;
         menu->offset = 3;
@@ -2212,7 +2283,14 @@ void Service::voiceMode_keyPressed(UI_Key key)
             voice_service->setVoiceMode(Multiradio::VoiceServiceInterface::VoiceMode::VoiceModeAuto);
         else
             voice_service->setVoiceMode(Multiradio::VoiceServiceInterface::VoiceMode::VoiceModeManual);
-        storageFs->setVoiceMode(menu->useMode);
+
+        if (storageFs)
+        {
+			GUI_Painter::ClearViewPort(true);
+			showMessage(waitingStr, flashProcessingStr, promptArea);
+			storageFs->setVoiceMode(menu->useMode);
+			//draw();
+        }
         guiTree.backvard();
         menu->focus = 6;
         menu->offset = 5;
@@ -2223,7 +2301,7 @@ void Service::voiceMode_keyPressed(UI_Key key)
         menu->focus = 6;
         menu->offset = 5;
     }
-    if (key == keyUp || key == keyDown)
+    if (key == keyUp || key == keyDown || key == keyLeft || key == keyRight)
     {
         menu->useMode = !menu->useMode;
     }
@@ -2233,6 +2311,9 @@ void Service::channelEmissionType_keyPressed(UI_Key key)
 {
     if ( key == keyEnter || key == keyBack)
     {
+        GUI_Painter::ClearViewPort(true);
+        showMessage(waitingStr, flashProcessingStr, promptArea);
+
         if (menu->ch_emiss_type)
             voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionFM);
         else
@@ -2242,7 +2323,7 @@ void Service::channelEmissionType_keyPressed(UI_Key key)
         menu->focus = 5;
         menu->offset = 4;
     }
-    if (key == keyUp || key == keyDown)
+    if (key == keyUp || key == keyDown || key == keyLeft || key == keyRight)
     {
         menu->ch_emiss_type = !menu->ch_emiss_type;
     }

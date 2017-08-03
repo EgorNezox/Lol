@@ -338,6 +338,7 @@ private:
 	SmartStatusDescription smart_status_description;
 	const Multiradio::voice_channels_table_t* ch_table;
 	uint16_t ch_number;
+	uint16_t old_ch_number;
 	Multiradio::voice_channel_t ch_type;
 	Multiradio::voice_channel_speed_t ch_speed;
 	bool indication_enable;

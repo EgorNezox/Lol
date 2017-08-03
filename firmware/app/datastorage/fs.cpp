@@ -221,7 +221,8 @@ bool FS::getVoiceFrequency(uint32_t &data) {
 	return true;
 }
 
-void FS::setVoiceFrequency(uint32_t data) {
+void FS::setVoiceFrequency(uint32_t data)
+{
 	QmFile file(dir, "VoiceFrequency");
 	if (!file.open(QmFile::WriteOnly))
 		return;
@@ -338,7 +339,8 @@ bool FS::getVoiceMode(bool *data)
 bool FS::getSheldure(uint8_t* data)
 {
     QmFile file(dir, "Sheldure");
-    if (file.open(QmFile::ReadOnly)){
+    if (file.open(QmFile::ReadOnly))
+    {
         uint32_t fileSize = file.size();
         if (fileSize >= 14){
             uint64_t res =  file.read(data, fileSize);
@@ -396,7 +398,8 @@ bool FS::writeMessage(FileType fileType, TransitionFileType transFileType, std::
     return false;
 }
 
-void FS::setGpsSynchroMode(uint8_t data) {
+void FS::setGpsSynchroMode(uint8_t data)
+{
     QmFile file(dir, "GpsSynchroMode");
     if (!file.open(QmFile::WriteOnly))
         return;

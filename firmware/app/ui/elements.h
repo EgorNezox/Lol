@@ -427,7 +427,7 @@ class GUI_Painter{
 
                 static void SetMode(DrawMode drawMode);
 
-          static void ClearViewPort();
+          static void ClearViewPort(bool isAll = false);
 
          static void SetColorScheme(ColorSchemeType colorScheme);
 

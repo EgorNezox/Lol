@@ -196,6 +196,8 @@ private:
     bool isWaitAnswer = false;
     bool isGucAnswerWaiting = false;
 
+    bool isFirstInputFreqEdit = false;
+
     void resetLogicDSPforGarniture();
 
     void voiceChannelChanged();

@@ -212,7 +212,7 @@ bool DspController::isReady() {
 }
 
 void DspController::startServicing() {
-	qmDebugMessage(QmDebug::Info, "start servicing...");
+//	qmDebugMessage(QmDebug::Info, "start servicing...");
 	initResetState();
 	reset_iopin->writeOutput(QmIopin::Level_Low);
 	QmThread::msleep(20);
@@ -856,7 +856,7 @@ bool DspController::checkForTxAnswer()
 	if (tx_call_ask_vector.size() >= 2)
 	{
 		wzn_value = wzn_change(tx_call_ask_vector);
-		qmDebugMessage(QmDebug::Dump, "checkForTxAnswer() wzn_value" ,wzn_value);
+		//qmDebugMessage(QmDebug::Dump, "checkForTxAnswer() wzn_value" ,wzn_value);
 		tx_call_ask_vector.resize(0);
 
 		return true;
@@ -995,7 +995,7 @@ int DspController::getFrequency(uint8_t mode) //pswf = 0, sms = 1
 			fr_sh += (frequence_bandwidth[i+2] - frequence_bandwidth[i+1]);
 	}
 
-	qmDebugMessage(QmDebug::Dump,"frequency:  %d ", fr_sh);
+	//qmDebugMessage(QmDebug::Dump,"frequency:  %d ", fr_sh);
     return fr_sh;
 }
 
@@ -1038,26 +1038,26 @@ int DspController::CalcSmsTransmitFreq(int RN_KEY, int DAY, int HRS, int MIN, in
         else wzn  = 0;
         int wz_shift = SEC % 6;
         SEC_MLT = wz_shift + wz_base;
-        qmDebugMessage(QmDebug::Dump, "wzn_base %d" ,wz_base);
-        qmDebugMessage(QmDebug::Dump, "wzn_shift %d" ,wz_shift);
+        //qmDebugMessage(QmDebug::Dump, "wzn_base %d" ,wz_base);
+        //qmDebugMessage(QmDebug::Dump, "wzn_shift %d" ,wz_shift);
 
         if (sms_counter < 77)
         {
             FR_SH = (RN_KEY + 3*SEC + 230*SEC_MLT + 17*MIN + 29*HRS + 43*DAY)% TOT_W;
-            qmDebugMessage(QmDebug::Dump, "Calc freq sms  formula %d", FR_SH);
+            //qmDebugMessage(QmDebug::Dump, "Calc freq sms  formula %d", FR_SH);
         }
 
         if (sms_counter > 77 && sms_counter < 83)
         {
             FR_SH = (RN_KEY + 5*SEC + 230*SEC_MLT + 17*MIN + 29*HRS + 43*DAY)% TOT_W;
-            qmDebugMessage(QmDebug::Dump, "Calc freq sms quit formula %d", FR_SH);
+            //qmDebugMessage(QmDebug::Dump, "Calc freq sms quit formula %d", FR_SH);
         }
     }
 
     if (sms_counter < 38)
     {
         FR_SH = (RN_KEY + 73 + 230*SEC_MLT + 17*MIN + 29*HRS + 43*DAY)% TOT_W;
-        qmDebugMessage(QmDebug::Dump, "Calc freq sms tx formula %d", FR_SH);
+        //qmDebugMessage(QmDebug::Dump, "Calc freq sms tx formula %d", FR_SH);
     }
 
     if ((sms_counter < 19) && (SmsLogicRole == SmsRoleRx))
@@ -1348,7 +1348,7 @@ void DspController::processCommandResponse(bool success, Module module, int code
 
 void DspController::syncPendingCommand()
 {
-	qmDebugMessage(QmDebug::Dump,"reload progress state");
+	//qmDebugMessage(QmDebug::Dump,"reload progress state");
 	pending_command->in_progress = false;
 	switch (pending_command->module) {
 	case RxRadiopath:

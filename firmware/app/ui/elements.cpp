@@ -1049,8 +1049,10 @@ void GUI_Painter::SetMode(DrawMode drawMode)
     gsetmode(mode);
 }
 
-void GUI_Painter::ClearViewPort()
+void GUI_Painter::ClearViewPort(bool isAll)
 {
+	if (isAll)
+		SetViewPort(0,0,159,127);
     gclrvp();
 }
 
