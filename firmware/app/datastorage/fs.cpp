@@ -6,8 +6,8 @@
 
 #include <string.h>
 
-#define FAKE_CALL_FREQS 1
-#define FAKE_WORK_FREQS 1
+#define FAKE_CALL_FREQS 0
+#define FAKE_WORK_FREQS 0
 
 namespace DataStorage {
 

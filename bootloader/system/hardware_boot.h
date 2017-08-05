@@ -10,6 +10,8 @@
 #ifndef HARDWARE_BOOT_H_
 #define HARDWARE_BOOT_H_
 
+#define NEW_BOOTLOADER 1
+
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -24,7 +26,13 @@ typedef enum {
 
 hwboot_test_result_t hwboot_test_board(void);
 bool hwboot_check_firmware(void);
-void hwboot_jump_usbflasher(void);
+
+#if NEW_BOOTLOADER
+	bool hwboot_check_usbcdc(void);
+#else
+	void hwboot_jump_usbflasher(void);
+#endif
+void hwboot_jump_cdc(void);
 void hwboot_jump_firmware(void);
 void hwboot_jump_system_bootloader(void);
 

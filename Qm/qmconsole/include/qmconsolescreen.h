@@ -16,6 +16,7 @@ public:
 	static void init(unsigned int top_margin, unsigned int bottom_margin, unsigned int left_margin, unsigned int right_margin);
 	static void oputc(const char c);
 	static void oprintf(const char * format, ...);
+	static void clearScreen();
 };
 
 #endif /* QMCONSOLESCREEN_H_ */

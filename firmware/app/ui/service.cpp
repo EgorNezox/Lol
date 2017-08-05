@@ -1983,8 +1983,6 @@ void Service::playSchedulePromptSignal()
 
 void Service::onCompletedStationMode(bool isGoToVoice)
 {
-
-
 	voice_service->stopGucQuit();
 
 	Headset::Controller::Status st = pGetHeadsetController()->getStatus();

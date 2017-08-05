@@ -48,17 +48,23 @@ hwboot_test_result_t hwboot_test_board(void) {
 }
 
 bool hwboot_check_firmware(void) {
-#ifdef NDEBUG
-	if (*((uint32_t *)(FLASH_FIRMWARE_PROGRAM_START_ADDRESS + FLASH_FIRMWARE_PROGRAM_MAGIC_OFFSET)) != FLASH_FIRMWARE_PROGRAM_MAGIC_VALUE)
-		return false;
-#else
 	if (*((uint16_t *)(FLASH_FIRMWARE_PROGRAM_START_ADDRESS + FLASH_FIRMWARE_PROGRAM_ENTRY_OFFSET)) == 0xFFFF)
 		return false;
-#endif
 	return true;
 }
 
-void hwboot_jump_usbflasher(void) {
+bool hwboot_check_usbcdc(void) {
+	if (*((uint16_t *)(FLASH_USBFLASHER_PROGRAM_START_ADDRESS)) == 0xFFFF)
+		return false;
+	return true;
+}
+
+#if NEW_BOOTLOADER
+	void hwboot_jump_cdc(void)
+#else
+	void hwboot_jump_usbflasher(void)
+#endif
+{
 	/* Interrupts must be disabled to safely proceed
 	 * (before firmware switches to its isr vectors table and initializes interrupts).
 	 */

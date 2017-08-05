@@ -54,8 +54,8 @@ void QmConsoleScreen::init(unsigned int top_margin, unsigned int bottom_margin, 
 	ginit();
 
 	gselvp(0);
-	gsetcolorb(G_WHITE);
-	gsetcolorf(G_BLACK);
+	gsetcolorb(G_BLACK);
+	gsetcolorf(G_WHITE);
 	gsetvp(0, 0, GDISPW-1, GDISPH-1);
 	groundrect(0, 0, GDISPW-1, GDISPH-1, 0, GFILL);
 
@@ -165,7 +165,7 @@ static void qmConsoleRedraw() {
 
 static void qmConsoleClearLine(int line) {
 	for (int s = 0; s < qm_cscreen_cb.symbols_per_line; s++)
-		qm_cscreen_cb.buffer[s + line*(qm_cscreen_cb.symbols_per_line+1)] = '.';
+		qm_cscreen_cb.buffer[s + line*(qm_cscreen_cb.symbols_per_line+1)] = ' ';
 }
 
 static void qmConsoleNewLine() {
@@ -185,4 +185,18 @@ static void qmConsoleProcessLineFeed() {
 		qm_cscreen_cb.pending_line_feed = false;
 		qmConsoleRedraw();
 	}
+}
+
+void QmConsoleScreen::clearScreen()
+{
+	int symCount = qm_cscreen_cb.line_count * qm_cscreen_cb.symbols_per_line;
+	for (int sym = 0; sym < symCount; sym++)
+	{
+		qm_cscreen_cb.buffer[sym] = 0;
+	}
+	qm_cscreen_cb.top_line = 0;
+	qm_cscreen_cb.cur_line = 0;
+	qm_cscreen_cb.cur_s = 0;
+	gclrvp();
+	gsetcpos(0, 0);
 }

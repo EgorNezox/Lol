@@ -151,7 +151,17 @@ void Service::mainWindow_keyPressed(UI_Key key)
     	{
     		if (channelNumberEditing > 0 && channelNumberEditing < 99)
     		{
-    			headset_controller->setChannel(channelNumberEditing);
+    			Headset::Controller::Status st = pGetHeadsetController()->getStatus();
+
+
+    		    if (st == Headset::Controller::Status::StatusAnalog)
+    		    {
+    		    	showMessage(waitingStr, flashProcessingStr, promptArea);
+    		    	pGetVoiceService()->tuneChannel(channelNumberEditing);
+    		    }
+    		    else
+    		    	headset_controller->setChannel(channelNumberEditing);
+
     			onCompletedStationMode(true);
     			channelNumberEditing = 0;
     			channelNumberSyms = 0;
@@ -214,9 +224,11 @@ void Service::mainWindow_keyPressed(UI_Key key)
         switch(key)
         {
 			case keyChNext:
+				showMessage(waitingStr, flashProcessingStr, promptArea);
 				pGetVoiceService()->tuneNextChannel();
 				break;
 			case keyChPrev:
+				showMessage(waitingStr, flashProcessingStr, promptArea);
 				pGetVoiceService()->tunePreviousChannel();
 				break;
 			case keyBack:
@@ -561,6 +573,7 @@ void Service::condCommand_keyPressed(UI_Key key)
                 param[2] +=32;
                 voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
                 setAsk = true;
+                menu->qwitCounter = 65;
             }
 
             for(auto &k: estate.listItem)
@@ -759,7 +772,8 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
                         commands->pop_back();
                     }
                     commands->pop_back();
-                }else
+                }
+                else
                 {
                     menu->cmdCount = 0;
                     menu->groupCondCommStage--;     // одному
@@ -844,6 +858,8 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
                 voice_service->saveFreq(freqs);
                 voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
                 isTurnGuc = true;
+                if (!menu->sndMode)
+                	menu->qwitCounter = 180;
 
 #else
                 for (auto &k: estate.listItem)

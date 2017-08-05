@@ -9,11 +9,17 @@ namespace DataStorage {
 
 class FS {
 public:
+//    enum FileType { FT_SP = 0,
+//                    FT_CND  = 1,
+//                    FT_SMS = 2,
+//                    FT_VM = 3,
+//                    FT_GRP  = 4};
+
     enum FileType { FT_SP = 0,
                     FT_CND  = 1,
-                    FT_SMS = 2,
-                    FT_VM = 3,
-                    FT_GRP  = 4};
+                    FT_SMS = 3,
+                    FT_VM = 4,
+                    FT_GRP  = 2};
 
     enum TransitionFileType { TFT_RX = 0,
                               TFT_TX = 1};

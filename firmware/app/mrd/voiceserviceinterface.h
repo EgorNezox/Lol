@@ -79,6 +79,7 @@ public:
 	void setCurrentChannelSpeed(voice_channel_speed_t speed);
 	void tuneNextChannel();
 	void tunePreviousChannel();
+	void tuneChannel(uint8_t channel);
     void tuneFrequency(int frequency, bool isRecord = false);
     void tuneEmissionType(voice_emission_t type);
     void tuneSquelch(uint8_t value);

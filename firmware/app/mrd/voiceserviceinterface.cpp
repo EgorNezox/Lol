@@ -174,6 +174,25 @@ void VoiceServiceInterface::setCurrentChannelSpeed(voice_channel_speed_t speed) 
 	dispatcher->headset_controller->setSmartCurrentChannelSpeed(speed);
 }
 
+void VoiceServiceInterface::tuneChannel(uint8_t channel)
+{
+	if (!dispatcher->isVoiceChannelTunable())
+		return;
+
+	if (channel < dispatcher->voice_channels_table.size())
+	{
+		dispatcher->voice_channel = dispatcher->voice_channels_table.begin();
+		dispatcher->voice_channel += channel;
+		dispatcher->voice_channel--;
+
+		if ((*dispatcher->voice_channel).type != channelOpen)
+			dispatcher->voice_channel--;
+	}
+
+	dispatcher->updateVoiceChannel(true);
+	dispatcher->saveAnalogHeadsetChannel();
+}
+
 void VoiceServiceInterface::tuneNextChannel() {
 	if (!dispatcher->isVoiceChannelTunable())
 		return;
@@ -212,12 +231,12 @@ void VoiceServiceInterface::tunePreviousChannel() {
 
 void VoiceServiceInterface::tuneFrequency(int frequency, bool isRecord)
 {
-    if (isRecord)
-        dispatcher->data_storage_fs->setVoiceFrequency(frequency);
 	dispatcher->voice_manual_frequency = frequency;
     if (isRecord && current_mode != VoiceModeManual)
 		return;
     dispatcher->updateVoiceChannel(true);
+    if (isRecord)
+        dispatcher->data_storage_fs->setVoiceFrequency(frequency);
 }
 
 void VoiceServiceInterface::tuneEmissionType(voice_emission_t type) {
