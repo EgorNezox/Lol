@@ -215,7 +215,7 @@ void DspController::startServicing()
 {
 	// old
 
-	qmDebugMessage(QmDebug::Info, "start servicing...");
+	//qmDebugMessage(QmDebug::Info, "start servicing...");
 	initResetState();
 	reset_iopin->writeOutput(QmIopin::Level_Low);
 	QmThread::msleep(20);
@@ -1109,11 +1109,11 @@ void DspController::setAdr()
 void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version)
 {
 	if (!is_ready) {
-		qmDebugMessage(QmDebug::Info, "DSP started (id=0x%02X, version=%u.%u)", id, major_version, minor_version);
+	//	qmDebugMessage(QmDebug::Info, "DSP started (id=0x%02X, version=%u.%u)", id, major_version, minor_version);
 		startup_timer->stop();
 		is_ready = true;
 	} else {
-		qmDebugMessage(QmDebug::Warning, "DSP restart detected");
+	//	qmDebugMessage(QmDebug::Warning, "DSP restart detected");
 		 hardwareFailed.emit(2, 99);
 		initResetState();
 	}
@@ -1122,7 +1122,7 @@ void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t
 
 void DspController::processStartupTimeout()
 {
-	qmDebugMessage(QmDebug::Warning, "DSP startup timeout");
+//	qmDebugMessage(QmDebug::Warning, "DSP startup timeout");
 	is_ready = true;
 	started();
     //swr_timer.start();
@@ -1344,23 +1344,23 @@ void DspController::syncNextRadioState() {
 
 void DspController::processCommandTimeout() {
 	QM_ASSERT(pending_command->in_progress);
-	qmDebugMessage(QmDebug::Warning, "dsp response timed out");
+//	qmDebugMessage(QmDebug::Warning, "dsp response timed out");
 	syncPendingCommand();
 }
 
 void DspController::processCommandResponse(bool success, Module module, int code, ParameterValue value) {
 	QM_UNUSED(value);
 	if(!pending_command->in_progress) {
-		qmDebugMessage(QmDebug::Warning, "dsp response, but no command was sent");
+//		qmDebugMessage(QmDebug::Warning, "dsp response, but no command was sent");
 		return;
 	}
 	if ((module == pending_command->module) /*&& (code == pending_command->code)*/) {
 		command_timer->stop();
-		if (!success)
-			qmDebugMessage(QmDebug::Info, "dsp command failed (module=0x%02X, code=0x%02X)", module, code);
+//		if (!success)
+//			qmDebugMessage(QmDebug::Info, "dsp command failed (module=0x%02X, code=0x%02X)", module, code);
 		syncPendingCommand();
 	} else {
-		qmDebugMessage(QmDebug::Warning, "dsp command response was unexpected (module=0x%02X, code=0x%02X)", module, code);
+		//qmDebugMessage(QmDebug::Warning, "dsp command response was unexpected (module=0x%02X, code=0x%02X)", module, code);
 	}
 }
 
@@ -2308,7 +2308,7 @@ void DspController::sendSms(Module module)
 		time[3]);
     }
 
-    qmDebugMessage(QmDebug::Dump, "LCODE: %d",ContentSms.L_CODE);
+  //  qmDebugMessage(QmDebug::Dump, "LCODE: %d",ContentSms.L_CODE);
 
     if (sms_counter > 38 && sms_counter < 76)
         ContentSms.TYPE = 1;
@@ -2326,10 +2326,10 @@ void DspController::sendSms(Module module)
     qmToBigEndian((uint32_t)ContentSms.Frequency, tx_data + tx_data_len);
     tx_data_len += 4;
 
-    for(int i = 0;i<6;i++)
-    qmDebugMessage(QmDebug::Dump,"ContentSms.massive = %d",ContentSms.message[i]);
+   // for(int i = 0;i<6;i++)
+  //  qmDebugMessage(QmDebug::Dump,"ContentSms.massive = %d",ContentSms.message[i]);
 
-    qmDebugMessage(QmDebug::Dump, " ContentSms.Frequency =  %d " ,ContentSms.Frequency);
+  //  qmDebugMessage(QmDebug::Dump, " ContentSms.Frequency =  %d " ,ContentSms.Frequency);
     // tx
     if (sms_counter < 19 && SmsLogicRole == SmsRoleTx)
     {
@@ -2352,7 +2352,7 @@ void DspController::sendSms(Module module)
         else
         	FST_N = calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39);
         ++QNB;
-        qmDebugMessage(QmDebug::Dump, "sendSms() FSTN: %d", FST_N);
+ //       qmDebugMessage(QmDebug::Dump, "sendSms() FSTN: %d", FST_N);
         if (cntChvc > 255) cntChvc = 7;
     	qmToBigEndian((uint8_t)ContentSms.SNR, tx_data+tx_data_len);
     	++tx_data_len;
@@ -2378,9 +2378,9 @@ void DspController::sendSms(Module module)
     	// todo: � � С—� � С•� � С�� � Вµ� � � …� Ў� Џ� � В» � � С�� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � С�� � С‘
     	qmToBigEndian((uint8_t)wzn, tx_data+tx_data_len);              ++tx_data_len;
 
-    	qmDebugMessage(QmDebug::Dump, "SADR: %d",ContentSms.S_ADR);
-    	qmDebugMessage(QmDebug::Dump, "RADR: %d",ContentSms.R_ADR);
-    	qmDebugMessage(QmDebug::Dump, "LCODE: %d",ContentSms.L_CODE);
+ //   	qmDebugMessage(QmDebug::Dump, "SADR: %d",ContentSms.S_ADR);
+//    	qmDebugMessage(QmDebug::Dump, "RADR: %d",ContentSms.R_ADR);
+ //   	qmDebugMessage(QmDebug::Dump, "LCODE: %d",ContentSms.L_CODE);
 
     	qmToBigEndian((uint8_t)ContentSms.L_CODE, tx_data+tx_data_len);
     	++tx_data_len;
@@ -2402,7 +2402,7 @@ void DspController::sendSms(Module module)
 
 void DspController::startGucTransmitting()
 {
-    qmDebugMessage(QmDebug::Dump, "startGucTransmitting");
+ //   qmDebugMessage(QmDebug::Dump, "startGucTransmitting");
     QM_ASSERT(is_ready);
 
     ParameterValue comandValue;
@@ -2423,15 +2423,15 @@ void DspController::prevTime()
 {
 	if (virtual_mode)
 	{
-		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", t.seconds);
+//		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", t.seconds);
 		t.seconds = t.seconds - 1;
-		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", t.seconds);
+	//	qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", t.seconds);
 	}
 	else
 	{
-		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", date_time[3]);
+//		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", date_time[3]);
 		date_time[3]  = date_time[3] - 1;
-		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", date_time[3]);
+//		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", date_time[3]);
 	}
 }
 
@@ -2474,7 +2474,7 @@ bool DspController::generateSmsReceived()
     // 3. get a weight for data
     int temp = eras_dec_rs(data,rs_data_clear,&rs_255_93);
 
-    qmDebugMessage(QmDebug::Dump,"Result of erase %d:", temp);
+   // qmDebugMessage(QmDebug::Dump,"Result of erase %d:", temp);
 
     // 4. check valid value
     if (temp >= 0)
@@ -2493,7 +2493,7 @@ bool DspController::generateSmsReceived()
             k--;
         }
 
-        qmDebugMessage(QmDebug::Dump," Calc sms  code  crc %d %d:", code_get,code_calc);
+   //     qmDebugMessage(QmDebug::Dump," Calc sms  code  crc %d %d:", code_get,code_calc);
 
         if (code_get != code_calc)
         {
@@ -2594,7 +2594,7 @@ int DspController::check_rx_call(int* wzn)
        }
     }
 
-    qmDebugMessage(QmDebug::Dump, "check rx call = %d", cnt_index);
+  //  qmDebugMessage(QmDebug::Dump, "check rx call = %d", cnt_index);
 
     if (cnt_index < 2) return false;
 
@@ -2626,11 +2626,11 @@ uint8_t DspController::calc_ack_code(uint8_t ack)
 		ACK_CODE = (ContentSms.R_ADR + ContentSms.S_ADR + ack + ContentSms.RN_KEY +
 				   date_time[0] + date_time[1]+ date_time[2] + date_time[3]) % 100;
 
-	qmDebugMessage(QmDebug::Dump, "radr = %d", ContentSms.R_ADR);
-	qmDebugMessage(QmDebug::Dump, "sadr = %d", ContentSms.S_ADR);
-	qmDebugMessage(QmDebug::Dump, "ack  = %d", ack);
-	qmDebugMessage(QmDebug::Dump, "radr = %d", ContentSms.RN_KEY);
-	qmDebugMessage(QmDebug::Dump, "radr = %d", d.day,t.hours,t.minutes,t.seconds);
+//	qmDebugMessage(QmDebug::Dump, "radr = %d", ContentSms.R_ADR);
+//	qmDebugMessage(QmDebug::Dump, "sadr = %d", ContentSms.S_ADR);
+//	qmDebugMessage(QmDebug::Dump, "ack  = %d", ack);
+//	qmDebugMessage(QmDebug::Dump, "radr = %d", ContentSms.RN_KEY);
+//	qmDebugMessage(QmDebug::Dump, "radr = %d", d.day,t.hours,t.minutes,t.seconds);
     return ACK_CODE;
 }
 
@@ -2659,7 +2659,7 @@ void DspController::setPswfTx()
 
 void DspController::startPSWFReceiving()
 {
-	qmDebugMessage(QmDebug::Dump, "startPSWFReceiving(%d)", ack);
+	//qmDebugMessage(QmDebug::Dump, "startPSWFReceiving(%d)", ack);
 	QM_ASSERT(is_ready);
 
 //	for(int i = 0; i<30;i++) pswfDataPacket[i] = 255;
@@ -2684,7 +2684,7 @@ void DspController::startPSWFReceiving()
 
 void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,int retr)
 {
-	qmDebugMessage(QmDebug::Dump, "startPSWFTransmitting(%d, %d, %d)", ack, r_adr, cmd);
+//	qmDebugMessage(QmDebug::Dump, "startPSWFTransmitting(%d, %d, %d)", ack, r_adr, cmd);
     QM_ASSERT(is_ready);
 
     pswf_retranslator = retr;
@@ -2717,7 +2717,7 @@ void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,i
 
 void DspController::startSMSRecieving(SmsStage stage)
 {
-    qmDebugMessage(QmDebug::Dump, "startSmsReceiving");
+ //   qmDebugMessage(QmDebug::Dump, "startSmsReceiving");
     QM_ASSERT(is_ready);
 
     for(int i = 0; i<255; i++) rs_data_clear[i] = 1;
@@ -2758,7 +2758,7 @@ void DspController::defaultSMSTransmit()
 
 void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStage stage)
 {
-    qmDebugMessage(QmDebug::Dump, "SMS tranmit (%d, %s)",r_adr, message);
+  //  qmDebugMessage(QmDebug::Dump, "SMS tranmit (%d, %s)",r_adr, message);
     QM_ASSERT(is_ready);
 
     ContentSms.indicator = 20;
@@ -2815,7 +2815,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
 void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command, bool isGps)
 {
-    qmDebugMessage(QmDebug::Dump, "startGucTransmitting(%i, %i)", r_adr, speed_tx);
+//    qmDebugMessage(QmDebug::Dump, "startGucTransmitting(%i, %i)", r_adr, speed_tx);
     QM_ASSERT(is_ready);
 
     ContentGuc.indicator = 20;
@@ -2874,7 +2874,7 @@ void DspController::setFreq(int value){
 
 void DspController::sendGucQuit()
 {
-	qmDebugMessage(QmDebug::Dump, "sendGucQuit");
+//	qmDebugMessage(QmDebug::Dump, "sendGucQuit");
 
 	uint8_t tx_address = 0x7A;
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
@@ -2960,7 +2960,7 @@ uint8_t DspController::getSmsRetranslation()
 
 void DspController::startGucRecieving()
 {
-    qmDebugMessage(QmDebug::Dump, "startGucRecieving");
+    //qmDebugMessage(QmDebug::Dump, "startGucRecieving");
     QM_ASSERT(is_ready);
 
     initResetState();
@@ -3329,7 +3329,7 @@ void DspController::startVirtualPpsModeRx()
 
 void DspController::sendSynchro(uint32_t freq, uint8_t cnt)
 {
-	qmDebugMessage(QmDebug::Dump, "freq virtual %d", freq);
+//	qmDebugMessage(QmDebug::Dump, "freq virtual %d", freq);
 	if (RtcTxRole)
 	{
 		uint8_t tx_address = 0x72;
@@ -3353,14 +3353,14 @@ void DspController::sendSynchro(uint32_t freq, uint8_t cnt)
 void DspController::correctTime(uint8_t num)
 {
 	// correction time
-	qmDebugMessage(QmDebug::Dump, "correctTime() data[7] as num %d", num);
-	qmDebugMessage(QmDebug::Dump, "correctTime() before getTime t.seconds %d", t.seconds);
+//	qmDebugMessage(QmDebug::Dump, "correctTime() data[7] as num %d", num);
+//	qmDebugMessage(QmDebug::Dump, "correctTime() before getTime t.seconds %d", t.seconds);
 
-	qmDebugMessage(QmDebug::Dump, "correctTime() after getTime t.seconds %d", t.seconds);
+//	qmDebugMessage(QmDebug::Dump, "correctTime() after getTime t.seconds %d", t.seconds);
 	t.seconds = 12 * (t.seconds / 12) + 7;
-	qmDebugMessage(QmDebug::Dump, "correctTime() after correct t.seconds %d", t.seconds);
+//	qmDebugMessage(QmDebug::Dump, "correctTime() after correct t.seconds %d", t.seconds);
 	count_VrtualTimer = num;
-    qmDebugMessage(QmDebug::Dump, "correctTime() COUNTER VIRTUAL %d",count_VrtualTimer);
+//    qmDebugMessage(QmDebug::Dump, "correctTime() COUNTER VIRTUAL %d",count_VrtualTimer);
 
 	RtcFirstCatch = -1;
 }
@@ -3379,7 +3379,7 @@ void DspController::wakeUpTimer()
 			freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
 			ParameterValue param;
 			param.frequency = freqVirtual;
-			qmDebugMessage(QmDebug::Dump, "freq virtual %d",freqVirtual);
+//			qmDebugMessage(QmDebug::Dump, "freq virtual %d",freqVirtual);
 			sendCommandEasy(RxRadiopath, 1, param);
 		}
 	}
@@ -3402,7 +3402,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 {
 	if (virtual_mode && SmsLogicRole == SmsRoleRx && !smsFind)
 	{
-        qmDebugMessage(QmDebug::Dump, "LogicPswfModes() pswf_in_virt = %d ", pswf_in_virt);
+ //       qmDebugMessage(QmDebug::Dump, "LogicPswfModes() pswf_in_virt = %d ", pswf_in_virt);
 		pswf_in_virt++;
 		if (pswf_in_virt >= 90)
 		{
@@ -3415,7 +3415,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
     //qmDebugMessage(QmDebug::Dump, "pswf_in_virt");
 	if (indicator == 31)
 	{
-		qmDebugMessage(QmDebug::Dump, "0x63 indicator 31");
+//		qmDebugMessage(QmDebug::Dump, "0x63 indicator 31");
 		if (sms_counter < 19)
 		{
 			snr.erase(snr.begin());
@@ -3437,7 +3437,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
     }
 	else if (indicator == 30)
 	{
-        qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");
+//        qmDebugMessage(QmDebug::Dump, "0x63 indicator 30");
 
 		if (SmsLogicRole == SmsRoleIdle)
 		{
@@ -3458,7 +3458,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 
         if (SmsLogicRole != SmsRoleIdle)
         {
-			qmDebugMessage(QmDebug::Dump, "processReceivedFrame() data_len = %d", data_len);
+//			qmDebugMessage(QmDebug::Dump, "processReceivedFrame() data_len = %d", data_len);
 			if (sms_counter > 38 && sms_counter < 76)
 			{
 				uint8_t index_sms = 7 * (sms_counter - 40);

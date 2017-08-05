@@ -344,69 +344,69 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 			uint8_t energy                  = data[9] & 1; // 1 - normal
 			uint8_t modeKB                  = data[9] & 14;
 			uint8_t delaySpechRecord        = data[9] & 0x10;
-			uint8_t rxtxMode                = data[9] & 0x20;
-			uint8_t delayMsgOn              = data[9] & 0x40;
-			uint8_t isDelayMsgPlaying       = data[9] & 0x80;
+//			uint8_t rxtxMode                = data[9] & 0x20;
+//			uint8_t delayMsgOn              = data[9] & 0x40;
+//			uint8_t isDelayMsgPlaying       = data[9] & 0x80;
 			uint8_t mode_mask_add 			= data[10];
 			uint8_t error_status 			= data[16] & 0x1;
-			uint8_t isModuleSkziMalfunction = data[16] & 0x2;
-			uint8_t isNotKeys 		 		= data[16] & 0x4;
-			uint8_t isLineOutSbError 		= data[16] & 0x8;
-			uint8_t isLineOutError 			= data[16] & 0x10;
-			uint8_t isFlashWritingError 	= data[16] & 0x20;
-			uint8_t isPreDefControlError 	= data[16] & 0x40;
+//			uint8_t isModuleSkziMalfunction = data[16] & 0x2;
+//			uint8_t isNotKeys 		 		= data[16] & 0x4;
+//			uint8_t isLineOutSbError 		= data[16] & 0x8;
+//			uint8_t isLineOutError 			= data[16] & 0x10;
+//			uint8_t isFlashWritingError 	= data[16] & 0x20;
+//			uint8_t isPreDefControlError 	= data[16] & 0x40;
 			uint8_t isNotInitModule 	    = data[16] & 0x80;
 
-			uint8_t isOverKeysInput 	    = data[17] & 0x1;
-			uint8_t isUykipError     	    = data[17] & 0x2;
-			uint8_t isChangeChannelError    = data[17] & 0x4;
+//			uint8_t isOverKeysInput 	    = data[17] & 0x1;
+//			uint8_t isUykipError     	    = data[17] & 0x2;
+//			uint8_t isChangeChannelError    = data[17] & 0x4;
+//
+//			uint8_t isHardwareModuleError   = data[18] & 0x1;
+//			uint8_t isMaskReadingError      = data[18] & 0x2;
+//			uint8_t isNSDSwitch             = data[18] & 0x80;
+//
+//			uint8_t isCmdKeysReset          = data[19] & 0x1;
+//			uint8_t isDelayRecordImp        = data[19] & 0x2; // channel without keys
+//			uint8_t isDelayPlayingImpBuf    = data[19] & 0x4; // buffer is not exist
+//			uint8_t isDelayPlayingImpCRC    = data[19] & 0x8; // CRC error
+//			uint8_t isDelayPlayingImpDevice = data[19] & 0x10; // packets from many devices
 
-			uint8_t isHardwareModuleError   = data[18] & 0x1;
-			uint8_t isMaskReadingError      = data[18] & 0x2;
-			uint8_t isNSDSwitch             = data[18] & 0x80;
 
-			uint8_t isCmdKeysReset          = data[19] & 0x1;
-			uint8_t isDelayRecordImp        = data[19] & 0x2; // channel without keys
-			uint8_t isDelayPlayingImpBuf    = data[19] & 0x4; // buffer is not exist
-			uint8_t isDelayPlayingImpCRC    = data[19] & 0x8; // CRC error
-			uint8_t isDelayPlayingImpDevice = data[19] & 0x10; // packets from many devices
-
-
-			qmDebugMessage(QmDebug::Dump, "chan_number: %d", chan_number);
-			qmDebugMessage(QmDebug::Dump, "ch_mask: 0x%X", ch_mask);
-			qmDebugMessage(QmDebug::Dump, "mode_mask: 0x%X", mode_mask);
-			qmDebugMessage(QmDebug::Dump, "mode_mask_add: 0x%X", mode_mask_add);
-
-			qmDebugMessage(QmDebug::Dump, "energy: %d", energy);
-			qmDebugMessage(QmDebug::Dump, "modeKB: %d", modeKB);
-			qmDebugMessage(QmDebug::Dump, "delaySpechRecord: %d", delaySpechRecord);
-			qmDebugMessage(QmDebug::Dump, "rxtxMode: %d", rxtxMode);
-			qmDebugMessage(QmDebug::Dump, "delayMsgOn: %d", delayMsgOn);
-			qmDebugMessage(QmDebug::Dump, "isDelayMsgPlaying: %d", isDelayMsgPlaying);
-
-			qmDebugMessage(QmDebug::Dump, "isModuleSkziMalfunction: %d", isModuleSkziMalfunction);
-			qmDebugMessage(QmDebug::Dump, "isNotKeys: %d", isNotKeys);
-			qmDebugMessage(QmDebug::Dump, "isLineOutSbError: %d", isLineOutSbError);
-			qmDebugMessage(QmDebug::Dump, "isLineOutError: %d", isLineOutError);
-			qmDebugMessage(QmDebug::Dump, "isFlashWritingError: %d", isFlashWritingError);
-			qmDebugMessage(QmDebug::Dump, "isPreDefControlError: %d", isPreDefControlError);
-			qmDebugMessage(QmDebug::Dump, "isNotInitModule: %d", isNotInitModule);
-			qmDebugMessage(QmDebug::Dump, "isOverKeysInput: %d", isOverKeysInput);
-			qmDebugMessage(QmDebug::Dump, "isUykipError: %d", isUykipError);
-			qmDebugMessage(QmDebug::Dump, "isChangeChannelError: %d", isChangeChannelError);
-
-			qmDebugMessage(QmDebug::Dump, "isHardwareModuleError: %d", isHardwareModuleError);
-			qmDebugMessage(QmDebug::Dump, "isMaskReadingError: %d", isMaskReadingError);
-			qmDebugMessage(QmDebug::Dump, "isNSDSwitch: %d", isNSDSwitch);
-			qmDebugMessage(QmDebug::Dump, "isCmdKeysReset: %d", isCmdKeysReset);
-			qmDebugMessage(QmDebug::Dump, "isDelayRecordImp: %d", isDelayRecordImp);
-			qmDebugMessage(QmDebug::Dump, "isDelayPlayingImpBuf: %d", isDelayPlayingImpBuf);
-			qmDebugMessage(QmDebug::Dump, "isDelayPlayingImpCRC: %d", isDelayPlayingImpCRC);
-			qmDebugMessage(QmDebug::Dump, "isDelayPlayingImpDevice: %d", isDelayPlayingImpDevice);
+//			qmDebugMessage(QmDebug::Dump, "chan_number: %d", chan_number);
+//			qmDebugMessage(QmDebug::Dump, "ch_mask: 0x%X", ch_mask);
+//			qmDebugMessage(QmDebug::Dump, "mode_mask: 0x%X", mode_mask);
+//			qmDebugMessage(QmDebug::Dump, "mode_mask_add: 0x%X", mode_mask_add);
+//
+//			qmDebugMessage(QmDebug::Dump, "energy: %d", energy);
+//			qmDebugMessage(QmDebug::Dump, "modeKB: %d", modeKB);
+//			qmDebugMessage(QmDebug::Dump, "delaySpechRecord: %d", delaySpechRecord);
+//			qmDebugMessage(QmDebug::Dump, "rxtxMode: %d", rxtxMode);
+//			qmDebugMessage(QmDebug::Dump, "delayMsgOn: %d", delayMsgOn);
+//			qmDebugMessage(QmDebug::Dump, "isDelayMsgPlaying: %d", isDelayMsgPlaying);
+//
+//			qmDebugMessage(QmDebug::Dump, "isModuleSkziMalfunction: %d", isModuleSkziMalfunction);
+//			qmDebugMessage(QmDebug::Dump, "isNotKeys: %d", isNotKeys);
+//			qmDebugMessage(QmDebug::Dump, "isLineOutSbError: %d", isLineOutSbError);
+//			qmDebugMessage(QmDebug::Dump, "isLineOutError: %d", isLineOutError);
+//			qmDebugMessage(QmDebug::Dump, "isFlashWritingError: %d", isFlashWritingError);
+//			qmDebugMessage(QmDebug::Dump, "isPreDefControlError: %d", isPreDefControlError);
+//			qmDebugMessage(QmDebug::Dump, "isNotInitModule: %d", isNotInitModule);
+//			qmDebugMessage(QmDebug::Dump, "isOverKeysInput: %d", isOverKeysInput);
+//			qmDebugMessage(QmDebug::Dump, "isUykipError: %d", isUykipError);
+//			qmDebugMessage(QmDebug::Dump, "isChangeChannelError: %d", isChangeChannelError);
+//
+//			qmDebugMessage(QmDebug::Dump, "isHardwareModuleError: %d", isHardwareModuleError);
+//			qmDebugMessage(QmDebug::Dump, "isMaskReadingError: %d", isMaskReadingError);
+//			qmDebugMessage(QmDebug::Dump, "isNSDSwitch: %d", isNSDSwitch);
+//			qmDebugMessage(QmDebug::Dump, "isCmdKeysReset: %d", isCmdKeysReset);
+//			qmDebugMessage(QmDebug::Dump, "isDelayRecordImp: %d", isDelayRecordImp);
+//			qmDebugMessage(QmDebug::Dump, "isDelayPlayingImpBuf: %d", isDelayPlayingImpBuf);
+//			qmDebugMessage(QmDebug::Dump, "isDelayPlayingImpCRC: %d", isDelayPlayingImpCRC);
+//			qmDebugMessage(QmDebug::Dump, "isDelayPlayingImpDevice: %d", isDelayPlayingImpDevice);
 
 			if (error_status)
 			{
-				qmDebugMessage(QmDebug::Dump, "smart headset error");
+			//	qmDebugMessage(QmDebug::Dump, "smart headset error");
 				updateState(StateSmartMalfunction);
 				break;
 			}
@@ -434,7 +434,7 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 	//				break;
 	//			default: qmDebugMessage(QmDebug::Dump, "headset channel speed is not match local, %d", (ch_mask & 0x1C) >> 2);
 	//		}
-			qmDebugMessage(QmDebug::Dump, "headset channel speed = %d", ((ch_mask & 0x1C) >> 2));
+			//qmDebugMessage(QmDebug::Dump, "headset channel speed = %d", ((ch_mask & 0x1C) >> 2));
 
 			if (old_ch_number != chan_number || ch_type != chan_type)
 			{
@@ -513,7 +513,7 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 		}
 		case StateSmartInitChList:
 		{
-			qmDebugMessage(QmDebug::Dump, "unexpected cmd HS_CMD_STATUS");
+		//	qmDebugMessage(QmDebug::Dump, "unexpected cmd HS_CMD_STATUS");
 			resetState();
 			break;
 		}
@@ -535,10 +535,10 @@ void Controller::processReceivedStatusAsync(uint8_t* data, int data_len) {
 			uint8_t mode_mask_add = data[10];
 			uint8_t error_status = data[16] & 0x1;
 			uint8_t isNotInitModule  = data[16] & 0x80;
-			qmDebugMessage(QmDebug::Dump, "chan_number: %d", chan_number);
-			qmDebugMessage(QmDebug::Dump, "ch_mask: 0x%X", ch_mask);
-			qmDebugMessage(QmDebug::Dump, "mode_mask: 0x%X", mode_mask);
-			qmDebugMessage(QmDebug::Dump, "mode_mask_add: 0x%X", mode_mask_add);
+//			qmDebugMessage(QmDebug::Dump, "chan_number: %d", chan_number);
+//			qmDebugMessage(QmDebug::Dump, "ch_mask: 0x%X", ch_mask);
+//			qmDebugMessage(QmDebug::Dump, "mode_mask: 0x%X", mode_mask);
+//			qmDebugMessage(QmDebug::Dump, "mode_mask_add: 0x%X", mode_mask_add);
 
 			if (error_status)
 			{
@@ -561,7 +561,7 @@ void Controller::processReceivedStatusAsync(uint8_t* data, int data_len) {
 	//			break;
 	//		default: qmDebugMessage(QmDebug::Dump, "headset channel speed is not match local, %d", (ch_mask & 0x1C) >> 2);
 	//		}
-			qmDebugMessage(QmDebug::Dump, "headset channel speed = %d", ((ch_mask & 0x1C) >> 2));
+		//	qmDebugMessage(QmDebug::Dump, "headset channel speed = %d", ((ch_mask & 0x1C) >> 2));
 			if (ch_number != chan_number || ch_type != chan_type)
 			{
 				ch_number = chan_number;
@@ -602,7 +602,7 @@ void Controller::processReceivedStatusAsync(uint8_t* data, int data_len) {
 
 void Controller::updateState(State new_state) {
 	if (state != new_state) {
-		qmDebugMessage(QmDebug::Dump, "state changed: %d", new_state);
+	//	qmDebugMessage(QmDebug::Dump, "state changed: %d", new_state);
 		state = new_state;
 		switch (state) {
 		case StateNone:
@@ -628,7 +628,7 @@ void Controller::updateState(State new_state) {
 
 void Controller::updateStatus(Status new_status) {
 	if (status != new_status) {
-		qmDebugMessage(QmDebug::Dump, "status changed: %d", new_status);
+//		qmDebugMessage(QmDebug::Dump, "status changed: %d", new_status);
 		status = new_status;
 		statusChanged(new_status);
 	}
@@ -692,7 +692,7 @@ bool Controller::verifyHSChannels(uint8_t* data, int data_len) {
 
 void Controller::synchronizeHSState()
 {
-	qmDebugMessage(QmDebug::Dump, " ---------- synchronizeHSState() channel number: %d", ch_number);
+//	qmDebugMessage(QmDebug::Dump, " ---------- synchronizeHSState() channel number: %d", ch_number);
 
 //	ch_number = channel;
 //	ch_speed = getChannelSpeed(channel);
@@ -728,20 +728,20 @@ void Controller::synchronizeHSState()
 void Controller::startSmartPlay(uint8_t channel) {
 	QM_ASSERT(channel > 0 || channel < 99);
 	if (ch_table->at(channel - 1).type != Multiradio::channelClose) {
-		qmDebugMessage(QmDebug::Warning, "startSmartPlay() channel %d is not close", channel);
+//		qmDebugMessage(QmDebug::Warning, "startSmartPlay() channel %d is not close", channel);
 		setSmartHSState(SmartHSState_SMART_BAD_CHANNEL);
 		checkUpdateSmartHSState();
 		return;
 	}
-	qmDebugMessage(QmDebug::Dump, "startSmartPlay() channel %d", channel);
+//	qmDebugMessage(QmDebug::Dump, "startSmartPlay() channel %d", channel);
 	if (message_to_play_data.size() == 0) {
-		qmDebugMessage(QmDebug::Warning, "startSmartPlay() message is empty");
+//		qmDebugMessage(QmDebug::Warning, "startSmartPlay() message is empty");
 		setSmartHSState(SmartHSState_SMART_EMPTY_MESSAGE);
 		checkUpdateSmartHSState();
 		return;
 	}
 	if (hs_state != SmartHSState_SMART_READY) {
-		qmDebugMessage(QmDebug::Dump, "startSmartPlay() unexpected state");
+//		qmDebugMessage(QmDebug::Dump, "startSmartPlay() unexpected state");
 		return;
 	}
 	setSmartHSState(SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL);
@@ -752,7 +752,7 @@ void Controller::startSmartPlay(uint8_t channel) {
 }
 
 void Controller::startMessagePlay() {
-	qmDebugMessage(QmDebug::Warning, "startMessagePlay()");
+//	qmDebugMessage(QmDebug::Warning, "startMessagePlay()");
 	setSmartHSState(SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE);
 	message_to_play_data_packets_sent = 0;
 	const int data_size = 16;
@@ -773,7 +773,7 @@ void Controller::startMessagePlay() {
 }
 
 void Controller::stopSmartPlay() {
-	qmDebugMessage(QmDebug::Dump, "stopSmartPlay()");
+//	qmDebugMessage(QmDebug::Dump, "stopSmartPlay()");
 	setSmartHSState(SmartHSState_SMART_READY);
 	synchronizeHSState();
 	checkUpdateSmartHSState();
@@ -782,16 +782,16 @@ void Controller::stopSmartPlay() {
 void Controller::startSmartRecord(uint8_t channel) {
 	QM_ASSERT(channel > 0 || channel < 99);
 	if (ch_table->at(channel - 1).type != Multiradio::channelClose) {
-		qmDebugMessage(QmDebug::Warning, "startSmartRecord() channel %d is not close", channel);
+//		qmDebugMessage(QmDebug::Warning, "startSmartRecord() channel %d is not close", channel);
 		setSmartHSState(SmartHSState_SMART_BAD_CHANNEL);
 		checkUpdateSmartHSState();
 		return;
 	}
 	if (hs_state != SmartHSState_SMART_READY) {
-		qmDebugMessage(QmDebug::Dump, "startSmartRecord() unexpected state");
+//		qmDebugMessage(QmDebug::Dump, "startSmartRecord() unexpected state");
 		return;
 	}
-	qmDebugMessage(QmDebug::Dump, "startSmartRecord() channel %d", channel);
+//	qmDebugMessage(QmDebug::Dump, "startSmartRecord() channel %d", channel);
 	message_record_data_ready = false;
 	message_record_data.clear();
 	setSmartHSState(SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL);
@@ -802,7 +802,7 @@ void Controller::startSmartRecord(uint8_t channel) {
 }
 
 void Controller::startMessageRecord() {
-	qmDebugMessage(QmDebug::Dump, "startMessageRecord()");
+//	qmDebugMessage(QmDebug::Dump, "startMessageRecord()");
 	cmd_resp_timer->setInterval(3000); //TODO: fix it
 	setSmartHSState(SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE);
 	const int data_size = 16;
@@ -844,7 +844,7 @@ void Controller::setSmartMessageToPlay(Multiradio::voice_message_t data) {
 }
 
 void Controller::setSmartHSState(SmartHSState state) {
-	qmDebugMessage(QmDebug::Dump, "setSmartHSState() state = %d", state);
+//	qmDebugMessage(QmDebug::Dump, "setSmartHSState() state = %d", state);
 	if (state != hs_state){
 		hs_state = state;
 		isSmartHSStateChange = true;
@@ -863,7 +863,7 @@ void Controller::checkUpdateSmartHSState()
 
 void Controller::sendHSMessageData() {
 	QM_ASSERT(message_to_play_data.size() != 0);
-	qmDebugMessage(QmDebug::Dump, "sendHSMessageData()");
+//	qmDebugMessage(QmDebug::Dump, "sendHSMessageData()");
 	const int data_size = 208;
 	uint8_t data[data_size];
 	data[0] = 0xAA;
@@ -915,31 +915,31 @@ void Controller::messageToPlayDataPack() {
 	for (int i = 0; i < 200; ++i) {
 		message_to_play_data_packets.at(last).push_back(0);
 	}
-	qmDebugMessage(QmDebug::Dump, "messageToPlayDataPack() packets number = %d", message_to_play_data_packets.size());
+//	qmDebugMessage(QmDebug::Dump, "messageToPlayDataPack() packets number = %d", message_to_play_data_packets.size());
 }
 
 void Controller::messagePacketReceived(uint8_t* data, int data_len) {
-	qmDebugMessage(QmDebug::Dump, "messagePacketReceived() data_len = %d", data_len);
+//	qmDebugMessage(QmDebug::Dump, "messagePacketReceived() data_len = %d", data_len);
 //	for (int i = 0; i < data_len; ++i) {
 //		qmDebugMessage(QmDebug::Dump, "data[%d] = %2X", i, data[i]);
 //	}
 	if (data[0] != 0xAA && data[1] != 0xCD) {
-		qmDebugMessage(QmDebug::Dump, "messagePacketReceived() data header is not valid");
+//		qmDebugMessage(QmDebug::Dump, "messagePacketReceived() data header is not valid");
 		return;
 	}
 	uint16_t data_crc = calcPacketCrc(&data[2], 204);
 	uint16_t crc = qmFromLittleEndian<uint16_t>(data + 206);
 	if (data_crc != crc) {
-		qmDebugMessage(QmDebug::Dump, "messagePacketReceived() crc is not valid");
+	//	qmDebugMessage(QmDebug::Dump, "messagePacketReceived() crc is not valid");
 		return;
 	}
 	uint16_t packet_number = qmFromLittleEndian<uint16_t>(data + 2);
 	uint16_t data_size = qmFromLittleEndian<uint16_t>(data + 4);
 	if (data_size > 200) {
-		qmDebugMessage(QmDebug::Dump, "messagePacketReceived() data size %d is not valid", data_size);
+//		qmDebugMessage(QmDebug::Dump, "messagePacketReceived() data size %d is not valid", data_size);
 		return;
 	} else if (data_size == 0) {
-		qmDebugMessage(QmDebug::Dump, "total message data size = %d", message_record_data.size());
+//		qmDebugMessage(QmDebug::Dump, "total message data size = %d", message_record_data.size());
 		message_record_data_ready = true;
 		setSmartHSState(SmartHSState_SMART_READY);
 	}
@@ -952,7 +952,7 @@ void Controller::messagePacketReceived(uint8_t* data, int data_len) {
 }
 
 void Controller::messagePacketResponce(int packet_number) {
-	qmDebugMessage(QmDebug::Dump, "messagePacketResponce() packet_number %d", packet_number);
+//	qmDebugMessage(QmDebug::Dump, "messagePacketResponce() packet_number %d", packet_number);
 	const int data_size = 4;
 	uint8_t data[data_size];
 	for (int i = 0; i < data_size; ++i) {
