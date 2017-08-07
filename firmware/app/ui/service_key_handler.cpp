@@ -685,7 +685,7 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
                 for (auto &k: estate.listItem)
                     k->inputStr.clear();
                 guiTree.backvard();
-                menu->focus = 0;
+                menu->focus = 1;
                 if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
                 	setFreq();
                 }
@@ -937,7 +937,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
         	{
         		guiTree.backvard();
         		menu->offset = 1;
-        		menu->focus = 2;
+        		menu->focus = 3;
         		menu->inVoiceMail = false;
         		menu->toVoiceMail = false;
         		voice_service->stopAle();
@@ -976,11 +976,13 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
         {
             headset_controller->startSmartRecord((uint8_t)atoi( menu->channalNum.c_str()));
             menu->putOffVoiceStatus++;
+            menu->inVoiceMail = true;
         }
         if (key == keyEnter && menu->voiceMailSource != VMS_CHANNEL)
         {
         	menu->putOffVoiceStatus++;
         	menu->putOffVoiceStatus++;
+        	menu->inVoiceMail = true;
         }
 #endif
         break;
@@ -1169,7 +1171,7 @@ void Service::txSmsMessage_keyPressed(UI_Key key)
 				{
 					guiTree.backvard();
 					menu->offset = 0;
-					menu->focus = 1;
+					menu->focus = 2;
 					onCompletedStationMode();
 					menu->virtCounter = 0;
 					break;
@@ -1415,6 +1417,15 @@ void Service::recvCondCmd_keyPressed(UI_Key key)
     	switch (menu->recvStage)
     	{
 			case 0:
+			{
+				isStartCond = false;
+				//guiTree.resetCurrentState();
+				guiTree.backvard();
+				onCompletedStationMode();
+				menu->virtCounter = 0;
+				menu->recvStage = 0;
+				break;
+			}
 			case 3:
 			{
 				isStartCond = false;
@@ -1471,7 +1482,8 @@ void Service::rxSmsMessage_keyPressed(UI_Key key)
 		{
 			cntSmsRx = -1;
 			guiTree.backvard();
-			menu->focus = 0;
+			menu->offset = 1;
+			menu->focus = 2;
 			isSmsMessageRec = false;
 			menu->smsStage = 0;
 			menu->smsTxStage = 1;
@@ -1561,8 +1573,8 @@ void Service::recvGroupCondCmd_keyPressed(UI_Key key)
 			case 0:
 			{
 				cntGucRx = -1;
-                menu->offset = 1;
-                menu->focus = 2;
+                menu->offset = 0;
+                menu->focus = 1;
                 guiTree.backvard();
                 onCompletedStationMode(false);
 				break;
@@ -1578,6 +1590,15 @@ void Service::recvGroupCondCmd_keyPressed(UI_Key key)
 			case 3:
 			{
 				--cntGucRx;
+				if (cntGucRx == 0)
+				{
+					cntGucRx = -1;
+	                menu->offset = 0;
+	                menu->focus = 1;
+	                guiTree.backvard();
+	                onCompletedStationMode(false);
+					break;
+				}
 				break;
 			}
 		}
