@@ -192,6 +192,8 @@ private:
     CGuiMenu *menu;
     CGuiTree  guiTree;
 
+    bool isVm = false;
+
     bool isStartCond = false;
     bool isWaitAnswer = false;
     bool isGucAnswerWaiting = false;

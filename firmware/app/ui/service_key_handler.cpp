@@ -941,6 +941,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
         		menu->inVoiceMail = false;
         		menu->toVoiceMail = false;
         		voice_service->stopAle();
+        		isVm = true;
         		onCompletedStationMode(true);
         	}
 
@@ -1148,6 +1149,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
             guiTree.resetCurrentState();
             menu->inVoiceMail = false;
             menu->toVoiceMail = false;
+            isVm = true;
             onCompletedStationMode(true);
 #endif
             guiTree.resetCurrentState();
