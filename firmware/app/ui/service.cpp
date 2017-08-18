@@ -690,6 +690,8 @@ void Service::msgBox(const char *title, const int condCmd, const int size, const
 
 void Service::drawMainWindow()
 {
+	navigator->set1PPSModeCorrect(true);
+
     if (!isStartTestMsg){
     Multiradio::VoiceServiceInterface *voice_service = pGetVoiceService();
 
@@ -1124,6 +1126,8 @@ void Service::draw()
 {
     CState currentState;
     guiTree.getLastElement(currentState);
+
+    navigator->set1PPSModeCorrect(false);
 
     switch(currentState.getType())
     {

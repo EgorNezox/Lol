@@ -21,6 +21,7 @@
 #include <math.h>
 #include "stdio.h"
 #include "navigator.h"
+#include "../../system/init.h"
 
 #define NEW_GPS_PARSING 0
 #define GPS_CORRECT 0
@@ -59,6 +60,8 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
     config_timer = new QmTimer(true, this);
     config_timer->timeout.connect(sigc::mem_fun(this, &Navigator::processConfig));
     config_timer->start(3000); //tested on receivers versions 3.1, 4.1
+
+    timer1_init();
 }
 
 Navigator::~Navigator() {
@@ -369,6 +372,17 @@ void Navigator::processConfig() {
 //    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
 }
 
+void Navigator::set1PPSModeCorrect(bool value)
+{
+	pps_correct = value;
+}
+
+bool Navigator::get1PPSModeCorrect()
+{
+	return pps_correct;
+}
+
+
 void Navigator::processSyncPulse(bool overflow)
 {
     //qmDebugMessage(QmDebug::Warning, "processSyncPulse() start");
@@ -385,7 +399,21 @@ void Navigator::processSyncPulse(bool overflow)
 		parsingData(data);
 	}
 	syncPulse();
-    //qmDebugMessage(QmDebug::Warning, "processSyncPulse() end");
+
+	if (get1PPSModeCorrect())
+	{
+		uint32_t i;
+		int res=0;
+		i=get_tim1value();
+		if(i!=0)
+		{
+			int fdelta = 120000000-i; // <0 - Частота завышена (уменьшаем), >0 - Частота занижена (увеличиваем)
+			qmDebugMessage(QmDebug::Info, "1ppt trigger detected, tim1 =(%lu), Need %i step for DAC",  i, fdelta*2);
+			res = tune_frequency_generator(fdelta*2);
+			qmDebugMessage(QmDebug::Info, "1ppt trigger detected, tim1 =(%lu), Need %i step for DAC, DAC: %i",  i, fdelta*2, res);
+		}
+	}
+
 }
 
 void Navigator::coldStart()

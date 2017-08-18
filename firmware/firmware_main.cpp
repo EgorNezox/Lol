@@ -65,15 +65,15 @@ void qmMain() {
     DataStorage::FS data_storage_fs("data");
 
 #if defined (PORT__TARGET_DEVICE_REV1)
-    uint16_t genFreq;
-    uint16_t genFreqDefault = DEFAULT_GENERATOR_FREQ;
-
-    //bool isSet = data_storage_fs.setGeneratorFreq(genFreqDefault);
-    bool isGet = data_storage_fs.getGeneratorFreq(&genFreq, genFreqDefault);
-    if (genFreq < MIN_GENERATOR_FREQ || genFreq > MAX_GENERATOR_FREQ || (!isGet))
-    	genFreq = DEFAULT_GENERATOR_FREQ;
-
-    target_device_multiradio_init(genFreq);
+//    uint16_t genFreq;
+//    uint16_t genFreqDefault = DEFAULT_GENERATOR_FREQ;
+//
+//    //bool isSet = data_storage_fs.setGeneratorFreq(genFreqDefault);
+//    bool isGet = data_storage_fs.getGeneratorFreq(&genFreq, genFreqDefault);
+//    if (genFreq < MIN_GENERATOR_FREQ || genFreq > MAX_GENERATOR_FREQ || (!isGet))
+//    	genFreq = DEFAULT_GENERATOR_FREQ;
+//
+    target_device_multiradio_init(0);
 #endif
 
 #if defined(PORT__TARGET_DEVICE_REV1)

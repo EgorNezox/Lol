@@ -20,12 +20,51 @@
 
 #define MIN_DAC_OUTPUT_VALUE	620		// 0,5В при Vref=3,3В
 #define MAX_DAC_OUTPUT_VALUE	3100	// 2,5В при Vref=3,3В
+#define DAC_OUTPUT_VALUE_DEFAULT 800
 
 static uint32_t load_dac_output_value(void);
 
 static const int8_t const *freqtuneroffset_value_addr = (int8_t *)0x080E0004;
 
-void tune_frequency_generator(uint16_t freq) {
+void write_backup_register(uint32_t value)
+{
+	static uint8_t just_one_time = 0;
+	if (just_one_time == 0)
+	{
+		//__HAL_RCC_PWR_CLK_ENABLE();
+		//__HAL_RCC_BKPSRAM_CLK_ENABLE();
+		//HAL_PWREx_EnableBkUpReg();
+		//while (__HAL_PWR_GET_FLAG(PWR_FLAG_BRR) == RESET);
+
+		++just_one_time;
+	}
+	HAL_PWR_EnableBkUpAccess();
+
+	RTC->BKP0R = value;
+	//HAL_PWR_DisableBkUpAccess(); // disable rtc wakeup. why?
+}
+
+uint32_t read_backup_register()
+{
+	uint32_t value =  RTC->BKP0R;
+	return value;
+}
+
+int tune_frequency_generator(int d)
+{
+	int res=1;
+	uint32_t dac_start;
+	dac_start = read_backup_register();
+
+	if (dac_start < MIN_DAC_OUTPUT_VALUE || dac_start > MAX_DAC_OUTPUT_VALUE)
+		dac_start = DAC_OUTPUT_VALUE_DEFAULT;
+
+	res = dac_start + d;
+
+	if(res > MAX_DAC_OUTPUT_VALUE)res = MAX_DAC_OUTPUT_VALUE;
+	if(res < MIN_DAC_OUTPUT_VALUE)res = MIN_DAC_OUTPUT_VALUE;
+
+
 	DAC_HandleTypeDef    DacHandle;
 	DAC_ChannelConfTypeDef sConfig;
 	DacHandle.Instance = DACx;
@@ -34,8 +73,12 @@ void tune_frequency_generator(uint16_t freq) {
 	sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
 	sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
 	HAL_DAC_ConfigChannel(&DacHandle, &sConfig, DACx_CHANNEL);
-        HAL_DAC_SetValue(&DacHandle, DACx_CHANNEL, DAC_ALIGN_12B_R, freq);
+
+	HAL_DAC_SetValue(&DacHandle, DACx_CHANNEL, DAC_ALIGN_12B_R, res);
 	HAL_DAC_Start(&DacHandle, DACx_CHANNEL);
+	write_backup_register(res);
+
+	return res;
 }
 
 static uint32_t load_dac_output_value(void) {

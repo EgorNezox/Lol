@@ -32,7 +32,6 @@
 
 extern void init_stm32f2cube_hal();
 extern void deinit_stm32f2cube_hal();
-extern void tune_frequency_generator(uint16_t freq);
 extern void init_sky72310(void);
 
 char stm32f2_ext_sram_test(void) __attribute__((optimize("-O0")));
@@ -71,7 +70,7 @@ void stm32f2_ext_mem_init(void) {
 	*/
 
 	  /* Enable GPIOD, GPIOE, GPIOF and GPIOG interface clock */
-	  RCC->AHB1ENR  |= 0x00000078;
+	  RCC->AHB1ENR  |= 0x00000079;
 
 	  /* Connect PDx pins to FSMC Alternate function */
 	  GPIOD->AFR[0]  |= 0xc0cc00cc;
@@ -290,7 +289,7 @@ void stm32f2_hardware_io_init(void)
 
 void target_device_multiradio_init(int freq) {
 	init_stm32f2cube_hal();
-    tune_frequency_generator(freq);
+    tune_frequency_generator(0);
 	init_sky72310();
 	deinit_stm32f2cube_hal();
 }
@@ -649,4 +648,89 @@ hal_gpio_level_t stm32f2_get_pushbutton_active_level(int platform_hw_resource)
 	default: configASSERT(0); // no such resource
 	}
 	return hgpioLow;
+}
+
+
+//Инициализация таймера 1
+//По ножке A.8 приходят импульсы
+void timer1_init(){
+	hal_gpio_params_t params;
+	hal_gpio_set_default_params(&params);
+	params.mode = hgpioMode_AF;
+	params.type = hgpioType_PPDown;
+	params.af = hgpioAF_TIM_1_2; //AF1
+	hal_gpio_init((hal_gpio_pin_t){hgpioPA, 8}, &params);
+
+	RCC->APB2ENR|=1; // Включили таймер 1
+	TIM1->PSC = 0;
+	TIM1->DIER |= (TIM_DIER_UIE | TIM_DIER_CC1IE); //Разрешить прерывание по переполнению
+	TIM1->CR1 |= TIM_CR1_CEN; //Запустили таймер
+	TIM1->CCMR1 |= TIM_CCMR1_CC1S_0; //Первый канал - это вход TI1; Фильтры не используются
+	TIM1->CCER |= (TIM_CCER_CC1E); //Включили захват, передний фронт
+
+	NVIC_SetPriority(TIM1_CC_IRQn,1);// установили приоритет прерывания. 15 - самый низкий (покрутим)
+	NVIC_EnableIRQ(TIM1_CC_IRQn);// разрешили прерывание++
+
+	NVIC_SetPriority(TIM1_UP_TIM10_IRQn,1);// установили приоритет прерывания. 15 - самый низкий (покрутим)
+	NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);// разрешили прерывание++
+
+}
+
+
+
+static uint16_t highvalue=0;
+static uint32_t tim1delta;
+static uint32_t tim1values[4];
+
+#define FDELTA 10
+int get_tim1value(void){
+	uint32_t midval, result;
+	int i;
+	//Посчитаем среднее по буферу, если никто из членов не имеет отклонения больше delta(например - 10)
+	//То мы выдаем среднее. Иначе - 0
+	midval = (tim1values[0] + tim1values[1] + tim1values[2] + tim1values[3])/4;
+	//midval = (tim1values[0] + tim1values[2])/2 + (tim1values[3] + tim1values[4])/2;
+
+	result = midval;
+
+	for(i=0;i<4;i++){
+		if(tim1values[i]>midval && (tim1values[i]-midval)>FDELTA) result=0;
+		if(tim1values[i]<midval && (midval-tim1values[i])>FDELTA) result=0;
+	}
+
+	return result;
+
+	//Сразу считаем отклоение от 12МГц
+	//int fdelta = result-120000000; // >0 - Частота завышена (уменьшаем), <0 - Частота занижена (увеличиваем)
+
+	//int idelta = fdelta/7; //Перевели отклонение частоты в отклонения чиков ЦАП.
+
+	//Далее нам нужно обновить значение ЦАП
+
+}
+
+void TIM1_CC_IRQHandler(void){
+	static uint32_t value=0;
+	static uint8_t tim1index=0;
+	uint32_t prevalue;
+	// Произошел захват переднего фронта
+	if (TIM1->SR & TIM_SR_CC1IF){
+		TIM1->SR &= ~TIM_SR_CC1IF;
+		prevalue = value;
+		value = TIM1->CCR1; //Сохраненное значение
+		value+=(((uint32_t)highvalue) << 16);
+		tim1delta = value-prevalue;
+		tim1values[tim1index]=tim1delta;
+		tim1index = (tim1index+1)&3; //Работаем по циклу
+	}
+}
+
+
+//Здесь отдельно
+void TIM1_UP_TIM10_IRQHandler(void){
+	//Переполнение таймера
+	if (TIM1->SR & TIM_SR_UIF){ //Надо убедится, что прерывание произошло именно по переполнению
+		TIM1->SR &= ~TIM_SR_UIF; //Сбросили флаг
+		highvalue++;
+	}
 }

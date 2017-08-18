@@ -38,9 +38,9 @@ public:
 	sigc::signal<void> syncPulse;
 	sigc::signal<void,bool> PswfSignal;
 	Coord_Date getCoordDate();
-
 	void setMinimalActivityMode(bool enabled);
-
+	void set1PPSModeCorrect(bool value);
+	bool get1PPSModeCorrect();
 	void coldStart();
 
 	int Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
@@ -66,6 +66,7 @@ private:
 	QmTimer *config_timer;
 
 	bool minimal_activity_mode;
+	bool pps_correct;
 };
 
 } /* namespace Navigation */
