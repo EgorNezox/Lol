@@ -1660,8 +1660,7 @@ void Service::rxPutOffVoice_keyPressed(UI_Key key)
             menu->inVoiceMail = false;
             menu->toVoiceMail = false;
 #ifndef _DEBUG_
-            voice_service->stopAle();
-            onCompletedStationMode();
+            onCompletedStationMode(true);
 #endif
         }
         if (key == keyEnter)

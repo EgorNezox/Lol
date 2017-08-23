@@ -15,9 +15,9 @@ extern "C" {
 #endif
 
 void target_device_multiradio_init(int freq);
-void timer1_init();
+void timer2_init();
 int get_tim1value();
-int tune_frequency_generator(int freq);
+int tune_frequency_generator(int freq ,bool isWrite);
 
 #ifdef __cplusplus
 }

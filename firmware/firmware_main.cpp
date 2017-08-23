@@ -27,6 +27,7 @@
 #include "power/powercontroller.h"
 #include "power/battery.h"
 #include "ui/service.h"
+#include "../system/init.h"
 
 #define MIN_GENERATOR_FREQ 620
 #define DEFAULT_GENERATOR_FREQ 1900
@@ -47,7 +48,7 @@ void qmMain() {
     QmSpiffs::Config data_fs_config;
     data_fs_config.device = &data_flash_device;
     data_fs_config.physical_address = 0;
-    data_fs_config.physical_size = 4*64*1024;
+    data_fs_config.physical_size = 32*64*1024;
     data_fs_config.logical_block_size = 64*1024;
     data_fs_config.logical_page_size = data_flash_device.getPageSize();
     data_fs_config.max_opened_files = 10;
@@ -156,6 +157,8 @@ void qmMain() {
     entxrs232_iopin.writeOutput(QmIopin::Level_High);
 	headset_controller.startServicing(mr_channels_table);
 	mr_dispatcher.startServicing(mr_channels_table);
+
+    timer2_init();
 
 	app.exec();
 }

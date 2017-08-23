@@ -201,7 +201,7 @@ DspController::~DspController()
 void DspController::dspReset()
 {
 	reset_iopin->writeOutput(QmIopin::Level_Low);
-	QmThread::msleep(20);
+	//QmThread::msleep(20);
 	reset_iopin->writeOutput(QmIopin::Level_High);
 	if (guc_rx_quit_timer)
 		stopGucTimer();
@@ -218,15 +218,9 @@ void DspController::startServicing()
 	//qmDebugMessage(QmDebug::Info, "start servicing...");
 	initResetState();
 	reset_iopin->writeOutput(QmIopin::Level_Low);
-	QmThread::msleep(20);
-	reset_iopin->writeOutput(QmIopin::Level_High);
-	QmThread::msleep(8000);
+	QmThread::msleep(10);
 	transport->enable();
-	ParameterValue command;
-	command.radio_mode = RadioModeUSB;
-	sendCommandEasy(TxRadiopath, 2, command);
-	QmThread::msleep(4000);
-	dspReset();
+	reset_iopin->writeOutput(QmIopin::Level_High);
 
 	//new (fast)
 

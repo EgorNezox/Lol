@@ -61,7 +61,6 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
     config_timer->timeout.connect(sigc::mem_fun(this, &Navigator::processConfig));
     config_timer->start(3000); //tested on receivers versions 3.1, 4.1
 
-    timer1_init();
 }
 
 Navigator::~Navigator() {
@@ -385,7 +384,20 @@ bool Navigator::get1PPSModeCorrect()
 
 void Navigator::processSyncPulse(bool overflow)
 {
-    //qmDebugMessage(QmDebug::Warning, "processSyncPulse() start");
+    static uint16_t to_mode_time = 0;
+    ++to_mode_time;
+
+    int i  = get_tim1value();
+    int res = 0;
+    bool param = (to_mode_time % 50 == 0);
+    if (CoordDate.status)
+    {
+    	res = tune_frequency_generator(i, param);
+        qmDebugMessage(QmDebug::Warning, " =====> Correct  DAC: %i FROM DELTA %i", res, i);
+    }
+    if (param)
+        to_mode_time = 0;
+
 
 	if (overflow)
 		qmDebugMessage(QmDebug::Warning, "sync pulse overflow detected !!!");
@@ -394,25 +406,14 @@ void Navigator::processSyncPulse(bool overflow)
 	int16_t data_read = 0;
 	data_read = uart->readData(data, 1024 - 1);
     //qmDebugMessage(QmDebug::Warning, "data_read = %d", data_read);
-	if (data_read > 0){
+	if (data_read > 0)
+	{
 		data[data_read] = '\0';
 		parsingData(data);
 	}
 	syncPulse();
 
-	if (get1PPSModeCorrect())
-	{
-		uint32_t i;
-		int res=0;
-		i=get_tim1value();
-		if(i!=0)
-		{
-			int fdelta = 120000000-i; // <0 - Частота завышена (уменьшаем), >0 - Частота занижена (увеличиваем)
-			qmDebugMessage(QmDebug::Info, "1ppt trigger detected, tim1 =(%lu), Need %i step for DAC",  i, fdelta*2);
-			res = tune_frequency_generator(fdelta*2);
-			qmDebugMessage(QmDebug::Info, "1ppt trigger detected, tim1 =(%lu), Need %i step for DAC, DAC: %i",  i, fdelta*2, res);
-		}
-	}
+
 
 }
 
@@ -456,5 +457,5 @@ void Navigator::setMinimalActivityMode(bool enabled) {
 } /* namespace Navigation */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(navigation, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(navigation, LevelInfo)
 #include "qmdebug_domains_end.h"
