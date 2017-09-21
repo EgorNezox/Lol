@@ -3259,6 +3259,11 @@ void DspController::goToVoice()
 	if (guc_rx_quit_timer)
 		stopGucTimer();
 	radio_state = radiostateCmdRxMode;//radiostateSync;
+	if (virtual_mode)
+	{
+		RtcRxRole = false;
+		RtcTxRole = false;
+	}
 }
 
 void DspController::magic()
