@@ -25,7 +25,6 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     dispatcher->dsp_controller->recievedGucResp.connect(sigc::mem_fun(this,&VoiceServiceInterface::responseGuc));
     dispatcher->dsp_controller->recievedGucQuitForTransm.connect(sigc::mem_fun(this,&VoiceServiceInterface::messageGucQuit));
     dispatcher->dsp_controller->gucCrcFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCrcFail));
-    dispatcher->dsp_controller->updateGucGpsStatus.connect(sigc::mem_fun(this,&VoiceServiceInterface::gucCoordRec));
 
     dispatcher->dsp_controller->smsPacketMessage.connect(sigc::mem_fun(this,&VoiceServiceInterface::smsMessage));
     dispatcher->dsp_controller->smsFailed.connect(sigc::mem_fun(this,&VoiceServiceInterface::SmsFailStage));
@@ -56,15 +55,8 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     current_status = StatusNotReady;
     current_mode = VoiceModeManual;
 
-    // ---- mainservice signals
     dispatcher->dsp_controller->hardwareFailed.connect(sigc::mem_fun(this, &VoiceServiceInterface::forwardDspHardwareFailure));
-    //if (dispatcher->navigator != 0)
-    //	dispatcher->navigator->syncPulse.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocess1PPS));
-    //dispatcher->dsp_controller->transmittedModemPacket.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocessModemPacketTransmitted));
-    //dispatcher->dsp_controller->failedTxModemPacket.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocessModemPacketFailedTx));
-    //dispatcher->dsp_controller->receivedModemPacket.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocessModemPacketReceived));
-    //dispatcher->dsp_controller->startedRxModemPacket_packHead.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocessModemPacketStartedRxPackHead));
-    //dispatcher->dsp_controller->failedRxModemPacket.connect(sigc::mem_fun(this, &VoiceServiceInterface::aleprocessModemPacketFailedRx));
+
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
@@ -424,10 +416,6 @@ void VoiceServiceInterface::sendBatteryVoltage(int voltage)
 void VoiceServiceInterface::sendHeadsetType(uint8_t type)
 {
    dispatcher->dsp_controller->sendHeadsetType(type);
-}
-
-void VoiceServiceInterface::gucCoordRec(){
-	gucCoord();
 }
 
 void VoiceServiceInterface::goToVoice()

@@ -101,7 +101,6 @@ public:
     void saveFreq(int value);
     void messageGucQuit(int ans);
     void gucCrcFail();
-    void gucCoordRec();
     uint8_t* requestGucCoord();
     bool getIsGucCoord();
 
@@ -129,7 +128,6 @@ public:
     sigc::signal<void,int,bool> respGuc;
     sigc::signal<void,int> messageGucTxQuit;
     sigc::signal<void> gucCrcFailed;
-    sigc::signal<void> gucCoord;
 
     // ----- SMS -------
     sigc::signal<void,int> smsFailed;

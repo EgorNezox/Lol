@@ -1,17 +1,11 @@
-#include <stdlib.h>
+
 #include "qm.h"
 #define QMDEBUGDOMAIN	service
 #include "qmdebug.h"
 #include "dialogs.h"
 #include "service.h"
 #include "texts.h"
-#include <thread>
 #include <navigation/navigator.h>
-#include <math.h>
-#include <stdio.h>
-#include <iostream>
-#include <string.h>
-#include <string>
 #include "../../../system/reset.h"
 
 #define VM_STATE 1
@@ -60,54 +54,35 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->currentChannelChanged.connect(sigc::mem_fun(this, &Service::voiceChannelChanged));
     voice_service->smsCounterChanged.connect(sigc::mem_fun(this,&Service::onSmsCounterChange));
 
-    keyboard = new QmMatrixKeyboard(matrix_kb.resource);
-    keyboard->keyAction.connect(sigc::mem_fun(this, &Service::keyHandler));
+    keyboard  = new QmMatrixKeyboard(matrix_kb.resource);
     chnext_bt = new QmPushButtonKey(aux_kb.key_iopin_resource[auxkbkeyChNext]);
     chprev_bt = new QmPushButtonKey(aux_kb.key_iopin_resource[auxkbkeyChPrev]);
+
+    keyboard->keyAction.connect(sigc::mem_fun(this, &Service::keyHandler));
     chnext_bt->stateChanged.connect(sigc::mem_fun(this, &Service::chNextHandler));
     chprev_bt->stateChanged.connect(sigc::mem_fun(this, &Service::chPrevHandler));
 
     main_scr  = new GUI_Dialog_MainScr(&ui_common_dialog_area);
     indicator = new GUI_Indicator     (&ui_indicator_area);
 
-    menu = nullptr;
-    msg_box = nullptr;
+    menu = nullptr; msg_box = nullptr; bool useMode = false;
 
     if( menu == nullptr )
-    {
         menu = new CGuiMenu(&ui_menu_msg_box_area, mainMenu[0], {alignHCenter,alignTop});
-    }
+
     if (storageFs > 0)
+    {
     	menu->setFS(storageFs);
-
-    bool useMode = false;
-    if (storageFs > 0)
     	storageFs->getVoiceMode(&useMode);
+    }
+
     menu->useMode = (bool)useMode;
+
     voice_service->setVoiceMode((Multiradio::VoiceServiceInterface::VoiceMode)!menu->useMode);
-
-    this->voice_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
-
-    this->power_battery->voltageChanged.connect(sigc::mem_fun(this, &Service::batteryVoltageChanged));
-    this->power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::batteryChargeChanged));
-
-    //this->power_battery->voltageReceived.connect(sigc::mem_fun(this,&Service::onRecievingBatteryVoltage));
-
-    this->voice_service->aleStateChanged.connect(sigc::mem_fun(this, &Service::updateAleState));
-    this->voice_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &Service::updateAleVmProgress));
-    this->headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateHeadset));
-    this->headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
-
-    this->headset_controller->delaySpeachStateChanged.connect(sigc::mem_fun(this, &Service::onDelaySpeachStateChanged));
-
-
     voice_service->command_tx30.connect(sigc::mem_fun(this, &Service::TxCondCmdPackage));
-
-    command_rx_30 = 0;
-
-
-    this->headset_controller->BOOM.connect(sigc::mem_fun(this, &Service::resetLogicDSPforGarniture));
-
+    voice_service->aleStateChanged.connect(sigc::mem_fun(this, &Service::updateAleState));
+    voice_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &Service::updateAleVmProgress));
+    voice_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
     voice_service->firstPacket.connect(sigc::mem_fun(this,&Service::FirstPacketPSWFRecieved));
     voice_service->smsMess.connect(sigc::mem_fun(this,&Service::smsMessage));
     voice_service->smsFailed.connect(sigc::mem_fun(this,&Service::FailedSms));
@@ -116,45 +91,40 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->dspHardwareFailed.connect(sigc::mem_fun(this, &Service::showDspHardwareFailure));
     voice_service->messageGucTxQuit.connect(sigc::mem_fun(this, &Service::msgGucTXQuit));
     voice_service->gucCrcFailed.connect(sigc::mem_fun(this,&Service::errorGucCrc));
-    voice_service->gucCoord.connect(sigc::mem_fun(this,&Service::GucCoord));
     voice_service->startRxQuitSignal.connect(sigc::mem_fun(this, &Service::startRxQuit));
     voice_service->stationModeIsCompleted.connect(sigc::mem_fun(this,&Service::onCompletedStationMode));
     voice_service->dspStarted.connect(sigc::mem_fun(this,&Service::onDspStarted));
-
     voice_service->waveInfoRecieved.connect(sigc::mem_fun(this,&Service::onWaveInfoRecieved));
-
     voice_service->rxModeSetting.connect(sigc::mem_fun(this,&Service::onRxModeSetting));
     voice_service->txModeSetting.connect(sigc::mem_fun(this,&Service::onTxModeSetting));
-
     voice_service->settingAleFreq.connect(sigc::mem_fun(this,&Service::onSettingAleFreq));
-
     voice_service->startCondReceiving.connect(sigc::mem_fun(this,&Service::onStartCondReceiving));
     voice_service->virtualCounterChanged.connect(sigc::mem_fun(this,&Service::onVirtualCounterChanged));
-
     voice_service->qwitCounterChanged.connect(sigc::mem_fun(this,&Service::onQwitCounterChanged));
-
     voice_service->transmitAsk.connect(sigc::mem_fun(this,&Service::onTransmitAsk));
 
-    valueRxSms = 0;
+    power_battery->voltageChanged.connect(sigc::mem_fun(this, &Service::batteryVoltageChanged));
+    power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::batteryChargeChanged));
 
+    headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateHeadset));
+    headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
+    headset_controller->delaySpeachStateChanged.connect(sigc::mem_fun(this, &Service::onDelaySpeachStateChanged));
+    headset_controller->BOOM.connect(sigc::mem_fun(this, &Service::resetLogicDSPforGarniture));
 
+    valueRxSms = 0;  command_rx_30 = 0;
     pswf_status = false;
- #if defined (PORT__TARGET_DEVICE_REV1)
- #endif
 
 #ifndef PORT__PCSIMULATOR
     navigator->PswfSignal.connect(sigc::mem_fun(this,&Service::setPswfStatus));
-
 #if TIME_ON_GPS_MARKER
     navigator->syncPulse.connect(sigc::mem_fun(this,&Service::updateSystemTime));
 #else
-    systemTimeTimer = new QmTimer(true); // TODO:
+    systemTimeTimer = new QmTimer(true);
     systemTimeTimer->setInterval(1000);
     systemTimeTimer->setSingleShot(false);
     systemTimeTimer->start();
     systemTimeTimer->timeout.connect(sigc::mem_fun(this, &Service::updateSystemTime));
 #endif
-
 #endif
 
     menu->supressStatus = 0;
@@ -185,7 +155,8 @@ void Service::onTestMsgTimer()
 
 void Service::readSynchMode()
 {
-    if (storageFs > 0){
+    if (storageFs > 0)
+    {
        storageFs->getGpsSynchroMode((uint8_t*)&gpsSynchronization);
        voice_service->setVirtualMode(!gpsSynchronization);
     }
@@ -210,10 +181,13 @@ void Service::showAtuMalfunction()
 void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)
 {
 	std::string title, text;
-	if ((subdevice_code == 7) && (error_code == 5)) {
+	if ((subdevice_code == 7) && (error_code == 5))
+	{
 		title = dsphardwarefailure_7_5_title_str;
 		text = dsphardwarefailure_7_5_text_str;
-	} else {
+	}
+	else
+	{
 		title = dsphardwarefailure_unknown_title_str;
 		char text_buffer[50];
 		sprintf(text_buffer , dsphardwarefailure_unknown_text_str, subdevice_code, error_code);
@@ -225,19 +199,6 @@ void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)
 void Service::errorGucCrc()
 {
     msgBox( "Error ", "Crc error\0");
-}
-
-void Service::GucCoord(){
-    uint8_t *mes;
-    mes = voice_service->requestGucCoord();
-    char str[9];
-    //	for(int i = 0; i<=8 ;i++) {
-    //		int a = static_cast<int>(mes[i]);
-    //		sprintf(str,"%d",a);
-    //	}
-    //	str[9] = '\0';
-    //	msgBox( "Coord", str);
-    //	guiTree.append(messangeWindow,str, "0\0");
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -308,8 +269,9 @@ void Service::updateBattery()
 void Service::drawIndicator()
 {
     if (!isStartTestMsg){
-    static uint8_t gpsStatus = 0; //none
-	if ( guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr){
+    static uint8_t gpsStatus = 0;
+	if ( guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr)
+	{
 		if (navigator != 0)
 		{
 			Navigation::Coord_Date date = navigator->getCoordDate();
@@ -330,11 +292,10 @@ void Service::drawIndicator()
         indicator->Draw();
 
 
-		MoonsGeometry objArea = {  0, 0, 159, 127 };
+		MoonsGeometry objArea   = {  0,  0,  159, 127 };
 		MoonsGeometry batArea   = {  70, 29,  90, 41 };
 
 		int charge = pGetPowerBattery()->getChargeLevel();
-		//charge = 100;
 
 		char var[4] = {0,0,0,0};
 		sprintf(var,"%03i",charge);
@@ -383,7 +344,8 @@ void Service::setColorScheme(uint32_t back,uint32_t front)
          BATTERY_LOW_COLOR =				front;
 }
 
-Service::~Service() {
+Service::~Service()
+{
     QM_ASSERT(single_instance == true);
     single_instance = false;
 
@@ -402,13 +364,13 @@ void Service::setNotification(NotificationType type)
     switch(type)
     {
     case NotificationMissingVoiceChannelsTable:
-        msgBox(missing_ch_table_txt[getLanguage()]);
+        msgBox(missing_ch_table_txt[0]);
         break;
     case NotificationMissingOpenVoiceChannels:
-        msgBox(missing_open_ch_txt[getLanguage()]);
+        msgBox(missing_open_ch_txt[0]);
         break;
     case NotificationMismatchVoiceChannelsTable:
-        msgBox(ch_table_mismatch_txt[getLanguage()]);
+        msgBox(ch_table_mismatch_txt[0]);
         break;
     default:
         QM_ASSERT(0);
@@ -438,17 +400,13 @@ Power::Battery * Service::pGetPowerBattery()
 void Service::chNextHandler()
 {
     if(chnext_bt->isPressed())
-    {
         keyPressed(keyChNext);
-    }
 }
 
 void Service::chPrevHandler()
 {
     if(chprev_bt->isPressed())
-    {
         keyPressed(keyChPrev);
-    }
 }
 
 void Service::checkHeadsetStatus()
@@ -456,14 +414,15 @@ void Service::checkHeadsetStatus()
     //  0 - skzi open
     //  1 - polev open
     //  2 - skzi close
-
     uint8_t headsetType = 0;
     bool chMiss = false;
-    if (pGetHeadsetController()->getAnalogStatus(chMiss)){
+    if (pGetHeadsetController()->getAnalogStatus(chMiss))
+    {
       headsetType = 1;
       voice_service->sendHeadsetType(headsetType);
     }
-    else{
+    else
+    {
       headsetType = (uint8_t)voice_service->getCurrentChannelType(); // 1 - open 2 - close
       if (headsetType)// not invalid
       {
@@ -499,12 +458,6 @@ void Service::keyPressed(UI_Key key)
 		case endMenuWindow:  endMenuWindow_keyPressed(key);  break;
     }
     draw();
-}
-
-
-int Service::getLanguage()
-{
-    return 0;
 }
 
 void Service::onSmsCounterChange(int param)
@@ -570,7 +523,6 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
             draw();
         }
 
-         //guiTree.append(messangeWindow, "Принятый пакет ", sym);
          condCmdValue = packet;
          isDrawCondCmd = true;
 
@@ -767,9 +719,6 @@ void Service::drawMenu()
             removal = menu->focus - MAIN_MENU_MAX_LIST_SIZE;
             focusItem = MAIN_MENU_MAX_LIST_SIZE;
         }
-        //
-        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
-        //        for(auto i = removal; i < std::min((removal + MAIN_MENU_MAX_LIST_SIZE), (int)st.nextState.size()); i++)
 
         for (auto &k: st.nextState)
         {
@@ -1185,11 +1134,6 @@ int Service::getFreq()
 	int freq = atoi(main_scr->oFreq.c_str());
     return freq;
 }
-//
-//void Service::setFreq(int isFreq)
-//{
-//    Service::isFreq = isFreq;
-//}
 
 void Service::parsingGucCommand(uint8_t *str)
 {
@@ -1217,8 +1161,6 @@ void Service::parsingGucCommand(uint8_t *str)
 
 void Service::setCoordDate(Navigation::Coord_Date date)
 {
-//    menu->coord_lat.clear();
-//    menu->coord_log.clear();
     menu->date.clear();
     menu->time.clear();
 
@@ -1449,7 +1391,6 @@ void Service::updateAleVmProgress(uint8_t t)
 
 void Service::msgBoxSms(const char *text)
 {
-
 	Alignment align007 = {alignHCenter,alignTop};
 	MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
 	if(msg_box == nullptr)
