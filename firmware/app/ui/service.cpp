@@ -1182,13 +1182,14 @@ void Service::draw()
 
 int Service::getFreq()
 {
-    return isFreq;
+	int freq = atoi(main_scr->oFreq.c_str());
+    return freq;
 }
-
-void Service::setFreq(int isFreq)
-{
-    Service::isFreq = isFreq;
-}
+//
+//void Service::setFreq(int isFreq)
+//{
+//    Service::isFreq = isFreq;
+//}
 
 void Service::parsingGucCommand(uint8_t *str)
 {

@@ -835,7 +835,7 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
                 }
                 int freqs;
                 int r_adr = mas[1];
-                freqs = mas[0];
+                //freqs = mas[0];
                 int speed = 0;//atoi(mas[1]);
                 guc_command_vector.clear();
 
@@ -855,7 +855,7 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
                     draw();
                 }
 
-                voice_service->saveFreq(freqs);
+                voice_service->saveFreq(getFreq());
                 voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
                 isTurnGuc = true;
                 if (!menu->sndMode)

@@ -111,7 +111,7 @@ public:
     void updateAleVmProgress(uint8_t);
     void updateHSState(Headset::Controller::SmartHSState);
     int  getFreq();
-    void setFreq(int isFreq);
+    //void setFreq(int isFreq);
     void parsingGucCommand(uint8_t *str);
     void setCoordDate(Navigation::Coord_Date);
     void gucFrame(int value, bool isTxAsk);
