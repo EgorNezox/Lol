@@ -182,7 +182,7 @@ enum
 	radiostateGucRxPrepare,
 	radiostateGucSwitch,
 	radiostateGucTx,
-	radiostateGucRx
+	radiostateGucRx,
 } radio_state;
 
 #endif /* FIRMWARE_APP_DSP_PRIVENUMDSPCONTROLLER_H_ */

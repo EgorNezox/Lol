@@ -569,6 +569,15 @@ void DspController::addSeconds(QmRtc::Time *t)
     }
 }
 
+void DspController::exitVoceMode()
+{
+	completedStationMode(true);
+	ParameterValue command_value;
+	command_value.frequency = current_radio_frequency;
+	sendCommandEasy(RxRadiopath, RxFrequency, command_value);
+	sendCommandEasy(TxRadiopath, TxFrequency, command_value);
+}
+
 void DspController::LogicPswfTx()
 {
  // qmDebugMessage(QmDebug::Dump, "LogicPswfTx() in command_tx30 = %d", command_tx30);
@@ -601,7 +610,7 @@ void DspController::LogicPswfTx()
 		}
 		else
 		{
-			completedStationMode(true);
+			exitVoceMode();
 		}
 	}
 
@@ -622,7 +631,7 @@ void DspController::LogicPswfRx()
 		{
 			waitAckTimer = 0;
 			firstPacket(100, ContentPSWF.S_ADR - 32, false); // no ack recieved
-			completedStationMode(true);
+			exitVoceMode();
             //qmDebugMessage(QmDebug::Dump, "LogicPswfRx() completedStationMode");
 		}
 	}
@@ -643,7 +652,7 @@ void DspController::LogicPswfRx()
 		}
 		else
 		{
-			completedStationMode(true);
+			exitVoceMode();
 		}
 	}
 
@@ -855,12 +864,13 @@ void DspController::resetSmsState()
 	smsSmallCounter = 0;
 	sms_counter = 0;
 	radio_state = radiostateSync;
+
 	smsFind  = false;
 	ok_quit = 0;
 	smsError = 0;
 	std::memset(rs_data_clear,1,sizeof(rs_data_clear));
     SmsLogicRole = SmsRoleIdle;
-    completedStationMode(true);
+    exitVoceMode();
 }
 
 bool DspController::checkForTxAnswer()
@@ -960,7 +970,7 @@ void DspController::recPswf(uint8_t data, uint8_t code, uint8_t indicator)
     		}
     	}
     	if (!pswf_ack)
-    		completedStationMode(true);
+    		exitVoceMode();
     	pswf_rec = 0;
     	pswf_in = 0;
     }
@@ -1994,7 +2004,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
         	if (ContentGuc.stage == GucRx)
         	{
         		//qmDebugMessage(QmDebug::Dump, "---- 0x7B indicator:22 GucRx");
-                completedStationMode(true);
+                exitVoceMode();
                 magic();
         	}
         	else if (ContentGuc.stage == GucTx) // wait recieving ack
@@ -3252,6 +3262,7 @@ void DspController::goToVoice()
 		case voiceemissionFM: comandValue.radio_mode = RadioModeFM;
 		default: comandValue.radio_mode = current_radio_mode;
 	}
+
 	sendCommandEasy(RxRadiopath,2,comandValue);
 	comandValue.radio_mode = RadioModeOff;
 	sendCommandEasy(TxRadiopath,2,comandValue);
@@ -3264,6 +3275,10 @@ void DspController::goToVoice()
 		RtcRxRole = false;
 		RtcTxRole = false;
 	}
+
+	comandValue.frequency = current_radio_frequency;
+	sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
+	sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
 }
 
 void DspController::magic()
