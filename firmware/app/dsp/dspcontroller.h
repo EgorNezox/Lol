@@ -24,6 +24,18 @@
  различных режимов для цифровых и аналоговых функций станции
 */
 
+#define DEFAULT_PACKET_HEADER_LEN	2
+#define hw_rtc                      1
+#define DefkeyValue 631
+
+#define GUC_TIMER_ACK_WAIT_INTERVAL 180000
+#define GUC_TIMER_INTERVAL_REC 30000
+
+#define VIRTUAL_TIME 120
+
+#define NUMS 0 // need = 0   9 for debug
+#define startVirtTxPhaseIndex 0;
+
 
 class QmTimer;
 class QmIopin;
@@ -32,6 +44,43 @@ namespace Multiradio {
 
 class  DspTransport;
 struct DspCommand;
+
+static int value_sec[60] =
+{
+    0,        5,       10,       15,       20,       25,
+    1,        6,       11,       16,       21,       26,
+    2,        7,       12,       17,       22,       27,
+    3,        8,       13,       18,       23,       28,
+    4,        9,       14,       19,       24,       29,
+    0,        5,       10,       15,       20,       25,
+    1,        6,       11,       16,       21,       26,
+    2,        7,       12,       17,       22,       27,
+    3,        8,       13,       18,       23,       28,
+    4,        9,       14,       19,       24,       29
+};
+
+static int frequence_bandwidth[34] =
+{
+    1622000,     2158000,
+    2206000,     2483000,
+    2517000,     2610000,
+    2665000,     2835000,
+    3170000,     3385000,
+    3515000,     3885000,
+    4015000,     4635000,
+    4765000,     4980000,
+    5075000,     5465000,
+    5745000,     5885000,
+    6215000,     6510000,
+    6780000,     7185000,
+    7465000,     8800000,
+    9055000,     9385000,
+    9915000,     9980000,
+    10115000,    11160000,
+    11415000,    11585000
+
+};
+
 
 class DspController : public QmObject
 {
@@ -65,7 +114,7 @@ public:
     void *getContentPSWF();             														// функция получения структуры ППРЧ
     char *getSmsContent();              														// функция получения структуры СМС
     void setRnKey(int keyValue);        														// выполняет сохранения значения ключа радиосети
-    void resetContentStructState();     														// сброс логических состояний для ППРЧ-режимов
+
     void processSyncPulse();            														// функция, вызываемая по секундной метке -  способ отсчета времени для ППРЧ-режимов
     uint8_t* get_guc_vector();          														// функция доступа к структуре УК
 
@@ -156,7 +205,7 @@ public:
     sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
     sigc::signal<void, int, int, int /*hrs,min,sec*/> vm1PpsPulse;
 
-    QmTimer swr_timer;
+    QmTimer *swr_timer;
     QmTimer *guc_rx_quit_timer 		   = 0;
     uint32_t guc_rx_quit_timer_counter = 0;
 
@@ -175,6 +224,7 @@ public:
 private:
 	#include "privenumdspcontroller.h"
     friend struct DspCommand;
+    friend class  PswfModes;
 
     void setRx();
     void setTx();
@@ -186,9 +236,6 @@ private:
     void setPswfRx();
     void setPswfTx();
     void setPswfRxFreq();
-
-    void LogicPswfTx();
-    void LogicPswfRx();
     void exitVoceMode();
 
     void powerControlAsk();
@@ -231,29 +278,18 @@ private:
     void processReceivedFrame	 (uint8_t address, uint8_t *data, int data_len);                    // функция приема кадров от DSP
 
     int prevSecond				 (int second);                                                      // функция получения предыдущей секунды
-    int CalcShiftFreq	   		 (int RN_KEY, int DAY, int HRS, int MIN, int SEC);                  // функция рассчета частоты смещения для УК
-    int CalcSmsTransmitFreq		 (int RN_KEY, int DAY, int HRS, int MIN, int SEC);                  // функция рассчета частоты смещения для СМС
-    int CalcSmsTransmitRxRoleFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
-    int CalcSmsTransmitTxRoleFreq(int RN_KEY, int SEC, int DAY, int HRS, int MIN);
     int calcFstn				 (int R_ADR, int S_ADR, int RN_KEY, int DAY, int HRS, int MIN, int SEC, int QNB);
-
-    void recPswf				 (uint8_t data,uint8_t code, uint8_t indicator);                    // функция проверки для lcode
     int getFrequency			 (uint8_t mode);
 
     void wakeUpTimer();
     void correctTime			 (uint8_t num);
     void sendSynchro			 (uint32_t freq, uint8_t cnt);
-    void LogicPswfModes			 (uint8_t* data, uint8_t indicator, int data_len); // func for 0x63 cadr from dsp
 
     void sendSms			     (Module module);
     uint8_t *getGpsGucCoordinat  (uint8_t *coord);
 
     void changeSmsFrequency();
     bool generateSmsReceived();
-
-    int wzn_change		 	     (std::vector<int> &vect);
-    int check_rx_call	 	     (int* wzn);
-    uint8_t calc_ack_code	     (uint8_t ack);
 
     int date_time[4];                                           // массив даты-времени для обмена и отображения
     char private_lcode;                                         // переменная - хранит текущий lcode для сравнения с полученным
