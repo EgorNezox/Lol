@@ -189,6 +189,7 @@ private:
 
     void LogicPswfTx();
     void LogicPswfRx();
+    void exitVoceMode();
 
     void powerControlAsk();
     void getZone();
