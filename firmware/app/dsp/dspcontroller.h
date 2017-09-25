@@ -120,6 +120,7 @@ public:
     void sendBatteryVoltage(int voltage);
     void sendHeadsetType(uint8_t type);
     void setStationAddress(uint8_t address);
+    void clearWaveInfo();
 
     sigc::signal<void> started;
     sigc::signal<void> rxModeSetting;
@@ -159,6 +160,8 @@ public:
     QmTimer swr_timer;
     QmTimer *guc_rx_quit_timer 		   = 0;
     uint32_t guc_rx_quit_timer_counter = 0;
+
+    QmTimer waveInfoTimer;
 
     bool isTxAsk 			  = false;
     bool retranslation_active = false;

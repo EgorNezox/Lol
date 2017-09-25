@@ -180,6 +180,10 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     swr_timer.setInterval(500);
     swr_timer.timeout.connect(sigc::mem_fun(this, &DspController::getSwr));
 
+    waveInfoTimer.setInterval(1700);
+    waveInfoTimer.setSingleShot(true);
+    waveInfoTimer.timeout.connect(sigc::mem_fun(this, &DspController::clearWaveInfo));
+
 }
 DspController::~DspController()
 
@@ -1921,7 +1925,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	case 0x51:
 	case 0x81:
 	{
-        if ((indicator == 1) || (indicator == 3) || (indicator == 4))
+        if ((indicator == 1) || (indicator == 3) || (indicator == 4) || (indicator == 5))
         { // "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � � � � � ЎвЂ№� � С—� � С•� � В»� � � …� � Вµ� � � …� � В°", "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � � � …� � Вµ � � � � � ЎвЂ№� � С—� � С•� � В»� � � …� � Вµ� � � …� � В°" ?
 			ParameterValue value;
             if ((code == 1) && (value_len == 4))
@@ -1930,8 +1934,10 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
             } else if ((code == 2) && (value_len == 1))
             {
                 value.radio_mode = (RadioMode)qmFromBigEndian<uint8_t>(value_ptr+0);
-            } else if (indicator == 1 && code == 6)
+            } else if ((indicator == 1 || indicator == 5) && code == 6)
             {
+            	waveInfoTimer.stop();
+
                 ref_wave = (float)qmFromBigEndian<uint16_t>(value_ptr+0);
                 fwd_wave = (float)qmFromBigEndian<uint16_t>(value_ptr+2);
 
@@ -1944,6 +1950,8 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 
                 power_res = (fwd_wave * fwd_wave) / 280000; //280000 - sazhen 201600 -tropa
                 waveInfoRecieved(swf_res, power_res);
+
+                waveInfoTimer.start();
             }
 
 			Module module;
@@ -3739,6 +3747,11 @@ void DspController::setStationAddress(uint8_t address)
     stationAddress = address;
      ContentSms.S_ADR = stationAddress;
      ContentPSWF.S_ADR = stationAddress;
+}
+
+void DspController::clearWaveInfo()
+{
+	waveInfoRecieved(0.000, 0.000);
 }
 
 }

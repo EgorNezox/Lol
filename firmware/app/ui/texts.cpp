@@ -187,7 +187,8 @@ const char* condCommStr[] = {"Адрес получателя\0", "Адрес ретранслятора\0", "Ком
 const char* condCommSendStr = "Нажмите Ввод для \nзапуска передачи\0";
 
 const char* ticketStr[] = {"Квитирование\0", "Ретрансляция\0"};
-const char* voicePostTitleStr[] = {"Передача ГП\0", "Прием ГП\0"};
+//const char* voicePostTitleStr[] = {"Передача ГП\0", "Прием ГП\0"};
+const char* voicePostTitleStr[] = {"Перед.\0", "Прием\0"};
 
 const char* gucQuitTextFail = "Квитанция не принята\0";
 const char* gucQuitTextOk   = "Принята квитанция\0";

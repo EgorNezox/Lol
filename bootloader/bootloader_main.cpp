@@ -173,7 +173,7 @@ void qmMain()
 		{
 			if (!hwboot_check_usbcdc())
 			{
-				drawFirmwareErrorScreen(2);
+				drawFirmwareErrorScreen(0);
 				while(1);
 			}
 			drawUsbHostScreen();

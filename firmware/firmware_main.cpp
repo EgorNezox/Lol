@@ -54,7 +54,7 @@ void qmMain() {
     data_fs_config.max_opened_files = 10;
 #if 0
     {
-        volatile bool do_format = false;
+        volatile bool do_format = true;
         QM_DEBUG_BREAK;
         if (do_format)
             QmSpiffs::format(data_fs_config);

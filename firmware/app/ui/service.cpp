@@ -2033,22 +2033,25 @@ void Service::drawWaveInfo()
     if (msg_box == nullptr )
    // if (guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr )
     {
-		if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx && (waveValue > 0.000 && powerValue > 0.000))
+    	if (waveValue > 0.000 && powerValue > 0.000)
+		//if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx && (waveValue > 0.000 && powerValue > 0.000))
 		{
 			MoonsGeometry objArea = {  0, 0, 159, 127 };
-			MoonsGeometry windowArea = {  90, 0, 159, 40 };
+			MoonsGeometry windowArea = {  90, 0, 159, 35 };
 			//MoonsGeometry txrxArea   = {  0, 0,  10, 20 };
-			MoonsGeometry waveArea   = { 105, 0,  150, 16 };
-			MoonsGeometry powerArea  = {105, 16, 150, 32 };
+			MoonsGeometry waveArea   = { 116, 2,  159, 18 };
+			MoonsGeometry powerArea  = {116, 16, 159, 28 };
 
 			//std::string rxtxStr(curMode == 1 ? "Rx" : "Tx");
 
+			//waveValue = 99.0;
+
 			char var[5] = {0,0,0,0,0};
-			sprintf(var,"%03.1f",waveValue);
+			sprintf(var,"%02.1f",waveValue);
 			//var[3] = 0;
 			std::string waveStr("S: " + std::string(var));
 			memset(&var, 0, 5);
-			sprintf(var,"%03.1f",powerValue);
+			sprintf(var,"%02.1f",powerValue);
 			//var[3] = 0;
 			std::string powerStr("P: " + std::string(var));
 
@@ -2064,12 +2067,17 @@ void Service::drawWaveInfo()
 
 			window.Draw();
 			//rxtxLabel.Draw();
-			waveLabel.Draw();
 			powerLabel.Draw();
+			waveLabel.Draw();
 		}
 		else
 		{
-			MoonsGeometry windowArea = { 90, 0, 159, 40 };
+			MoonsGeometry windowArea;
+			if (guiTree.getCurrentState().getType() == mainWindow)
+				windowArea = { 90, 0, 159, 35 };
+			else
+				windowArea = { 116, 0, 159, 28 };
+
 			MoonsGeometry objArea = {  0, 0, 159, 127 };
 			GUI_Obj obj(&objArea);
 
