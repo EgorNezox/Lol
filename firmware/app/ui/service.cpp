@@ -1108,6 +1108,7 @@ void Service::draw()
     default:
         break;
     }
+
     if (isShowSchedulePrompt)
     	showMessage("", schedulePromptText.c_str(), promptArea);
     if (isStartTestMsg)
@@ -1989,9 +1990,9 @@ void Service::garnitureStart()
 
 void Service::onWaveInfoRecieved(float wave, float power)
 {
-    weveValue = wave;
+    waveValue = wave;
     powerValue = power;
-//    qmDebugMessage(QmDebug::Warning, "SWR = %f, POWER = %f ", weveValue, powerValue);
+    qmDebugMessage(QmDebug::Warning, "SWR = %f, POWER = %f ", waveValue, powerValue);
 #if PARAMS_DRAW
     //if (weveValue > 0 && powerValue > 0)
     	drawWaveInfo();
@@ -2015,9 +2016,24 @@ void Service::onSettingAleFreq(uint32_t freq)
 
 void Service::drawWaveInfo()
 {
-    if (guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr )
+//    if (guiTree.getCurrentState().getType() != menuWindow)//condCommand
+//    {
+//    	bool isDrawSwr = false;
+//    	CEndState st = (CEndState&)guiTree.getCurrentState();
+//    	if (st == condCommand)
+//    		isDrawSwr = true;
+//    	if (st == recvCondCmd)
+//    		isDrawSwr = true;
+//    	if (st == rxSmsMessage)
+//    		isDrawSwr = true;
+//    	if (st == txSmsMessage)
+//    		isDrawSwr = true;
+//    }
+
+    if (msg_box == nullptr )
+   // if (guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr )
     {
-		if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx && (weveValue > 0.000 && powerValue > 0.000))
+		if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx && (waveValue > 0.000 && powerValue > 0.000))
 		{
 			MoonsGeometry objArea = {  0, 0, 159, 127 };
 			MoonsGeometry windowArea = {  90, 0, 159, 40 };
@@ -2028,7 +2044,7 @@ void Service::drawWaveInfo()
 			//std::string rxtxStr(curMode == 1 ? "Rx" : "Tx");
 
 			char var[5] = {0,0,0,0,0};
-			sprintf(var,"%03.1f",weveValue);
+			sprintf(var,"%03.1f",waveValue);
 			//var[3] = 0;
 			std::string waveStr("S: " + std::string(var));
 			memset(&var, 0, 5);

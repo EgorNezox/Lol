@@ -280,7 +280,7 @@ private:
 
 
 
-    float 	weveValue  = 0;
+    float 	waveValue  = 0;
     float 	powerValue = 0;
     uint32_t curAleFreq = 0;
 
