@@ -503,8 +503,8 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 					}
 					else
 					{
-						setSmartHSState(SmartHSState_SMART_ERROR);
-						resetState();
+//						setSmartHSState(SmartHSState_SMART_ERROR);
+//						resetState();
 					}
 					break;
 				}

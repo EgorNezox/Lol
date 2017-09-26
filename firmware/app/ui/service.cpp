@@ -1522,9 +1522,9 @@ std::vector<uint8_t>* Service::loadVoiceMail(uint8_t fileNumber, DataStorage::FS
         headset_controller->getSmartCurrentChannel(channelNum, type);
 
         if (channelNum % 2 == 0)
-        result = voice_service->playVoiceMessage(fileNumber, tft, channelNum );
+        	result = voice_service->playVoiceMessage(fileNumber, tft, channelNum );
         else
-        result = 1;
+        	result = 1;
     }
 
     std::string stateStr;
