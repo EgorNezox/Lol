@@ -86,6 +86,7 @@ class GUI_Indicator: public GUI_Obj{
         {
             date_time->SetText((char*)str.c_str());
         }
+        void DrawTime();
 private:
         GUI_EL_Icon *ind_multiradio;
         GUI_EL_Icon *ind_headset;

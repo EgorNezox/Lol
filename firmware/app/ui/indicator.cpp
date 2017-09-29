@@ -160,3 +160,8 @@ void GUI_Indicator::Draw(){
     date_time->Draw();
     gpsLabel->Draw();
 }
+
+void GUI_Indicator::DrawTime()
+{
+	date_time->Draw();
+}

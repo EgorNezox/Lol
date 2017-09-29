@@ -575,7 +575,7 @@ void CGuiMenu::initSetSpeedDialog(std::string speed)
 
 void CGuiMenu::initSetDateOrTimeDialog(std::string text)
 {
-    MoonsGeometry volume_geom  = {  5,  45,  160,  95 };
+    MoonsGeometry volume_geom  = {  5,  65,  150,  95 };
     LabelParams label_param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
 
     titleArea = { 5, 10, 160, 35};

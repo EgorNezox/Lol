@@ -7,6 +7,7 @@
 #include "texts.h"
 #include <navigation/navigator.h>
 #include "../../../system/reset.h"
+#include "gui_tree.h"
 
 #define VM_STATE 1
 #define VM_PROGRESS 1
@@ -268,48 +269,60 @@ void Service::updateBattery()
 
 void Service::drawIndicator()
 {
-    if (!isStartTestMsg){
-    static uint8_t gpsStatus = 0;
-	if ( guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr)
-	{
-		if (navigator != 0)
+    if (!isStartTestMsg)
+    {
+		static uint8_t gpsStatus = 0;
+		if ( guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr)
 		{
-			Navigation::Coord_Date date = navigator->getCoordDate();
-            uint8_t gpsStatusNew = date.status;
-            if (gpsStatusNew && !isValidGpsTime && isDspStarted)
-				updateSessionTimeSchedule();
-            if (gpsStatus == 0 && gpsStatusNew == 1)
-                gpsStatus = 2; //unlock
-            else if (gpsStatus == 2 && gpsStatusNew == 0)
-                gpsStatus = 1; //lock
-            else if (gpsStatus == 1 && gpsStatusNew == 1)
-                gpsStatus = 2; //unlock
+			if (navigator != 0)
+			{
+				Navigation::Coord_Date date = navigator->getCoordDate();
+				uint8_t gpsStatusNew = date.status;
+				if (gpsStatusNew && !isValidGpsTime && isDspStarted)
+					updateSessionTimeSchedule();
+				if (gpsStatus == 0 && gpsStatusNew == 1)
+					gpsStatus = 2; //unlock
+				else if (gpsStatus == 2 && gpsStatusNew == 0)
+					gpsStatus = 1; //lock
+				else if (gpsStatus == 1 && gpsStatusNew == 1)
+					gpsStatus = 2; //unlock
+			}
+			indicator->UpdateGpsStatus(gpsStatus);
+			indicator->UpdateBattery(pGetPowerBattery()->getChargeLevel());
+			indicator->UpdateHeadset(pGetHeadsetController()->getStatus());
+			indicator->UpdateMultiradio(pGetVoiceService()->getStatus());
+			indicator->Draw();
+
+
+			MoonsGeometry objArea   = {  0,  0,  159, 127 };
+			MoonsGeometry batArea   = {  70, 29,  90, 41 };
+
+			int charge = pGetPowerBattery()->getChargeLevel();
+
+			char var[4] = {0,0,0,0};
+			sprintf(var,"%03i",charge);
+			std::string chargeStr(var);
+
+			GUI_Obj obj(&objArea);
+			GUI_EL_Label  batLabel  (&GUI_EL_TEMP_LabelTitle,    &batArea,   (char*)chargeStr.c_str(), (GUI_Obj *)&obj);
+
+			MoonsGeometry windowArea = {  70, 29, 90, 41 };
+			GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
+
+			window.Draw();
+			batLabel.Draw();
 		}
-		indicator->UpdateGpsStatus(gpsStatus);
-        indicator->UpdateBattery(pGetPowerBattery()->getChargeLevel());
-        indicator->UpdateHeadset(pGetHeadsetController()->getStatus());
-        indicator->UpdateMultiradio(pGetVoiceService()->getStatus());
-        indicator->Draw();
-
-
-		MoonsGeometry objArea   = {  0,  0,  159, 127 };
-		MoonsGeometry batArea   = {  70, 29,  90, 41 };
-
-		int charge = pGetPowerBattery()->getChargeLevel();
-
-		char var[4] = {0,0,0,0};
-		sprintf(var,"%03i",charge);
-		std::string chargeStr(var);
-
-		GUI_Obj obj(&objArea);
-		GUI_EL_Label  batLabel  (&GUI_EL_TEMP_LabelTitle,    &batArea,   (char*)chargeStr.c_str(), (GUI_Obj *)&obj);
-
-		MoonsGeometry windowArea = {  70, 29, 90, 41 };
-		GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
-
-		window.Draw();
-		batLabel.Draw();
-	}
+		else
+		{
+			if ( guiTree.getCurrentState().getType() == endMenuWindow)
+			{
+				CEndState st = (CEndState&)guiTree.getCurrentState();
+				if (st.subType == GuiWindowsSubType::setTime)
+				{
+					indicator->DrawTime();
+				}
+			}
+		}
     }
 }
 
@@ -980,6 +993,7 @@ void Service::drawMenu()
             std::string timeTemplate = "--:--:--";
             str.append(timeTemplate.substr(str.size(),8-str.size()));
             menu->initSetDateOrTimeDialog( str );
+            indicator->DrawTime();
             break;
         }
         case GuiWindowsSubType::setFreq:
