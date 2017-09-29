@@ -30,6 +30,12 @@
 #define hw_rtc                      1
 #define DefkeyValue 631
 
+
+//280000 - sazhen 201600 -tropa
+#define SAZEN 280000
+#define TROPA 201600
+
+
 #define GUC_TIMER_ACK_WAIT_INTERVAL 180000
 #define GUC_TIMER_INTERVAL_REC 30000
 
@@ -1948,7 +1954,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 if (fwd_wave < ref_wave)
                 	swf_res = 99.0;
 
-                power_res = (fwd_wave * fwd_wave) / 280000; //280000 - sazhen 201600 -tropa
+                power_res = (fwd_wave * fwd_wave) / SAZEN; //280000 - sazhen 201600 -tropa
                 waveInfoRecieved(swf_res, power_res);
 
                 waveInfoTimer.start();
@@ -2515,27 +2521,17 @@ bool DspController::generateSmsReceived()
         }
         else
         {
-        	indexSmsLen = 100;
-        	for(int i = 0;i<100;i++)
-        	{
-        		if (crc_calcs[i] == 0) {
-        			indexSmsLen = i;
-        			break;
-        		}
-        	}
-
           // 8. calculate text without CRC32 code
           pack_manager->decompressMass(crc_calcs,89,packet,110,7);
 
-          if (indexSmsLen == 88){
-          	indexSmsLen = 100;
-          	for(int i = 0;i<100;i++)
-          	{
-          		if (packet[i] == 0) {
-          			indexSmsLen = i;
-          			break;
-          		}
-          	}
+          indexSmsLen = 100;
+          for(int i = 0;i<100;i++)
+          {
+        	  if (packet[i] == 0)
+        	  {
+        		  indexSmsLen = i;
+        		  break;
+        	  }
           }
 
           // 9. interpretate to Win1251 encode
@@ -2793,6 +2789,10 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     pack_manager->to_Koi7(ContentSms.message); // test
 
     pack_manager->compressMass(ContentSms.message,ind,7); //test
+
+    uint8_t  dlt_bits_compession = (ind * 7) / 8; if ((ind * 7) % 8 != 0) ++dlt_bits_compession;
+
+    for(int i = dlt_bits_compession; i < 259; i++) ContentSms.message[i] = 0;
 
     ContentSms.message[87] = ContentSms.message[87] & 0x0F; //set 4 most significant bits to 0
 
