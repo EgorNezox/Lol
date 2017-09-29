@@ -462,7 +462,10 @@ void Service::keyPressed(UI_Key key)
 
 void Service::onSmsCounterChange(int param)
 {
-  //  qmDebugMessage(QmDebug::Warning, "______sms counter: %d ", param);
+    qmDebugMessage(QmDebug::Warning, "______sms counter: %d ", param);
+    qmDebugMessage(QmDebug::Warning, "______sms cntSmsRx: %d ", cntSmsRx);
+    qmDebugMessage(QmDebug::Warning, "______sms smsTxStage: %d ", menu->smsTxStage);
+
     menu->virtCounter = 0;
     if (cntSmsRx != 2)
     {
@@ -476,12 +479,11 @@ void Service::onSmsCounterChange(int param)
     {
 #if SMS_PROGRESS
 
+    	valueRxSms = param;
     	if (param > 0 && param < 84)
     	{
     		CState currentState;
     		guiTree.getLastElement(currentState);
-
-    		valueRxSms = param;
 
     		if (currentState.getType() == endMenuWindow)
     		{
@@ -489,14 +491,15 @@ void Service::onSmsCounterChange(int param)
     			if ((subType == rxSmsMessage) && (cntSmsRx == 2))
     				drawMenu();
     		}
-
     	}
     	else
     	{
-    		menu->smsTxStage = 6;
+    		if (cntSmsRx != 2)
+    			menu->smsTxStage = 6;
     	}
 #endif
     }
+    qmDebugMessage(QmDebug::Warning, "______sms smsTxStage: %d ", menu->smsTxStage);
 }
 
 void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
@@ -871,7 +874,7 @@ void Service::drawMenu()
                 {
                 		menu->RxSmsStatusPost(valueRxSms,1,true);
                 }
-                else if ( voice_service->getVirtualMode() && menu->smsTxStage != 6)
+                else if ( voice_service->getVirtualMode() && menu->smsTxStage != 6 && valueRxSms != 84)
                 {
        				std::string str;
        				char syn[4] = {0,0,0,0};
@@ -2016,19 +2019,6 @@ void Service::onSettingAleFreq(uint32_t freq)
 
 void Service::drawWaveInfo()
 {
-//    if (guiTree.getCurrentState().getType() != menuWindow)//condCommand
-//    {
-//    	bool isDrawSwr = false;
-//    	CEndState st = (CEndState&)guiTree.getCurrentState();
-//    	if (st == condCommand)
-//    		isDrawSwr = true;
-//    	if (st == recvCondCmd)
-//    		isDrawSwr = true;
-//    	if (st == rxSmsMessage)
-//    		isDrawSwr = true;
-//    	if (st == txSmsMessage)
-//    		isDrawSwr = true;
-//    }
 
     if (msg_box == nullptr )
    // if (guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr )
@@ -2038,21 +2028,16 @@ void Service::drawWaveInfo()
 		{
 			MoonsGeometry objArea = {  0, 0, 159, 127 };
 			MoonsGeometry windowArea = {  90, 0, 159, 35 };
-			//MoonsGeometry txrxArea   = {  0, 0,  10, 20 };
 			MoonsGeometry waveArea   = { 116, 2,  159, 18 };
 			MoonsGeometry powerArea  = {116, 16, 159, 28 };
-
-			//std::string rxtxStr(curMode == 1 ? "Rx" : "Tx");
 
 			//waveValue = 99.0;
 
 			char var[5] = {0,0,0,0,0};
 			sprintf(var,"%02.1f",waveValue);
-			//var[3] = 0;
 			std::string waveStr("S: " + std::string(var));
 			memset(&var, 0, 5);
 			sprintf(var,"%02.1f",powerValue);
-			//var[3] = 0;
 			std::string powerStr("P: " + std::string(var));
 
 			GUI_Obj obj(&objArea);
@@ -2083,10 +2068,6 @@ void Service::drawWaveInfo()
 
 			GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
 			window.Draw();
-
-//			MoonsGeometry windowArea2 = {  0, 0, 15, 25 };
-//			GUI_EL_Window window2     (&GUI_EL_TEMP_WindowGeneral, &windowArea2,                         (GUI_Obj *)&obj);
-//			window2.Draw();
 		}
     }
 }

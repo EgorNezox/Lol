@@ -752,6 +752,8 @@ void DspController::RxSmsWork()
             uint8_t ret = getSmsRetranslation();
             if (ret == 0)
                 resetSmsState();
+
+            smsCounterChanged(84);
 		}
 	}
 	else
@@ -859,7 +861,7 @@ void DspController::changeSmsFrequency()
 
 //	 qmDebugMessage(QmDebug::Dump, "changeSmsFrequency() sms_counter = %d", sms_counter);
     static uint8_t tempCounter = sms_counter;
-    if (tempCounter != sms_counter && sms_counter % 2 == 0 )
+    if ((tempCounter != sms_counter && sms_counter % 2 == 0))
       smsCounterChanged(sms_counter);
 }
 
@@ -2500,7 +2502,8 @@ bool DspController::generateSmsReceived()
         uint32_t code_get = 0;
         int k = 3;
 
-        while(k >=0){
+        while(k >=0)
+        {
             code_get += (data[89+k] & 0xFF) << (8*k);
             k--;
         }
@@ -2516,22 +2519,59 @@ bool DspController::generateSmsReceived()
         else
         {
         	indexSmsLen = 100;
-        	for(int i = 0;i<100;i++)
+        	for(int i = 0; i < 100; i++)
         	{
-        		if (crc_calcs[i] == 0) {
+        		if (crc_calcs[i] == 0)
+        		{
         			indexSmsLen = i;
         			break;
         		}
         	}
 
-          // 8. calculate text without CRC32 code
-          pack_manager->decompressMass(crc_calcs,89,packet,110,7);
+//        	char end      = 0;
+//        	char start    = 0;
+//
+//        	for(int i = 0; i < 100; i++)
+//        	{
+//        		start = end;
+//        		end   += 7;
+//
+//        		// (start + (start % 7)) / 7
+//
+//        		ind  = 0;
+//
+//        		while (start < end)
+//        		{
+//        		   packet[i] += crc_calcs[start / 8] & (1 << ind); //start % 7)) ;
+//        				   ++ ind;
+//        		   start++;
+//        		}
+//        	}
 
-          if (indexSmsLen == 88){
+
+//        	for (uint16_t i = 0, bit = 0; i < 100; i++, bit += 7)
+//        	{
+//        		uint8_t bitMod = bit % 8;
+//        		uint8_t byte = bit / 8;
+//        		switch (bitMod)
+//        		{
+//					case 0:  packet[i] = crc_calcs[byte] >> 1;   break;
+//					case 1:  packet[i] = crc_calcs[byte] & 0x7F; break;
+//					default: packet[i] = ((crc_calcs[byte] << (8 - bitMod)) >> 1 ) + (crc_calcs[byte + 1] >> (8 - bitMod)); break;
+//        		}
+//        	}
+
+
+          // 8. calculate text without CRC32 code
+          pack_manager->decompressMass(crc_calcs, 89, packet, 110, 7);
+
+          if (indexSmsLen == 88)
+          {
           	indexSmsLen = 100;
-          	for(int i = 0;i<100;i++)
+          	for(int i = 0; i < 100; i++)
           	{
-          		if (packet[i] == 0) {
+          		if (packet[i] == 0)
+          		{
           			indexSmsLen = i;
           			break;
           		}
