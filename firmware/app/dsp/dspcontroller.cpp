@@ -2524,8 +2524,6 @@ bool DspController::generateSmsReceived()
         }
         else
         {
-
-
           // 8. calculate text without CRC32 code
           pack_manager->decompressMass(crc_calcs, 89, packet, 110, 7);
 
@@ -2550,7 +2548,6 @@ bool DspController::generateSmsReceived()
             sms_content[i] = 0;
           return true;
         }
-
     }
     else
     {
@@ -2795,25 +2792,29 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
     pack_manager->compressMass(ContentSms.message,ind,7); //test
 
-    uint8_t  dlt_bits_compession = (ind * 7) / 8; if ((ind * 7) % 8 != 0) ++dlt_bits_compession;
+    uint8_t  dlt_bits_compession = (ind * 7) / 8;
+    if ((ind * 7) % 8 != 0)
+    	++dlt_bits_compession;
 
-    for(int i = dlt_bits_compession; i < 259; i++) ContentSms.message[i] = 0;
+    for (int i = dlt_bits_compession; i < 259; i++)
+    	ContentSms.message[i] = 0;
 
     ContentSms.message[87] = ContentSms.message[87] & 0x0F; //set 4 most significant bits to 0
 
     ContentSms.message[88] = 0;
 
     uint8_t ret = getSmsRetranslation();
-    if (ret != 0){
+    if (ret != 0)
+    {
         ContentSms.message[87] = ContentSms.message[87] | (ret  << 4);
         ContentSms.message[88] = ContentSms.message[88] | ((ret >> 4) & 0x3);
     }
 
     uint32_t abc = pack_manager->CRC32(ContentSms.message,89);
 
-    for(int i = 0;i<4;i++) ContentSms.message[89+i] = (uint8_t)((abc >> (8*i)) & 0xFF);
-    for(int i = 0;i<255;i++) rs_data_clear[i] = 1;
-    for(int i = 0; i<255;i++) data_sms[i] = (int)ContentSms.message[i];
+    for (int i = 0;i<4;i++) ContentSms.message[89+i] = (uint8_t)((abc >> (8*i)) & 0xFF);
+    for (int i = 0;i<255;i++) rs_data_clear[i] = 1;
+    for (int i = 0; i<255;i++) data_sms[i] = (int)ContentSms.message[i];
 
     encode_rs(data_sms,&data_sms[93],&rs_255_93);
     for(int i = 0; i<255;i++)ContentSms.message[i]  = data_sms[i];

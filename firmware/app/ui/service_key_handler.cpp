@@ -398,6 +398,7 @@ void Service::condCommand_keyPressed(UI_Key key)
 					menu->condCmdModeSelect--;
 				else
 				{
+					isWaitAnswer = false;
 					guiTree.backvard();
 					onCompletedStationMode();
 				}
@@ -527,6 +528,7 @@ void Service::condCommand_keyPressed(UI_Key key)
                 	menu->txCondCmdStage = 0;
                     guiTree.backvard();
                     onCompletedStationMode();
+                    isWaitAnswer = false;
                 	break;
                 }
             }
@@ -601,6 +603,7 @@ void Service::condCommand_keyPressed(UI_Key key)
 			{
 				guiTree.backvard();
 				onCompletedStationMode();
+				isWaitAnswer = false;
 				break;
 			}
 			case 1:
@@ -691,6 +694,7 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
                 }
                 isTurnGuc = false;
                 onCompletedStationMode(true);
+                isGucAnswerWaiting = false;
             }
 
             if ( key == keyEnter )
@@ -899,6 +903,7 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
         		guiTree.resetCurrentState();
         		isTurnGuc = false;
                 onCompletedStationMode(true);
+                isGucAnswerWaiting = false;
         	}
         	break;
         }
