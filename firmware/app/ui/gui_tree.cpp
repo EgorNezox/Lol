@@ -61,6 +61,7 @@ void CGuiTree::init()
     main.nextState.push_back(&recv);
 //    main.nextState.push_back(&data);
     main.nextState.push_back(&settings);
+    main.nextState.push_back(&sttFileManager);
     // 1 - �����
     call.prevState = &main;
     call.nextState.push_back(&condCmd);
@@ -226,7 +227,7 @@ void CGuiTree::init()
     settings.nextState.push_back(&sttSuppress);
     settings.nextState.push_back(&sttDisplay);
     settings.nextState.push_back(&sttSheldure);
-    settings.nextState.push_back(&sttFileManager);
+    //settings.nextState.push_back(&sttFileManager);
     // 4.1 - ����/�����
     sttDateTime.setType(GuiWindowTypes::menuWindow);
     sttDateTime.prevState = &settings;
@@ -308,7 +309,7 @@ void CGuiTree::init()
 
     // 4.2.8 - �����
     sttFileManager.subType = GuiWindowsSubType::filetree;
-    sttFileManager.prevState = &settings;
+    sttFileManager.prevState = &main;
     sttFileManager.nextState.clear();
 
     // 4.3 - ������������

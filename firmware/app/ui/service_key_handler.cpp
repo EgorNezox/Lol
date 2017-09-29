@@ -2086,7 +2086,8 @@ void Service::setDate_keyPressed(UI_Key key)
     if (key == keyEnter)
     {
     	auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
-    	voice_service->setVirtualDate(st);
+    	if (st.size() == 8)
+    		voice_service->setVirtualDate(st);
     	guiTree.backvard();
     	inDateMenu = false;
     }
@@ -2113,7 +2114,8 @@ void Service::setTime_keyPressed(UI_Key key)
     if (key == keyEnter)
     {
     	auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
-    	voice_service->setVirtualTime(st);
+    	if (st.size() == 8)
+    		voice_service->setVirtualTime(st);
     	guiTree.backvard();
         updateSessionTimeSchedule();
     }
@@ -2422,8 +2424,8 @@ void Service::filetree_keyPressed(UI_Key key)
         else
         {
            guiTree.backvard();
-           menu->focus = 6;
-           menu->offset = 4;
+           menu->focus = 3;
+           menu->offset = 1;
         }
     }
     if (key == keyUp)
@@ -2506,7 +2508,7 @@ void Service::sheldure_keyPressed(UI_Key key)
         {
             tempSheldureSession.clear();
             guiTree.backvard();
-            menu->offset = 4;
+            menu->offset = 3;
             menu->focus = 5;
             break;
         }
