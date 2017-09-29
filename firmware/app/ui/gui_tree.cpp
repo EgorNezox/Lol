@@ -221,11 +221,12 @@ void CGuiTree::init()
     settings.prevState = &main;
     settings.nextState.push_back(&sttDateTime);
     settings.nextState.push_back(&sttConnParam);
-    settings.nextState.push_back(&sttScan);
+  //  settings.nextState.push_back(&sttScan);
     settings.nextState.push_back(&sttSound);
     settings.nextState.push_back(&sttSuppress);
     settings.nextState.push_back(&sttDisplay);
     settings.nextState.push_back(&sttSheldure);
+    settings.nextState.push_back(&sttFileManager);
     // 4.1 - ����/�����
     sttDateTime.setType(GuiWindowTypes::menuWindow);
     sttDateTime.prevState = &settings;
@@ -262,10 +263,10 @@ void CGuiTree::init()
     sttConnParam.nextState.push_back(&swAruArm);
     sttConnParam.nextState.push_back(&stCoord);
     //sttConnParam.nextState.push_back(&sttWaitGuk);
-    sttConnParam.nextState.push_back(&sttEditRnKey);
+    //sttConnParam.nextState.push_back(&sttEditRnKey);
     sttConnParam.nextState.push_back(&sttChannelEmissionType);
     sttConnParam.nextState.push_back(&sttVoiceMode);
-    sttConnParam.nextState.push_back(&sttFileManager);
+   // sttConnParam.nextState.push_back(&sttFileManager);
 
     // 4.2.1 - �������
     sttSetFreq.setType(GuiWindowTypes::endMenuWindow);
@@ -307,7 +308,7 @@ void CGuiTree::init()
 
     // 4.2.8 - �����
     sttFileManager.subType = GuiWindowsSubType::filetree;
-    sttFileManager.prevState = &sttConnParam;
+    sttFileManager.prevState = &settings;
     sttFileManager.nextState.clear();
 
     // 4.3 - ������������

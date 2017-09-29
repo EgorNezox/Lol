@@ -958,7 +958,16 @@ void Service::drawMenu()
         case GuiWindowsSubType::setDate:
         {
             menu->setTitle(dataAndTime[0]);
-            std::string str; str.append(st.listItem.front()->inputStr); //str.append("00.00.00");
+
+            if (not inDateMenu)
+            {
+            	st.listItem.front()->inputStr = voice_service->getVirtualDate();
+            	inDateMenu = true;
+            }
+
+            std::string str;
+            str.append(st.listItem.front()->inputStr); //str.append("00.00.00");
+
             std::string dateTemplate = "--.--.--";
             str.append(dateTemplate.substr(str.size(),8-str.size()));
             menu->initSetDateOrTimeDialog( str );

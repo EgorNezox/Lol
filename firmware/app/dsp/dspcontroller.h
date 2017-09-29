@@ -109,6 +109,8 @@ public:
     void setVirtualDate(uint8_t *param);
     void setVirtualTime(uint8_t *param);
 
+    void getVirtualDate(uint8_t *day, uint8_t *month, uint8_t *year);
+
     uint8_t* getVirtualTime();
     void completedStationMode(bool isGoToVoice){stationModeIsCompleted(isGoToVoice);}
 

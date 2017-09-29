@@ -250,6 +250,7 @@ private:
     bool isSmsCounterFull     = false;
     bool isDrawCondCmd        = false;
 
+    bool inDateMenu			  = false;
 
     uint8_t gucAdd            = 0;
     uint8_t cmdSpaceCount     = 0;

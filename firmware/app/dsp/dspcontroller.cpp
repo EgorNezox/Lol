@@ -3574,6 +3574,14 @@ void DspController::setVirtualMode(bool param)
 	}
 }
 
+void DspController::getVirtualDate(uint8_t *day, uint8_t *month, uint8_t *year)
+{
+	 d = rtc->getDate();
+	*day = d.day;
+	*month = d.month;
+	*year = d.year;
+}
+
 void DspController::setVirtualDate(uint8_t *param)
 {
     uint8_t date[3];

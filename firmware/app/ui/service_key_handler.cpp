@@ -1829,8 +1829,8 @@ void Service::volume_keyPressed(UI_Key key)
             voice_service->TuneAudioLevel(volumeLevel);
         }
         guiTree.backvard();
-        menu->offset = 2;
-        menu->focus = 3;
+        menu->offset = 1;
+        menu->focus = 2;
         isVolumeEdit = false;
     }
     if ( key == keyEnter)
@@ -1841,8 +1841,8 @@ void Service::volume_keyPressed(UI_Key key)
             voice_service->TuneAudioLevel(volumeLevel);
         }
         guiTree.backvard();
-        menu->offset = 2;
-        menu->focus = 3;
+        menu->offset = 1;
+        menu->focus = 2;
         isVolumeEdit = false;
     }
 }
@@ -1898,8 +1898,8 @@ void Service::suppress_keyPressed(UI_Key key)
     if ( key == keyBack)
     {
         guiTree.backvard();
-        menu->offset = 3;
-        menu->focus = 4;
+        menu->offset = 2;
+        menu->focus = 3;
         if (oldSuppress != -1){
             menu->supressStatus = oldSuppress;
             voice_service->tuneSquelch(menu->supressStatus);
@@ -1911,8 +1911,8 @@ void Service::suppress_keyPressed(UI_Key key)
     {
         //voice_service->tuneSquelch(menu->supressStatus);
         guiTree.backvard();
-        menu->offset = 3;
-        menu->focus = 4;
+        menu->offset = 2;
+        menu->focus = 3;
         oldSuppress = -1;
     }
 }
@@ -1932,8 +1932,8 @@ void Service::display_keyPressed(UI_Key key)
     if ( key == keyBack)
     {
         guiTree.backvard();
-        menu->offset = 4;
-        menu->focus = 5;
+        menu->offset = 3;
+        menu->focus = 4;
     }
     if (key == keyEnter)
     {
@@ -2045,6 +2045,7 @@ void Service::setDate_keyPressed(UI_Key key)
         {
             guiTree.backvard();
             menu->focus = 0;
+            inDateMenu = false;
         }
     }
     else if ( key >= key0 && key <= key9 )
@@ -2087,6 +2088,7 @@ void Service::setDate_keyPressed(UI_Key key)
     	auto &st = ((CEndState&)guiTree.getCurrentState()).listItem.front()->inputStr;
     	voice_service->setVirtualDate(st);
     	guiTree.backvard();
+    	inDateMenu = false;
     }
 }
 
@@ -2335,14 +2337,14 @@ void Service::voiceMode_keyPressed(UI_Key key)
 			//draw();
         }
         guiTree.backvard();
-        menu->focus = 6;
-        menu->offset = 5;
+        menu->focus = 5;
+        menu->offset = 3;
     }
     if ( key == keyBack)
     {
         guiTree.backvard();
-        menu->focus = 6;
-        menu->offset = 5;
+        menu->focus = 5;
+        menu->offset = 3;
     }
     if (key == keyUp || key == keyDown || key == keyLeft || key == keyRight)
     {
@@ -2363,8 +2365,8 @@ void Service::channelEmissionType_keyPressed(UI_Key key)
             voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionUSB);
 
         guiTree.backvard();
-        menu->focus = 5;
-        menu->offset = 4;
+        menu->focus = 4;
+        menu->offset = 3;
     }
     if (key == keyUp || key == keyDown || key == keyLeft || key == keyRight)
     {
@@ -2420,8 +2422,8 @@ void Service::filetree_keyPressed(UI_Key key)
         else
         {
            guiTree.backvard();
-           menu->focus = 7;
-           menu->offset = 5;
+           menu->focus = 6;
+           menu->offset = 4;
         }
     }
     if (key == keyUp)
@@ -2505,7 +2507,7 @@ void Service::sheldure_keyPressed(UI_Key key)
             tempSheldureSession.clear();
             guiTree.backvard();
             menu->offset = 4;
-            menu->focus = 6;
+            menu->focus = 5;
             break;
         }
         if ( key == keyEnter )

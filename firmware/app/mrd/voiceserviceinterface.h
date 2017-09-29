@@ -159,6 +159,7 @@ public:
 
     void goToVoice();
 
+    std::string getVirtualDate();
 
     void setVirtualDate(std::string s);
     void setVirtualTime(std::string s);

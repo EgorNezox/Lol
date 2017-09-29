@@ -434,6 +434,17 @@ void VoiceServiceInterface::resetDSPLogic()
 	dispatcher->dsp_controller->initResetState();
 }
 
+std::string VoiceServiceInterface::getVirtualDate()
+{
+	uint8_t day, month, year;
+	dispatcher->dsp_controller->getVirtualDate(&day, &month, &year);
+
+    char res[8] = {0,0,0,0,0,0,0,0};
+    sprintf(res, "%02u.%02u.%02u", day, month, year);
+
+    return std::string(res);
+}
+
 void VoiceServiceInterface::setVirtualDate(std::string s)
 {
     uint8_t cnt = 0;
