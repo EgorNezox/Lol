@@ -133,6 +133,7 @@ extern const char* editSheldure;
 extern const char* delSheldure;
 extern const char* askDelSheldure;
 extern const char* tmpParsing[];
+extern const char *fileRxTx[];
 
 extern const char* startStr;
 

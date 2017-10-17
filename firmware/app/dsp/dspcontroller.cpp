@@ -2457,10 +2457,10 @@ void DspController::prevTime()
 
 void DspController::getZone()
 {
-	for(int i = 0; i < 18; i++)
+	for (int i = 0; i < 18; i++)
 	{
 		if ( waveZone[i] >= 0  && waveZone[i] < 6  ) syncro_recieve[i] = 0;
-		if ( waveZone[i] >  5  && waveZone[i] < 12 ) syncro_recieve[i] = 1;
+		if ( waveZone[i] >= 6  && waveZone[i] < 12 ) syncro_recieve[i] = 1;
 		if ( waveZone[i] >= 12 && waveZone[i] < 18 ) syncro_recieve[i] = 2;
 		if ( waveZone[i] >= 18 && waveZone[i] < 24 ) syncro_recieve[i] = 3;
 		if ( waveZone[i] >= 24 && waveZone[i] < 30 ) syncro_recieve[i] = 4;

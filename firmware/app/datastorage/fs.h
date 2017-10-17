@@ -11,15 +11,9 @@ class FS {
 public:
     enum FileType { FT_SP = 0,
                     FT_CND  = 1,
+					FT_GRP  = 2,
                     FT_SMS = 3,
-                    FT_VM = 4,
-                    FT_GRP  = 2};
-
-//    enum FileType { FT_SP = 0,
-//                    FT_CND  = 1,
-//                    FT_SMS = 2,
-//                    FT_VM = 3,
-//                    FT_GRP  = 4};
+                    FT_VM = 4 };
 
     enum TransitionFileType { TFT_RX = 0,
                               TFT_TX = 1};
@@ -58,6 +52,7 @@ public:
     void updateFileTree();
     std::vector<std::string> *getFileTree();
     void getFileNamesByType(std::vector<std::string>* typeFiles, FileType fileType);
+    uint8_t getTransmitFileTypeCount(FS::FileType fileType, FS::TransitionFileType transFileType);
     uint8_t getFileNumber(FS::FileType fileType, uint8_t fileTreeTypeFocus);
     bool getSheldure(uint8_t *data);
     TransitionFileType getTransmitType(FS::FileType fileType, uint8_t fileTreeTypeFocus);
@@ -74,6 +69,7 @@ private:
     bool existFile(std::string fileName);
     std::string dir;
     std::vector<std::string> files;
+    uint8_t transmitFileTypeCount[5][2] = {{0,0},{0,0},{0,0},{0,0},{0,0}};
     uint8_t maxFilesCount = 32;
     std::string errorFileName = "error";
     FileTypeInfo fileTypeInfo[5];

@@ -45,6 +45,8 @@ const char *groupCommandsSimplSubMenu[] = {" Групповой вызов\0", " Индивидуальны
 const char *reciveSubMenu[] = {" Речь\0", " СМС\0", " ГП\0", " УК\0", " ГУК\0"};
 //const char *tmpParsing[] = {" Речь\0", " УК\0", " СМС\0", " ГП\0", " ГУК\0"};
 const char *tmpParsing[] = {" Речь\0", " УК\0", " ГУК\0", " СМС\0", " ГП\0"};
+const char *fileRxTx[] = {" ПРМ\0", " ПРД\0"};
+
 const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0", " GPS координаты\0"};
 const char *dataSubSubMenu[] = {" Условные команды\0", " СМС\0", " Головая почта\0", " Группа усл.команд\0"};
 

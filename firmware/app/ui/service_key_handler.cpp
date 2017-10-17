@@ -23,31 +23,31 @@ void Service::endMenuWindow_keyPressed(UI_Key key)
 
     switch(estate.subType)
     {
-		case GuiWindowsSubType::condCommand:     	 condCommand_keyPressed(key); break;
-		case GuiWindowsSubType::txGroupCondCmd:		 txGroupCondCmd_keyPressed(key); break;
-		case GuiWindowsSubType::txPutOffVoice:		 txPutOffVoice_keyPressed(key); break;
-		case GuiWindowsSubType::txSmsMessage:	     txSmsMessage_keyPressed(key); break;
-		case GuiWindowsSubType::recvVoice:			 recvVoice_keyPressed(key); break;
-		case GuiWindowsSubType::recvCondCmd:		 recvCondCmd_keyPressed(key); break;
-		case GuiWindowsSubType::rxSmsMessage:		 rxSmsMessage_keyPressed(key); break;
-		case GuiWindowsSubType::recvGroupCondCmd:	 recvGroupCondCmd_keyPressed(key); break;
-		case GuiWindowsSubType::rxPutOffVoice:		 rxPutOffVoice_keyPressed(key); break;
-		case GuiWindowsSubType::volume:				 volume_keyPressed(key); break;
-		case GuiWindowsSubType::scan:				 scan_keyPressed(key); break;
-		case GuiWindowsSubType::suppress:			 suppress_keyPressed(key); break;
-		case GuiWindowsSubType::display:			 display_keyPressed(key); break;
-		case GuiWindowsSubType::aruarmaus:			 aruarmaus_keyPressed(key); break;
-		case GuiWindowsSubType::gpsCoord:			 gpsCoord_keyPressed(key); break;
-		case GuiWindowsSubType::gpsSync:			 gpsSync_keyPressed(key); break;
-		case GuiWindowsSubType::setDate:			 setDate_keyPressed(key); break;
-		case GuiWindowsSubType::setTime:			 setTime_keyPressed(key); break;
-		case GuiWindowsSubType::setFreq: 			 setFreq_keyPressed(key); break;
-		case GuiWindowsSubType::setSpeed: 			 setSpeed_keyPressed(key); break;
-		case GuiWindowsSubType::editRnKey:			 editRnKey_keyPressed(key); break;
-		case GuiWindowsSubType::voiceMode:           voiceMode_keyPressed(key); break;
+		case GuiWindowsSubType::condCommand:     	 condCommand_keyPressed(key);	      break;
+		case GuiWindowsSubType::txGroupCondCmd:		 txGroupCondCmd_keyPressed(key); 	  break;
+		case GuiWindowsSubType::txPutOffVoice:		 txPutOffVoice_keyPressed(key);		  break;
+		case GuiWindowsSubType::txSmsMessage:	     txSmsMessage_keyPressed(key); 		  break;
+		case GuiWindowsSubType::recvVoice:			 recvVoice_keyPressed(key); 		  break;
+		case GuiWindowsSubType::recvCondCmd:		 recvCondCmd_keyPressed(key); 		  break;
+		case GuiWindowsSubType::rxSmsMessage:		 rxSmsMessage_keyPressed(key); 		  break;
+		case GuiWindowsSubType::recvGroupCondCmd:	 recvGroupCondCmd_keyPressed(key);    break;
+		case GuiWindowsSubType::rxPutOffVoice:		 rxPutOffVoice_keyPressed(key);       break;
+		case GuiWindowsSubType::volume:				 volume_keyPressed(key); 			  break;
+		case GuiWindowsSubType::scan:				 scan_keyPressed(key); 				  break;
+		case GuiWindowsSubType::suppress:			 suppress_keyPressed(key); 			  break;
+		case GuiWindowsSubType::display:			 display_keyPressed(key); 			  break;
+		case GuiWindowsSubType::aruarmaus:			 aruarmaus_keyPressed(key);			  break;
+		case GuiWindowsSubType::gpsCoord:			 gpsCoord_keyPressed(key);			  break;
+		case GuiWindowsSubType::gpsSync:			 gpsSync_keyPressed(key);			  break;
+		case GuiWindowsSubType::setDate:			 setDate_keyPressed(key); 			  break;
+		case GuiWindowsSubType::setTime:			 setTime_keyPressed(key); 			  break;
+		case GuiWindowsSubType::setFreq: 			 setFreq_keyPressed(key); 			  break;
+		case GuiWindowsSubType::setSpeed: 			 setSpeed_keyPressed(key); 			  break;
+		case GuiWindowsSubType::editRnKey:			 editRnKey_keyPressed(key);			  break;
+		case GuiWindowsSubType::voiceMode:           voiceMode_keyPressed(key); 		  break;
 		case GuiWindowsSubType::channelEmissionType: channelEmissionType_keyPressed(key); break;
-		case GuiWindowsSubType::filetree: 			 filetree_keyPressed(key); break;
-		case GuiWindowsSubType::sheldure:            sheldure_keyPressed(key); break;
+		case GuiWindowsSubType::filetree: 			 filetree_keyPressed(key);            break;
+		case GuiWindowsSubType::sheldure:            sheldure_keyPressed(key);            break;
     }
 }
 
@@ -2380,42 +2380,53 @@ void Service::filetree_keyPressed(UI_Key key)
 {
     if ( key == keyEnter)
     {
-        if (menu->filesStage == 0){
+        if (menu->filesStage == 0) // mode list
+        {
 
             menu->fileType = (DataStorage::FS::FileType)menu->filesStageFocus[0];
              if (storageFs > 0)
                   storageFs->getFileNamesByType(&menu->tFiles[menu->fileType], menu->fileType);
         }
 
-        if (menu->filesStage == 1){
+        if (menu->filesStage == 1) // Rx / Tx
+        {
+            menu->transitionfileType = (DataStorage::FS::TransitionFileType)menu->filesStageFocus[1];
+        }
 
-        	DataStorage::FS::TransitionFileType ft;
-            if (storageFs > 0) ft = storageFs->getTransmitType(menu->fileType, menu->filesStageFocus[1]);
+        if (menu->filesStage == 2) // file names
+        {
+        	uint8_t focus = menu->recalcFileFocus(menu->filesStageFocus[2]);
 
             switch (menu->fileType)
             {
-            case DataStorage::FS::FT_SMS:
-            case DataStorage::FS::FT_CND:
-            case DataStorage::FS::FT_GRP:
-                if (menu->tFiles[menu->fileType].size() > 0)
-                menu->fileMessage = loadMessage(menu->fileType, ft, storageFs->getFileNumber(menu->fileType, menu->filesStageFocus[1]));
-                break;
+				case DataStorage::FS::FT_SMS:
+				case DataStorage::FS::FT_CND:
+				case DataStorage::FS::FT_GRP:
+					if (menu->tFiles[menu->fileType].size() > 0)
+						menu->fileMessage = loadMessage(menu->fileType, menu->transitionfileType, storageFs->getFileNumber(menu->fileType, focus));
+					break;
 
-            case DataStorage::FS::FT_VM:
-                if (menu->tFiles[menu->fileType].size() > 0)
-                menu->fileMessage = loadVoiceMail(storageFs->getFileNumber(menu->fileType, menu->filesStageFocus[1]), ft);
-                break;
+				case DataStorage::FS::FT_VM:
+					if (menu->tFiles[menu->fileType].size() > 0)
+						menu->fileMessage = loadVoiceMail(storageFs->getFileNumber(menu->fileType, focus), menu->transitionfileType);
+					break;
+				case DataStorage::FS::FT_SP: break;
             }
         }
 
-        switch (menu->filesStage){
-        case 0:
-            menu->filesStage++; break;
-        case 1:
-            if (menu->tFiles[menu->fileType].size() > 0)
-                menu->filesStage++;
-            break;
-        }
+        if (menu->filesStage < 3)
+        	menu->filesStage++;
+
+//        switch (menu->filesStage)
+//        {
+//        case 0:
+//        case 1:
+//            menu->filesStage++; break;
+//        case 2:
+//            //if (menu->tFiles[menu->fileType].size() > 0)
+//                menu->filesStage++;
+//            break;
+//        }
     }
     if ( key == keyBack)
     {
@@ -2431,23 +2442,16 @@ void Service::filetree_keyPressed(UI_Key key)
     if (key == keyUp)
     {
         switch(menu->filesStage){
-#if no_speah_hack
         case 0:
             if (menu->filesStageFocus[menu->filesStage] > 1)
                 menu->filesStageFocus[menu->filesStage]--;
             break;
         case 1:
-            if (menu->filesStageFocus[menu->filesStage] > 0)
-                menu->filesStageFocus[menu->filesStage]--;
-            break;
-#else
-        case 0:
-        case 1:
-            if (menu->filesStageFocus[menu->filesStage] > 0)
-                menu->filesStageFocus[menu->filesStage]--;
-            break;
-#endif
         case 2:
+            if (menu->filesStageFocus[menu->filesStage] > 0)
+                menu->filesStageFocus[menu->filesStage]--;
+            break;
+        case 3:
             if (menu->textAreaScrollIndex > 0)
             menu->textAreaScrollIndex--;
             break;
@@ -2455,18 +2459,32 @@ void Service::filetree_keyPressed(UI_Key key)
     }
     if (key == keyDown)
     {
-        switch (menu->filesStage){
-        case 0:
-            if (menu->filesStageFocus[menu->filesStage] < 4)
-                menu->filesStageFocus[menu->filesStage]++;
-            break;
-        case 1:
-            if (menu->filesStageFocus[menu->filesStage] < menu->tFiles[menu->fileType].size()-1)
-                menu->filesStageFocus[menu->filesStage]++;
-            break;
-        case 2:
-            menu->textAreaScrollIndex++;
-            break;
+        switch (menu->filesStage)
+        {
+			case 0:
+			{
+				if (menu->filesStageFocus[menu->filesStage] < 4)
+					menu->filesStageFocus[menu->filesStage]++;
+				break;
+			}
+			case 1:
+			{
+				uint8_t fileCount = storageFs->getTransmitFileTypeCount(menu->fileType, menu->transitionfileType);
+				if (menu->filesStageFocus[menu->filesStage] < fileCount - 1)
+					menu->filesStageFocus[menu->filesStage]++;
+				break;
+			}
+			case 2:
+			{
+				if (menu->filesStageFocus[menu->filesStage] < menu->tFiles[menu->fileType].size()-1)
+					menu->filesStageFocus[menu->filesStage]++;
+				break;
+			}
+			case 3:
+			{
+				menu->textAreaScrollIndex++;
+				break;
+			}
         }
     }
     if (key == keyRight)
@@ -2514,12 +2532,14 @@ void Service::sheldure_keyPressed(UI_Key key)
         }
         if ( key == keyEnter )
         {
-            if (menu->sheldureStageFocus[menu->sheldureStage] + 1 == sheldure_data.size() && sheldure.size() < 50){
+            if (menu->sheldureStageFocus[menu->sheldureStage] + 1 == sheldure_data.size() && sheldure.size() < 50)
+            {
                 menu->sheldureStage = 1;
                 isNew = true;
                 tempSheldureSession.clear();
             }
-            else{
+            else
+            {
                 isNew = false;
                 tempSheldureSession.copyFrom(&sheldure[menu->sheldureStageFocus[menu->sheldureStage]]);
                 menu->sheldureStageFocus[1] = tempSheldureSession.type;

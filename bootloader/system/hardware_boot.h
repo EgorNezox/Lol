@@ -10,7 +10,7 @@
 #ifndef HARDWARE_BOOT_H_
 #define HARDWARE_BOOT_H_
 
-#define NEW_BOOTLOADER 0
+#define NEW_BOOTLOADER 1
 
 #include <stdbool.h>
 

@@ -84,6 +84,7 @@ public:
     void initSelectVoiceModeParameters(bool);
     void initSelectChEmissTypeParameters(bool);
     void initFailedSms(int stage);
+    void initDialog(std::string text);
 
     void initSmsStageDialog(std::string);
 
@@ -199,6 +200,7 @@ public:
     uint8_t firstVisFileElem = 0;
     uint8_t firstVisSheldureElem[2] = {0,0};
     DataStorage::FS::FileType fileType;
+    DataStorage::FS::TransitionFileType transitionfileType;
 
     std::vector<std::string> tFiles[5];
     uint16_t textAreaScrollIndex;
@@ -243,16 +245,16 @@ public:
     void initRxPutOffVoiceDialogTest(int status);
     void RxSmsStatusPost(int value, bool clear = false,bool clearAll = false);
 
+    void calcFilesCount();
+    uint8_t recalcFileFocus(uint8_t focus);
+
     uint8_t cmdCount = 0;
     uint16_t cmdScrollIndex = 0;
     std::chrono::time_point<std::chrono::steady_clock> ct = std::chrono::steady_clock::now();
     bool getIsInRepeatInterval();
     void initFileManagerDialog(uint8_t stage);
-#if no_speah_hack
-    uint8_t filesStageFocus[3] = {1,0,0};
-#else
-    uint8_t filesStageFocus[3] = {0,0,0};
-#endif
+
+    uint8_t filesStageFocus[4] = {1,0,0,0};
     uint8_t sheldureStageFocus[6] = {0,0,0,0,0,0};
 
     std::vector<uint8_t>* fileMessage;
@@ -262,7 +264,12 @@ public:
     std::string sheldureTimeStr;
     std::string sheldureFreqStr;
     void onInputTimer();
+
+	uint8_t maxTransTypeCount = 0;
+	uint8_t minTransTypeCount = 0;
+
 private:
+
     const char* keyChars[10] = {(const char*)&ch_key0, (const char*)&ch_key1, (const char*)&ch_key2, (const char*)&ch_key3, (const char*)&ch_key4,
                                 (const char*)&ch_key5, (const char*)&ch_key6, (const char*)&ch_key7, (const char*)&ch_key8, (const char*)&ch_key9};
     uint8_t keyCharsCount[10] = {sizeof ch_key0, sizeof ch_key1, sizeof ch_key2, sizeof ch_key3, sizeof ch_key4,

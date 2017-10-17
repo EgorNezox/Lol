@@ -475,9 +475,7 @@ void Service::keyPressed(UI_Key key)
 
 void Service::onSmsCounterChange(int param)
 {
-    qmDebugMessage(QmDebug::Warning, "______sms counter: %d ", param);
-    qmDebugMessage(QmDebug::Warning, "______sms cntSmsRx: %d ", cntSmsRx);
-    qmDebugMessage(QmDebug::Warning, "______sms smsTxStage: %d ", menu->smsTxStage);
+    qmDebugMessage(QmDebug::Warning, "______sms counter: %d, cntSmsRx: %d smsTxStage: %d", param, cntSmsRx,  menu->smsTxStage);
 
     menu->virtCounter = 0;
     if (cntSmsRx != 2)
@@ -751,16 +749,19 @@ void Service::drawMenu()
 
         switch( st.subType )
         {
-        case GuiWindowsSubType::condCommand: //txCond
-        {
-            menu->initCondCommDialog(st, voice_service->getVirtualMode(), isWaitAnswer);
-            break;
-        }
-        case GuiWindowsSubType::txGroupCondCmd:
-        {
-            menu->initGroupCondCmd(st, isGucAnswerWaiting);
-            break;
-        }
+        case GuiWindowsSubType::condCommand:    	 { menu->initCondCommDialog(st, voice_service->getVirtualMode(), isWaitAnswer); break; }
+        case GuiWindowsSubType::txGroupCondCmd: 	 { menu->initGroupCondCmd(st, isGucAnswerWaiting);                              break; }
+        case GuiWindowsSubType::recvVoice:      	 {                                                                              break; }
+        case GuiWindowsSubType::scan:           	 { menu->inclStatus = menu->scanStatus;    menu->initIncludeDialog();           break; }
+        case GuiWindowsSubType::suppress:       	 { menu->inclStatus = menu->supressStatus; menu->initSuppressDialog();          break; }
+        case GuiWindowsSubType::display:        	 { menu->initDisplayBrightnessDialog();    										break; }
+        case GuiWindowsSubType::aruarmaus:      	 { menu->initAruarmDialog();               										break; }
+        case GuiWindowsSubType::volume:         	 { menu->initVolumeDialog();               										break; }
+        case GuiWindowsSubType::editRnKey:      	 { menu->initEditRnKeyDialog();           									    break; }
+        case GuiWindowsSubType::sheldure:       	 { menu->initSheldureDialog(&sheldure_data, sheldure.size()); 					break; }
+        case GuiWindowsSubType::voiceMode:      	 { menu->initSelectVoiceModeParameters(menu->useMode);							break; }
+        case GuiWindowsSubType::channelEmissionType: { menu->initSelectChEmissTypeParameters(menu->ch_emiss_type);      			break; }
+        case GuiWindowsSubType::gpsSync:             { menu->inclStatus = gpsSynchronization; menu->initIncludeDialog(); 			break; }
         case GuiWindowsSubType::txPutOffVoice:
         {
             int status = 0;;
@@ -859,6 +860,7 @@ void Service::drawMenu()
             menu->initRxCondCmdDialog(isSynch, isStartCond);
             break;
         }
+
         case GuiWindowsSubType::recvGroupCondCmd:
         {
             if (cntGucRx == -1)
@@ -873,7 +875,7 @@ void Service::drawMenu()
             }
             break;
         }
-        case GuiWindowsSubType::recvVoice: break;
+
         case GuiWindowsSubType::rxSmsMessage:
         {
         	if (cntSmsRx == -1){
@@ -962,12 +964,7 @@ void Service::drawMenu()
             	menu->initGpsCoordinateDialog( menu->coord_lat, menu->coord_log);
             break;
         }
-        case GuiWindowsSubType::gpsSync:
-        {
-            menu->inclStatus =  gpsSynchronization;
-            menu->initIncludeDialog();
-            break;
-        }
+
         case GuiWindowsSubType::setDate:
         {
             menu->setTitle(dataAndTime[0]);
@@ -1036,53 +1033,7 @@ void Service::drawMenu()
             menu->initSetSpeedDialog(speed);
             break;
         }
-        case GuiWindowsSubType::scan:
-        {
-            menu->inclStatus = menu->scanStatus;
-            menu->initIncludeDialog();
-            break;
-        }
-        case GuiWindowsSubType::suppress:
-        {
-            menu->inclStatus = menu->supressStatus;
-            menu->initSuppressDialog();
-            break;
-        }
-        case GuiWindowsSubType::display:
-        {
-            menu->initDisplayBrightnessDialog();
-            break;
-        }
-        case GuiWindowsSubType::aruarmaus:
-        {
-            menu->initAruarmDialog();
-            break;
-        }
-        case GuiWindowsSubType::volume:
-        {
-            menu->initVolumeDialog();
-            break;
-        }
-        case GuiWindowsSubType::editRnKey:
-        {
-            menu->initEditRnKeyDialog();
-            break;
-        }
-        case GuiWindowsSubType::sheldure:
-        {
-            menu->initSheldureDialog(&sheldure_data, sheldure.size());
-            break;
-        }
-        case GuiWindowsSubType::voiceMode:
-        {
-            menu->initSelectVoiceModeParameters(menu->useMode);
-            break;
-        }
-        case GuiWindowsSubType::channelEmissionType:
-        {
-            menu->initSelectChEmissTypeParameters(menu->ch_emiss_type);
-            break;
-        }
+
         case GuiWindowsSubType::filetree:
         {
             if (!flashTestOn)

@@ -432,7 +432,9 @@ void FS::updateFileTree()
     for (uint8_t fileNum = 0; fileNum < 10; fileNum++)
     {
         fileName = generateFileNameByNumber((FileType)fileType, (TransitionFileType)fileTransType, fileNum);
-        if (existFile(fileName)){
+        if (existFile(fileName))
+        {
+        	transmitFileTypeCount[fileType][fileTransType]++;
             files.push_back(fileName);
             fileTypeInfo[fileType].counter[fileTransType].count++;
         }
@@ -513,5 +515,10 @@ uint8_t FS::getFileNumber(FS::FileType fileType, uint8_t fileTreeTypeFocus){
     else
         return fileTreeTypeFocus - fileTypeInfo[fileType].counter[TFT_RX].count;
 
+}
+
+uint8_t FS::getTransmitFileTypeCount(FS::FileType fileType, FS::TransitionFileType transFileType)
+{
+	return transmitFileTypeCount[fileType][transFileType];
 }
 } /* namespace DataStorage */

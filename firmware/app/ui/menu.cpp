@@ -390,24 +390,23 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
     itemParams.icon_params.icon = sym_blank;
     int i = 0, j = 0; MoonsGeometry itemArea;
 
+    itemArea = {(GXT)(windowArea.xs + MARGIN),
+                (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
+                (GXT)(windowArea.xe - MARGIN),
+                (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
+               };
 
     if (text.size() < 4)
     {
         for (auto &k: text)
         {
-
-            itemArea = {(GXT)(windowArea.xs + MARGIN),
-                        (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
-                        (GXT)(windowArea.xe - MARGIN),
-                        (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
-                       };
-
-            if (i == focusItem){
+            if (i == focusItem)
+            {
               GUI_Painter::DrawRect( itemArea, RDM_FILL, CST_INVERSE);
               GUI_Painter::DrawText(itemArea.xs,itemArea.ys,itemParams.label_params.font,(char*)k.c_str(),CST_INVERSE);
             }
             else if (i == oldFocus || isRepaintItem){
-              GUI_Painter::DrawRect( itemArea, RDM_FILL, CST_DEFAULT);
+              GUI_Painter::DrawRect(itemArea, RDM_FILL, CST_DEFAULT);
               GUI_Painter::DrawRect(itemArea, RDM_LINE, CST_DEFAULT);
               GUI_Painter::DrawText(itemArea.xs,itemArea.ys,itemParams.label_params.font,(char*)k.c_str());
             }
@@ -421,7 +420,7 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
         SliderParams  sliderParams = {(int32_t)text.size(), (int32_t)1, (int32_t)focusItem};
         GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
         GUI_Painter::DrawRect(152, 30, 155, 100, RDM_FILL); //clear slider
-                      slider.Draw();
+        slider.Draw();
 
         for (auto &k: text)
         {
@@ -429,11 +428,6 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
 
             if (i > 4) break;
 
-            itemArea = {(GXT)(windowArea.xs + MARGIN),
-                        (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
-                        (GXT)(windowArea.xe - 3*MARGIN),
-                        (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
-                       };
             if (focusItem-offset == i)
                 itemParams.label_params.color_sch = {GENERAL_BACK_COLOR, GENERAL_TEXT_COLOR};
             else
@@ -510,70 +504,43 @@ void CGuiMenu::setSttParam(CEndState state, UI_Key key)
 
     switch ( type )
     {
-    case setFreq:
-    case setSpeed:
-    {
-        if (key == keyBack && str->size() > 0)
-            str->pop_back();
-        else if (key == keyBack && str->size() == 0)
-        {}
+		case setFreq:
+		case setSpeed:
+		{
+			if (key == keyBack && str->size() > 0)
+				str->pop_back();
+			else if (key == keyBack && str->size() == 0)
+			{}
 
-        if ( key > 5 && key < 16)
-        {
-            if ( str->size() == 0 && key != key0)
-                str->push_back(key+42);
-            else if ( str->size() > 0 && str->size() < 8 )
-                str->push_back(key+42);
-        }
-        break;
-    }
+			if ( key > 5 && key < 16)
+			{
+				if ( str->size() == 0 && key != key0)
+					str->push_back(key+42);
+				else if ( str->size() > 0 && str->size() < 8 )
+					str->push_back(key+42);
+			}
+			break;
+		}
     }
 }
 
 void CGuiMenu::initSetParametersDialog(std::string text)
 {
-    MoonsGeometry volume_geom  = {  5,  45,  160,  95 };
-    LabelParams label_param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
-
-    titleArea = { 5, 10, 160, 35};
-    label_param[0].transparent = true;
-    label_param[1].transparent = true;
-
-    label_param[0].element.align = { alignHCenter, alignTop };
-    label_param[1].element.align = { alignHCenter, alignTop };
-
-    GUI_EL_Window   window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
-    GUI_EL_Label    title (&label_param[0],            &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
-    GUI_EL_TextArea volume(&label_param[1],            &volume_geom, (char*)text.c_str(),     (GUI_Obj *)this);
-
-    window.Draw();
-    title.Draw();
-    volume.Draw();
+	initDialog(text);
 }
 
 void CGuiMenu::initSetSpeedDialog(std::string speed)
 {
-    MoonsGeometry fieldGeom  = {  5,  45,  160,  95 };
-    LabelParams label_param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
-
-    titleArea = { 5, 10, 160, 35};
-    label_param[0].transparent = true;
-    label_param[1].transparent = true;
-
-    label_param[0].element.align = { alignHCenter, alignTop };
-    label_param[1].element.align = { alignHCenter, alignTop };
-    speed.append(" ").append(speed_bit);
-
-    GUI_EL_Window   window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
-    GUI_EL_Label    title (&label_param[0],            &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
-    GUI_EL_Label    field (&label_param[0],            &fieldGeom,   (char*)speed.c_str(), (GUI_Obj *)this);
-
-    window.Draw();
-    title.Draw();
-    field.Draw();
+	speed.append(" ").append(speed_bit);
+	initDialog(speed);
 }
 
 void CGuiMenu::initSetDateOrTimeDialog(std::string text)
+{
+	initDialog(text);
+}
+
+void CGuiMenu::initDialog(std::string text)
 {
     MoonsGeometry volume_geom  = {  5,  65,  150,  95 };
     LabelParams label_param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
@@ -587,17 +554,13 @@ void CGuiMenu::initSetDateOrTimeDialog(std::string text)
 
     GUI_EL_Window   window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
     GUI_EL_Label    title (&label_param[0],            &titleArea,   (char*)titleStr.c_str(), (GUI_Obj *)this);
-    GUI_EL_Label volume(&label_param[1],            &volume_geom, (char*)text.c_str(),     (GUI_Obj *)this);
-
-    if ( text.size() == 8 )
-    {
-        // нажмите enter для подтверждения
-    }
+    GUI_EL_Label    volume(&label_param[1],            &volume_geom, (char*)text.c_str(),     (GUI_Obj *)this);
 
     window.Draw();
     title.Draw();
     volume.Draw();
 }
+
 
 //--------------------------------------------------------------------
 
@@ -1175,8 +1138,8 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
         label_param[2].transparent = false;
 
         label_param[0].element.align = { alignHCenter, alignTop };
-        label_param[1].element.align = { alignHCenter, alignTop };
-        label_param[2].element.align = { alignHCenter, alignTop };
+        label_param[1].element.align = label_param[0].element.align;
+        label_param[2].element.align = label_param[0].element.align;
 
         GUI_EL_Label    title (&label_param[0],            &titleArea,   (char*)newSheldure_label,       (GUI_Obj *)this);
         GUI_EL_Label    label (&label_param[1],            &timeArea,    (char*)dataAndTime[1],          (GUI_Obj *)this);
@@ -1200,11 +1163,11 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
         label_param[2].transparent = false;
 
         label_param[0].element.align = { alignHCenter, alignTop };
-        label_param[1].element.align = { alignHCenter, alignTop };
-        label_param[2].element.align = { alignHCenter, alignTop };
+        label_param[1].element.align = label_param[0].element.align;
+        label_param[2].element.align = label_param[0].element.align;
 
         GUI_EL_Label  title ( &label_param[0],  &titleArea,  (char*)editSheldure_label, (GUI_Obj*)this );
-        GUI_EL_Label  label ( &label_param[1],  &freqArea,  (char*)groupCondCommFreqStr, (GUI_Obj*)this );
+        GUI_EL_Label  label ( &label_param[1],  &freqArea,   (char*)groupCondCommFreqStr, (GUI_Obj*)this );
         GUI_EL_Label  value ( &label_param[2],  &valueArea,  (char*)sheldureFreqStr.c_str(), (GUI_Obj*)this );
 
         title.Draw();
@@ -1660,22 +1623,20 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
     window.Draw();
     const char* titleChar;
 
-    switch(stage){
-    case 0:
+    switch(stage)
+    {
+    case 0: // mode list
 
         titleChar = files[0];
-#if no_speah_hack
-        for (uint8_t subMenu = 1; subMenu < 5; subMenu++)
-#else
-        for (uint8_t subMenu = 0; subMenu < 5; subMenu++)
-#endif
-        {
-            if (filesStageFocus[stage] == subMenu){
-                item_param = GUI_EL_TEMP_ActiveMenuItem;
-            } else
-                item_param = GUI_EL_TEMP_DefaultMenuItem;
-            item_param.label_params.font = GUI_EL_TEMP_LabelChannel.font;
 
+        for (uint8_t subMenu = 1; subMenu < 5; subMenu++)
+        {
+            if (filesStageFocus[stage] == subMenu)
+                item_param = GUI_EL_TEMP_ActiveMenuItem;
+            else
+                item_param = GUI_EL_TEMP_DefaultMenuItem;
+
+            item_param.label_params.font = GUI_EL_TEMP_LabelChannel.font;
             item_param.label_params.transparent = true;
 
             GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)tmpParsing[subMenu], true, (GUI_Obj*)this );
@@ -1683,49 +1644,91 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
         }
 
         if (filesStageFocus[stage] == 3)
-          ScrollArea.setFirstVisElem(1);
+            ScrollArea.setFirstVisElem(1);
         else
             ScrollArea.setFirstVisElem(0);
-#if no_speah_hack
-        ScrollArea.setFocus(filesStageFocus[stage]-1);
-#else
-        ScrollArea.setFocus(filesStageFocus[stage]);
-#endif
+
+        ScrollArea.setFocus(filesStageFocus[stage] - 1);
+
         ScrollArea.Draw();
         break;
 
-    case 1:
+    case 1: // Rx / Tx
 
-        titleChar = tmpParsing[fileType];
+    	titleChar = files[0];
 
-        if (filesStageFocus[stage] > tFiles[fileType].size() - 1 )
-            filesStageFocus[stage] = tFiles[fileType].size() - 1;
+        for (uint8_t subMenu = 0; subMenu < 2; subMenu++)
+        {
+            if (filesStageFocus[stage] == subMenu)
+                item_param = GUI_EL_TEMP_ActiveMenuItem;
+            else
+                item_param = GUI_EL_TEMP_DefaultMenuItem;
 
-        if (tFiles[fileType].size() > 0){
-            for (uint8_t file = 0; file < tFiles[fileType].size(); file++)
-            {
-                std::string fileName = tFiles[fileType].at(file);
+            item_param.label_params.font = GUI_EL_TEMP_LabelChannel.font;
+            item_param.label_params.transparent = true;
 
-                if (filesStageFocus[stage] == file){
-                    item_param = GUI_EL_TEMP_ActiveMenuItem;
-                } else
-                    item_param = GUI_EL_TEMP_DefaultMenuItem;
-                item_param.label_params.font = &Tahoma26;
-                item_param.label_params.transparent = true;
-
-                GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)fileName.c_str(), true, (GUI_Obj*)this );
-                ScrollArea.addGuiElement(item);
-            }
-            ScrollArea.setFirstVisElem(firstVisFileElem);
-
-            ScrollArea.setFocus(filesStageFocus[stage]);
-            firstVisFileElem = ScrollArea.getFirstVisElem();
-            ScrollArea.Draw();
+            GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)fileRxTx[subMenu], true, (GUI_Obj*)this );
+            ScrollArea.addGuiElement(item);
         }
+
+        ScrollArea.setFirstVisElem(firstVisFileElem);
+
+        ScrollArea.setFocus(filesStageFocus[stage]);
+        firstVisFileElem = ScrollArea.getFirstVisElem();
+
+        ScrollArea.Draw();
         break;
 
-    case 2:
+    case 2:  // file names
+    {
+    	std::string tmpStr(tmpParsing[fileType]);
+    	tmpStr.append(fileRxTx[transitionfileType]);
+    	titleChar = tmpStr.c_str();
 
+    	        if (filesStageFocus[stage] > tFiles[fileType].size() - 1 )
+    	            filesStageFocus[stage] = tFiles[fileType].size() - 1;
+
+    	        if (tFiles[fileType].size() > 0)
+    	        {
+    	        	calcFilesCount();
+
+    	            for (uint8_t file = 0, fileActualNum = 0; file < tFiles[fileType].size(); file++)
+    	            {
+    	            	std::string fileName = tFiles[fileType].at(file);
+    	            	std::string transType(transitionfileType == DataStorage::FS::TFT_RX ? "r" : "t");
+
+    	            	if (file < minTransTypeCount || file >= maxTransTypeCount)
+    	            		continue;
+
+    	            	fileActualNum++;
+
+    	            	char num[3] = {0,0,0};
+    	            	sprintf(num, "%u", fileActualNum);
+
+    	            	std::string newFileName(fileRxTx[transitionfileType]);
+    	            	newFileName.append(num);
+
+    	                if (filesStageFocus[stage] == file)
+    	                    item_param = GUI_EL_TEMP_ActiveMenuItem;
+    	                 else
+    	                    item_param = GUI_EL_TEMP_DefaultMenuItem;
+
+    	                item_param.label_params.font = &Tahoma26;
+    	                item_param.label_params.transparent = true;
+
+    	                GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)newFileName.c_str(), true, (GUI_Obj*)this );
+    	                ScrollArea.addGuiElement(item);
+    	            }
+    	            ScrollArea.setFirstVisElem(firstVisFileElem);
+
+    	            ScrollArea.setFocus(filesStageFocus[stage]);
+    	            firstVisFileElem = ScrollArea.getFirstVisElem();
+    	            ScrollArea.Draw();
+    	        }
+    	        break;
+    }
+    case 3: // file content
+    {
         titleChar = tmpParsing[fileType];
         TextAreaParams textArea_Params = GUI_EL_TEMP_LabelMode;
         textArea_Params.element.align.align_h = alignLeft;
@@ -1738,6 +1741,8 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
         textArea.Draw();
         break;
     }
+    }
+
     GUI_EL_Label title( &label_params, &label_geom, (char*)titleChar, (GUI_Obj *)this);
     title.Draw();
 }
@@ -1751,7 +1756,7 @@ void CGuiMenu::initDisplayBrightnessDialog()
 
     titleArea = getDefaultTitleArea();
 
-    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                                   (GUI_Obj *)this);
     GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)displayBrightnessTitleStr, (GUI_Obj *)this);
 
     window.Draw();
@@ -1763,3 +1768,41 @@ void CGuiMenu::onInputTimer()
 {
     isInRepeatIntervalInput = false;
 }
+
+void CGuiMenu::calcFilesCount()
+{
+	uint8_t rxCountFiles = storageFs->getTransmitFileTypeCount(fileType, DataStorage::FS::TFT_RX);
+	uint8_t txCountFiles = storageFs->getTransmitFileTypeCount(fileType, DataStorage::FS::TFT_TX);
+
+	if (transitionfileType == DataStorage::FS::TFT_TX)
+	{
+		minTransTypeCount = rxCountFiles;
+		maxTransTypeCount = rxCountFiles + txCountFiles;
+	}
+	else
+	{
+	    minTransTypeCount = 0;
+		maxTransTypeCount = rxCountFiles;
+	}
+}
+
+// inverse numbers 0->9, 1->8, ... 9->0
+uint8_t CGuiMenu::recalcFileFocus(uint8_t focus)
+{
+	uint8_t rxCountFiles = storageFs->getTransmitFileTypeCount(fileType, DataStorage::FS::TFT_RX);
+	uint8_t txCountFiles = storageFs->getTransmitFileTypeCount(fileType, DataStorage::FS::TFT_TX);
+
+	uint8_t newFocus = 0;
+
+	if (transitionfileType == DataStorage::FS::TFT_TX)
+	{
+		newFocus = rxCountFiles + txCountFiles - focus;
+	}
+	else
+	{
+	    newFocus = rxCountFiles - focus;
+	}
+	return newFocus;
+}
+
+
