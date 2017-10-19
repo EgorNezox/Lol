@@ -30,11 +30,11 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
 #endif
 
     icon_geom = {x_offset, 6, x_offset + ICON_SIZE - 1, 23};
-    ind_multiradio = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
+    ind_multiradio = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this); // Rx/Tx
 
     x_offset += ICON_SIZE;
     icon_geom = {x_offset, 6, x_offset + ICON_SIZE - 1, 32};
-    ind_headset = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);
+    ind_headset = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this);  //HeadSet
 
 //#if PARAMS_DRAW
 //    icon_geom = {0, 35, 100, 60};
@@ -44,15 +44,18 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
 
     LabelParams p_label = GUI_EL_TEMP_LabelMode;
     p_label.element.align = {alignHCenter, alignVCenter};
-    date_time = new GUI_EL_Label(&p_label, &icon_geom, (char*)"", (GUI_Obj *)this);
+    date_time = new GUI_EL_Label(&p_label, &icon_geom, (char*)"", (GUI_Obj *)this);                    // Time
 
     x_offset += ICON_SIZE;
     icon_geom = {x_offset, 6, x_offset + ICON_SIZE-1, 32};
-    gpsLabel = new GUI_EL_Icon(&GUI_EL_TEMP_CommonIcon, &icon_geom, sym_gps, (GUI_Obj *)this);
+    gpsLabel = new GUI_EL_Icon(&GUI_EL_TEMP_CommonIcon, &icon_geom, sym_gps, (GUI_Obj *)this);        //GPS
 
     x_offset += ICON_SIZE;
     icon_geom = {x_offset, 6, x_offset + ICON_SIZE-1, 29};
-    ind_battery = new GUI_EL_Battery(&GUI_EL_TEMP_BatteryIndicator, 75, &icon_geom, (GUI_Obj *)this);
+    ind_battery = new GUI_EL_Battery(&GUI_EL_TEMP_BatteryIndicator, 75, &icon_geom, (GUI_Obj *)this);  // Battery
+
+    x_offset += ICON_SIZE;
+    synchXoffset = x_offset;
 }
 
 //-----------------------------
@@ -125,14 +128,41 @@ void GUI_Indicator::UpdateHeadset(Headset::Controller::Status status){
     }
 }
 
+void GUI_Indicator::UpdateSynchStatus(bool isSynch)
+{
+	this->isSynch = isSynch;
+}
+
+void GUI_Indicator::drawSynchSatus()
+{
+	if (isSynch)
+	{
+		gsetvp(0,0,159,127);
+
+		GCOLOR col = ggetcolorf();
+		gsetcolorf(GENERAL_BACK_COLOR);
+
+		MoonsGeometry icon_geom = {synchXoffset, 6, synchXoffset + ICON_SIZE-1, 29};
+		uint8_t radius = 6;
+		gcircle(icon_geom.xs + 4, icon_geom.ys + 4, radius, 0);
+
+		gmoveto(icon_geom.xs + radius, icon_geom.ys + radius);
+		glineto(icon_geom.xs + radius, icon_geom.ys);
+		gmoveto(icon_geom.xs + radius, icon_geom.ys + radius);
+		glineto(icon_geom.xs + 2 * radius, icon_geom.ys + radius / 2);
+	}
+}
+
 
 //-----------------------------
 
 void GUI_Indicator::Draw( Multiradio::VoiceServiceInterface::Status multiradioStatus,
                           Headset::Controller::Status              headsetStatus,
                           int                                      battaryStatus,
-                          uint8_t                                     gpsStatus
-                         ){
+                          uint8_t                                     gpsStatus,
+						  bool                                     isSynch
+                         )
+{
     gsetcolorb(GENERAL_BACK_COLOR);
     gsetvp(0,0,GDISPW-1, GDISPH-1);
     groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe - 20 ,ui_indicator_area.ye,0,GFILL);
@@ -141,12 +171,14 @@ void GUI_Indicator::Draw( Multiradio::VoiceServiceInterface::Status multiradioSt
     UpdateHeadset   (headsetStatus /*service->pGetHeadsetController()->getStatus()*/);
     UpdateBattery   (battaryStatus /*service->pGetPowerBattery()->getChargeLevel()*/);
     UpdateGpsStatus (gpsStatus);
+    UpdateSynchStatus (isSynch);
 
     ind_battery->Draw();
     ind_headset->Draw();
     ind_multiradio->Draw();
     date_time->Draw();
     gpsLabel->Draw();
+    drawSynchSatus();
 }
 
 void GUI_Indicator::Draw(){
@@ -159,6 +191,7 @@ void GUI_Indicator::Draw(){
     ind_multiradio->Draw();
     date_time->Draw();
     gpsLabel->Draw();
+    drawSynchSatus();
 }
 
 void GUI_Indicator::DrawTime()

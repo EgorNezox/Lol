@@ -247,6 +247,7 @@ public:
 
     void calcFilesCount();
     uint8_t recalcFileFocus(uint8_t focus);
+    uint8_t calcPercent(uint8_t a, uint8_t b);
 
     uint8_t cmdCount = 0;
     uint16_t cmdScrollIndex = 0;

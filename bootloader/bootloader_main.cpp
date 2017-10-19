@@ -16,14 +16,14 @@
 
 #if NEW_BOOTLOADER
 
-static const char* saghenTitleStr      = "********* SAZHEN *********\r\n\n\0";
-static const char* bootloaderTitleStr  = "     -= Bootloader =-   \r\n\n\n\0";
-static const char* usbComputerTitleStr = "    -= USB Computer =-   \r\n\0";
-static const char* sysBootTitleStr     = "  -= System Bootloader =-  \r\n\0";
+static const char* saghenTitleStr      = "********* САЖЕНЬ-Н *********\r\n\n\0";
+static const char* bootloaderTitleStr  = "     -= Загрузчик =-   \r\n\n\n\0";
+static const char* usbComputerTitleStr = "    -= USB Компьютер =-   \r\n\0";
+static const char* sysBootTitleStr     = "  -= Системный Загрузчик =-  \r\n\0";
 
-static const char* firmwareStr    = " Main\r\n\n\0";
-static const char* usbComputerStr = " USB Computer\r\n\n\0";
-static const char* sysBootStr     = " SysBoot\r\n\n\0";
+static const char* firmwareStr    = " Главная\r\n\n\0";
+static const char* usbComputerStr = " USB Компьютер\r\n\n\0";
+static const char* sysBootStr     = " Сист.Загр.\r\n\n\0";
 
 static const char* arrow = " -> ";
 static const char* space = "    ";
@@ -111,8 +111,8 @@ static void drawFirmwareErrorScreen(uint8_t firmwareNum)
     drawLine("\n\n\n\n\n\0");
     switch (firmwareNum)
     {
-    	case 0: QmConsoleScreen::oprintf("\t\t\t\t\t\t Usb Computer\r\n\r\n\t\t\t\t\is invalid/missing "); break;
-    	case 1: QmConsoleScreen::oprintf("\t\t\t\t\t\t\t\t\t\t  Main\r\n\r\n\t\t\t\t\is invalid/missing "); break;
+    	case 0: QmConsoleScreen::oprintf("\t\t\t\t\t\t USB Компьютер\r\n\r\n\t\t\t\t\is поврежден/отсутствует "); break;
+    	case 1: QmConsoleScreen::oprintf("\t\t\t\t\t\t\t\t\t\  Основная\r\n\r\n\t\t\t\t\is повреждена/отсутствует "); break;
     }
 }
 
@@ -130,20 +130,20 @@ void qmMain()
 	{
 		case hwboottestOk:
 		{
-			QmConsoleScreen::oprintf("\n Base hardware test: OK\r\n");
+			QmConsoleScreen::oprintf("\n Базовый аппаратный тест пройден\r\n");
 			break;
 		}
 		case hwboottestErrorExtSram:
 		{
-			QmConsoleScreen::oprintf("   Ext. mem test FAILED   ");
-			QmConsoleScreen::oprintf("  ! System terminated !");
+			QmConsoleScreen::oprintf("   Тест внешней памяти НЕ ПРОЙДЕН   ");
+			QmConsoleScreen::oprintf("  ! Система остановлена !");
 			while(1); // cannot safely continue !
 			break;
 		}
 		case hwboottestErrorHseClock:
 		{
-			QmConsoleScreen::oprintf("  Ref. clock test FAILED   ");
-	      	QmConsoleScreen::oprintf("  ! System terminated !");
+			QmConsoleScreen::oprintf("  Тест тактирования НЕ ПРОЙДЕН   ");
+	      	QmConsoleScreen::oprintf("  ! Система остановлена !");
 			while(1); // cannot safely continue !
 			break;
 		}

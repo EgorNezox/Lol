@@ -164,20 +164,20 @@ void DspTransport::processUartReceivedData() {
 void DspTransport::processUartReceivedErrors(bool data_errors, bool overflow) {
 	QM_UNUSED(data_errors);
 	QM_UNUSED(overflow);
-	if (data_errors)
-		qmDebugMessage(QmDebug::Info, "uart rx data errors");
-	if (overflow)
-		qmDebugMessage(QmDebug::Info, "uart rx overflow");
+//	if (data_errors)
+//		qmDebugMessage(QmDebug::Info, "uart rx data errors");
+//	if (overflow)
+//		qmDebugMessage(QmDebug::Info, "uart rx overflow");
 	uart->readData(0, uart->getRxDataAvailable()); // flush received chunks
 	dropRxSync();
 }
 
 void DspTransport::dropRxSync() {
-	if (rx_state == rxstateFrame) {
-		qmDebugMessage(QmDebug::Dump, "uart rx: dropping frame and synchronization");
-	} else if (rx_state == rxstateSync) {
-		qmDebugMessage(QmDebug::Dump, "uart rx: dropping synchronization");
-	}
+//	if (rx_state == rxstateFrame) {
+//		qmDebugMessage(QmDebug::Dump, "uart rx: dropping frame and synchronization");
+//	} else if (rx_state == rxstateSync) {
+//		qmDebugMessage(QmDebug::Dump, "uart rx: dropping synchronization");
+//	}
 	rx_state = rxstateNoSync;
 }
 

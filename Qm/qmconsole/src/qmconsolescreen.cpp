@@ -60,7 +60,7 @@ void QmConsoleScreen::init(unsigned int top_margin, unsigned int bottom_margin, 
 	groundrect(0, 0, GDISPW-1, GDISPH-1, 0, GFILL);
 
 	gsetvp(left_margin, top_margin, GDISPW-1-right_margin, GDISPH-1-bottom_margin);
-	gselfont(&SYSFONT);
+	gselfont(&Tahoma_15x13);
 
 	qm_cscreen_cb.symbols_per_line = (GDISPW - left_margin - right_margin)/ggetfw();
 	qm_cscreen_cb.line_count = (GDISPH - top_margin - bottom_margin)/ggetfh();

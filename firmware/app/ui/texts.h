@@ -186,4 +186,7 @@ extern const char *syncWaitingStr;
 
 extern const char *txQwit;
 
+extern const char *err;
+extern const char *errCrc;
+
 #endif /* TEXTS_H_ */

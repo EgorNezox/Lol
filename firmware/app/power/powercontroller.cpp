@@ -36,7 +36,7 @@ Controller::Controller(int hscontrol_iopin_resource, int controller_iopin_resour
 	hscontrol_debounce_timer->timeout.connect(sigc::mem_fun(this, &Controller::hscontrolDebounceTimeout));
 
 	if (QmIopin::Level_Low == source_iopin->readInput()) {
-		qmDebugMessage(QmDebug::Dump, "powering on from headset detected");
+		//qmDebugMessage(QmDebug::Dump, "powering on from headset detected");
 		ctrlPulseStart();
 	}
 }
@@ -46,7 +46,7 @@ void Controller::hsControlTriggered() {
 }
 
 void Controller::offIntTriggered() {
-	qmDebugMessage(QmDebug::Dump, "power off warning");
+	//qmDebugMessage(QmDebug::Dump, "power off warning");
 	powerOffWarning();
 }
 

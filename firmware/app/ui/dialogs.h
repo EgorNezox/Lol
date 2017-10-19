@@ -76,11 +76,13 @@ class GUI_Indicator: public GUI_Obj{
         void UpdateHeadset(Headset::Controller::Status status);
         void UpdateBattery(int new_val);
         void UpdateGpsStatus(uint8_t gpsStatus);
+        void UpdateSynchStatus(bool isSynch);
         void Draw();
         virtual void Draw( Multiradio::VoiceServiceInterface::Status,
                            Headset::Controller::Status,
                            int,
-                           uint8_t
+                           uint8_t,
+						   bool
                           );
         void setDateTime(std::string str)
         {
@@ -88,9 +90,12 @@ class GUI_Indicator: public GUI_Obj{
         }
         void DrawTime();
 private:
+        void drawSynchSatus();
         GUI_EL_Icon *ind_multiradio;
         GUI_EL_Icon *ind_headset;
         GUI_EL_Battery *ind_battery;
+        bool isSynch = false;
+        uint8_t synchXoffset = 0;
 public:
         GUI_EL_Label *date_time;
         GUI_EL_Icon  *gpsLabel;

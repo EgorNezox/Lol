@@ -199,7 +199,7 @@ void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)
 
 void Service::errorGucCrc()
 {
-    msgBox( "Error ", "Crc error\0");
+    msgBox( err, errCrc);
 }
 
 void Service::updateHeadset(Headset::Controller::Status status)
@@ -291,6 +291,7 @@ void Service::drawIndicator()
 			indicator->UpdateBattery(pGetPowerBattery()->getChargeLevel());
 			indicator->UpdateHeadset(pGetHeadsetController()->getStatus());
 			indicator->UpdateMultiradio(pGetVoiceService()->getStatus());
+			indicator->UpdateSynchStatus(voice_service->getVirtualMode());
 			indicator->Draw();
 
 
@@ -475,7 +476,7 @@ void Service::keyPressed(UI_Key key)
 
 void Service::onSmsCounterChange(int param)
 {
-    qmDebugMessage(QmDebug::Warning, "______sms counter: %d, cntSmsRx: %d smsTxStage: %d", param, cntSmsRx,  menu->smsTxStage);
+  //  qmDebugMessage(QmDebug::Warning, "______sms counter: %d, cntSmsRx: %d smsTxStage: %d", param, cntSmsRx,  menu->smsTxStage);
 
     menu->virtCounter = 0;
     if (cntSmsRx != 2)
@@ -510,7 +511,7 @@ void Service::onSmsCounterChange(int param)
     	}
 #endif
     }
-    qmDebugMessage(QmDebug::Warning, "______sms smsTxStage: %d ", menu->smsTxStage);
+    //qmDebugMessage(QmDebug::Warning, "______sms smsTxStage: %d ", menu->smsTxStage);
 }
 
 void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
@@ -834,17 +835,20 @@ void Service::drawMenu()
 
 					if (isSynch)
 					{
+						uint8_t percent = menu->calcPercent(menu->virtCounter, 120);
 						char syn[4] = {0,0,0,0};
-						sprintf(syn, "%d", menu->virtCounter);
-						fieldStr.append("\t").append(syncWaitingStr).append("\n ").append(syn).append(" / 120");
+						sprintf(syn, "%d", percent);
+						fieldStr.append("\t").append(syncWaitingStr).append("\n ").append(syn).append(" %");
 					}
 					else
 					{
+						uint8_t percent = menu->calcPercent(counter, 82);
+
 						char pac[2];
-						sprintf(pac,"%i", counter);
+						sprintf(pac,"%i", percent);
 
 						fieldStr.append(pac);
-						fieldStr.append("/82");
+						fieldStr.append(" %");
 					}
 					break;
 				}
@@ -893,8 +897,9 @@ void Service::drawMenu()
                 {
        				std::string str;
        				char syn[4] = {0,0,0,0};
-       				sprintf(syn, "%d", menu->virtCounter);
-       				str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 120");
+       				uint8_t percent = menu->calcPercent(menu->virtCounter, 120);
+       				sprintf(syn, "%d", percent);
+       				str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" %");
        				menu->initRxSmsDialog(menu->virtCounter ? str.c_str() : receiveStatusStr[1]);
                 }
             }
@@ -1788,7 +1793,7 @@ void Service::msgGucTXQuit(int ans)
     }
     else
     {
-        msgBox( "Guc", gucQuitTextFail);
+        msgBox( callSubMenu[3], gucQuitTextFail);
     }
     isGucAnswerWaiting = false;
 	menu->groupCondCommStage = 0;
@@ -1969,7 +1974,7 @@ void Service::onWaveInfoRecieved(float wave, float power)
 {
     waveValue = wave;
     powerValue = power;
-    qmDebugMessage(QmDebug::Warning, "SWR = %f, POWER = %f ", waveValue, powerValue);
+   // qmDebugMessage(QmDebug::Warning, "SWR = %f, POWER = %f ", waveValue, powerValue);
 #if PARAMS_DRAW
     //if (weveValue > 0 && powerValue > 0)
     	drawWaveInfo();

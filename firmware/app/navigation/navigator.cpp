@@ -48,7 +48,7 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 	uart->rxError.connect(sigc::mem_fun(this, &Navigator::processUartReceivedErrors));
 	reset_iopin->writeOutput(QmIopin::Level_High);
 	ant_flag_iopin = new QmIopin(ant_flag_iopin_resource, this);
-	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
+	//qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 	sync_pulse_iopin = new QmIopin(sync_pulse_iopin_resource, this);
 	sync_pulse_iopin->inputTriggerOnce.connect(sigc::mem_fun(this, &Navigator::processSyncPulse));
 
@@ -111,10 +111,10 @@ void Navigator::processUartReceivedData() {
 }
 
 void Navigator::processUartReceivedErrors(bool data_errors, bool overflow) {
-	if (data_errors)
-		qmDebugMessage(QmDebug::Warning, "uart rx data errors");
-	if (overflow)
-		qmDebugMessage(QmDebug::Warning, "uart rx overflow");
+//	if (data_errors)
+//		qmDebugMessage(QmDebug::Warning, "uart rx data errors");
+//	if (overflow)
+//		qmDebugMessage(QmDebug::Warning, "uart rx overflow");
     uart->readData(0, uart->getRxDataAvailable()); // flush received chunks
 }
 
@@ -393,14 +393,14 @@ void Navigator::processSyncPulse(bool overflow)
     if (CoordDate.status)
     {
     	res = tune_frequency_generator(i, param);
-        qmDebugMessage(QmDebug::Warning, " =====> Correct  DAC: %i FROM DELTA %i", res, i);
+        //qmDebugMessage(QmDebug::Warning, " =====> Correct  DAC: %i FROM DELTA %i", res, i);
     }
     if (param)
         to_mode_time = 0;
 
 
-	if (overflow)
-		qmDebugMessage(QmDebug::Warning, "sync pulse overflow detected !!!");
+//	if (overflow)
+//		qmDebugMessage(QmDebug::Warning, "sync pulse overflow detected !!!");
 
 	uint8_t data[1024];
 	int16_t data_read = 0;

@@ -523,14 +523,14 @@ void Service::condCommand_keyPressed(UI_Key key)
                 case 3: (*iter)++; (*iter)++; if ((*iter)->inputStr.size() != 0) menu->txCondCmdStage++; break;
                 case 4: if ((*iter)->inputStr.size() != 0) menu->txCondCmdStage++; break;
                 case 5: menu->txCondCmdStage++; break;
-                case 6:
-                {
-                	menu->txCondCmdStage = 0;
-                    guiTree.backvard();
-                    onCompletedStationMode();
-                    isWaitAnswer = false;
-                	break;
-                }
+//                case 6:
+//                {
+//                	menu->txCondCmdStage = 0;
+//                    guiTree.backvard();
+//                    onCompletedStationMode();
+//                    isWaitAnswer = false;
+//                	break;
+//                }
             }
         }
 
@@ -667,6 +667,10 @@ void Service::condCommand_keyPressed(UI_Key key)
 			}
 			case 6:
 			{
+				guiTree.backvard();
+				menu->txCondCmdStage = 0;
+				onCompletedStationMode();
+				isWaitAnswer = false;
 				break;
 			}
         }
@@ -895,15 +899,25 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
         {
         	if ( key == keyBack )
         	{
-        		menu->groupCondCommStage--;
+        		menu->groupCondCommStage = 0;
+                for (auto &k: estate.listItem)
+                    k->inputStr.clear();
+                guiTree.backvard();
+                menu->focus = 1;
+                if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
+                	setFreq();
+                }
+                isTurnGuc = false;
+                onCompletedStationMode(true);
+                isGucAnswerWaiting = false;
         	}
         	if ( key == keyEnter )
         	{
-        		menu->groupCondCommStage = 0;
-        		guiTree.resetCurrentState();
-        		isTurnGuc = false;
-                onCompletedStationMode(true);
-                isGucAnswerWaiting = false;
+//        		menu->groupCondCommStage = 0;
+//        		guiTree.resetCurrentState();
+//        		isTurnGuc = false;
+//                onCompletedStationMode(true);
+//                isGucAnswerWaiting = false;
         	}
         	break;
         }
@@ -1135,29 +1149,38 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
     {// статус
         if (key == keyBack)
         {
-            menu->putOffVoiceStatus--;
 #ifndef _DEBUG_
             voice_service->stopAle();
-            //onCompletedStationMode();
 #endif
+    		guiTree.backvard();
+    		menu->offset = 1;
+    		menu->focus = 3;
+    		menu->inVoiceMail = false;
+    		menu->toVoiceMail = false;
+    		voice_service->stopAle();
+    		isVm = true;
+    		onCompletedStationMode(true);
+
+            menu->putOffVoiceStatus == 1;
+
         }
         if (key == keyEnter /*&& voice_service->getAleState() == */)
         {
-#ifndef _DEBUG_
-            voice_service->stopAle();
-#endif
-            menu->putOffVoiceStatus = 1;
-            menu->voiceAddr.clear();
-            menu->channalNum.clear();
-#ifndef _DEBUG_
-            menu->focus = 0;
-            guiTree.resetCurrentState();
-            menu->inVoiceMail = false;
-            menu->toVoiceMail = false;
-            isVm = true;
-            onCompletedStationMode(true);
-#endif
-            guiTree.resetCurrentState();
+//#ifndef _DEBUG_
+//            voice_service->stopAle();
+//#endif
+//            menu->putOffVoiceStatus = 1;
+//            menu->voiceAddr.clear();
+//            menu->channalNum.clear();
+//#ifndef _DEBUG_
+//            menu->focus = 0;
+//            guiTree.resetCurrentState();
+//            menu->inVoiceMail = false;
+//            menu->toVoiceMail = false;
+//            isVm = true;
+//            onCompletedStationMode(true);
+//#endif
+//            guiTree.resetCurrentState();
         }
         break;
     }
@@ -1387,12 +1410,22 @@ void Service::txSmsMessage_keyPressed(UI_Key key)
 		{
 			switch (key)
 			{
-				case keyEnter:
+				case keyBack:
 				{
-					menu->smsTxStage = 1;
-					guiTree.resetCurrentState();
+					guiTree.backvard();
+					menu->offset = 0;
+					menu->focus = 2;
 					onCompletedStationMode();
 					menu->virtCounter = 0;
+					menu->smsTxStage = 1;
+					break;
+				}
+				case keyEnter:
+				{
+//					menu->smsTxStage = 1;
+//					guiTree.resetCurrentState();
+//					onCompletedStationMode();
+//					menu->virtCounter = 0;
 				}
 			}
 		}
@@ -1466,15 +1499,15 @@ void Service::recvCondCmd_keyPressed(UI_Key key)
 				menu->virtCounter = 0;
                 voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
             }
-            if (menu->recvStage == 2)
-            {
-            	menu->recvStage = 0;
-            	//guiTree.backvard();
-            	guiTree.resetCurrentState();
-            	onCompletedStationMode();
-            	isStartCond = false;
-				menu->virtCounter = 0;
-            }
+//            if (menu->recvStage == 2)
+//            {
+//            	menu->recvStage = 0;
+//            	//guiTree.backvard();
+//            	guiTree.resetCurrentState();
+//            	onCompletedStationMode();
+//            	isStartCond = false;
+//				menu->virtCounter = 0;
+//            }
 #endif
         }
     }
@@ -1485,7 +1518,7 @@ void Service::rxSmsMessage_keyPressed(UI_Key key)
 	{
 		if (cntSmsRx > 0)
 			--cntSmsRx;
-		if (cntSmsRx == 0)
+		if (cntSmsRx == 0 || cntSmsRx == 3)
 		{
 			cntSmsRx = -1;
 			guiTree.backvard();
@@ -1538,14 +1571,14 @@ void Service::rxSmsMessage_keyPressed(UI_Key key)
 	  }
       if (cntSmsRx == 3)
 	  {
-          //smsMessage(13);
-          guiTree.resetCurrentState();
-          isSmsMessageRec = false;
-          menu->smsStage = 0;
-          cntSmsRx = -1;
-          menu->smsTxStage = 1;
-          onCompletedStationMode();
-          menu->virtCounter = 0;
+//          //smsMessage(13);
+//          guiTree.resetCurrentState();
+//          isSmsMessageRec = false;
+//          menu->smsStage = 0;
+//          cntSmsRx = -1;
+//          menu->smsTxStage = 1;
+//          onCompletedStationMode();
+//          menu->virtCounter = 0;
 	  }
 	}
 
@@ -1588,8 +1621,11 @@ void Service::recvGroupCondCmd_keyPressed(UI_Key key)
 			}
 			case 4:
 			{
-    			cntGucRx = -1;
-                onCompletedStationMode(true);
+				cntGucRx = -1;
+                menu->offset = 0;
+                menu->focus = 1;
+                guiTree.backvard();
+                onCompletedStationMode(false);
 				break;
 			}
 			case 1:
@@ -1637,10 +1673,10 @@ void Service::recvGroupCondCmd_keyPressed(UI_Key key)
 			}
 			case 3:
 			{
-                cntGucRx = -1;
-        		guiTree.resetCurrentState();
-                onCompletedStationMode(false);
-                break;
+//                cntGucRx = -1;
+//        		guiTree.resetCurrentState();
+//                onCompletedStationMode(false);
+//                break;
 			}
 			case 4:
 			{
@@ -1777,13 +1813,6 @@ void Service::rxPutOffVoice_keyPressed(UI_Key key)
 #ifndef _DEBUG_
             headset_controller->stopSmartPlay();
 #endif
-            menu->putOffVoiceStatus--;
-        }
-        if (key == keyEnter)
-        {
-#ifndef _DEBUG_
-            headset_controller->stopSmartPlay();
-#endif
             menu->putOffVoiceStatus = 1;
             menu->voiceAddr.clear();
             menu->channalNum.clear();
@@ -1795,8 +1824,12 @@ void Service::rxPutOffVoice_keyPressed(UI_Key key)
             voice_service->stopAle();
             onCompletedStationMode(true);
 #endif
-
         }
+//        if (key == keyEnter)
+//        {
+//
+//
+//        }
         break;
     }
     }

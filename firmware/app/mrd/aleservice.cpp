@@ -165,20 +165,20 @@ void AleService::setProbeMode(bool probe_on)
 }
 
 void AleService::printDebugVmMessage(int groups, int packets, voice_message_t &message) {
-	qmDebugMessage(QmDebug::Info, "voice message: %d groups, %d packets", groups, packets);
+	//qmDebugMessage(QmDebug::Info, "voice message: %d groups, %d packets", groups, packets);
 	if (qmDebugIsVerbose()) {
 		char *message_data_dump = new char[message.size()*3+1];
 		message_data_dump[0] = 0;
 		for (unsigned int i = 0; i < message.size(); i++)
 			sprintf(message_data_dump + i*3, " %02X", message[i]);
-		qmDebugMessage(QmDebug::Dump, "voice message data: %s", message_data_dump);
+		//qmDebugMessage(QmDebug::Dump, "voice message data: %s", message_data_dump);
 		delete[] message_data_dump;
 	}
 }
 
 
 void AleService::startAleRx() {
-	qmDebugMessage(QmDebug::Info, "starting ALE rx");
+	//qmDebugMessage(QmDebug::Info, "starting ALE rx");
 	if (!startAleSession())
 		return;
 	ale.f_state = alefunctionRx;
@@ -191,7 +191,7 @@ void AleService::startAleRx() {
 }
 
 void AleService::startAleTxVoiceMail(uint8_t address, voice_message_t message) {
-	qmDebugMessage(QmDebug::Info, "starting ALE tx voice mail (address = %02u)", address);
+	//qmDebugMessage(QmDebug::Info, "starting ALE tx voice mail (address = %02u)", address);
 	if(message.size()==0)
 	{
 #ifndef	TX_RANDOM_DATA
@@ -326,14 +326,14 @@ voice_message_t AleService::getAleRxVmMessage() {
 
 void AleService::setAleVmProgress(uint8_t value) {
 	if (ale.vm_progress != value) {
-		qmDebugMessage(QmDebug::Info, "ale vm progress = %u", value);
+		//qmDebugMessage(QmDebug::Info, "ale vm progress = %u", value);
 		ale.vm_progress = value;
 		aleVmProgressUpdated(value);
 	}
 }
 
 bool AleService::startAleSession() {
-	qmDebugMessage(QmDebug::Info, "ale session start");
+	//qmDebugMessage(QmDebug::Info, "ale session start");
 	dispatcher->dsp_controller->setRadioOperation(DspController::RadioOperationOff);
 	dispatcher->atu_controller->setMinimalActivityMode(true);
 	dispatcher->power_battery->setMinimalActivityMode(true);
@@ -341,7 +341,7 @@ bool AleService::startAleSession() {
 }
 
 void AleService::stopAleSession() {
-	qmDebugMessage(QmDebug::Info, "ale session stop");
+	//qmDebugMessage(QmDebug::Info, "ale session stop");
 	dispatcher->atu_controller->setMinimalActivityMode(false);
 	dispatcher->power_battery->setMinimalActivityMode(false);
 	dispatcher->navigator->setMinimalActivityMode(false);
@@ -425,16 +425,16 @@ bool AleService::processPacketReceivedPacket(uint8_t *data) {
 	CRC32 crc;
 	crc.update(packet->num_data, sizeof(packet->num_data));
 	if (!(crc.result() == qmFromBigEndian<uint32_t>((uint8_t *)&(packet->crc)))) {
-		qmDebugMessage(QmDebug::Info, "ale rx vm packet with bad CRC");
+		//qmDebugMessage(QmDebug::Info, "ale rx vm packet with bad CRC");
 		return false;
 	}
 	uint8_t num = (packet->num_data[0] >> 2) & 0x3F;
 	if(!(num == ale.vm_f_idx)) {
 		if (num == (ale.vm_f_idx - 1)) {
-			qmDebugMessage(QmDebug::Info, "ale rx vm packet repeated");
+			//qmDebugMessage(QmDebug::Info, "ale rx vm packet repeated");
 			return true;
 		} else {
-			qmDebugMessage(QmDebug::Info, "ale rx vm packet with bad number");
+			//qmDebugMessage(QmDebug::Info, "ale rx vm packet with bad number");
 			return false;
 		}
 	}
@@ -447,7 +447,7 @@ bool AleService::processPacketReceivedPacket(uint8_t *data) {
 void AleService::aleprocessModemPacketFailedRx(DspController::ModemPacketType type) {
     if (ale.phase == ALE_RX_VM_RX_PACKET) {
         QM_ASSERT(type == DspController::modempacket_packHead);
-        qmDebugMessage(QmDebug::Info, "ale VM packet data rx failed");
+      //  qmDebugMessage(QmDebug::Info, "ale VM packet data rx failed");
         ale.vm_packet_result = false;
         //startRxPacketResponse();
     }

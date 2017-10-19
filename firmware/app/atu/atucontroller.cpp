@@ -141,29 +141,29 @@ void AtuController::setMinimalActivityMode(bool enabled) {
 void AtuController::setMode(Mode mode) {
 	switch (mode) {
 	case modeNone:
-		qmDebugMessage(QmDebug::Info, "no ATU mode");
+	//	qmDebugMessage(QmDebug::Info, "no ATU mode");
 		scan_timer->start();
 		break;
 	case modeMalfunction:
-		qmDebugMessage(QmDebug::Info, "malfunction mode");
+	//	qmDebugMessage(QmDebug::Info, "malfunction mode");
 		finishCommand();
 		tx_tune_timer->stop();
 		scan_timer->start();
 		startCommand(commandEnterBypassMode, &antenna, 1, 2);
 		break;
 	case modeStartingBypass:
-		qmDebugMessage(QmDebug::Info, "starting bypass mode...");
+	//	qmDebugMessage(QmDebug::Info, "starting bypass mode...");
 		scan_timer->stop();
 		break;
 	case modeBypass:
-		qmDebugMessage(QmDebug::Info, "bypass mode");
+	//	qmDebugMessage(QmDebug::Info, "bypass mode");
 		scan_timer->start();
 		break;
 	case modeTuning:
-		qmDebugMessage(QmDebug::Info, "tuning tx...");
+	//	qmDebugMessage(QmDebug::Info, "tuning tx...");
 		break;
 	case modeActiveTx:
-		qmDebugMessage(QmDebug::Info, "active tx mode");
+		//qmDebugMessage(QmDebug::Info, "active tx mode");
 		scan_timer->start();
 		break;
 	}
@@ -368,8 +368,8 @@ void AtuController::sendFrame(uint8_t id, const uint8_t *data, int data_len) {
 	qmDebugMessage(QmDebug::Dump, "transmitting frame (id=0x%02X, data_len=%d)", id, data_len);
 	if (qmDebugIsVerbose() && (data_len > 0)) {
 		QM_ASSERT(data != 0);
-		for (int i = 0; i < data_len; i++)
-			qmDebugMessage(QmDebug::Dump, "frame data: 0x%02X", data[i]);
+//		for (int i = 0; i < data_len; i++)
+//			qmDebugMessage(QmDebug::Dump, "frame data: 0x%02X", data[i]);
 	}
 	uint8_t frame_buf[2 + MAX_FRAME_DATA_SIZE];
 	frame_buf[0] = id;
@@ -382,10 +382,10 @@ void AtuController::sendFrame(uint8_t id, const uint8_t *data, int data_len) {
 void AtuController::sendNak() {
 	const uint8_t frame[] = {frameid_NAK, FRAME_SYMBOL_EOT};
 	if (uart->getTxSpaceAvailable() < 128) { // АСУ флудит ?
-		qmDebugMessage(QmDebug::Warning, "uart tx queue overflowed, no NAK will be sent");
+	//	qmDebugMessage(QmDebug::Warning, "uart tx queue overflowed, no NAK will be sent");
 		return; // отражение DoS-атаки :)
 	}
-	qmDebugMessage(QmDebug::Info, "transmitting NAK frame");
+	//qmDebugMessage(QmDebug::Info, "transmitting NAK frame");
 	uart->writeData(frame, sizeof(frame));
 }
 
@@ -396,41 +396,41 @@ void AtuController::processUartReceivedData() {
 		switch (uart_rx_state) {
 		case uartrxNone: {
 			if (byte == FRAME_SYMBOL_EOT) {
-				qmDebugMessage(QmDebug::Dump, "uart rx: - ignoring EOT");
+			//	qmDebugMessage(QmDebug::Dump, "uart rx: - ignoring EOT");
 				break;
 			}
 			uart_rx_frame.id = byte;
 			switch (uart_rx_frame.id) {
 			case frameid_NAK:
-				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id NAK");
+			//	qmDebugMessage(QmDebug::Dump, "uart rx: - frame id NAK");
 				uart_rx_frame.data_len = 0;
 				break;
 			case frameid_A:
-				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id A");
+			//	qmDebugMessage(QmDebug::Dump, "uart rx: - frame id A");
 				uart_rx_frame.data_len = 1;
 				break;
 			case frameid_D:
-				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id D");
+			//	qmDebugMessage(QmDebug::Dump, "uart rx: - frame id D");
 				uart_rx_frame.data_len = 0;
 				break;
 			case frameid_F:
-				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id F");
+			//	qmDebugMessage(QmDebug::Dump, "uart rx: - frame id F");
 				uart_rx_frame.data_len = 5;
 				break;
 			case frameid_K:
-				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id K");
+			//	qmDebugMessage(QmDebug::Dump, "uart rx: - frame id K");
 				uart_rx_frame.data_len = 1;
 				break;
 			case frameid_U:
-				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id U");
+			//	qmDebugMessage(QmDebug::Dump, "uart rx: - frame id U");
 				uart_rx_frame.data_len = 0;
 				break;
 			case frameid_Y:
-				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id Y");
+			//	qmDebugMessage(QmDebug::Dump, "uart rx: - frame id Y");
 				uart_rx_frame.data_len = 0;
 				break;
 			case frameid_V:
-				qmDebugMessage(QmDebug::Dump, "uart rx: - frame id V");
+			//	qmDebugMessage(QmDebug::Dump, "uart rx: - frame id V");
 				uart_rx_frame.data_len = 2;
 				break;
 			default:
@@ -445,15 +445,15 @@ void AtuController::processUartReceivedData() {
 		}
 		case uartrxFrame: {
 			if (uart_rx_frame.data_pos < uart_rx_frame.data_len) {
-				qmDebugMessage(QmDebug::Dump, "uart rx: - frame data 0x%02X", byte);
+			//	qmDebugMessage(QmDebug::Dump, "uart rx: - frame data 0x%02X", byte);
 				uart_rx_frame.data_buf[uart_rx_frame.data_pos++] = byte;
 			} else if (byte == FRAME_SYMBOL_EOT) {
-				qmDebugMessage(QmDebug::Dump, "uart rx: - frame EOT");
-				qmDebugMessage(QmDebug::Dump, "received frame (id=0x%02X, data_len=%u)", uart_rx_frame.id, uart_rx_frame.data_len);
+			//	qmDebugMessage(QmDebug::Dump, "uart rx: - frame EOT");
+			//	qmDebugMessage(QmDebug::Dump, "received frame (id=0x%02X, data_len=%u)", uart_rx_frame.id, uart_rx_frame.data_len);
 				uart_rx_state = uartrxNone;
 				processReceivedFrame(uart_rx_frame.id, uart_rx_frame.data_buf);
 			} else {
-				qmDebugMessage(QmDebug::Warning, "uart rx: - unexpected symbol in frame EOT position !");
+			//	qmDebugMessage(QmDebug::Warning, "uart rx: - unexpected symbol in frame EOT position !");
 				uart_rx_state = uartrxNone;
 			}
 			break;

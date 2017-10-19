@@ -143,9 +143,10 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
     { //stage send
     	if (isSynch & !isWaitingAnswer)
     	{
+		    uint8_t percent = calcPercent(virtCounter, 120);
     		char syn[4] = {0,0,0,0};
-    		sprintf(syn, "%d", virtCounter);
-    	    str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 120");
+    		sprintf(syn, "%d", percent);
+    	    str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" %");
     	}
     	else
     	{
@@ -153,10 +154,11 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
     			str.append(rxSmsResultStatus[3]);
     		else
     		{
-				char pac[] = {0,0};
-				sprintf(pac,"%i",command_tx30);
+    			uint8_t percent = calcPercent(command_tx30, 30);
+				char pac[] = {0,0,0,0};
+				sprintf(pac,"%i",percent);
 				str.append(pac);
-				str.append("/30");
+				str.append(" %");
     		}
     	}
         break;
@@ -390,16 +392,16 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
     itemParams.icon_params.icon = sym_blank;
     int i = 0, j = 0; MoonsGeometry itemArea;
 
-    itemArea = {(GXT)(windowArea.xs + MARGIN),
-                (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
-                (GXT)(windowArea.xe - MARGIN),
-                (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
-               };
-
     if (text.size() < 4)
     {
         for (auto &k: text)
         {
+            itemArea = {(GXT)(windowArea.xs + MARGIN),
+                        (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
+                        (GXT)(windowArea.xe - MARGIN),
+                        (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
+                       };
+
             if (i == focusItem)
             {
               GUI_Painter::DrawRect( itemArea, RDM_FILL, CST_INVERSE);
@@ -427,6 +429,12 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
             if (j < offset) { ++j; continue;}
 
             if (i > 4) break;
+
+            itemArea = {(GXT)(windowArea.xs + MARGIN),
+                        (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
+                        (GXT)(windowArea.xe - MARGIN),
+                        (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
+                       };
 
             if (focusItem-offset == i)
                 itemParams.label_params.color_sch = {GENERAL_BACK_COLOR, GENERAL_TEXT_COLOR};
@@ -1415,10 +1423,11 @@ void CGuiMenu::initRxCondCmdDialog(bool isSynch, bool isStart)        // При�
     {
 		if (isSynch && !isStart && (recvStage > 0))
 		{
+    	    uint8_t percent = calcPercent(virtCounter, 120);
 			char syn[4] = {0,0,0,0};
-			sprintf(syn, "%d", virtCounter);
+			sprintf(syn, "%d", percent);
 			if (virtCounter)
-				str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 120");
+				str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" %");
 			else
 				str.append(receiveStatusStr[1]);
 		}
@@ -1803,6 +1812,11 @@ uint8_t CGuiMenu::recalcFileFocus(uint8_t focus)
 	    newFocus = rxCountFiles - focus;
 	}
 	return newFocus;
+}
+
+uint8_t CGuiMenu::calcPercent(uint8_t a, uint8_t b)
+{
+	return a / b *100;
 }
 
 
