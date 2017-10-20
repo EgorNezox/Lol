@@ -1670,7 +1670,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
 
     case 1: // Rx / Tx
 
-    	titleChar = files[0];
+    	titleChar = tmpParsing[fileType];
 
         for (uint8_t subMenu = 0; subMenu < 2; subMenu++)
         {
@@ -1697,7 +1697,6 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
     case 2:  // file names
     {
     	std::string tmpStr(tmpParsing[fileType]);
-    	//tmpStr.append(fileRxTx[transitionfileType]);
     	titleChar = tmpStr.c_str();
 
     	        if (filesStageFocus[stage] > tFiles[fileType].size() - 1 )
@@ -1753,7 +1752,8 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
         GUI_EL_TextArea textArea(&textArea_Params, &textArea_Geom, fileMessage, (GUI_Obj*)this);
         textArea.setVisibleScroll(true);
         textAreaScrollIndex = textArea.SetScrollIndex(textAreaScrollIndex);
-        textArea.Draw();
+        if (tFiles[fileType].size() > 0)
+        	textArea.Draw();
         break;
     }
     }

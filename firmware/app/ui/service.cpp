@@ -1501,7 +1501,8 @@ void Service::TxCondCmdPackage(int value)
 std::vector<uint8_t>* Service::loadVoiceMail(uint8_t fileNumber, DataStorage::FS::TransitionFileType tft)
 {
     uint8_t result = 0; // ok
-    if (storageFs > 0){
+    if (storageFs > 0)
+    {
         fileMsg.clear();
 
         int channelNum;
@@ -1511,16 +1512,18 @@ std::vector<uint8_t>* Service::loadVoiceMail(uint8_t fileNumber, DataStorage::FS
         if (channelNum % 2 == 0)
         	result = voice_service->playVoiceMessage(fileNumber, tft, channelNum );
         else
-        	result = 1;
+        	result = 3;
     }
 
     std::string stateStr;
     std::string errorReadStr(errorReadFile);
-    std::string errorSpeakerOffStr(smatrHSStateStr[1]);
+    std::string errorSpeakerOffStr(noHeadsetPlayErrorStr);
 
-    switch (result){
+    switch (result)
+    {
         case 1: stateStr = errorReadStr; break;
         case 2: stateStr = errorSpeakerOffStr; break;
+        case 3: stateStr = openChannelPlayErrorStr; break;
     }
 
     if (result != 0)

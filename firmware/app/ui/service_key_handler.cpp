@@ -2349,17 +2349,6 @@ void Service::filetree_keyPressed(UI_Key key)
 
         if (menu->filesStage < 3)
         	menu->filesStage++;
-
-//        switch (menu->filesStage)
-//        {
-//        case 0:
-//        case 1:
-//            menu->filesStage++; break;
-//        case 2:
-//            //if (menu->tFiles[menu->fileType].size() > 0)
-//                menu->filesStage++;
-//            break;
-//        }
     }
     if ( key == keyBack)
     {
@@ -2406,8 +2395,7 @@ void Service::filetree_keyPressed(UI_Key key)
 			}
 			case 1:
 			{
-				uint8_t fileCount = storageFs->getTransmitFileTypeCount(menu->fileType, menu->transitionfileType);
-				if (menu->filesStageFocus[menu->filesStage] < fileCount - 1)
+				if (menu->filesStageFocus[menu->filesStage] < 1)
 					menu->filesStageFocus[menu->filesStage]++;
 				break;
 			}

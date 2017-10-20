@@ -190,4 +190,7 @@ extern const char *txQwit;
 extern const char *err;
 extern const char *errCrc;
 
+extern const char* openChannelPlayErrorStr;
+extern const char* noHeadsetPlayErrorStr;
+
 #endif /* TEXTS_H_ */

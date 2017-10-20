@@ -514,7 +514,8 @@ uint8_t VoiceServiceInterface::playVoiceMessage(uint8_t fileNumber, DataStorage:
 {
     Headset::Controller::Status status;
     uint8_t result = 1; // error read
-    if (storageFs > 0){
+    if (storageFs > 0)
+    {
         voice_message_t msg;
         if (storageFs->readMessage(DataStorage::FS::FT_VM,transFileType,&msg,fileNumber))
            result = 0;

@@ -114,6 +114,9 @@ const char* smatrHSStateStr[] = {
     "14","15","16","17","18","19","20"
 };
 
+const char* openChannelPlayErrorStr = "Проиграть\nневозможно.\nОткрытый канал.\0";
+const char* noHeadsetPlayErrorStr   = "Проиграть\nневозможно.\nНет гарнитуры.\0";
+
 const char* aleStateStr[] = {
 /* 0 */			"\0",
 /* 1 */		    "Нет\nсинхронизации\0",
