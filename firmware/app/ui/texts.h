@@ -114,6 +114,7 @@ extern const char* gucQuitTextOk;
 
 extern const char *coordinateStr;
 extern const char *coordNotExistStr;
+extern const char *notExistStr;
 
 extern const char* pressEnter;
 extern const char* recievedGUC_CMD;

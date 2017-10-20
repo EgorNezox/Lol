@@ -138,18 +138,23 @@ void GUI_Indicator::drawSynchSatus()
 	if (isSynch)
 	{
 		gsetvp(0,0,159,127);
-
-		GCOLOR col = ggetcolorf();
-		gsetcolorf(GENERAL_BACK_COLOR);
-
 		MoonsGeometry icon_geom = {synchXoffset, 6, synchXoffset + ICON_SIZE-1, 29};
-		uint8_t radius = 6;
-		gcircle(icon_geom.xs + 4, icon_geom.ys + 4, radius, 0);
+		groundrect(icon_geom.xs - 5, icon_geom.ys, icon_geom.xe, icon_geom.ye, 0, GFILL);
 
-		gmoveto(icon_geom.xs + radius, icon_geom.ys + radius);
-		glineto(icon_geom.xs + radius, icon_geom.ys);
-		gmoveto(icon_geom.xs + radius, icon_geom.ys + radius);
-		glineto(icon_geom.xs + 2 * radius, icon_geom.ys + radius / 2);
+		uint8_t radius = 12;
+		uint8_t radius2 = 6;
+		gcircle(icon_geom.xs + 6, icon_geom.ys + 12, radius, 0);
+
+		gmoveto(icon_geom.xs + radius2, icon_geom.ys + radius);
+		glineto(icon_geom.xs + radius2, icon_geom.ys);
+		gmoveto(icon_geom.xs + radius2, icon_geom.ys + radius);
+		glineto(icon_geom.xs + radius, icon_geom.ys + radius);
+	}
+	else
+	{
+		gsetvp(0,0,159,127);
+		MoonsGeometry icon_geom = {synchXoffset, 6, synchXoffset + ICON_SIZE-1, 29};
+		groundrect(icon_geom.xs - 5, icon_geom.ys, icon_geom.xe, icon_geom.ye, 0, GFILL);
 	}
 }
 

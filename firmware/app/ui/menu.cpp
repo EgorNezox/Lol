@@ -1460,6 +1460,12 @@ void CGuiMenu::initGroupCondCmd( CEndState state, bool isWaitingAnswer)  // ГУ
     std::string labels[7] = {coordinateStr, groupCondCommFreqStr, "\0", callTitle[1], callTitle[0], "\0", "\0"};
     std::string values[7] = {NoYesGucCoord[useSndCoord], "", GucIndividGroup[sndMode], "", "", StartGucTx, StartCmd};
 
+    if (not isCoordValid)
+    {
+    	values[0] = notExistStr;
+    	useSndCoord = false;
+    }
+
     switch( groupCondCommStage ) {
         case 1:
         {
@@ -1691,7 +1697,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
     case 2:  // file names
     {
     	std::string tmpStr(tmpParsing[fileType]);
-    	tmpStr.append(fileRxTx[transitionfileType]);
+    	//tmpStr.append(fileRxTx[transitionfileType]);
     	titleChar = tmpStr.c_str();
 
     	        if (filesStageFocus[stage] > tFiles[fileType].size() - 1 )
@@ -1717,7 +1723,7 @@ void CGuiMenu::initFileManagerDialog(uint8_t stage)
     	            	std::string newFileName(fileRxTx[transitionfileType]);
     	            	newFileName.append(num);
 
-    	                if (filesStageFocus[stage] == file)
+    	                if (filesStageFocus[stage] == fileActualNum - 1)
     	                    item_param = GUI_EL_TEMP_ActiveMenuItem;
     	                 else
     	                    item_param = GUI_EL_TEMP_DefaultMenuItem;
@@ -1801,22 +1807,28 @@ uint8_t CGuiMenu::recalcFileFocus(uint8_t focus)
 	uint8_t rxCountFiles = storageFs->getTransmitFileTypeCount(fileType, DataStorage::FS::TFT_RX);
 	uint8_t txCountFiles = storageFs->getTransmitFileTypeCount(fileType, DataStorage::FS::TFT_TX);
 
+	uint8_t sumFiles = rxCountFiles + txCountFiles;
+
 	uint8_t newFocus = 0;
 
 	if (transitionfileType == DataStorage::FS::TFT_TX)
 	{
-		newFocus = rxCountFiles + txCountFiles - focus;
+		newFocus = rxCountFiles + txCountFiles - focus - 1;
 	}
 	else
 	{
-	    newFocus = rxCountFiles - focus;
+	    newFocus = rxCountFiles - focus - 1;
 	}
 	return newFocus;
 }
 
 uint8_t CGuiMenu::calcPercent(uint8_t a, uint8_t b)
 {
-	return a / b *100;
+	float resf = (float)a / (float)b;
+	uint8_t res = (uint8_t)(resf * 100);
+	if (res > 100)
+		res = 100;
+	return res;
 }
 
 

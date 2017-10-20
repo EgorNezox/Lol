@@ -321,6 +321,11 @@ private:
     void filetree_keyPressed			(UI_Key key);
     void sheldure_keyPressed			(UI_Key key);
 
+    void condCommand_keyPressed_stage   (UI_Key key);
+    void condCommand_enter_keyPressed();
+    void condCommand_back_keyPressed();
+    void condCommand_send();
+
     Multiradio::VoiceServiceInterface *voice_service;
     Multiradio::VoiceServiceInterface *pGetVoiceService();
     Multiradio::VoiceServiceInterface::Status multiradioStatus;

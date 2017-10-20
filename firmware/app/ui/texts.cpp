@@ -60,6 +60,7 @@ const char *files[] = {" Файлы\0"};
 
 const char *coordinateStr = "Координаты\0";
 const char *coordNotExistStr = "Координаты\n отсутствуют\0";
+const char *notExistStr = "отсутствуют\0";
 const char *useScanMenu[] = {"ВЫКЛ\0", "ВКЛ\0", "МАЛ\0","СРЕД\0","ВЫС\0"};
 const char *aruStr = "АРУ\0";
 const char *armStr = "АРМ\0";

@@ -1151,6 +1151,11 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     {
     	memcpy(menu->coord_lat,date.latitude,11);
     	memcpy(menu->coord_log,date.longitude,12);
+    	menu->isCoordValid = true;
+    }
+    else
+    {
+    	menu->isCoordValid = false;
     }
 
     uint8_t *time;
@@ -2006,7 +2011,7 @@ void Service::drawWaveInfo()
 		//if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx && (waveValue > 0.000 && powerValue > 0.000))
 		{
 			MoonsGeometry objArea = {  0, 0, 159, 127 };
-			MoonsGeometry windowArea = {  90, 0, 159, 35 };
+			MoonsGeometry windowArea = {  116, 0, 159, 35 };
 			MoonsGeometry waveArea   = { 116, 2,  159, 18 };
 			MoonsGeometry powerArea  = {116, 16, 159, 28 };
 
@@ -2038,7 +2043,7 @@ void Service::drawWaveInfo()
 		{
 			MoonsGeometry windowArea;
 			if (guiTree.getCurrentState().getType() == mainWindow)
-				windowArea = { 90, 0, 159, 35 };
+				windowArea = { 116, 0, 159, 35 };
 			else
 				windowArea = { 116, 0, 159, 28 };
 

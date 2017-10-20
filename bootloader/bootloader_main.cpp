@@ -16,14 +16,14 @@
 
 #if NEW_BOOTLOADER
 
-static const char* saghenTitleStr      = "********* САЖЕНЬ-Н *********\r\n\n\0";
-static const char* bootloaderTitleStr  = "     -= Загрузчик =-   \r\n\n\n\0";
-static const char* usbComputerTitleStr = "    -= USB Компьютер =-   \r\n\0";
-static const char* sysBootTitleStr     = "  -= Системный Загрузчик =-  \r\n\0";
+static const char* saghenTitleStr      = " **** САЖЕНЬ-Н **** \0";
+static const char* bootloaderTitleStr  = "   - Загрузчик -    \r\n\0";
+static const char* usbComputerTitleStr = "- USB Компьютер -\r\n\0";
+static const char* sysBootTitleStr     = "  - Системный -\r\n   - Загрузчик -\r\n\0";
 
-static const char* firmwareStr    = " Главная\r\n\n\0";
-static const char* usbComputerStr = " USB Компьютер\r\n\n\0";
-static const char* sysBootStr     = " Сист.Загр.\r\n\n\0";
+static const char* firmwareStr    = " Основная\r\n\0";
+static const char* usbComputerStr = " USB Компьютер\r\n\0";
+static const char* sysBootStr     = " Систем.Загр.\r\n\0";
 
 static const char* arrow = " -> ";
 static const char* space = "    ";
@@ -92,7 +92,7 @@ static void drawUsbHostScreen()
 {
     QmConsoleScreen::clearScreen();
     drawLine(saghenTitleStr);
-    drawLine("\n\n\n\n\n\0");
+    drawLine("\n\n\n\0");
 	QmConsoleScreen::oprintf(usbComputerTitleStr);
 }
 
@@ -100,7 +100,7 @@ static void drawSystemBootScreen()
 {
     QmConsoleScreen::clearScreen();
     drawLine(saghenTitleStr);
-    drawLine("\n\n\n\n\n\0");
+    drawLine("\n\n\n\0");
 	QmConsoleScreen::oprintf(sysBootTitleStr);
 }
 
@@ -108,11 +108,11 @@ static void drawFirmwareErrorScreen(uint8_t firmwareNum)
 {
     QmConsoleScreen::clearScreen();
     drawLine(saghenTitleStr);
-    drawLine("\n\n\n\n\n\0");
+    drawLine("\n\n\0");
     switch (firmwareNum)
     {
-    	case 0: QmConsoleScreen::oprintf("\t\t\t\t\t\t USB Компьютер\r\n\r\n\t\t\t\t\is поврежден/отсутствует "); break;
-    	case 1: QmConsoleScreen::oprintf("\t\t\t\t\t\t\t\t\t\  Основная\r\n\r\n\t\t\t\t\is повреждена/отсутствует "); break;
+    	case 0: QmConsoleScreen::oprintf("     Программа\r\n    USB Компьютер\r\n\r\n\     ПОВРЕЖДЕНА\r\n\        или    \r\n\    ОТСУТСТВУЕТ !\0"); break;
+    	case 1: QmConsoleScreen::oprintf("     Программа\r\n      Основная\r\n\r\n\     ПОВРЕЖДЕНА\r\n\        или    \r\n\    ОТСУТСТВУЕТ !\0"); break;
     }
 }
 
@@ -130,20 +130,18 @@ void qmMain()
 	{
 		case hwboottestOk:
 		{
-			QmConsoleScreen::oprintf("\n Базовый аппаратный тест пройден\r\n");
+			QmConsoleScreen::oprintf("\r\n Базовый аппаратный\r\n    тест ПРОЙДЕН\0");
 			break;
 		}
 		case hwboottestErrorExtSram:
 		{
-			QmConsoleScreen::oprintf("   Тест внешней памяти НЕ ПРОЙДЕН   ");
-			QmConsoleScreen::oprintf("  ! Система остановлена !");
+			QmConsoleScreen::oprintf("\r\nТест внешней памяти\r\n    НЕ ПРОЙДЕН !\0");
 			while(1); // cannot safely continue !
 			break;
 		}
 		case hwboottestErrorHseClock:
 		{
-			QmConsoleScreen::oprintf("  Тест тактирования НЕ ПРОЙДЕН   ");
-	      	QmConsoleScreen::oprintf("  ! Система остановлена !");
+			QmConsoleScreen::oprintf("\r\n Тест тактирования\r\n     НЕ ПРОЙДЕН !\0");
 			while(1); // cannot safely continue !
 			break;
 		}

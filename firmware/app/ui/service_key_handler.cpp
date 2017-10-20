@@ -384,7 +384,7 @@ void Service::menuWindow_keyPressed(UI_Key key)
     menu->keyPressed(key);
 }
 
-void Service::condCommand_keyPressed(UI_Key key)
+void Service::condCommand_keyPressed_stage(UI_Key key)
 {
 	CEndState estate = (CEndState&)guiTree.getCurrentState();
     //[0] - CMD, [1] - R_ADDR, [2] - retrans
@@ -396,12 +396,12 @@ void Service::condCommand_keyPressed(UI_Key key)
 			{
 				if (menu->condCmdModeSelect > 0)
 					menu->condCmdModeSelect--;
-				else
-				{
-					isWaitAnswer = false;
-					guiTree.backvard();
-					onCompletedStationMode();
-				}
+//				else
+//				{
+//					isWaitAnswer = false;
+//					guiTree.backvard();
+//					onCompletedStationMode();
+//				}
 			}
 			if (key == keyRight)
 			{
@@ -450,231 +450,250 @@ void Service::condCommand_keyPressed(UI_Key key)
 			break;
 		}
     }
+}
 
-    switch (key)
-    {
-    case keyEnter:
-    {
-        int size = 6;
+void Service::condCommand_enter_keyPressed()
+{
+	CEndState estate = (CEndState&)guiTree.getCurrentState();
+    int size = 6;
+	bool isFromFiveStage = false;
 
-        // next field
-        if (menu->txCondCmdStage <= size )
+    // next field
+    if (menu->txCondCmdStage <= size )
+    {
+        // select mode
+
+        // group
+        if (menu->txCondCmdStage == 0 && menu->condCmdModeSelect == 0)
         {
-            // select mode
-
-            // group
-            if (menu->txCondCmdStage == 0 && menu->condCmdModeSelect == 0)
+            menu->txCondCmdStage = 4;
+            auto iter = estate.listItem.begin();
+            for (uint8_t i = 0; i < 2; i++)
             {
-                menu->txCondCmdStage = 4;
-                auto iter = estate.listItem.begin();
-                for (uint8_t i = 0; i < 2; i++)
-                {
-                    (*iter)++;
-                    (*iter)->inputStr.clear();
-                    (*iter)->inputStr.push_back((char)(42+key0));
-                    (*iter)->inputStr.push_back((char)(42+key0));
-                }
-                break;
+                (*iter)++;
+                (*iter)->inputStr.clear();
+                (*iter)->inputStr.push_back((char)(42+key0));
+                (*iter)->inputStr.push_back((char)(42+key0));
             }
+            return;
+        }
 
-            // indiv
-            if (menu->txCondCmdStage == 0 && menu->condCmdModeSelect == 1)
+        // indiv
+        if (menu->txCondCmdStage == 0 && menu->condCmdModeSelect == 1)
+        {
+            menu->txCondCmdStage = 1;
+            return;
+        }
+
+        // ticket
+        if (menu->txCondCmdStage == 0 && menu->condCmdModeSelect == 2)
+        {
+            menu->txCondCmdStage = 3;
+            auto iter = estate.listItem.begin();
+            (*iter)++;
+            (*iter)->inputStr.clear();
+            (*iter)->inputStr.push_back((char)(42+key0));
+            (*iter)->inputStr.push_back((char)(42+key0));
+            return;
+        }
+
+        // use retrans ?
+        if (menu->txCondCmdStage == 1 && menu->condCmdModeSelect == 1)
+        {
+            auto iter = estate.listItem.begin();
+            (*iter)++;
+            (*iter)->inputStr.clear();
+
+            if ( menu->useCmdRetrans )
             {
-                menu->txCondCmdStage = 1;
-                break;
+                menu->txCondCmdStage++;
             }
-
-            // ticket
-            if (menu->txCondCmdStage == 0 && menu->condCmdModeSelect == 2)
+            else
             {
+                (*iter)->inputStr.push_back((char)(42+key0));
+                (*iter)->inputStr.push_back((char)(42+key0));
                 menu->txCondCmdStage = 3;
-                auto iter = estate.listItem.begin();
-                (*iter)++;
-                (*iter)->inputStr.clear();
-                (*iter)->inputStr.push_back((char)(42+key0));
-                (*iter)->inputStr.push_back((char)(42+key0));
-                break;
             }
+            return;
+        }
 
-            // use retrans ?
-            if (menu->txCondCmdStage == 1 && menu->condCmdModeSelect == 1)
+        auto iter = estate .listItem.begin();
+
+        switch (menu->txCondCmdStage)
+        {
+            case 2: (*iter)++;            if (!((*iter)->inputStr == ""))    menu->txCondCmdStage++; break;
+            case 3: (*iter)++; (*iter)++; if ((*iter)->inputStr.size() != 0) menu->txCondCmdStage++; break;
+            case 4: if ((*iter)->inputStr.size() != 0) menu->txCondCmdStage++; break;
+            case 5: menu->txCondCmdStage++; isFromFiveStage = true; break;
+        }
+    }
+
+    if ( menu->txCondCmdStage == 6 && isFromFiveStage)
+    {
+    	condCommand_send();
+    }
+}
+
+void Service::condCommand_back_keyPressed()
+{
+	CEndState estate = (CEndState&)guiTree.getCurrentState();
+
+    auto iter = estate.listItem.begin();
+
+    switch(menu->txCondCmdStage)
+    {
+		case 0:
+		{
+			guiTree.backvard();
+			onCompletedStationMode();
+			isWaitAnswer = false;
+			break;
+		}
+		case 1:
+		{
+			 menu->txCondCmdStage--;
+			 break;
+		}
+		case 2:
+		{
+               (*iter)++;
+                if ((*iter)->inputStr.size() > 0)
+                    (*iter)->inputStr.pop_back();
+                else
+                    menu->txCondCmdStage = 1;
+
+                break;
+		}
+		case 3:
+		{
+            (*iter)++;(*iter)++;
+            if ((*iter)->inputStr.size() > 0)
+                (*iter)->inputStr.pop_back();
+            else
             {
-                auto iter = estate.listItem.begin();
-                (*iter)++;
-                (*iter)->inputStr.clear();
+                if ( menu->condCmdModeSelect == 2)
+                    menu->txCondCmdStage = 0;
 
-                if ( menu->useCmdRetrans )
+                if (menu->useCmdRetrans)
+                    menu->txCondCmdStage--;
+                else
+                    menu->txCondCmdStage = 0;
+            }
+            break;
+		}
+		case 4:
+		{
+            // CMD
+            if ((*iter)->inputStr.size() > 0)
+                (*iter)->inputStr.pop_back();
+            else
+            {
+                if ( menu->condCmdModeSelect == 0 )
                 {
-                    menu->txCondCmdStage++;
+                    for(auto &k: estate.listItem)
+                    {
+                        k->inputStr.clear();
+                    }
+                    menu->txCondCmdStage = 0;
                 }
                 else
                 {
-                    (*iter)->inputStr.push_back((char)(42+key0));
-                    (*iter)->inputStr.push_back((char)(42+key0));
-                    menu->txCondCmdStage = 3;
+                    menu->txCondCmdStage--;
                 }
-                break;
             }
+            break;
+		}
+		case 5:
+		{
+            menu->txCondCmdStage--;
+            break;
+		}
+		case 6:
+		{
+			guiTree.backvard();
+			menu->txCondCmdStage = 0;
+			onCompletedStationMode();
+			isWaitAnswer = false;
+			break;
+		}
+    }
+}
 
-            auto iter = estate .listItem.begin();
-
-            switch (menu->txCondCmdStage){
-                case 2: (*iter)++;            if (!((*iter)->inputStr == ""))    menu->txCondCmdStage++; break;
-                case 3: (*iter)++; (*iter)++; if ((*iter)->inputStr.size() != 0) menu->txCondCmdStage++; break;
-                case 4: if ((*iter)->inputStr.size() != 0) menu->txCondCmdStage++; break;
-                case 5: menu->txCondCmdStage++; break;
-//                case 6:
-//                {
-//                	menu->txCondCmdStage = 0;
-//                    guiTree.backvard();
-//                    onCompletedStationMode();
-//                    isWaitAnswer = false;
-//                	break;
-//                }
-            }
-        }
-
-        // send
-        if ( menu->txCondCmdStage == 6 )
-        {
+void Service::condCommand_send()
+{
+	CEndState estate = (CEndState&)guiTree.getCurrentState();
 #ifndef _DEBUG_
 
-            // [0] - cmd, [1] - raddr, [2] - retrans
-            // condCmdModeSelect, 1 - individ, 2 - quit
-            int param[3] = {0,0,0}, i = 0;
-            for(auto &k: estate.listItem){
-                param[i] = atoi(k->inputStr.c_str());
-                i++;
-            }
-            setAsk = false;
+	// [0] - cmd, [1] - raddr, [2] - retrans
+	// condCmdModeSelect, 1 - individ, 2 - quit
+	int param[3] = {0,0,0}, i = 0;
+	for(auto &k: estate.listItem)
+	{
+		param[i] = atoi(k->inputStr.c_str());
+		i++;
+	}
+	setAsk = false;
 
-            if ((storageFs > 0) && (param[0] != 0))
-            {
-                char sym[4];
-                sprintf(sym,"%d",param[0]);
-                if (param[0] < 10) sym[1] = 0;
-                sym[2] = 0;
-                fileMsg.clear();
-                fileMsg.push_back((uint8_t)sym[0]);
-                fileMsg.push_back((uint8_t)sym[1]);
-                fileMsg.push_back((uint8_t)sym[2]);
+	if ((storageFs > 0) && (param[0] != 0))
+	{
+		char sym[4];
+		sprintf(sym,"%d",param[0]);
+		if (param[0] < 10) sym[1] = 0;
+		sym[2] = 0;
+		fileMsg.clear();
+		fileMsg.push_back((uint8_t)sym[0]);
+		fileMsg.push_back((uint8_t)sym[1]);
+		fileMsg.push_back((uint8_t)sym[2]);
 
-                GUI_Painter::ClearViewPort(true);
-                showMessage(waitingStr, flashProcessingStr, promptArea);
-                storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_TX, &fileMsg);
-                draw();
-            }
+		GUI_Painter::ClearViewPort(true);
+		showMessage(waitingStr, flashProcessingStr, promptArea);
+		storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_TX, &fileMsg);
+		draw();
+	}
 
-            menu->virtCounter = 0;
+	menu->virtCounter = 0;
 
-            if (menu->condCmdModeSelect == 0)
-                voice_service->TurnPSWFMode(0, param[0], 0,0); // групповой вызов
-            if (menu->condCmdModeSelect == 1)
-                voice_service->TurnPSWFMode(0, param[0], param[2],param[1]); // индивидуальный вызов
-            if (menu->condCmdModeSelect == 2){
-                param[2] +=32;
-                voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
-                setAsk = true;
-                menu->qwitCounter = 65;
-            }
+	if (menu->condCmdModeSelect == 0)
+		voice_service->TurnPSWFMode(0, param[0], 0,0); // групповой вызов
+	if (menu->condCmdModeSelect == 1)
+		voice_service->TurnPSWFMode(0, param[0], param[2],param[1]); // индивидуальный вызов
+	if (menu->condCmdModeSelect == 2){
+		param[2] +=32;
+		voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
+		setAsk = true;
+		menu->qwitCounter = 65;
+	}
 
-            for(auto &k: estate.listItem)
-                k->inputStr.clear();
+	for (auto &k: estate.listItem)
+		k->inputStr.clear();
 
 
 #else
-            menu->txCondCmdStage = 0;
-            guiTree.resetCurrentState();
-            for(auto &k: estate.listItem)
-                k->inputStr.clear();
+	menu->txCondCmdStage = 0;
+	guiTree.resetCurrentState();
+	for(auto &k: estate.listItem)
+		k->inputStr.clear();
 
 #endif
-        }
+}
 
-        break;
-    }
-    case keyBack:
+void Service::condCommand_keyPressed(UI_Key key)
+{
+	CEndState estate = (CEndState&)guiTree.getCurrentState();
+    //[0] - CMD, [1] - R_ADDR, [2] - retrans
+	condCommand_keyPressed_stage(key);
+
+    switch (key)
     {
-        auto iter = estate.listItem.begin();
-
-        switch(menu->txCondCmdStage)
-        {
-			case 0:
-			{
-				guiTree.backvard();
-				onCompletedStationMode();
-				isWaitAnswer = false;
-				break;
-			}
-			case 1:
-			{
-				 menu->txCondCmdStage--;
-				 break;
-			}
-			case 2:
-			{
-                   (*iter)++;
-                    if ((*iter)->inputStr.size() > 0)
-                        (*iter)->inputStr.pop_back();
-                    else
-                        menu->txCondCmdStage = 1;
-
-                    break;
-			}
-			case 3:
-			{
-                (*iter)++;(*iter)++;
-                if ((*iter)->inputStr.size() > 0)
-                    (*iter)->inputStr.pop_back();
-                else
-                {
-                    if ( menu->condCmdModeSelect == 2)
-                        menu->txCondCmdStage = 0;
-
-                    if (menu->useCmdRetrans)
-                        menu->txCondCmdStage--;
-                    else
-                        menu->txCondCmdStage = 0;
-                }
-                break;
-			}
-			case 4:
-			{
-                // CMD
-                if ((*iter)->inputStr.size() > 0)
-                    (*iter)->inputStr.pop_back();
-                else
-                {
-                    if ( menu->condCmdModeSelect == 0 )
-                    {
-                        for(auto &k: estate.listItem)
-                        {
-                            k->inputStr.clear();
-                        }
-                        menu->txCondCmdStage = 0;
-                    }
-                    else
-                    {
-                        menu->txCondCmdStage--;
-                    }
-                }
-                break;
-			}
-			case 5:
-			{
-                menu->txCondCmdStage--;
-                break;
-			}
-			case 6:
-			{
-				guiTree.backvard();
-				menu->txCondCmdStage = 0;
-				onCompletedStationMode();
-				isWaitAnswer = false;
-				break;
-			}
-        }
-    }
+		case keyEnter:
+		{
+			condCommand_enter_keyPressed(); // send
+			break;
+		}
+		case keyBack:
+		{
+			condCommand_back_keyPressed();
+		}
     }
 }
 
@@ -864,6 +883,8 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
                 }
 
                 voice_service->saveFreq(getFreq());
+                if (not menu->isCoordValid)
+                	menu->useSndCoord = false;
                 voice_service->TurnGuc(r_adr,speed,guc_command_vector,menu->useSndCoord);
                 isTurnGuc = true;
                 if (!menu->sndMode)
@@ -900,8 +921,6 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
         	if ( key == keyBack )
         	{
         		menu->groupCondCommStage = 0;
-                for (auto &k: estate.listItem)
-                    k->inputStr.clear();
                 guiTree.backvard();
                 menu->focus = 1;
                 if (pGetHeadsetController()->getStatus() ==  Headset::Controller::Status::StatusSmartOk){
@@ -1157,30 +1176,9 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
     		menu->focus = 3;
     		menu->inVoiceMail = false;
     		menu->toVoiceMail = false;
-    		voice_service->stopAle();
     		isVm = true;
     		onCompletedStationMode(true);
-
-            menu->putOffVoiceStatus == 1;
-
-        }
-        if (key == keyEnter /*&& voice_service->getAleState() == */)
-        {
-//#ifndef _DEBUG_
-//            voice_service->stopAle();
-//#endif
-//            menu->putOffVoiceStatus = 1;
-//            menu->voiceAddr.clear();
-//            menu->channalNum.clear();
-//#ifndef _DEBUG_
-//            menu->focus = 0;
-//            guiTree.resetCurrentState();
-//            menu->inVoiceMail = false;
-//            menu->toVoiceMail = false;
-//            isVm = true;
-//            onCompletedStationMode(true);
-//#endif
-//            guiTree.resetCurrentState();
+            menu->putOffVoiceStatus = 1;
         }
         break;
     }
@@ -1420,13 +1418,6 @@ void Service::txSmsMessage_keyPressed(UI_Key key)
 					menu->smsTxStage = 1;
 					break;
 				}
-				case keyEnter:
-				{
-//					menu->smsTxStage = 1;
-//					guiTree.resetCurrentState();
-//					onCompletedStationMode();
-//					menu->virtCounter = 0;
-				}
 			}
 		}
     }
@@ -1457,29 +1448,15 @@ void Service::recvCondCmd_keyPressed(UI_Key key)
     	switch (menu->recvStage)
     	{
 			case 0:
+			case 1:
+			case 2:
+			case 3:
 			{
 				isStartCond = false;
-				//guiTree.resetCurrentState();
 				guiTree.backvard();
 				onCompletedStationMode();
 				menu->virtCounter = 0;
 				menu->recvStage = 0;
-				break;
-			}
-			case 3:
-			{
-				isStartCond = false;
-				guiTree.resetCurrentState();
-				//guiTree.backvard();
-				onCompletedStationMode();
-				menu->virtCounter = 0;
-				menu->recvStage = 0;
-				break;
-			}
-			case 1:
-			case 2:
-			{
-				menu->recvStage--;
 				break;
 			}
     	}
@@ -1491,7 +1468,7 @@ void Service::recvCondCmd_keyPressed(UI_Key key)
 #ifdef _DEBUG_
             guiTree.resetCurrentState();
 #else
-            if (menu->recvStage != 3)
+            if (menu->recvStage < 1)
             	menu->recvStage++;
             if (menu->recvStage == 1)
             {
@@ -1499,26 +1476,18 @@ void Service::recvCondCmd_keyPressed(UI_Key key)
 				menu->virtCounter = 0;
                 voice_service->TurnPSWFMode(0,0,0,0); // 1 param - request /no request
             }
-//            if (menu->recvStage == 2)
-//            {
-//            	menu->recvStage = 0;
-//            	//guiTree.backvard();
-//            	guiTree.resetCurrentState();
-//            	onCompletedStationMode();
-//            	isStartCond = false;
-//				menu->virtCounter = 0;
-//            }
 #endif
         }
     }
 }
 void Service::rxSmsMessage_keyPressed(UI_Key key)
 {
+	bool isDraw = false;
 	if ( key == keyBack)
 	{
 		if (cntSmsRx > 0)
 			--cntSmsRx;
-		if (cntSmsRx == 0 || cntSmsRx == 3)
+		if (cntSmsRx == 0 || cntSmsRx == 1)
 		{
 			cntSmsRx = -1;
 			guiTree.backvard();
@@ -1534,52 +1503,46 @@ void Service::rxSmsMessage_keyPressed(UI_Key key)
 	}
 	if ( key == keyEnter)
 	{
-       ++cntSmsRx;
-	}
-	if ( key == keyBack || key == keyEnter){
-	  if (cntSmsRx == 1)
-	  {
-		menu->virtCounter = 0;
-        menu->initRxSmsDialog(startStr, cntSmsRx);
-		isSmsMessageRec = false;
-	  }
-	  if (cntSmsRx == 2)
-	  {
-		#ifndef PORT__PCSIMULATOR
-		voice_service->TurnSMSMode();
-		#endif
-		if (valueRxSms == 0)
+		if (cntSmsRx < 2)
 		{
-			if ( voice_service->getVirtualMode() )
+			++cntSmsRx;
+			isDraw = true;
+		}
+	}
+	if ( (key == keyBack || key == keyEnter) && isDraw)
+	{
+		if (cntSmsRx == 1) //start
+		{
+			menu->virtCounter = 0;
+			menu->initRxSmsDialog(startStr, cntSmsRx);
+			isSmsMessageRec = false;
+		}
+		if (cntSmsRx == 2) // synch or rx
+		{
+#ifndef PORT__PCSIMULATOR
+			voice_service->TurnSMSMode();
+#endif
+			if (valueRxSms == 0)
 			{
-				menu->virtCounter = 0;
-				std::string str;
-	    		char syn[4] = {0,0,0,0};
-	    		sprintf(syn, "%d", menu->virtCounter);
-	    		str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 120");
-        		menu->virtCounter = 0;
-				menu->initRxSmsDialog(str.c_str());
+				if ( voice_service->getVirtualMode() )
+				{
+					menu->virtCounter = 0;
+					std::string str;
+					char syn[4] = {0,0,0,0};
+					sprintf(syn, "%d", menu->virtCounter);
+					str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 120");
+					menu->virtCounter = 0;
+					menu->initRxSmsDialog(str.c_str());
+				}
+				else
+					menu->initRxSmsDialog(receiveStatusStr[1]);
 			}
 			else
-				menu->initRxSmsDialog(receiveStatusStr[1]);
+			{
+				menu->VoiceDialogClearWindow();
+				menu->RxSmsStatusPost(valueRxSms);
+			}
 		}
-		else
-		{
-			menu->VoiceDialogClearWindow();
-			menu->RxSmsStatusPost(valueRxSms);
-		}
-	  }
-      if (cntSmsRx == 3)
-	  {
-//          //smsMessage(13);
-//          guiTree.resetCurrentState();
-//          isSmsMessageRec = false;
-//          menu->smsStage = 0;
-//          cntSmsRx = -1;
-//          menu->smsTxStage = 1;
-//          onCompletedStationMode();
-//          menu->virtCounter = 0;
-	  }
 	}
 
 	if ( key == keyUp)
@@ -1606,51 +1569,27 @@ void Service::rxSmsMessage_keyPressed(UI_Key key)
 
 void Service::recvGroupCondCmd_keyPressed(UI_Key key)
 {
+	// 1 - start
+	// 2 - rx
+	// 3 - not used
+	// 4 - tx quit
+
+	bool isDraw = false;
+
 	if ( key == keyBack)
 	{
-		switch (cntGucRx)
-		{
-			case 0:
-			{
-				cntGucRx = -1;
-                menu->offset = 0;
-                menu->focus = 1;
-                guiTree.backvard();
-                onCompletedStationMode(false);
-				break;
-			}
-			case 4:
-			{
-				cntGucRx = -1;
-                menu->offset = 0;
-                menu->focus = 1;
-                guiTree.backvard();
-                onCompletedStationMode(false);
-				break;
-			}
-			case 1:
-			case 2:
-			case 3:
-			{
-				--cntGucRx;
-				if (cntGucRx == 0)
-				{
-					cntGucRx = -1;
-	                menu->offset = 0;
-	                menu->focus = 1;
-	                guiTree.backvard();
-	                onCompletedStationMode(false);
-					break;
-				}
-				break;
-			}
-		}
+		cntGucRx = -1;
+		menu->offset = 0;
+		menu->focus = 1;
+		guiTree.backvard();
+		onCompletedStationMode(false);
 	}
-    if ( key == keyEnter && cntGucRx != 4)
+    if ( key == keyEnter && cntGucRx < 2)
     {
     	++cntGucRx;
+    	isDraw = true;
     }
-    if ( key == keyBack || key == keyEnter)
+    if ( (key == keyBack || key == keyEnter) && isDraw)
     {
 		switch (cntGucRx)
 		{
@@ -1670,18 +1609,6 @@ void Service::recvGroupCondCmd_keyPressed(UI_Key key)
                 guiTree.resetCurrentState();
 				#endif
 				break;
-			}
-			case 3:
-			{
-//                cntGucRx = -1;
-//        		guiTree.resetCurrentState();
-//                onCompletedStationMode(false);
-//                break;
-			}
-			case 4:
-			{
-				//menu->initRxSmsDialog(txQwit,10);
-				//break;
 			}
 		}
     }
@@ -1723,42 +1650,18 @@ void Service::rxPutOffVoice_keyPressed(UI_Key key)
             voice_service->stopAle();
 #endif
             menu->voiceAddr.clear();
-            menu->putOffVoiceStatus--;
-        }
-        if (key == keyEnter)
-        {
-         //    uint8_t rxAddr = voice_service->getAleRxAddress();
-//                    char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
-//                    menu->voiceAddr.append(ch);
-//                    menu->putOffVoiceStatus++;
 
-//                    if (rxAddr > 0)
-//                    {
-//                        char ch[3]; sprintf(ch, "%d", rxAddr); ch[2] = '\0';
-//                        menu->voiceAddr.append(ch);
-//                        menu->putOffVoiceStatus++;
-//                        voice_service->stopAle();
-//                        Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
-//                        if (storageFs > 0)
-//                        {
-//                            showMessage(waitingStr, flashProcessingStr, promptArea);
-//                            storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
-//                            draw();
-//                        }
-//                    }
+            menu->offset = 1;
+            menu->focus = 3;
+            guiTree.backvard();
+            menu->inVoiceMail = false;
+            menu->toVoiceMail = false;
+#ifndef _DEBUG_
+            onCompletedStationMode(true);
+#endif
+            menu->putOffVoiceStatus = 1;
 
-//                    if (rxAddr == 0)
-//                    {
-//                        voice_service->stopAle();
-//                        menu->putOffVoiceStatus = 1;
-//                        menu->voiceAddr.clear();
-//                        menu->channalNum.clear();
-//                        menu->offset = 1;
-//                        menu->focus = 3;
-//                        guiTree.backvard();
-//                        menu->inVoiceMail = false;
-//                        menu->toVoiceMail = false;
-//                    }
+           // menu->putOffVoiceStatus--;
         }
         break;
     }
@@ -1791,7 +1694,9 @@ void Service::rxPutOffVoice_keyPressed(UI_Key key)
             if (menu->channalNum.size() > 0)
                 menu->channalNum.pop_back();
             else
+            {
                 menu->putOffVoiceStatus--;
+            }
         }
         if (key == keyEnter)
         {
@@ -1818,18 +1723,13 @@ void Service::rxPutOffVoice_keyPressed(UI_Key key)
             menu->channalNum.clear();
 #ifndef _DEBUG_
             menu->focus = 0;
-            guiTree.resetCurrentState();
+            guiTree.backvard();
             menu->inVoiceMail = false;
             menu->toVoiceMail = false;
             voice_service->stopAle();
             onCompletedStationMode(true);
 #endif
         }
-//        if (key == keyEnter)
-//        {
-//
-//
-//        }
         break;
     }
     }
@@ -2464,7 +2364,11 @@ void Service::filetree_keyPressed(UI_Key key)
     if ( key == keyBack)
     {
         if (menu->filesStage > 0)
-           menu->filesStage--;
+        {
+        	if (menu->filesStage == 2)
+        		menu->filesStageFocus[menu->filesStage] = 0;
+        	menu->filesStage--;
+        }
         else
         {
            guiTree.backvard();
@@ -2509,7 +2413,8 @@ void Service::filetree_keyPressed(UI_Key key)
 			}
 			case 2:
 			{
-				if (menu->filesStageFocus[menu->filesStage] < menu->tFiles[menu->fileType].size()-1)
+				uint8_t maxCountFiles = storageFs->getTransmitFileTypeCount(menu->fileType, menu->transitionfileType);
+				if (menu->filesStageFocus[menu->filesStage] < maxCountFiles - 1)
 					menu->filesStageFocus[menu->filesStage]++;
 				break;
 			}
