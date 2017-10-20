@@ -141,7 +141,7 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
     }
     case 6:
     { //stage send
-    	if (isSynch & !isWaitingAnswer)
+    	if (isSynch && !isWaitingAnswer && (command_tx30 == 0))
     	{
 		    uint8_t percent = calcPercent(virtCounter, 120);
     		char syn[4] = {0,0,0,0};
@@ -397,9 +397,9 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
         for (auto &k: text)
         {
             itemArea = {(GXT)(windowArea.xs + MARGIN),
-                        (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
+                        (GYT)(windowArea.ys + 17 + i * (MARGIN + BUTTON_HEIGHT)),
                         (GXT)(windowArea.xe - MARGIN),
-                        (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
+                        (GYT)(windowArea.ys + 14 + (i+1) * (MARGIN + BUTTON_HEIGHT) )
                        };
 
             if (i == focusItem)
@@ -431,8 +431,8 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
             if (i > 4) break;
 
             itemArea = {(GXT)(windowArea.xs + MARGIN),
-                        (GYT)(windowArea.ys + 17 + i*(MARGIN + BUTTON_HEIGHT)),
-                        (GXT)(windowArea.xe - MARGIN),
+                        (GYT)(windowArea.ys + 17 + i * (MARGIN + BUTTON_HEIGHT)),
+                        (GXT)(windowArea.xe - 3 * MARGIN),
                         (GYT)(windowArea.ys + 14 + (i+1)*(MARGIN + BUTTON_HEIGHT) )
                        };
 
@@ -871,11 +871,14 @@ void CGuiMenu::RxSmsStatusPost(int value, bool clear, bool clearAll)
 {
    static std::string strTodo;
    ColorSchemeType cst;
-   cst =  clear ? CST_INVERSE: CST_DEFAULT;
+   cst = CST_DEFAULT;
+   //cst =  clear ? CST_INVERSE: CST_DEFAULT;
    strTodo = "";
-   char ch[3];
-   sprintf(ch, "%3d", value);
-   strTodo.append(ch).append("/82");
+
+	uint8_t percent = calcPercent(value, 82);
+	char pac[] = {0,0,0,0};
+	sprintf(pac,"%u",percent);
+	strTodo.append(pac).append(" %");
 
    if (clearAll)
    {

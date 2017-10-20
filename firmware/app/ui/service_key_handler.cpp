@@ -687,12 +687,13 @@ void Service::condCommand_keyPressed(UI_Key key)
     {
 		case keyEnter:
 		{
-			condCommand_enter_keyPressed(); // send
+			condCommand_enter_keyPressed();
 			break;
 		}
 		case keyBack:
 		{
 			condCommand_back_keyPressed();
+			break;
 		}
     }
 }
@@ -1468,9 +1469,13 @@ void Service::recvCondCmd_keyPressed(UI_Key key)
 #ifdef _DEBUG_
             guiTree.resetCurrentState();
 #else
+            bool isDraw = false;
             if (menu->recvStage < 1)
+            {
+            	isDraw = true;
             	menu->recvStage++;
-            if (menu->recvStage == 1)
+            }
+            if (menu->recvStage == 1 && isDraw)
             {
                 failFlag = false;
 				menu->virtCounter = 0;
@@ -2348,7 +2353,16 @@ void Service::filetree_keyPressed(UI_Key key)
         }
 
         if (menu->filesStage < 3)
-        	menu->filesStage++;
+        {
+        	if (menu->filesStage == 2)
+        	{
+        		uint8_t maxCountFiles = storageFs->getTransmitFileTypeCount(menu->fileType, menu->transitionfileType);
+        		if (maxCountFiles)
+        			menu->filesStage++;
+        	}
+        	else
+        		menu->filesStage++;
+        }
     }
     if ( key == keyBack)
     {
@@ -2411,30 +2425,6 @@ void Service::filetree_keyPressed(UI_Key key)
 				menu->textAreaScrollIndex++;
 				break;
 			}
-        }
-    }
-    if (key == keyRight)
-    {
-        if (menu->filesStage == 0)
-        switch (menu->filesStageFocus[menu->filesStage]){
-            case 0:
-                #if smsFlashTest
-                    flashTestOn = true;
-                    smsMessage(smsflashTest_size);
-                #endif
-            break;
-
-            case 2:
-                #if cndFlashTest
-                    FirstPacketPSWFRecieved(42);
-                #endif
-            break;
-
-            case 3:
-                #if grpFlashTest
-                    gucFrame(0);
-                #endif
-            break;
         }
     }
 }

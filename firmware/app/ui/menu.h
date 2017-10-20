@@ -243,7 +243,7 @@ public:
     void RxVoiceDialogStatus2(int status, bool isClear = false);
     void RxVoiceDialogStatus1(int status, bool isClear = false);
     void initRxPutOffVoiceDialogTest(int status);
-    void RxSmsStatusPost(int value, bool clear = false,bool clearAll = false);
+    void RxSmsStatusPost(int value, bool clear = false, bool clearAll = false);
 
     void calcFilesCount();
     uint8_t recalcFileFocus(uint8_t focus);
