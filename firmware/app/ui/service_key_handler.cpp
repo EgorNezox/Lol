@@ -1533,11 +1533,11 @@ void Service::rxSmsMessage_keyPressed(UI_Key key)
 				{
 					menu->virtCounter = 0;
 					std::string str;
+					uint8_t percent = menu->calcPercent(menu->virtCounter, 120);
 					char syn[4] = {0,0,0,0};
-					sprintf(syn, "%d", menu->virtCounter);
-					str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" / 120");
-					menu->virtCounter = 0;
-					menu->initRxSmsDialog(str.c_str());
+					sprintf(syn, "%d", percent);
+					str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" %");
+					menu->initRxSmsDialog(menu->virtCounter ? str.c_str() : receiveStatusStr[1]);
 				}
 				else
 					menu->initRxSmsDialog(receiveStatusStr[1]);

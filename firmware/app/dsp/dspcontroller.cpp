@@ -30,10 +30,19 @@
 #define hw_rtc                      1
 #define DefkeyValue 631
 
+#define SAZEN 1
+#define TROPA 0
+
+#if SAZEN
+	#define DEVICE_VALUE 280000
+#else
+	#if TROPA
+		#define DEVICE_VALUE 201600
+	#endif
+#endif
 
 //280000 - sazhen 201600 -tropa
-#define SAZEN 280000
-#define TROPA 201600
+
 
 
 #define GUC_TIMER_ACK_WAIT_INTERVAL 180000
@@ -1956,7 +1965,7 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
                 if (fwd_wave < ref_wave)
                 	swf_res = 99.0;
 
-                power_res = (fwd_wave * fwd_wave) / SAZEN; //280000 - sazhen 201600 -tropa
+                power_res = (fwd_wave * fwd_wave) / DEVICE_VALUE; //280000 - sazhen 201600 -tropa
                 waveInfoRecieved(swf_res, power_res);
 
                 waveInfoTimer.start();
