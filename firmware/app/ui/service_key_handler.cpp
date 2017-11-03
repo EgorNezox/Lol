@@ -5,7 +5,7 @@
 #include "service.h"
 #include "texts.h"
 #include <thread>
-#include <navigation/navigator.h>
+#include "../navigation/navigator.h"
 #include <math.h>
 #include <stdio.h>
 #include <iostream>
@@ -74,15 +74,21 @@ void Service::mainWindow_keyPressed(UI_Key key)
         case keyEnter:
             if (main_scr->mwFocus == 0)
             {
-                main_scr->mwFocus = -2;
-                main_scr->setFocus(1-main_scr->mwFocus);
-                main_scr->editing = false;
-                main_scr->oFreq.clear();
-                main_scr->oFreq.append(main_scr->nFreq.c_str());
                 int freq = atoi(main_scr->nFreq.c_str());
 
-                showMessage(waitingStr, flashProcessingStr, promptArea);
-                voice_service->tuneFrequency(freq, true);
+                if (freq < 1500000) { main_scr->nFreq = "1500000"; freq = 1500000;  }
+                if (freq > 50000000){ main_scr->nFreq = "50000000"; freq = 50000000;}
+
+                    main_scr->mwFocus = -2;
+                    main_scr->setFocus(1-main_scr->mwFocus);
+                    main_scr->editing = false;
+
+                	main_scr->oFreq.clear();
+                	main_scr->oFreq.append(main_scr->nFreq.c_str());
+                	isFirstInputFreqEdit = true;
+
+                	showMessage(waitingStr, flashProcessingStr, promptArea);
+                	voice_service->tuneFrequency(freq, true);
             }
 
             break;
@@ -168,7 +174,7 @@ void Service::mainWindow_keyPressed(UI_Key key)
     		    main_scr->channelEditing = false;
     			main_scr->mwFocus = -2;
     			main_scr->setFocus(1-main_scr->mwFocus);
-    			isFirstInputFreqEdit = false;
+    			isFirstInputFreqEdit = true;
     		}
     	}
     	if (key == keyBack)
@@ -328,7 +334,8 @@ void Service::menuWindow_keyPressed(UI_Key key)
             CEndState estate = (CEndState&)guiTree.getCurrentState();
             if ( estate.subType == GuiWindowsSubType::setSpeed )
             {
-                currentSpeed = /*Multiradio::voice_channel_speed_t(4);*/voice_service->getCurrentChannelSpeed();
+            	currentSpeed = headset_controller->realCurrentSpeed;
+               // currentSpeed = voice_service->getCurrentChannelSpeed();
             }
             else if (estate.subType == GuiWindowsSubType::voiceMode)
             {
@@ -654,12 +661,12 @@ void Service::condCommand_send()
 	menu->virtCounter = 0;
 
 	if (menu->condCmdModeSelect == 0)
-		voice_service->TurnPSWFMode(0, param[0], 0,0); // групповой вызов
+		voice_service->TurnPSWFMode(0, param[0], 0,0); 				 // групповой вызов
 	if (menu->condCmdModeSelect == 1)
 		voice_service->TurnPSWFMode(0, param[0], param[2],param[1]); // индивидуальный вызов
 	if (menu->condCmdModeSelect == 2){
 		param[2] +=32;
-		voice_service->TurnPSWFMode(1,param[0],param[2],0); // с квитанцией
+		voice_service->TurnPSWFMode(1,param[0],param[2],0); 		 // с квитанцией
 		setAsk = true;
 		menu->qwitCounter = 65;
 	}
@@ -898,26 +905,10 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
                 guiTree.resetCurrentState();
 #endif
 
-//                        std::list<SInputItemParameters*>::iterator iterClr = estate.listItem.begin();
-//                        std::string* strClr;
-//                        strClr = &(*iterClr)->inputStr;
-//                        strClr->clear(); //clear freq
-
-//                        iterClr = estate.listItem.begin();
-//                        (*iterClr)++;
-//                        strClr = &(*iterClr)->inputStr;
-//                        strClr->clear(); //clear address
-
-//                        iterClr = estate.listItem.begin();
-//                        (*iterClr)++;
-//                        strClr = &(*iterClr)->inputStr;
-//                        strClr->clear(); //clear cmd's
-//                        menu->cmdCount = 0;
-//                        menu->cmdScrollIndex = 0;
             }
             break;
         }
-        case 6:     // ...
+        case 6:
         {
         	if ( key == keyBack )
         	{
@@ -930,14 +921,6 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
                 isTurnGuc = false;
                 onCompletedStationMode(true);
                 isGucAnswerWaiting = false;
-        	}
-        	if ( key == keyEnter )
-        	{
-//        		menu->groupCondCommStage = 0;
-//        		guiTree.resetCurrentState();
-//        		isTurnGuc = false;
-//                onCompletedStationMode(true);
-//                isGucAnswerWaiting = false;
         	}
         	break;
         }
@@ -1056,19 +1039,6 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
                 //onCompletedStationMode();
                 guiTree.resetCurrentState();
             }
-            // repeat
-//                    else if (smartState == headset_controller->SmartHSState_SMART_NOT_CONNECTED ||\
-//                             smartState == headset_controller->SmartHSState_SMART_BAD_CHANNEL ||\
-//                             smartState == headset_controller->SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL ||\
-//                             smartState == headset_controller->SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE ||\
-//                             smartState == headset_controller->SmartHSState_SMART_RECORD_DOWNLOADING ||\
-//                             smartState == headset_controller->SmartHSState_SMART_PLAYING ||\
-//                             smartState == headset_controller->SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL ||\
-//                             smartState == headset_controller->SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE ||\
-//                             smartState == headset_controller->SmartHSState_SMART_RECORDING ||\
-//                             smartState == headset_controller->SmartHSState_SMART_RECORD_UPLOADING
-//                             )
-//                    {}
         }
 #else
         if (key == keyEnter)
@@ -1079,7 +1049,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
         break;
     }
     case 3:
-    {// ���� ������ ����������
+    {
         if ( key > 5 && key < 16 && menu->voiceAddr.size() < 2 )
         {
             menu->voiceAddr.push_back((char)(42+key));
@@ -1203,6 +1173,8 @@ void Service::txSmsMessage_keyPressed(UI_Key key)
 					menu->focus = 2;
 					onCompletedStationMode();
 					menu->virtCounter = 0;
+					rememberTextSms = "";
+					menu->index_store_sms = 0;
 					break;
 				}
 				case keyLeft:
@@ -1271,7 +1243,11 @@ void Service::txSmsMessage_keyPressed(UI_Key key)
 			case keyEnter:
 			{
 				if ((*iter)->inputStr.size() > 0)
+				{
 					menu->smsTxStage++;
+					 if (storageFs > 0)
+						  storageFs->getFileNamesByType(&menu->tFiles[DataStorage::FS::FT_SMS], DataStorage::FS::FT_SMS);
+				}
 				break;
 			}
 			default:
@@ -1286,8 +1262,57 @@ void Service::txSmsMessage_keyPressed(UI_Key key)
 		{
 			auto iter = estate.listItem.begin(); (*iter)++;
 
+			uint8_t maxTxCountFiles = storageFs->getTransmitFileTypeCount(DataStorage::FS::FT_SMS,(DataStorage::FS::TransitionFileType::TFT_TX));
+			uint8_t maxRxCountFiles = storageFs->getTransmitFileTypeCount(DataStorage::FS::FT_SMS, (DataStorage::FS::TransitionFileType::TFT_RX));
+			uint8_t focus = 0;
+
 			switch (key)
 			{
+			case keyLeft:
+			case keyRight:
+			{
+				if (menu->index_store_sms == 0)
+				{
+					rememberTextSms = (*iter)->inputStr;
+				}
+
+				if (key == keyLeft)
+				{
+					if (menu->index_store_sms  > -maxRxCountFiles)
+						--menu->index_store_sms;
+				}
+				if (key == keyRight)
+				{
+					if (menu->index_store_sms  < maxTxCountFiles)
+						++menu->index_store_sms;
+				}
+
+				if (menu->index_store_sms == 0)
+				{
+					 (*iter)->inputStr = rememberTextSms;
+				}
+				else
+				{
+					int param = (menu->index_store_sms < 0) ? (menu->index_store_sms * (-1)):  (menu->index_store_sms);
+
+					DataStorage::FS::TransitionFileType ttype;
+					if(menu->index_store_sms > 0)
+						ttype =DataStorage::FS::TransitionFileType::TFT_TX;
+					if (menu->index_store_sms < 0)
+						ttype =DataStorage::FS::TransitionFileType::TFT_RX;
+
+					focus = menu->recalcFileFocus(param, DataStorage::FS::FT_SMS,  ttype);
+
+					if (menu->tFiles[DataStorage::FS::FT_SMS].size() > 0)
+					{
+						menu->fileMessage = loadMessage(DataStorage::FS::FT_SMS, ttype, storageFs->getFileNumber(DataStorage::FS::FT_SMS, focus + 1));
+						std::string s( menu->fileMessage->begin(), menu->fileMessage->end());
+						(*iter)->inputStr = s;
+					}
+				}
+
+				break;
+			}
 			case keyBack:
 			{
 				if ((*iter)->inputStr.size() > 0){
@@ -1336,71 +1361,58 @@ void Service::txSmsMessage_keyPressed(UI_Key key)
 				break;
 			}
 			case keyEnter:
-			{
+            {
 
-				if ( menu->smsStage == 0xF0 )
-				{
-					menu->smsStage = 0;
-					menu->smsTxStage = 1;
-					guiTree.resetCurrentState();
-					menu->virtCounter = 0;
-				}
-				else if (menu->smsStage == 0x0F){   /*menu->smsStage = 0;*/  }
-				else
-				{
-					// call
-					// [0] - dstAddr, [1]- message, [3] - retrAddr
-					auto iter = estate.listItem.begin();
-					auto dstAddr = (*iter)->inputStr;
-					(*iter)++;
-					auto msg = (*iter)->inputStr;
-					(*iter)++; (*iter)++;
-					auto retrAddr = (*iter)->inputStr;
-					int param[3] = {0,0,0};
-					int i = 0;
-					for(auto &k: estate.listItem)
-					{
-						param[i] = atoi(k->inputStr.c_str());
-						i++;
-					}
+                // call
+                // [0] - dstAddr, [1]- message, [3] - retrAddr
+                auto iter = estate.listItem.begin();
+                auto dstAddr = (*iter)->inputStr;
+                (*iter)++;
+                auto msg = (*iter)->inputStr;
+                (*iter)++; (*iter)++;
+                auto retrAddr = (*iter)->inputStr;
+                int param[3] = {0,0,0};
+                int i = 0;
+                for(auto &k: estate.listItem)
+                {
+                    param[i] = atoi(k->inputStr.c_str());
+                    i++;
+                }
 
-					if (navigator != 0){
-						Navigation::Coord_Date date = navigator->getCoordDate();
+                if (navigator != 0){
+                    Navigation::Coord_Date date = navigator->getCoordDate();
 
-						char ch[4]; memcpy(ch, date.data, 4);
+                    char ch[4]; memcpy(ch, date.data, 4);
 
-						if (atoi(ch) > 0)
-						{
-							if (storageFs > 0){
-								fileMsg.clear();
-								fileMsg.resize(msg.size());
-								memcpy(fileMsg.data(), &msg[0], msg.size());
-								GUI_Painter::ClearViewPort(true);
-								showMessage(waitingStr, flashProcessingStr, promptArea);
-								storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_TX, &fileMsg);
-								menu->virtCounter = 0;
-								draw();
-							}
+                    if (atoi(ch) > 0)
+                    {
+                        if (storageFs > 0){
+                            fileMsg.clear();
+                            fileMsg.resize(msg.size());
+                            memcpy(fileMsg.data(), &msg[0], msg.size());
+                            GUI_Painter::ClearViewPort(true);
+                            showMessage(waitingStr, flashProcessingStr, promptArea);
+                            storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_TX, &fileMsg);
+                            menu->virtCounter = 0;
+                            draw();
+                        }
 
-							voice_service->defaultSMSTrans();
-							failFlag = false;
+                        voice_service->defaultSMSTrans();
+                        failFlag = false;
 
-							menu->virtCounter = 0;
-							if (param[2] > 0)
-								voice_service->TurnSMSMode(param[2], (char*)msg.c_str(),atoi(dstAddr.c_str())); //retr,msg,radr
-							else
-								voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
+                        menu->virtCounter = 0;
+                        if (param[2] > 0)
+                            voice_service->TurnSMSMode(param[2], (char*)msg.c_str(),atoi(dstAddr.c_str())); //retr,msg,radr
+                        else
+                            voice_service->TurnSMSMode(atoi(dstAddr.c_str()), (char*)msg.c_str(),0);
 
-							for(auto &k: estate.listItem)
-								k->inputStr.clear();
-							menu->smsTxStage++;
-							//guiTree.resetCurrentState();
+                        for(auto &k: estate.listItem)
+                            k->inputStr.clear();
+                        menu->smsTxStage++;
+                    }
+                }
 
-						}
-					}
-				}
-
-				break;
+                break;
 			}
 			}
 			break;
@@ -1417,6 +1429,8 @@ void Service::txSmsMessage_keyPressed(UI_Key key)
 					onCompletedStationMode();
 					menu->virtCounter = 0;
 					menu->smsTxStage = 1;
+					rememberTextSms = "";
+					menu->index_store_sms = 0;
 					break;
 				}
 			}
@@ -1499,7 +1513,6 @@ void Service::rxSmsMessage_keyPressed(UI_Key key)
 			menu->offset = 1;
 			menu->focus = 2;
 			isSmsMessageRec = false;
-			menu->smsStage = 0;
 			menu->smsTxStage = 1;
 			onCompletedStationMode();
 			menu->virtCounter = 0;
@@ -2333,7 +2346,7 @@ void Service::filetree_keyPressed(UI_Key key)
 
         if (menu->filesStage == 2) // file names
         {
-        	uint8_t focus = menu->recalcFileFocus(menu->filesStageFocus[2]);
+        	uint8_t focus = menu->recalcFileFocus(menu->filesStageFocus[2], menu->fileType, menu->transitionfileType);
 
             switch (menu->fileType)
             {
@@ -2645,8 +2658,7 @@ void Service::sheldure_keyPressed(UI_Key key)
             }
         }
     break;
-
-    } // switch exit
+    }
 }
 
 }/* namespace Ui */

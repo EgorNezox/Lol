@@ -19,7 +19,7 @@
 #include "keyboard.h"
 #include "ui_keys.h"
 #include "texts.h"
-#include "datastorage/fs.h"
+#include "../datastorage/fs.h"
 
 #define no_speah_hack 1
 
@@ -146,7 +146,6 @@ public:
     char ch = ' ';
     int keyPressCount = 0;
     std::string smsValueStrStatus;
-    uint8_t smsStage = 0;
     uint16_t smsScrollIndex;
 
     // recv
@@ -246,7 +245,7 @@ public:
     void RxSmsStatusPost(int value, bool clear = false, bool clearAll = false);
 
     void calcFilesCount();
-    uint8_t recalcFileFocus(uint8_t focus);
+    uint8_t recalcFileFocus(uint8_t focus, DataStorage::FS::FileType f, DataStorage::FS::TransitionFileType t);
     uint8_t calcPercent(uint8_t a, uint8_t b);
 
     uint8_t cmdCount = 0;
@@ -268,6 +267,7 @@ public:
 
 	uint8_t maxTransTypeCount = 0;
 	uint8_t minTransTypeCount = 0;
+	int index_store_sms		  = 0;
 
 	bool isCoordValid = false;
 

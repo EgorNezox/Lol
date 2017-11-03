@@ -3585,10 +3585,12 @@ void DspController::setVirtualMode(bool param)
 
 void DspController::getVirtualDate(uint8_t *day, uint8_t *month, uint8_t *year)
 {
-	 d = rtc->getDate();
+    #ifdef PORT__TARGET_DEVICE_REV1
+     d = rtc->getDate();
 	*day = d.day;
 	*month = d.month;
 	*year = d.year;
+    #endif
 }
 
 void DspController::setVirtualDate(uint8_t *param)

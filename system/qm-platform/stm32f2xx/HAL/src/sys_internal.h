@@ -13,8 +13,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#ifdef   PORT__TARGET_DEVICE_REV1
 #include "stm32f2xx.h"
 #include "system_hardware_config.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,3 +58,4 @@ bool halinternal_is_isr_active(void);
 #endif
 
 #endif /* SYS_INTERNAL_H_ */
+#endif

@@ -21,7 +21,7 @@
 #include <math.h>
 #include "stdio.h"
 #include "navigator.h"
-#include "../../system/init.h"
+#include "../../../system/init.h"
 
 #define NEW_GPS_PARSING 0
 #define GPS_CORRECT 0
@@ -387,12 +387,16 @@ void Navigator::processSyncPulse(bool overflow)
     static uint16_t to_mode_time = 0;
     ++to_mode_time;
 
+    #ifdef PORT__TARGET_DEVICE_REV1
     int i  = get_tim1value();
+    #endif
     int res = 0;
     bool param = (to_mode_time % 50 == 0);
     if (CoordDate.status)
     {
-    	res = tune_frequency_generator(i, param);
+#ifdef PORT__TARGET_DEVICE_REV1
+        res = tune_frequency_generator(i, param);
+#endif
         //qmDebugMessage(QmDebug::Warning, " =====> Correct  DAC: %i FROM DELTA %i", res, i);
     }
     if (param)

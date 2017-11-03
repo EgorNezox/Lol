@@ -8,12 +8,16 @@
  */
 
 #include <stdbool.h>
+#ifdef   PORT__TARGET_DEVICE_REV1
 #include "stm32f2xx.h"
 #include "FreeRTOS.h"
 
+
 #include "sys_internal.h"
+
 #include "hal_timer.h"
 #include "hal_rtc.h"
+
 #include "rtc_private.h"
 
 
@@ -449,3 +453,4 @@ static uint8_t hal_rtc_bcd2_to_byte(uint8_t Value) {
 	tmp = ((uint8_t)(Value & (uint8_t)0xF0) >> (uint8_t)0x4) * 10;
 	return (tmp + (Value & (uint8_t)0x0F));
 }
+#endif

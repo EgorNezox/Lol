@@ -10,7 +10,9 @@
 #ifndef HAL_SRC_RTC_PRIVATE_H_
 #define HAL_SRC_RTC_PRIVATE_H_
 
+#ifdef PORT__TARGET_DEVICE_REV1
 #include "stm32f2xx.h"
+
 
 #define UNUSED(x) ((void)(x))
 
@@ -134,3 +136,4 @@
 #define RTC_RSF_MASK            ((uint32_t)0xFFFFFF5F)
 
 #endif /* HAL_SRC_RTC_PRIVATE_H_ */
+#endif

@@ -8,6 +8,8 @@
   */
 
 #include <list>
+#ifdef PORT__TARGET_DEVICE_REV1
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
@@ -186,3 +188,4 @@ void QmEventDispatcher::interrupt() {
 	d->interrupt = true;
 	wakeUp();
 }
+#endif

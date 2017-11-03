@@ -12,7 +12,7 @@
 #include "qmtimestamp.h"
 #include "qmtimer.h"
 #include "qmabstimer.h"
-#include "multiradio.h"
+#include "../multiradio.h"
 #include "../dsp/dspcontroller.h"
 #include "../navigation/navigator.h"
 #include "../headset/controller.h"

@@ -326,6 +326,8 @@ private:
     void condCommand_back_keyPressed();
     void condCommand_send();
 
+    std::string rememberTextSms;
+
     Multiradio::VoiceServiceInterface *voice_service;
     Multiradio::VoiceServiceInterface *pGetVoiceService();
     Multiradio::VoiceServiceInterface::Status multiradioStatus;

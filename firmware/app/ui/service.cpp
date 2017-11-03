@@ -5,7 +5,7 @@
 #include "dialogs.h"
 #include "service.h"
 #include "texts.h"
-#include <navigation/navigator.h>
+#include "../navigation/navigator.h"
 #include "../../../system/reset.h"
 #include "gui_tree.h"
 
@@ -110,7 +110,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     headset_controller->statusChanged.connect(sigc::mem_fun(this, &Service::updateHeadset));
     headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
     headset_controller->delaySpeachStateChanged.connect(sigc::mem_fun(this, &Service::onDelaySpeachStateChanged));
-    headset_controller->BOOM.connect(sigc::mem_fun(this, &Service::resetLogicDSPforGarniture));
+    //headset_controller->BOOM.connect(sigc::mem_fun(this, &Service::resetLogicDSPforGarniture));
 
     valueRxSms = 0;  command_rx_30 = 0;
     pswf_status = false;
@@ -657,7 +657,9 @@ void Service::msgBox(const char *title, const int condCmd, const int size, const
 
 void Service::drawMainWindow()
 {
-	navigator->set1PPSModeCorrect(true);
+#ifdef PORT__TARGET_DEVICE_REV1
+    navigator->set1PPSModeCorrect(true);
+#endif
 
     if (!isStartTestMsg){
     Multiradio::VoiceServiceInterface *voice_service = pGetVoiceService();
@@ -1058,7 +1060,9 @@ void Service::draw()
     CState currentState;
     guiTree.getLastElement(currentState);
 
+#ifdef PORT__TARGET_DEVICE_REV1
     navigator->set1PPSModeCorrect(false);
+#endif
 
     switch(currentState.getType())
     {

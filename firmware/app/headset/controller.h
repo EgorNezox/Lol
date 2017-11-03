@@ -13,7 +13,7 @@
 
 #include <vector>
 #include "qmobject.h"
-#include "multiradio.h"
+#include "../multiradio.h"
 #include <qmtimer.h>
 
 class QmPushButtonKey;
@@ -175,8 +175,11 @@ public:
 
 	sigc::signal<void, bool> delaySpeachStateChanged;
 
-	sigc::signal<void/*new_state*/> BOOM;
+
+	//sigc::signal<void/*new_state*/> BOOM;
 	void GarnitureStart();
+
+	Multiradio::voice_channel_speed_t realCurrentSpeed = Multiradio::voice_channel_speed_t::voicespeed600;
 
 private:
 	/*!< Состояние подключения гарнитуры */
@@ -318,8 +321,6 @@ private:
 	void checkUpdateSmartHSState();
 	void setUpdateState();
 
-	void testProcessReceivedCmd(uint8_t cmd, uint8_t* data, int data_len);
-
 	State state;
 	Status status;
 	QmPushButtonKey* ptt_key;
@@ -358,6 +359,7 @@ private:
 	uint8_t statusCounter = 0;
 	bool _isNotInitModule = false;
 	bool isToOpenChannel = false;
+
 };
 
 } /* namespace Headset */

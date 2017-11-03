@@ -27,7 +27,7 @@
 
 #include "voiceserviceinterface.h"
 #include "dispatcher.h"
-#include "multiradio.h"
+#include "../multiradio.h"
 #include "aleservice.h"
 #include "../datastorage/fs.h"
 

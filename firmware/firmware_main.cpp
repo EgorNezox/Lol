@@ -19,14 +19,14 @@
 #include "qmspiffs.h"
 #include "qmm25pdevice.h"
 
-#include "multiradio.h"
-#include "datastorage/fs.h"
-#include "headset/controller.h"
-#include "mrd/dispatcher.h"
-#include "navigation/navigator.h"
-#include "power/powercontroller.h"
-#include "power/battery.h"
-#include "ui/service.h"
+#include "app/multiradio.h"
+#include "app/datastorage/fs.h"
+#include "app/headset/controller.h"
+#include "app/mrd/dispatcher.h"
+#include "app/navigation/navigator.h"
+#include "app/power/powercontroller.h"
+#include "app/power/battery.h"
+#include "app/ui/service.h"
 #include "../system/init.h"
 
 #define MIN_GENERATOR_FREQ 620
@@ -158,7 +158,9 @@ void qmMain() {
 	headset_controller.startServicing(mr_channels_table);
 	mr_dispatcher.startServicing(mr_channels_table);
 
+#ifdef PORT__TARGET_DEVICE_REV1
     timer2_init();
+#endif
 
 	app.exec();
 }

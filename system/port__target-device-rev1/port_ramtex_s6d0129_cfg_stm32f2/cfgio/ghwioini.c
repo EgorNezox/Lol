@@ -13,7 +13,9 @@
 *********************************************************************/
 
 #ifndef GHW_NOHDW
+#ifdef PORT__TARGET_DEVICE_REV1
 #include "system_hw_io.h"	/* !!! target-specific !!! */
+#endif
 #endif
 #include <gdisphw.h>
 
@@ -36,7 +38,9 @@ void ghw_io_init(void)
    #ifdef GHW_SINGLE_CHIP
    sim_reset();  /* Initiate LCD bus simulation ports */
    #endif
+   #ifdef PORT__TARGET_DEVICE_REV1
    stm32f2_LCD_init(); /* !!! target-specific !!! */
+    #endif
    #endif
    }
 

@@ -47,7 +47,7 @@ void Controller::hsControlTriggered() {
 
 void Controller::offIntTriggered() {
 	//qmDebugMessage(QmDebug::Dump, "power off warning");
-	powerOffWarning();
+	//powerOffWarning();
 }
 
 void Controller::ctrlPulseTimeout() {

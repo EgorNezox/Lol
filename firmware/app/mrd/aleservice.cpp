@@ -16,7 +16,7 @@
 
 #include "dispatcher.h"
 #include "voiceserviceinterface.h"
-#include "dsp/dspcontroller.h"
+#include "../dsp/dspcontroller.h"
 
 #include "aleservice.h"
 

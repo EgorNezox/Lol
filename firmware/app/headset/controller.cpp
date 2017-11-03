@@ -103,7 +103,7 @@ Controller::Status Controller::getStatus() {
 }
 
 bool Controller::getSmartStatus(SmartStatusDescription& description) {
-	description = smart_status_description; //TODO:
+	description = smart_status_description;
 	return state == StateSmartOk;
 }
 
@@ -189,14 +189,8 @@ void Controller::processHSUartPolling() {
 	transmitCmd(HS_CMD_STATUS, NULL, 0);
 }
 
-void Controller::testProcessReceivedCmd(uint8_t cmd, uint8_t* data, int data_len)
-{
-
-}
-
 void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len)
 {
-	//testProcessReceivedCmd(cmd, data, data_len);
 
 	qmDebugMessage(QmDebug::Dump, "processReceivedCmd() cmd = 0x%2X, data_len = %d", cmd, data_len);
 	cmd_repeats_counter = 0;
@@ -356,6 +350,15 @@ void Controller::processReceivedStatus(uint8_t* data, int data_len) {
 //			uint8_t isFlashWritingError 	= data[16] & 0x20;
 //			uint8_t isPreDefControlError 	= data[16] & 0x40;
 			uint8_t isNotInitModule 	    = data[16] & 0x80;
+
+			switch((ch_mask & 0x1C) >> 2)
+			{
+			case 1: realCurrentSpeed = Multiradio::voicespeed600; break;
+			case 3: realCurrentSpeed = Multiradio::voicespeed1200; break;
+			case 4: realCurrentSpeed = Multiradio::voicespeed2400; break;
+			case 5: realCurrentSpeed = Multiradio::voicespeed4800; break;
+			default: realCurrentSpeed = Multiradio::voicespeed1200;
+			}
 
 //			uint8_t isOverKeysInput 	    = data[17] & 0x1;
 //			uint8_t isUykipError     	    = data[17] & 0x2;
@@ -695,18 +698,13 @@ void Controller::synchronizeHSState()
 //	qmDebugMessage(QmDebug::Dump, " ---------- synchronizeHSState() channel number: %d", ch_number);
 
 //	ch_number = channel;
-//	ch_speed = getChannelSpeed(channel);
+//	ch_speed =  getChannelSpeed(channel);
 
 	const int data_size = 16;
 	uint8_t data[data_size];
 	data[0] = 0xAB;
 	data[1] = 0xBA;
 	data[2] = 0x01;
-
-	if (ch_number % 2 == 0)
-	{
-		ch_speed = Multiradio::voicespeed600;
-	}
 
 	switch (ch_speed)
 	{

@@ -28,7 +28,6 @@ SOURCES += \
     $$wildcardSources(app/ui, *.cpp) \
     app/ui/menu.cpp \
     app/ui/gui_tree.cpp \
-    app/dsp/sheldurer.cpp \
     app/mrd/ale_data_transport.cpp \
     app/mrd/ale_main.cpp \
     app/mrd/ale_com.cpp \
@@ -75,7 +74,6 @@ HEADERS += \
     app/navigation/navigator.h \
     app/messages/rs_tms.h \
     app/dsp/packagemanager.h \
-    app/dsp/sheldurer.h \
     app/mrd/ale_data_transport.h \
     app/mrd/ale_com.h \
     app/mrd/ale_main.h \

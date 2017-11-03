@@ -19,7 +19,7 @@ class Controller {
 public:
 	Controller(int hscontrol_iopin_resource, int controller_iopin_resource, int offint_iopin_resource, int source_iopin_resource);
 
-	sigc::signal<void> powerOffWarning;
+	//sigc::signal<void> powerOffWarning;
 
 private:
 	void hsControlTriggered();

@@ -6,7 +6,7 @@
  *
  ******************************************************************************
  */
-
+#ifdef PORT__TARGET_DEVICE_REV1
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -64,3 +64,4 @@ int64_t QmElapsedTimer::elapsed() const {
 bool QmElapsedTimer::hasExpired(int64_t timeout) const {
 	return (elapsed() > timeout);
 }
+#endif

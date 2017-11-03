@@ -2,7 +2,7 @@
 #define FIRMWARE_APP_MRD_ALECONST_H_
 
 #include <stdint.h>
-#include "multiradio.h"
+#include "../multiradio.h"
 #include "ale_settings.h"
 
 #define	int8s	int8_t

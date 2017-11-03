@@ -7,8 +7,10 @@
   ******************************************************************************
   */
 
+#ifdef PORT__TARGET_DEVICE_REV1
 #include "FreeRTOS.h"
 #include "task.h"
+
 
 #define QMDEBUGDOMAIN QmCore
 #include "qm.h"
@@ -69,3 +71,4 @@ void QmApplication::removePostedEvents(QmObject* receiver, int event_type) {
 	QM_ASSERT(t);
 	t->d_func()->event_dispatcher->removeQueuedEvents(receiver, event_type);
 }
+#endif

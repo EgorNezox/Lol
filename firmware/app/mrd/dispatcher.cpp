@@ -119,7 +119,9 @@ void Dispatcher::processDspStartup()
 {
 	setupVoiceMode(headset_controller->getStatus());
 	dsp_controller->setAdr();
-	navigator->coldStart();
+#ifdef PORT__TARGET_DEVICE_REV1
+    navigator->coldStart();
+#endif
 }
 
 bool Dispatcher::processHeadsetPttStateChange(bool new_state)

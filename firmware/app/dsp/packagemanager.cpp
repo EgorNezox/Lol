@@ -1,6 +1,6 @@
 #include <string.h>
 #include "packagemanager.h"
-#include "ui/texts.h"
+#include "../ui/texts.h"
 
 PackageManager::PackageManager()
 {

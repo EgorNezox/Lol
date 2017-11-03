@@ -13,6 +13,8 @@
 #include "qmeventdispatcher.h"
 #include "qmeventloop.h"
 
+#ifdef PORT__TARGET_DEVICE_REV1
+
 QmEventLoop::QmEventLoop() :
 	QmObject(),
 	dispatcher(0),
@@ -43,3 +45,4 @@ void QmEventLoop::exit(int return_code) {
 	executing = false;
 	dispatcher->interrupt();
 }
+#endif

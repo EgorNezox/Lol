@@ -1363,6 +1363,27 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     if (isDrawTitle) title.Draw();
     if (isDrawLength)length.Draw();
     field.Draw();
+
+    if (smsTxStage == 4 && index_store_sms != 0)
+    {
+    	std::string txrx;
+    	if (index_store_sms > 0)
+    	{
+    		txrx = "Tx ";
+    	}
+    	if (index_store_sms < 0)
+    	{
+    		txrx = "Rx ";
+    	}
+
+    	char num[] = {0,0,0,0};
+    	sprintf(num, "%u", abs(index_store_sms));
+    	txrx.append(num);
+
+        MoonsGeometry rxTxLabelArea = { 0, 0, 35, 20 };
+        GUI_EL_Label  label (&GUI_EL_TEMP_LabelTitle,    &rxTxLabelArea,  (char*)txrx.c_str(), (GUI_Obj *)this);
+        label.Draw();
+    }
 }
 
 void CGuiMenu::initRxSmsDialog(std::string str, uint8_t stage) // + guc rx (hack)
@@ -1805,16 +1826,16 @@ void CGuiMenu::calcFilesCount()
 }
 
 // inverse numbers 0->9, 1->8, ... 9->0
-uint8_t CGuiMenu::recalcFileFocus(uint8_t focus)
+uint8_t CGuiMenu::recalcFileFocus(uint8_t focus, DataStorage::FS::FileType f, DataStorage::FS::TransitionFileType t)
 {
-	uint8_t rxCountFiles = storageFs->getTransmitFileTypeCount(fileType, DataStorage::FS::TFT_RX);
-	uint8_t txCountFiles = storageFs->getTransmitFileTypeCount(fileType, DataStorage::FS::TFT_TX);
+	uint8_t rxCountFiles = storageFs->getTransmitFileTypeCount(f, DataStorage::FS::TFT_RX);
+	uint8_t txCountFiles = storageFs->getTransmitFileTypeCount(f, DataStorage::FS::TFT_TX);
 
 	uint8_t sumFiles = rxCountFiles + txCountFiles;
 
 	uint8_t newFocus = 0;
 
-	if (transitionfileType == DataStorage::FS::TFT_TX)
+	if (t == DataStorage::FS::TFT_TX)
 	{
 		newFocus = rxCountFiles + txCountFiles - focus - 1;
 	}

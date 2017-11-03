@@ -7,9 +7,11 @@
   ******************************************************************************
   */
 
+#ifdef PORT__TARGET_DEVICE_REV1
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
+
 
 #include "qm.h"
 #include "qmdebug.h"
@@ -111,3 +113,4 @@ int main(void) {
 	while(1); // never return
 	return 0;
 }
+#endif

@@ -15,6 +15,8 @@
 #include "qmtimestamp.h"
 #include "qmtimestamp_p.h"
 
+#ifdef PORT__TARGET_DEVICE_REV1
+
 extern "C" {
 static void qmTimerCallbackTimeout(hal_timer_handle_t handle) {
 	// assuming sysconfigTIMER_TASK_PRIORITY > qmconfigSYSTEM_PRIORITY
@@ -79,3 +81,5 @@ bool QmAbsTimer::event(QmEvent* event) {
 	}
 	return QmObject::event(event);
 }
+
+#endif

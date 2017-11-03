@@ -11,7 +11,7 @@
 #define FIRMWARE_APP_MRD_DISPATCHER_H_
 
 #include "qmobject.h"
-#include "multiradio.h"
+#include "../multiradio.h"
 #include "../headset/controller.h"
 #include "../dsp/dspcontroller.h"
 #include "../atu/atucontroller.h"
