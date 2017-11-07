@@ -13,7 +13,6 @@
 #include "qmthread.h"
 #include "qmtimer.h"
 #include <string.h>
-#include <string>
 #include <list>
 #include <cstring>
 #include <vector>
@@ -461,5 +460,5 @@ void Navigator::setMinimalActivityMode(bool enabled) {
 } /* namespace Navigation */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(navigation, LevelInfo)
+QMDEBUG_DEFINE_DOMAIN(navigation, LevelOff)
 #include "qmdebug_domains_end.h"

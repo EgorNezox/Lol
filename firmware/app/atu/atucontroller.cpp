@@ -63,7 +63,7 @@ AtuController::~AtuController()
 }
 
 void AtuController::startServicing() {
-	qmDebugMessage(QmDebug::Info, "start servicing...");
+	//qmDebugMessage(QmDebug::Info, "start servicing...");
 	setMode(modeNone);
 	command.id = commandInactive;
 	uart->open();
@@ -300,7 +300,7 @@ void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data) {
 
 void AtuController::processTxTuneTimeout() {
 	QM_ASSERT(mode == modeTuning);
-	qmDebugMessage(QmDebug::Info, "tx tuning timeout");
+	//qmDebugMessage(QmDebug::Info, "tx tuning timeout");
 	setMode(modeMalfunction);
 }
 
@@ -391,7 +391,7 @@ void AtuController::sendNak() {
 
 void AtuController::processUartReceivedData() {
 	uint8_t byte;
-	qmDebugMessage(QmDebug::Dump, "uart rx data...");
+	//qmDebugMessage(QmDebug::Dump, "uart rx data...");
 	while (uart->readData(&byte, 1)) {
 		switch (uart_rx_state) {
 		case uartrxNone: {

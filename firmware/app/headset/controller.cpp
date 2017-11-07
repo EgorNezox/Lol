@@ -794,6 +794,7 @@ void Controller::startSmartRecord(uint8_t channel) {
 	message_record_data.clear();
 	setSmartHSState(SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL);
 	ch_number = channel;
+	ch_speed = Multiradio::voicespeed600;
 	synchronizeHSState();
 	//startMessageRecord();
 	checkUpdateSmartHSState();

@@ -138,7 +138,7 @@ public:
     sigc::signal<void> dspStarted;
     sigc::signal<void, bool> stationModeIsCompleted;
 	sigc::signal<void> currentChannelChanged;
-    sigc::signal<void> PswfRead;
+
     sigc::signal<void,int,uint8_t,bool> firstPacket;
 
     sigc::signal<void, float, float> waveInfoRecieved; //wave, power

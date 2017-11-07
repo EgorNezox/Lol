@@ -928,7 +928,7 @@ void Service::drawMenu()
             		char ch[3];
             		sprintf(ch, "%d", rxAddr);
             		ch[2] = '\0';
-            		menu->voiceAddr.append(ch);
+            		menu->voiceAddr = ch;
             		menu->putOffVoiceStatus++;
             		voice_service->stopAle();
             		Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
@@ -984,7 +984,6 @@ void Service::drawMenu()
 
             std::string str;
             str.append(st.listItem.front()->inputStr); //str.append("00.00.00");
-
             std::string dateTemplate = "--.--.--";
             str.append(dateTemplate.substr(str.size(),8-str.size()));
             menu->initSetDateOrTimeDialog( str );
