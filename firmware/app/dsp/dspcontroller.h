@@ -177,6 +177,9 @@ public:
 
     PackageManager 	*pack_manager;
     voice_emission_t emissionType;
+
+    uint16_t sender = 0;
+
 private:
 	#include "privenumdspcontroller.h"
     friend struct DspCommand;

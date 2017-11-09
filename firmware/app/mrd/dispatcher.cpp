@@ -52,7 +52,7 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 
 	voice_service = new VoiceServiceInterface(this);
     voice_service->setFS(data_storage_fs);
-
+    headset_controller->autoSpeedChanged.connect(sigc::mem_fun(this, &Dispatcher::returnSpeed));
 
     latency_draw = new QmTimer();
     latency_draw->setInterval(200);
@@ -281,6 +281,19 @@ bool Dispatcher::changeVoiceChannel(int number, voice_channel_t type)
     if (voice_service->current_mode == VoiceServiceInterface::VoiceModeAuto)
 		headset_controller->setSmartCurrentChannelSpeed(voice_channels_table[number-1].speed);
 	return true;
+}
+
+
+void Dispatcher::returnSpeed()
+{
+    // добавлено для возврата на скорость, установленную на автоканале
+	int number = 0; Multiradio::voice_channel_t type;
+	headset_controller->getSmartCurrentChannel(number,type);
+
+	QmThread::msleep(2000);
+
+	if (voice_service->current_mode == VoiceServiceInterface::VoiceModeAuto)
+		headset_controller->setSmartCurrentChannelSpeed(voice_channels_table[number-1].speed);
 }
 
 void Dispatcher::updateVoiceChannel(bool user_request_frequency)

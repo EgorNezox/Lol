@@ -531,6 +531,11 @@ uint8_t VoiceServiceInterface::playVoiceMessage(uint8_t fileNumber, DataStorage:
     return result;
 }
 
+uint16_t VoiceServiceInterface::smsSender()
+{
+	return dispatcher->dsp_controller->sender;
+}
+
 void VoiceServiceInterface::setFS(DataStorage::FS *fs)
 {
     storageFs = fs;

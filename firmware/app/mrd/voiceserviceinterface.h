@@ -198,6 +198,8 @@ public:
     void onQwitCounterChanged(uint8_t counter);
     void onTransmitAsk(bool on);
 
+    uint16_t smsSender();
+
 private:
     friend class Dispatcher;
 

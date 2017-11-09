@@ -231,11 +231,35 @@ void Service::mainWindow_keyPressed(UI_Key key)
         {
 			case keyChNext:
 				showMessage(waitingStr, flashProcessingStr, promptArea);
-				pGetVoiceService()->tuneNextChannel();
+				bool var;
+				if (headset_controller->getStatus() ==  Headset::Controller::Status::StatusSmartOk)
+				{
+					int number; Multiradio::voice_channel_t type;
+					headset_controller->getSmartCurrentChannel(number, type);
+					number += 1;
+				    if (number > 98 || number < 1) number = 1;
+					headset_controller->setChannel(number);
+
+				}
+				else if (headset_controller->getAnalogStatus(var))
+				{
+					voice_service->tuneNextChannel();
+				}
 				break;
 			case keyChPrev:
 				showMessage(waitingStr, flashProcessingStr, promptArea);
-				pGetVoiceService()->tunePreviousChannel();
+				if (headset_controller->getStatus() ==  Headset::Controller::Status::StatusSmartOk)
+				{
+					int number; Multiradio::voice_channel_t type;
+					headset_controller->getSmartCurrentChannel(number, type);
+					number -= 1;
+					if (number > 98 || number < 1) number = 1;
+					headset_controller->setChannel(number);
+				}
+				else if (headset_controller->getAnalogStatus(var))
+				{
+					voice_service->tunePreviousChannel();
+				}
 				break;
 			case keyBack:
 				main_scr->mwFocus = -2;

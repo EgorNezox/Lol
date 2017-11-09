@@ -400,19 +400,19 @@ void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
 }
 
 void DspController::getSwr()
-{//return;
-    QM_ASSERT(is_ready);
-    if (!resyncPendingCommand())
-        return;
-
-    ParameterValue commandValue;
-//    commandValue.swf_mode = 5;
-//    sendCommand(TxRadiopath,0,commandValue);
-
-    commandValue.swf_mode = 6;
-    //commandValue.swf_mode = 0;
-    //sendCommand(TxRadiopath,0,commandValue);
-    sendCommandEasy(TxRadiopath, 6, commandValue);
+{return;
+//    QM_ASSERT(is_ready);
+//    if (!resyncPendingCommand())
+//        return;
+//
+//    ParameterValue commandValue;
+////    commandValue.swf_mode = 5;
+////    sendCommand(TxRadiopath,0,commandValue);
+//
+//    commandValue.swf_mode = 6;
+//    //commandValue.swf_mode = 0;
+//    //sendCommand(TxRadiopath,0,commandValue);
+//    sendCommandEasy(TxRadiopath, 6, commandValue);
 }
 
 
@@ -3525,6 +3525,7 @@ void DspController::LogicPswfModes(uint8_t* data, uint8_t indicator, int data_le
 			//	qmDebugMessage(QmDebug::Dump, "recieve frame() count = %d", syncro_recieve.size());
 
 				ContentSms.R_ADR = data[8]; // todo: check
+				sender = data[8];
 				if (check_rx_call(&wzn_value))
 				{
 					sms_call_received = true;

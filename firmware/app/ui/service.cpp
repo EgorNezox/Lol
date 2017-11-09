@@ -1356,7 +1356,12 @@ void Service::smsMessage(int value)
 void Service::showReceivedSms()
 {
     const char *text = (const char*)voice_service->getSmsContent();
-    std::string title = "CMC";
+    std::string title = "CMC#";
+    uint16_t sender = voice_service->smsSender();
+    if (sender > 0 && sender < 32)
+    {
+    	title += (char) (48 + sender);
+    }
     std::string text_str = text;
     menu->initTxSmsDialog(title,text_str);
     menu->virtCounter = 0;

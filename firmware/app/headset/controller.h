@@ -21,6 +21,38 @@ class QmTimer;
 
 namespace Headset {
 
+
+// команда чтения статуса гарнитуры [открытый / закрытый] [скорость] [режим]
+#define HS_CMD_STATUS				0xB0
+// установка работы гарнитуры  		[режим] [скорость]
+#define HS_CMD_SET_MODE				0xB1
+// запрос списка каналов
+#define HS_CMD_CH_LIST				0xB3
+// быстрое переключение прием-передача
+#define HS_CMD_PTT_STATE			0x4A
+// пакет отложенного сообщения для гарнитуры
+#define HS_CMD_MESSAGE_UPLOAD		0x2A
+// пакет отложенного сообщения для сбора
+#define HS_CMD_MESSAGE_DOWNLOAD		0xC2
+
+// установленные длины пакетов
+#define HS_CMD_STATUS_RESP_LEN		32
+#define HS_CMD_CH_LIST_RESP_LEN		25
+#define HS_CMD_PTT_STATE_RESP_LEN	0
+#define HS_CMD_MESSAGE_LEN			208
+
+// число повторов команды для гарнитуры
+#define HS_MAX_CMD_REPEATS			10
+// число каналов в гарнитуре
+#define HS_CHANNELS_COUNT			98
+// тайминг переключения
+#define PTT_DEBOUNCE_TIMEOUT		5
+// тайминг опроса гарнитуры
+#define HS_UART_POLLING_INTERVAL	1000
+// тайминг ответа на команду
+#define HS_RESPONCE_TIMEOUT			100
+
+
 class SmartTransport;
 
 /*!
@@ -146,8 +178,8 @@ public:
 	 */
 	void setChannel(uint8_t channel);
 
-	Multiradio::voice_channel_t getChannelType(int channel);
-	Multiradio::voice_channel_speed_t getChannelSpeed(int channel);
+	Multiradio::voice_channel_t getChannelType		  (uint32_t channel);
+	Multiradio::voice_channel_speed_t getChannelSpeed (uint32_t channel);
 
 	/*!
 	 * \brief Сигнал изменения статуса подключения гарнитуры
@@ -174,7 +206,7 @@ public:
 	sigc::signal<void, SmartHSState/*new_state*/> smartHSStateChanged;
 
 	sigc::signal<void, bool> delaySpeachStateChanged;
-
+	sigc::signal<void> autoSpeedChanged;
 
 	//sigc::signal<void/*new_state*/> BOOM;
 	void GarnitureStart();
@@ -359,6 +391,9 @@ private:
 	uint8_t statusCounter = 0;
 	bool _isNotInitModule = false;
 	bool isToOpenChannel = false;
+	bool changeSpeedAuto = false;
+
+
 
 };
 
