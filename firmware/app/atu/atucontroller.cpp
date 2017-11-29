@@ -202,8 +202,8 @@ void AtuController::tryRepeatCommand() {
 		command.repeat_count--;
 		return;
 	}
-	if (mode != modeNone)
-		qmDebugMessage(QmDebug::Info, "command failed (no response)");
+//	if (mode != modeNone)
+//		qmDebugMessage(QmDebug::Info, "command failed (no response)");
 	command.id = commandInactive;
 	deferred_enterbypass_active = false;
 	deferred_tunetx_active = false;
@@ -312,7 +312,7 @@ void AtuController::processReceivedStateMessage(uint8_t *data) {
 		startCommand(commandEnterBypassMode, &antenna, 1, 2);
 		setMode(modeStartingBypass);
 	} else if ((mode != modeMalfunction) && (error_code != 0)) {
-		qmDebugMessage(QmDebug::Info, "received state message with non-zero error_code = %u", error_code);
+		//qmDebugMessage(QmDebug::Info, "received state message with non-zero error_code = %u", error_code);
 		setMode(modeMalfunction);
 	}
 }
@@ -365,7 +365,7 @@ void AtuController::sendFrame(uint8_t id, const uint8_t *data, int data_len) {
 		QM_ASSERT(0);
 		return;
 	}
-	qmDebugMessage(QmDebug::Dump, "transmitting frame (id=0x%02X, data_len=%d)", id, data_len);
+	//qmDebugMessage(QmDebug::Dump, "transmitting frame (id=0x%02X, data_len=%d)", id, data_len);
 	if (qmDebugIsVerbose() && (data_len > 0)) {
 		QM_ASSERT(data != 0);
 //		for (int i = 0; i < data_len; i++)

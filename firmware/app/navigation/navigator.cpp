@@ -386,18 +386,18 @@ void Navigator::processSyncPulse(bool overflow)
     static uint16_t to_mode_time = 0;
     ++to_mode_time;
 
-    #ifdef PORT__TARGET_DEVICE_REV1
+   // #ifdef PORT__TARGET_DEVICE_REV1
     int i  = get_tim1value();
-    #endif
+    //#endif
     int res = 0;
     bool param = (to_mode_time % 50 == 0);
-    if (CoordDate.status)
-    {
-#ifdef PORT__TARGET_DEVICE_REV1
-        res = tune_frequency_generator(i, param);
-#endif
-        //qmDebugMessage(QmDebug::Warning, " =====> Correct  DAC: %i FROM DELTA %i", res, i);
-    }
+
+//#ifdef PORT__TARGET_DEVICE_REV1
+    bool ps = (CoordDate.status == true && param == true);
+    res = tune_frequency_generator(i, ps);
+//#endif
+//qmDebugMessage(QmDebug::Warning, " =====> Correct  DAC: %i FROM DELTA %i", res, i);
+
     if (param)
         to_mode_time = 0;
 
