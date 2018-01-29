@@ -30,20 +30,6 @@
 #define hw_rtc                      1
 #define DefkeyValue 631
 
-#define SAZEN 1
-#define TROPA 0
-
-#if SAZEN
-	#define DEVICE_VALUE 280000
-#else
-	#if TROPA
-		#define DEVICE_VALUE 201600
-	#endif
-#endif
-
-//280000 - sazhen 201600 -tropa
-
-
 
 #define GUC_TIMER_ACK_WAIT_INTERVAL 180000
 #define GUC_TIMER_INTERVAL_REC 30000
@@ -258,6 +244,17 @@ void DspController::startServicing()
 ////	dspReset();
 
 	startup_timer->start(10000);
+}
+
+void DspController::push_queue()
+{
+	if (!cmd_queue->empty())
+	{
+		DspCommand cmd;
+		cmd = cmd_queue->front();
+		cmd_queue->pop_front();
+		sendCommand(cmd.module, cmd.code, cmd.value);
+	}
 }
 
 void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
@@ -1425,7 +1422,7 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 	uint8_t tx_address;
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 	int tx_data_len = DEFAULT_PACKET_HEADER_LEN;
-	qmToBigEndian((uint8_t)2, tx_data+0); // � � С‘� � � …� � Т‘� � С‘� � С”� � В°� ЎвЂљ� � С•� Ў� ‚: "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° (� ЎС“� Ў� ѓ� ЎвЂљ� � В°� � � …� � С•� � � � � � С”� � В°)"
+	qmToBigEndian((uint8_t)2,    tx_data+0); // � � С‘� � � …� � Т‘� � С‘� � С”� � В°� ЎвЂљ� � С•� Ў� ‚: "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° (� ЎС“� Ў� ѓ� ЎвЂљ� � В°� � � …� � С•� � � � � � С”� � В°)"
 	qmToBigEndian((uint8_t)code, tx_data+1); // � � С”� � С•� � Т‘ � � С—� � В°� Ў� ‚� � В°� � С�� � Вµ� ЎвЂљ� Ў� ‚� � В°
 	switch (module) {
 	case RxRadiopath:
@@ -1913,379 +1910,6 @@ void DspController::sendGuc()
 
     transport->transmitFrame(tx_address, tx_data, tx_data_len);
 }
-
-void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len) {
-	if (data_len < DEFAULT_PACKET_HEADER_LEN)
-		return;
-
-	uint8_t indicator = qmFromBigEndian<uint8_t>(data+0);
-	uint8_t code = qmFromBigEndian<uint8_t>(data+1);
-	uint8_t *value_ptr = data + 2;
-	int value_len = data_len - 2;
-
-	switch (address) {
-	case 0x11: {
-		if ((indicator == 5) && (code == 2) && (value_len == 6)) // � � С‘� � � …� � С‘� ЎвЂ� � � С‘� � В°� ЎвЂљ� � С‘� � � � � � � …� � С•� � Вµ � Ў� ѓ� � С•� � С•� � В±� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � Ў� ѓ � ЎвЂ� � � С‘� ЎвЂћ� Ў� ‚� � С•� � � � � � С•� � в„– � � С‘� � � …� ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂ� � � С‘� � Вµ� � в„– � � С• � � С—� Ў� ‚� � С•� Ўв‚¬� � С‘� � � � � � С”� � Вµ ?
-			processStartup(qmFromBigEndian<uint16_t>(value_ptr+0), qmFromBigEndian<uint16_t>(value_ptr+2), qmFromBigEndian<uint16_t>(value_ptr+4));
-		break;
-	}
-	case 0x31: {
-    	value_ptr -= 1; // � � С”� � С•� Ў� ѓ� ЎвЂљ� ЎвЂ№� � В»� � � …� � С•� � Вµ � � С—� Ў� ‚� � Вµ� � � � � Ў� ‚� � В°� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � � � �  � � � …� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � � …� � Т‘� � В°� Ў� ‚� ЎвЂљ� � � …� ЎвЂ№� � в„– � ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂљ � � С”� � В°� � Т‘� Ў� ‚� � В°
-    	value_len += 1; // � � С”� � С•� Ў� ѓ� ЎвЂљ� ЎвЂ№� � В»� � � …� � С•� � Вµ � � С—� Ў� ‚� � Вµ� � � � � Ў� ‚� � В°� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � � � �  � � � …� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � � …� � Т‘� � В°� Ў� ‚� ЎвЂљ� � � …� ЎвЂ№� � в„– � ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂљ � � С”� � В°� � Т‘� Ў� ‚� � В°
-    	if (indicator == 5) {
-    		uint8_t subdevice_code = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+0);
-    		uint8_t error_code = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
-    		hardwareFailed.emit(subdevice_code, error_code);
-    	}
-    	break;
-	}
-	case 0x51:
-	case 0x81:
-	{
-        if ((indicator == 1) || (indicator == 3) || (indicator == 4) || (indicator == 5))
-        { // "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � � � � � ЎвЂ№� � С—� � С•� � В»� � � …� � Вµ� � � …� � В°", "� � С”� � С•� � С�� � В°� � � …� � Т‘� � В° � � � …� � Вµ � � � � � ЎвЂ№� � С—� � С•� � В»� � � …� � Вµ� � � …� � В°" ?
-			ParameterValue value;
-            if ((code == 1) && (value_len == 4))
-            {
-				value.frequency = qmFromBigEndian<uint32_t>(value_ptr+0);
-            } else if ((code == 2) && (value_len == 1))
-            {
-                value.radio_mode = (RadioMode)qmFromBigEndian<uint8_t>(value_ptr+0);
-            } else if ((indicator == 1 || indicator == 5) && code == 6)
-            {
-            	waveInfoTimer.stop();
-
-                ref_wave = (float)qmFromBigEndian<uint16_t>(value_ptr+0);
-                fwd_wave = (float)qmFromBigEndian<uint16_t>(value_ptr+2);
-
-                if (fwd_wave > 0 && (fwd_wave - ref_wave != 0))
-                {
-                    swf_res = (fwd_wave + ref_wave) / (fwd_wave - ref_wave);
-                }
-                if (fwd_wave < ref_wave)
-                	swf_res = 99.0;
-
-                power_res = (fwd_wave * fwd_wave) / DEVICE_VALUE; //280000 - sazhen 201600 -tropa
-                waveInfoRecieved(swf_res, power_res);
-
-                waveInfoTimer.start();
-            }
-
-			Module module;
-			if (address == 0x51)
-				module = RxRadiopath;
-			else
-				module = TxRadiopath;
-
-			processCommandResponse((indicator == 3), module, code, value);
-		}
-		break;
-	}
-	case 0x61: {
-	if ((radio_state == radiostatePswfRxPrepare) || (radio_state == radiostateSmsRxPrepare))
-		{
-			//qmDebugMessage(QmDebug::Dump, "processReceivedFrame() 0x61 received");
-			ParameterValue value;
-			processCommandResponse((indicator == 1), PSWFReceiver, code, value);
-		}
-	if ((indicator == 3) && (virtual_mode == true) && (code == 5)) masterVirtualPps = true;
-		break;
-	}
-    case 0x63: {
-    	//qmDebugMessage(QmDebug::Dump, "0x63 received");
-    	LogicPswfModes(data,indicator,data_len);
-        break;
-    }
-    case 0x73: {
-    	//qmDebugMessage(QmDebug::Dump, "processReceivedFrame() 0x73 received, %d" ,indicator);
-        ParameterValue value;
-        value.frequency = 0;
-        switch(radio_state)
-        {
-        case radiostateSmsTx:
-            if (indicator == 22) {
-                value.frequency = qmFromBigEndian<uint32_t>(value_ptr+0);
-                //qmDebugMessage(QmDebug::Dump, " frequency =  %d " ,value.frequency);
-            }
-            processCommandResponse((indicator == 24), PSWFTransmitter, code, value);
-            break;
-        case radiostateSmsRx:
-            processCommandResponse((indicator == 1), PSWFTransmitter, code, value);
-            break;
-        case radiostatePswfTx:
-        case radiostatePswfRx:
-            processCommandResponse((indicator == 3), PSWFTransmitter, code, value);
-            break;
-        default:
-        break;
-        }
-
-        break;
-    }
-    case 0x7B:{
-    	//qmDebugMessage(QmDebug::Dump, "processReceivedFrame() 0x7B received, %d" ,indicator);
-        if (indicator == 22)
-        {
-        	if (ContentGuc.stage == GucRx)
-        	{
-        		//qmDebugMessage(QmDebug::Dump, "---- 0x7B indicator:22 GucRx");
-                exitVoceMode();
-                magic();
-        	}
-        	else if (ContentGuc.stage == GucTx) // wait recieving ack
-        	{
-        		//qmDebugMessage(QmDebug::Dump, "---- 0x7B indicator:22 GucTx");
-            	if (isGucWaitReceipt)
-            	{
-            		//qmDebugMessage(QmDebug::Dump, "---- isGucWaitReceipt");
-					startGucRecieving();
-					ContentGuc.stage = GucTx;
-					startRxQuit();
-					startGucTimer();
-            	}
-            	else
-            	{
-            		//qmDebugMessage(QmDebug::Dump, "---- NOT isGucWaitReceipt");
-            		startRxQuit();
-            		completedStationMode(true);
-            	}
-        	}
-        }
-        break;
-    }
-    case 0x6B:
-    {
-       // qmDebugMessage(QmDebug::Dump, "processReceivedFrame() 0x6B received");
-        if (ContentGuc.stage != GucNone){
-        	if (indicator == 32){
-                //qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: indicator %d", indicator);
-        	}
-            if (indicator == 30)
-            {
-                ContentGuc.R_ADR = ((data[2] & 0xF8) >> 3);
-            	ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
-                isGpsGuc = data[5] & 0x1;
-                ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);
-                if (ContentGuc.stage == GucTx)
-                {
-                	//ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);
-                	//qmDebugMessage(QmDebug::Dump, "---- 0x6B indicator:30 stage: GucTx R_ADR: %d S_ADR: %d", ContentGuc.R_ADR, ContentGuc.S_ADR);
-                	recievedGucQuitForTransm(ContentGuc.S_ADR);
-                	completedStationMode(false);
-                	stopGucTimer();
-                }
-            	else
-            	{
-            		//qmDebugMessage(QmDebug::Dump, "---- 0x6B indicator:30 stage: GucRx R_ADR: %d S_ADR: %d", ContentGuc.R_ADR, ContentGuc.S_ADR);
-            		std::vector<uint8_t> guc;
-            		for(int i = 0;i<data_len;i++)
-            		{
-            			//qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , num %d", data[i],i);
-            			guc.push_back(data[i]);
-            		}
-                    guc_vector.push_back(guc);
-                    //guc_timer->start();
-                    recievedGucResp(ContentGuc.R_ADR, ContentGuc.S_ADR != 0);
-                    if (ContentGuc.S_ADR != 0)
-                    {
-                    	startGucTransmitting();
-                    	sendGucQuit();
-                    }
-
-            	}
-            }
-        }
-        break;
-    }
-    case 0x6F:
-    {
-    	value_ptr -= 1; // � � С”� � С•� Ў� ѓ� ЎвЂљ� ЎвЂ№� � В»� � � …� � С•� � Вµ � � С—� Ў� ‚� � Вµ� � � � � Ў� ‚� � В°� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � � � �  � � � …� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � � …� � Т‘� � В°� Ў� ‚� ЎвЂљ� � � …� ЎвЂ№� � в„– � ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂљ � � С”� � В°� � Т‘� Ў� ‚� � В°
-    	value_len += 1; // � � С”� � С•� Ў� ѓ� ЎвЂљ� ЎвЂ№� � В»� � � …� � С•� � Вµ � � С—� Ў� ‚� � Вµ� � � � � Ў� ‚� � В°� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � � � �  � � � …� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � � …� � Т‘� � В°� Ў� ‚� ЎвЂљ� � � …� ЎвЂ№� � в„– � ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂљ � � С”� � В°� � Т‘� Ў� ‚� � В°
-    	switch (indicator) {
-    	case 30: {
-    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
-    		int data_offset;
-    		if (type == modempacket_packHead)
-    			data_offset = 6;
-    		else
-    			data_offset = 4;
-    		uint8_t snr = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
-    		uint8_t errors = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+3);
-    		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
-    		receivedModemPacket.emit(type, snr, errors, bandwidth, value_ptr + data_offset, value_len - data_offset);
-    		break;
-    	}
-    	case 31: {
-    		if (!(value_len >= 1))
-    			break;
-    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
-    		failedRxModemPacket.emit(type);
-    		break;
-    	}
-    	case 32: {
-    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
-    		int data_offset;
-    		if (type == modempacket_packHead)
-    			data_offset = 6;
-    		else
-    			data_offset = 4;
-    		uint8_t snr = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
-    		uint8_t errors = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+3);
-    		ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
-    		if (type == modempacket_packHead) {
-    			uint8_t param_signForm = qmFromBigEndian<uint8_t>(value_ptr+4);
-    			uint8_t param_packCode = qmFromBigEndian<uint8_t>(value_ptr+5);
-        		startedRxModemPacket_packHead.emit(snr, errors, bandwidth, param_signForm, param_packCode, value_ptr + data_offset, value_len - data_offset);
-    		} else {
-        		startedRxModemPacket.emit(type, snr, errors, bandwidth, value_ptr + data_offset, value_len - data_offset);
-    		}
-    		break;
-    	}
-    	default:
-    		break;
-    	}
-    	break;
-    }
-    case 0x7F:
-    {
-    	value_ptr -= 1; // � � С”� � С•� Ў� ѓ� ЎвЂљ� ЎвЂ№� � В»� � � …� � С•� � Вµ � � С—� Ў� ‚� � Вµ� � � � � Ў� ‚� � В°� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � � � �  � � � …� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � � …� � Т‘� � В°� Ў� ‚� ЎвЂљ� � � …� ЎвЂ№� � в„– � ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂљ � � С”� � В°� � Т‘� Ў� ‚� � В°
-    	value_len += 1; // � � С”� � С•� Ў� ѓ� ЎвЂљ� ЎвЂ№� � В»� � � …� � С•� � Вµ � � С—� Ў� ‚� � Вµ� � � � � Ў� ‚� � В°� ЎвЂ°� � Вµ� � � …� � С‘� � Вµ � � � �  � � � …� � Вµ� Ў� ѓ� ЎвЂљ� � В°� � � …� � Т‘� � В°� Ў� ‚� ЎвЂљ� � � …� ЎвЂ№� � в„– � ЎвЂћ� � С•� Ў� ‚� � С�� � В°� ЎвЂљ � � С”� � В°� � Т‘� Ў� ‚� � В°
-    	switch (indicator) {
-    	case 22: {
-    		if (!(value_len >= 1))
-    			break;
-    		ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+0);
-    		transmittedModemPacket.emit(type);
-    		break;
-    	}
-    	case 23: {
-    		if (!(value_len >= 1))
-    			break;
-    		failedTxModemPacket.emit();
-    		break;
-    	}
-    	default:
-    		break;
-    	}
-    	break;
-    }
-
-    case 0x65:
-    {
-    	// get number of the catch packet ...
-#ifndef PORT__PCSIMULATOR
-        if (!virtual_mode)
-            return;
-        if ((indicator == 5) && (data[2] == 1))
-    	{
-            //qmDebugMessage(QmDebug::Dump, "0x65 frame indicator == 5");
-            if ((masterVirtualPps == 0) && (RtcTxRole)) return;
-			addSeconds(&t);
-
-    		if (RtcTxRole)
-    		{
-    			if (count_VrtualTimer <= VrtualTimerMagic)
-    			{
-    				//qmDebugMessage(QmDebug::Dump, "0x65 frame");
-                    //qmDebugMessage(QmDebug::Dump, "0x65 count_VrtualTimer %d",count_VrtualTimer);
-                    //qmDebugMessage(QmDebug::Dump, "0x65 RtcTxCounter %d",RtcTxCounter);
-
-    				if (RtcTxCounter)
-    					++RtcTxCounter;
-    				//qmDebugMessage(QmDebug::Dump, "0x65 RtcTxCounter %d",RtcTxCounter);
-
-
-
-    				if (IsStart(t.seconds))
-    				{
-
-    					freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
-    					//qmDebugMessage(QmDebug::Dump, "0x65 frame %d %d",t.minutes,t.seconds);
-    					RtcTxCounter = 1;
-    					++count_VrtualTimer;
-    					if (count_VrtualTimer > VrtualTimerMagic)
-    					{
-                            //qmDebugMessage(QmDebug::Dump, "0x65 changeFrequency()");
-    						addSeconds(&t);
-    						if (radio_state == radiostatePswf)
-    							changePswfFrequency();
-    						if (radio_state == radiostateSms)
-    							changeSmsFrequency();
-    					}
-    					//qmDebugMessage(QmDebug::Dump, "0x65 frame %d %d",t.minutes,t.seconds);
-    				}
-
-    				//static bool isCor = false;
-    				if (count_VrtualTimer)
-    				{
-						virtGuiCounter++;
-						if ( virtGuiCounter >= 2)
-							virtualCounterChanged(virtGuiCounter - 2);
-//						else
-//							virtualCounterChanged(virtGuiCounter);
-		//					if (virtGuiCounter == 120)
-		//						virtGuiCounter = 0;
-    				}
-
-    				if (RtcTxCounter == 5)
-    				{
-    					sendSynchro(freqVirtual,count_VrtualTimer);
-    					//qmDebugMessage(QmDebug::Dump, "0x65 sendSynchro");
-    					//qmDebugMessage(QmDebug::Dump, "tm %d :" ,rtc->getTime().seconds);
-
-    				}
-                    //qmDebugMessage(QmDebug::Dump, "0x65 count_VrtualTimer %d",count_VrtualTimer);
-
-
-    			}
-    			else
-    			{
-    				if (radio_state == radiostatePswf)
-    					changePswfFrequency();
-    				if (radio_state == radiostateSms)
-    					changeSmsFrequency();
-    			}
-    		}
-    		//-------- RXROLE------------------------------------
-    		if (RtcRxRole)
-    		{
-    			if (count_VrtualTimer > 10)
-    			{
-    				if (radio_state == radiostatePswf)
-    					changePswfFrequency();
-    				if (radio_state == radiostateSms)
-    					changeSmsFrequency();
-    			}
-    			else
-    			{
-    				if (IsStart(t.seconds))
-    				{
-    					++count_VrtualTimer;
-    				}
-
-    				if (antiSync)
-    				{
-						virtGuiCounter++;
-						virtualCounterChanged(virtGuiCounter);
-		//					if (virtGuiCounter == 120)
-		//						virtGuiCounter = 0;
-    				}
-    			}
-    		}
-    	}
-#endif
-    	break;
-    }
-	default: break;
-    }
-	if (!cmd_queue->empty()) {
-		DspCommand cmd;
-		cmd = cmd_queue->front();
-		cmd_queue->pop_front();
-		sendCommand(cmd.module, cmd.code, cmd.value);
-	}
-}
-
 
 void *DspController::getContentPSWF()
 {
@@ -2907,9 +2531,9 @@ void DspController::sendGucQuit()
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 	int tx_data_len = 0;
 
-	ContentGuc.indicator = 20;
-	ContentGuc.type = 4;
-	ContentGuc.chip_time = 3; // super versia new, last value = 2
+	ContentGuc.indicator    = 20;
+	ContentGuc.type         = 4;
+	ContentGuc.chip_time    = 3; // super versia new, last value = 2
 	ContentGuc.WIDTH_SIGNAL = 0; // last value  = 1, thi is freq mode 0 - 3k1, 1 - 20k maybe it works:)
 	//data_storage_fs->getAleStationAddress(ContentGuc.S_ADR);
 
@@ -2928,11 +2552,11 @@ void DspController::sendGucQuit()
 
 
 	uint8_t pack[3] = {0, 0, 0};
-	pack[2] = (ContentGuc.R_ADR & 0x1F) << 3;  // 5 � � В±� � С‘� ЎвЂљ
+	pack[2] =  (ContentGuc.R_ADR & 0x1F) << 3; // 5 � � В±� � С‘� ЎвЂљ
 	pack[2] |= (ContentGuc.S_ADR & 0x1F) >> 2; // 3 � � В±� � С‘� ЎвЂљ� � В°
 	pack[1] |= (ContentGuc.S_ADR & 0x1F) << 6; // 2 � � В±� � С‘� ЎвЂљ� � В°
 	pack[1] |= (ContentGuc.uin >> 2) & 0x3F;   // 6 � � В±� � С‘� ЎвЂљ
-	pack[0] = (ContentGuc.uin << 6) & 0xC0;    // 2 � � В±� � С‘� ЎвЂљ� � В°
+	pack[0] =  (ContentGuc.uin << 6) & 0xC0;   // 2 � � В±� � С‘� ЎвЂљ� � В°
 
     for(int i = 2; i >= 0; --i) {
     	qmToBigEndian((uint8_t)pack[i], tx_data + tx_data_len);
@@ -2987,7 +2611,6 @@ uint8_t DspController::getSmsRetranslation()
 
 void DspController::startGucRecieving()
 {
-    //qmDebugMessage(QmDebug::Dump, "startGucRecieving");
     QM_ASSERT(is_ready);
 
     initResetState();

@@ -263,6 +263,20 @@ private:
     int check_rx_call	 	     (int* wzn);
     uint8_t calc_ack_code	     (uint8_t ack);
 
+
+    inline void recStart   (uint8_t address, uint8_t* data, int data_len);
+    inline void recUndef   (uint8_t address, uint8_t* data, int data_len);
+    inline void recGuc     (uint8_t address, uint8_t* data, int data_len);
+    inline void recPps     (uint8_t address, uint8_t* data, int data_len);
+    inline void recTractCmd(uint8_t address, uint8_t* data, int data_len);
+    inline void recRxTxMod (uint8_t address, uint8_t* data, int data_len);
+    inline void recGucLog  (uint8_t address, uint8_t* data, int data_len);
+    inline void recModem   (uint8_t address, uint8_t* data, int data_len);
+    inline void rec1ppsV   (uint8_t address, uint8_t* data, int data_len);
+
+    void push_queue();
+
+
     int date_time[4];                                           // массив даты-времени для обмена и отображения
     char private_lcode;                                         // переменная - хранит текущий lcode для сравнения с полученным
 
