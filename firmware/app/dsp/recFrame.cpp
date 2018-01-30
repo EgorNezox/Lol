@@ -15,7 +15,7 @@
 #include "qmiopin.h"
 #include "../synchro/virtual_timer.h"
 #include "dspcontroller.h"
-
+#include "PswfModes.h"
 
 namespace Multiradio
 {
@@ -143,7 +143,7 @@ inline void DspController::recRxTxMod(uint8_t address, uint8_t* data, int data_l
 
 	if (address == 0x63)
 	{
-		LogicPswfModes(data,indicator,data_len);
+		pswf_module->LogicPswfModes(data,indicator,data_len);
 	}
 
 	if (address == 0x73) // кадры от DSP передающего модуля
