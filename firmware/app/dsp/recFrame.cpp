@@ -94,7 +94,7 @@ inline void DspController::recTractCmd(uint8_t address, uint8_t* data, int data_
 		// установка значения ксв
 		if ((indicator == 1 || indicator == 5) && code == 6)
 		{
-			waveInfoTimer.stop();
+			waveInfoTimer->stop();
 
 			ref_wave = (float)qmFromBigEndian<uint16_t>(value_ptr+0);
 			fwd_wave = (float)qmFromBigEndian<uint16_t>(value_ptr+2);
@@ -109,7 +109,7 @@ inline void DspController::recTractCmd(uint8_t address, uint8_t* data, int data_
 			power_res = (fwd_wave * fwd_wave) / DEVICE_VALUE; //280000 - sazhen 201600 -tropa
 			waveInfoRecieved(swf_res, power_res);
 
-			waveInfoTimer.start();
+			waveInfoTimer->start();
 		}
 
 		// ответ на команду
@@ -143,7 +143,7 @@ inline void DspController::recRxTxMod(uint8_t address, uint8_t* data, int data_l
 
 	if (address == 0x63)
 	{
-		pswf_module->LogicPswfModes(data,indicator,data_len);
+		pswf_module->DataHandler(data,indicator,data_len);
 	}
 
 	if (address == 0x73) // кадры от DSP передающего модуля

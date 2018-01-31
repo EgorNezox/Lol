@@ -44,6 +44,7 @@ namespace Multiradio {
 
 class  DspTransport;
 struct DspCommand;
+class PswfModes;
 
 static int value_sec[60] =
 {
@@ -212,7 +213,7 @@ public:
     QmTimer *guc_rx_quit_timer 		   = 0;
     uint32_t guc_rx_quit_timer_counter = 0;
 
-    QmTimer waveInfoTimer;
+    QmTimer *waveInfoTimer;
 
     bool isTxAsk 			  = false;
     bool retranslation_active = false;
@@ -228,6 +229,8 @@ public:
     voice_emission_t emissionType;
 
     uint16_t sender = 0;
+
+
 
 private:
 	#include "privenumdspcontroller.h"
@@ -429,6 +432,8 @@ private:
     QmRtc *rtc;
     QmRtc::Time t;
     QmRtc::Date d;
+public:
+    PswfModes *pswf_module;
 };
 
 } /* namespace Multiradio */

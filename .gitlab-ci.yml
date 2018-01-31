@@ -7,9 +7,9 @@ build:
    stage: build
    script: 
   - sudo docker run -v $(pwd):/work/test -it gitlab.d5.lan:5005/sazhen/sazhen
-  - cd /work/test/HOST/firmware
-  - mkdir /work/test/HOST/firmware/misc
-  - cp /work/test/HOST/misc /work/test/HOST/firmware/misc 
+  - cd /work/test/firmware
+  - mkdir /work/test/firmware/misc
+  - cp /work/test/misc /work/test/firmware/misc 
   - makepp clean
   - makepp -j8
 

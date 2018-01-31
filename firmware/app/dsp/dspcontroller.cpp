@@ -47,7 +47,7 @@ struct DspCommand {
 	DspController::ParameterValue value;
 };
 
-PswfModes *pswf_module;
+
 
 DspController::DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, DataStorage::FS *data_storage_fs, QmObject *parent) :
 	QmObject(parent),
@@ -138,9 +138,11 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     ContentPSWF.RN_KEY = DefkeyValue;
     ContentSms.RN_KEY = DefkeyValue;
 
-    waveInfoTimer.setInterval(1700);
-    waveInfoTimer.setSingleShot(true);
-    waveInfoTimer.timeout.connect(sigc::mem_fun(this, &DspController::clearWaveInfo));
+    waveInfoTimer = new QmTimer();
+
+    waveInfoTimer->setInterval(1700);
+    waveInfoTimer->setSingleShot(true);
+    waveInfoTimer->timeout.connect(sigc::mem_fun(this, &DspController::clearWaveInfo));
 
 }
 DspController::~DspController()
