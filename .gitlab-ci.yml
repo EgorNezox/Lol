@@ -1,15 +1,15 @@
-build-sazhen:
-  stage: build
-  image: gitlab.d5.lan:5005/sazhen/sazhen:latest  
+image: gitlab.d5.lan:5005/sazhen/sazhen:latest
+
 stages:
   - build
-build: 
-   stage: build
-   script: 
-  - sudo docker run -v $(pwd):/work/test -it gitlab.d5.lan:5005/sazhen/sazhen
-  - cd /work/test/firmware
-  - mkdir /work/test/firmware/misc
-  - cp /work/test/misc /work/test/firmware/misc 
-  - makepp clean
-  - makepp -j8
+
+job1:
+  stage: build
+  script:
+    - sudo docker run -v $(pwd):/work/test -it gitlab.d5.lan:5005/sazhen/sazhen
+    - cd /work/test/firmware
+    - mkdir /work/test/firmware/misc
+    - cp /work/test/misc/. /work/test/firmware/misc
+    - makepp clean
+    - makepp -j4
 
