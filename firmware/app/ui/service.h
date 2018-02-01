@@ -171,6 +171,19 @@ private:
     void onTestMsgTimer();
     void startRxQuit();
 
+    void drawMenu_txPutOffVoice();
+    void drawMenu_txSmsMessage();
+    void drawMenu_recvCondCmd();
+    void drawMenu_recvGroupCondCmd();
+    void drawMenu_rxSmsMessage();
+    void drawMenu_rxPutOffVoice();
+    void drawMenu_gpsCoord();
+    void drawMenu_setDate();
+    void drawMenu_setTime();
+    void drawMenu_setFreq();
+    void drawMenu_setSpeed();
+    void drawMenu_filetree();
+
     matrix_keyboard_t      matrix_kb;
     aux_keyboard_t         aux_kb;
     static bool 		   single_instance;

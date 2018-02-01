@@ -23,15 +23,15 @@ void Service::endMenuWindow_keyPressed(UI_Key key)
 
     switch(estate.subType)
     {
-		case GuiWindowsSubType::condCommand:     	 condCommand_keyPressed(key);	      break;
-		case GuiWindowsSubType::txGroupCondCmd:		 txGroupCondCmd_keyPressed(key); 	  break;
-		case GuiWindowsSubType::txPutOffVoice:		 txPutOffVoice_keyPressed(key);		  break;
-		case GuiWindowsSubType::txSmsMessage:	     txSmsMessage_keyPressed(key); 		  break;
+        case GuiWindowsSubType::recvCondCmd:		 recvCondCmd_keyPressed(key); 		  break; // УК  rx
+		case GuiWindowsSubType::condCommand:     	 condCommand_keyPressed(key);	      break; // УК  tx
+		case GuiWindowsSubType::recvGroupCondCmd:	 recvGroupCondCmd_keyPressed(key);    break; // ГУК rx
+		case GuiWindowsSubType::txGroupCondCmd:		 txGroupCondCmd_keyPressed(key); 	  break; // ГУК tx
+		case GuiWindowsSubType::rxSmsMessage:		 rxSmsMessage_keyPressed(key); 		  break; // СМС rx
+		case GuiWindowsSubType::txSmsMessage:	     txSmsMessage_keyPressed(key); 		  break; // СМС tx
+		case GuiWindowsSubType::rxPutOffVoice:		 rxPutOffVoice_keyPressed(key);       break; // ГП  rx
+		case GuiWindowsSubType::txPutOffVoice:		 txPutOffVoice_keyPressed(key);		  break; // ГП  tx
 		case GuiWindowsSubType::recvVoice:			 recvVoice_keyPressed(key); 		  break;
-		case GuiWindowsSubType::recvCondCmd:		 recvCondCmd_keyPressed(key); 		  break;
-		case GuiWindowsSubType::rxSmsMessage:		 rxSmsMessage_keyPressed(key); 		  break;
-		case GuiWindowsSubType::recvGroupCondCmd:	 recvGroupCondCmd_keyPressed(key);    break;
-		case GuiWindowsSubType::rxPutOffVoice:		 rxPutOffVoice_keyPressed(key);       break;
 		case GuiWindowsSubType::volume:				 volume_keyPressed(key); 			  break;
 		case GuiWindowsSubType::scan:				 scan_keyPressed(key); 				  break;
 		case GuiWindowsSubType::suppress:			 suppress_keyPressed(key); 			  break;
