@@ -44,7 +44,6 @@ namespace Multiradio {
 
 class  DspTransport;
 struct DspCommand;
-class PswfModes;
 
 static int value_sec[60] =
 {
@@ -82,12 +81,12 @@ static int frequence_bandwidth[34] =
 
 };
 
-
 class DspController : public QmObject
 {
 
 public:
 	#include "pubenumdspcontroller.h"
+
     DspController				(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, DataStorage::FS *data_storage_fs, QmObject *parent);
     ~DspController();
 
@@ -230,12 +229,22 @@ public:
 
     uint16_t sender = 0;
 
-
+	trFrame frame;
 
 private:
 	#include "privenumdspcontroller.h"
+
     friend struct DspCommand;
     friend class  PswfModes;
+
+
+	struct DspCommand {
+		bool in_progress;
+		bool sync_next;
+		DspController::Module module;
+		int code;
+		DspController::ParameterValue value;
+	};
 
     void setRx();
     void setTx();
@@ -264,7 +273,6 @@ private:
     void syncNextRadioState();
 
     void getSwr();
-    void sendPswf();
     void addSeconds(int *date_time);
     void addSeconds(QmRtc::Time *t);
 
@@ -289,7 +297,6 @@ private:
     void processReceivedFrame	 (uint8_t address, uint8_t *data, int data_len);                    // функция приема кадров от DSP
 
     int prevSecond				 (int second);                                                      // функция получения предыдущей секунды
-    int calcFstn				 (int R_ADR, int S_ADR, int RN_KEY, int DAY, int HRS, int MIN, int SEC, int QNB);
     int getFrequency			 (uint8_t mode);
 
     void wakeUpTimer();
@@ -302,22 +309,65 @@ private:
     void changeSmsFrequency();
     bool generateSmsReceived();
 
-    int wzn_change		 	     (std::vector<int> &vect);
-    int check_rx_call	 	     (int* wzn);
-    uint8_t calc_ack_code	     (uint8_t ack);
-
-
-    inline void recStart   (uint8_t address, uint8_t* data, int data_len);
-    inline void recUndef   (uint8_t address, uint8_t* data, int data_len);
-    inline void recGuc     (uint8_t address, uint8_t* data, int data_len);
-    inline void recPps     (uint8_t address, uint8_t* data, int data_len);
-    inline void recTractCmd(uint8_t address, uint8_t* data, int data_len);
-    inline void recRxTxMod (uint8_t address, uint8_t* data, int data_len);
-    inline void recGucLog  (uint8_t address, uint8_t* data, int data_len);
-    inline void recModem   (uint8_t address, uint8_t* data, int data_len);
-    inline void rec1ppsV   (uint8_t address, uint8_t* data, int data_len);
+    void recStart   (uint8_t address, uint8_t* data, int data_len);
+    void recUndef   (uint8_t address, uint8_t* data, int data_len);
+    void recGuc     (uint8_t address, uint8_t* data, int data_len);
+    void recPps     (uint8_t address, uint8_t* data, int data_len);
+    void recTractCmd(uint8_t address, uint8_t* data, int data_len);
+    void recRxTxMod (uint8_t address, uint8_t* data, int data_len);
+    void recGucLog  (uint8_t address, uint8_t* data, int data_len);
+    void recModem   (uint8_t address, uint8_t* data, int data_len);
+    void rec1ppsV   (uint8_t address, uint8_t* data, int data_len);
 
     void push_queue();
+
+    //-------------------------- pswf -------------------------------------------------
+
+	void startPswfTx(bool ack, uint8_t r_adr, uint8_t cmd,int retr);
+	// запуск режима приема УК
+	void startPswfRx();
+	// запуск режима передачи СМС
+	void startSmsTx ();
+	// запуск режима приема СМС
+	void startSmsRx ();
+
+	// вычисляем смещение частоты для УК
+    uint32_t CalcShiftFreq	   		  (uint32_t RN_KEY, uint32_t DAY, uint32_t HRS, uint32_t MIN, uint32_t SEC);                  // функция рассчета частоты смещения для УК
+    // вычисляем частоту для СМС
+    uint32_t CalcSmsTransmitFreq	  (uint32_t RN_KEY, uint32_t DAY, uint32_t HRS, uint32_t MIN, uint32_t SEC);                  // функция рассчета частоты смещения для СМС
+    // вычисление волновой зоны для СМС
+    uint32_t wzn_change				  (std::vector<int> &vect);
+    // вычисление параметра FSTN для СМС
+    uint32_t calcFstn(int R_ADR, int S_ADR, int RN_KEY, int DAY, int HRS, int MIN, int SEC, int QNB);
+
+    uint32_t check_rx_call(int* wzn);
+
+    uint32_t calc_ack_code(uint8_t ack);
+
+    // логика для приемав и передачи УК
+    void LogicPswfTx();
+    void LogicPswfRx();
+
+    // логика для приемав и передачи СМС
+    void LogicSmsTx();
+    void LogicSmsRx();
+    // обработка пакетов по 63 адресу для обоих режимов
+    void DataHandler(uint8_t* data, uint8_t indicator, int data_len);
+
+    // обработка приема
+    void recSms (uint8_t *data);
+    void recPswf(uint8_t data,uint8_t code, uint8_t indicator);
+
+    // обработка пакета передачи
+
+    trFrame sendSms ();
+
+    void sendPswf_short();
+    trFrame sendPswf();
+
+    //-------------------------- pswf ----------------------------------------------------
+
+    void galuaInit();
 
 
     int date_time[4];                                           // массив даты-времени для обмена и отображения
@@ -432,8 +482,7 @@ private:
     QmRtc *rtc;
     QmRtc::Time t;
     QmRtc::Date d;
-public:
-    PswfModes *pswf_module;
+
 };
 
 } /* namespace Multiradio */

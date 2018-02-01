@@ -15,7 +15,6 @@
 #include "qmiopin.h"
 #include "../synchro/virtual_timer.h"
 #include "dspcontroller.h"
-#include "PswfModes.h"
 
 namespace Multiradio
 {
@@ -47,7 +46,7 @@ void DspController::recStart(uint8_t address, uint8_t* data, int data_len)
 	processStartup(qmFromBigEndian<uint16_t>(value_ptr+0), qmFromBigEndian<uint16_t>(value_ptr+2), qmFromBigEndian<uint16_t>(value_ptr+4));
 }
 
-inline void DspController::recUndef(uint8_t address, uint8_t* data, int data_len)
+void DspController::recUndef(uint8_t address, uint8_t* data, int data_len)
 {
 	uint8_t indicator  = qmFromBigEndian<uint8_t>(data+0);
 	uint8_t code       = qmFromBigEndian<uint8_t>(data+1);
@@ -68,7 +67,7 @@ inline void DspController::recUndef(uint8_t address, uint8_t* data, int data_len
 	}
 }
 
-inline void DspController::recTractCmd(uint8_t address, uint8_t* data, int data_len)
+void DspController::recTractCmd(uint8_t address, uint8_t* data, int data_len)
 {
 	ParameterValue value;
 	uint8_t indicator = qmFromBigEndian<uint8_t>(data+0);
@@ -121,8 +120,7 @@ inline void DspController::recTractCmd(uint8_t address, uint8_t* data, int data_
 	}
 }
 
-
-inline void DspController::recRxTxMod(uint8_t address, uint8_t* data, int data_len)
+void DspController::recRxTxMod(uint8_t address, uint8_t* data, int data_len)
 {
 	uint8_t indicator  = qmFromBigEndian<uint8_t>(data+0);
 	uint8_t code       = qmFromBigEndian<uint8_t>(data+1);
@@ -143,7 +141,7 @@ inline void DspController::recRxTxMod(uint8_t address, uint8_t* data, int data_l
 
 	if (address == 0x63)
 	{
-		pswf_module->DataHandler(data,indicator,data_len);
+		DataHandler(data,indicator,data_len);
 	}
 
 	if (address == 0x73) // кадры от DSP передающего модуля
@@ -174,186 +172,7 @@ inline void DspController::recRxTxMod(uint8_t address, uint8_t* data, int data_l
 	}
 }
 
-inline void DspController::recGucLog(uint8_t address, uint8_t* data, int data_len)
-{
-	uint8_t indicator  = qmFromBigEndian<uint8_t>(data+0);
-	uint8_t code       = qmFromBigEndian<uint8_t>(data+1);
-
-	uint8_t *value_ptr = data + 2;
-	int value_len      = data_len - 2;
-
-
-	if (address == 0x7B)
-	{
-		if (indicator == 22)
-		{
-			if (ContentGuc.stage == GucRx)
-			{
-				//qmDebugMessage(QmDebug::Dump, "---- 0x7B indicator:22 GucRx");
-				exitVoceMode();
-				magic();
-			}
-			else if (ContentGuc.stage == GucTx) // wait recieving ack
-			{
-				//qmDebugMessage(QmDebug::Dump, "---- 0x7B indicator:22 GucTx");
-				if (isGucWaitReceipt)
-				{
-					//qmDebugMessage(QmDebug::Dump, "---- isGucWaitReceipt");
-					startGucRecieving();
-					ContentGuc.stage = GucTx;
-					startRxQuit();
-					startGucTimer();
-				}
-				else
-				{
-					//qmDebugMessage(QmDebug::Dump, "---- NOT isGucWaitReceipt");
-					startRxQuit();
-					completedStationMode(true);
-				}
-			}
-		}
-	}
-
-	if (address == 0x6B)
-	{
-		if (ContentGuc.stage != GucNone)
-		{
-			if (indicator == 32)
-			{
-				//qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: indicator %d", indicator);
-			}
-			if (indicator == 30)
-			{
-				ContentGuc.R_ADR = ((data[2] & 0xF8) >> 3);
-				ContentGuc.uin   = ((data[4] & 0x1) << 7) + ((data[5] & 0xFE) >> 1);
-				isGpsGuc = data[5] & 0x1;
-				ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);
-				if (ContentGuc.stage == GucTx)
-				{
-					//ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);
-					//qmDebugMessage(QmDebug::Dump, "---- 0x6B indicator:30 stage: GucTx R_ADR: %d S_ADR: %d", ContentGuc.R_ADR, ContentGuc.S_ADR);
-					recievedGucQuitForTransm(ContentGuc.S_ADR);
-					completedStationMode(false);
-					stopGucTimer();
-				}
-				else
-				{
-					//qmDebugMessage(QmDebug::Dump, "---- 0x6B indicator:30 stage: GucRx R_ADR: %d S_ADR: %d", ContentGuc.R_ADR, ContentGuc.S_ADR);
-					std::vector<uint8_t> guc;
-					for(int i = 0;i<data_len;i++)
-					{
-						//qmDebugMessage(QmDebug::Dump, "0x6B recieved frame: %d , num %d", data[i],i);
-						guc.push_back(data[i]);
-					}
-					guc_vector.push_back(guc);
-					//guc_timer->start();
-					recievedGucResp(ContentGuc.R_ADR, ContentGuc.S_ADR != 0);
-					if (ContentGuc.S_ADR != 0)
-					{
-						startGucTransmitting();
-						sendGucQuit();
-					}
-
-				}
-			}
-		}
-	}
-}
-
-
-inline void DspController::recModem(uint8_t address, uint8_t* data, int data_len)
-{
-	uint8_t indicator  = qmFromBigEndian<uint8_t>(data+0);
-	uint8_t code       = qmFromBigEndian<uint8_t>(data+1);
-
-	uint8_t *value_ptr = data + 2;
-	int value_len      = data_len - 2;
-
-	if (address == 0x6F)
-	{
-		value_ptr -= 1;
-		value_len += 1;
-
-		switch (indicator)
-		{
-		case 30:
-		{
-			ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
-			int data_offset;
-			data_offset = (type == modempacket_packHead) ? 6 : 4;
-
-			uint8_t snr              = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
-			uint8_t errors           = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+3);
-			ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
-
-			receivedModemPacket.emit(type, snr, errors, bandwidth, value_ptr + data_offset, value_len - data_offset);
-			break;
-		}
-
-		case 31:
-		{
-			if (!(value_len >= 1))
-				break;
-
-			ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
-			failedRxModemPacket.emit(type);
-			break;
-		}
-		case 32:
-		{
-			ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+1);
-			int data_offset;
-			data_offset = (type == modempacket_packHead) ? 6 : 4;
-
-			uint8_t snr              = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+2);
-			uint8_t errors           = (uint8_t)qmFromBigEndian<int8_t>(value_ptr+3);
-			ModemBandwidth bandwidth = (ModemBandwidth)qmFromBigEndian<uint8_t>(value_ptr+0);
-
-			if (type == modempacket_packHead)
-			{
-				uint8_t param_signForm = qmFromBigEndian<uint8_t>(value_ptr+4);
-				uint8_t param_packCode = qmFromBigEndian<uint8_t>(value_ptr+5);
-				startedRxModemPacket_packHead.emit(snr, errors, bandwidth, param_signForm, param_packCode, value_ptr + data_offset, value_len - data_offset);
-			}
-			else
-			{
-				startedRxModemPacket.emit(type, snr, errors, bandwidth, value_ptr + data_offset, value_len - data_offset);
-			}
-
-			break;
-		}
-		default: break;
-		}
-	}
-	if (address == 0x7F)
-	{
-		value_ptr -= 1;
-		value_len += 1;
-
-		switch (indicator)
-		{
-		case 22:
-		{
-			if (!(value_len >= 1))
-				break;
-
-			ModemPacketType type = (ModemPacketType)qmFromBigEndian<uint8_t>(value_ptr+0);
-			transmittedModemPacket.emit(type);
-			break;
-		}
-		case 23:
-		{
-			if (!(value_len >= 1))
-				break;
-			failedTxModemPacket.emit();
-			break;
-		}
-		default: break;
-		}
-	}
-}
-
-inline void DspController::rec1ppsV(uint8_t address, uint8_t* data, int data_len)
+void DspController::rec1ppsV(uint8_t address, uint8_t* data, int data_len)
 {
 	uint8_t indicator  = qmFromBigEndian<uint8_t>(data+0);
 	uint8_t code       = qmFromBigEndian<uint8_t>(data+1);
@@ -468,7 +287,8 @@ inline void DspController::rec1ppsV(uint8_t address, uint8_t* data, int data_len
 
 
 
-void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len) {
+void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int data_len)
+{
 	if (data_len < DEFAULT_PACKET_HEADER_LEN)
 		return;
 

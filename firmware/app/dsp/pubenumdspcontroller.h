@@ -111,4 +111,11 @@ enum CondComRole
 	CondComRx = 1
 };
 
+typedef struct trFrame
+{
+	int address;
+	uint8_t* data;
+	int len;
+};
+
 #endif /* FIRMWARE_APP_DSP_PUBENUMDSPCONTROLLER_H_ */
