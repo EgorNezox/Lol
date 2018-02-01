@@ -729,6 +729,143 @@ void Service::condCommand_keyPressed(UI_Key key)
     }
 }
 
+void Service::insertGroupCondCmdSymbol(std::string* commands, UI_Key key)
+{
+	if (isGucFullCmd)
+	{
+		if (commands->size() < 399 && menu->cmdCount < 101 )
+		{
+
+			bool isFirstCmdSymbol  = commands->size() % 4 == 0;
+			bool isSecondCmdSymbol = commands->size() % 4 == 1;
+			bool isThirdCmdSymbol  = commands->size() % 4 == 2;
+
+			if (isFirstCmdSymbol)                                    // if first symbol
+			{
+				if (key == key0 or key == key1)
+				{
+					commands->push_back( (char)(key + 42) );         // ins [0-1] [_] [_]
+				}
+				else
+				{
+					// not insert incorrect symbol.
+				}
+			}
+			else if (isSecondCmdSymbol)
+			{
+				UI_Key firstCmdKey = (UI_Key)(commands->at(commands->size() - 1) - 42);
+
+				if (firstCmdKey == key0)                             // if [0] [_] [_]
+				{
+					commands->push_back( (char)(key + 42) );         // ins [0] [0-9] [_]
+				}
+				else if (firstCmdKey == key1)                        // if [1] [_] [_]
+				{
+					if (key >= key0 and key <= key2)
+					{
+						commands->push_back( (char)(key + 42) );     // ins [1] [0-2] [_]
+					}
+					else
+					{
+						// not insert incorrect symbol.
+					}
+				}
+				else
+				{
+					// ERROR! cmd is not in [0; 127]                  // [2-9] [_] [_]
+				}
+			}
+			else if (isThirdCmdSymbol)
+			{
+				UI_Key firstCmdKey = (UI_Key)(commands->at(commands->size() - 2) - 42);
+				UI_Key secondCmdKey = (UI_Key)(commands->at(commands->size() - 1) - 42);
+
+				if (firstCmdKey == key0)                              // if [0] [0-9] [_]
+				{
+					commands->push_back( (char)(key + 42) );          // ins [0] [0-9] [0-9]
+				}
+				else if (firstCmdKey == key1)                         // if [1] [_] [_]
+				{
+					if (secondCmdKey == key0 or secondCmdKey == key1) 	// if [1] [0-1] [_]
+					{
+						commands->push_back( (char)(key + 42) );      	// ins [1] [0-1] [0-9]
+					}
+					else if (secondCmdKey == key2)                   	 // if [1] [2] [_]
+					{
+						if (key >= key0 and key <= key7)
+						{
+							commands->push_back( (char)(key + 42) ); 	// ins [1] [2] [0-7]
+						}
+					}
+					else
+					{
+						// not insert incorrect symbol.
+					}
+				}
+				else
+				{
+					// ERROR! cmd is not in [0; 127],  >= 200 // [2-9] [_] [_]
+				}
+			}
+			else
+			{
+				// ERROR! is sym # 4. its impossible.
+			}
+
+
+			if (commands->size() > 0 && commands->size() % 4 == 1)
+				menu->cmdCount++;
+
+			if (commands->size() > 0 && (commands->size() + 1) % 4 == 0)
+			{
+				commands->push_back((char) ' ');
+			}
+				menu->cmdScrollIndex += 20;
+		}
+	}
+	else
+	{
+		if (commands->size() < 299 && menu->cmdCount < 101 )
+		{
+			commands->push_back( (char)(key + 42) );
+			if (commands->size() > 0 && commands->size() % 3 == 1)
+				menu->cmdCount++;
+
+			if (commands->size() > 0 && (commands->size() + 1) % 3 == 0)
+			{
+				commands->push_back((char) ' ');
+			}
+				menu->cmdScrollIndex += 20;
+		}
+	}
+}
+
+void Service::deleteGroupCondCmdSymbol(std::string* commands)
+{
+	if (isGucFullCmd)
+	{
+		if (commands->size() % 4 == 1)
+			menu->cmdCount--;
+
+		if ( commands->size() > 3 && commands->back() == ' ' )
+		{
+			commands->pop_back();
+		}
+		commands->pop_back();
+	}
+	else
+	{
+		if (commands->size() % 3 == 1)
+			menu->cmdCount--;
+
+		if ( commands->size() > 2 && commands->back() == ' ' )
+		{
+			commands->pop_back();
+		}
+		commands->pop_back();
+	}
+}
+
 void Service::txGroupCondCmd_keyPressed(UI_Key key)
 {
 	CEndState estate = (CEndState&)guiTree.getCurrentState();
@@ -823,14 +960,7 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
             {
                 if(commands->size() > 0)
                 {
-                    if(commands->size() %3 == 1)
-                        menu->cmdCount--;
-
-                    if( commands->size() > 2 && commands->back() == ' ' )
-                    {
-                        commands->pop_back();
-                    }
-                    commands->pop_back();
+                	deleteGroupCondCmdSymbol(commands);
                 }
                 else
                 {
@@ -858,18 +988,7 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
 
             if ( key >= key0 && key <= key9 )
             {
-                if (commands->size() < 299 && menu->cmdCount < 101 )
-                {
-                    commands->push_back( (char)(key + 42) );
-                    if(commands->size() > 0 && commands->size() %3 == 1)
-                        menu->cmdCount++;
-
-                    if(commands->size() > 0 && (commands->size()+1) %3 == 0)
-                    {
-                        commands->push_back((char) ' ');
-                    }
-                        menu->cmdScrollIndex += 20;
-                }
+            	insertGroupCondCmdSymbol(commands, key);
             }
         }
         break;

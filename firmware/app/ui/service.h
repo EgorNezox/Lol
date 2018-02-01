@@ -142,7 +142,6 @@ private:
     void onRecievingBatteryVoltage	    (int voltage);
     void onWaveInfoRecieved				(float wave, float power);
 
-
     void setColorScheme					(uint32_t back,uint32_t front);
     void smsMessage						(int value);
     void FailedSms						(int stage);
@@ -170,6 +169,9 @@ private:
     void updateSystemTime();
     void onTestMsgTimer();
     void startRxQuit();
+
+    void insertGroupCondCmdSymbol(std::string* commands, UI_Key key);
+    void deleteGroupCondCmdSymbol(std::string* commands);
 
     void drawMenu_txPutOffVoice();
     void drawMenu_txSmsMessage();
@@ -264,6 +266,8 @@ private:
     bool isDrawCondCmd        = false;
 
     bool inDateMenu			  = false;
+
+    bool isGucFullCmd         = false; // enable 3 symbol command
 
     uint8_t gucAdd            = 0;
     uint8_t cmdSpaceCount     = 0;
