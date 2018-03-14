@@ -139,6 +139,11 @@ void hal_timer_delete(hal_timer_handle_t handle) {
 	free(timer);
 }
 
+void HAL_Delay(uint32_t Delay)
+{
+	hal_timer_delay(Delay);
+}
+
 void hal_timer_start(hal_timer_handle_t handle, unsigned int ms, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	DEFINE_PCB_FROM_HANDLE(timer, handle)
 	BaseType_t scheduler_state = xTaskGetSchedulerState();
