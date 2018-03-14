@@ -169,6 +169,11 @@ void DspController::dspReset()
 	if (guc_rx_quit_timer)stopGucTimer();
 }
 
+void DspController::start_usb()
+{
+	usb_start();
+}
+
 bool DspController::isReady() {
 	return is_ready;
 }
@@ -659,6 +664,8 @@ void DspController::processStartupTimeout()
 //	qmDebugMessage(QmDebug::Warning, "DSP startup timeout");
 	is_ready = true;
 	started();
+
+	start_usb();
     //swr_timer.start();
 }
 

@@ -14,7 +14,7 @@
 #include "qmrtc.h"
 #include "../navigation/navigator.h"
 #include "../datastorage/fs.h"
-
+#include "../../../system/usb_cdc.h"
 /**
  @file
  @brief Класс предназначен для выполения операций обмена между DSP и HOST
@@ -173,6 +173,8 @@ public:
     void sendHeadsetType(uint8_t type);
     void setStationAddress(uint8_t address);
     void clearWaveInfo();
+
+    void start_usb();
 
     sigc::signal<void> started;
     sigc::signal<void> rxModeSetting;

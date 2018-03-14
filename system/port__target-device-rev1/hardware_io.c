@@ -19,6 +19,11 @@
 #include "hal_timer.h"
 #include "hal_i2c.h"
 
+#include "../usb_cdc.h"
+
+#include "usb_cdc/Inc/usb_device.h"
+#include "usb_cdc/Inc/usbd_cdc_if.h"
+
 #define _STR(arg) #arg
 #define STR(arg) _STR(arg)
 
@@ -153,6 +158,12 @@ void stm32f2_ext_mem_init(void) {
 	  FSMC_Bank1->BTCR[2]  = 0x00001015;
 	  FSMC_Bank1->BTCR[3]  = 0x00010800;
 	  FSMC_Bank1E->BWTR[2] = 0x0fffffff;
+}
+
+
+void usb_start()
+{
+	MX_USB_DEVICE_Init();
 }
 
 /* Тестирование аппаратной исправности внешней памяти

@@ -1,5 +1,6 @@
 image: gitlab.d5.lan:5005/sazhen/sazhen:latest
 
+
 stages:
   - build
 
