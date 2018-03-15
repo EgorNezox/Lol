@@ -172,6 +172,12 @@ void DspController::dspReset()
 void DspController::start_usb()
 {
 	usb_start();
+
+	/*for(int i = 0; i < 100; i++)
+	{
+		usb_tx();
+	}*/
+
 }
 
 bool DspController::isReady() {
@@ -665,9 +671,13 @@ void DspController::processStartupTimeout()
 	is_ready = true;
 	started();
 
+	//usbrx = usb_rx;
+
 	start_usb();
     //swr_timer.start();
+
 }
+
 
 bool DspController::startRadioOff()
 {

@@ -472,6 +472,8 @@ __ALIGN_BEGIN uint8_t USBD_CDC_OtherSpeedCfgDesc[USB_CDC_CONFIG_DESC_SIZ] __ALIG
   * @param  cfgidx: Configuration index
   * @retval status
   */
+static uint8_t buffer[284] = {0};
+
 static uint8_t  USBD_CDC_Init (USBD_HandleTypeDef *pdev, 
                                uint8_t cfgidx)
 {
@@ -513,8 +515,8 @@ static uint8_t  USBD_CDC_Init (USBD_HandleTypeDef *pdev,
                  USBD_EP_TYPE_INTR,
                  CDC_CMD_PACKET_SIZE);
   
-    
-  pdev->pClassData = USBD_malloc(sizeof (USBD_CDC_HandleTypeDef));
+  //uint8_t razm = USBD_malloc(sizeof (USBD_CDC_HandleTypeDef));
+  pdev->pClassData =  buffer;
   
   if(pdev->pClassData == NULL)
   {
@@ -582,7 +584,9 @@ static uint8_t  USBD_CDC_DeInit (USBD_HandleTypeDef *pdev,
   if(pdev->pClassData != NULL)
   {
     ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->DeInit();
-    USBD_free(pdev->pClassData);
+
+    //USBD_free(pdev->pClassData);
+
     pdev->pClassData = NULL;
   }
   

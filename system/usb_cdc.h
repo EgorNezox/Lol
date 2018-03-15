@@ -5,7 +5,11 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
+
 void usb_start();
+void usb_tx();
+
 
 #ifdef __cplusplus
 }

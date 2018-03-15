@@ -49,6 +49,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "../Inc/usbd_cdc_if.h"
+#include "../../../usb_cdc.h"
 
 /* USER CODE BEGIN INCLUDE */
 
@@ -288,10 +289,16 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   * @param  Len: Number of data received (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
+
+extern char str_rx[21];
+
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+  //strncpy(str_rx,(char*)Buf,*Len);
+
+  //str_rx[*Len]=0;
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
   /* USER CODE END 6 */

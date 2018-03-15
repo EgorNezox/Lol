@@ -434,6 +434,9 @@ private:
     QmRtc *rtc;
     QmRtc::Time t;
     QmRtc::Date d;
+
+    static void* usbrx;
+
 public:
     PswfModes *pswf_module;
 };
