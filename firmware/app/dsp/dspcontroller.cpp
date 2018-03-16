@@ -21,8 +21,10 @@
 #include "../synchro/virtual_timer.h"
 #include "PswfModes.h"
 
+
 #define DEFAULT_PACKET_HEADER_LEN	2
 #define hw_rtc                      1
+#define hw_usb						2
 #define DefkeyValue 631
 
 
@@ -85,7 +87,10 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
 #ifndef PORT__PCSIMULATOR
     rtc = new QmRtc(hw_rtc);
+    usb = new QmUsb(hw_usb);
+    usb->usbwakeup.connect(sigc::mem_fun(this, &DspController::wakeUpUsb));
 	rtc->wakeup.connect(sigc::mem_fun(this,&DspController::wakeUpTimer));
+
 #endif
 
     if (navigator != 0)
@@ -2262,6 +2267,12 @@ void DspController::correctTime(uint8_t num)
 //    qmDebugMessage(QmDebug::Dump, "correctTime() COUNTER VIRTUAL %d",count_VrtualTimer);
 
 	RtcFirstCatch = -1;
+}
+
+void DspController::wakeUpUsb()
+{
+	uint8_t * buff = usb->getbuffer();
+	qmDebugMessage(QmDebug::Info, "start usb...");
 }
 
 void DspController::wakeUpTimer()

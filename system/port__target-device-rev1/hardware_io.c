@@ -180,18 +180,6 @@ void usb_tx()
 
 static char str_rx[21];
 
-static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
-{
-  /* USER CODE BEGIN 6 */
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
-  strncpy(str_rx,(char*)Buf,*Len);
-
-  str_rx[*Len]=0;
-  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-  return (USBD_OK);
-  /* USER CODE END 6 */
-}
-
 
 /* Тестирование аппаратной исправности внешней памяти
  * Глобальные переменные здесь нельзя использовать, данные могут быть размещены в тестируемой памяти.
@@ -601,6 +589,8 @@ int stm32f2_get_exti_line(int platform_hw_resource) {
 	switch (platform_hw_resource) {
 	case platformhwRtc:
 		return 22;
+	case platformhwUsb:
+		return 18;
 	case platformhwHeadsetPttIopin:
 		return 8;
 	case platformhwKeyboardButt1Iopin:

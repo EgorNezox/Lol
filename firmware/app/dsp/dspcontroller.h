@@ -12,6 +12,7 @@
 
 #include "packagemanager.h"
 #include "qmrtc.h"
+#include "qmusb.h"
 #include "../navigation/navigator.h"
 #include "../datastorage/fs.h"
 #include "../../../system/usb_cdc.h"
@@ -298,6 +299,8 @@ private:
     void correctTime			 (uint8_t num);
     void sendSynchro			 (uint32_t freq, uint8_t cnt);
 
+    void wakeUpUsb();
+
     void sendSms			     (Module module);
     uint8_t *getGpsGucCoordinat  (uint8_t *coord);
 
@@ -432,6 +435,7 @@ private:
     QmTimer *guc_timer;
 
     QmRtc *rtc;
+    QmUsb *usb;
     QmRtc::Time t;
     QmRtc::Date d;
 
