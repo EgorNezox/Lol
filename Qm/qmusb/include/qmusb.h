@@ -21,8 +21,8 @@ public:
 	virtual ~QmUsb();
 
 	uint8_t* getbuffer();
-
-	uint8_t buffer[255];
+	bool 	 getrtc();
+	bool     getdtr();
 
 	sigc::signal<void> usbwakeup;
 

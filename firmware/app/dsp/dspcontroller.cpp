@@ -2272,6 +2272,12 @@ void DspController::correctTime(uint8_t num)
 void DspController::wakeUpUsb()
 {
 	uint8_t * buff = usb->getbuffer();
+
+	if (usb->getrtc())
+	{
+		dspReset();
+	}
+
 	qmDebugMessage(QmDebug::Info, "start usb...");
 }
 

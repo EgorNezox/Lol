@@ -136,6 +136,8 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 
 int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
 
+int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length);
+
 /* USER CODE BEGIN EXPORTED_FUNCTIONS */
 
 /* USER CODE END EXPORTED_FUNCTIONS */
