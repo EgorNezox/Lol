@@ -132,3 +132,8 @@ void UartConsoleWidget::execRxDataError() {
 	cursor.insertText("Rx data error");
 	ui->textActivity->moveCursor(QTextCursor::End);
 }
+
+void UartConsoleWidget::on_editRx_textChanged(const QString &arg1)
+{
+
+}

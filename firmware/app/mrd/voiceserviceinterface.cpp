@@ -56,7 +56,12 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     current_mode = VoiceModeManual;
 
     dispatcher->dsp_controller->hardwareFailed.connect(sigc::mem_fun(this, &VoiceServiceInterface::forwardDspHardwareFailure));
+    dispatcher->dsp_controller->emulateKey.connect(sigc::mem_fun(this, &VoiceServiceInterface::emulatorKey));
+}
 
+void VoiceServiceInterface::emulatorKey(int key)
+{
+	emulKey(key);
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()

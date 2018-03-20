@@ -12,7 +12,9 @@
 
 #include "packagemanager.h"
 #include "qmrtc.h"
+#ifndef PORT__PCSIMULATOR
 #include "qmusb.h"
+#endif
 #include "../navigation/navigator.h"
 #include "../datastorage/fs.h"
 #include "../../../system/usb_cdc.h"
@@ -211,6 +213,8 @@ public:
     sigc::signal<void, uint8_t/*snr*/, uint8_t/*errors*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket_packHead;
     sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
     sigc::signal<void, int, int, int /*hrs,min,sec*/> vm1PpsPulse;
+
+    sigc::signal<void, int> emulateKey;
 
     QmTimer *swr_timer;
     QmTimer *guc_rx_quit_timer 		   = 0;
@@ -435,7 +439,9 @@ private:
     QmTimer *guc_timer;
 
     QmRtc *rtc;
+#ifndef PORT__PCSIMULATOR
     QmUsb *usb;
+#endif
     QmRtc::Time t;
     QmRtc::Date d;
 

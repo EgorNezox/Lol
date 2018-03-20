@@ -192,6 +192,9 @@ public:
 
     void forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
 
+    void emulatorKey(int key);
+    sigc::signal<void, int> emulKey;
+
     void setSwrTimerState(bool state);
     void onStartCondReceiving();
     void onVirtualCounterChanged(uint8_t counter);

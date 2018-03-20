@@ -112,6 +112,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     headset_controller->delaySpeachStateChanged.connect(sigc::mem_fun(this, &Service::onDelaySpeachStateChanged));
     //headset_controller->BOOM.connect(sigc::mem_fun(this, &Service::resetLogicDSPforGarniture));
 
+    voice_service->emulKey.connect(sigc::mem_fun(this, &Service::emulkeyHandler));
+
+
     valueRxSms = 0;  command_rx_30 = 0;
     pswf_status = false;
 
@@ -141,6 +144,11 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     currentSpeed = voice_service->getCurrentChannelSpeed();
 
     draw();
+}
+
+void Service::emulkeyHandler(int key)
+{
+	keyHandler(key,QmMatrixKeyboard::PressType::PressSingle);
 }
 
 void Service::resetLogicDSPforGarniture()

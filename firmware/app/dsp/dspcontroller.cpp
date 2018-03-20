@@ -21,6 +21,24 @@
 #include "../synchro/virtual_timer.h"
 #include "PswfModes.h"
 
+#define	platformhwKeyEnter		15
+#define	platformhwKeyBack		0
+#define	platformhwKeyUp			1
+#define	platformhwKeyDown		2
+#define	platformhwKeyLeft		3
+#define	platformhwKeyRight		7
+#define	platformhwKey0			11
+#define	platformhwKey1			4
+#define	platformhwKey2			8
+#define	platformhwKey3			12
+#define	platformhwKey4			5
+#define	platformhwKey5			9
+#define	platformhwKey6			13
+#define	platformhwKey7			6
+#define	platformhwKey8			10
+#define	platformhwKey9			14
+
+
 
 #define DEFAULT_PACKET_HEADER_LEN	2
 #define hw_rtc                      1
@@ -176,8 +194,9 @@ void DspController::dspReset()
 
 void DspController::start_usb()
 {
+#ifndef PORT__PCSIMULATOR
 	usb_start();
-
+#endif
 	/*for(int i = 0; i < 100; i++)
 	{
 		usb_tx();
@@ -2271,7 +2290,33 @@ void DspController::correctTime(uint8_t num)
 
 void DspController::wakeUpUsb()
 {
-	uint8_t * buff = usb->getbuffer();
+#ifndef PORT__PCSIMULATOR
+
+    uint8_t * buff = usb->getbuffer();
+
+//	platformhwKeyEnter		= 15, 0xF
+//	platformhwKeyBack		= 0,  0x0
+//	platformhwKeyUp			= 1,  0x1
+//	platformhwKeyDown		= 2,  0x2
+//	platformhwKeyLeft		= 3,  0x3
+//	platformhwKeyRight		= 7,  0x7
+//	platformhwKey0			= 11, 0xB
+//	platformhwKey1			= 4,  0x4
+//	platformhwKey2			= 8,  0x8
+//	platformhwKey3			= 12, 0xC
+//	platformhwKey4			= 5,  0x5
+//	platformhwKey5			= 9,  0x9
+//	platformhwKey6			= 13, 0xD
+//	platformhwKey7			= 6,  0x6
+//	platformhwKey8			= 10, 0xA
+//	platformhwKey9			= 14  0xE
+
+	if (buff[0] == 0x1)
+	{
+		uint8_t key = buff[1];
+		emulateKey(key);
+	}
+
 
 	if (usb->getrtc())
 	{
@@ -2279,6 +2324,7 @@ void DspController::wakeUpUsb()
 	}
 
 	qmDebugMessage(QmDebug::Info, "start usb...");
+    #endif
 }
 
 void DspController::wakeUpTimer()
@@ -2373,7 +2419,6 @@ void DspController::setVirtualTime(uint8_t *param)
     t.seconds  = time[0];
     t.minutes  = time[1];
     t.hours    = time[2];
-    rtc->setTime(t);
 #endif
 
 }
