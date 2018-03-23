@@ -8,7 +8,7 @@ extern "C" {
 #include <stdio.h>
 
 void usb_start();
-void usb_tx();
+void usb_tx(uint8_t * sym, int len);
 
 
 #ifdef __cplusplus

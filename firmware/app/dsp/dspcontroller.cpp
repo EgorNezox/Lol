@@ -2288,11 +2288,17 @@ void DspController::correctTime(uint8_t num)
 	RtcFirstCatch = -1;
 }
 
+
+
+
 void DspController::wakeUpUsb()
 {
 #ifndef PORT__PCSIMULATOR
 
     uint8_t * buff = usb->getbuffer();
+
+    for(int i = 0; i < usb->getLen();i++)
+    qmDebugMessage(QmDebug::Info, "recieved byte: %u ", buff[i]);
 
 //	platformhwKeyEnter		= 15, 0xF
 //	platformhwKeyBack		= 0,  0x0
@@ -2315,6 +2321,11 @@ void DspController::wakeUpUsb()
 	{
 		uint8_t key = buff[1];
 		emulateKey(key);
+	}
+
+	if (buff[0] == 0x10)
+	{
+		parsing_cadr_form_pc(buff);
 	}
 
 

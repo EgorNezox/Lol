@@ -35,6 +35,7 @@ static void *id;
 static uint8_t buffer[255];
 static bool dtr;
 static bool rts;
+static uint16_t len;
 
 /* получаем приемнный буфер и программно генерируем прерывание для того, чтобы потом запустить событие */
  int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
@@ -42,6 +43,7 @@ static bool rts;
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
 
+  len = *Len;
  // скопировать буффер
   strncpy((char*)buffer,(char*)Buf,*Len);
   buffer[*Len]=0;
@@ -192,6 +194,11 @@ bool QmUsb::getdtr()
 bool QmUsb::getrtc()
 {
 	return rts;
+}
+
+uint16_t QmUsb::getLen()
+{
+	return len;
 }
 
 #include "qmdebug_domains_start.h"

@@ -23,6 +23,7 @@ public:
 	uint8_t* getbuffer();
 	bool 	 getrtc();
 	bool     getdtr();
+	uint16_t getLen();
 
 	sigc::signal<void> usbwakeup;
 

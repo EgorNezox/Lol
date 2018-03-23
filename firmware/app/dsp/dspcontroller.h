@@ -304,6 +304,8 @@ private:
     void sendSynchro			 (uint32_t freq, uint8_t cnt);
 
     void wakeUpUsb();
+    void parsing_cadr_form_pc(uint8_t* buffer);
+    void transmit_answer_to_pc(uint8_t id, uint8_t* data, uint16_t size);
 
     void sendSms			     (Module module);
     uint8_t *getGpsGucCoordinat  (uint8_t *coord);

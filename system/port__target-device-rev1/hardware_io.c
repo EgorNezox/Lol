@@ -169,16 +169,11 @@ void usb_start()
 
 }
 
-void usb_tx()
+void usb_tx(uint8_t * sym, int len)
 {
-	HAL_Delay(500);
-	char str_tx[21];
-	sprintf(str_tx, "USB Transmit\r\n");
-	CDC_Transmit_FS((uint8_t*)str_tx, strlen(str_tx));
-	HAL_Delay(500);
+	CDC_Transmit_FS((uint8_t*)sym, len);
+	HAL_Delay(100);
 }
-
-static char str_rx[21];
 
 
 /* Тестирование аппаратной исправности внешней памяти
