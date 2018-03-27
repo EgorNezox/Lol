@@ -52,6 +52,8 @@ void qmMain() {
     data_fs_config.logical_block_size = 64*1024;
     data_fs_config.logical_page_size = data_flash_device.getPageSize();
     data_fs_config.max_opened_files = 10;
+
+
 #if 0
     {
         volatile bool do_format = true;
@@ -92,6 +94,8 @@ void qmMain() {
     		platformhwNavigatorAntFlagIopin, platformhwNavigator1PPSIopin);
 	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,
             &headset_controller, &navigator, &data_storage_fs, &power_battery);
+
+	mr_dispatcher.setFlash(&data_flash_device);
 #else
     Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,
             &headset_controller, 0, &data_storage_fs, &power_battery);

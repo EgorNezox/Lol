@@ -32,10 +32,10 @@ static void qmusbExtiTriggerIsrCallback(hal_exti_handle_t handle, signed portBAS
 
 static void *id;
 
-static uint8_t buffer[255];
+static uint8_t buffer[2048];
 static bool dtr;
 static bool rts;
-static uint16_t len;
+static uint16_t count;
 
 /* получаем приемнный буфер и программно генерируем прерывание для того, чтобы потом запустить событие */
  int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
@@ -43,10 +43,14 @@ static uint16_t len;
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
 
-  len = *Len;
  // скопировать буффер
-  strncpy((char*)buffer,(char*)Buf,*Len);
-  buffer[*Len]=0;
+  for(int i = count; i < count + *Len; i++)
+	  buffer[i] = Buf[i - count];
+
+  count += *Len;
+
+ //strncpy((char*)buffer,(char*)Buf,*Len);
+ //buffer[*Len]=0;
 
   __HAL_GPIO_EXTI_GENERATE_SWIT(EXTI_SWIER_SWIER18);
 
@@ -198,7 +202,12 @@ bool QmUsb::getrtc()
 
 uint16_t QmUsb::getLen()
 {
-	return len;
+	return count;
+}
+
+void QmUsb::resetLen()
+{
+   count = 0;
 }
 
 #include "qmdebug_domains_start.h"

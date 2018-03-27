@@ -24,6 +24,7 @@ public:
 	bool 	 getrtc();
 	bool     getdtr();
 	uint16_t getLen();
+	void resetLen();
 
 	sigc::signal<void> usbwakeup;
 

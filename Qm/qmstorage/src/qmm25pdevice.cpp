@@ -117,6 +117,35 @@ bool QmM25PDevice::read(uint32_t address, uint8_t* data, uint32_t size) {
 	return true;
 }
 
+
+uint32_t QmM25PDevice::readCrc32(uint32_t address, uint8_t *data, uint32_t size)
+{
+
+	uint8_t command[] = {
+				0x0B,
+				(uint8_t)((address >> 16) & 0xFF),
+				(uint8_t)((address >> 8) & 0xFF),
+				(uint8_t)(address & 0xFF),
+				0xFF
+		};
+		QmSPIDevice::FD8Burst spi_bursts[2] =
+		{
+				{0, command, sizeof(command)},
+				{data, 0, (int)size}
+		};
+
+		uint8_t rx = 0xFF;
+
+		for(uint32_t i = 0; i < size; i++)
+		{
+			if (!d_ptr->interface->transferFullDuplex8bit(&rx,&rx,1))
+				return false;
+
+			crcUsb.update(&rx,1);
+		}
+		return crcUsb.result();
+}
+
 bool QmM25PDevice::write(uint32_t address, uint8_t* data, uint32_t size) {
 	while (size > 0) {
 		if (!d_ptr->commandWriteEnable())

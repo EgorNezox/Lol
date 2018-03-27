@@ -18,6 +18,7 @@
 #include "../navigation/navigator.h"
 #include "../datastorage/fs.h"
 #include "../../../system/usb_cdc.h"
+#include "qmm25pdevice.h"
 /**
  @file
  @brief Класс предназначен для выполения операций обмена между DSP и HOST
@@ -93,6 +94,8 @@ public:
 	#include "pubenumdspcontroller.h"
     DspController				(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, DataStorage::FS *data_storage_fs, QmObject *parent);
     ~DspController();
+
+    QmM25PDevice *mydevice;
 
     void startServicing();
     void setRadioParameters		(RadioMode mode, uint32_t frequency);
@@ -304,6 +307,7 @@ private:
     void sendSynchro			 (uint32_t freq, uint8_t cnt);
 
     void wakeUpUsb();
+
     void parsing_cadr_form_pc(uint8_t* buffer);
     void transmit_answer_to_pc(uint8_t id, uint8_t* data, uint16_t size);
 
@@ -451,6 +455,9 @@ private:
 
 public:
     PswfModes *pswf_module;
+    bool newPacketUsb = false;
+
+    sigc::signal<void, int> eraseUsbSector;
 };
 
 } /* namespace Multiradio */

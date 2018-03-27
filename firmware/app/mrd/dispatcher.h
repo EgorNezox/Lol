@@ -19,6 +19,7 @@
 #include "../power/battery.h"
 #include "aleservice.h"
 #include "ale_fxn.h"
+#include "qmm25pdevice.h"
 
 namespace Multiradio {
 
@@ -36,6 +37,8 @@ public:
 	VoiceServiceInterface* getVoiceServiceInterface();
 	void DspReset();
 	void returnSpeed();
+
+	void setFlash(QmM25PDevice *device);
 
 private:
     friend AleService;

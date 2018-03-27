@@ -20,6 +20,7 @@
 #include "../dsp/rs_tms.h"
 #include "../synchro/virtual_timer.h"
 #include "PswfModes.h"
+#include "qmm25pdevice.h"
 
 #define	platformhwKeyEnter		15
 #define	platformhwKeyBack		0
@@ -2300,6 +2301,7 @@ void DspController::wakeUpUsb()
     for(int i = 0; i < usb->getLen();i++)
     qmDebugMessage(QmDebug::Info, "recieved byte: %u ", buff[i]);
 
+    usb->resetLen();
 //	platformhwKeyEnter		= 15, 0xF
 //	platformhwKeyBack		= 0,  0x0
 //	platformhwKeyUp			= 1,  0x1
@@ -2327,14 +2329,18 @@ void DspController::wakeUpUsb()
 	{
 		parsing_cadr_form_pc(buff);
 	}
+	else
+	{
+		// programming or reading ...
+		if (newPacketUsb)
+		transmit_answer_to_pc(1,NULL,0);
+	}
 
 
 	if (usb->getrtc())
 	{
 		dspReset();
 	}
-
-	qmDebugMessage(QmDebug::Info, "start usb...");
     #endif
 }
 
