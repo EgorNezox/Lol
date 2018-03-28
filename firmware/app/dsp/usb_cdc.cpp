@@ -44,11 +44,14 @@ void DspController::parsing_cadr_form_pc(uint8_t* buffer)
 	uint8_t userid = buffer[3];
 
 	/*получаем данные о размере кадра */
-	size = buffer[2] + (buffer[1] << 8);
+	size = buffer[1] + (buffer[2] << 8);
+
 
 	/* проверяем userid кадра */
 	if (userid == NSPROTO_MSG_PREPARE_FLASH)
 	{
+		recSym = 0;
+
 		/* провеяем flash id, т.е. какую память прошиваем */
 		if (buffer[4] == 3)
 		{
@@ -83,7 +86,9 @@ void DspController::parsing_cadr_form_pc(uint8_t* buffer)
 
 	if (userid == NSPROTO_MSG_PROGRAM_DATA)
 	{
-		if (mydevice->write(0,&buffer[5],size))
+		recSym += size-1;
+
+		if (mydevice->write(recSym,&buffer[5],size-1))
 		{
 			transmit_answer_to_pc(NSPROTO_MSG_PROGRAM_OK,NULL,0);
 		}
@@ -96,8 +101,7 @@ void DspController::parsing_cadr_form_pc(uint8_t* buffer)
 	if (userid == NSPROTO_MSG_REQ_CRC)
 	{
 		// отправить нашу crc сумму на проверку
-		uint32_t crc;
-		//mydevice->readCrc32(0,1,1);
+		uint32_t crc = mydevice->readCrc32(0,recSym);
 		transmit_answer_to_pc(NSPROTO_MSG_RESP_CRC,(uint8_t *)&crc, sizeof(crc));
 	}
 

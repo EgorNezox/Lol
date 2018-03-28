@@ -311,6 +311,8 @@ private:
     void parsing_cadr_form_pc(uint8_t* buffer);
     void transmit_answer_to_pc(uint8_t id, uint8_t* data, uint16_t size);
 
+    uint32_t recSym = 0;
+
     void sendSms			     (Module module);
     uint8_t *getGpsGucCoordinat  (uint8_t *coord);
 

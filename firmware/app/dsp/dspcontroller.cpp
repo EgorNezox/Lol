@@ -2299,7 +2299,7 @@ void DspController::wakeUpUsb()
     uint8_t * buff = usb->getbuffer();
 
     for(int i = 0; i < usb->getLen();i++)
-    qmDebugMessage(QmDebug::Info, "recieved byte: %u ", buff[i]);
+    qmDebugMessage(QmDebug::Info, "recieved byte: 0x%0x ", buff[i]);
 
     usb->resetLen();
 //	platformhwKeyEnter		= 15, 0xF
@@ -2335,7 +2335,6 @@ void DspController::wakeUpUsb()
 		if (newPacketUsb)
 		transmit_answer_to_pc(1,NULL,0);
 	}
-
 
 	if (usb->getrtc())
 	{
