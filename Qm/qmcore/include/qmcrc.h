@@ -33,10 +33,20 @@ public:
 		value = (reflected)?(precalc_init_reflected):init;
 	}
 	void update(const unsigned char *data, unsigned long size) {
-		if (reflected) {
+		if (reflected)
+		{
 			while (size--)
-				value = precalc_table[(value ^ *data++) & 0xFFL] ^ ((value >> 8)*precalc_xor);
-		} else {
+			{
+				uint32_t d = *data++;
+				uint32_t f = (value ^ d);
+				uint32_t r = f & 0xFFL;
+	            uint32_t preTable = precalc_table[r];
+	            uint32_t second = ((value >> 8) * precalc_xor);
+				value = preTable ^ second;
+			}
+		}
+		else
+		{
 			while (size--)
 				value = precalc_table[((value >> precalc_offset) ^ *data++) & 0xFFL] ^ ((value << 8)*precalc_xor);
 		}

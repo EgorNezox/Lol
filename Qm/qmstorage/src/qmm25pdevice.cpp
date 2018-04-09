@@ -127,7 +127,7 @@ bool QmM25PDevice::read(uint32_t address, uint8_t* data, uint32_t size) {
 			(uint8_t)((address >> 16) & 0xFF),
 			(uint8_t)((address >> 8) & 0xFF),
 			(uint8_t)(address & 0xFF),
-			0
+			0xFF
 	};
 	QmSPIDevice::FD8Burst spi_bursts[2] = {
 			{0, command, sizeof(command)},
@@ -139,7 +139,7 @@ bool QmM25PDevice::read(uint32_t address, uint8_t* data, uint32_t size) {
 }
 
 
-uint32_t QmM25PDevice::readCrc32(uint32_t address, uint32_t size)
+uint32_t QmM25PDevice::readCrc32(uint32_t address,  uint8_t *data, uint32_t size)
 {
 	uint8_t command[] =
 	    {
@@ -150,26 +150,16 @@ uint32_t QmM25PDevice::readCrc32(uint32_t address, uint32_t size)
 				0xFF
 		};
 
-		QmSPIDevice::FD8Burst spi_bursts[1] =
-		{
-				{0, command, sizeof(command)}
-		};
+	QmSPIDevice::FD8Burst spi_bursts[2] =
+	{
+			{0, command, sizeof(command)},
+			{data, 0, (int)size}
+	};
 
-		if (!d_ptr->interface->transferBurstFullDuplex8bit(spi_bursts, sizeof(spi_bursts)/sizeof(spi_bursts[0])))
-			return false;
-
-		uint8_t data;
+	if (!d_ptr->interface->transferBurstFullDuplex8bit(spi_bursts, sizeof(spi_bursts)/sizeof(spi_bursts[0])))
+		return false;
 
 
-		for(uint32_t i = 0; i < size; i++)
-		{
-			if (!d_ptr->interface->transferFullDuplex8bit(&data,0,1))
-				return false;
-
-			crcUsb.update(&data,1);
-		}
-
-		return crcUsb.result();
 }
 
 bool QmM25PDevice::write(uint32_t address, uint8_t* data, uint32_t size) {

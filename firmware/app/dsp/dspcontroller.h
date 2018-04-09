@@ -424,6 +424,8 @@ private:
     uint8_t count_VrtualTimer = 0;
     uint8_t virtualTime[6];
 
+    uint8_t max_erase_sector = 0;
+
     int8_t RtcFirstCatch;
     uint32_t freqVirtual;
 

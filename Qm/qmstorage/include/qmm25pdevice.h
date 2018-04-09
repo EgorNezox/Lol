@@ -28,8 +28,6 @@ public:
 	QmM25PDevice(const Config &config, int spi_bus_resource, int cs_resource = -1);
 	~QmM25PDevice();
 
-	/* создать crc класс для сверки */
-	QmCrc<uint32_t,32,0x04c11db7,0xffffffff,true,0xffffffff> crcUsb;
 
 	/* проверить, что флэшка является m25 */
 	bool checkIdentification();
@@ -47,7 +45,7 @@ public:
 	bool read(uint32_t address, uint8_t *data, uint32_t size);
 
 	/* команда считывания Crc по принятым байтам */
-	uint32_t readCrc32(uint32_t address,uint32_t size);
+	uint32_t readCrc32(uint32_t address,  uint8_t *data, uint32_t size);
 
 	/* команда записи  */
 	bool write(uint32_t address, uint8_t *data, uint32_t size);
