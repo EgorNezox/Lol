@@ -987,6 +987,11 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 	uint8_t tx_address;
 	uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 	int tx_data_len = DEFAULT_PACKET_HEADER_LEN;
+
+
+	qmToBigEndian((uint8_t)2, tx_data+0);
+	qmToBigEndian((uint8_t)code, tx_data+1);
+
 	switch (module) {
 	case RxRadiopath:
 	case TxRadiopath: {
@@ -1153,7 +1158,6 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
     }
 	default: QM_ASSERT(0);
 	}
-
 	transport->transmitFrame(tx_address, tx_data, tx_data_len);
 }
 
@@ -2435,6 +2439,7 @@ void DspController::setVirtualTime(uint8_t *param)
     t.seconds  = time[0];
     t.minutes  = time[1];
     t.hours    = time[2];
+    rtc->setTime(t);
 #endif
 
 }

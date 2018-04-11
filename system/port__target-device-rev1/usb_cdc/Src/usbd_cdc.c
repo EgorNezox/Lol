@@ -62,8 +62,6 @@
 #include "../Inc/usbd_cdc.h"
 #include "../Inc/usbd_desc.h"
 #include "../Inc/usbd_ctlreq.h"
-#include "../../../qm-platform/stm32f2xx/HAL/include/hal_usb.h"
-
 
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
   * @{

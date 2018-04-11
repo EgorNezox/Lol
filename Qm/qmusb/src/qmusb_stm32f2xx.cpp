@@ -15,7 +15,6 @@
 #include "qmusb_p.h"
 #include "qmevent.h"
 #include "qmapplication.h"
-#include "hal_usb.h"
 #include <cstring>
 
 #include "../usb_cdc.h"
