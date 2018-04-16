@@ -115,6 +115,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->emulKey.connect(sigc::mem_fun(this, &Service::emulkeyHandler));
 
 
+    voice_service->smsFreq.connect(sigc::mem_fun(this, &Service::showFreq));
+
+
     valueRxSms = 0;  command_rx_30 = 0;
     pswf_status = false;
 
@@ -144,6 +147,12 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     currentSpeed = voice_service->getCurrentChannelSpeed();
 
     draw();
+}
+
+
+void Service::showFreq(int freq)
+{
+   menu->currentFrequency = freq;
 }
 
 void Service::emulkeyHandler(int key)

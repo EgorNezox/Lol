@@ -122,6 +122,8 @@ public:
 
     void emulkeyHandler(int key);
 
+    void showFreq(int freq);
+
     void playSoundSignal				(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
     std::vector<uint8_t>* loadMessage	(DataStorage::FS::FileType typeF, DataStorage::FS::TransitionFileType tft, uint8_t fileNumber);
     std::vector<uint8_t>* loadVoiceMail	(uint8_t fileNumber, DataStorage::FS::TransitionFileType tft);

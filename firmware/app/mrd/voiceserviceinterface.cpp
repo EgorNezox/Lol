@@ -57,7 +57,19 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 
     dispatcher->dsp_controller->hardwareFailed.connect(sigc::mem_fun(this, &VoiceServiceInterface::forwardDspHardwareFailure));
     dispatcher->dsp_controller->emulateKey.connect(sigc::mem_fun(this, &VoiceServiceInterface::emulatorKey));
+
+
+    dispatcher->dsp_controller->smsCounterFreq.connect(sigc::mem_fun(this,&VoiceServiceInterface::onSmsFreq));
 }
+
+
+void VoiceServiceInterface::onSmsFreq(int param)
+{
+	smsFreq(param);
+
+}
+
+
 
 void VoiceServiceInterface::emulatorKey(int key)
 {

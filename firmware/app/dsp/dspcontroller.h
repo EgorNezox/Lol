@@ -198,6 +198,8 @@ public:
     sigc::signal<void,int> recievedGucQuitForTransm;   // прием квитанции групп ук
     sigc::signal<void,int> TxCondCmdPackageTransmit;   // int - /*command_tx30*/
 
+    sigc::signal<void,int> smsCounterFreq;
+
     sigc::signal<void, bool> stationModeIsCompleted; 	//bool gotovoice
     sigc::signal<void, bool> transmitAsk;
 

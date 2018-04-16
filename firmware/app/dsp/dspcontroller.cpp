@@ -598,6 +598,9 @@ void DspController::setrRxFreq()
 {
     ContentSms.Frequency =  getFrequency(1); //pswf = 0, sms = 1
 
+
+    smsCounterFreq(ContentSms.Frequency);
+
     ParameterValue param;
     param.frequency = ContentSms.Frequency;
     if ((SmsLogicRole == SmsRoleRx) && (sms_counter >= 38 && sms_counter < 77))

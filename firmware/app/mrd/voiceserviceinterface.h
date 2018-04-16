@@ -150,6 +150,9 @@ public:
     sigc::signal<void> atuMalfunction;
 
 
+    sigc::signal<void,int> smsFreq;
+
+
 
     sigc::signal<void> startRxQuitSignal;
     sigc::signal<void, uint32_t> settingAleFreq;
@@ -210,6 +213,8 @@ private:
     ~VoiceServiceInterface();
 
     void onSmsCounterChange(int param);
+
+    void onSmsFreq(int param);
 
 	void setCurrentChannel(ChannelStatus status);
 	void updateChannel();
