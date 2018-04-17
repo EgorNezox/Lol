@@ -2595,7 +2595,13 @@ void DspController::clearWaveInfo()
 	waveInfoRecieved(0.000, 0.000);
 }
 
+void DspController::transmithFrame(uint8_t address, uint8_t *data, int data_len)
+{
+	this->transport->transmitFrame(address,data,data_len);
 }
+
+}
+
 /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"

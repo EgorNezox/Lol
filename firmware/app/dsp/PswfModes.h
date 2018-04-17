@@ -78,8 +78,8 @@ private:
     // обработка пакета передачи
     trFrame sendPswf();
     trFrame sendSms ();
-
     DspController *control;
+
 };
 
 } /* namespace Multiradio */
