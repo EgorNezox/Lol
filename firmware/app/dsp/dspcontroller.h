@@ -32,6 +32,7 @@
 #define hw_rtc                      1
 #define DefkeyValue 631
 
+
 #define GUC_TIMER_ACK_WAIT_INTERVAL 180000
 #define GUC_TIMER_INTERVAL_REC 30000
 
@@ -112,6 +113,11 @@ public:
     void startSMSTransmitting	(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call);// запускает отправку смс
     void startGucTransmitting	(int r_adr, int speed_tx, std::vector<int> command,bool isGps); // запускает отправку групп
     void startGucTransmitting();        														// запуск отправки групп ук - перегруженный метод
+
+
+    void startGucIntoVoice();
+    void stopGucIntoVoice();
+
 
 	void setReceiverState		(int state);
 	void setTransmitterState	(int state);

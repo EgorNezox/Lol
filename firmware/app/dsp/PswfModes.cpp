@@ -768,7 +768,7 @@ PswfModes::trFrame PswfModes::sendPswf()
 	frame.data 	  = tx_data;
 	frame.len     = tx_data_len;
 	return frame;
-//	transport->transmitFrame(tx_address, tx_data, tx_data_len);
+	control->transmithFrame(tx_address, tx_data, tx_data_len);
 }
 
 PswfModes::trFrame PswfModes::sendSms()

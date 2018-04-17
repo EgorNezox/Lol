@@ -31,6 +31,8 @@
 #include "aleservice.h"
 #include "../datastorage/fs.h"
 
+#define DEBUGSHOWFREQ = false
+
 namespace Multiradio {
 
 class Dispatcher;

@@ -598,9 +598,9 @@ void DspController::setrRxFreq()
 {
     ContentSms.Frequency =  getFrequency(1); //pswf = 0, sms = 1
 
-
+#if DEBUGSHOWFREQ
     smsCounterFreq(ContentSms.Frequency);
-
+#endif
     ParameterValue param;
     param.frequency = ContentSms.Frequency;
     if ((SmsLogicRole == SmsRoleRx) && (sms_counter >= 38 && sms_counter < 77))
@@ -678,6 +678,9 @@ void DspController::setAdr()
 
 void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version)
 {
+
+	startGucIntoVoice();
+
 	if (!is_ready)
 	{
 	//	qmDebugMessage(QmDebug::Info, "DSP started (id=0x%02X, version=%u.%u)", id, major_version, minor_version);
@@ -1738,6 +1741,22 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
     	setTx();
 }
 
+
+void DspController::startGucIntoVoice()
+{
+	ParameterValue comandValue;
+	comandValue.guc_mode = 3;
+	sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
+}
+
+void DspController::stopGucIntoVoice()
+{
+	ParameterValue comandValue;
+	comandValue.guc_mode = 0;
+	sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
+}
+
+
 void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command, bool isGps)
 {
 //    qmDebugMessage(QmDebug::Dump, "startGucTransmitting(%i, %i)", r_adr, speed_tx);
@@ -1772,7 +1791,7 @@ void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<in
 
     ContentGuc.Coord = 0;
 
-    ContentGuc.stage =  GucTx;
+    //ContentGuc.stage =  GucTx;
 
     //initResetState();
     ParameterValue comandValue;
@@ -1910,7 +1929,7 @@ void DspController::startGucRecieving()
     comandValue.frequency = freqGucValue;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
 
-    ContentGuc.stage =  GucRx;
+    //ContentGuc.stage =  GucRx;
     guc_vector.clear();
 }
 
