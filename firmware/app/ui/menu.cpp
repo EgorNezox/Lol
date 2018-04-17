@@ -1369,6 +1369,11 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     if (isDrawLength)length.Draw();
     field.Draw();
 
+    char currentFreq[] = {0,0,0,0,0,0,0,0};
+    sprintf(currentFreq,"%u",currentFrequency);
+    std::string freq; freq.append("Freq:").append(currentFreq);
+    GUI_Painter::DrawText(0,100,voiceFont,(char*)freq.c_str(),CST_DEFAULT);
+
     if (smsTxStage == 4 && index_store_sms != 0)
     {
     	std::string txrx;

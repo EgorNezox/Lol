@@ -774,6 +774,7 @@ PswfModes::trFrame PswfModes::sendPswf()
 PswfModes::trFrame PswfModes::sendSms()
 {
 	control->ContentSms.Frequency =  control->getFrequency(1); // sms = 1
+	control->smsCounterFreq(control->ContentSms.Frequency);
 	control->ContentSms.indicator = 20;
 	control->ContentSms.SNR =  7;
 	int time[4] = {0,0,0,0};
@@ -904,9 +905,12 @@ PswfModes::trFrame PswfModes::sendSms()
 	frame.address = tx_address;
 	frame.data 	  = tx_data;
 	frame.len     = tx_data_len;
+
+//	control->transport->transmitFrame(tx_address, tx_data, tx_data_len);
+//	transmitFrame(frame.address, frame.data,frame.len);
+
 	return frame;
-	//transport->transmitFrame(tx_address, tx_data, tx_data_len);
-}
+	}
 
 
 } /* namespace Multiradio */
