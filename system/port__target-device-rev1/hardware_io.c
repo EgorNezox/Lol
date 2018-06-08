@@ -72,7 +72,8 @@ void stm32f2_ext_mem_init(void) {
 	*/
 
 	  /* Enable GPIOD, GPIOE, GPIOF and GPIOG interface clock */
-	  RCC->AHB1ENR  |= 0x00000079;
+	 // RCC->AHB1ENR  |= 0x00000078;
+	  RCC->AHB1ENR  |= 0x00000078;
 
 	  /* Connect PDx pins to FSMC Alternate function */
 	  GPIOD->AFR[0]  |= 0xc0cc00cc;
@@ -271,15 +272,15 @@ void stm32f2_LCD_init(void) {
 	portENABLE_INTERRUPTS();
 
 	/* Configure LCD controller reset line and do reset */
-	hal_gpio_pin_t lcd_reset_pin = {hgpioPB, 1};
-	hal_gpio_params_t lcd_reset_params;
-	hal_gpio_set_default_params(&lcd_reset_params);
-	lcd_reset_params.mode = hgpioMode_Out;
-	hal_gpio_init(lcd_reset_pin, &lcd_reset_params);
-	hal_gpio_set_output(lcd_reset_pin, hgpioLow);
-	hal_timer_delay(100);
-	hal_gpio_set_output(lcd_reset_pin, hgpioHigh);
-	hal_timer_delay(10);
+//	hal_gpio_pin_t lcd_reset_pin = {hgpioPB, 1};
+//	hal_gpio_params_t lcd_reset_params;
+//	hal_gpio_set_default_params(&lcd_reset_params);
+//	lcd_reset_params.mode = hgpioMode_Out;
+//	hal_gpio_init(lcd_reset_pin, &lcd_reset_params);
+//	hal_gpio_set_output(lcd_reset_pin, hgpioLow);
+//	hal_timer_delay(100);
+//	hal_gpio_set_output(lcd_reset_pin, hgpioHigh);
+//	hal_timer_delay(10);
 }
 
 void stm32f2_hardware_io_init(void)

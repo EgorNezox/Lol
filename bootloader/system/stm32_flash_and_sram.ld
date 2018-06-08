@@ -107,7 +107,7 @@ SECTIONS
 		*(COMMON)
 		. = ALIGN(4);
 		__bss_end__ = .;
-	} > RAM
+	} > MEMORY_B1_SRAM2
 	
 	.heap (COPY):
 	{

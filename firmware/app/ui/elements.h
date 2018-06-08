@@ -13,8 +13,8 @@
 #define ELEMENTS_H_
 
 #include <stdint.h>
-#include "gdisp.h"
-#include "gui_elements_common.h"
+//#include "gdisp.h"
+//#include "gui_elements_common.h"
 #include "gui_obj.h"
 #include <string>
 #include <vector>

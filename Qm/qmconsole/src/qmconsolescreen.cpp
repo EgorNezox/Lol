@@ -60,7 +60,7 @@ void QmConsoleScreen::init(unsigned int top_margin, unsigned int bottom_margin, 
 	groundrect(0, 0, GDISPW-1, GDISPH-1, 0, GFILL);
 
 	gsetvp(left_margin, top_margin, GDISPW-1-right_margin, GDISPH-1-bottom_margin);
-	gselfont(&Tahoma_15x13);
+	gselfont(&Cy8X15Th_new);
 
 	qm_cscreen_cb.symbols_per_line = (GDISPW - left_margin - right_margin)/ggetfw();
 	qm_cscreen_cb.line_count = (GDISPH - top_margin - bottom_margin)/ggetfh();
@@ -77,9 +77,19 @@ void QmConsoleScreen::init(unsigned int top_margin, unsigned int bottom_margin, 
 	qm_cscreen_initialized = true;
 }
 
+void QmConsoleScreen::oputstr(const char* s) {
+	QM_ASSERT(qm_cscreen_initialized);
+	gputs(s);
+//	static const char* saghenTitleTestStr_1 = "àáâãäåæçèéêëìíîïğñòóôõö÷úûüışÿ\0";
+//	static const char* saghenTitleTestStr_2 = "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÖ×ØÙÚÛÜİŞß\0";
+//	gputs(saghenTitleTestStr_1);
+//	gputs(saghenTitleTestStr_2);
+}
+
 void QmConsoleScreen::oputc(const char c) {
 	QM_ASSERT(qm_cscreen_initialized);
-	qmConsoleOutputChar(c);
+	//qmConsoleOutputChar(c);
+	gputch(c+32);
 }
 
 void QmConsoleScreen::oprintf(const char * format, ...) {
@@ -109,10 +119,13 @@ static ssize_t qmConsoleStreamWriteFunction(void *__cookie, const char *__buf, s
 #endif
 
 static void qmConsoleOutputChar(const char c) {
+	gputch(c+32);
+	return;
 #ifndef NDEBUG
 	putchar(c);
 #endif
-	switch (c) {
+	char cnew = c;// + 32;// + 30;
+	switch (cnew) {
 	case '\r': {
 		qm_cscreen_cb.cur_s = 0;
 		break;
@@ -140,8 +153,8 @@ static void qmConsoleOutputChar(const char c) {
 			gsetcpos(s, qm_cscreen_cb.line_count-1);
 			line -= qm_cscreen_cb.line_count;
 		}
-		qm_cscreen_cb.buffer[s + line*(qm_cscreen_cb.symbols_per_line+1)] = c;
-		gputch(c);
+		qm_cscreen_cb.buffer[s + line*(qm_cscreen_cb.symbols_per_line+1)] = cnew;
+		gputch(cnew);
 		qm_cscreen_cb.cur_s++;
 		break;
 	}

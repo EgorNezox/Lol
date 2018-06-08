@@ -96,40 +96,6 @@
   #define GCTRL_SS_SCR2_SY1              0x49
   #define GCTRL_SS_SCR2_SY2              0x4a
 
-
-//  #define GCTRL_SET_COLUMN_ADDRESS       	0x15
-//  #define GCTRL_SET_ROW_ADDRESS          	0x75
-//  #define GCTRL_SET_CONTRAST_CONTROL     	0x81
-//  #define GCTRL_SET_REMAP                	0xA0
-//  #define GCTRL_SET_DISPLAY_STAR_LINE    	0xA1
-//  #define GCTRL_SET_DISPLAY_OFFSET       	0xA2
-//  #define GCTRL_SET_DISPLAY_MODE_NORMAL  	0xA4
-//  #define GCTRL_SET_DISPLAY_MODE_ALL_ON  	0xA5
-//  #define GCTRL_SET_DISPLAY_MODE_ALL_OFF 	0xA6
-//  #define GCTRL_SET_DISPLAY_MODE_INVERSE 	0xA7
-//  #define GCTRL_SET_MUX_RATIO            	0xA8
-//  #define GCTRL_FUNCTION_SELECTION_A     	0xAB //
-//  #define GCTRL_SET_DISPLAY_ON           	0xAE
-//  #define GCTRL_SET_DISPLAY_OFF          	0xAF //
-//  #define GCTRL_SET_PHASE_LENGTH         	0xB1
-//  #define GCTRL_NOP                      	0xB2 //
-//  #define GCTRL_SET_FRONT_CLK_DIV_OSC_FREQ  0xB3
-//  #define GCTRL_GPIO                        0xB5 //
-//  #define GCTRL_SET_SECOND_PRECHARGE_PERIOD 0xB6
-//  #define GCTRL_SET_FRAY_SCALE_TABLE        0xB8
-//  #define GCTRL_LINEAR_LUT                  0xB9
-//  #define GCTRL_NOP                      	0xBB //
-//  #define GCTRL_SET_PRECHARGE_VOLTAGE       0xBC
-//  #define GCTRL_SET_V_COMH                  0xBE
-//  #define GCTRL_FUNCTION_SELECTION_B     	0xD5 //
-//  #define GCTRL_SET_COMMAND_LOCK         	0xFD //
-//  #define GCTRL_SET_RIGHT_HOR_SCROLL        0x26 //
-//  #define GCTRL_SET_RIGHT_VER_SCROLL        0x27 //
-//  #define GCTRL_DEACTIVATE_SCROLL           0x2E // 26/27
-//  #define GCTRL_ACTIVATE_SCROLL             0x2F // 26/27
-
-
-
 #else
   #error (Missing or illegal controller type definition in gdispcfg.h)
 #endif

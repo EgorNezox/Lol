@@ -225,7 +225,8 @@
    #define G_BLACK       0x0000
    #define G_RED         0xf800
    #define G_GREEN       0x07e0
-   #define G_YELLOW      0xffe0
+   //#define G_YELLOW      0xffe0
+   #define G_YELLOW(i)      G_RGB_TO_COLOR(i*255,i*255,i*255)
    #define G_BLUE        0x001f
    #define G_MAGENTA     0xf81f
    #define G_CYAN        0x07ff

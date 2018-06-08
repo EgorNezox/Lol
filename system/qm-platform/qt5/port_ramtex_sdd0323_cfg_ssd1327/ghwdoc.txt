@@ -1,0 +1,365 @@
+DOCUMENTATION of low-level drivers.
+-----------------------------------
+
+GHWINITCTRL.C
+---------
+This module contains functions for accessing the OLED controller registers
+used by other low-level functions.
+
+The purpose of the module is to encapsulate command and data register variations 
+between the display controllers in the display controller family.
+This enables the rest of the low-level library drivers, incl GHWINIT.C, to
+be shared by all the display controller family members).
+
+This module interfaces to the GLCD simulator for SSD0323 family members.
+
+
+GHWINIT.C
+---------
+This module instantiate any public data used by other low-level and
+high-level drivers. This includes the default font SYSFONT, the default
+palette, the operative palette, and, if GBUFFER is defined in GDISPCFG.H,
+the graphic buffer gbuf[].
+
+Public functions used by high-level functions:
+
+SGBOOL ghw_init(void)
+   Initialize the OLED hardware and the low-level data variables.
+
+void ghw_exit(void)
+   Release ressources allocated by ghw_init()
+
+SGUCHAR ghw_err(void)
+   Report the status of glcd err.
+
+void ghw_puterr(char *str)
+   Initialize the OLED hardware and the low-level data variables
+   and output the message on the center of the display.
+
+void ghw_dispoff(void)
+   Turn display off
+   The display RAM content become invisible but remains unchanged.
+
+void ghw_dispon(void)
+   Turn display on
+   The display RAM content become visible.
+
+SGUCHAR ghw_cont_set(SGUCHAR contrast)
+   Set an absolute contrast level.
+
+SGUCHAR ghw_cont_change(SGCHAR contrast_diff)
+   Make a relative change of contrast level
+
+SGUINT ghw_gbufsize( void )
+   Size of buffer needed to save both the complete screen content and the
+   low-level display states.
+
+SGUCHAR *ghw_save_state( SGUCHAR *buf )
+   Take a snap-shot of the current display screen and states
+
+void ghw_set_state(SGUCHAR *buf, SGUCHAR doinit)
+   Set a new screen state (switch to a new screen)
+
+SGBOOL ghw_palette_grey_wr(SGUINT start_index, SGUINT num_elements,
+   const GPALETTE_GREY *palette);
+   Update operative palette and load new grey-scale settings.
+
+If GHW_SINGLE_CHIP is defined display controller hardware register access 
+is done via user defined access functions, otherwise direct hardware bus
+addressing is done via the SG macros.
+
+GHWBLKRW.C
+----------
+This module contains function for copy and paste of a pixel block
+on the display. Any pixel coordinates can be used, and write coordinates
+may be different from read coordinates.
+If GBUFFER is defined the operations are done on the graphic buffer,
+else the operations are done directly on the OLED display.
+
+SGUINT ghw_blksize(GXT ltx, GYT lty, GXT rbx, GYT rby)
+   Calculate the needed buffer size to hold the pixel block information
+
+void ghw_rdblk(GXT ltx, GYT lty, GXT rbx, GYT rby,
+               SGUCHAR *dest, SGUINT bufsize )
+   Read pixel block to buffer.
+
+void ghw_wrblk(GXT ltx, GYT lty, GXT rbx, GYT rby, SGUCHAR *src )
+   Write pixel block from buffer.
+
+void ghw_restoreblk(SGUCHAR *src)
+   Write pixel block from buffer to the same position as it was read.
+
+
+GHWBUF.C
+--------
+This module contain functions for display update when the library is
+compiled in buffer mode (GBUFFER is defined)
+
+void ghw_updatehw(void)
+   Flush data buffer to display. If GBUFFER is not defined this
+   function has no content.
+
+void ghw_setupdate( SGUCHAR update )
+   Activate or deactivate delayed update in buffered mode.
+
+
+GHWFILL.C
+---------
+Contains functions for filling a display area with a pattern. Any
+coordinates can be used. The fill pattern will be aligned to the
+background independent of the used coordinate parameters. The
+fill patterns uses the same horizontal byte convention as the
+high-level functions.
+
+If GBUFFER is defined the operations are done on the graphic buffer,
+else the operations are done directly on the OLED display.
+
+void ghw_fill(GXT ltx, GYT lty, GXT rbx, GYT rby, SGUINT pattern)
+   Make fill operation
+
+void ghw_set_pattern(SGUINT pattern)
+   Prepare pattern for fill (rotate and align to the
+   write mode used by the OLED controller.)
+   This function is only used by other low-level functions.
+
+
+GHWINV.C
+--------
+Contains functions for inverting a display area.
+
+If GBUFFER is defined the operations are done on the graphic buffer,
+else the operations are done directly on the OLED display.
+
+void ghw_invert(GXT ltx, GYT lty, GXT rbx, GYT rby)
+   Make invert operation
+
+
+GHWGSCRL.C
+----------
+Contains a function for scrolling a part of the OLED display content.
+Note that because any rectangular area can be scrolled the hardware
+scroll functions supported by the OLED controller can usually not
+be used,
+
+If GBUFFER is defined the operations are done on the graphic buffer,
+otherwise the operations are done directly on the OLED display.
+
+void ghw_gscroll(GXT ltx, GYT lty, GXT rbx, GYT rby,
+                 GYT lines, SGUINT pattern)
+   Scroll part of the display.
+
+
+GHWPIXEL.C
+----------
+This module contain functions for operations on single pixels.
+If GBUFFER is defined the operations are done on the graphic buffer,
+else the operations are done directly on the OLED display.
+
+void ghw_setpixel( GXT x, GYT y, GCOLOR color )
+   Set a pixel to black or white.
+
+GCOLOR ghw_getpixel(GXT x, GYT y)
+   Read the black or white state of a pixel.
+
+
+GHWRETGL.C
+----------
+This module contains driver functions for writing lines or rectangles.
+If GBUFFER is defined the operations are done on the graphic buffer,
+else the operations are done directly on the OLED display.
+
+void ghw_rectangle(GXT ltx, GYT lty, GXT rbx, GYT rby, GCOLOR color)
+   Draw a line or a rectangle of colored pixels.
+
+
+GHWSYMRD.C
+----------
+This module contains driver function for reading to a
+data buffer using the common buffer layout for symbols (and fonts).
+Is used by the high-level symbol functions.
+
+SGUCHAR ghw_rdsym(GXT ltx, GYT lty, GXT rbx, GYT rby, PGUCHAR dest);
+   Read display memory to a buffer using the common symbol format.
+
+
+GHWSYMWR.C
+----------
+This module contains driver function for writing from a
+data buffer using the common buffer layout for symbols (and fonts).
+Is used by the high-level text and symbol functions.
+
+void ghw_wrsym(GXT ltx, GYT lty, GXT rbx, GYT rby,
+               SGUCHAR *src, GXT bw, SGUCHAR mode)
+   Write a buffer using the common symbol format to display memory.
+
+
+GHWPALRD.C
+----------
+This module contains driver function for reading the grey-scale
+palette settings to a grey-scale palette buffer.
+
+SGBOOL ghw_palette_grey_rd(SGUINT start_index, SGUINT num_elements,
+      GPALETTE_GREY *palette)
+
+
+GHWPLRGB.C
+----------
+This module contains driver function for updating or reading the
+palette settings to a RGB palette buffer.
+
+SGBOOL ghw_palette_rd(SGUINT start_index, SGUINT num_elements,
+             GPALETTE_RGB *palette)
+
+SGBOOL ghw_palette_wr(SGUINT start_index, SGUINT num_elements,
+             const GPALETTE_RGB *palette)
+
+
+
+SIM0323.C
+----------
+Simulates the OLED controller operation on the RAM buffer internally on
+a OLED module.
+The content of the simulated RAM buffer is copied to the PC display
+after each update. Using WIN32 mode a socket interface is used to
+an external OLED simulator program.
+Only those OLED controller operations relevant to the OLED driver library
+is simulated.
+
+These functions is activated by low-level functions in
+GHWINITCTRL.C when the GHW_PCSIM compiler switch is defined.
+
+
+void ghw_set_xrange_sim(GXT xb, GXT xe)
+void ghw_set_yrange_sim(GYT yb, GYT ye)
+   Set "display controller" auto wrap range
+
+void ghw_autowr_sim( GHWCOLOR cval )
+   Update PC screen.
+
+void ghw_init_sim( SGUINT dispw, SGUINT disph )
+void ghw_exit_sim( void )
+   Initialize simulator. Release ressouces for exit
+
+char ghw_SSD0323sim_update_palette( GPALETTE_GREY *palette );
+   Load new palette to simulator
+
+void ghw_dispoff_sim( void )
+void ghw_dispon_sim( void )
+   Simulate command register settings for display on off
+
+char ghw_update_palette_sim( GPALETTE_GREY *palette )
+   Simulate result of command register settings for grey mode paletter
+
+
+Default function used for output of G_WARNING and G_ERROR messages
+in simulator mode.
+
+void simprintf( SGINT sgstream, const char *fmt, ...)
+
+
+GSIMINTF.C
+----------
+Contains the socket interface to the external OLED simulator program.
+This interface should only be used with WIN32 compilers like
+Borland C++ Builder 5.x or Microsoft Visual C++ 6.x
+This interface should only be activated via the SIM0323.C module.
+
+Furthermore it contains these functions for easier simulation of
+a keyboard interface when the OLED simulator has focus.
+Prototyped in gdispcfg.h.
+
+unsigned short GSimKbHit(void)
+   Check for keyboard hit (returns != 0 if hit)
+
+unsigned short GSimKbGet(void)
+   Get a 16 bit key/scan code. Include support for function keys
+   and Ctrl, Alt, Shift keys.
+
+unsigned long GSimTimestamp(void)
+   Simulates a 10ms timestamp counter, using the PC clock.
+   Usefull for making delays in ex. demo applications by testing
+   the difference between two readings.
+
+
+unsigned char GSimTouchInfo(GSIM_TOUCH_INFO *touch_info,
+                       unsigned char num_multi_touch_keys,
+                       unsigned char *pnum_touch )
+
+    Extended touch data with history and timing, or multi-touch emulation function
+
+  typedef struct
+     {
+     unsigned char  change; /* True if edge or position change detected */
+     unsigned char  id;     /* Touch identifier (identify/track individual touch events when multi touch is used) */
+     unsigned char  edge;   /* True if touch down or touch up edge detected */
+     unsigned char  press;  /* True if touch is active (pressed down) */
+     unsigned short x;      /* Touch x value. Range {0, GDISPW-1} */
+     unsigned short y;      /* Touch y value. Range {0, GDISPH-1} */
+     unsigned long  t;      /* Time stamp for current touch point change (10 ms resolution). */
+     unsigned short x1;     /* X position at time of t1. when t>t1 x drag "speed" is (x-x1)/(t-t1) */
+     unsigned short y1;     /* Y position at time of t1. when t>t1 y drag "speed" is (y-y1)/(t-t1) */
+     unsigned long  t1;     /* Time stamp for touch down start. Touch event duration time = (t-t1) */
+     } GSIM_TOUCH_INFO;
+
+
+  *touch_info            Pointer to user supplied array of GSIM_TOUCH_INFO structures
+                         If == NULL then only pnum_touch and return paramter is used.
+  num_multi_touch_keys   Define number of GSIM_TOUCH_INFO structures
+                         Also configure the LCDserver for single touch or
+                         multi-touch emulation.
+  *pnum_touch            If != NULL then *pnum_touch is updated with number of
+                         pressed touch positions, i.e. with number of GSIM_TOUCH_INFO
+                         elements containing touch press information.
+
+  Returns 0              If no change since last poll
+  Returns 1              If one or more GSIM_TOUCH_INFO elements has changed
+                         since last poll, i.e. if any touch up / down edge or
+                         touch drag position change detected.
+
+
+   New Multi-touch emulation
+   -------------------------
+   Multi-touch emulation mode is enabled when client program first is
+   polling for a multi-touch event via a call to the new GSimTouchInfo(..)
+   functions (described below).
+   Here touch emulation of 1-5 "touch keys" can be selected.
+
+   In Multi-touch emulation mode the touch screen "press down" state is
+   created with mouse right-click in the same way as with single touch mode.
+
+   However in Multi-touch emulation mode up to 4 touch positions can be held in
+   "pressed down" state by holding down dedicated PC keyboard keys ('A','S',D','F')
+   while the mouse right-key is released.
+   The PC mouse can now be used to select and use a new touch position.
+
+   A latched touch "pressed-down "state is maintained for while the dedicated
+   keyboard key is pressed down (or some other window or PC application gets focus).
+
+   The multi-touch procedure can be repeated until a total of 5 "pressed touch"
+   positions are in use.
+
+   As default the "touch-hold" keys are equal ASCII keyboard keys: 'A','S',D','F'
+   However this may be modified by the client program.
+
+   Touch ID tracking:
+   -----------------
+   With multi-touch emulation an unique touch ID is created for with enables the
+   application to easily track the individual touch down events.
+   (Similar to the touch ID support provided by some multi-touch controllers)
+
+   How to emulate Pinch, Spread, Scale Up, Scale Down zoom events with PC mouse
+   ----------------------------------------------------------------------------
+   ('A')+<Ctrl>
+   The touch position held with the first hold key ('A') can be modified
+   by pressing the <Ctrl> key for emulation of these gestures during PC mode test.
+   The the position hold by the key will then change in the direction opposite
+   to the current mouse touch point.
+
+   How to emulate two-finger Drag events with the PC mouse
+   -------------------------------------------------------
+   ('A')+<Shift>
+   The touch position held with the first hold key ('A') can be modified
+   by pressing the <Shift> key for emulation of two finger drag gestures during
+   PC mode test. The the position hold by the key will then change in the same
+   direction as the current mouse touch point.
+

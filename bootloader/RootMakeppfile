@@ -31,7 +31,7 @@ LDSCRIPTS += ../system/port__$(BUILD_PORT)/stm32_memory.ld
 load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." PLATFORM=stm32f2xx CONSOLE=1 KEYSINPUT=1 ../Qm
 
 # подключение сборки сторонних компонентов
-load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/3rdparty/$( FreeRTOS STM32Cube_FW_F2 Ramtex_Graphic_Lib libsigc++ )
+load_makefile BUILD_OBJ_REL_DIR="$(SUBPROJECT_PATH)/.." ../system/3rdparty/$( FreeRTOS STM32Cube_FW_F2 Ramtex_Graphic_Lib_new libsigc++ )
 
 # подключение сборки загрузчика
 SOURCES += \
