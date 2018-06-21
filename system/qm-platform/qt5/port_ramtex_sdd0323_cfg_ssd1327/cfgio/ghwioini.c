@@ -12,7 +12,7 @@
 
 *********************************************************************/
 #ifndef GHW_NOHDW
-/* #include <sgio.h> */   /* Portable I/O functions + hardware port def */
+#include "ramtexdisplaywidget.h"	/* !!! target-specific !!! */   /* Portable I/O functions + hardware port def */
 #endif
 #include <gdisphw.h>
 
@@ -35,7 +35,7 @@ void ghw_io_init(void)
    #ifdef GHW_SINGLE_CHIP
    sim_reset();  /* Initiate LCD bus simulation ports */
    #endif
-
+	ramtexdisplaywidget_init();
    /* Insert required targer specific code here, if any */
 
    /* Set LCD reset line /RST active low   (if /RST is connected to a port bit) */
@@ -52,7 +52,7 @@ void ghw_io_init(void)
 void ghw_io_exit(void)
    {
    #ifndef GHW_NOHDW
-   /* Insert required code here, if any */
+   ramtexdisplaywidget_deinit();/* Insert required code here, if any */
    #endif
    }
 

@@ -1,6 +1,6 @@
 #ifndef GDISPHW_H
 #define GDISPHW_H
-#define memory_hack 0/************************ GDISPHW.H *******************************
+#define memory_hack 1/************************ GDISPHW.H *******************************
 
    Prototypes and definitions for hardware related functions
    and test messages

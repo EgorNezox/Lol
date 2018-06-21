@@ -48,6 +48,8 @@ extern GCODE GFONT FCODE Cy8X15Th;
 extern GCODE GFONT FCODE Cy8X15Th_new;
 //extern GCODE GFONT FCODE Tahoma_bold_18x14;
 //extern GCODE GFONT FCODE Consolas25x58;
+extern GCODE GFONT FCODE Tahoma26;
+
 #if memory_hack
 extern GCODE GFONT FCODE HackConsolas25x35;
 #else

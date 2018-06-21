@@ -50,9 +50,9 @@ $(sources_to_objects firmware_main.cpp): DDEF += $(DEFINES_system)
 #!!! Временный хак для реализации прямого доступа к Ramtex из модуля UI
 #!!! Убрать, когда модуль будет переработан на использование средств Qm
 $(sources_to_objects $(SOURCES)): IDIR += \
-	../system/3rdparty/Ramtex_Graphic_Lib/inc \
-	../system/3rdparty/Ramtex_Graphic_Lib/fonts \
-	../system/3rdparty/Ramtex_Graphic_Lib/icons \
+	../system/3rdparty/Ramtex_Graphic_Lib_new/inc \
+	../system/3rdparty/Ramtex_Graphic_Lib_new/fonts \
+	../system/3rdparty/Ramtex_Graphic_Lib_new/icons \
     ../system/port__$(BUILD_PORT)/port_ramtex_sdd0323_cfg_stm32f2/cfg0323 \
 	../system/port__$(BUILD_PORT)/port_ramtex_sdd0323_cfg_stm32f2/cfgio
 

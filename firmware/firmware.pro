@@ -39,12 +39,12 @@ SOURCES += \
 #!!! Убрать, когда модуль будет переработан на использование средств Qm
 INCLUDEPATH += \
     app \
-    ../system/3rdparty/Ramtex_Graphic_Lib/inc \
-    ../system/3rdparty/Ramtex_Graphic_Lib/fonts \
-    ../system/3rdparty/Ramtex_Graphic_Lib/icons \
-    ../system/qm-platform/qt5/port_ramtex_s6d0129_cfg_seps525/ccfg0129 \
-    ../system/qm-platform/qt5/port_ramtex_s6d0129_cfg_seps525/cfgio \
-    ../system/qm-platform/qt5/port_ramtex_s6d0129_cfg_seps525/qt
+    ../system/3rdparty/Ramtex_Graphic_Lib_new/inc \
+    ../system/3rdparty/Ramtex_Graphic_Lib_new/fonts \
+    ../system/3rdparty/Ramtex_Graphic_Lib_new/icons \
+    ../system/qm-platform/qt5/port_ramtex_sdd0323_cfg_ssd1327/cfg0323 \
+    ../system/qm-platform/qt5/port_ramtex_sdd0323_cfg_ssd1327/cfgio \
+    ../system/qm-platform/qt5/port_ramtex_sdd0323_cfg_ssd1327/qt
 
 DEFINES += PORT__PCSIMULATOR
 

@@ -200,7 +200,7 @@ static GCODE SGUCHAR FCODE initdata[] =
    GCTRL_REMAP,        /* Define display scan order, storage unit pixel order and increment orientations */
    COM_SPLIT_BIT|MY_BIT|AUTOINC_BIT|MX_BIT,
 
-   GCTRL_DEF_GREY_SCALE, /* Default grey scale (comment out for b&w) */
+   //GCTRL_DEF_GREY_SCALE, /* Default grey scale (comment out for b&w) */
 
    GCTRL_CONTRAST,
    0xc0,                 /* Set contrast level (1-255) (is overwritten later) */
@@ -240,8 +240,8 @@ static GCODE SGUCHAR FCODE initdata[] =
    #endif
    #endif
 
-   GCTRL_CONTRAST,
-   0xc0                 /* Set contrast level (1-255) */
+ //  GCTRL_CONTRAST,
+ //  0xc0                 /* Set contrast level (1-255) */
    };
 
 /* Default grey scale palette

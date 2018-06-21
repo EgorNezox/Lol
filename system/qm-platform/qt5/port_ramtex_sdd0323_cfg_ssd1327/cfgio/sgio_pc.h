@@ -24,3 +24,8 @@
  SGPORTELEM( RD, MM, BY, 0x0001, 0, GHWRD ), /*Graphic LCD data read*/
  SGPORTELEM( RD, MM, BY, 0x0000, 0, GHWSTA ), /*Graphic LCD status*/
  SGPORTELEM( WR, MM, BY, 0x0000, 0, GHWCMD ), /*Graphic LCD command*/
+
+ SGPORTELEM( WR, MM, WO, 0x0001, 0, GHWWRW ), /*Graphic LCD data write*/
+ SGPORTELEM( RD, MM, WO, 0x0001, 0, GHWRDW ), /*Graphic LCD data read*/
+ SGPORTELEM( RD, MM, WO, 0x0000, 0, GHWSTAW ), /*Graphic LCD status*/
+ SGPORTELEM( WR, MM, WO, 0x0000, 0, GHWCMDW ), /*Graphic LCD command*/

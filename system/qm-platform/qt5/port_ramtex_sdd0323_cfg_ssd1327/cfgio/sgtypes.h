@@ -30,6 +30,7 @@
 #endif
 #endif
 
+
 #ifdef SGPCMODE
    /* This part is used when compiling with PC compilers
       These definitions should not need modifications */

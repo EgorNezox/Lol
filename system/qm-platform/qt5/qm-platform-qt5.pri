@@ -13,9 +13,9 @@ INCLUDEPATH += \
     $$PWD \
     $$PWD/../config \
     $$PWD/port_spiffs \
-    $$PWD/port_ramtex_s6d0129_cfg_seps525/ccfg0129 \
-    $$PWD/port_ramtex_s6d0129_cfg_seps525/cfgio \
-    $$PWD/port_ramtex_s6d0129_cfg_seps525/qt
+    $$PWD/port_ramtex_sdd0323_cfg_ssd1327/cfg0323 \
+    $$PWD/port_ramtex_sdd0323_cfg_ssd1327/cfgio \
+    $$PWD/port_ramtex_sdd0323_cfg_ssd1327/qt
 HEADERS += \
     $$PWD/port_hardwareio/iopininterface.h \
     $$PWD/port_hardwareio/iopincheckbox.h \
@@ -29,7 +29,7 @@ HEADERS += \
     $$PWD/port_keysinput/pushbuttonkeyinterface.h \
     $$PWD/port_keysinput/matrixkeyboardwidget.h \
     $$PWD/port_keysinput/matrixkeyboardinterface.h \
-    $$PWD/port_ramtex_s6d0129_cfg_seps525/qt/ramtexdisplaywidget.h \
+    $$PWD/port_ramtex_sdd0323_cfg_ssd1327/qt/ramtexdisplaywidget.h \
     $$PWD/devices/flashm25pdevice.h \
     $$PWD/port_rtc/rtc.h \
     $$PWD/port_rtc/rtcinterface.h
@@ -37,10 +37,9 @@ SOURCES += \
     $$PWD/hardware_resources.cpp \
     $$wildcardSources(port_hardwareio, *.cpp) \
     $$wildcardSources(port_keysinput, *.cpp) \
-    $$wildcardSources(port_ramtex_s6d0129_cfg_seps525, *.c) \
-    $$PWD/port_ramtex_s6d0129_cfg_seps525/ccfg0129/ghwinit.c \
-    $$PWD/port_ramtex_s6d0129_cfg_seps525/cfgio/ghwioini.c \
-    $$PWD/port_ramtex_s6d0129_cfg_seps525/qt/ramtexdisplaywidget.cpp \
+    $$wildcardSources(port_ramtex_sdd0323_cfg_ssd1327, *.c) \
+    $$PWD/port_ramtex_sdd0323_cfg_ssd1327/cfgio/ghwioini.c \
+    $$PWD/port_ramtex_sdd0323_cfg_ssd1327/qt/ramtexdisplaywidget.cpp \
     $$PWD/devices/flashm25pdevice.cpp \
     $$PWD/port_rtc/rtc.cpp \
     $$PWD/port_rtc/rtcinterface.cpp

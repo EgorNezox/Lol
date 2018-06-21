@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>180</width>
+    <width>148</width>
     <height>184</height>
    </rect>
   </property>
@@ -18,6 +18,9 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QWidget" name="placeholderDisplay" native="true">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -26,7 +29,7 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>160</width>
+         <width>128</width>
          <height>128</height>
         </size>
        </property>
@@ -54,6 +57,12 @@
            <height>28</height>
           </size>
          </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="font">
           <font>
            <pointsize>8</pointsize>
@@ -74,8 +83,14 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>34</width>
+           <width>30</width>
            <height>28</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="font">
@@ -104,6 +119,12 @@
           <size>
            <width>34</width>
            <height>28</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="font">

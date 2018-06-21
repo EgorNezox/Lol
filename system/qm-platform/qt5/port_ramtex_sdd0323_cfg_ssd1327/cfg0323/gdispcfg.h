@@ -202,8 +202,8 @@
   Note that the number of possible colors is limited by both on the
   palette mode and the display screen type
 */
-#define GHW_PALETTE_BACKGROUND  G_WHITE
-#define GHW_PALETTE_FOREGROUND  G_BLACK
+#define GHW_PALETTE_BACKGROUND  G_BLACK
+#define GHW_PALETTE_FOREGROUND  G_WHITE
 
 /*
    Map "pure color names" to palette indexes.

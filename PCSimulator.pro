@@ -26,6 +26,6 @@ include(Qm/Qm.pri)
 SIGCPP_BUILD = 1
 include(system/3rdparty/libsigc++/sigc++.pri)
 
-include(system/3rdparty/Ramtex_Graphic_Lib/Ramtex_Graphic_Lib.pri)
+include(system/3rdparty/Ramtex_Graphic_Lib_new/Ramtex_Graphic_Lib.pri)
 
 include(system/3rdparty/spiffs/spiffs.pri)

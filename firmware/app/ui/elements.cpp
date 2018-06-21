@@ -1052,7 +1052,7 @@ void GUI_Painter::SetMode(DrawMode drawMode)
 void GUI_Painter::ClearViewPort(bool isAll)
 {
 	if (isAll)
-		SetViewPort(0,0,159,127);
+        SetViewPort(0,0,127,127);
     gclrvp();
 }
 
@@ -1164,7 +1164,7 @@ void GUI_Painter::DrawText( unsigned char x,
     std::string str(text);
     convertStrToHackEncoding((uint8_t*)&str[0], str.size(), font);
 
-    gsetvp(0, 0, 159, 127);
+    gsetvp(0, 0, 127, 127);
     gsetpos(x, y + font->symheight - 2);
     gputs(str.c_str());
 }

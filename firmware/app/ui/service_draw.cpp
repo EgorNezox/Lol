@@ -16,6 +16,12 @@ MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
 void Service::draw()
 {
+    GUI_Painter::ClearViewPort(true);
+    GUI_Painter::SetColorScheme(CST_DEFAULT);
+    GUI_Painter::DrawLine(0,0,10,0);
+    GUI_Painter::DrawLine(0,20,10,20);
+    return;
+
     CState currentState;
     guiTree.getLastElement(currentState);
 
