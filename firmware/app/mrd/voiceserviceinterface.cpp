@@ -565,6 +565,7 @@ void VoiceServiceInterface::startAleRx()
 
 void VoiceServiceInterface::startAleTx(uint8_t address, voice_message_t message)
 {
+	dispatcher->dsp_controller->stopGucIntoVoice();
     dispatcher->ale_service->startAleTxVoiceMail(address, message);
 }
 

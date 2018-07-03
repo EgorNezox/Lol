@@ -679,8 +679,6 @@ void DspController::setAdr()
 void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version)
 {
 
-	startGucIntoVoice();
-
 	if (!is_ready)
 	{
 	//	qmDebugMessage(QmDebug::Info, "DSP started (id=0x%02X, version=%u.%u)", id, major_version, minor_version);
@@ -694,6 +692,8 @@ void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t
 		initResetState();
 	}
 	started();
+
+	startGucIntoVoice();
 }
 
 void DspController::processStartupTimeout()
@@ -848,6 +848,7 @@ void DspController::processRadioState()
 	{
 		command_value.radio_mode = current_radio_mode;
 		sendCommand(RxRadiopath, RxRadioMode, command_value);
+		startGucIntoVoice();
 		break;
 	}
 	case radiostateCmdTxPower:
@@ -1655,19 +1656,24 @@ void DspController::startPSWFReceiving()
 {
 	//qmDebugMessage(QmDebug::Dump, "startPSWFReceiving(%d)", ack);
 	QM_ASSERT(is_ready);
+	stopGucIntoVoice();
 	pswf_module->startPswfRx();
 }
 
 void DspController::startPSWFTransmitting(bool ack, uint8_t r_adr, uint8_t cmd,int retr)
 {
     QM_ASSERT(is_ready);
+    stopGucIntoVoice();
     pswf_module->startPswfTx(ack,r_adr,cmd,retr);
 }
 
 void DspController::startSMSRecieving(SmsStage stage)
 {
 	QM_ASSERT(is_ready);
+	stopGucIntoVoice();
+
 	pswf_module->startSmsRx();
+
 }
 
 void DspController::defaultSMSTransmit()
@@ -1680,6 +1686,7 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 {
   //  qmDebugMessage(QmDebug::Dump, "SMS tranmit (%d, %s)",r_adr, message);
     QM_ASSERT(is_ready);
+    stopGucIntoVoice();
 
     ContentSms.indicator = 20;
     ContentSms.TYPE = 0;
@@ -1744,9 +1751,12 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
 void DspController::startGucIntoVoice()
 {
-	ParameterValue comandValue;
-	comandValue.guc_mode = 3;
-	sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
+	if (is_ready)
+		startGucRecieving();
+
+//	ParameterValue comandValue;
+//	comandValue.guc_mode = 3;
+//	sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
 }
 
 void DspController::stopGucIntoVoice()
@@ -1755,7 +1765,6 @@ void DspController::stopGucIntoVoice()
 	comandValue.guc_mode = 0;
 	sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
 }
-
 
 void DspController::startGucTransmitting(int r_adr, int speed_tx, std::vector<int> command, bool isGps)
 {
@@ -1907,30 +1916,52 @@ void DspController::startGucRecieving()
 {
     QM_ASSERT(is_ready);
 
-    initResetState();
+   // initResetState();
 
     ParameterValue comandValue;
     comandValue.radio_mode = RadioModeOff;
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
     comandValue.guc_mode = 3;
 
+    /* установка режима на включение */
     sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
+
+    /* установка адреса */
     comandValue.guc_mode = stationAddress;
     sendCommandEasy(RadioLineNotPswf, 3 ,comandValue);
 
+    /* установка  в две полосы */
     comandValue.guc_mode = 3;
     sendCommandEasy(RadioLineNotPswf, 1, comandValue);
+
     QmThread::msleep(100);
     //-----------------------------------
 
-    comandValue.guc_mode = RadioModeSazhenData; // 11 mode
+    comandValue.guc_mode = RadioModeSazhenData; // 11 mode, need for guc receiving
     sendCommandEasy(RxRadiopath, RxRadioMode, comandValue);
+
+//	switch (emissionType)
+//	{
+//		case voiceemissionUSB: comandValue.radio_mode = RadioModeUSB;
+//		case voiceemissionFM: comandValue.radio_mode = RadioModeFM;
+//		default: comandValue.radio_mode = current_radio_mode;
+//	}
+//
+//	sendCommandEasy(RxRadiopath,RxRadioMode,comandValue);
+//
+//	comandValue.radio_mode = RadioModeOff;
+//	sendCommandEasy(TxRadiopath,2,comandValue);
+
+	   //----------------------------------------
 
     comandValue.frequency = freqGucValue;
     sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
 
+
+
     //ContentGuc.stage =  GucRx;
     guc_vector.clear();
+
 }
 
 uint8_t* DspController::get_guc_vector()
@@ -2219,6 +2250,8 @@ void DspController::goToVoice()
 	comandValue.frequency = current_radio_frequency;
 	sendCommandEasy(RxRadiopath, RxFrequency, comandValue);
 	sendCommandEasy(TxRadiopath, TxFrequency, comandValue);
+
+	startGucIntoVoice();
 }
 
 void DspController::magic()

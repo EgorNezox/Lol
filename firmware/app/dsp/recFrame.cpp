@@ -233,7 +233,7 @@ inline void DspController::recGucLog(uint8_t address, uint8_t* data, int data_le
 				//ContentGuc.S_ADR = ((data[2] & 0x7) << 2) + ((data[3] & 0xC0) >> 6);
 				//qmDebugMessage(QmDebug::Dump, "---- 0x6B indicator:30 stage: GucTx R_ADR: %d S_ADR: %d", ContentGuc.R_ADR, ContentGuc.S_ADR);
 				recievedGucQuitForTransm(ContentGuc.S_ADR);
-				completedStationMode(false);
+				completedStationMode(true); // было false 03.07.18
 				stopGucTimer();
 			}
 			else if (code == 1) /* если сообщение */
