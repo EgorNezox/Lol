@@ -76,7 +76,7 @@ void ramtexdisplaywidget_deinit(void) {
 }
 
 RamtexDisplayWidget::RamtexDisplayWidget(QWidget *parent) :
-    QWidget(parent), ddram(GDISPW, GDISPH, QImage::Format_RGB16)
+    QWidget(parent), ddram(GDISPW, GDISPH, QImage::Format_Mono)
 {
     Q_ASSERT(self == 0);
     self = this;
@@ -89,7 +89,8 @@ RamtexDisplayWidget::RamtexDisplayWidget(QWidget *parent) :
         for (int y = 0; y < GDISPH; y++)
         {
             ram[x][y] = 0;
-            ddram.setPixel(x, y, qRgb(qrand()%255, qrand()%255, qrand()%255));
+           // ddram.setPixel(x, y, qRgb(qrand()%255, qrand()%255, qrand()%255));
+            ddram.setPixel(x, y, qrand()%1);
             //ddram.setPixel(x, y, 0xff);
         }
     reset();
@@ -217,12 +218,16 @@ void RamtexDisplayWidget::execWriteCommand()
 
          mpu_control.ddram_pixel = (mpu_control.wdr); // 2 pixels
 
-        uint8_t leftNibble = mpu_control.ddram_pixel & 0xF0;
+        uint8_t leftNibble = mpu_control.ddram_pixel & 0x00F0;
         leftNibble = leftNibble >> 4;
-        uint8_t rightNibble = mpu_control.ddram_pixel & 0x0F;
+        uint8_t rightNibble = mpu_control.ddram_pixel & 0x000F;
 
-        QRgb left = leftNibble ? rgbYellowCol : rgbBlackCol;
-        QRgb right = rightNibble ? rgbYellowCol : rgbBlackCol;
+//        QRgb left = leftNibble ? rgbYellowCol : rgbBlackCol;
+//        QRgb right = rightNibble ? rgbYellowCol : rgbBlackCol;
+
+        uint8_t left = leftNibble ? 1 : 0;
+        uint8_t right = rightNibble ? 1 : 0;
+
            //ddram.setPixel(registers[REG_X], registers[REG_Y], left);
            // ddram.setPixel(registers[REG_X], registers[REG_Y], right);
 
@@ -234,12 +239,14 @@ void RamtexDisplayWidget::execWriteCommand()
 //        *(getDDRAMPixelPointer()) = rightNibble ? 0xFF : 0x00;
 //        incrementDDRAMPosition();
 
-        ram[registers[REG_X]][registers[REG_Y]] = leftNibble;
+        ram[registers[REG_X]][registers[REG_Y]] = left; // = leftNibble
         ddram.setPixel(registers[REG_X], registers[REG_Y], left);
+       // qDebug() << "set pixel" << "x:" <<registers[REG_X] << "y:" <<registers[REG_Y] << "val: " << left;
         incrementDDRAMPosition();
 
-        ram[registers[REG_X]][registers[REG_Y]] = rightNibble;
+        ram[registers[REG_X]][registers[REG_Y]] = right; // = rightNibble
         ddram.setPixel(registers[REG_X], registers[REG_Y], right);
+       // qDebug() << "set pixel" << "x:" <<registers[REG_X] << "y:" <<registers[REG_Y] << "val: " << right;
         incrementDDRAMPosition();
 
         if (registers[REG_DISPLAY_ON] == 1)
@@ -271,13 +278,22 @@ void RamtexDisplayWidget::execWriteCommand()
         if (mpu_control.wdr > (GDISPW-1))
             mpu_control.wdr = (GDISPW-1);   
 
+        if (mpu_control.ir == REG_VP_X1)
+            registers[REG_X] =  mpu_control.wdr * 2;
+
         saveMPUWriteRegister();
         checkAndAlignDDRAMPositionX();
 
         if (mpu_control.ir == REG_VP_X1)
+        {
             nextCmd = REG_VP_X2;
+         //   qDebug() << "set vp " << "x1:" << mpu_control.wdr;
+        }
         if (mpu_control.ir == REG_VP_X2)
+        {
             isBigCmd = false;
+         //   qDebug() << "set vp " << "x2:" << mpu_control.wdr;
+        }
 
         break;
     case REG_VP_Y1:
@@ -285,13 +301,22 @@ void RamtexDisplayWidget::execWriteCommand()
         if (mpu_control.wdr > (GDISPH-1))
             mpu_control.wdr = (GDISPH-1);
 
+        if (mpu_control.ir == REG_VP_Y1)
+            registers[REG_Y] =  mpu_control.wdr;
+
         saveMPUWriteRegister();
         checkAndAlignDDRAMPositionY();
 
         if (mpu_control.ir == REG_VP_Y1)
+        {
             nextCmd = REG_VP_Y2;
+          //  qDebug() << "set vp " << "y1:" << mpu_control.wdr;
+        }
         if (mpu_control.ir == REG_VP_Y2)
+        {
             isBigCmd = false;
+         //   qDebug() << "set vp " << "y2:" << mpu_control.wdr;
+        }
 
         break;
 //    case REG_X:
@@ -417,7 +442,7 @@ void RamtexDisplayWidget::incrementDDRAMPosition()
     if (registers[REG_DRAM_X] > registers[REG_VP_X2])
     {
         registers[REG_DRAM_X] = registers[REG_VP_X1];
-        registers[REG_X] = registers[REG_DRAM_X];
+        registers[REG_X] = registers[REG_DRAM_X] * 2;
         registers[REG_Y]++;
     }
 

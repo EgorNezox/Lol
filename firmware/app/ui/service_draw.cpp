@@ -16,11 +16,12 @@ MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
 void Service::draw()
 {
-    GUI_Painter::ClearViewPort(true);
-    GUI_Painter::SetColorScheme(CST_DEFAULT);
-    GUI_Painter::DrawLine(0,0,10,0);
-    GUI_Painter::DrawLine(0,20,10,20);
-    return;
+//    GUI_Painter::ClearViewPort(true);
+//    GUI_Painter::SetColorScheme(CST_DEFAULT);
+//   // GUI_Painter::DrawLine(0,0,10,0);
+//   // GUI_Painter::DrawLine(0,20,10,20);
+//    GUI_Painter::DrawRect(10,10,20,20,RDM_LINE);
+//    return;
 
     CState currentState;
     guiTree.getLastElement(currentState);
@@ -73,11 +74,11 @@ void Service::draw()
     	str.append(add);
 
         GUI_Painter::ClearViewPort(true);
-        GUI_Painter::DrawRect(0, 0, 159, 127, RDM_FILL);
+        GUI_Painter::DrawRect(0, 0, 127, 127, RDM_FILL);
 
-        GUI_Painter::DrawText(35, 15, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)radioStationStr);
-        GUI_Painter::DrawText(35, 30, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)str.c_str());
-        GUI_Painter::DrawText(35, 65, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)true_SWF);
+        GUI_Painter::DrawText(15, 15, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)radioStationStr);
+        GUI_Painter::DrawText(15, 30, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)str.c_str());
+        GUI_Painter::DrawText(15, 65, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)true_SWF);
     }
 }
 
@@ -178,7 +179,7 @@ void Service::drawIndicator()
 			indicator->Draw();
 
 
-			MoonsGeometry objArea   = {  0,  0,  159, 127 };
+            MoonsGeometry objArea   = {  0,  0,  127, 127 };
 			MoonsGeometry batArea   = {  70, 29,  90, 41 };
 
 			int charge = pGetPowerBattery()->getChargeLevel();
@@ -219,10 +220,10 @@ void Service::drawWaveInfo()
     	if (waveValue > 0.000 && powerValue > 0.000)
 		//if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx && (waveValue > 0.000 && powerValue > 0.000))
 		{
-			MoonsGeometry objArea = {  0, 0, 159, 127 };
-			MoonsGeometry windowArea = {  116, 0, 159, 35 };
-			MoonsGeometry waveArea   = { 116, 2,  159, 18 };
-			MoonsGeometry powerArea  = {116, 16, 159, 28 };
+            MoonsGeometry objArea = {  0, 0, 127, 127 };
+            MoonsGeometry windowArea = {  116, 0, 127, 35 };
+            MoonsGeometry waveArea   = { 116, 2,  127, 18 };
+            MoonsGeometry powerArea  = {116, 16, 127, 28 };
 
 			//waveValue = 99.0;
 
@@ -252,11 +253,11 @@ void Service::drawWaveInfo()
 		{
 			MoonsGeometry windowArea;
 			if (guiTree.getCurrentState().getType() == mainWindow)
-				windowArea = { 116, 0, 159, 35 };
+                windowArea = { 116, 0, 127, 35 };
 			else
-				windowArea = { 116, 0, 159, 28 };
+                windowArea = { 116, 0, 127, 28 };
 
-			MoonsGeometry objArea = {  0, 0, 159, 127 };
+            MoonsGeometry objArea = {  0, 0, 127, 127 };
 			GUI_Obj obj(&objArea);
 
 			GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
@@ -626,7 +627,7 @@ void Service::setColorScheme(uint32_t back,uint32_t front)
 void Service::msgBox(const char *title)
 {
     Alignment align007 = {alignHCenter,alignTop};
-    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+    MoonsGeometry area007 = {1, 1, (GXT)(127), (GYT)(127)};
 
     if (msg_box != nullptr)
         delete msg_box;
@@ -640,7 +641,7 @@ void Service::msgBox(const char *title)
 void Service::msgBox(const char *title, const char *text)
 {
     Alignment align007 = {alignHCenter,alignTop};
-    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+    MoonsGeometry area007 = {1, 1, (GXT)(127), (GYT)(127)};
 
     if (msg_box != nullptr)
         delete msg_box;
@@ -654,7 +655,7 @@ void Service::msgBox(const char *title, const char *text)
 void Service::msgBox(const char *title, const int condCmd)
 {
     Alignment align007 = {alignHCenter,alignTop};
-    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+    MoonsGeometry area007 = {1, 1, (GXT)(127), (GYT)(127)};
 
     if (msg_box != nullptr)
         delete msg_box;
@@ -667,7 +668,16 @@ void Service::msgBox(const char *title, const int condCmd)
     isDrawCondCmd = false;
 }
 
+void Service::showMessage(const char *title, const char *text)
+{
+    MoonsGeometry area = {5,62,122,125};
+    GUI_Dialog_MsgBox::showMessage(&area, true, title, text);
+}
 
+void Service::showMessage(const char *title, const char *text, MoonsGeometry area)
+{
+    GUI_Dialog_MsgBox::showMessage(&area, true, title, text);
+}
 
 }/* namespace Ui */
 

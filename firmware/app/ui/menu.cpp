@@ -173,9 +173,9 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
     params.element.align = {alignHCenter, alignVCenter};
     params.transparent = true;
 
-    MoonsGeometry localLabelArea = { 7,  5, 150,  39 };
-    MoonsGeometry localFieldArea = { 7, 40, 150, 100 };
-    MoonsGeometry local1FieldArea = { 7, 90, 150, 120 };
+    MoonsGeometry localLabelArea = { 7,  5, 120,  39 };
+    MoonsGeometry localFieldArea = { 2, 40, 125, 100 };
+    MoonsGeometry local1FieldArea = { 7, 90, 120, 120 };
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                               (GUI_Obj *)this);
     GUI_EL_Label  label (&GUI_EL_TEMP_LabelTitle,    &localLabelArea,  (char*)labelStr.c_str(), (GUI_Obj *)this);
@@ -385,7 +385,7 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
      isRepaintItem = true;
     }
 
-    GUI_Painter::DrawText(30,5,titleParams.font,(char*)titleStr.c_str());
+    GUI_Painter::DrawText(10,5,titleParams.font,(char*)titleStr.c_str());
 
     itemParams.label_params.transparent = true;
     itemParams.label_params.element.align = {alignHCenter, alignVCenter};
@@ -418,10 +418,10 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
     }
     else
     {
-        MoonsGeometry sliderArea  = { 150, 25, 157, 110};
+        MoonsGeometry sliderArea  = { 118, 25, 125, 110};
         SliderParams  sliderParams = {(int32_t)text.size(), (int32_t)1, (int32_t)focusItem};
         GUI_EL_Slider slider( &sliderParams, &sliderArea, (GUI_Obj *)this);
-        GUI_Painter::DrawRect(152, 30, 155, 100, RDM_FILL); //clear slider
+        GUI_Painter::DrawRect(120, 30, 123, 100, RDM_FILL); //clear slider
         slider.Draw();
 
         for (auto &k: text)

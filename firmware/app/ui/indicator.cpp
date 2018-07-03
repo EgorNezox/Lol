@@ -39,7 +39,7 @@ GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
 //#if PARAMS_DRAW
 //    icon_geom = {0, 35, 100, 60};
 //#else
-    icon_geom = {5, 36, 154, 62};
+    icon_geom = {5, 36, 122, 62};
 //#endif
 
     LabelParams p_label = GUI_EL_TEMP_LabelMode;

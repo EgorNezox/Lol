@@ -589,7 +589,7 @@ void Service::setCoordDate(Navigation::Coord_Date date)
 void Service::msgBox(const char *title, const int condCmd, const int size, const int pos, uint8_t* coord = 0)
 {
     Alignment align007 = {alignHCenter,alignTop};
-    MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
+    MoonsGeometry area007 = {1, 1, (GXT)(127), (GYT)(127)};
 
     if (msg_box != nullptr)
         delete msg_box;
@@ -977,17 +977,6 @@ std::vector<uint8_t>* Service::loadMessage(DataStorage::FS::FileType typeF, Data
         memcpy(fileMsg.data(),&errorReadStr[0],errorReadStr.size());
     }
     return &fileMsg;
-}
-
-void Service::showMessage(const char *title, const char *text)
-{
-    MoonsGeometry area = {15,62,140,125};
-    GUI_Dialog_MsgBox::showMessage(&area, true, title, text);
-}
-
-void Service::showMessage(const char *title, const char *text, MoonsGeometry area)
-{
-    GUI_Dialog_MsgBox::showMessage(&area, true, title, text);
 }
 
 void Service::getCurrentTime(uint8_t* hour, uint8_t* minute, uint8_t* second)
