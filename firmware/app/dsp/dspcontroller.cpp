@@ -673,7 +673,13 @@ void DspController::setAdr()
 {
 	ParameterValue param;
     param.pswf_r_adr = stationAddress;
-	sendCommand(PSWFReceiver, PswfRxRAdr, param);
+	sendCommandEasy(PSWFReceiver, PswfRxRAdr, param);
+
+	param.guc_mode = stationAddress;
+	sendCommandEasy(RadioLineNotPswf, 3, param);
+
+	startGucIntoVoice();
+
 }
 
 void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t minor_version)
@@ -693,7 +699,8 @@ void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t
 	}
 	started();
 
-	startGucIntoVoice();
+	//goToVoice();
+	//startGucIntoVoice();
 }
 
 void DspController::processStartupTimeout()
@@ -848,7 +855,7 @@ void DspController::processRadioState()
 	{
 		command_value.radio_mode = current_radio_mode;
 		sendCommand(RxRadiopath, RxRadioMode, command_value);
-		startGucIntoVoice();
+		//startGucIntoVoice();
 		break;
 	}
 	case radiostateCmdTxPower:
@@ -1751,12 +1758,13 @@ void DspController::startSMSTransmitting(uint8_t r_adr,uint8_t* message, SmsStag
 
 void DspController::startGucIntoVoice()
 {
+	//startGucRecieving();
 	if (is_ready)
-		startGucRecieving();
-
-//	ParameterValue comandValue;
-//	comandValue.guc_mode = 3;
-//	sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
+	{
+		ParameterValue comandValue;
+		comandValue.guc_mode = 3;
+		sendCommandEasy(RadioLineNotPswf, 0 ,comandValue);
+	}
 }
 
 void DspController::stopGucIntoVoice()
