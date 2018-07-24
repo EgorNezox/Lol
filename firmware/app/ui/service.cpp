@@ -1964,6 +1964,8 @@ void Service::onCompletedStationMode(bool isGoToVoice)
     menu->qwitCounter = 0;
     // qwit tx exit menu
 
+    isGucAnswerWaiting = false;
+
     if (isCondModeQwitTx || isGucModeQwitTx)
     {
     	isCondModeQwitTx = false;
@@ -1996,7 +1998,6 @@ void Service::onRecievingBatteryVoltage(int voltage)
 {
     voice_service->sendBatteryVoltage(voltage);
 }
-
 
 void Service::garnitureStart()
 {
