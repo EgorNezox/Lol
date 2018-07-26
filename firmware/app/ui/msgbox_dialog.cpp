@@ -27,7 +27,7 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
                                       )
     :GUI_Obj(area)
 {
-  this->window_geom = { 1, 1, 166, 126 };
+  this->window_geom = { 1, 1, 126, 126 };
   title_area_params = GUI_EL_TEMP_CommonTextAreaLT;
   title_area_params.element.align = align;
   text_area_params = GUI_EL_TEMP_CommonTextAreaLT;
@@ -43,7 +43,7 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
                                       )
     :GUI_Obj(area)
 {
-    this->window_geom = { 1, 1, 166, 126 };
+    this->window_geom = { 1, 1, 126, 126 };
     title_area_params = GUI_EL_TEMP_CommonTextAreaLT;
     title_area_params.element.align = align;
     text_area_params = GUI_EL_TEMP_CommonTextAreaLT;
@@ -59,7 +59,7 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
                                       )
     :GUI_Obj(area)
 {
-    this->window_geom = { 1, 1, 166, 126 };
+    this->window_geom = { 1, 1, 126, 126 };
     title_area_params = GUI_EL_TEMP_CommonTextAreaLT;
     title_area_params.element.align = align;
     text_area_params = GUI_EL_TEMP_LabelMode;
@@ -81,7 +81,7 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
                                       )
     :GUI_Obj(area)
 {
-    this->window_geom = { 1, 1, 166, 126 };
+    this->window_geom = { 1, 1, 126, 126 };
     title_area_params = GUI_EL_TEMP_CommonTextAreaLT;
     title_area_params.element.align = align;
     text_area_params = GUI_EL_TEMP_LabelMode;
@@ -207,7 +207,7 @@ void GUI_Dialog_MsgBox::DrawWithCoord(uint8_t* coord){
 void GUI_Dialog_MsgBox::Draw_Sms()
 {
     text_area_geom  = { (GXT)(window_geom.xs + MARGIN), (GYT)(window_geom.ys + 10*MARGIN + 1), (GXT)(window_geom.xe - MARGIN), (GYT)( window_geom.ye - (MARGIN + BUTTON_HEIGHT) ) };
-    MoonsGeometry sliderArea  = { 150, 25, 157, 110};
+    MoonsGeometry sliderArea  = { 120, 25, 125, 110};
     int32_t all_line = 1;
     std::string str;
     str = text;
@@ -295,7 +295,7 @@ void GUI_Dialog_MsgBox::showMessage(MoonsGeometry *area, bool isFrame, const cha
     if (isFrame)
         params.frame_thick = 1;
 
-    MoonsGeometry oa{0,0,159,127};
+    MoonsGeometry oa{0,0,127,127};
     GUI_Obj obj(&oa);
     GUI_EL_Window window( &params, area, &obj);
 

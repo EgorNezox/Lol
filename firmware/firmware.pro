@@ -48,6 +48,7 @@ INCLUDEPATH += \
 
 DEFINES += PORT__PCSIMULATOR
 
+DEFINES += EMUL
 
 HEADERS += \
     app/ui/menu.h \

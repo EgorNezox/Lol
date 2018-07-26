@@ -176,11 +176,20 @@ void Service::drawIndicator()
 			indicator->UpdateHeadset(pGetHeadsetController()->getStatus());
 			indicator->UpdateMultiradio(pGetVoiceService()->getStatus());
 			indicator->UpdateSynchStatus(voice_service->getVirtualMode());
+
+#ifdef EMUL
+            indicator->UpdateGpsStatus(2);
+            indicator->UpdateBattery(50);
+            indicator->UpdateHeadset(Headset::Controller::Status::StatusSmartOk);
+            indicator->UpdateMultiradio(Multiradio::VoiceServiceInterface::Status::StatusVoiceRx);
+            indicator->UpdateSynchStatus(true);
+#endif
+
 			indicator->Draw();
 
 
             MoonsGeometry objArea   = {  0,  0,  127, 127 };
-			MoonsGeometry batArea   = {  70, 29,  90, 41 };
+            MoonsGeometry batArea   = {  2, 25,  22, 40 };
 
 			int charge = pGetPowerBattery()->getChargeLevel();
 
@@ -214,16 +223,21 @@ void Service::drawIndicator()
 void Service::drawWaveInfo()
 {
 
+#ifdef EMUL
+  waveValue = 99.0;
+  powerValue = 25.0;
+#else
     if (msg_box == nullptr )
+#endif
    // if (guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr )
     {
     	if (waveValue > 0.000 && powerValue > 0.000)
 		//if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx && (waveValue > 0.000 && powerValue > 0.000))
 		{
-            MoonsGeometry objArea = {  0, 0, 127, 127 };
-            MoonsGeometry windowArea = {  116, 0, 127, 35 };
-            MoonsGeometry waveArea   = { 116, 2,  127, 18 };
-            MoonsGeometry powerArea  = {116, 16, 127, 28 };
+            MoonsGeometry objArea    = {  0, 0, 127, 127 };
+            MoonsGeometry windowArea = { 80, 0, 127, 35 };
+            MoonsGeometry waveArea   = { 80, 2,  127, 18 };
+            MoonsGeometry powerArea  = { 80, 16, 127, 28 };
 
 			//waveValue = 99.0;
 

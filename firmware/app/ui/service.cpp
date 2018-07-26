@@ -140,6 +140,28 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     currentSpeed = voice_service->getCurrentChannelSpeed();
 
+#ifdef EMUL
+    Navigation::Coord_Date data;
+    memset( &data.latitude,  0, 11 );
+    memset( &data.longitude, 0, 11 );
+
+    data.data[0] = 49;
+    data.data[1] = 50;
+    data.data[2] = 49;
+    data.data[3] = 50;
+    data.data[4] = 49;
+    data.data[5] = 50;
+
+    data.time[0] = 49;
+    data.time[1] = 50;
+    data.time[2] = 50;
+    data.time[3] = 50;
+    data.time[4] = 51;
+    data.time[5] = 52;
+
+    setCoordDate(data );
+#endif
+
     draw();
 }
 
@@ -566,6 +588,10 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     	time = voice_service->getVirtualTime();
     else
         time = (uint8_t*)&date.time;
+
+#ifdef EMUL
+    time = (uint8_t*)&date.time;
+#endif
 
     std::string str;
     str.resize(9);

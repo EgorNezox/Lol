@@ -11,9 +11,9 @@
 
 //----------GLOBAL_VARS--------
 
-static MoonsGeometry ch_label_geom    = {  10, 40,  95,  75 };
-static MoonsGeometry mode_label_geom  = { 100, 40, 150,  75 };
-static MoonsGeometry freq_geom        = {   9, 76, 150, 120 };
+static MoonsGeometry ch_label_geom    = {  0, 50,  85,  83 };
+static MoonsGeometry mode_label_geom  = { 85, 55, 120,  80 };
+static MoonsGeometry freq_geom        = {   2, 78, 127, 127 };
 
 bool GUI_main_scr_init_flag=0;
 
@@ -57,21 +57,18 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
                                bool valid_freq
                               )
 {
+
+#ifdef EMUL
+    status = Multiradio::VoiceServiceInterface::ChannelStatus::ChannelActive;
+    ch_num = 39;
+    channel_type = Multiradio::voice_channel_t::channelClose;
+    valid_freq = true;
+    setFreq("34500000");
+#endif
+
   updateChannel(status, ch_num, channel_type);
 
   window->Draw();
-
-  ch_num_label->transparent = true;
-  if (focus == 2)
-  {
-	  ch_num_label->transparent = false;
-  }
-  ch_num_label->Draw();
-
-  if (cur_ch_invalid)
-  {
-      groundrect(2,15,52,16,0,GFRAME);
-  }
 
   //mode_text->transparent = false;
   if (valid_freq)
@@ -85,6 +82,20 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
 
   if (valid_freq)
     freq->Draw();
+
+  ch_num_label->transparent = true;
+  if (focus == 2)
+  {
+	  ch_num_label->transparent = false;
+  }
+  ch_num_label->Draw();
+
+  if (cur_ch_invalid)
+  {
+      groundrect(2,15,52,16,0,GFRAME);
+  }
+
+
 
 }
 
@@ -226,7 +237,9 @@ void GUI_Dialog_MainScr::setFreq(const char *fr)
         if (i == (size - 4) || i == (size - 7))
         strOut.push_back('.');
     }
+#ifndef EMUL
     strOut.append(freq_hz);
+#endif
     strOut.push_back('\0');
     freq->SetText((char*)strOut.c_str());
 }
