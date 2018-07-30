@@ -660,10 +660,10 @@ void VoiceServiceInterface::onSettingAleFreq(uint32_t freq)
 
 void VoiceServiceInterface::setSwrTimerState(bool state)
 {
-	if (state && dispatcher->dsp_controller->isReady())
-		dispatcher->dsp_controller->swr_timer->start();
-	else
-		dispatcher->dsp_controller->swr_timer->stop();
+//	if (state && dispatcher->dsp_controller->isReady())
+//		dispatcher->dsp_controller->swr_timer->start();
+//	else
+//		dispatcher->dsp_controller->swr_timer->stop();
 
 }
 

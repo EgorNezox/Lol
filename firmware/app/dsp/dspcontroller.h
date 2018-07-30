@@ -281,7 +281,7 @@ private:
     void processRadioState();
     void syncNextRadioState();
 
-    void getSwr();
+   // void getSwr();
     void sendPswf();
     void addSeconds(int *date_time);
     void addSeconds(QmRtc::Time *t);

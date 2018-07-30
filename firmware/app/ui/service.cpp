@@ -256,10 +256,10 @@ void Service::updateHeadset(Headset::Controller::Status status)
 void Service::updateMultiradio(Multiradio::VoiceServiceInterface::Status status)
 {
     multiradioStatus = status;
-    if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx)
-    	voice_service->setSwrTimerState(true);
-    else
-    	voice_service->setSwrTimerState(false);
+//    if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx)
+//    	voice_service->setSwrTimerState(true);
+//    else
+//    	voice_service->setSwrTimerState(false);
     drawIndicator();
     drawWaveInfo();
 }

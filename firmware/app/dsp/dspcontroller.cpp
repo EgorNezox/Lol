@@ -96,9 +96,10 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	guc_rx_quit_timer->setSingleShot(true);
 	guc_rx_quit_timer->timeout.connect(sigc::mem_fun(this, &DspController::onGucWaitingQuitTimeout));
 
-	swr_timer = new QmTimer(false,this);
-    swr_timer->setInterval(500);
-    swr_timer->timeout.connect(sigc::mem_fun(this, &DspController::getSwr));
+	// присылается инициативно
+//	swr_timer = new QmTimer(false,this);
+//  swr_timer->setInterval(500);
+//  swr_timer->timeout.connect(sigc::mem_fun(this, &DspController::getSwr));
 
 	initResetState();
 
@@ -395,16 +396,16 @@ void DspController::setAGCParameters(uint8_t agc_mode,int RadioPath)
     resyncPendingCommand();
 }
 
-void DspController::getSwr()
-
-{
-    QM_ASSERT(is_ready);
-    if (!resyncPendingCommand()) return;
-
-    ParameterValue commandValue;
-    commandValue.swf_mode = 6;
-    sendCommandEasy(TxRadiopath, 6, commandValue);
-}
+//void DspController::getSwr()
+//
+//{
+//    QM_ASSERT(is_ready);
+//    if (!resyncPendingCommand()) return;
+//
+//    ParameterValue commandValue;
+//    commandValue.swf_mode = 6;
+//    sendCommandEasy(TxRadiopath, 6, commandValue);
+//}
 
 void DspController::syncPulseDetected()
 {
