@@ -43,6 +43,7 @@ public:
 		KeyAction,				/*!< internal event used by classes in KeysInput module (platform-specific) */
 		RtcWakeup,				/*!< internal event used by classes in RTC module (platform-specific) */
 		User = 1000,			/*!< user-defined event */
+		UsbWakeUp,
 		MaxUser = 65535 - User	/*!< last user event ID */
 	};
 

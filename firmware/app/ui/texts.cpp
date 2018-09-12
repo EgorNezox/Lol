@@ -30,10 +30,10 @@ char * ch_table_mismatch_txt[LANG_COUNT]={(char *)"Несоответствие\nтаблицы речев
 
 const char* receiveStr = "Принять\0";
 const char* continueStr = "Продолжить\0";
-const char* receiveStatusStr[] = {"Начать прием\0", "Идет прием\0"};
+const char* receiveStatusStr[] = {"  Начать\n  прием\0", "   Идет\n  прием\0"};
 
-//const char *mainMenu[] = {"ГЛАВНОЕ МЕНЮ\0", " Передача\0", " Прием\0", " Данные\0", " Настройки\0"};
-const char *mainMenu[] = {"ГЛАВНОЕ МЕНЮ\0", " Перед.\0", " Прием\0", " Данные\0", " Настр.\0"};
+const char *mainMenuFull[] = {"ГЛАВНОЕ МЕНЮ\0", " Передача\0", " Прием\0", " Данные\0", " Настройки\0"};
+const char *mainMenu[]     = {"ГЛАВНОЕ МЕНЮ\0", " Перед.\0", " Прием\0", " Данные\0", " Настр.\0"};
 
 const char *callSubMenu[] = {" УК\0", " СМС\0", " ГП\0", " ГУК\0"};
 const char *commandsSubMenu[] = {" Одност.связь\0", " Двухст.связь\0"};
@@ -51,17 +51,19 @@ const char *fileRxTx[] = {" ПРМ\0", " ПРД\0"};
 const char *dataSubMenu[] = {" Принятые\0", " Отправленные\0", " Сохраненые\0", " GPS координаты\0"};
 const char *dataSubSubMenu[] = {" Условные команды\0", " СМС\0", " Головая почта\0", " Группа усл.команд\0"};
 
-const char *settingsSubMenu[] = {" Дат.Врем\0", " Пар. связи\0", " Скан\0", " Режим\0", " Звук\0",
-                                 " Шум\0"," Время ГУК\0", " Кл. сети"," Конфигур"," Коорд",
+const char *settingsSubMenu[] = {" Дат.Вр.\0", " Связь\0", " Скан.\0", " Режим\0", " Звук\0",
+                                 " Шум\0"," Время ГУК\0", " Кл. сети"," Конфиг."," Коорд",
                                  " Дисплей\0" }; //TODO:
 const char *dateAndTimeSubMenu[] = {" Синхро\0", " Ручной\0"};
-const char *setDateOrTime[] = {" Ввод даты\0", " Ввод время\0"};
-const char *setConnParam[] = {" Частота\0", " Скорость\0", " Тип изл.\0", " Реч. реж.\0"};
+const char *setDateOrTime[] = {" Дата\0", " Время\0"};
+//const char *setDateOrTime[] = {" Ввод даты\0", " Ввод время\0"};
+const char *setConnParam[] = {" Частота\0", " Скор.\0", " Излуч.\0", " Речь\0"};
 const char *files[] = {" Файлы\0"};
 
 const char *coordinateStr = "Координаты\0";
 const char *coordNotExistStr = "Координаты\n отсутствуют\0";
-const char *notExistStr = "отсутствуют\0";
+//const char *coordNotExistStr = "Координат\n нет\0";
+const char *notExistStr = "отсутств.\0";
 const char *useScanMenu[] = {"ВЫКЛ\0", "ВКЛ\0", "МАЛ\0","СРЕД\0","ВЫС\0"};
 const char *aruStr = "АРУ\0";
 const char *armStr = "АРМ\0";
@@ -73,7 +75,8 @@ const char *smsText[] = {"Адрес: \0", "Сообщение:\n\0"};
 
 const char *sms_quit_fail1 = "Нет ответа\0";
 const char *sms_quit_fail2 = "Квитанция потеряна\0";
-const char *sms_crc_fail = "Пакет доставлен с ошибками\0";
+//const char *sms_crc_fail = "Пакет доставлен с ошибками\0";
+const char *sms_crc_fail = "Пакет дост. с ошиб.\0";
 
 const char ch_key0[] = { ' ', '0' };
 const char ch_key1[] = { '.', ',', '!', '?', '\"', ':', '1' };
@@ -86,37 +89,62 @@ const char ch_key7[] = { 'Ф', 'Х', 'Ц', 'Ч', '7' };
 const char ch_key8[] = { 'Ш', 'Щ', 'Ъ', 'Ы', '8' };
 const char ch_key9[] = { 'Ь', 'Э', 'Ю', 'Я', '9' };
 
-const char* recvCondCommand = "Принята условная команда\0";
+//const char* recvCondCommand = "Принята условная команда\0";
+const char* recvCondCommand = "Принята усл. ком.\0";
 
 const char* groupCondCommFreqStr = "Частота \0";
+const char* schedulerFreqStr = "Частота Гц\0";
 const char* dataAndTime[] = {"Дата\0", "Время\0"};
 
-const char* putOffVoiceStageOneStr[] = {"Нажмите ввод для записи\0", "Ожидание записи\0"};
-const char* putOffVoiceStageTwoStr[] = {"Нажмите ввод для завершения\0", "Запись речи\0"};
+//const char* putOffVoiceStageOneStr[] = {"Нажмите ввод для записи\0", "Ожидание записи\0"};
+//const char* putOffVoiceStageTwoStr[] = {"Нажмите ввод для завершения\0", "Запись речи\0"};
+const char* putOffVoiceStageOneStr[] = {"Записать\0", "Ожидание записи\0"};
+const char* putOffVoiceStageTwoStr[] = {"Завершить\0", "Запись речи\0"};
 
 //const char* startAleTxVoiceMailStr = "Нажмите\nВвод для\nзапуска\0";
-const char* startAleTxVoiceMailStr = "Нажмите Ввод для запуска\n передачи.\0";
+//const char* startAleTxVoiceMailStr = "Нажмите Ввод для запуска\n передачи.\0";
+const char* startAleTxVoiceMailStr = "Запустить\n передачу\0";
+
+//const char* smatrHSStateStr[] = {
+//    "Воспроизвести\nневозможно.\nПовторите.\0",
+//    "Воспроизвести\nневозможно.\nНет гарнитуры\0",
+//    " Ошибка\n гарнитуры.\0",
+//    "Ошибка канала\n Выберите\n другой канал.\0",
+//    " Подготовка\n сообщения.\n Ожидайте.\0",
+//    "Проигрывание\nсообщения.\nОжидайте.\0",
+//    " Отправка\n записи сообщ.\n Ожидайте.\0",
+//    "Проигрывание\n cообщения.\n Ожидайте.\0",
+//    " Подготовка\n записи.\n Ожидайте.\0",
+//    " Подготовка\n записи.\n Ожидайте.\0",
+//    " Удерживайте\n тангенту\n для записи\0",
+//    " Получение\n записи.\n Ожидайте.\0",
+//    " Истекло\n время\n ожидания.\0",
+//    " Готово.\0",
+//    "14","15","16","17","18","19","20"
+//};
 
 const char* smatrHSStateStr[] = {
-    "Воспроизвести\nневозможно.\nПовторите.\0",
-    "Воспроизвести\nневозможно.\nНет гарнитуры\0",
-    " Ошибка\n гарнитуры.\0",
-    "Ошибка канала\n Выберите\n другой канал.\0",
-    " Подготовка\n сообщения.\n Ожидайте.\0",
-    "Проигрывание\nсообщения.\nОжидайте.\0",
-    " Отправка\n записи сообщ.\n Ожидайте.\0",
-    "Проигрывание\n cообщения.\n Ожидайте.\0",
-    " Подготовка\n записи.\n Ожидайте.\0",
-    " Подготовка\n записи.\n Ожидайте.\0",
-    " Удерживайте\n тангенту\n для записи\0",
+    "Воспроизв.\nневозм.\nПовторите.\0",
+    "Воспроизв.\nневозм.\nНет гарнитуры\0",
+    " Ошибка\n гарнит.\0",
+    "Ошибка канала\n Выберите\n др. канал.\0",
+    " Подгот.\n сообщ.\n Ожидайте.\0",
+    "Проигрыв.\nсообщения.\nОжидайте.\0",
+    " Отправка\n зап. сообщ.\n Ожидайте.\0",
+    "Проигрыв.\n cообщ.\n Ожидайте.\0",
+    " Подготов.\n записи.\n Ожидайте.\0",
+    " Подготов.\n записи.\n Ожидайте.\0",
+    " Удержив.\n тангенту\n для записи\0",
     " Получение\n записи.\n Ожидайте.\0",
     " Истекло\n время\n ожидания.\0",
     " Готово.\0",
     "14","15","16","17","18","19","20"
 };
 
-const char* openChannelPlayErrorStr = "Проиграть\nневозможно.\nОткрытый канал.\0";
-const char* noHeadsetPlayErrorStr   = "Проиграть\nневозможно.\nНет гарнитуры.\0";
+//const char* openChannelPlayErrorStr = "Проиграть\nневозможно.\nОткрытый канал.\0";
+//const char* noHeadsetPlayErrorStr   = "Проиграть\nневозможно.\nНет гарнитуры.\0";
+const char* openChannelPlayErrorStr = "Проигр.\nневозмож.\nОткр. канал.\0";
+const char* noHeadsetPlayErrorStr   = "Проиграть\nневозмож.\nНет гарн.\0";
 
 const char* aleStateStr[] = {
 /* 0 */			"\0",
@@ -188,11 +216,13 @@ const char *rxSmsResultStatus[] = {
     " Ожидание\n квитанции\0"
 };
 
-const char* voiceRxStr[] = {"Нажмите Ввод\n для запуска\n приема\0", "От:\0", "Нажмите ввод\0"};
-const char* voiceRxTxLabelStr[] = {"Канал записи\0", "Канал\nвоспроизвед.\0", "Запись речи.\0", "Воспр. речи.\0", "Получатель\0", "Получена ГП\0"};
-
-const char* condCommStr[] = {"Адрес получателя\0", "      Адрес \n  ретранслятора\0", "Команда\0", "Ретранслятор\0", "Сообщение\0"};
-const char* condCommSendStr = "Нажмите Ввод для \nзапуска передачи\0";
+const char* voiceRxStr[] = {"Запустить\n прием\0", "От:\0", "Нажмите ввод\0"};
+//const char* voiceRxStr[] = {"Нажмите Ввод\n для запуска\n приема\0", "От:\0", "Нажмите ввод\0"};
+const char* voiceRxTxLabelStr[] = {"Канал зап.\0", "Канал\nвос.\0", "Зап. речи\0", "Вос. речи\0", "Получат.\0", "Получ. ГП\0"};
+//const char* voiceRxTxLabelStr[] = {"Канал записи\0", "Канал\nвоспроизвед.\0", "Запись речи.\0", "Воспр. речи.\0", "Получатель\0", "Получена ГП\0"};
+const char* condCommStr[] = {"Адрес получателя\0", "       Адрес \n  ретранслятора\0", "Команда\0", "Ретранслятор\0", "Сообщение\0"};
+const char* condCommSendStr = "Запустить \nпередачу\0";
+//const char* condCommSendStr = "Нажмите Ввод для \nзапуска передачи\0";
 
 const char* ticketStr[] = {"Квитирование\0", "Ретрансляция\0"};
 //const char* voicePostTitleStr[] = {"Передача ГП\0", "Прием ГП\0"};
@@ -201,7 +231,8 @@ const char* voicePostTitleStr[] = {"Перед.\0", "Прием\0"};
 const char* gucQuitTextFail = "Квитанция не принята\0";
 const char* gucQuitTextOk   = "Принята квитанция\0";
 const char* errorCrcGuc = "Данные не достоверны\0";
-const char* pressEnter = "Нажмите ввод\nдля продолжения\0";
+//const char* pressEnter = "Нажмите ввод\nдля продолжения\0";
+const char* pressEnter = "Продолжить\0";
 
 const char* recievedGUC_CMD = "Приняты команды\0";
 const char* titleGuc        = "Сообщение\0";
@@ -244,7 +275,8 @@ const char *notReiableRecPacket = "Принята недостоверная команда\0";
 
 const char *errorReadFile = "Ошибка чтения файла\0";
 
-const char *displayBrightnessStr[] = {"Минимальная\0","Средняя\0","Максимальная\0"};
+//const char *displayBrightnessStr[] = {"Минимальная\0","Средняя\0","Максимальная\0"};
+const char *displayBrightnessStr[] = {"Минимум\0","Средняя\0","Максимум\0"};
 const char *displayBrightnessTitleStr = "Яркость\0";
 
 const char *schedulePromptStr = " минут\n до начала\n сеанса связи\n режима\0";

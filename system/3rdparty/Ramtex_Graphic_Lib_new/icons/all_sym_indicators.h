@@ -31,5 +31,12 @@
 //#include "sym_signal_h.h"
 //#include "sym_signal_m.h"
 
+#include "sym_rx_gray.h"
+#include "sym_tx_gray.h"
+#include "sym_headphones_analog_gray.h"
+#include "sym_headphones_smart_gray.h"
+#include "sym_headphones_broken_gray.h"
+#include "sym_headphones_none_gray.h"
+
 
 #endif /* ALL_SYM_INDICATORS_H_ */

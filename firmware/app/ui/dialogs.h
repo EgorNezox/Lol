@@ -19,6 +19,8 @@
 #include "keyboard.h"
 #include <stdio.h>
 
+#define EMUL
+
 extern MoonsGeometry ui_common_dialog_area;
 extern MoonsGeometry ui_indicator_area;
 
@@ -48,6 +50,7 @@ public:
 private:
     GUI_EL_Window *window;
     GUI_EL_Label  *ch_num_label;
+    GUI_EL_Label  *ch_type_label;
     GUI_EL_Label  *mode_text;
     GUI_EL_Label  *freq;
     bool cur_ch_invalid;
@@ -58,6 +61,8 @@ private:
                        Multiradio::voice_channel_t channel_type
                        );
     void prepChString(char *str, int ch_num, Multiradio::voice_channel_t type );
+    void prepChTypeString(char *str, Multiradio::voice_channel_t type );
+    void prepChNumString(char *str, int ch_num);
 public:
     // фокус элементов главного экрана
     int mwFocus;
@@ -88,6 +93,10 @@ class GUI_Indicator: public GUI_Obj{
         {
             date_time->SetText((char*)str.c_str());
         }
+        std::string getTime()
+        {
+            return date_time->getText();
+        }
         void DrawTime();
 private:
         void drawSynchSatus();
@@ -96,6 +105,7 @@ private:
         GUI_EL_Battery *ind_battery;
         bool isSynch = false;
         uint8_t synchXoffset = 0;
+        GUI_EL_Label *gps_time_lbl;
 public:
         GUI_EL_Label *date_time;
         GUI_EL_Icon  *gpsLabel;

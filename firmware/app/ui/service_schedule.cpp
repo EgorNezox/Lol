@@ -290,7 +290,8 @@ void Service::sheldureToStringList()
 
              uint8_t typeMsg = (uint8_t)sheldure[session].type;
              s.append(tmpParsing[typeMsg]);
-             (sheldure[session].type % 2 == 0) ? s.append("  ") : s.append("   ");
+             (sheldure[session].type % 2 == 0) ? s.append("") : s.append(" ");
+            // (sheldure[session].type % 2 == 0) ? s.append("  ") : s.append("   ");
 
               // --------- time -----------
 
@@ -298,7 +299,7 @@ void Service::sheldureToStringList()
 
              // --------- freq -----------
 
-             s.append(sheldure[session].freq).append(freq_hz);
+             s.append(sheldure[session].freq);//.append(freq_hz);
 
              sheldure_data.push_back(s);
          }

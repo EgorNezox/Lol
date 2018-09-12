@@ -112,6 +112,11 @@ void hal_timer_delay(unsigned int ms) {
 	}
 }
 
+void HAL_Delay(uint32_t Delay)
+{
+	hal_timer_delay(Delay);
+}
+
 hal_timer_handle_t hal_timer_create(hal_timer_params_t *params) {
 	struct s_timer_pcb *timer = malloc(sizeof(struct s_timer_pcb));
 	DLLIST_INIT_ELEMENT(active, timer);

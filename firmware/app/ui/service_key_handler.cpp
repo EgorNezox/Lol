@@ -2708,7 +2708,7 @@ void Service::sheldure_keyPressed(UI_Key key)
     if (!isNew)
         tempSheldureSession.freq = sheldure[menu->sheldureStageFocus[0]].freq;
     menu->sheldureFreqStr = tempSheldureSession.freq;
-    menu->sheldureFreqStr.append(" ").append(freq_hz);
+   // menu->sheldureFreqStr.append(" ").append(freq_hz);
     break;
     case 3: // freq
         if ( key == keyBack )
@@ -2740,7 +2740,7 @@ void Service::sheldure_keyPressed(UI_Key key)
                 tempSheldureSession.freq.push_back(key + 42);
         }
         menu->sheldureFreqStr = tempSheldureSession.freq;
-        menu->sheldureFreqStr.append(" ").append(freq_hz);
+        //menu->sheldureFreqStr.append(" ").append(freq_hz);
     break;
 
     case 4:// editing

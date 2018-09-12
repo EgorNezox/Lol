@@ -52,6 +52,8 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 
     dispatcher->dsp_controller->transmitAsk.connect(sigc::mem_fun(this,&VoiceServiceInterface::onTransmitAsk));
 
+    dispatcher->dsp_controller->keyEmulate.connect(sigc::mem_fun(this, &VoiceServiceInterface::onKeyEmulate));
+
     current_status = StatusNotReady;
     current_mode = VoiceModeManual;
 
@@ -673,6 +675,16 @@ void VoiceServiceInterface::stopGucQuit()
 {
 	if (dispatcher->dsp_controller->guc_rx_quit_timer != 0)
 		dispatcher->dsp_controller->guc_rx_quit_timer->stop();
+}
+
+bool VoiceServiceInterface::getUsbStatus()
+{
+	return dispatcher->dsp_controller->getUsbStatus();
+}
+
+void VoiceServiceInterface::onKeyEmulate(int key)
+{
+	keyEmulate(key);
 }
 
 } /* namespace Multiradio */

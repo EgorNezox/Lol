@@ -93,8 +93,10 @@
 
 /* If GHW_ALLOCATE_BUF is defined the graphich buffer is allocated using malloc.
    instead of using a (faster) static buffer */
+#define GBUFFER
+
 #ifdef GBUFFER
-  /* #define GHW_ALLOCATE_BUF */ /* Allocate buffer on heap */
+   #define GHW_ALLOCATE_BUF  /* Allocate buffer on heap */
 #endif
 
 /* If GWARNING is defined, illegal runtime values will cause

@@ -18,6 +18,7 @@
 #include "dsptransport.h"
 #include <cstring>
 #include "../synchro/virtual_timer.h"
+#include "../../../system/usb_cdc.h"
 
 #define DEFAULT_PACKET_HEADER_LEN	2
 #define hw_rtc                      1
@@ -46,6 +47,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	command_timer->timeout.connect(sigc::mem_fun(this, &DspController::processCommandTimeout));
 
 	reset_iopin = new QmIopin(reset_iopin_resource, this);
+	//wakeup_dsp_pin = new QmIopin(platformhwDspWakeUpIopin,this);
+
 	transport = new DspTransport(uart_resource, 2, this);
 	transport->receivedFrame.connect(sigc::mem_fun(this, &DspController::processReceivedFrame));
 
@@ -124,6 +127,10 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     waveInfoTimer->setSingleShot(true);
     waveInfoTimer->timeout.connect(sigc::mem_fun(this, &DspController::clearWaveInfo));
 
+#ifndef PORT__PCSIMULATOR
+    usb = new QmUsb(hw_usb);
+    usb->usbwakeup.connect(sigc::mem_fun(this, &DspController::wakeUpUsb));
+#endif
 }
 DspController::~DspController()
 
@@ -165,6 +172,9 @@ void DspController::startServicing()
 	reset_iopin->writeOutput(QmIopin::Level_High);
 	//new (fast)
 
+#ifndef PORT__PCSIMULATOR
+	usb_start();
+#endif
 ////	qmDebugMessage(QmDebug::Info, "start servicing...");
 //	initResetState();
 //	reset_iopin->writeOutput(QmIopin::Level_Low);
@@ -914,6 +924,131 @@ void DspController::setAdr()
 	ParameterValue param;
     param.pswf_r_adr = stationAddress;
 	sendCommand(PSWFReceiver, PswfRxRAdr, param);
+}
+
+static uint8_t out_buf[2048];
+
+volatile int isCadr = false;
+volatile int isOk   = 0;
+volatile int counter = 0;
+volatile int size    = 0;
+volatile int start   = 0;
+
+uint16_t DspController::parsing(uint8_t *cadr, uint16_t len )
+{
+
+     for(int i = 0; i < len; i++)
+     {
+    	 if (counter == 0)
+    	 {
+    		 if (cadr[i] == 0x10) counter = 1;
+    		 start = i;
+    	 }
+    	 else
+    	 {
+    		 if (counter == 1)
+    		 {
+    			 size  = cadr[i];
+    		 }
+
+    		 if (counter == 2)
+    		 {
+    			 size += cadr[i] << 8;
+    		 }
+
+    		 if (counter == size + 3)
+    		 {
+    			 isCadr  = false;
+    			 isOk    = false;
+    			 counter = 0;
+    			 size    = 0;
+    			 start   = 0;
+
+    			 if (cadr[i] == 0x11)
+    			 {
+    				 manageCadr(out_buf,size);
+    				 //return size;
+
+    				 qmDebugMessage(QmDebug::Info, "BLA BLA: %i ", i);
+    				 continue;
+    			 }
+
+    		 }
+
+    		 if (counter - 1 >= len) qmDebugMessage(QmDebug::Info, "ERROR: CNT %i LEN %i", counter, len);
+    		 out_buf[counter - 1] = cadr[i];
+    		 ++counter;
+
+    	 }
+
+	 }
+
+     return 0;
+}
+
+void DspController::manageCadr(uint8_t *cadr, uint16_t len)
+{
+	uint8_t userid = cadr[2];
+
+	uint16_t size = 0;
+
+	size = cadr[0] + (cadr[1] << 8);
+
+
+	int pos = 0;
+
+
+	for(int i = 0; i < 4; i++)
+		pos  += cadr[i + 3] << (i*8);
+
+
+	if (userid == 0x8)
+	{
+		keyEmulate(cadr[3]);
+	}
+}
+
+bool DspController::getUsbStatus()
+{
+	return isUsbReady;
+}
+
+void DspController::wakeUpUsb()
+{
+#ifndef PORT__PCSIMULATOR
+	isUsbReady = true;
+
+	//UseUsb = usb->getStatus();
+	/* получаем содержимое буфера от компьютера */
+	uint8_t * buff = usb->getbuffer();
+
+	/* получаем текущую длинну сообщения */
+	int len =  usb->getLen();
+
+	qmDebugMessage(QmDebug::Info, "recieved len: %i ", usb->getLen());
+
+	/*функция обработки кадра для приемного буфера*/
+	parsing(buff,len);
+
+	/*сбрасываем поле длинны для приема нового кадра */
+	usb->resetLen();
+
+//	if (usb->getrtc())
+//	{
+//		reset_iopin->writeOutput(QmIopin::Level_Low);
+//		QmThread::msleep(10);
+//		reset_iopin->writeOutput(QmIopin::Level_High);
+//	}
+//	if (usb->getLen())
+//	{
+//		wakeup_dsp_pin->writeOutput(QmIopin::Level_Low);
+//		QmThread::msleep(10);
+//		wakeup_dsp_pin->writeOutput(QmIopin::Level_High);
+//	}
+
+	//QmThread::msleep(300);
+	UseUsb = getUsbStatus();
+#endif
 }
 
 }

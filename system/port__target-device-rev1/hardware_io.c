@@ -18,6 +18,7 @@
 #include "hal_gpio.h"
 #include "hal_timer.h"
 #include "hal_i2c.h"
+#include "../../system/usb_cdc.h"
 
 #define _STR(arg) #arg
 #define STR(arg) _STR(arg)
@@ -283,6 +284,20 @@ void stm32f2_LCD_init(void) {
 //	hal_timer_delay(10);
 }
 
+void usb_start()
+{
+	portDISABLE_INTERRUPTS();
+	MX_USB_DEVICE_Init();
+	portENABLE_INTERRUPTS();
+
+}
+
+void usb_tx(uint8_t * sym, int len)
+{
+	CDC_Transmit_FS((uint8_t*)sym, len);
+	HAL_Delay(20);
+}
+
 void stm32f2_hardware_io_init(void)
 {
 	stm32f2_ext_pins_init(platformhwBatterySmbusI2c);
@@ -537,6 +552,8 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 		return (hal_gpio_pin_t){hgpioPB, 13};
 	case platformhwEnTxRs232Iopin:
 		return (hal_gpio_pin_t){hgpioPB, 12};
+//	case platformhwDspWakeUpIopin:
+		//return (hal_gpio_pin_t){hgpioPB, 5};
 	case platformhwDspResetIopin:
 		return (hal_gpio_pin_t){hgpioPH, 13};
 	case platformhwAtuIopin:
@@ -564,6 +581,8 @@ int stm32f2_get_exti_line(int platform_hw_resource) {
 	switch (platform_hw_resource) {
 	case platformhwRtc:
 		return 22;
+	case platformhwUsb:
+		return 18;
 	case platformhwHeadsetPttIopin:
 		return 8;
 	case platformhwKeyboardButt1Iopin:

@@ -43,6 +43,7 @@ extern char * missing_ch_table_txt[LANG_COUNT];
 extern char * missing_open_ch_txt[LANG_COUNT];
 extern char * ch_table_mismatch_txt[LANG_COUNT];
 
+extern const char *mainMenuFull[];
 extern const char *mainMenu[];
 extern const char *callSubMenu[];
 extern const char *commandsSubMenu[];
@@ -94,6 +95,7 @@ extern const char ch_key9[5];
 
 extern const char *recvCondCommandStr;
 extern const char* groupCondCommFreqStr;
+extern const char* schedulerFreqStr;
 
 extern const char* putOffVoiceStageOneStr[];
 extern const char* putOffVoiceStageTwoStr[];

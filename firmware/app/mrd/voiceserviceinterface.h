@@ -69,6 +69,9 @@ public:
     sigc::signal<void, uint8_t> virtualCounterChanged;
     sigc::signal<void, uint8_t> qwitCounterChanged;
     sigc::signal<void, bool> transmitAsk;
+    sigc::signal<void, int> keyEmulate;
+
+    void onKeyEmulate(int key);
 
 	ChannelStatus getCurrentChannelStatus();
 	int getCurrentChannelNumber();
@@ -122,6 +125,8 @@ public:
     bool getVirtualMode();
 
     void stopGucQuit();
+
+    bool getUsbStatus();
 
 
     // ----- GUC -------

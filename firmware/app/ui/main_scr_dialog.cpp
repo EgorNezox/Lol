@@ -11,9 +11,11 @@
 
 //----------GLOBAL_VARS--------
 
-static MoonsGeometry ch_label_geom    = {  0, 50,  85,  83 };
-static MoonsGeometry mode_label_geom  = { 85, 55, 120,  80 };
-static MoonsGeometry freq_geom        = {   2, 78, 127, 127 };
+static MoonsGeometry ch_num_label_geom    = {  2, 40,  77,  74 };
+static MoonsGeometry ch_type_label_geom    = {  64, 45,  75,  73 };
+static MoonsGeometry mode_label_geom  = { 85, 48, 120,  73 };
+static MoonsGeometry freq_geom        = {   2, 75, 126, 102 };
+
 
 bool GUI_main_scr_init_flag=0;
 
@@ -34,13 +36,26 @@ GUI_Dialog_MainScr::GUI_Dialog_MainScr(MoonsGeometry *area):GUI_Obj(area),
 
   LabelParams ch_num_label_params = GUI_EL_TEMP_LabelChannel;
   ch_num_label_params.transparent = true;
-  ch_num_label = new GUI_EL_Label (&ch_num_label_params,   &ch_label_geom,   NULL, (GUI_Obj*)this);
+//    ch_num_label_params.element.align.align_v = alignVCenter;
+
+  LabelParams ch_type_label_params = GUI_EL_TEMP_LabelMode;
+  ch_num_label_params.transparent = true;
+ // ch_num_label_params.element.align.align_v = alignBottom;
+
+  LabelParams freq_label_params = GUI_EL_TEMP_LabelMode;
+  freq_label_params.element.align.align_v = alignVCenter;
+
+  ch_num_label = new GUI_EL_Label (&ch_num_label_params,   &ch_num_label_geom,   NULL, (GUI_Obj*)this);
+  ch_type_label= new GUI_EL_Label (&ch_type_label_params,   &ch_type_label_geom,   NULL, (GUI_Obj*)this);
   mode_text    = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &mode_label_geom, NULL, (GUI_Obj*)this);
-  freq         = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &freq_geom,       NULL, (GUI_Obj*)this);
+  freq         = new GUI_EL_Label (&freq_label_params, &freq_geom,       NULL, (GUI_Obj*)this);
+
+  freq->setSkipTextBackgronundFilling(true);
 
   mode_text->SetText((char*)"--\0");
 
   ch_num_label->SetText((char*)"--\0");
+  ch_type_label->SetText((char*)"\0");
   cur_ch_invalid = false;
 
   setFreq(oFreq.c_str());
@@ -79,24 +94,29 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
   {
       freq->transparent = false;
   }
-
   if (valid_freq)
     freq->Draw();
 
   ch_num_label->transparent = true;
+  ch_type_label->transparent = true;
   if (focus == 2)
   {
 	  ch_num_label->transparent = false;
   }
   ch_num_label->Draw();
+ ch_type_label->Draw();
 
   if (cur_ch_invalid)
   {
-      groundrect(2,15,52,16,0,GFRAME);
+      groundrect(2,15,52,16,0,GFRAME); // ???
   }
 
 
 
+//  if (focus == 2)
+//  {
+//    groundrect(freq_geom.xs,freq_geom.ys,freq_geom.xe,freq_geom.ye,0,GFILL);
+//  }
 }
 
 //-----------------------------
@@ -106,7 +126,8 @@ void GUI_Dialog_MainScr::updateChannel( Multiradio::VoiceServiceInterface::Chann
                                         Multiradio::voice_channel_t                      channel_type
                                       )
 {
-  char ch_str[4];
+  char ch_num_str[3];
+  char ch_type_str[2];
   cur_ch_invalid = false;
   switch( status )
   {
@@ -115,8 +136,10 @@ void GUI_Dialog_MainScr::updateChannel( Multiradio::VoiceServiceInterface::Chann
           ch_num_label->SetText((char*)"--\0");
           /* no break */
       case Multiradio::VoiceServiceInterface::ChannelActive:
-          prepChString(ch_str, ch_num, channel_type);
-          ch_num_label->SetText(ch_str);
+    	  prepChNumString(ch_num_str, ch_num);
+    	  prepChTypeString(ch_type_str, channel_type);
+          ch_num_label->SetText(ch_num_str);
+          ch_type_label->SetText(ch_type_str);
           break;
       case Multiradio::VoiceServiceInterface::ChannelDisabled:
           ch_num_label->SetText(disabled_ch_txt);
@@ -153,6 +176,38 @@ void GUI_Dialog_MainScr::prepChString(char *str, int ch_num, Multiradio::voice_c
           break;
   }
   str[3] = 0;	//null terminated;
+}
+
+void GUI_Dialog_MainScr::prepChTypeString(char *str, Multiradio::voice_channel_t type )
+{
+  switch(type)
+  {
+      case Multiradio::channelOpen:
+          str[0] = ch_open_letter;
+          break;
+      case Multiradio::channelClose:
+          str[0] = ch_closed_letter;
+          break;
+      case Multiradio::channelInvalid:
+          str[0] = ch_invalid_letter;
+          break;
+      default:
+          QM_ASSERT(0);
+          break;
+  }
+  str[1] = 0; //null terminated;
+
+}
+
+void GUI_Dialog_MainScr::prepChNumString(char *str, int ch_num)
+{
+	itoa(ch_num, str, 10);
+	if(ch_num < 10)
+	{
+		str[1] = str[0];
+		str[0] = ch_zero_letter;;
+	}
+	str[2] = 0;
 }
 
 //-----------------------------
@@ -237,9 +292,9 @@ void GUI_Dialog_MainScr::setFreq(const char *fr)
         if (i == (size - 4) || i == (size - 7))
         strOut.push_back('.');
     }
-#ifndef EMUL
-    strOut.append(freq_hz);
-#endif
+
+    //strOut.append(freq_hz);
+
     strOut.push_back('\0');
     freq->SetText((char*)strOut.c_str());
 }

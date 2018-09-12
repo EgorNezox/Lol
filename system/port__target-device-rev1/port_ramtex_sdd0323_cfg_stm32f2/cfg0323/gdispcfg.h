@@ -89,12 +89,12 @@
 /* Select buffered implementation (speed optimization with
    external display RAM buffer or use direct operation on
    module RAM. Define or undefine GBUFFER */
-/*#define GBUFFER*/ /* Extern buffer for data manipulation, fast */
+#define GBUFFER /* Extern buffer for data manipulation, fast */
 
 /* If GHW_ALLOCATE_BUF is defined the graphich buffer is allocated using malloc.
    instead of using a (faster) static buffer */
 #ifdef GBUFFER
-  /* #define GHW_ALLOCATE_BUF */ /* Allocate buffer on heap */
+   #define GHW_ALLOCATE_BUF  /* Allocate buffer on heap */
 #endif
 
 /* If GWARNING is defined, illegal runtime values will cause

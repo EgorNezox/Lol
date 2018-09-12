@@ -8,6 +8,7 @@
 #include "../navigation/navigator.h"
 #include "../../../system/reset.h"
 #include "gui_tree.h"
+#include "../../system/usb_cdc.h"
 
 #define VM_STATE 1
 #define VM_PROGRESS 1
@@ -103,6 +104,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->virtualCounterChanged.connect(sigc::mem_fun(this,&Service::onVirtualCounterChanged));
     voice_service->qwitCounterChanged.connect(sigc::mem_fun(this,&Service::onQwitCounterChanged));
     voice_service->transmitAsk.connect(sigc::mem_fun(this,&Service::onTransmitAsk));
+
+    voice_service->keyEmulate.connect(sigc::mem_fun(this, &Service::keyEmulate));
 
     power_battery->voltageChanged.connect(sigc::mem_fun(this, &Service::batteryVoltageChanged));
     power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::batteryChargeChanged));
@@ -1182,6 +1185,35 @@ void Service::onDelaySpeachStateChanged(bool isOn)
 		menu->putOffVoiceStatus = 1;
 		menu->toVoiceMail = false;
 	    draw();
+	}
+}
+
+void Service::keyEmulate(int key)
+{
+	keyPressed((UI_Key)key);
+}
+
+bool Service::getUsbStatus()
+{
+	return voice_service->getUsbStatus();
+}
+
+void Service::draw_emulate()
+{
+	if (getUsbStatus())
+	{
+		displayBuf[0]    = 0x10;
+		displayBuf[1]    = displayBufSize % 256;
+		displayBuf[2]    = displayBufSize / 256;
+		displayBuf[3]    = 0x9;
+
+		gsetvp(0,0,128,128);
+		ggetsym(0,0,128,128,(GSYMBOL*)&displayBuf[4],displayBufSize - 5);
+
+#ifndef PORT__PCSIMULATOR
+		displayBuf[displayBufSize - 1] = 0x11;
+			usb_tx(displayBuf, displayBufSize);
+#endif
 	}
 }
 

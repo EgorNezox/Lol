@@ -194,12 +194,16 @@ void GUI_EL_Label::Draw(){
 			skipflags = GFILL;
 		}
 
+        if (!transparent)
+            groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,skipflags);
+
         if (!skip_text_bg_filling)
             groundrect(0,0,GEOM_W(el_geom)-1,GEOM_H(el_geom)-1,0,skipflags);
         else
             gsetmode(COMMON_ELEMENT_VP_MODE);
         gsetpos(content.x, CONTENT_YE(content));
         gputs(text.c_str());
+
 		if(transparent){
 			gsetmode(COMMON_ELEMENT_VP_MODE);
 		}

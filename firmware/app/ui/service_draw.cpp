@@ -16,12 +16,15 @@ MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
 void Service::draw()
 {
-//    GUI_Painter::ClearViewPort(true);
+	//GUI_Painter::SetColorScheme(CST_DEFAULT);
+  //  GUI_Painter::ClearViewPort(true);
+
 //    GUI_Painter::SetColorScheme(CST_DEFAULT);
 //   // GUI_Painter::DrawLine(0,0,10,0);
 //   // GUI_Painter::DrawLine(0,20,10,20);
 //    GUI_Painter::DrawRect(10,10,20,20,RDM_LINE);
 //    return;
+
 
     CState currentState;
     guiTree.getLastElement(currentState);
@@ -80,6 +83,8 @@ void Service::draw()
         GUI_Painter::DrawText(15, 30, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)str.c_str());
         GUI_Painter::DrawText(15, 65, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)true_SWF);
     }
+
+    draw_emulate();
 }
 
 void Service::drawMenu()
@@ -203,7 +208,7 @@ void Service::drawIndicator()
 			MoonsGeometry windowArea = {  70, 29, 90, 41 };
 			GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
 
-			window.Draw();
+			//window.Draw();
 			batLabel.Draw();
 		}
 		else
@@ -223,35 +228,45 @@ void Service::drawIndicator()
 void Service::drawWaveInfo()
 {
 
-#ifdef EMUL
-  waveValue = 99.0;
-  powerValue = 25.0;
-#else
+//#ifdef EMUL
+  waveValue = 9.5;
+  powerValue = 9.9;
+//#else
     if (msg_box == nullptr )
-#endif
-   // if (guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr )
+//#endif
     {
     	if (waveValue > 0.000 && powerValue > 0.000)
 		//if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx && (waveValue > 0.000 && powerValue > 0.000))
 		{
             MoonsGeometry objArea    = {  0, 0, 127, 127 };
-            MoonsGeometry windowArea = { 80, 0, 127, 35 };
-            MoonsGeometry waveArea   = { 80, 2,  127, 18 };
-            MoonsGeometry powerArea  = { 80, 16, 127, 28 };
+            MoonsGeometry windowArea = { 92, 0, 125, 35 };
+            MoonsGeometry waveArea   = { 92, 2,  125, 18 };
+            MoonsGeometry powerArea  = { 92, 16, 125, 28 };
 
 			//waveValue = 99.0;
 
 			char var[5] = {0,0,0,0,0};
-			sprintf(var,"%02.1f",waveValue);
-			std::string waveStr("S: " + std::string(var));
+
+			if (waveValue >= 10.0)
+				sprintf(var,"%02.0f",waveValue);
+			else
+				sprintf(var,"%01.1f",waveValue);
+			//std::string waveStr("S: " + std::string(var));
+			std::string waveStr("S " + std::string(var));
+
 			memset(&var, 0, 5);
-			sprintf(var,"%02.1f",powerValue);
-			std::string powerStr("P: " + std::string(var));
+
+			if (powerValue >= 10.0)
+				sprintf(var,"%02.0f",powerValue);
+			else
+				sprintf(var,"%01.1f",powerValue);
+			//std::string powerStr("P: " + std::string(var));
+			std::string powerStr("P " + std::string(var));
 
 			GUI_Obj obj(&objArea);
 
 			LabelParams param = GUI_EL_TEMP_LabelTitle;
-			param.element.align.align_h = alignLeft;
+			param.element.align.align_h = alignRight;
 
 			GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
 		   // GUI_EL_Label  rxtxLabel  (&GUI_EL_TEMP_LabelTitle,    &txrxArea,   (char*)rxtxStr.c_str(), (GUI_Obj *)this);
@@ -286,55 +301,56 @@ void Service::drawMainWindow()
     navigator->set1PPSModeCorrect(true);
 #endif
 
-    if (!isStartTestMsg){
-    Multiradio::VoiceServiceInterface *voice_service = pGetVoiceService();
-
-    Multiradio::voice_emission_t emission_type = voice_service->getCurrentChannelEmissionType();
-
-    std::string str;
-    switch (emission_type)
+    if (!isStartTestMsg)
     {
-    case Multiradio::voice_emission_t::voiceemissionFM:
-        str.append(ch_em_type_str[0]);
-        break;
-    case Multiradio::voice_emission_t::voiceemissionUSB:
-        str.append(ch_em_type_str[1]);
-        break;
-    default:
-        str.append((char*)"--\0");
-        break;
-    }
+    	Multiradio::VoiceServiceInterface *voice_service = pGetVoiceService();
 
-    main_scr->setModeText(str.c_str());
+    	Multiradio::voice_emission_t emission_type = voice_service->getCurrentChannelEmissionType();
 
-    auto status = voice_service->getStatus();
+    	std::string str;
+    	switch (emission_type)
+    	{
+    	case Multiradio::voice_emission_t::voiceemissionFM:
+    		str.append(ch_em_type_str[0]);
+    		break;
+    	case Multiradio::voice_emission_t::voiceemissionUSB:
+    		str.append(ch_em_type_str[1]);
+    		break;
+    	default:
+    		str.append((char*)"--\0");
+    		break;
+    	}
 
-    bool valid_freq = true;
-    if ( status == Multiradio::VoiceServiceInterface::StatusNotReady || status == Multiradio::VoiceServiceInterface::StatusIdle )
-        valid_freq = false;
+    	main_scr->setModeText(str.c_str());
 
-    int ch_num;
-    Multiradio::voice_channel_t channelType;
+    	auto status = voice_service->getStatus();
 
-    if (main_scr->channelEditing && channelNumberSyms)
-    {
-    	ch_num = channelNumberEditing;
-    	channelType = headset_controller->getChannelType(channelNumberEditing);
-    }
-    else
-    {
-    	ch_num = voice_service->getCurrentChannelNumber();
-    	channelType = voice_service->getCurrentChannelType();
-    }
+    	bool valid_freq = true;
+    	if ( status == Multiradio::VoiceServiceInterface::StatusNotReady || status == Multiradio::VoiceServiceInterface::StatusIdle )
+    		valid_freq = false;
 
-    main_scr->Draw(voice_service->getCurrentChannelStatus(),
-    		       ch_num,
-				   channelType,
-                   valid_freq
-                   );
+    	int ch_num;
+    	Multiradio::voice_channel_t channelType;
 
-    drawIndicator();
-    drawWaveInfo();
+    	if (main_scr->channelEditing && channelNumberSyms)
+    	{
+    		ch_num = channelNumberEditing;
+    		channelType = headset_controller->getChannelType(channelNumberEditing);
+    	}
+    	else
+    	{
+    		ch_num = voice_service->getCurrentChannelNumber();
+    		channelType = voice_service->getCurrentChannelType();
+    	}
+
+        main_scr->Draw(voice_service->getCurrentChannelStatus(),
+                ch_num,
+                channelType,
+                valid_freq
+        );
+
+        drawIndicator();
+       drawWaveInfo();
 
     }
 }
@@ -565,17 +581,22 @@ void Service::drawMenu_setTime()
 {
     CEndState st = (CEndState&)guiTree.getCurrentState();
     menu->setTitle(dataAndTime[1]);
-    std::string str; str.append(st.listItem.front()->inputStr); //str.append("00:00:00");
+    std::string str;
+    str.append(st.listItem.front()->inputStr); //str.append("00:00:00");
     std::string timeTemplate = "--:--:--";
+
+    std::string curTime = indicator->getTime(); //
     str.append(timeTemplate.substr(str.size(),8-str.size()));
-    menu->initSetDateOrTimeDialog( str );
-    indicator->DrawTime();
+    std::string res;
+    res.append("  ").append(curTime).append("\n\r  ").append(str);
+    menu->initSetDateOrTimeDialog( res );
+    //indicator->DrawTime();
 }
 
 void Service::drawMenu_setFreq()
 {
     CEndState st = (CEndState&)guiTree.getCurrentState();
-    std::string str; str.append(st.listItem.front()->inputStr); str.append(" ").append(freq_hz);
+    std::string str; str.append(st.listItem.front()->inputStr); str.append("\n\r     ").append(freq_hz);
     menu->initSetParametersDialog( str );
 }
 

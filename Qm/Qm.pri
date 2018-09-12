@@ -15,7 +15,8 @@ INCLUDEPATH += \
 	$$PWD/qmconsole/include \
 	$$PWD/qmstorage/include \
         $$PWD/qmkeysinput/include \
-        $$PWD/qmrtc/include
+        $$PWD/qmrtc/include \
+        $$PWD/qmusb/include
 
 DEFINES += QM_PLATFORM_QT
 

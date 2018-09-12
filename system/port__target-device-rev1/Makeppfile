@@ -27,6 +27,7 @@ SOURCES_system += $(SOURCES_ramtex_port)
 INCLUDEPATH_system += \
 	port_ramtex_sdd0323_cfg_stm32f2/cfg0323 \
 	port_ramtex_sdd0323_cfg_stm32f2/cfgio \
+	usb_cdc\Inc \
 	.
 
 # Hardware specifics
@@ -34,6 +35,7 @@ SOURCES_system += \
 	hardware_io.c \
 	stm32f2cube_hal_interface.c \
 	freq_tuner.c \
-	init_sky72310.c
+	init_sky72310.c \
+	$(wildcard usb_cdc/Src/**/*.c)
 
 include misc/target_build_footer.mk

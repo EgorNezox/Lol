@@ -74,6 +74,7 @@ class GUI_EL_Label: public GUI_Element{
 		GUI_EL_Label(LabelParams *params, MoonsGeometry *geom, char *text, GUI_Obj *parent_obj);
 		void setSkipTextBackgronundFilling(bool enabled);
 		void SetText(char *text);
+        std::string getText() {return text;}
         bool transparent;
         void SetParams(LabelParams *params);
         virtual void SetInputFocus(bool isFocus);

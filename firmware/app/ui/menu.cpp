@@ -173,7 +173,7 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
     params.element.align = {alignHCenter, alignVCenter};
     params.transparent = true;
 
-    MoonsGeometry localLabelArea = { 7,  5, 120,  39 };
+    MoonsGeometry localLabelArea = { 0,  5, 127,  36 };
     MoonsGeometry localFieldArea = { 2, 40, 125, 100 };
     MoonsGeometry local1FieldArea = { 7, 90, 120, 120 };
 
@@ -244,9 +244,9 @@ void CGuiMenu::initAruarmDialog()
     volume_geom[1] = {  3,  53,  50,  81 };
     volume_geom[2] = {  3,  86,  50, 114 };
 
-    volume_geom[3] = { 70,  20, 110,  48 };
-    volume_geom[4] = { 70,  53, 110,  81 };
-    volume_geom[5] = { 70,  86, 110, 114 };
+    volume_geom[3] = { 60,  20, 124,  48 };
+    volume_geom[4] = { 60,  53, 124,  81 };
+    volume_geom[5] = { 60,  86, 124, 114 };
 
     GUI_EL_Label *volume[6];
     LabelParams param[6] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
@@ -293,7 +293,7 @@ void CGuiMenu::initAruarmDialog()
 
 void CGuiMenu::initIncludeDialog()
 {
-    MoonsGeometry volume_geom  = {  35,  40,  105,  70 };
+    MoonsGeometry volume_geom  = {  10,  40,  90,  70 };
     GUI_EL_Label volume(&GUI_EL_TEMP_LabelMode, &volume_geom,  NULL, (GUI_Obj*)this);
 
     volume.SetText((char *)useScanMenu[inclStatus]);
@@ -310,8 +310,9 @@ void CGuiMenu::initIncludeDialog()
 
 void CGuiMenu::initSuppressDialog()
 {
-    MoonsGeometry volume_geom  = {  10,  45,  95,  70 };
+    MoonsGeometry volume_geom  = {  10, 45, 115, 70 };
     GUI_EL_Label volume (&GUI_EL_TEMP_LabelMode, &volume_geom,  NULL, (GUI_Obj*)this);
+    volume.align.align_h =alignHCenter;
 
     char str[3];
     sprintf(str,"%d",inclStatus);
@@ -550,14 +551,14 @@ void CGuiMenu::initSetDateOrTimeDialog(std::string text)
 
 void CGuiMenu::initDialog(std::string text)
 {
-    MoonsGeometry volume_geom  = {  5,  65,  120,  95 };
+    MoonsGeometry volume_geom  = {  2,  50,  125,  120 };
     LabelParams label_param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
 
     titleArea = { 5, 10, 120, 35};
     label_param[0].transparent = true;
     label_param[1].transparent = false;
 
-    label_param[0].element.align = { alignHCenter, alignTop };
+    label_param[0].element.align = { alignHCenter, alignVCenter };
     label_param[1].element.align = { alignHCenter, alignTop };
 
     GUI_EL_Window   window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                           (GUI_Obj *)this);
@@ -1166,8 +1167,8 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
     {
         LabelParams label_param[3] = {GUI_EL_TEMP_LabelText, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
 
-        MoonsGeometry freqArea     = { 5, 20, 120, 45 };
-        MoonsGeometry valueArea    = { 5, 50, 120, 100 };
+        MoonsGeometry freqArea     = { 2, 20, 125, 45 };
+        MoonsGeometry valueArea    = { 2, 50, 125, 100 };
 
         label_param[0].transparent = true;
         label_param[1].transparent = false;
@@ -1178,7 +1179,7 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
         label_param[2].element.align = label_param[0].element.align;
 
         GUI_EL_Label  title ( &label_param[0],  &titleArea,  (char*)editSheldure_label, (GUI_Obj*)this );
-        GUI_EL_Label  label ( &label_param[1],  &freqArea,   (char*)groupCondCommFreqStr, (GUI_Obj*)this );
+        GUI_EL_Label  label ( &label_param[1],  &freqArea,   (char*)schedulerFreqStr, (GUI_Obj*)this );
         GUI_EL_Label  value ( &label_param[2],  &valueArea,  (char*)sheldureFreqStr.c_str(), (GUI_Obj*)this );
 
         title.Draw();
@@ -1305,9 +1306,9 @@ void CGuiMenu::inputSmsAddr(std::string *field, UI_Key key)
 void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 {
     GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this);
-    MoonsGeometry title_geom  = {  5,   5, 110,  20 };
+    MoonsGeometry title_geom  = {  0,   0, 127,  30 };
     MoonsGeometry field_geom  = {  7,  40, 110,  100 };
-    MoonsGeometry length_geom = { 100,  5,  120,  20};
+    MoonsGeometry length_geom = { 80,  5,  127,  20};
 
     LabelParams param[3] = {GUI_EL_TEMP_CommonTextAreaLT, GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelChannel};
     param[0].element.align = {alignHCenter, alignTop};
@@ -1339,7 +1340,7 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
         length_message.clear();
         char str_len[] = {0,0,0,0};
         sprintf(str_len,"%d", fieldStr.size());
-        length_message.append(str_len).append( "/100" );
+        length_message.append(str_len).append( " %" );
 
         isDrawLength = true;
         isDrawScroll = true;
@@ -1351,6 +1352,8 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
         break;
     }
 
+    if (smsTxStage == 4)
+    	title_geom = {  0,   5, 70,  30 };
     GUI_EL_Label title  (&param[0], &title_geom, (char*)titleStr.c_str(), (GUI_Obj *)this);
     GUI_EL_Label length (&param[0], &length_geom, (char*)length_message.c_str(), (GUI_Obj *)this);
     if(smsTxStage == 2)
@@ -1396,6 +1399,8 @@ void CGuiMenu::initRxSmsDialog(std::string str, uint8_t stage) // + guc rx (hack
     GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea, (GUI_Obj *)this);
     GUI_EL_Label    ok_button ( &param, &button_geom, (char*)str.c_str(),(GUI_Obj *)this);
 
+    ok_button.setSkipTextBackgronundFilling(true);
+
     window.Draw();
     if (stage == 1)
     {
@@ -1415,6 +1420,7 @@ void CGuiMenu::initRxSmsDialog(std::string str, uint8_t stage) // + guc rx (hack
 //	    GUI_EL_Label  field1 (&param, &local1FieldArea,  (char*)counterStr.c_str(),      (GUI_Obj *)this);
 //    	field1.Draw();
 //    }
+
     ok_button.Draw();
 }
 
@@ -1525,8 +1531,8 @@ void CGuiMenu::initGroupCondCmd( CEndState state, bool isWaitingAnswer)  // ГУ
     }
 
                   titleArea = {  5,   5, 120,  18 };
-    MoonsGeometry labelArea = {  5,  18, 120,  43 };
-    MoonsGeometry valueArea = {  5,  40, 120,  105 };
+    MoonsGeometry labelArea = {  0,  18, 127,  43 };
+    MoonsGeometry valueArea = {  0,  43, 127,  105 };
     MoonsGeometry valueArea1 = {  5,  90, 120,  124 };
 
     LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
@@ -1560,7 +1566,7 @@ void CGuiMenu::initGroupCondCmd( CEndState state, bool isWaitingAnswer)  // ГУ
         sprintf(comCount,"%03d/100", cmdCount);
         std::string commandCountStr(comCount);
 
-        GUI_Painter::DrawText(110,7,titleParams.font,(char*)commandCountStr.c_str());
+        GUI_Painter::DrawText(80,7,titleParams.font,(char*)commandCountStr.c_str());
     }
     else
         value.Draw();

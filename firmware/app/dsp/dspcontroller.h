@@ -14,6 +14,12 @@
 #include "qmrtc.h"
 #include "../navigation/navigator.h"
 #include "../datastorage/fs.h"
+#ifndef PORT__PCSIMULATOR
+#include "../../../Qm/qmusb/include/qmusb.h"
+#endif
+//#include "qmusb.h"
+
+#include "../../../system/usb_cdc.h"
 
 /**
  @file
@@ -36,6 +42,8 @@
 #define NUMS 0 // need = 0   9 for debug
 #define startVirtTxPhaseIndex 0;
 
+#define platformhwDspWakeUpIopin   12
+#define hw_usb						2
 
 class QmTimer;
 class QmIopin;
@@ -173,6 +181,18 @@ public:
     void setStationAddress(uint8_t address);
     void clearWaveInfo();
 
+    bool getUsbStatus();
+    void wakeUpUsb();
+
+    bool UseUsb = false;
+#ifndef PORT__PCSIMULATOR
+    QmUsb *usb;
+#endif
+    uint16_t parsing(uint8_t *cadr, uint16_t len );
+    void  manageCadr(uint8_t *cadr, uint16_t len );
+
+    bool isUsbReady = false;
+
     sigc::signal<void> started;
     sigc::signal<void> rxModeSetting;
     sigc::signal<void> txModeSetting;
@@ -207,6 +227,8 @@ public:
     sigc::signal<void, uint8_t/*snr*/, uint8_t/*errors*/, ModemBandwidth/*bandwidth*/, uint8_t/*param_signForm*/, uint8_t/*param_packCode*/, uint8_t*/*data*/, int/*data_len*/> startedRxModemPacket_packHead;
     sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
     sigc::signal<void, int, int, int /*hrs,min,sec*/> vm1PpsPulse;
+
+    sigc::signal<void, int> keyEmulate;
 
     QmTimer *swr_timer;
     QmTimer *guc_rx_quit_timer 		   = 0;
@@ -472,6 +494,7 @@ private:
     Navigation::Navigator *navigator;
     DataStorage::FS 	  *data_storage_fs;
     QmIopin 			  *reset_iopin;
+    QmIopin 			  *wakeup_dsp_pin;
     DspTransport 		  *transport;
 
     QmTimer *startup_timer, *command_timer;

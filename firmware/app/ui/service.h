@@ -186,6 +186,10 @@ private:
     void drawMenu_setSpeed();
     void drawMenu_filetree();
 
+    void keyEmulate(int key);
+    void draw_emulate();
+    bool getUsbStatus();
+
     matrix_keyboard_t      matrix_kb;
     aux_keyboard_t         aux_kb;
     static bool 		   single_instance;
@@ -296,6 +300,8 @@ private:
     int valueRxSms;
     int mainWindowModeId;
 
+    const uint32_t displayBufSize = 128*64 + 5 + 4; // cadr info;
+    uint8_t displayBuf[128*64 + 5 + 4];
 
 
     float 	waveValue  = 0;
