@@ -13,7 +13,6 @@ def get_version():
 def add_version_to_file():
     new_line = "#define HOST_VERSION " + get_version() + "\n"
     file_name = "sazhenn.h"
-    print(file_name)
 	
     with open(file_name, 'r') as file:
         data = file.readlines()
