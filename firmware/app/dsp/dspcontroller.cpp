@@ -60,14 +60,6 @@ namespace Multiradio {
 using namespace Galua;
 rs_settings rs_255_93;
 
-struct DspCommand {
-	bool in_progress;
-	bool sync_next;
-	DspController::Module module;
-	int code;
-	DspController::ParameterValue value;
-};
-
 
 
 DspController::DspController(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, DataStorage::FS *data_storage_fs, QmObject *parent) :
@@ -104,14 +96,6 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	initResetState();
 
 	pswf_module = new PswfModes(this);
-
-#ifndef PORT__PCSIMULATOR
-    rtc = new QmRtc(hw_rtc);
-    usb = new QmUsb(hw_usb);
-    usb->usbwakeup.connect(sigc::mem_fun(this, &DspController::wakeUpUsb));
-	rtc->wakeup.connect(sigc::mem_fun(this,&DspController::wakeUpTimer));
-
-#endif
 
     if (navigator != 0)
     {
@@ -169,9 +153,16 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     waveInfoTimer->setSingleShot(true);
     waveInfoTimer->timeout.connect(sigc::mem_fun(this, &DspController::clearWaveInfo));
 
-}
-DspController::~DspController()
+#ifndef PORT__PCSIMULATOR
+    rtc = new QmRtc(hw_rtc);
+    usb = new QmUsb(hw_usb);
+    usb->usbwakeup.connect(sigc::mem_fun(this, &DspController::wakeUpUsb));
+	rtc->wakeup.connect(sigc::mem_fun(this,&DspController::wakeUpTimer));
 
+#endif
+}
+
+DspController::~DspController()
 {
     delete reset_iopin;
     delete transport;
@@ -184,6 +175,11 @@ DspController::~DspController()
     delete guc_rx_quit_timer;
     delete cmd_queue;
     delete rtc;
+}
+
+bool DspController::getUsbStatus()
+{
+	return isUsbReady;
 }
 
 void DspController::dspReset()
@@ -2357,58 +2353,126 @@ void DspController::correctTime(uint8_t num)
 	RtcFirstCatch = -1;
 }
 
+static uint8_t out_buf[2048];
+
+volatile int isCadr = false;
+volatile int isOk   = 0;
+volatile int counter = 0;
+volatile int size    = 0;
+volatile int start   = 0;
+
+uint16_t DspController::parsing(uint8_t *cadr, uint16_t len )
+{
+
+     for(int i = 0; i < len; i++)
+     {
+    	 if (counter == 0)
+    	 {
+    		 if (cadr[i] == 0x10) counter = 1;
+    		 start = i;
+    	 }
+    	 else
+    	 {
+    		 if (counter == 1)
+    		 {
+    			 size  = cadr[i];
+    		 }
+
+    		 if (counter == 2)
+    		 {
+    			 size += cadr[i] << 8;
+    		 }
+
+    		 if (counter == size + 3)
+    		 {
+    			 isCadr  = false;
+    			 isOk    = false;
+    			 counter = 0;
+    			 size    = 0;
+    			 start   = 0;
+
+    			 if (cadr[i] == 0x11)
+    			 {
+    				 manageCadr(out_buf,size);
+    				 //return size;
+
+    				 qmDebugMessage(QmDebug::Info, "BLA BLA: %i ", i);
+    				 continue;
+    			 }
+
+    		 }
+
+    		 if (counter - 1 >= len) qmDebugMessage(QmDebug::Info, "ERROR: CNT %i LEN %i", counter, len);
+    		 out_buf[counter - 1] = cadr[i];
+    		 ++counter;
+
+    	 }
+
+	 }
+
+     return 0;
+}
+
+void DspController::manageCadr(uint8_t *cadr, uint16_t len)
+{
+	uint8_t userid = cadr[2];
+
+	uint16_t size = 0;
+
+	size = cadr[0] + (cadr[1] << 8);
 
 
+	int pos = 0;
+
+
+	for(int i = 0; i < 4; i++)
+		pos  += cadr[i + 3] << (i*8);
+
+
+	if (userid == 0x8)
+	{
+		keyEmulate(cadr[3]);
+	}
+}
 
 void DspController::wakeUpUsb()
 {
 #ifndef PORT__PCSIMULATOR
 
-    uint8_t * buff = usb->getbuffer();
 
-    for(int i = 0; i < usb->getLen();i++)
-    qmDebugMessage(QmDebug::Info, "recieved byte: 0x%0x ", buff[i]);
+	//UseUsb = usb->getStatus();
+	/* получаем содержимое буфера от компьютера */
+	uint8_t * buff = usb->getbuffer();
 
-    usb->resetLen();
-//	platformhwKeyEnter		= 15, 0xF
-//	platformhwKeyBack		= 0,  0x0
-//	platformhwKeyUp			= 1,  0x1
-//	platformhwKeyDown		= 2,  0x2
-//	platformhwKeyLeft		= 3,  0x3
-//	platformhwKeyRight		= 7,  0x7
-//	platformhwKey0			= 11, 0xB
-//	platformhwKey1			= 4,  0x4
-//	platformhwKey2			= 8,  0x8
-//	platformhwKey3			= 12, 0xC
-//	platformhwKey4			= 5,  0x5
-//	platformhwKey5			= 9,  0x9
-//	platformhwKey6			= 13, 0xD
-//	platformhwKey7			= 6,  0x6
-//	platformhwKey8			= 10, 0xA
-//	platformhwKey9			= 14  0xE
+	/* получаем текущую длинну сообщения */
+	int len =  usb->getLen();
 
-	if (buff[0] == 0x1)
-	{
-		uint8_t key = buff[1];
-		emulateKey(key);
-	}
+	if (len > 0) isUsbReady = true;
 
-	if (buff[0] == 0x10)
-	{
-		parsing_cadr_form_pc(buff);
-	}
-	else
-	{
-		// programming or reading ...
-		if (newPacketUsb)
-		transmit_answer_to_pc(1,NULL,0);
-	}
+	qmDebugMessage(QmDebug::Info, "recieved len: %i ", usb->getLen());
 
-	if (usb->getrtc())
-	{
-		dspReset();
-	}
-    #endif
+	/*функция обработки кадра для приемного буфера*/
+	parsing(buff,len);
+
+	/*сбрасываем поле длинны для приема нового кадра */
+	usb->resetLen();
+
+//	if (usb->getrtc())
+//	{
+//		reset_iopin->writeOutput(QmIopin::Level_Low);
+//		QmThread::msleep(10);
+//		reset_iopin->writeOutput(QmIopin::Level_High);
+//	}
+//	if (usb->getLen())
+//	{
+//		wakeup_dsp_pin->writeOutput(QmIopin::Level_Low);
+//		QmThread::msleep(10);
+//		wakeup_dsp_pin->writeOutput(QmIopin::Level_High);
+//	}
+
+	//QmThread::msleep(300);
+	UseUsb = getUsbStatus();
+#endif
 }
 
 void DspController::wakeUpTimer()

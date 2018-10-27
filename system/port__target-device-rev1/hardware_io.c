@@ -163,21 +163,6 @@ void stm32f2_ext_mem_init(void) {
 }
 
 
-void usb_start()
-{
-	portDISABLE_INTERRUPTS();
-	MX_USB_DEVICE_Init();
-	portENABLE_INTERRUPTS();
-
-}
-
-void usb_tx(uint8_t * sym, int len)
-{
-	CDC_Transmit_FS((uint8_t*)sym, len);
-	HAL_Delay(100);
-}
-
-
 /* Тестирование аппаратной исправности внешней памяти
  * Глобальные переменные здесь нельзя использовать, данные могут быть размещены в тестируемой памяти.
  */

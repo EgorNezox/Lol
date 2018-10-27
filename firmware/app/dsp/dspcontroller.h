@@ -98,6 +98,8 @@ public:
 
     QmM25PDevice *mydevice;
 
+    sigc::signal<void, int> keyEmulate;
+
     void startServicing();
     void setRadioParameters		(RadioMode mode, uint32_t frequency);
     void setRadioOperation		(RadioOperation operation);
@@ -187,6 +189,21 @@ public:
     void clearWaveInfo();
 
     void start_usb();
+
+    bool getUsbStatus();
+    void manageCadr(uint8_t *cadr, uint16_t len);
+    void wakeUpUsb();
+    uint16_t parsing(uint8_t *cadr, uint16_t len );
+
+//    void LogicSmsTx();
+//    void LogicSmsRx();
+//    void galuaInit();
+//    DspController::trFrame sendSms();
+//    void startSmsRx();
+//    void recSms(uint8_t *data);
+
+    uint32_t CalcSmsTransmitFreq(uint32_t RN_KEY, uint32_t DAY, uint32_t HRS, uint32_t MIN, uint32_t SEC);
+
 
     sigc::signal<void> started;
     sigc::signal<void> rxModeSetting;
@@ -313,8 +330,6 @@ private:
     void wakeUpTimer();
     void correctTime			 (uint8_t num);
     void sendSynchro			 (uint32_t freq, uint8_t cnt);
-
-    void wakeUpUsb();
 
     void parsing_cadr_form_pc(uint8_t* buffer);
     void transmit_answer_to_pc(uint8_t id, uint8_t* data, uint16_t size);
@@ -463,6 +478,9 @@ private:
     QmRtc::Time t;
     QmRtc::Date d;
 
+    bool isUsbReady = false;
+    bool UseUsb = false;
+
     static void* usbrx;
 
 public:
@@ -472,6 +490,14 @@ public:
 
 
     sigc::signal<void, int> eraseUsbSector;
+};
+
+struct DspCommand {
+	bool in_progress;
+	bool sync_next;
+	DspController::Module module;
+	int code;
+	DspController::ParameterValue value;
 };
 
 } /* namespace Multiradio */

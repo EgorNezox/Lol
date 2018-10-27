@@ -42,7 +42,6 @@ public:
 		KeyStateChanged,		/*!< internal event used by classes in KeysInput module (platform-specific) */
 		KeyAction,				/*!< internal event used by classes in KeysInput module (platform-specific) */
 		RtcWakeup,				/*!< internal event used by classes in RTC module (platform-specific) */
-		UsbWakeUp,
 		UsbRx,
 		User = 1000,			/*!< user-defined event */
 		UsbWakeUp,

@@ -21,7 +21,7 @@ MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
 #if PARAMS_DRAW
-    MoonsGeometry ui_indicator_area     = { 0,0,122,25};
+    MoonsGeometry ui_indicator_area     = { 0,0,127,25};
 #else
     MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
 #endif
@@ -588,7 +588,7 @@ void Service::parsingGucCommand(uint8_t *str)
 
 void Service::setCoordDate(Navigation::Coord_Date date)
 {
-	static bool isValidWasExist = false; // были ли данные хоть раз валидны
+	static bool isValidWasExist = false; // пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	if (date.status)
 		isValidWasExist = true;
 
