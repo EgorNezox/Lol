@@ -893,6 +893,13 @@ void CGuiMenu::RxSmsStatusPost(int value, bool clear, bool clearAll)
    }
 
    GUI_Painter::DrawText(40,50,voiceFont,(char*)strTodo.c_str(),cst);
+
+#if DEBDEBUGSHOWFREQ
+      char currentFreq[] = {0,0,0,0,0,0,0,0};
+      sprintf(currentFreq,"%u",currentFrequency);
+      std::string freq; freq.append("Freq:").append(currentFreq);
+      GUI_Painter::DrawText(0,100,voiceFont,(char*)freq.c_str(),cst);
+#endif
 }
 
 
@@ -1366,6 +1373,13 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
     if (isDrawTitle) title.Draw();
     if (isDrawLength)length.Draw();
     field.Draw();
+
+#if DEBUGSHOWFREQ
+    char currentFreq[] = {0,0,0,0,0,0,0,0};
+    sprintf(currentFreq,"%u",currentFrequency);
+    std::string freq; freq.append("Freq:").append(currentFreq);
+    GUI_Painter::DrawText(0,100,voiceFont,(char*)freq.c_str(),CST_DEFAULT);
+#endif
 
     if (smsTxStage == 4 && index_store_sms != 0)
     {

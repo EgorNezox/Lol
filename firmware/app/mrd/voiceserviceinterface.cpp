@@ -58,7 +58,24 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     current_mode = VoiceModeManual;
 
     dispatcher->dsp_controller->hardwareFailed.connect(sigc::mem_fun(this, &VoiceServiceInterface::forwardDspHardwareFailure));
+    dispatcher->dsp_controller->emulateKey.connect(sigc::mem_fun(this, &VoiceServiceInterface::emulatorKey));
 
+
+    dispatcher->dsp_controller->smsCounterFreq.connect(sigc::mem_fun(this,&VoiceServiceInterface::onSmsFreq));
+}
+
+
+void VoiceServiceInterface::onSmsFreq(int param)
+{
+	smsFreq(param);
+
+}
+
+
+
+void VoiceServiceInterface::emulatorKey(int key)
+{
+	emulKey(key);
 }
 
 VoiceServiceInterface::~VoiceServiceInterface()
@@ -550,6 +567,7 @@ void VoiceServiceInterface::startAleRx()
 
 void VoiceServiceInterface::startAleTx(uint8_t address, voice_message_t message)
 {
+	dispatcher->dsp_controller->stopGucIntoVoice();
     dispatcher->ale_service->startAleTxVoiceMail(address, message);
 }
 
@@ -644,10 +662,10 @@ void VoiceServiceInterface::onSettingAleFreq(uint32_t freq)
 
 void VoiceServiceInterface::setSwrTimerState(bool state)
 {
-	if (state && dispatcher->dsp_controller->isReady())
-		dispatcher->dsp_controller->swr_timer->start();
-	else
-		dispatcher->dsp_controller->swr_timer->stop();
+//	if (state && dispatcher->dsp_controller->isReady())
+//		dispatcher->dsp_controller->swr_timer->start();
+//	else
+//		dispatcher->dsp_controller->swr_timer->stop();
 
 }
 

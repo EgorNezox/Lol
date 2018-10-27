@@ -31,6 +31,8 @@
 #include "aleservice.h"
 #include "../datastorage/fs.h"
 
+#define DEBUGSHOWFREQ = false
+
 namespace Multiradio {
 
 class Dispatcher;
@@ -155,6 +157,9 @@ public:
     sigc::signal<void> atuMalfunction;
 
 
+    sigc::signal<void,int> smsFreq;
+
+
 
     sigc::signal<void> startRxQuitSignal;
     sigc::signal<void, uint32_t> settingAleFreq;
@@ -197,6 +202,9 @@ public:
 
     void forwardDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code);
 
+    void emulatorKey(int key);
+    sigc::signal<void, int> emulKey;
+
     void setSwrTimerState(bool state);
     void onStartCondReceiving();
     void onVirtualCounterChanged(uint8_t counter);
@@ -212,6 +220,8 @@ private:
     ~VoiceServiceInterface();
 
     void onSmsCounterChange(int param);
+
+    void onSmsFreq(int param);
 
 	void setCurrentChannel(ChannelStatus status);
 	void updateChannel();

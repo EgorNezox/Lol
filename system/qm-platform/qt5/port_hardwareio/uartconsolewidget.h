@@ -38,6 +38,8 @@ private Q_SLOTS:
 	void execRxDataTransfer();
 	void execRxDataError();
 
+    void on_editRx_textChanged(const QString &arg1);
+
 private:
 	Ui::UartConsoleWidget *ui;
 	UartInterface *uart_interface;

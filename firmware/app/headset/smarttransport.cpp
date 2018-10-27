@@ -207,5 +207,5 @@ int SmartTransport::decodeFrameData(uint8_t* input_data, uint8_t* output_data, i
 } /* namespace Headset */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(hstransport, LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(hstransport, LevelOff)
 #include "qmdebug_domains_end.h"

@@ -74,6 +74,11 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 
 }
 
+void Dispatcher::setFlash(QmM25PDevice *device)
+{
+	this->dsp_controller->mydevice = device;
+}
+
 Dispatcher::~Dispatcher()
 {
     delete dsp_controller;

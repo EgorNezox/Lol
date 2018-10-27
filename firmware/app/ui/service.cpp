@@ -105,8 +105,6 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->qwitCounterChanged.connect(sigc::mem_fun(this,&Service::onQwitCounterChanged));
     voice_service->transmitAsk.connect(sigc::mem_fun(this,&Service::onTransmitAsk));
 
-    voice_service->keyEmulate.connect(sigc::mem_fun(this, &Service::keyEmulate));
-
     power_battery->voltageChanged.connect(sigc::mem_fun(this, &Service::batteryVoltageChanged));
     power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::batteryChargeChanged));
 
@@ -114,6 +112,12 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     headset_controller->smartHSStateChanged.connect(sigc::mem_fun(this, &Service::updateHSState));
     headset_controller->delaySpeachStateChanged.connect(sigc::mem_fun(this, &Service::onDelaySpeachStateChanged));
     //headset_controller->BOOM.connect(sigc::mem_fun(this, &Service::resetLogicDSPforGarniture));
+
+    voice_service->emulKey.connect(sigc::mem_fun(this, &Service::emulkeyHandler));
+
+
+    voice_service->smsFreq.connect(sigc::mem_fun(this, &Service::showFreq));
+
 
     valueRxSms = 0;  command_rx_30 = 0;
     pswf_status = false;
@@ -181,6 +185,17 @@ Service::~Service()
     delete main_scr;
     delete indicator;
     fileMsg.clear();
+}
+
+
+void Service::showFreq(int freq)
+{
+   menu->currentFrequency = freq;
+}
+
+void Service::emulkeyHandler(int key)
+{
+	keyHandler(key,QmMatrixKeyboard::PressType::PressSingle);
 }
 
 void Service::resetLogicDSPforGarniture()
@@ -279,10 +294,10 @@ void Service::updateHeadset(Headset::Controller::Status status)
 void Service::updateMultiradio(Multiradio::VoiceServiceInterface::Status status)
 {
     multiradioStatus = status;
-    if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx)
-    	voice_service->setSwrTimerState(true);
-    else
-    	voice_service->setSwrTimerState(false);
+//    if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx)
+//    	voice_service->setSwrTimerState(true);
+//    else
+//    	voice_service->setSwrTimerState(false);
     drawIndicator();
     drawWaveInfo();
 }
@@ -319,6 +334,7 @@ void Service::FailedSms(int stage)
     failFlag = true;
     menu->virtCounter = 0;
 }
+
 
 void Service::setNotification(NotificationType type)
 {
@@ -572,7 +588,7 @@ void Service::parsingGucCommand(uint8_t *str)
 
 void Service::setCoordDate(Navigation::Coord_Date date)
 {
-	static bool isValidWasExist = false; // Ð±Ñ‹Ð»Ð¸ Ð»Ð¸ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ñ…Ð¾Ñ‚ÑŒ Ñ€Ð°Ð· Ð²Ð°Ð»Ð¸Ð´Ð½Ñ‹
+	static bool isValidWasExist = false; // áûëè ëè äàííûå õîòü ðàç âàëèäíû
 	if (date.status)
 		isValidWasExist = true;
 
@@ -1094,6 +1110,8 @@ void Service::onCompletedStationMode(bool isGoToVoice)
 
     menu->qwitCounter = 0;
     // qwit tx exit menu
+
+    isGucAnswerWaiting = false;
 
     if (isCondModeQwitTx || isGucModeQwitTx)
     {

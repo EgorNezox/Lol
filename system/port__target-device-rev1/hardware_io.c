@@ -20,6 +20,11 @@
 #include "hal_i2c.h"
 #include "../../system/usb_cdc.h"
 
+#include "../usb_cdc.h"
+
+#include "usb_cdc/Inc/usb_device.h"
+#include "usb_cdc/Inc/usbd_cdc_if.h"
+
 #define _STR(arg) #arg
 #define STR(arg) _STR(arg)
 
@@ -156,6 +161,22 @@ void stm32f2_ext_mem_init(void) {
 	  FSMC_Bank1->BTCR[3]  = 0x00010800;
 	  FSMC_Bank1E->BWTR[2] = 0x0fffffff;
 }
+
+
+void usb_start()
+{
+	portDISABLE_INTERRUPTS();
+	MX_USB_DEVICE_Init();
+	portENABLE_INTERRUPTS();
+
+}
+
+void usb_tx(uint8_t * sym, int len)
+{
+	CDC_Transmit_FS((uint8_t*)sym, len);
+	HAL_Delay(100);
+}
+
 
 /* Тестирование аппаратной исправности внешней памяти
  * Глобальные переменные здесь нельзя использовать, данные могут быть размещены в тестируемой памяти.

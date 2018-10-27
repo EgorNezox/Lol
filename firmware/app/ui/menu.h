@@ -270,6 +270,7 @@ public:
 	int index_store_sms		  = 0;
 
 	bool isCoordValid = false;
+	int currentFrequency;
 
 private:
 

@@ -12,15 +12,13 @@
 
 #include "packagemanager.h"
 #include "qmrtc.h"
+#ifndef PORT__PCSIMULATOR
+#include "qmusb.h"
+#endif
 #include "../navigation/navigator.h"
 #include "../datastorage/fs.h"
-#ifndef PORT__PCSIMULATOR
-#include "../../../Qm/qmusb/include/qmusb.h"
-#endif
-//#include "qmusb.h"
-
 #include "../../../system/usb_cdc.h"
-
+#include "qmm25pdevice.h"
 /**
  @file
  @brief Класс предназначен для выполения операций обмена между DSP и HOST
@@ -34,6 +32,7 @@
 #define hw_rtc                      1
 #define DefkeyValue 631
 
+
 #define GUC_TIMER_ACK_WAIT_INTERVAL 180000
 #define GUC_TIMER_INTERVAL_REC 30000
 
@@ -42,8 +41,6 @@
 #define NUMS 0 // need = 0   9 for debug
 #define startVirtTxPhaseIndex 0;
 
-#define platformhwDspWakeUpIopin   12
-#define hw_usb						2
 
 class QmTimer;
 class QmIopin;
@@ -52,6 +49,7 @@ namespace Multiradio {
 
 class  DspTransport;
 struct DspCommand;
+class PswfModes;
 
 static int value_sec[60] =
 {
@@ -89,14 +87,16 @@ static int frequence_bandwidth[34] =
 
 };
 
+
 class DspController : public QmObject
 {
 
 public:
 	#include "pubenumdspcontroller.h"
-
     DspController				(int uart_resource, int reset_iopin_resource, Navigation::Navigator *navigator, DataStorage::FS *data_storage_fs, QmObject *parent);
     ~DspController();
+
+    QmM25PDevice *mydevice;
 
     void startServicing();
     void setRadioParameters		(RadioMode mode, uint32_t frequency);
@@ -113,6 +113,11 @@ public:
     void startSMSTransmitting	(uint8_t r_adr,uint8_t *message, SmsStage stage = StageTx_call);// запускает отправку смс
     void startGucTransmitting	(int r_adr, int speed_tx, std::vector<int> command,bool isGps); // запускает отправку групп
     void startGucTransmitting();        														// запуск отправки групп ук - перегруженный метод
+
+
+    void startGucIntoVoice();
+    void stopGucIntoVoice();
+
 
 	void setReceiverState		(int state);
 	void setTransmitterState	(int state);
@@ -181,17 +186,7 @@ public:
     void setStationAddress(uint8_t address);
     void clearWaveInfo();
 
-    bool getUsbStatus();
-    void wakeUpUsb();
-
-    bool UseUsb = false;
-#ifndef PORT__PCSIMULATOR
-    QmUsb *usb;
-#endif
-    uint16_t parsing(uint8_t *cadr, uint16_t len );
-    void  manageCadr(uint8_t *cadr, uint16_t len );
-
-    bool isUsbReady = false;
+    void start_usb();
 
     sigc::signal<void> started;
     sigc::signal<void> rxModeSetting;
@@ -208,6 +203,8 @@ public:
     sigc::signal<void,int> smsCounterChanged;
     sigc::signal<void,int> recievedGucQuitForTransm;   // прием квитанции групп ук
     sigc::signal<void,int> TxCondCmdPackageTransmit;   // int - /*command_tx30*/
+
+    sigc::signal<void,int> smsCounterFreq;
 
     sigc::signal<void, bool> stationModeIsCompleted; 	//bool gotovoice
     sigc::signal<void, bool> transmitAsk;
@@ -228,7 +225,7 @@ public:
     sigc::signal<void, ModemPacketType/*type*/> failedRxModemPacket;
     sigc::signal<void, int, int, int /*hrs,min,sec*/> vm1PpsPulse;
 
-    sigc::signal<void, int> keyEmulate;
+    sigc::signal<void, int> emulateKey;
 
     QmTimer *swr_timer;
     QmTimer *guc_rx_quit_timer 		   = 0;
@@ -251,22 +248,12 @@ public:
 
     uint16_t sender = 0;
 
-	trFrame frame;
+
 
 private:
 	#include "privenumdspcontroller.h"
-
     friend struct DspCommand;
     friend class  PswfModes;
-
-
-	struct DspCommand {
-		bool in_progress;
-		bool sync_next;
-		DspController::Module module;
-		int code;
-		DspController::ParameterValue value;
-	};
 
     void setRx();
     void setTx();
@@ -294,7 +281,8 @@ private:
     void processRadioState();
     void syncNextRadioState();
 
-    void getSwr();
+   // void getSwr();
+    void sendPswf();
     void addSeconds(int *date_time);
     void addSeconds(QmRtc::Time *t);
 
@@ -319,11 +307,19 @@ private:
     void processReceivedFrame	 (uint8_t address, uint8_t *data, int data_len);                    // функция приема кадров от DSP
 
     int prevSecond				 (int second);                                                      // функция получения предыдущей секунды
+    int calcFstn				 (int R_ADR, int S_ADR, int RN_KEY, int DAY, int HRS, int MIN, int SEC, int QNB);
     int getFrequency			 (uint8_t mode);
 
     void wakeUpTimer();
     void correctTime			 (uint8_t num);
     void sendSynchro			 (uint32_t freq, uint8_t cnt);
+
+    void wakeUpUsb();
+
+    void parsing_cadr_form_pc(uint8_t* buffer);
+    void transmit_answer_to_pc(uint8_t id, uint8_t* data, uint16_t size);
+
+    uint32_t recSym = 0;
 
     void sendSms			     (Module module);
     uint8_t *getGpsGucCoordinat  (uint8_t *coord);
@@ -331,65 +327,22 @@ private:
     void changeSmsFrequency();
     bool generateSmsReceived();
 
-    void recStart   (uint8_t address, uint8_t* data, int data_len);
-    void recUndef   (uint8_t address, uint8_t* data, int data_len);
-    void recGuc     (uint8_t address, uint8_t* data, int data_len);
-    void recPps     (uint8_t address, uint8_t* data, int data_len);
-    void recTractCmd(uint8_t address, uint8_t* data, int data_len);
-    void recRxTxMod (uint8_t address, uint8_t* data, int data_len);
-    void recGucLog  (uint8_t address, uint8_t* data, int data_len);
-    void recModem   (uint8_t address, uint8_t* data, int data_len);
-    void rec1ppsV   (uint8_t address, uint8_t* data, int data_len);
+    int wzn_change		 	     (std::vector<int> &vect);
+    int check_rx_call	 	     (int* wzn);
+    uint8_t calc_ack_code	     (uint8_t ack);
+
+
+    inline void recStart   (uint8_t address, uint8_t* data, int data_len);
+    inline void recUndef   (uint8_t address, uint8_t* data, int data_len);
+    inline void recGuc     (uint8_t address, uint8_t* data, int data_len);
+    inline void recPps     (uint8_t address, uint8_t* data, int data_len);
+    inline void recTractCmd(uint8_t address, uint8_t* data, int data_len);
+    inline void recRxTxMod (uint8_t address, uint8_t* data, int data_len);
+    inline void recGucLog  (uint8_t address, uint8_t* data, int data_len);
+    inline void recModem   (uint8_t address, uint8_t* data, int data_len);
+    inline void rec1ppsV   (uint8_t address, uint8_t* data, int data_len);
 
     void push_queue();
-
-    //-------------------------- pswf -------------------------------------------------
-
-	void startPswfTx(bool ack, uint8_t r_adr, uint8_t cmd,int retr);
-	// запуск режима приема УК
-	void startPswfRx();
-	// запуск режима передачи СМС
-	void startSmsTx ();
-	// запуск режима приема СМС
-	void startSmsRx ();
-
-	// вычисляем смещение частоты для УК
-    uint32_t CalcShiftFreq	   		  (uint32_t RN_KEY, uint32_t DAY, uint32_t HRS, uint32_t MIN, uint32_t SEC);                  // функция рассчета частоты смещения для УК
-    // вычисляем частоту для СМС
-    uint32_t CalcSmsTransmitFreq	  (uint32_t RN_KEY, uint32_t DAY, uint32_t HRS, uint32_t MIN, uint32_t SEC);                  // функция рассчета частоты смещения для СМС
-    // вычисление волновой зоны для СМС
-    uint32_t wzn_change				  (std::vector<int> &vect);
-    // вычисление параметра FSTN для СМС
-    uint32_t calcFstn(int R_ADR, int S_ADR, int RN_KEY, int DAY, int HRS, int MIN, int SEC, int QNB);
-
-    uint32_t check_rx_call(int* wzn);
-
-    uint32_t calc_ack_code(uint8_t ack);
-
-    // логика для приемав и передачи УК
-    void LogicPswfTx();
-    void LogicPswfRx();
-
-    // логика для приемав и передачи СМС
-    void LogicSmsTx();
-    void LogicSmsRx();
-    // обработка пакетов по 63 адресу для обоих режимов
-    void DataHandler(uint8_t* data, uint8_t indicator, int data_len);
-
-    // обработка приема
-    void recSms (uint8_t *data);
-    void recPswf(uint8_t data,uint8_t code, uint8_t indicator);
-
-    // обработка пакета передачи
-
-    trFrame sendSms ();
-
-    void sendPswf_short();
-    trFrame sendPswf();
-
-    //-------------------------- pswf ----------------------------------------------------
-
-    void galuaInit();
 
 
     int date_time[4];                                           // массив даты-времени для обмена и отображения
@@ -479,6 +432,8 @@ private:
     uint8_t count_VrtualTimer = 0;
     uint8_t virtualTime[6];
 
+    uint8_t max_erase_sector = 0;
+
     int8_t RtcFirstCatch;
     uint32_t freqVirtual;
 
@@ -494,7 +449,6 @@ private:
     Navigation::Navigator *navigator;
     DataStorage::FS 	  *data_storage_fs;
     QmIopin 			  *reset_iopin;
-    QmIopin 			  *wakeup_dsp_pin;
     DspTransport 		  *transport;
 
     QmTimer *startup_timer, *command_timer;
@@ -503,9 +457,21 @@ private:
     QmTimer *guc_timer;
 
     QmRtc *rtc;
+#ifndef PORT__PCSIMULATOR
+    QmUsb *usb;
+#endif
     QmRtc::Time t;
     QmRtc::Date d;
 
+    static void* usbrx;
+
+public:
+    PswfModes *pswf_module;
+    bool newPacketUsb = false;
+    void transmithFrame(uint8_t address, uint8_t *data, int data_len);
+
+
+    sigc::signal<void, int> eraseUsbSector;
 };
 
 } /* namespace Multiradio */

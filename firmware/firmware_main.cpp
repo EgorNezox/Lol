@@ -38,20 +38,26 @@ void qmMain() {
 	QmApplication app;
 
 #if defined (PORT__TARGET_DEVICE_REV1)
+
     QmSPIBus::enable(platformhwDataFlashSpi);
     QmM25PDevice::Config data_flash_config;
-    data_flash_config.sector_size = 64*1024;
-    data_flash_config.sectors_count = 32;
-    data_flash_config.speed = 75000000;
+
+    data_flash_config.sector_size    = 64*1024;
+    data_flash_config.sectors_count  = 32;
+    data_flash_config.speed          = 75000000;
     data_flash_config.idle_clock_low = false;
+
     QmM25PDevice data_flash_device(data_flash_config, platformhwDataFlashSpi, platformhwDataFlashCsPin);
     QmSpiffs::Config data_fs_config;
-    data_fs_config.device = &data_flash_device;
-    data_fs_config.physical_address = 0;
-    data_fs_config.physical_size = 32*64*1024;
+
+    data_fs_config.device 			  = &data_flash_device;
+    data_fs_config.physical_address   = 0;
+    data_fs_config.physical_size      = 32*64*1024;
     data_fs_config.logical_block_size = 64*1024;
-    data_fs_config.logical_page_size = data_flash_device.getPageSize();
-    data_fs_config.max_opened_files = 10;
+    data_fs_config.logical_page_size  = data_flash_device.getPageSize();
+    data_fs_config.max_opened_files   = 10;
+
+
 #if 0
     {
         volatile bool do_format = true;
@@ -92,6 +98,8 @@ void qmMain() {
     		platformhwNavigatorAntFlagIopin, platformhwNavigator1PPSIopin);
 	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,
             &headset_controller, &navigator, &data_storage_fs, &power_battery);
+
+	mr_dispatcher.setFlash(&data_flash_device);
 #else
     Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,
             &headset_controller, 0, &data_storage_fs, &power_battery);
