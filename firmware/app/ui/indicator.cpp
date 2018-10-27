@@ -181,7 +181,7 @@ void GUI_Indicator::Draw( Multiradio::VoiceServiceInterface::Status multiradioSt
     UpdateGpsStatus (gpsStatus);
     UpdateSynchStatus (isSynch);
 
-#ifdef EMUL
+#if EMUL
     UpdateGpsStatus(2);
     UpdateBattery(50);
     UpdateHeadset(Headset::Controller::Status::StatusSmartOk);
@@ -204,7 +204,7 @@ void GUI_Indicator::Draw(){
     gsetvp(0,0,GDISPW-1, GDISPH-1);
     groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe-20,ui_indicator_area.ye,0,GFILL);
 
-#ifdef EMUL
+#if EMUL
     UpdateGpsStatus(2);
     UpdateBattery(50);
     UpdateHeadset(Headset::Controller::Status::StatusSmartOk);

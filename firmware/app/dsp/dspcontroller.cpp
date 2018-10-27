@@ -1010,7 +1010,7 @@ void DspController::manageCadr(uint8_t *cadr, uint16_t len)
 
 bool DspController::getUsbStatus()
 {
-	return isUsbReady;
+	return false; //isUsbReady;
 }
 
 void DspController::wakeUpUsb()

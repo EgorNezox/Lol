@@ -73,7 +73,7 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
                               )
 {
 
-#ifdef EMUL
+#if EMUL
     status = Multiradio::VoiceServiceInterface::ChannelStatus::ChannelActive;
     ch_num = 39;
     channel_type = Multiradio::voice_channel_t::channelClose;

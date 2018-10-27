@@ -19,7 +19,7 @@
 #include "keyboard.h"
 #include <stdio.h>
 
-#define EMUL
+#define EMUL 0
 
 extern MoonsGeometry ui_common_dialog_area;
 extern MoonsGeometry ui_indicator_area;

@@ -182,7 +182,7 @@ void Service::drawIndicator()
 			indicator->UpdateMultiradio(pGetVoiceService()->getStatus());
 			indicator->UpdateSynchStatus(voice_service->getVirtualMode());
 
-#ifdef EMUL
+#if EMUL
             indicator->UpdateGpsStatus(2);
             indicator->UpdateBattery(50);
             indicator->UpdateHeadset(Headset::Controller::Status::StatusSmartOk);
@@ -228,10 +228,10 @@ void Service::drawIndicator()
 void Service::drawWaveInfo()
 {
 
-//#ifdef EMUL
+#if EMUL
   waveValue = 9.5;
   powerValue = 9.9;
-//#else
+#endif
     if (msg_box == nullptr )
 //#endif
     {

@@ -103,9 +103,9 @@ int Navigator::Calc_LCODE_SMS(int R_ADR, int S_ADR, int WZN, int RN_KEY, int DAY
 
 //#if defined(PORT__TARGET_DEVICE_REV1)
 void Navigator::processUartReceivedData() {
-   // qmDebugMessage(QmDebug::Warning, "processUartReceivedData() start");
-	//qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
-	//qmDebugMessage(QmDebug::Warning, "processUartReceivedData() end");
+    qmDebugMessage(QmDebug::Warning, "processUartReceivedData() start");
+	qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
+	qmDebugMessage(QmDebug::Warning, "processUartReceivedData() end");
     return;
 }
 
@@ -460,5 +460,5 @@ void Navigator::setMinimalActivityMode(bool enabled) {
 } /* namespace Navigation */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(navigation, LevelOff)
+QMDEBUG_DEFINE_DOMAIN(navigation, LevelVerbose)
 #include "qmdebug_domains_end.h"

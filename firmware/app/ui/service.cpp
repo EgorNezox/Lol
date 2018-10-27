@@ -21,7 +21,7 @@ MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
 #if PARAMS_DRAW
-    MoonsGeometry ui_indicator_area     = { 0,0,110,23};
+    MoonsGeometry ui_indicator_area     = { 0,0,122,25};
 #else
     MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
 #endif
@@ -143,7 +143,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     currentSpeed = voice_service->getCurrentChannelSpeed();
 
-#ifdef EMUL
+#if EMUL
     Navigation::Coord_Date data;
     memset( &data.latitude,  0, 11 );
     memset( &data.longitude, 0, 11 );
@@ -572,6 +572,10 @@ void Service::parsingGucCommand(uint8_t *str)
 
 void Service::setCoordDate(Navigation::Coord_Date date)
 {
+	static bool isValidWasExist = false; // были ли данные хоть раз валидны
+	if (date.status)
+		isValidWasExist = true;
+
     menu->date.clear();
     menu->time.clear();
 
@@ -587,12 +591,12 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     }
 
     uint8_t *time;
-    if (voice_service->getVirtualMode())
+    if (voice_service->getVirtualMode() || (date.status == false) || isValidWasExist)
     	time = voice_service->getVirtualTime();
     else
         time = (uint8_t*)&date.time;
 
-#ifdef EMUL
+#if EMUL
     time = (uint8_t*)&date.time;
 #endif
 
@@ -608,6 +612,19 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     str[6] = (char)time[4];
     str[7] = (char)time[5];
     str[8] = 0;
+
+//    if (date.status == false)
+//    {
+//        str[0] = '0';
+//        str[1] = '0';
+//        str[2] = ':';
+//        str[3] = '0';
+//        str[4] = '0';
+//        str[5] = ':';
+//        str[6] = '0';
+//        str[7] = '0';
+//        str[8] = 0;
+//    }
 
     //qmDebugMessage(QmDebug::Warning, "DATE TIME %s, isZda %d ", str.c_str(), navigator->isZda);
     indicator->date_time->SetText((char*)str.c_str());
