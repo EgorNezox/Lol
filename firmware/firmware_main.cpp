@@ -170,5 +170,7 @@ void qmMain() {
     timer2_init();
 #endif
 
+   // tune_frequency_generator(1540, 1);
+
 	app.exec();
 }

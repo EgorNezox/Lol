@@ -86,6 +86,8 @@ public:
     void initFailedSms(int stage);
     void initDialog(std::string text);
 
+    void drawTime(std::string text);
+
     void initSmsStageDialog(std::string);
 
     void setTitle(const char*);

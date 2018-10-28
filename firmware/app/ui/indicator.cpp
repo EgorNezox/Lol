@@ -202,7 +202,7 @@ void GUI_Indicator::Draw( Multiradio::VoiceServiceInterface::Status multiradioSt
 void GUI_Indicator::Draw(){
     gsetcolorb(GENERAL_BACK_COLOR);
     gsetvp(0,0,GDISPW-1, GDISPH-1);
-    groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe-20,ui_indicator_area.ye,0,GFILL);
+    groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe,ui_indicator_area.ye,0,GFILL);
 
 #if EMUL
     UpdateGpsStatus(2);

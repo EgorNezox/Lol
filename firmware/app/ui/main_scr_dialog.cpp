@@ -13,7 +13,7 @@
 
 static MoonsGeometry ch_num_label_geom    = {  2, 40,  77,  74 };
 static MoonsGeometry ch_type_label_geom    = {  64, 45,  75,  73 };
-static MoonsGeometry mode_label_geom  = { 85, 48, 120,  73 };
+static MoonsGeometry mode_label_geom  = { 85, 48, 125,  73 };
 static MoonsGeometry freq_geom        = {   2, 75, 126, 102 };
 
 

@@ -21,7 +21,7 @@ MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
 #if PARAMS_DRAW
-    MoonsGeometry ui_indicator_area     = { 0,0,127,25};
+    MoonsGeometry ui_indicator_area     = { 0,0,127,30};
 #else
     MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
 #endif
@@ -606,17 +606,30 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     	menu->isCoordValid = false;
     }
 
-    uint8_t *time;
-    if (voice_service->getVirtualMode() || (date.status == false) || isValidWasExist)
-    	time = voice_service->getVirtualTime();
-    else
-        time = (uint8_t*)&date.time;
+    uint8_t zeroTime[10] = {0};
+
+    uint8_t *time = (uint8_t*)&zeroTime;
+
+    if (isValidWasExist)
+    {
+    	time = (uint8_t*)&date.time;
+    }
+
+	if (voice_service->getVirtualMode() || !isValidWasExist)
+	{
+		time = voice_service->getVirtualTime();
+	}
+
+//    if (voice_service->getVirtualMode() || (date.status == false) || isValidWasExist)
+//    	time = voice_service->getVirtualTime();
+//    else
+//        time = (uint8_t*)&date.time;
 
 #if EMUL
     time = (uint8_t*)&date.time;
 #endif
 
-    std::string str;
+    std::string str = "";
     str.resize(9);
 
     str[0] = (char)time[0];

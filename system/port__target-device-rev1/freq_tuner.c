@@ -52,19 +52,25 @@ uint32_t read_backup_register()
 
 int tune_frequency_generator(int d, uint8_t isWrite)
 {
-	int res=1;
-	static uint32_t dac_start = 0;
-	if (dac_start == 0)
-	dac_start = read_backup_register();
+//#define DEF
 
-	if (dac_start < MIN_DAC_OUTPUT_VALUE || dac_start > MAX_DAC_OUTPUT_VALUE)
-		dac_start = DAC_OUTPUT_VALUE_DEFAULT;
+#ifdef DEF
+	int res = d;
+#else
+		int res=1;
+		static uint32_t dac_start = 0;
+		if (dac_start == 0)
+		dac_start = read_backup_register();
 
-	float x =  d * 0.1;
-	res = dac_start - (int)x;
+		if (dac_start < MIN_DAC_OUTPUT_VALUE || dac_start > MAX_DAC_OUTPUT_VALUE)
+			dac_start = DAC_OUTPUT_VALUE_DEFAULT;
 
-	if(res > MAX_DAC_OUTPUT_VALUE)res = MAX_DAC_OUTPUT_VALUE;
-	if(res < MIN_DAC_OUTPUT_VALUE)res = MIN_DAC_OUTPUT_VALUE;
+		float x =  d * 0.1;
+		res = dac_start - (int)x;
+
+		if(res > MAX_DAC_OUTPUT_VALUE)res = MAX_DAC_OUTPUT_VALUE;
+		if(res < MIN_DAC_OUTPUT_VALUE)res = MIN_DAC_OUTPUT_VALUE;
+#endif
 
 	DAC_HandleTypeDef    DacHandle;
 	DAC_ChannelConfTypeDef sConfig;
@@ -78,8 +84,11 @@ int tune_frequency_generator(int d, uint8_t isWrite)
 	HAL_DAC_SetValue(&DacHandle, DACx_CHANNEL, DAC_ALIGN_12B_R, res);
 	HAL_DAC_Start(&DacHandle, DACx_CHANNEL);
 	if (isWrite)
-	write_backup_register(res);
+		write_backup_register(res);
+
+#ifndef  DEF
 	dac_start = res;
+#endif
 
 	return res;
 }

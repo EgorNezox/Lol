@@ -308,7 +308,7 @@ static GCODE SGUCHAR FCODE initdata[] =
    #endif
 
    GCTRL_CONTRAST,
-   0xc0                 /* Set contrast level (1-255) */
+   0xF0                 /* Set contrast level (1-255) */
    };
 
 /* Default grey scale palette
@@ -620,6 +620,11 @@ void ghw_ctrl_init(void)
 //   ghw_cmd(GCTRL_CONTRAST);
 //   ghw_cmd(0xc0);
 
+
+   ghw_cmd(GCTRL_SET_FRONT_CLK_DIV_OSC_FREQ);
+   ghw_cmd(0xF0);
+   ghw_cmd(GCTRL_SET_PHASE_LENGTH);
+   ghw_cmd(0xFF);
 
    for (i=0; i < sizeof(initdata)/sizeof(SGUCHAR); i++)
       {

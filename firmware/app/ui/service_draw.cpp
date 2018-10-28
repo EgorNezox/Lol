@@ -76,6 +76,9 @@ void Service::draw()
     	str.append(" # ");
     	str.append(add);
 
+    	//gsetcolorb(GENERAL_BACK_COLOR);
+    //	gsetcolorf(GENERAL_BACK_COLOR);
+    	GUI_Painter::SetColorScheme(CST_DEFAULT);
         GUI_Painter::ClearViewPort(true);
         GUI_Painter::DrawRect(0, 0, 127, 127, RDM_FILL);
 
@@ -218,7 +221,9 @@ void Service::drawIndicator()
 				CEndState st = (CEndState&)guiTree.getCurrentState();
 				if (st.subType == GuiWindowsSubType::setTime)
 				{
-					indicator->DrawTime();
+					drawMenu_setTime();
+					//draw();
+					//indicator->DrawTime();
 				}
 			}
 		}
@@ -232,7 +237,13 @@ void Service::drawWaveInfo()
   waveValue = 9.5;
   powerValue = 9.9;
 #endif
-    if (msg_box == nullptr )
+
+  bool isCanDraw = (guiTree.getCurrentState().getType() == endMenuWindow) ||
+		  	  	   (guiTree.getCurrentState().getType() == mainWindow);
+  if (!isCanDraw)
+	  return;
+
+    if ((msg_box == nullptr))
 //#endif
     {
     	if (waveValue > 0.000 && powerValue > 0.000)
@@ -282,9 +293,9 @@ void Service::drawWaveInfo()
 		{
 			MoonsGeometry windowArea;
 			if (guiTree.getCurrentState().getType() == mainWindow)
-                windowArea = { 116, 0, 127, 35 };
+                windowArea = { 92, 0, 127, 35 };
 			else
-                windowArea = { 116, 0, 127, 28 };
+                windowArea = { 92, 0, 127, 28 };
 
             MoonsGeometry objArea = {  0, 0, 127, 127 };
 			GUI_Obj obj(&objArea);

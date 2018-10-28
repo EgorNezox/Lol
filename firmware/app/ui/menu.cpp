@@ -334,11 +334,11 @@ void CGuiMenu::initSuppressDialog()
 
 void CGuiMenu::initGpsCoordinateDialog(char* coord_lat, char* coord_log)
 {
-    MoonsGeometry volume_geom0  = {  5,  30,  110,  60 };
-    MoonsGeometry volume_geom1  = {  5,  60,  110,  90 };
+    MoonsGeometry volume_geom0  = {  5,  40,  123,  60 };
+    MoonsGeometry volume_geom1  = {  5,  60,  123,  80 };
 
-    GUI_EL_Label volume0(&GUI_EL_TEMP_LabelMode, &volume_geom0,  NULL, (GUI_Obj*)this);
-    GUI_EL_Label volume1(&GUI_EL_TEMP_LabelMode, &volume_geom1,  NULL, (GUI_Obj*)this);
+    GUI_EL_Label volume0(&GUI_EL_TEMP_LabelTitle, &volume_geom0,  NULL, (GUI_Obj*)this);
+    GUI_EL_Label volume1(&GUI_EL_TEMP_LabelTitle, &volume_geom1,  NULL, (GUI_Obj*)this);
 
     if (atoi(coord_lat) == 0)
     {
@@ -549,6 +549,21 @@ void CGuiMenu::initSetDateOrTimeDialog(std::string text)
 	initDialog(text);
 }
 
+void CGuiMenu::drawTime(std::string text)
+{
+    MoonsGeometry volume_geom  = {  2,  50,  125,  120 };
+    LabelParams label_param[2] = {GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode};
+
+    label_param[0].transparent = true;
+    label_param[1].transparent = false;
+
+    label_param[0].element.align = { alignHCenter, alignVCenter };
+    label_param[1].element.align = { alignHCenter, alignTop };
+
+    GUI_EL_Label    volume(&label_param[1],            &volume_geom, (char*)text.c_str(),     (GUI_Obj *)this);
+	volume.Draw();
+}
+
 void CGuiMenu::initDialog(std::string text)
 {
     MoonsGeometry volume_geom  = {  2,  50,  125,  120 };
@@ -665,7 +680,8 @@ void CGuiMenu::TxVoiceDialogStatus2(int status, bool isClear)
     static int oldStatus;
     ColorSchemeType cst;
     int curStatus;
-    if (!isClear){
+    if (!isClear)
+    {
         cst = CST_DEFAULT;
         curStatus = status;
         oldStatus = status;

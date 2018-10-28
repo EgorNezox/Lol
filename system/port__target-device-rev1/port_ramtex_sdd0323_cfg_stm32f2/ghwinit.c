@@ -343,8 +343,8 @@ SGBOOL ghw_init(void)
       glcd_err = 1;
       }
    #endif
-
-   ghw_bufset( ghw_background ); /* Clear screen */
+   ghw_bufset( ghw_foreground );
+  // ghw_bufset( ghw_background ); /* Clear screen */
    ghw_dispon();
 
    #ifndef GNOCURSOR
