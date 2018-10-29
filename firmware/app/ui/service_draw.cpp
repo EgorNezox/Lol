@@ -76,8 +76,6 @@ void Service::draw()
     	str.append(" # ");
     	str.append(add);
 
-    	//gsetcolorb(GENERAL_BACK_COLOR);
-    //	gsetcolorf(GENERAL_BACK_COLOR);
     	GUI_Painter::SetColorScheme(CST_DEFAULT);
         GUI_Painter::ClearViewPort(true);
         GUI_Painter::DrawRect(0, 0, 127, 127, RDM_FILL);

@@ -30,42 +30,87 @@
 
 static SPI_HandleTypeDef SpiHandle;
 
-static void write_reg(uint8_t address, uint16_t value) {
-	uint16_t command = ((address & 0x0F) << 12) | (value & 0x0FFF);
+static void write_data(uint8_t value1, uint8_t value2, uint8_t value3)
+{
+	uint8_t command1 = value1;
+	uint8_t command2 = value2;
+	uint8_t command3 = value3;
+
 	HAL_GPIO_WritePin(CS_PLL_GPIO_PORT, CS_PLL_PIN, GPIO_PIN_RESET);
+
 	HAL_Delay(1);
-	HAL_SPI_TransmitReceive(&SpiHandle, (uint8_t *)&command, (uint8_t *)&command, 1, 1000);
+	HAL_SPI_TransmitReceive(&SpiHandle, (uint8_t *)&command1, (uint8_t *)&command1, 1, 1000);
 	HAL_Delay(1);
+	HAL_SPI_TransmitReceive(&SpiHandle, (uint8_t *)&command2, (uint8_t *)&command2, 1, 1000);
+	HAL_Delay(1);
+	HAL_SPI_TransmitReceive(&SpiHandle, (uint8_t *)&command3, (uint8_t *)&command3, 1, 1000);
+	HAL_Delay(1);
+
 	HAL_GPIO_WritePin(CS_PLL_GPIO_PORT, CS_PLL_PIN, GPIO_PIN_SET);
 }
 
-void init_sky72310(void) {
+void init_lmx2485(void)
+{
 	SpiHandle.Instance               = SPIx;
-	SpiHandle.State = HAL_SPI_STATE_RESET;
+	SpiHandle.State                  = HAL_SPI_STATE_RESET;
 	SpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
 	SpiHandle.Init.Direction         = SPI_DIRECTION_2LINES;
 	SpiHandle.Init.CLKPhase          = SPI_PHASE_1EDGE;
 	SpiHandle.Init.CLKPolarity       = SPI_POLARITY_LOW;
 	SpiHandle.Init.CRCCalculation    = SPI_CRCCALCULATION_DISABLE;
 	SpiHandle.Init.CRCPolynomial     = 7;
-	SpiHandle.Init.DataSize          = SPI_DATASIZE_16BIT;
+	SpiHandle.Init.DataSize          = SPI_DATASIZE_8BIT;
 	SpiHandle.Init.FirstBit          = SPI_FIRSTBIT_MSB;
 	SpiHandle.Init.NSS               = SPI_NSS_SOFT;
 	SpiHandle.Init.TIMode            = SPI_TIMODE_DISABLE;
-	SpiHandle.Init.Mode = SPI_MODE_MASTER;
+	SpiHandle.Init.Mode              = SPI_MODE_MASTER;
+
 	HAL_SPI_Init(&SpiHandle);
 
-	write_reg(0x07, 0x0080);
-	write_reg(0x05, 0x0012);
-	write_reg(0x06, 0x0000);
-	write_reg(0x08, 0x0000);
-	write_reg(0x00, 0x00F9);
-	write_reg(0x02, 0x0027);
-	write_reg(0x01, 0x0E76);
-
+	write_data(0x90, 0x00, 0x00); // R0 	RF_N[10:0] RF_FN[11:0]                                                               0
+	write_data(0x27, 0x10, 0x03); // R1 	RF_PD RF_P RF_R[5:0] RF_FD[11:0]   											   0 0 1 1
+	write_data(0x80, 0xF0, 0xF5); // R2 	IF_PD IF_N[18:0]                   											   0 1 0 1
+	write_data(0x1F, 0xF0, 0x07); // R3 	ACCESS[3:0] RF_CPG[3:0] IF_R[11:0] 											   0 1 1 1
+	write_data(0x20, 0xC7, 0xF9); // R4 	ATPU 0 1 0 0 0 DITH[1:0] FM[1:0] 0 OSC_2x OSC_OUT IF_CPP RF_CPP IF_P MUX [3:0] 1 0 0 1
 
 	HAL_SPI_DeInit(&SpiHandle);
 }
+
+// --------------- R0 -----------------
+
+// RF_N[10:0]—RF N Counter Value
+// RF_FN[11:0]—Fractional Numerator for RF PLL
+
+// --------------- R1 -----------------
+
+// RF_PD—RF Power-Down Control Bit
+// RF_P—RF Prescaler Bit
+// RF_R [5:0]—RF R Divider Value
+// RF_FD[11:0]—RF PLL Fractional Denominator
+
+// --------------- R2 -----------------
+
+// IF_PD—IF Power Down Bit
+// IF_N[18:0]—IF N Divider Value
+
+// --------------- R3 -----------------
+
+// ACCESS—Register Access Word
+// RF_CPG—RF PLL Charge Pump Gain
+// IF_R[11:0]—IF R Divider Value
+
+// --------------- R4 -----------------
+
+// ATPU—PLL Automatic Power Up
+// DITH[1:0]—Dithering Control
+// FM[1:0]—Fractional Mode
+// OSC2X—Oscillator Doubler Enable
+// OSC_OUT Oscillator Output Buffer Enable
+// IF_CPP—IF PLL Charge Pump Polarity
+// RF_CPP—RF PLL Charge Pump Polarity
+// IF_P—IF Prescaler
+// MUX[3:0] Frequency Out and Lock Detect MUX
+
 
 void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
 {

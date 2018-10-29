@@ -3,31 +3,15 @@
 #include "qmdebug.h"
 #include "../headset/controller.h"
 
-//----------DEFINES------------
-
 #define ICON_SIZE	24
 #define BATTERY_SIZE 16
 #define GEOM_ICON(order) ((MoonsGeometry){order*ICON_SIZE,4,((order+1)*ICON_SIZE-1),ICON_SIZE-1})
-
-#define PARAMS_DRAW 1
-
-//----------TYPES--------------
-
-//----------GLOBAL_VARS--------
-
-//----------PROTOTYPES---------
-
-//----------CODE---------------
 
 GUI_Indicator::GUI_Indicator(MoonsGeometry *area) : GUI_Obj(area)
 {
     MoonsGeometry icon_geom;
 
-#if PARAMS_DRAW
     uint8_t x_offset = area->xs;
-#else
-    uint8_t x_offset = area->xs + 12 + 2 * ICON_SIZE;
-#endif
 
     icon_geom = {68, 3, 68 + ICON_SIZE - 1, 3 + ICON_SIZE};
     ind_multiradio = new GUI_EL_Icon(&GUI_EL_TEMP_IconIndicator, &icon_geom, sym_blank, (GUI_Obj *)this); // Rx/Tx
@@ -161,45 +145,8 @@ void GUI_Indicator::drawSynchSatus()
 	}
 }
 
-
-//-----------------------------
-
-void GUI_Indicator::Draw( Multiradio::VoiceServiceInterface::Status multiradioStatus,
-                          Headset::Controller::Status              headsetStatus,
-                          int                                      battaryStatus,
-                          uint8_t                                     gpsStatus,
-						  bool                                     isSynch
-                         )
+void GUI_Indicator::Draw()
 {
-    gsetcolorb(GENERAL_BACK_COLOR);
-    gsetvp(0,0,GDISPW-1, GDISPH-1);
-    groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe - 20 ,ui_indicator_area.ye,0,GFILL);
-
-    UpdateMultiradio(multiradioStatus /*service->pGetMultitradioService()->getStatus()*/);
-    UpdateHeadset   (headsetStatus /*service->pGetHeadsetController()->getStatus()*/);
-    UpdateBattery   (battaryStatus /*service->pGetPowerBattery()->getChargeLevel()*/);
-    UpdateGpsStatus (gpsStatus);
-    UpdateSynchStatus (isSynch);
-
-#if EMUL
-    UpdateGpsStatus(2);
-    UpdateBattery(50);
-    UpdateHeadset(Headset::Controller::Status::StatusSmartOk);
-    UpdateMultiradio(Multiradio::VoiceServiceInterface::Status::StatusVoiceTx);
-    UpdateSynchStatus(false);
-#endif
-
-
-    ind_battery->Draw();
-    ind_headset->Draw();
-    ind_multiradio->Draw();
-    date_time->Draw();
-    gpsLabel->Draw();
-    drawSynchSatus();
-
-}
-
-void GUI_Indicator::Draw(){
     gsetcolorb(GENERAL_BACK_COLOR);
     gsetvp(0,0,GDISPW-1, GDISPH-1);
     groundrect(ui_indicator_area.xs,ui_indicator_area.ys,ui_indicator_area.xe,ui_indicator_area.ye,0,GFILL);

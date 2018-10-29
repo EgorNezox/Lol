@@ -127,7 +127,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     pack_manager = new PackageManager();
 
-    for(int i = 0; i<18;i++)
+    for (int i = 0; i<18;i++)
     {
     	syncro_recieve.push_back(99);
     	snr.push_back(0);
@@ -136,16 +136,28 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     waveZone.push_back(0); // size must be 19
 
-    for(int i = 0;i<50;i++) guc_text[i] = '\0';
+    for(int i = 0;i<50;i++)
+    	guc_text[i] = '\0';
 
     sms_call_received    = false;
     retranslation_active = false;
 
-    for(int i = 0;i<255;i++) 		rs_data_clear[i] = 1;
-    for(uint8_t i = 0; i <= 100; i++) sms_content[i] = 0;
+    for(int i = 0;i<255;i++)
+    	rs_data_clear[i] = 1;
+    for(uint8_t i = 0; i <= 100; i++)
+    	sms_content[i] = 0;
 
     ContentPSWF.RN_KEY = DefkeyValue;
     ContentSms.RN_KEY = DefkeyValue;
+
+    uint16_t rn_key = 0;
+
+    bool isKeyReaded = data_storage_fs->getFhssKey(rn_key);
+    if (isKeyReaded)
+    {
+        ContentPSWF.RN_KEY = rn_key;
+        ContentSms.RN_KEY = rn_key;
+    }
 
     waveInfoTimer = new QmTimer();
 
@@ -154,10 +166,12 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     waveInfoTimer->timeout.connect(sigc::mem_fun(this, &DspController::clearWaveInfo));
 
 #ifndef PORT__PCSIMULATOR
+
     rtc = new QmRtc(hw_rtc);
+	rtc->wakeup.connect(sigc::mem_fun(this,&DspController::wakeUpTimer));
+
     usb = new QmUsb(hw_usb);
     usb->usbwakeup.connect(sigc::mem_fun(this, &DspController::wakeUpUsb));
-	rtc->wakeup.connect(sigc::mem_fun(this,&DspController::wakeUpTimer));
 
 #endif
 }

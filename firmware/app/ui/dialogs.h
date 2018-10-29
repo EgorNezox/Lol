@@ -83,12 +83,12 @@ class GUI_Indicator: public GUI_Obj{
         void UpdateGpsStatus(uint8_t gpsStatus);
         void UpdateSynchStatus(bool isSynch);
         void Draw();
-        virtual void Draw( Multiradio::VoiceServiceInterface::Status,
-                           Headset::Controller::Status,
-                           int,
-                           uint8_t,
-						   bool
-                          );
+//        virtual void Draw( Multiradio::VoiceServiceInterface::Status,
+//                           Headset::Controller::Status,
+//                           int,
+//                           uint8_t,
+//						   bool
+//                          );
         void setDateTime(std::string str)
         {
             date_time->SetText((char*)str.c_str());

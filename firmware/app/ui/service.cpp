@@ -620,11 +620,6 @@ void Service::setCoordDate(Navigation::Coord_Date date)
 		time = voice_service->getVirtualTime();
 	}
 
-//    if (voice_service->getVirtualMode() || (date.status == false) || isValidWasExist)
-//    	time = voice_service->getVirtualTime();
-//    else
-//        time = (uint8_t*)&date.time;
-
 #if EMUL
     time = (uint8_t*)&date.time;
 #endif
@@ -641,19 +636,6 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     str[6] = (char)time[4];
     str[7] = (char)time[5];
     str[8] = 0;
-
-//    if (date.status == false)
-//    {
-//        str[0] = '0';
-//        str[1] = '0';
-//        str[2] = ':';
-//        str[3] = '0';
-//        str[4] = '0';
-//        str[5] = ':';
-//        str[6] = '0';
-//        str[7] = '0';
-//        str[8] = 0;
-//    }
 
     //qmDebugMessage(QmDebug::Warning, "DATE TIME %s, isZda %d ", str.c_str(), navigator->isZda);
     indicator->date_time->SetText((char*)str.c_str());

@@ -38,7 +38,7 @@
 
 extern void init_stm32f2cube_hal();
 extern void deinit_stm32f2cube_hal();
-extern void init_sky72310(void);
+extern void init_lmx2485(void);
 
 #define ARR_VALUE   80000000
 
@@ -314,7 +314,7 @@ void stm32f2_hardware_io_init(void)
 void target_device_multiradio_init(int freq) {
 	init_stm32f2cube_hal();
     //tune_frequency_generator(0,0);
-	init_sky72310();
+	init_lmx2485();
 	deinit_stm32f2cube_hal();
 }
 
