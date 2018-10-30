@@ -964,17 +964,19 @@ void CGuiMenu::RxVoiceDialogStatus3(int status, bool isClear )
     strDigit = "";
     ColorSchemeType cst;
 
-    if (!isClear){
+    if (!isClear)
+    {
         cst = CST_DEFAULT;
 
-    if (voiceAddr.size() < 1)
-        strDigit.append("--\0");
-    else
-        strDigit.append(voiceAddr);
+		if (voiceAddr.size() < 1)
+			strDigit.append("--\0");
+		else
+			strDigit.append(voiceAddr);
 
-    strDigitOld = strDigit;
+    	strDigitOld = strDigit;
     }
-    else{
+    else
+    {
         strDigit = strDigitOld;
         cst = CST_INVERSE;
     }
@@ -983,7 +985,6 @@ void CGuiMenu::RxVoiceDialogStatus3(int status, bool isClear )
     GUI_Painter::DrawText(20,70,voiceFont,(char*)voiceRxStr[1],cst);
     GUI_Painter::DrawText(70,65,voiceDigitFont,(char*)strDigit.c_str(),cst);
     GUI_Painter::DrawText(5,100,voiceFont,(char*)voiceRxStr[2],cst);
-
 }
 
 void CGuiMenu::RxVoiceDialogStatus4(int status, bool isClear )
@@ -1461,8 +1462,8 @@ void CGuiMenu::initRxCondCmdDialog(bool isSynch, bool isStart)        // При�
     LabelParams param = GUI_EL_TEMP_LabelMode;
     param.element.align = {alignHCenter, alignVCenter};
     param.transparent = false;
-    MoonsGeometry buttonArea  = { 5, 30, 120, 90 };
-    MoonsGeometry local1FieldArea = { 7, 90, 120, 120 };
+    MoonsGeometry buttonArea  = { 0, 30, 127, 90 };
+    MoonsGeometry local1FieldArea = { 7, 90, 126, 120 };
 
     GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)this);
     GUI_EL_Label    title     ( &titleParams,               &titleArea,   (char*)callSubMenu[0], (GUI_Obj *)this);

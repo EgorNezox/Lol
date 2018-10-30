@@ -98,7 +98,7 @@ const char* dataAndTime[] = {"Дата\0", "Время\0"};
 
 //const char* putOffVoiceStageOneStr[] = {"Нажмите ввод для записи\0", "Ожидание записи\0"};
 //const char* putOffVoiceStageTwoStr[] = {"Нажмите ввод для завершения\0", "Запись речи\0"};
-const char* putOffVoiceStageOneStr[] = {"Записать\0", "Ожидание записи\0"};
+const char* putOffVoiceStageOneStr[] = {"Записать\0", "Ожид. зап.\0"};
 const char* putOffVoiceStageTwoStr[] = {"Завершить\0", "Запись речи\0"};
 
 //const char* startAleTxVoiceMailStr = "Нажмите\nВвод для\nзапуска\0";
@@ -124,7 +124,7 @@ const char* startAleTxVoiceMailStr = "Запустить\n передачу\0";
 //};
 
 const char* smatrHSStateStr[] = {
-    "Воспроизв.\nневозможно\nПовторите.\0",
+    "Воспроизв.\nневозм.\nПовторите.\0",
     "Воспроизв.\nневозм. Нет\n гарнитуры\0",
     " Ошибка\n гарнит.\0",
     "Ошиб. кан.\n Выберите\n др. канал\0",
@@ -144,25 +144,25 @@ const char* smatrHSStateStr[] = {
 //const char* openChannelPlayErrorStr = "Проиграть\nневозможно.\nОткрытый канал.\0";
 //const char* noHeadsetPlayErrorStr   = "Проиграть\nневозможно.\nНет гарнитуры.\0";
 const char* openChannelPlayErrorStr = "Проигр.\nневозмож.\nОткр. кан.\0";
-const char* noHeadsetPlayErrorStr   = "Проиграть\nневозмож.\nНет гарн.\0";
+const char* noHeadsetPlayErrorStr   = "Проигр.\nневозмож.\nНет гарн.\0";
 
 const char* aleStateStr[] = {
 /* 0 */			"\0",
-/* 1 */		    "Нет\nсинхронизации\0",
+/* 1 */		    "Нет\nсинхрониз.\0",
 /* 2 */		    "Аппаратный\n сбой\0",
 /* 3 */		    "Нет частот\n АУС\n по умолчанию\0",
 /* 4 */		    "Не задан\n адрес\n станции\0",
-/* 5 */		    "Ошибка.\n Необходима\nсинхронизация\0",
+/* 5 */		    "Ошибка.\n Необх.\nсинхрониз.\0",
 /* 6 */		    "Ожидание\n вызова...\0",
-/* 7 */		    "Принят выз.\n Настройка\0",
+/* 7 */		    "Прин. выз.\n Настройка\0",
 /* 8 */		    "Вход.\n сигнал\n прерван.\n Повторите.\0",
 /* 9 */		    "Прием ГП\0",                            //"<AleVmProgress>%\0",
 /* 10 */	    "Исходящий\n вызов\0",
 /* 11 */	    "Нет связи.\n Повторите.\0",
-/* 12 */	    "Вызов принят\nСогласование\n обмена.\0",
+/* 12 */	    "Выз. принят\nСогласов.\n обмена.\0",
 /* 13 */	    "Передача ГП.\0",                         //"<AleVmProgress>%\0",
 /* 14 */	    "Нет связи.\n Повторите.\0",
-/* 15 */	    "Сообщение\n потеряно.\n Повторите.\0",
+/* 15 */	    "Сообщение\nпотеряно.\nПовторите.\0",
 /* 16 */	    "Передача\n успешно\n завершена.\0",
 /* 17 */	    "Прием сооб.\n прерван.\n Повторите.\0",
 /* 18 */	    "Нет связи.\n Повторите.\0",
@@ -181,7 +181,7 @@ const char *smsDataInformTx[] = {
     "Ожидание\nответа\0",
     "Ответ\nпринят\0",
     "Передача\nданных\0",
-    "Данные\nдоставлены\0",
+    "Данные\nдоставл.\0",
     "Сеанс\nпрерван\nПовторите\0",
     "Данные\nпотеряны\nПовторите\nпередачу\0",
 };
@@ -216,7 +216,7 @@ const char *rxSmsResultStatus[] = {
     " Ожидание\n квитанции\0"
 };
 
-const char* voiceRxStr[] = {"Запустить\n прием\0", "От:\0", "Нажмите ввод\0"};
+const char* voiceRxStr[] = {"Запустить\n прием\0", "От:\0", "Нажм. ввод\0"};
 //const char* voiceRxStr[] = {"Нажмите Ввод\n для запуска\n приема\0", "От:\0", "Нажмите ввод\0"};
 const char* voiceRxTxLabelStr[] = {"Канал зап.\0", "Канал\nвос.\0", "Зап. речи\0", "Вос. речи\0", "Получат.\0", "Получ. ГП\0"};
 //const char* voiceRxTxLabelStr[] = {"Канал записи\0", "Канал\nвоспроизвед.\0", "Запись речи.\0", "Воспр. речи.\0", "Получатель\0", "Получена ГП\0"};
@@ -254,7 +254,7 @@ const char* editSheldure        = " Изменить\n сеанс\0";
 const char* delSheldure         = " Удалить\n сеанс\0";
 const char* askDelSheldure      = "\t\t Удалить\n\t сеанс?\0";
 const char* atumalfunction_title_str = "Сбой АСУ";
-const char* atumalfunction_text_str = "Передача на текущей частоте ограничена";
+const char* atumalfunction_text_str = "Перед. на тек. част. ограничена";
 
 const char* dsphardwarefailure_7_5_title_str = "Авария АФУ";
 const char* dsphardwarefailure_7_5_text_str = "0";
@@ -298,7 +298,7 @@ const char *fromStr = "от\0";
 
 const char *syncWaitingStr = "Синхро...\0";
 
-const char *txQwit  = " Отправка\n квитанции\0";
+const char *txQwit  = "Отпр. квит.\0";
 
 const char *err  = " Ошибка\0";
 const char *errCrc  = " Ошибка CRC\0";

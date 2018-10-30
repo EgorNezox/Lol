@@ -67,8 +67,8 @@ void init_lmx2485(void)
 
 	HAL_SPI_Init(&SpiHandle);
 
-	write_data(0x90, 0x00, 0x00); // R0 	RF_N[10:0] RF_FN[11:0]                                                               0
-	write_data(0x27, 0x10, 0x03); // R1 	RF_PD RF_P RF_R[5:0] RF_FD[11:0]   											   0 0 1 1
+	write_data(0x30, 0x00, 0x00); // R0 	RF_N[10:0] RF_FN[11:0]                                                               0
+	write_data(0x0D, 0x10, 0x03); // R1 	RF_PD RF_P RF_R[5:0] RF_FD[11:0]   											   0 0 1 1
 	write_data(0x80, 0xF0, 0xF5); // R2 	IF_PD IF_N[18:0]                   											   0 1 0 1
 	write_data(0x1F, 0xF0, 0x07); // R3 	ACCESS[3:0] RF_CPG[3:0] IF_R[11:0] 											   0 1 1 1
 	write_data(0x20, 0xC7, 0xF9); // R4 	ATPU 0 1 0 0 0 DITH[1:0] FM[1:0] 0 OSC_2x OSC_OUT IF_CPP RF_CPP IF_P MUX [3:0] 1 0 0 1

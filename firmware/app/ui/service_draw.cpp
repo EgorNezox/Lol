@@ -440,7 +440,8 @@ void Service::drawMenu_txSmsMessage()
 				uint8_t percent = menu->calcPercent(menu->virtCounter, 120);
 				char syn[4] = {0,0,0,0};
 				sprintf(syn, "%d", percent);
-				fieldStr.append("\t").append(syncWaitingStr).append("\n ").append(syn).append(" %");
+				//fieldStr.append("\t").append(syncWaitingStr).append("\n ").append(syn).append(" %");
+				fieldStr.append(syncWaitingStr).append("\n ").append(syn).append(" %");
 			}
 			else
 			{
@@ -499,7 +500,8 @@ void Service::drawMenu_rxSmsMessage()
 				char syn[4] = {0,0,0,0};
 				uint8_t percent = menu->calcPercent(menu->virtCounter, 120);
 				sprintf(syn, "%d", percent);
-				str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" %");
+				//str.append("\t\t").append(syncWaitingStr).append("\n\t ").append(syn).append(" %");
+				str.append(syncWaitingStr).append("\n\t ").append(syn).append(" %");
 				menu->initRxSmsDialog(menu->virtCounter ? str.c_str() : receiveStatusStr[1]);
         }
     }
