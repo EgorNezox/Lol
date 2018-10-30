@@ -162,7 +162,7 @@ public:
     void goToVoice();
     void magic();
     void resetSmsState();
-    void prevTime();
+    void prevTime(uint8_t date_time[4]);
 
     void setAdr();
     void dspReset();
@@ -475,7 +475,7 @@ private:
 #ifndef PORT__PCSIMULATOR
     QmUsb *usb;
 #endif
-    QmRtc::Time t;
+    QmRtc::Time timeVirtual;
     QmRtc::Date d;
 
     bool isUsbReady = false;

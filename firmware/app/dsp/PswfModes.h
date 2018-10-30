@@ -59,7 +59,7 @@ private:
 
     uint32_t check_rx_call(int* wzn);
 
-    uint32_t calc_ack_code(uint8_t ack);
+    uint32_t calc_ack_code(uint8_t ack, uint8_t date_time[4]);
 
     // логика для приемав и передачи УК
     void LogicPswfTx();

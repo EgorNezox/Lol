@@ -368,7 +368,7 @@ inline void DspController::rec1ppsV(uint8_t address, uint8_t* data, int data_len
 	{
         //qmDebugMessage(QmDebug::Dump, "0x65 frame indicator == 5");
         if ((masterVirtualPps == 0) && (RtcTxRole)) return;
-		addSeconds(&t);
+		addSeconds(&timeVirtual);
 
 		if (RtcTxRole)
 		{
@@ -383,18 +383,17 @@ inline void DspController::rec1ppsV(uint8_t address, uint8_t* data, int data_len
 				//qmDebugMessage(QmDebug::Dump, "0x65 RtcTxCounter %d",RtcTxCounter);
 
 
-
-				if (IsStart(t.seconds))
+				if (IsStart(timeVirtual.seconds))
 				{
 
-					freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
+					freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,timeVirtual.seconds,d.day,timeVirtual.hours,timeVirtual.minutes);
 					//qmDebugMessage(QmDebug::Dump, "0x65 frame %d %d",t.minutes,t.seconds);
 					RtcTxCounter = 1;
 					++count_VrtualTimer;
 					if (count_VrtualTimer > VrtualTimerMagic)
 					{
                         //qmDebugMessage(QmDebug::Dump, "0x65 changeFrequency()");
-						addSeconds(&t);
+						addSeconds(&timeVirtual);
 						if (radio_state == radiostatePswf)
 							changePswfFrequency();
 						if (radio_state == radiostateSms)
@@ -446,7 +445,7 @@ inline void DspController::rec1ppsV(uint8_t address, uint8_t* data, int data_len
 			}
 			else
 			{
-				if (IsStart(t.seconds))
+				if (IsStart(timeVirtual.seconds))
 				{
 					++count_VrtualTimer;
 				}

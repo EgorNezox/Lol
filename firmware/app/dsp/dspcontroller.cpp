@@ -634,14 +634,14 @@ int DspController::getFrequency(uint8_t mode) //pswf = 0, sms = 1
 	switch (mode){
 		case 0: {
 			if (virtual_mode)
-				fr_sh = pswf_module->CalcShiftFreq(RN_KEY,d.day,t.hours,t.minutes,t.seconds);
+				fr_sh = pswf_module->CalcShiftFreq(RN_KEY,d.day,timeVirtual.hours,timeVirtual.minutes,timeVirtual.seconds);
 			else
 				fr_sh = pswf_module->CalcShiftFreq(RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3]);
 			break;
 		}
 		case 1: {
 			if (virtual_mode)
-				fr_sh = pswf_module->CalcSmsTransmitFreq(RN_KEY,d.day,t.hours,t.minutes,t.seconds);
+				fr_sh = pswf_module->CalcSmsTransmitFreq(RN_KEY,d.day,timeVirtual.hours,timeVirtual.minutes,timeVirtual.seconds);
 			else
 				fr_sh = pswf_module->CalcSmsTransmitFreq(RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3]);
 			break;
@@ -649,7 +649,7 @@ int DspController::getFrequency(uint8_t mode) //pswf = 0, sms = 1
 	}
 
 	fr_sh += 1622;
-	fr_sh = fr_sh * 1000; // � � вЂњ� ЎвЂ�
+	fr_sh = fr_sh * 1000;
 
 	for(int i = 0; i < 32; i += 2)
 	{
@@ -660,6 +660,8 @@ int DspController::getFrequency(uint8_t mode) //pswf = 0, sms = 1
 	}
 
 	//qmDebugMessage(QmDebug::Dump,"frequency:  %d ", fr_sh);
+	if (sms_counter >= 77)
+		qmDebugMessage(QmDebug::Dump,"frequency: freq %d RN_KEY %d day %d  h %d m %d s %d", fr_sh, RN_KEY,d.day,timeVirtual.hours,timeVirtual.minutes,timeVirtual.seconds);
     return fr_sh;
 }
 
@@ -1122,7 +1124,7 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 			{
 				uint8_t fstn = 0;
 				if (virtual_mode == true)
-					fstn = pswf_module->calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,d.day,t.hours,t.minutes,t.seconds,sms_counter - 39);
+					fstn = pswf_module->calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,d.day,timeVirtual.hours,timeVirtual.minutes,timeVirtual.seconds,sms_counter - 39);
 				else
 					fstn = pswf_module->calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39); // TODO: fix that;
 				QNB_RX++;
@@ -1289,7 +1291,7 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 				{
 					uint8_t fstn  = 0;
 			        if (virtual_mode == true)
-			        	fstn = pswf_module->calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,d.day,t.hours,t.minutes,t.seconds,sms_counter - 39);
+			        	fstn = pswf_module->calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,d.day,timeVirtual.hours,timeVirtual.minutes,timeVirtual.seconds,sms_counter - 39);
 			        else
 			        	fstn = pswf_module->calcFstn(ContentSms.R_ADR,ContentSms.S_ADR,ContentSms.RN_KEY,date_time[0],date_time[1],date_time[2],date_time[3],sms_counter - 39); // TODO: fix that;
 					QNB_RX++;
@@ -1528,20 +1530,16 @@ void DspController::startGucTransmitting()
 
 }
 
-void DspController::prevTime()
+void DspController::prevTime(uint8_t date_time[4])
 {
-	if (virtual_mode)
-	{
-//		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", t.seconds);
-		t.seconds = t.seconds - 1;
-	//	qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", t.seconds);
+	for(int i = 3; i>=0 ;i++){
+		if (date_time[i] > 0){
+			date_time[i] -=1;
+			return;
+		}
 	}
-	else
-	{
-//		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", date_time[3]);
-		date_time[3]  = date_time[3] - 1;
-//		qmDebugMessage(QmDebug::Dump, "prevTime() seconds: %d", date_time[3]);
-	}
+
+	qmDebugMessage(QmDebug::Dump,"curr date_time d %d h %d m %d s %d ", date_time[0], date_time[1],date_time[2], date_time[3]);
 }
 
 void DspController::getZone()
@@ -2319,7 +2317,7 @@ void DspController::startVirtualPpsModeRx()
 	RtcTxRole = false;
 	RtcFirstCatch = 0;
 #ifndef PORT__PCSIMULATOR
-	t = rtc->getTime();
+	timeVirtual = rtc->getTime();
 	d = rtc->getDate();
 #endif
 	antiSync = false;
@@ -2359,7 +2357,7 @@ void DspController::correctTime(uint8_t num)
 //	qmDebugMessage(QmDebug::Dump, "correctTime() before getTime t.seconds %d", t.seconds);
 
 //	qmDebugMessage(QmDebug::Dump, "correctTime() after getTime t.seconds %d", t.seconds);
-	t.seconds = 12 * (t.seconds / 12) + 7;
+	timeVirtual.seconds = 12 * (timeVirtual.seconds / 12) + 7;
 //	qmDebugMessage(QmDebug::Dump, "correctTime() after correct t.seconds %d", t.seconds);
 	count_VrtualTimer = num;
 //    qmDebugMessage(QmDebug::Dump, "correctTime() COUNTER VIRTUAL %d",count_VrtualTimer);
@@ -2496,11 +2494,11 @@ void DspController::wakeUpTimer()
 
 	if ((virtual_mode) && (RtcRxRole) && (!antiSync))
 	{
-		t = rtc->getTime();
+		timeVirtual = rtc->getTime();
 
-		if (IsStart(t.seconds))
+		if (IsStart(timeVirtual.seconds))
 		{
-			freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,t.seconds,d.day,t.hours,t.minutes);
+			freqVirtual = getCommanderFreq(ContentPSWF.RN_KEY,timeVirtual.seconds,d.day,timeVirtual.hours,timeVirtual.minutes);
 			ParameterValue param;
 			param.frequency = freqVirtual;
 //			qmDebugMessage(QmDebug::Dump, "freq virtual %d",freqVirtual);
@@ -2510,7 +2508,7 @@ void DspController::wakeUpTimer()
 	if ((virtual_mode) && (RtcTxRole) && (!boomVirtualPPS) && (masterVirtualPps))
 	{
 #ifndef PORT__PCSIMULATOR
-		t = rtc->getTime();
+		timeVirtual = rtc->getTime();
 		d = rtc->getDate();
 #endif
 		ParameterValue comandValue;
@@ -2578,10 +2576,10 @@ void DspController::setVirtualTime(uint8_t *param)
     time[0] = 10*param[4] + param[5];
 
 #ifndef PORT__PCSIMULATOR
-    t.seconds  = time[0];
-    t.minutes  = time[1];
-    t.hours    = time[2];
-    rtc->setTime(t);
+    timeVirtual.seconds  = time[0];
+    timeVirtual.minutes  = time[1];
+    timeVirtual.hours    = time[2];
+    rtc->setTime(timeVirtual);
 #endif
 
 }
@@ -2744,5 +2742,5 @@ void DspController::transmithFrame(uint8_t address, uint8_t *data, int data_len)
 /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)//LevelVerbose)//LevelVerbose)
+QMDEBUG_DEFINE_DOMAIN(dspcontroller, LevelVerbose)
 #include "qmdebug_domains_end.h"

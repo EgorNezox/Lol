@@ -10,6 +10,10 @@
 #include "PswfModes.h"
 #include "qmendian.h"
 
+#include "qm.h"
+#define QMDEBUGDOMAIN	dspcontroller
+#include "qmdebug.h"
+
 namespace Multiradio
 {
 
@@ -146,10 +150,13 @@ void PswfModes::LogicSmsRx()
 			{
 				control->setrRxFreq();
 			}
+			if (control->sms_counter == 76)
+			{
+				control->quest = control->generateSmsReceived();
+			}
 			if (control->sms_counter == 77)
 			{
 				control->setTx();
-				control->quest = control->generateSmsReceived();
 				sendSms();
 			}
 			if (control->sms_counter > 77 && control->sms_counter < 83)
@@ -236,8 +243,7 @@ void PswfModes::LogicSmsTx()
 	    	control->setRx();
 	    	control->setrRxFreq();
 	    }
-
-	    if (control->sms_counter > 77 && control->sms_counter < 83)
+	    if (control->sms_counter > 77 && control->sms_counter <= 83)
 	    {
 	    	control->setrRxFreq();
 	    }
@@ -428,7 +434,7 @@ uint32_t PswfModes::CalcSmsTransmitFreq(uint32_t RN_KEY, uint32_t DAY, uint32_t 
 			//qmDebugMessage(QmDebug::Dump, "Calc freq sms  formula %d", FR_SH);
 		}
 
-		if (control->sms_counter > 77 && control->sms_counter < 83)
+		if (control->sms_counter >= 77 && control->sms_counter < 83)
 		{
 			FR_SH = (RN_KEY + 5*SEC + 230*SEC_MLT + 17*MIN + 29*HRS + 43*DAY)% TOT_W;
 			//qmDebugMessage(QmDebug::Dump, "Calc freq sms quit formula %d", FR_SH);
@@ -451,34 +457,28 @@ uint32_t PswfModes::CalcSmsTransmitFreq(uint32_t RN_KEY, uint32_t DAY, uint32_t 
 	return FR_SH;
 }
 
-uint32_t PswfModes::calc_ack_code(uint8_t ack)
+uint32_t PswfModes::calc_ack_code(uint8_t ack, uint8_t date_time[4])
 {
 	uint8_t ACK_CODE  = 0;
 
-	if (control->virtual_mode)
-		ACK_CODE = (control->ContentSms.R_ADR  +
-				control->ContentSms.S_ADR  +
-				control->ack 			   +
-				control->ContentSms.RN_KEY +
-				control->d.day  		   +
-				control->t.hours    	   +
-				control->t.minutes 		   +
-				control->t.seconds)		   % 100;
-	else
-		ACK_CODE = (control->ContentSms.R_ADR  +
+	ACK_CODE = (control->ContentSms.R_ADR      +
 				control->ContentSms.S_ADR      +
 				control->ack 		           +
 				control->ContentSms.RN_KEY     +
-				control->date_time[0] 	       +
-				control->date_time[1]	       +
-				control->date_time[2] 	       +
-				control->date_time[3])         % 100;
+				date_time[0] 	       		   +
+				date_time[1]	               +
+				date_time[2] 	               +
+				date_time[3])                  % 100;
 
-//	qmDebugMessage(QmDebug::Dump, "radr = %d", ContentSms.R_ADR);
-//	qmDebugMessage(QmDebug::Dump, "sadr = %d", ContentSms.S_ADR);
-//	qmDebugMessage(QmDebug::Dump, "ack  = %d", ack);
-//	qmDebugMessage(QmDebug::Dump, "radr = %d", ContentSms.RN_KEY);
-//	qmDebugMessage(QmDebug::Dump, "radr = %d", d.day,t.hours,t.minutes,t.seconds);
+	qmDebugMessage(QmDebug::Dump, "radr = %d", control->ContentSms.R_ADR);
+	qmDebugMessage(QmDebug::Dump, "sadr = %d", control->ContentSms.S_ADR);
+	qmDebugMessage(QmDebug::Dump, "ack  = %d", control->ack);
+	qmDebugMessage(QmDebug::Dump, "radr = %d", control->ContentSms.RN_KEY);
+	qmDebugMessage(QmDebug::Dump, "radr = D %d H %d M %d S %d", control->d.day,
+																control->timeVirtual.hours,
+																control->timeVirtual.minutes,
+																control->timeVirtual.seconds);
+	qmDebugMessage(QmDebug::Dump, "radr = %d", ACK_CODE);
     return ACK_CODE;
 }
 
@@ -560,9 +560,9 @@ void PswfModes::recPswf(uint8_t data,uint8_t code, uint8_t indicator)
 		 data,
 		 control->ContentPSWF.RN_KEY,
 		 control->d.day,
-		 control->t.hours,
-		 control->t.minutes,
-		 control->prevSecond(control->t.seconds));
+		 control->timeVirtual.hours,
+		 control->timeVirtual.minutes,
+		 control->prevSecond(control->timeVirtual.seconds));
  if   (!control->virtual_mode) control->private_lcode = (char)control->navigator->Calc_LCODE(control->ContentPSWF.R_ADR,
 		 control->ContentPSWF.S_ADR,
 		 data,
@@ -681,15 +681,37 @@ void PswfModes::recSms(uint8_t *data)
 		}
 	}
 
-	if (control->sms_counter > 76 && control->sms_counter < 83)
+	if (control->sms_counter > 76 && control->sms_counter <= 83)
 	{
-		control->prevTime();
 
 		uint8_t ack           = data[9];
+		control->ack 		  = ack;
 		uint8_t ack_code      = data[10];
-		uint8_t ack_code_calc = calc_ack_code(ack);
+
+		uint8_t dtime[4] = {0};
+
+		if (control->virtual_mode)
+		{
+			dtime[0] = control->d.day;
+			dtime[1] = control->timeVirtual.hours;
+			dtime[2] = control->timeVirtual.minutes;
+			dtime[3] = control->timeVirtual.seconds;
+		}
+		else
+		{
+			dtime[0] = control->date_time[0];
+			dtime[1] = control->date_time[1];
+			dtime[2] = control->date_time[2];
+			dtime[3] = control->date_time[3];
+		}
+
+		control->prevTime(dtime);
+
+		uint8_t ack_code_calc = calc_ack_code(control->ack, dtime);
 
 		//qmDebugMessage(QmDebug::Dump, "recieve count sms = %d %d", ack_code_calc, data[10]);
+		qmDebugMessage(QmDebug::Dump, "recieve count sms = %d %d %d", ack, ack_code_calc, data[10]);
+
 		if (ack_code_calc == ack_code)
 		{
 			if (ack == 73) ++control->ok_quit;
@@ -708,9 +730,9 @@ PswfModes::trFrame PswfModes::sendPswf()
 	if (control->virtual_mode)
 	{
 		time[0] = control->d.day;
-		time[1] = control->t.hours;
-		time[2] = control->t.minutes;
-		time[3] = control->t.seconds;
+		time[1] = control->timeVirtual.hours;
+		time[2] = control->timeVirtual.minutes;
+		time[3] = control->timeVirtual.seconds;
 		//qmDebugMessage(QmDebug::Dump, "time now: %d %d %d %d" ,d.day,t.hours,t.minutes,t.seconds);
 	}
 	else
@@ -774,16 +796,16 @@ PswfModes::trFrame PswfModes::sendPswf()
 PswfModes::trFrame PswfModes::sendSms()
 {
 	control->ContentSms.Frequency =  control->getFrequency(1); // sms = 1
-	control->smsCounterFreq(control->ContentSms.Frequency);
+	//control->smsCounterFreq(control->ContentSms.Frequency);
 	control->ContentSms.indicator = 20;
 	control->ContentSms.SNR =  7;
 	int time[4] = {0,0,0,0};
 	if (control->virtual_mode)
 	{
 		time[0] = control->d.day;
-		time[1] = control->t.hours;
-		time[2] = control->t.minutes;
-		time[3] = control->t.seconds;
+		time[1] = control->timeVirtual.hours;
+		time[2] = control->timeVirtual.minutes;
+		time[3] = control->timeVirtual.seconds;
 	}
 	else
 	{
@@ -814,7 +836,7 @@ PswfModes::trFrame PswfModes::sendSms()
 				time[2],
 				time[3]);
 	}
-	//qmDebugMessage(QmDebug::Dump, "LCODE: %d",ContentSms.L_CODE);
+
 	control->ContentSms.TYPE  = (control->sms_counter > 38 && control->sms_counter < 76) ? 1 : 0;
 
 	uint8_t tx_address = 0x72;
@@ -824,11 +846,6 @@ PswfModes::trFrame PswfModes::sendSms()
 	qmToBigEndian((uint8_t)control->ContentSms.indicator, tx_data + tx_data_len); ++tx_data_len;
 	qmToBigEndian((uint8_t)control->ContentSms.TYPE, tx_data      + tx_data_len); ++tx_data_len;
 	qmToBigEndian((uint32_t)control->ContentSms.Frequency, tx_data+ tx_data_len); tx_data_len += 4;
-
-	// for(int i = 0;i<6;i++)
-	// qmDebugMessage(QmDebug::Dump,"ContentSms.massive = %d",ContentSms.message[i]);
-	// qmDebugMessage(QmDebug::Dump, " ContentSms.Frequency =  %d " ,ContentSms.Frequency);
-	// tx
 
 	if (control->sms_counter < 19 && control->SmsLogicRole == control->SmsRoleTx)
 	{
@@ -851,9 +868,9 @@ PswfModes::trFrame PswfModes::sendSms()
 					control->ContentSms.S_ADR,
 					control->ContentSms.RN_KEY,
 					control->d.day,
-					control->t.hours,
-					control->t.minutes,
-					control->t.seconds,
+					control->timeVirtual.hours,
+					control->timeVirtual.minutes,
+					control->timeVirtual.seconds,
 					control->sms_counter - 39);
 		else
 			FST_N = calcFstn(control->ContentSms.R_ADR,
@@ -896,10 +913,27 @@ PswfModes::trFrame PswfModes::sendSms()
 		qmToBigEndian((uint8_t)control->ContentSms.SNR,   tx_data+tx_data_len); ++tx_data_len;
 		qmToBigEndian((uint8_t)control->ContentSms.R_ADR, tx_data+tx_data_len); ++tx_data_len;
 		qmToBigEndian((uint8_t)control->ContentSms.S_ADR, tx_data+tx_data_len); ++tx_data_len;
-		qmToBigEndian((uint8_t)control->ack, 			 		  tx_data+tx_data_len); ++tx_data_len;
+		qmToBigEndian((uint8_t)control->ack, 			  tx_data+tx_data_len); ++tx_data_len;
 
-		uint8_t ack_code  = calc_ack_code(control->ack);
-		qmToBigEndian((uint8_t)ack_code, 				  tx_data+tx_data_len);  ++tx_data_len;
+		uint8_t dtime[4] = {0};
+
+		if (control->virtual_mode)
+		{
+			dtime[0] = control->d.day;
+			dtime[1] = control->timeVirtual.hours;
+			dtime[2] = control->timeVirtual.minutes;
+			dtime[3] = control->timeVirtual.seconds;
+		}
+		else
+		{
+			dtime[0] = control->date_time[0];
+			dtime[1] = control->date_time[1];
+			dtime[2] = control->date_time[2];
+			dtime[3] = control->date_time[3];
+		}
+
+		uint8_t ack_code  = calc_ack_code(control->ack, dtime);
+		qmToBigEndian((uint8_t)ack_code, tx_data+tx_data_len);  ++tx_data_len;
 	}
 
 	frame.address = tx_address;
