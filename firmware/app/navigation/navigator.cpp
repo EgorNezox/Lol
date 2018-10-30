@@ -21,12 +21,15 @@
 #include "stdio.h"
 #include "navigator.h"
 #include "../../../system/init.h"
+#include "../../../system/port__target-device-rev1/digit_filter/filter.h"
 
 #define NEW_GPS_PARSING 0
 #define GPS_CORRECT 0
 #define GPS_CORRECT_VALUE 1
 
 namespace Navigation {
+
+corr_STATE corState;
 
 using namespace std;
 
@@ -48,9 +51,11 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 	reset_iopin->writeOutput(QmIopin::Level_High);
 	ant_flag_iopin = new QmIopin(ant_flag_iopin_resource, this);
 	//qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
+
+    initCorrector();
+
 	sync_pulse_iopin = new QmIopin(sync_pulse_iopin_resource, this);
 	sync_pulse_iopin->inputTriggerOnce.connect(sigc::mem_fun(this, &Navigator::processSyncPulse));
-
 
 	setMinimalActivityMode(false);
 
@@ -59,13 +64,43 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
     config_timer = new QmTimer(true, this);
     config_timer->timeout.connect(sigc::mem_fun(this, &Navigator::processConfig));
     config_timer->start(3000); //tested on receivers versions 3.1, 4.1
-
 }
 
 Navigator::~Navigator() {
 //#if defined(PORT__TARGET_DEVICE_REV1)
 	uart->close();
     //#endif /* PORT__TARGET_DEVICE_REV1 */
+}
+
+void Navigator::initCorrector()
+{
+    corState.k = read_filter_coeff();
+    if (corState.k < 0 || corState.k > 4095)
+    {
+        corState.k = 0;
+    }
+    corState.delay1 = 0;
+    corState.delay2 = 0;
+    init_corrector(&corState);
+    tuneGen(corState.k);
+}
+
+int Navigator::tuneGen(int val)
+{
+	static int count = 0;
+	count++;
+	int res = 0;
+	res = tune_frequency_generator(val, true);
+	//if ((fs != 0) && (count % 10 == 0))
+	if ((count % 10 == 0))
+	{
+		get_corrector_state(&corState);
+		write_filter_coeff(corState.k);
+		//fs->writeGenTuneNew(corState);
+	}
+	qmDebugMessage(QmDebug::Info, "tuneGen() val = %i",  val);
+
+	return res;
 }
 
 Coord_Date Navigator::getCoordDate()
@@ -383,23 +418,31 @@ bool Navigator::get1PPSModeCorrect()
 
 void Navigator::processSyncPulse(bool overflow)
 {
-    static uint16_t to_mode_time = 0;
-    ++to_mode_time;
+//    static uint16_t to_mode_time = 0;
+//    ++to_mode_time;
+//
+//    #ifndef PORT__PCSIMULATOR
+//    	int i  = get_tim1value();
+//    #endif
+//    int res = 0;
+//    bool param = (to_mode_time % 50 == 0);
+//
+//#ifndef PORT__PCSIMULATOR
+//    bool ps = (CoordDate.status == true && param == true);
+//    res = tune_frequency_generator(i, ps);
+//#endif
+////qmDebugMessage(QmDebug::Warning, " =====> Correct  DAC: %i FROM DELTA %i", res, i);
+//
+//    if (param)
+//        to_mode_time = 0;
 
-    #ifndef PORT__PCSIMULATOR
-    	int i  = get_tim1value();
-    #endif
-    int res = 0;
-    bool param = (to_mode_time % 50 == 0);
+	int32_t i = getFreqDelta();
+	int32_t fdelta = i;
+	float coeff = calculate_coeff(fdelta, CoordDate.status);
+    int c = (int)coeff;
+	int res = tuneGen(c);
 
-#ifndef PORT__PCSIMULATOR
-    bool ps = (CoordDate.status == true && param == true);
-    res = tune_frequency_generator(i, ps);
-#endif
-//qmDebugMessage(QmDebug::Warning, " =====> Correct  DAC: %i FROM DELTA %i", res, i);
-
-    if (param)
-        to_mode_time = 0;
+	qmDebugMessage(QmDebug::Info, "NEW 1ppt trigger detected, tim1 =(%lu), DELTA = %i, COEF = %i, DAC: %i",  i, fdelta, c, res);
 
 
 //	if (overflow)
@@ -415,9 +458,6 @@ void Navigator::processSyncPulse(bool overflow)
 		parsingData(data);
 	}
 	syncPulse();
-
-
-
 }
 
 void Navigator::coldStart()

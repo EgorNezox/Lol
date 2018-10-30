@@ -8,6 +8,8 @@
 #ifndef FIRMWARE_APP_NAVIGATION_NAVIGATOR_H_
 #define FIRMWARE_APP_NAVIGATION_NAVIGATOR_H_
 
+
+
 //#if defined(PORT__TARGET_DEVICE_REV1)
 class QmIopin;
 class QmUart;
@@ -17,8 +19,8 @@ class QmTimer;
 #include <thread>
 #include <chrono>
 
-namespace Navigation {
 
+namespace Navigation {
 
 struct Coord_Date
 {
@@ -43,6 +45,9 @@ public:
 	bool get1PPSModeCorrect();
 	void coldStart();
 
+	void initCorrector();
+	int tuneGen(int val);
+
 	int Calc_LCODE(int R_ADR, int S_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
 	int Calc_LCODE_RETR(int RP_ADR,int R_ADR, int COM_N, int RN_KEY, int DAY, int HRS, int MIN, int SEC);
 	int Calc_LCODE_SMS(int R_ADR, int S_ADR, int WZN, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
@@ -55,7 +60,6 @@ private:
 	void parsingData(uint8_t data[]);
 	void processSyncPulse(bool overflow);
 	void redactCoordForSpec(uint8_t *input, int val);
-
 
 	Coord_Date CoordDate;
 

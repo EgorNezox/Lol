@@ -682,6 +682,8 @@ static uint16_t highvalue = 0;
 static uint32_t tim1delta;
 static int tim1values[8];
 
+static uint32_t deltaValue = 0;
+
 void TIM2_IRQHandler(void)
 {
 	static uint32_t value    = 0;
@@ -705,6 +707,7 @@ void TIM2_IRQHandler(void)
 			tim1delta = value + ARR_VALUE - prevalue;
 		}
 
+		deltaValue = tim1delta - 36000000;
 
 		tim1values[tim1index] = tim1delta - 36000000;         //записали в массив из 4 элементов
 		tim1index = (tim1index+1) & 7; 			   //пишем в следующий из доступных элементов массива
@@ -748,12 +751,97 @@ void timer2_init()
 	NVIC_EnableIRQ(TIM2_IRQn);	   // включили прерывание
 }
 
-
 int get_tim1value(void)
 {
     int midval = 0;
 	for(int i = 0; i < 8; i++) midval += tim1values[i];
 	return midval;
 }
+
+long int getFreqDelta(void)
+{
+	int32_t result = deltaValue;
+	return result;
+}
+
+// FROM MASL
+
+////Инициализация таймера 1
+////По ножке A.8 приходят импульсы
+//void timer1_init(){
+//	hal_gpio_params_t params;
+//	hal_gpio_set_default_params(&params);
+//	params.mode = hgpioMode_AF;
+//	params.type = hgpioType_PPDown;
+//	params.af = hgpioAF_TIM_1_2; //AF1
+//	hal_gpio_init((hal_gpio_pin_t){hgpioPA, 8}, &params);
+//
+//	RCC->APB2ENR|=1; // Включили таймер 1
+//	TIM1->PSC = 0;
+//	TIM1->DIER |= (TIM_DIER_UIE | TIM_DIER_CC1IE); //Разрешить прерывание по переполнению
+//	TIM1->CR1 |= TIM_CR1_CEN; //Запустили таймер
+//	TIM1->CCMR1 |= TIM_CCMR1_CC1S_0; //Первый канал - это вход TI1; Фильтры не используются
+//	TIM1->CCER |= (TIM_CCER_CC1E); //Включили захват, передний фронт
+//
+//	NVIC_SetPriority(TIM1_CC_IRQn,1);// установили приоритет прерывания. 15 - самый низкий (покрутим)
+//	NVIC_EnableIRQ(TIM1_CC_IRQn);// разрешили прерывание++
+//
+//	NVIC_SetPriority(TIM1_UP_TIM10_IRQn,1);// установили приоритет прерывания. 15 - самый низкий (покрутим)
+//	NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);// разрешили прерывание++
+//}
+//
+//static int32_t preValue = 0;
+//static uint32_t curValue = 0;
+//static uint32_t deltaValue = 0;
+//
+//static uint32_t fromOverflowPrev = 0;
+//static uint32_t fromOverflowCur = 0;
+//static uint32_t overflowCounter = 0;
+//
+//static uint32_t overflowCount = 0;
+//static uint32_t overflowCountCur = 0;
+//static uint32_t overflowCountPrev = 0;
+//
+//static uint32_t fullCyclceValue = 0;
+//
+////Здесь отдельно
+//void TIM1_UP_TIM10_IRQHandler(void)
+//{
+//	//Переполнение таймера
+//	if (TIM1->SR & TIM_SR_UIF)
+//	{ //Надо убедится, что прерывание произошло именно по переполнению
+//		TIM1->SR &= ~TIM_SR_UIF; //Сбросили флаг
+//		overflowCounter++;
+//	}
+//}
+//
+//void TIM1_CC_IRQHandler(void)
+//{
+//	// Произошел захват переднего фронта
+//	if (TIM1->SR & TIM_SR_CC1IF)
+//	{
+//		TIM1->SR &= ~TIM_SR_CC1IF;
+//		preValue = curValue;
+//
+//		overflowCount = overflowCounter;// - overflowCountPrev;
+//		overflowCounter = 0;
+//		//overflowCountPrev = overflowCount;
+//
+//		fromOverflowCur = TIM1->CCR1; //Сохраненное значение
+//
+//		fullCyclceValue = (((uint32_t)overflowCount) << 16); // overflowCount * sizeof(uint16_t)  65536
+//		curValue =  fullCyclceValue + fromOverflowCur - fromOverflowPrev;
+//
+//		fromOverflowPrev = fromOverflowCur;
+//		if (abs(120000000 - curValue) < 4000)
+//				deltaValue = curValue;// - preValue;
+//	}
+//}
+//
+//int32_t getFreqDelta(void)
+//{
+//	int32_t result = deltaValue;
+//	return result;
+//}
 
 

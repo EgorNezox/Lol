@@ -18,6 +18,10 @@ void target_device_multiradio_init(int freq);
 void timer2_init();
 int get_tim1value();
 int tune_frequency_generator(int freq ,bool isWrite);
+long int getFreqDelta(void);
+
+int read_filter_coeff();
+void write_filter_coeff(int value);
 
 #ifdef __cplusplus
 }

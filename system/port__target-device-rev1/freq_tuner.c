@@ -50,6 +50,24 @@ uint32_t read_backup_register()
 	return value;
 }
 
+void write_filter_coeff(uint32_t value)
+{
+	static uint8_t just_one_time = 0;
+	if (just_one_time == 0)
+	{
+		++just_one_time;
+	}
+	HAL_PWR_EnableBkUpAccess();
+
+	RTC->BKP1R = value;
+}
+
+uint32_t read_filter_coeff()
+{
+	uint32_t value =  RTC->BKP1R;
+	return value;
+}
+
 int tune_frequency_generator(int d, uint8_t isWrite)
 {
 //#define DEF
