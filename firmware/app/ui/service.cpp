@@ -36,8 +36,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
                   Multiradio::VoiceServiceInterface *mr_voice_service,
                   Power::Battery                    *power_battery,
                   Navigation::Navigator             *navigator,
-                  DataStorage::FS                   *fs
-                  )
+                  DataStorage::FS                   *fs,
+				  Multiradio::usb_loader            *usb)
 {
     QM_ASSERT(single_instance == false);
     single_instance = true;
@@ -168,6 +168,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     setCoordDate(data );
 #endif
+
+    this->usb_service = usb;
 
     draw();
 }
@@ -1223,14 +1225,9 @@ void Service::keyEmulate(int key)
 	keyPressed((UI_Key)key);
 }
 
-bool Service::getUsbStatus()
-{
-	return voice_service->getUsbStatus();
-}
-
 void Service::draw_emulate()
 {
-	if (getUsbStatus())
+	if (usb_service->getUsbStatus())
 	{
 		displayBuf[0]    = 0x10;
 		displayBuf[1]    = displayBufSize % 256;
@@ -1242,7 +1239,7 @@ void Service::draw_emulate()
 
 #ifndef PORT__PCSIMULATOR
 		displayBuf[displayBufSize - 1] = 0x11;
-			usb_tx(displayBuf, displayBufSize);
+		usb_service->transmit(displayBuf, displayBufSize);
 #endif
 	}
 }

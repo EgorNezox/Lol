@@ -88,11 +88,6 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 	guc_rx_quit_timer->setSingleShot(true);
 	guc_rx_quit_timer->timeout.connect(sigc::mem_fun(this, &DspController::onGucWaitingQuitTimeout));
 
-	// присылается инициативно
-//	swr_timer = new QmTimer(false,this);
-//  swr_timer->setInterval(500);
-//  swr_timer->timeout.connect(sigc::mem_fun(this, &DspController::getSwr));
-
 	initResetState();
 
 	pswf_module = new PswfModes(this);
@@ -166,13 +161,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     waveInfoTimer->timeout.connect(sigc::mem_fun(this, &DspController::clearWaveInfo));
 
 #ifndef PORT__PCSIMULATOR
-
     rtc = new QmRtc(hw_rtc);
 	rtc->wakeup.connect(sigc::mem_fun(this,&DspController::wakeUpTimer));
-
-    usb = new QmUsb(hw_usb);
-    usb->usbwakeup.connect(sigc::mem_fun(this, &DspController::wakeUpUsb));
-
 #endif
 }
 
@@ -191,29 +181,12 @@ DspController::~DspController()
     delete rtc;
 }
 
-bool DspController::getUsbStatus()
-{
-	return isUsbReady;
-}
-
 void DspController::dspReset()
 {
 	reset_iopin->writeOutput(QmIopin::Level_Low);
 	//QmThread::msleep(20);
 	reset_iopin->writeOutput(QmIopin::Level_High);
 	if (guc_rx_quit_timer)stopGucTimer();
-}
-
-void DspController::start_usb()
-{
-#ifndef PORT__PCSIMULATOR
-	usb_start();
-#endif
-	/*for(int i = 0; i < 100; i++)
-	{
-		usb_tx();
-	}*/
-
 }
 
 bool DspController::isReady() {
@@ -721,12 +694,6 @@ void DspController::processStartupTimeout()
 //	qmDebugMessage(QmDebug::Warning, "DSP startup timeout");
 	is_ready = true;
 	started();
-
-	//usbrx = usb_rx;
-
-	start_usb();
-    //swr_timer.start();
-
 }
 
 
@@ -2365,127 +2332,6 @@ void DspController::correctTime(uint8_t num)
 	RtcFirstCatch = -1;
 }
 
-static uint8_t out_buf[2048];
-
-volatile int isCadr = false;
-volatile int isOk   = 0;
-volatile int counter = 0;
-volatile int size    = 0;
-volatile int start   = 0;
-
-uint16_t DspController::parsing(uint8_t *cadr, uint16_t len )
-{
-
-     for(int i = 0; i < len; i++)
-     {
-    	 if (counter == 0)
-    	 {
-    		 if (cadr[i] == 0x10) counter = 1;
-    		 start = i;
-    	 }
-    	 else
-    	 {
-    		 if (counter == 1)
-    		 {
-    			 size  = cadr[i];
-    		 }
-
-    		 if (counter == 2)
-    		 {
-    			 size += cadr[i] << 8;
-    		 }
-
-    		 if (counter == size + 3)
-    		 {
-    			 isCadr  = false;
-    			 isOk    = false;
-    			 counter = 0;
-    			 size    = 0;
-    			 start   = 0;
-
-    			 if (cadr[i] == 0x11)
-    			 {
-    				 manageCadr(out_buf,size);
-    				 //return size;
-
-    				 qmDebugMessage(QmDebug::Info, "BLA BLA: %i ", i);
-    				 continue;
-    			 }
-
-    		 }
-
-    		 if (counter - 1 >= len) qmDebugMessage(QmDebug::Info, "ERROR: CNT %i LEN %i", counter, len);
-    		 out_buf[counter - 1] = cadr[i];
-    		 ++counter;
-
-    	 }
-
-	 }
-
-     return 0;
-}
-
-void DspController::manageCadr(uint8_t *cadr, uint16_t len)
-{
-	uint8_t userid = cadr[2];
-
-	uint16_t size = 0;
-
-	size = cadr[0] + (cadr[1] << 8);
-
-
-	int pos = 0;
-
-
-	for(int i = 0; i < 4; i++)
-		pos  += cadr[i + 3] << (i*8);
-
-
-	if (userid == 0x8)
-	{
-		keyEmulate(cadr[3]);
-	}
-}
-
-void DspController::wakeUpUsb()
-{
-#ifndef PORT__PCSIMULATOR
-
-
-	//UseUsb = usb->getStatus();
-	/* получаем содержимое буфера от компьютера */
-	uint8_t * buff = usb->getbuffer();
-
-	/* получаем текущую длинну сообщения */
-	int len =  usb->getLen();
-
-	if (len > 0) isUsbReady = true;
-
-	qmDebugMessage(QmDebug::Info, "recieved len: %i ", usb->getLen());
-
-	/*функция обработки кадра для приемного буфера*/
-	parsing(buff,len);
-
-	/*сбрасываем поле длинны для приема нового кадра */
-	usb->resetLen();
-
-//	if (usb->getrtc())
-//	{
-//		reset_iopin->writeOutput(QmIopin::Level_Low);
-//		QmThread::msleep(10);
-//		reset_iopin->writeOutput(QmIopin::Level_High);
-//	}
-//	if (usb->getLen())
-//	{
-//		wakeup_dsp_pin->writeOutput(QmIopin::Level_Low);
-//		QmThread::msleep(10);
-//		wakeup_dsp_pin->writeOutput(QmIopin::Level_High);
-//	}
-
-	//QmThread::msleep(300);
-	UseUsb = getUsbStatus();
-#endif
-}
 
 void DspController::wakeUpTimer()
 {

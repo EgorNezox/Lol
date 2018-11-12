@@ -128,9 +128,6 @@ public:
 
     void stopGucQuit();
 
-    bool getUsbStatus();
-
-
     // ----- GUC -------
     sigc::signal<void,int,bool> respGuc;
     sigc::signal<void,int> messageGucTxQuit;

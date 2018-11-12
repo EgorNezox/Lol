@@ -695,10 +695,6 @@ void VoiceServiceInterface::stopGucQuit()
 		dispatcher->dsp_controller->guc_rx_quit_timer->stop();
 }
 
-bool VoiceServiceInterface::getUsbStatus()
-{
-	return dispatcher->dsp_controller->getUsbStatus();
-}
 
 void VoiceServiceInterface::onKeyEmulate(int key)
 {

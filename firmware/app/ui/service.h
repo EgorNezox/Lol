@@ -24,6 +24,7 @@
 #include "../power/battery.h"
 #include "../navigation/navigator.h"
 #include "../mrd/aleservice.h"
+#include "../usb/usbloader.h"
 
 /*FORWARD DECLARATIONS*/
 class GUI_Dialog_MainScr;
@@ -58,8 +59,9 @@ public:
             Multiradio::VoiceServiceInterface 	*mr_voice_service,
             Power::Battery 						*power_battery,
             Navigation::Navigator 				*navigator,
-            DataStorage::FS 					*Fs
-			);
+            DataStorage::FS 					*Fs,
+			Multiradio::usb_loader              *usb);
+
     ~Service();
 
 
@@ -192,7 +194,7 @@ private:
 
     void keyEmulate(int key);
     void draw_emulate();
-    bool getUsbStatus();
+    void setUsb();
 
     matrix_keyboard_t      matrix_kb;
     aux_keyboard_t         aux_kb;
@@ -355,6 +357,7 @@ private:
 
     std::string rememberTextSms;
 
+    Multiradio::usb_loader			  *usb_service;
     Multiradio::VoiceServiceInterface *voice_service;
     Multiradio::VoiceServiceInterface *pGetVoiceService();
     Multiradio::VoiceServiceInterface::Status multiradioStatus;

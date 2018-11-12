@@ -43,7 +43,8 @@ SOURCES += \
 	$(wildcard app/navigation/**/*.cpp) \
 	$(wildcard app/power/**/*.cpp) \
 	$(wildcard app/ui/**/*.cpp) \
-	$(wildcard app/synchro/**/*.c) 
+	$(wildcard app/synchro/**/*.c) \
+	$(wildcard app/usb/**/*.cpp)
 INCLUDEPATH += app
 $(sources_to_objects firmware_main.cpp): DDEF += $(DEFINES_system)
 

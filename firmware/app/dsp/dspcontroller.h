@@ -188,20 +188,6 @@ public:
     void setStationAddress(uint8_t address);
     void clearWaveInfo();
 
-    void start_usb();
-
-    bool getUsbStatus();
-    void manageCadr(uint8_t *cadr, uint16_t len);
-    void wakeUpUsb();
-    uint16_t parsing(uint8_t *cadr, uint16_t len );
-
-//    void LogicSmsTx();
-//    void LogicSmsRx();
-//    void galuaInit();
-//    DspController::trFrame sendSms();
-//    void startSmsRx();
-//    void recSms(uint8_t *data);
-
     uint32_t CalcSmsTransmitFreq(uint32_t RN_KEY, uint32_t DAY, uint32_t HRS, uint32_t MIN, uint32_t SEC);
 
 
