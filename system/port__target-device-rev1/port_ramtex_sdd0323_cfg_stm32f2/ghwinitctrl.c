@@ -674,8 +674,8 @@ void ghw_ctrl_init(void)
 
 //   ghw_cmd(GCTRL_OFF);
 //
-//   ghw_cmd(GCTRL_FUNCTION_SELECTION_A);
-//   ghw_cmd(GCTRL_ENABLE_INTERNAL_VDD_REGULATOR);
+   ghw_cmd(GCTRL_FUNCTION_SELECTION_A);
+   ghw_cmd(GCTRL_ENABLE_EXTERNAL_VDD_REGULATOR);
 //   ghw_cmd(GCTRL_SET_FRONT_CLK_DIV_OSC_FREQ);
 //   ghw_cmd(0xF1);
 //   ghw_cmd(GCTRL_GPIO);
