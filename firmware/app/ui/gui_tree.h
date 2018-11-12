@@ -49,6 +49,10 @@ enum GuiWindowsSubType
     volume,\
     editRnKey,\
     sheldure,\
+	techno,\
+	tuneGen,\
+	stationAddress,\
+    softwareVersion,\
     channelEmissionType,\
     voiceMode, \
     filetree,
@@ -159,7 +163,7 @@ private:
 
     CState MainWindow;
     // 0 - 4
-    CState main, call, recv, data, settings;
+    CState main, call, recv, data, settings, techno;
     // 1.1 - 1.5
     CEndState condCmd, groupCondCommand;
     SInputItemParameters condCmdParameters1{(char*)callTitle[0], "", 2, 0, 31},\
@@ -223,6 +227,9 @@ private:
 
     CEndState sttChannelEmissionType, sttVoiceMode;
     CEndState sttFileManager;
+
+    CState sttTechno;
+    CEndState sttStationAddress, sttTuneGen, sttSoftwareVersion;
 
     void init();
 

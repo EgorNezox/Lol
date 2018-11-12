@@ -40,6 +40,7 @@ void CGuiTree::init()
     sttSheldure.setName(settingsSubMenu[8]);
     stCoord.setName(settingsSubMenu[9]);
     sttDisplay.setName(settingsSubMenu[10]);
+    sttTechno.setName(settingsSubMenu[11]);
 
     sttFileManager.setName(files[0]);
 
@@ -227,6 +228,13 @@ void CGuiTree::init()
     settings.nextState.push_back(&sttSuppress);
     settings.nextState.push_back(&sttDisplay);
     settings.nextState.push_back(&sttSheldure);
+    settings.nextState.push_back(&sttTechno);
+
+    sttTechno.setType(GuiWindowTypes::menuWindow);
+    sttTechno.prevState = &settings;
+    sttTechno.nextState.push_back(&sttTuneGen);
+    sttTechno.nextState.push_back(&sttStationAddress);
+    sttTechno.nextState.push_back(&sttSoftwareVersion);
     //settings.nextState.push_back(&sttFileManager);
     // 4.1 - ����/�����
     sttDateTime.setType(GuiWindowTypes::menuWindow);
@@ -332,6 +340,22 @@ void CGuiTree::init()
     sttSheldure.subType = GuiWindowsSubType::sheldure;
     sttSheldure.prevState = &settings;
     sttSheldure.nextState.clear();
+    // 4.8 - ����������
+
+    sttTuneGen.setName(technoSubMenu[0]);
+    sttTuneGen.subType = GuiWindowsSubType::tuneGen;
+    sttTuneGen.prevState = &sttTechno;
+    sttTuneGen.nextState.clear();
+
+    sttStationAddress.setName(technoSubMenu[1]);
+    sttStationAddress.subType = GuiWindowsSubType::stationAddress;
+    sttStationAddress.prevState = &sttTechno;
+    sttStationAddress.nextState.clear();
+
+    sttSoftwareVersion.setName(technoSubMenu[2]);
+    sttSoftwareVersion.subType = GuiWindowsSubType::softwareVersion;
+    sttSoftwareVersion.prevState = &sttTechno;
+    sttSoftwareVersion.nextState.clear();
 
     currentState = &MainWindow;
     statesStack.clear();

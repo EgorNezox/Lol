@@ -39,6 +39,8 @@ public:
 	sigc::signal<void,bool> PswfSignal;
 	Coord_Date getCoordDate();
 	void setMinimalActivityMode(bool enabled);
+	int setGeneratorAbsValue(int val);
+	int getGeneratorDacValue();
 	void set1PPSModeCorrect(bool value);
 	bool get1PPSModeCorrect();
 	void coldStart();

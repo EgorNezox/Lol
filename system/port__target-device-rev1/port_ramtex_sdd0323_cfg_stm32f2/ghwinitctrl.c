@@ -246,6 +246,69 @@ GHWCOLOR ghw_autord_sim( SGUCHAR inc );
 //ghw_cmd_dat_wr(GCTRL_SET_PRECHARGE_VOLTAGE,       0x08 );   /* vcc */
 //ghw_cmd_wr(GCTRL_SET_DISPLAY_MODE_NORMAL);        // normal mode
 
+static GCODE SGUCHAR FCODE pal_min_initdata[] =
+{
+		   GCTRL_GREY_SCALE,
+		   0,
+		   0,
+		   0,
+		   0,
+		   0,
+		   0,
+		   0,
+		   0,
+		   0,
+		   0,
+		   0,
+		   1,
+		   2,
+		   3,
+		   4,
+		   5,
+};
+
+static GCODE SGUCHAR FCODE pal_mid_initdata[] =
+{
+		   GCTRL_GREY_SCALE,
+		   1,
+		   2,
+		   3,
+		   4,
+		   5,
+		   6,
+		   7,
+		   8,
+		   9,
+		   10,
+		   11,
+		   12,
+		   14,
+		   16,
+		   20,
+		   22,
+};
+
+static GCODE SGUCHAR FCODE pal_max_initdata[] =
+{
+		   GCTRL_GREY_SCALE,
+		   48,
+		   49,
+		   50,
+		   51,
+		   52,
+		   53,
+		   54,
+		   55,
+		   56,
+		   57,
+		   58,
+		   59,
+		   60,
+		   61,
+		   62,
+		   63,
+};
+
 static GCODE SGUCHAR FCODE initdata[] =
    {
    #ifdef GHW_SSD1329
@@ -271,6 +334,23 @@ static GCODE SGUCHAR FCODE initdata[] =
    0x7F,
 
    GCTRL_DEF_GREY_SCALE, /* Default grey scale (comment out for b&w) */
+//   GCTRL_GREY_SCALE,
+//   1,
+//   2,
+//   4,
+//   6,
+//   8,
+//   10,
+//   12,
+//   14,
+//   16,
+//   18,
+//   20,
+//   22,
+//   24,
+//   26,
+//   30,
+//   40,
 
    #else
    /* SSD0323 and GHW_SSD1328 */
@@ -308,7 +388,7 @@ static GCODE SGUCHAR FCODE initdata[] =
    #endif
 
    GCTRL_CONTRAST,
-   0xF0                 /* Set contrast level (1-255) */
+   0xFF                 /* Set contrast level (1-255) */
    };
 
 /* Default grey scale palette
@@ -622,9 +702,9 @@ void ghw_ctrl_init(void)
 
 
    ghw_cmd(GCTRL_SET_FRONT_CLK_DIV_OSC_FREQ);
-   ghw_cmd(0xF0);
+   ghw_cmd(0x00);//0xFO
    ghw_cmd(GCTRL_SET_PHASE_LENGTH);
-   ghw_cmd(0xFF);
+   ghw_cmd(0x22);
 
    for (i=0; i < sizeof(initdata)/sizeof(SGUCHAR); i++)
       {
@@ -657,6 +737,30 @@ void ghw_ctrl_init(void)
    simcsclr(); /* Deactivate chip select after init (if needed) */
    #endif
    }
+
+void ghw_set_max_pal(void)
+{
+	for (int i=0; i < sizeof(pal_max_initdata)/sizeof(SGUCHAR); i++)
+	{
+	   ghw_cmd(pal_max_initdata[i]);
+	}
+}
+
+void ghw_set_mid_pal(void)
+{
+	for (int i=0; i < sizeof(pal_mid_initdata)/sizeof(SGUCHAR); i++)
+	{
+	   ghw_cmd(pal_mid_initdata[i]);
+	}
+}
+
+void ghw_set_min_pal(void)
+{
+	for (int i=0; i < sizeof(pal_min_initdata)/sizeof(SGUCHAR); i++)
+	{
+	   ghw_cmd(pal_min_initdata[i]);
+	}
+}
 
 /*
    Perform actions needed to deallocate display controller ressources (if any)

@@ -18,6 +18,8 @@ void target_device_multiradio_init(int freq);
 void timer2_init();
 int get_tim1value();
 int tune_frequency_generator(int freq ,bool isWrite);
+int set_generator_abs_value(int freq);
+int getGenDacValue();
 
 #ifdef __cplusplus
 }

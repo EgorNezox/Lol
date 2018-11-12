@@ -415,9 +415,6 @@ void Navigator::processSyncPulse(bool overflow)
 		parsingData(data);
 	}
 	syncPulse();
-
-
-
 }
 
 void Navigator::coldStart()
@@ -455,6 +452,24 @@ void Navigator::setMinimalActivityMode(bool enabled) {
 		uart->open();
 		sync_pulse_iopin->setInputTriggerMode(QmIopin::InputTrigger_Rising, QmIopin::TriggerOnce);
 	}
+}
+
+int Navigator::setGeneratorAbsValue(int val)
+{
+    #ifndef PORT__PCSIMULATOR
+        return set_generator_abs_value(val);
+    #else
+       return 1800;
+    #endif
+}
+
+int Navigator::getGeneratorDacValue()
+{
+#ifndef PORT__PCSIMULATOR
+	return getGenDacValue();
+#else
+   return 1800;
+#endif
 }
 
 } /* namespace Navigation */

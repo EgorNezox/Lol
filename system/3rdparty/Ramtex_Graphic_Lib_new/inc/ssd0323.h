@@ -183,6 +183,10 @@ GHWCOLOR ghw_auto_rd(void);
 GHWCOLOR ghw_rd_x( GXT x );
 //#endif
 
+void ghw_set_max_pal(void);
+void ghw_set_mid_pal(void);
+void ghw_set_min_pal(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -56,6 +56,11 @@ extern const char *reciveSubMenu[];
 extern const char *dataSubMenu[];
 extern const char *dataSubSubMenu[];
 extern const char *settingsSubMenu[];
+extern const char *settingsSubMenuIn[];
+
+extern const char *technoSubMenu[];
+extern const char *technoSubMenuIn[];
+
 extern const char *dateAndTimeSubMenu[];
 extern const char *setDateOrTime[];
 extern const char *setConnParam[];

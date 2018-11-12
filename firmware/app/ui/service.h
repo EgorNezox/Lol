@@ -24,6 +24,7 @@
 #include "../power/battery.h"
 #include "../navigation/navigator.h"
 #include "../mrd/aleservice.h"
+#include "../../sazhenn.h"
 
 /*FORWARD DECLARATIONS*/
 class GUI_Dialog_MainScr;
@@ -190,6 +191,10 @@ private:
     void drawMenu_setSpeed();
     void drawMenu_filetree();
 
+    void drawMenu_tuneGen();
+    void drawMenu_stationAddress();
+    void drawMenu_softwareVersion();
+
     void keyEmulate(int key);
     void draw_emulate();
     bool getUsbStatus();
@@ -348,10 +353,16 @@ private:
     void filetree_keyPressed			(UI_Key key);
     void sheldure_keyPressed			(UI_Key key);
 
+    void tuneGen_keyPressed             (UI_Key key);
+    void stationAddress_keyPressed      (UI_Key key);
+    void softwareVersion_keyPressed     (UI_Key key);
+
     void condCommand_keyPressed_stage   (UI_Key key);
     void condCommand_enter_keyPressed();
     void condCommand_back_keyPressed();
     void condCommand_send();
+
+    void genTune();
 
     std::string rememberTextSms;
 
@@ -359,6 +370,13 @@ private:
     Multiradio::VoiceServiceInterface *pGetVoiceService();
     Multiradio::VoiceServiceInterface::Status multiradioStatus;
     Multiradio::voice_channel_speed_t currentSpeed = Multiradio::voice_channel_speed_t(0);
+
+    bool isIncKey = false;
+    bool isDecKey = false;
+    uint8_t gen_test_focus = 0;
+    uint8_t tuneDigt[4] = {1,8,0,0};
+
+    GUI_Obj *guiObj;
 };
 } /* namespace Ui */
 #endif /* FIRMWARE_APP_UI_SERVICE_H_ */

@@ -48,6 +48,9 @@ void Service::endMenuWindow_keyPressed(UI_Key key)
 		case GuiWindowsSubType::channelEmissionType: channelEmissionType_keyPressed(key); break;
 		case GuiWindowsSubType::filetree: 			 filetree_keyPressed(key);            break;
 		case GuiWindowsSubType::sheldure:            sheldure_keyPressed(key);            break;
+        case GuiWindowsSubType::tuneGen:             tuneGen_keyPressed(key);             break;
+        case GuiWindowsSubType::stationAddress:      stationAddress_keyPressed(key);      break;
+        case GuiWindowsSubType::softwareVersion:     softwareVersion_keyPressed(key);     break;
     }
 }
 
@@ -2015,31 +2018,45 @@ void Service::display_keyPressed(UI_Key key)
 {
    if (key == keyLeft )
     {
-        if (menu->displayBrightness > 0)
-        menu->displayBrightness--;
+        if (menu->displayBrightness_tmp > 0)
+        menu->displayBrightness_tmp--;
     }
     if ( key == keyRight)
     {
-        if (menu->displayBrightness < 2)
-        menu->displayBrightness++;
+        if (menu->displayBrightness_tmp < 2)
+        menu->displayBrightness_tmp++;
     }
     if ( key == keyBack)
     {
         guiTree.backvard();
         menu->offset = 3;
         menu->focus = 4;
+
+		if (menu->displayBrightness == 2)
+			set_max_pal();
+		if (menu->displayBrightness == 1)
+			set_mid_pal();
+		if (menu->displayBrightness == 0)
+			set_min_pal();
+
+        return;
     }
     if (key == keyEnter)
     {
         guiTree.backvard();
         menu->offset = 3;
         menu->focus = 4;
-        if (menu->displayBrightness == 2)
-            setColorScheme(G_BLACK,G_WHITE);
-        if (menu->displayBrightness == 1)
-            setColorScheme(G_BLACK,G_LLIGHTGREY);
-        if (menu->displayBrightness == 0)
-            setColorScheme(G_BLACK,G_LIGHTGREY);
+        menu->displayBrightness = menu->displayBrightness_tmp;
+    }
+
+    if ( key != keyBack)
+    {
+		if (menu->displayBrightness_tmp == 2)
+			set_max_pal();
+		if (menu->displayBrightness_tmp == 1)
+			set_mid_pal();
+		if (menu->displayBrightness_tmp == 0)
+			set_min_pal();
     }
 }
 
@@ -2801,6 +2818,79 @@ void Service::sheldure_keyPressed(UI_Key key)
             }
         }
     break;
+    }
+}
+
+void Service::tuneGen_keyPressed(UI_Key key)
+{
+    switch(key)
+    {
+        case keyBack:
+        {
+        	guiTree.backvard();
+        	menu->offset = 0;
+        	menu->focus = 0;
+            break;
+        }
+        case keyLeft:
+        {
+            if (gen_test_focus != 0)
+                gen_test_focus--;
+            break;
+        }
+        case keyRight:
+        {
+            if(gen_test_focus < 3)
+              gen_test_focus++;
+            break;
+        }
+        case keyUp:
+        {
+            isIncKey = true;
+            break;
+        }
+        case keyDown:
+        {
+            isDecKey = true;
+            break;
+        }
+        case keyEnter:
+        {
+            genTune();
+            break;
+        }
+    }
+}
+
+void Service::genTune()
+{
+    int tuneGenValue = 0;
+    for(uint8_t i = 4; i > 0; i--)
+    {
+        tuneGenValue += tuneDigt[i-1] * pow(10, 4-i);
+    }
+#ifndef PORT__PCSIMULATOR
+    navigator->setGeneratorAbsValue(tuneGenValue);
+#endif
+}
+
+void Service::stationAddress_keyPressed(UI_Key key)
+{
+    if ( key == keyBack )
+    {
+        guiTree.backvard();
+        menu->offset = 0;
+        menu->focus = 1;
+    }
+}
+
+void Service::softwareVersion_keyPressed(UI_Key key)
+{
+    if ( key == keyBack )
+    {
+        guiTree.backvard();
+        menu->offset = 0;
+        menu->focus = 2;
     }
 }
 

@@ -558,6 +558,10 @@ SGUCHAR ggetvpnum( void );      /* gvpsel.c */
 SGUCHAR gselvp( SGUCHAR vp );   /* gvpsel.c */
 void gsetvp(GXT xs, GYT ys, GXT xe, GYT ye );   /* gvpset.c */
 
+void set_max_pal(void);
+void set_mid_pal(void);
+void set_min_pal(void);
+
 GYT ggetvph_vp(SGUCHAR vp); /* gvpvph.c */
 GYT ggetvph(void);          /* gvpvph.c */
 GXT ggetvpw(void);          /* gvpvpw.c */
