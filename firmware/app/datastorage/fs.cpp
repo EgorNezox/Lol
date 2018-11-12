@@ -9,6 +9,8 @@
 #define FAKE_CALL_FREQS 0
 #define FAKE_WORK_FREQS 0
 
+#define DEFAULT_GEN_FREG 3000
+
 namespace DataStorage {
 
 FS::FS(const std::string &dir) :
@@ -40,35 +42,51 @@ FS::~FS()
 {
 }
 
-bool FS::getGeneratorFreq(uint16_t* data, uint16_t defaultFreq) {
-    QmFile file(dir, "GeneratorFreq");
-    if (!file.open(QmFile::ReadOnly))
-        return false;
-    int64_t file_size = file.size();
-    if (file_size > 2){
-        *data = defaultFreq;
-        return false;
-    }
-    int32_t len = file.read((uint8_t *)data, 2);
-    if (len != 2){
-        *data = defaultFreq;
-        file.close();
-        return false;
-    }
-    file.close();
-    return true;
+bool FS::readFilterCoeff(float* data)
+{
+	QmFile file(dir, "GeneratorFreq");
+	if (!file.open(QmFile::ReadOnly))
+		return false;
+
+	uint8_t data_len = sizeof(float);
+
+	int64_t file_size = file.size();
+
+	if (file_size > data_len)
+	{
+		*data = DEFAULT_GEN_FREG;
+		return false;
+	}
+
+	int32_t len = file.read((uint8_t *)data, data_len);
+
+	if (len != data_len)
+	{
+		*data = DEFAULT_GEN_FREG;
+		file.close();
+		return false;
+	}
+
+	file.close();
+	return true;
 }
 
-bool FS::setGeneratorFreq(uint16_t data)
+bool FS::writeFilterCoeff(float data)
 {
     QmFile file(dir, "GeneratorFreq");
     if (!file.open(QmFile::WriteOnly))
         return false;
-    int32_t len = file.write((uint8_t*)&data, 2);
-    if (len != 2){
+
+    uint8_t data_len = sizeof(float);
+
+    int32_t len = file.write((uint8_t*)&data, data_len);
+
+    if (len != data_len)
+    {
       file.close();
       return false;
     }
+
     return true;
 }
 

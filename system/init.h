@@ -17,7 +17,7 @@ extern "C" {
 void target_device_multiradio_init(int freq);
 void timer2_init();
 int get_tim1value();
-int tune_frequency_generator(int freq ,bool isWrite);
+int tune_frequency_generator(int freq);
 long int getFreqDelta(void);
 
 int read_filter_coeff();

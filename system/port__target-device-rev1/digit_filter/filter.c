@@ -12,7 +12,7 @@ static unsigned long n;             // число подряд следующи�
 static bool first;                  // индикатор начального состояния вычислителя разности
 static bool start_mode;             //индикатор состояния прогрева
 static unsigned long start_counter; //таймер прогрева;
-const long start_timeout = 60 * 5;  //таймаут прогрева в сек
+const long start_timeout = 2; //60 * 5;  //таймаут прогрева в сек
 const long sw_timeout = 60 * 10;    //таймаут блокировки подстройки по GPS
 bool old_gps = false;               // достоверность предидущей метки
 
@@ -69,7 +69,7 @@ float calculate_coeff(int diff, bool last_gps)
 	{
 		if (last_gps && old_gps)
 		{
-			f = filter((float)d); //(float)d; ;
+			f = filter((float)d);
 			k = k + f;
 		}
 	}

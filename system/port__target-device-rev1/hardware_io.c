@@ -678,46 +678,40 @@ hal_gpio_level_t stm32f2_get_pushbutton_active_level(int platform_hw_resource)
 	return hgpioLow;
 }
 
-static uint16_t highvalue = 0;
-static uint32_t tim1delta;
-static int tim1values[8];
-
-static uint32_t deltaValue = 0;
+static uint32_t deltaValue      = 0;
+static uint32_t overflowCount   = 0;
+static uint32_t overflowCounter = 0;
+static uint32_t fullCyclceValue = 0;
+static uint32_t curValue = 0;
+static uint32_t fromOverflowPrev = 0;
+static uint32_t fromOverflowCur = 0;
 
 void TIM2_IRQHandler(void)
 {
-	static uint32_t value    = 0;
-	static uint8_t tim1index = 0;
-	uint32_t prevalue;
-
 	// по захвату
 	if (TIM2->SR & TIM_SR_CC2IF)
 	{
 		TIM2->SR &= ~TIM_SR_CC2IF;                 //cбросили флаг
-		prevalue = value;                          //запомнили предыдущее значение
-		value    = TIM2->CCR2;                     //считали новое значение счетчика в момент прерывания
-		//value  += (((uint32_t)highvalue) << 32); //добавляем к значению число переполнений
 
-		if (value > prevalue)
-		{
-			tim1delta = value - prevalue;
-		}
-		else
-		{
-			tim1delta = value + ARR_VALUE - prevalue;
-		}
+		overflowCount = overflowCounter;
+		overflowCounter = 0;
 
-		deltaValue = tim1delta - 36000000;
+		fromOverflowCur    = TIM2->CCR2;                     //считали новое значение счетчика в момент прерывания
 
-		tim1values[tim1index] = tim1delta - 36000000;         //записали в массив из 4 элементов
-		tim1index = (tim1index+1) & 7; 			   //пишем в следующий из доступных элементов массива
+		fullCyclceValue = (((uint32_t)overflowCount) << 16); // overflowCount * sizeof(uint16_t)  65536
+		curValue =  fullCyclceValue + fromOverflowCur - fromOverflowPrev;
 
+		fromOverflowPrev = fromOverflowCur;
+		uint32_t delta = abs(36000000 - curValue);
+		if (delta < 4000)
+			deltaValue = delta;
 	}
+
 	// по переполнению
 	if (TIM2->SR & TIM_SR_UIF)
 	{
 		TIM2->SR &= ~TIM_SR_UIF; //сбросили флаг
-		//highvalue++;
+		++overflowCounter;
 	}
 }
 
@@ -740,22 +734,22 @@ void timer2_init()
 	TIM2->DIER |= TIM_DIER_CC2IE;  // включили связанное прерывание
 	//Разрешить прерывание по переполнению
 	//и захвату со второго канала, связанного с PA1
-	TIM2->CR1 &= ~(1 << 4);    	   // счетный регистр с 0 до ARR
-	TIM2->ARR =   ARR_VALUE;       // установили значение ARR
-	TIM2->CR1 |= TIM_CR1_CEN; 	   // запустили таймер
+//	TIM2->CR1 &= ~(1 << 4);    	   // счетный регистр с 0 до ARR
+//	TIM2->ARR =   ARR_VALUE;       // установили значение ARR
+//	TIM2->CR1 |= TIM_CR1_CEN; 	   // запустили таймер
+//
+//	TIM2->CCMR1 |= (1 << 8);       // соединяем с входом TI2  было 0x1
+//	TIM2->CCER  |= (1 << 4);       // захват на второй канал
+//
+//	NVIC_SetPriority(TIM2_IRQn,1); // установили приоритет
+//	NVIC_EnableIRQ(TIM2_IRQn);	   // включили прерывание
 
+	TIM2->CR1 |= TIM_CR1_CEN; //Запустили таймер
 	TIM2->CCMR1 |= (1 << 8);       // соединяем с входом TI2  было 0x1
 	TIM2->CCER  |= (1 << 4);       // захват на второй канал
 
 	NVIC_SetPriority(TIM2_IRQn,1); // установили приоритет
 	NVIC_EnableIRQ(TIM2_IRQn);	   // включили прерывание
-}
-
-int get_tim1value(void)
-{
-    int midval = 0;
-	for(int i = 0; i < 8; i++) midval += tim1values[i];
-	return midval;
 }
 
 long int getFreqDelta(void)

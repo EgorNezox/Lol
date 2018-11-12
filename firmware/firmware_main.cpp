@@ -72,32 +72,22 @@ void qmMain() {
     DataStorage::FS data_storage_fs("data");
 
 #if defined (PORT__TARGET_DEVICE_REV1)
-//    uint16_t genFreq;
-//    uint16_t genFreqDefault = DEFAULT_GENERATOR_FREQ;
-//
-//    //bool isSet = data_storage_fs.setGeneratorFreq(genFreqDefault);
-//    bool isGet = data_storage_fs.getGeneratorFreq(&genFreq, genFreqDefault);
-//    if (genFreq < MIN_GENERATOR_FREQ || genFreq > MAX_GENERATOR_FREQ || (!isGet))
-//    	genFreq = DEFAULT_GENERATOR_FREQ;
-//
     target_device_multiradio_init(0);
 #endif
 
 #if defined(PORT__TARGET_DEVICE_REV1)
-	Power::Controller power_controller(platformhwPowerHSControlIopin, platformhwPowerControllerIopin,
-			platformhwPowerOffIntIopin, platformhwPowerSourceIopin);
+    Power::Controller power_controller(platformhwPowerHSControlIopin, platformhwPowerControllerIopin,platformhwPowerOffIntIopin, platformhwPowerSourceIopin);
 #endif /* PORT__TARGET_DEVICE_REV1 */
 
-	Power::Battery power_battery(platformhwBatterySmbusI2c);
+    Power::Battery power_battery(platformhwBatterySmbusI2c);
 
-	QmIopin enrxrs232_iopin(platformhwEnRxRs232Iopin);
-	QmIopin entxrs232_iopin(platformhwEnTxRs232Iopin);
-	Headset::Controller headset_controller(platformhwHeadsetUart, platformhwHeadsetPttIopin);
+    QmIopin enrxrs232_iopin(platformhwEnRxRs232Iopin);
+    QmIopin entxrs232_iopin(platformhwEnTxRs232Iopin);
+    Headset::Controller headset_controller(platformhwHeadsetUart, platformhwHeadsetPttIopin);
+
 #if defined(PORT__TARGET_DEVICE_REV1)
-    Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin,
-    		platformhwNavigatorAntFlagIopin, platformhwNavigator1PPSIopin);
-	Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,
-            &headset_controller, &navigator, &data_storage_fs, &power_battery);
+    Navigation::Navigator navigator(platformhwNavigatorUart, platformhwNavigatorResetIopin,platformhwNavigatorAntFlagIopin, platformhwNavigator1PPSIopin);
+    Multiradio::Dispatcher mr_dispatcher(platformhwDspUart, platformhwDspResetIopin, platformhwAtuUart, platformhwAtuIopin,&headset_controller, &navigator, &data_storage_fs, &power_battery);
 
 	mr_dispatcher.setFlash(&data_flash_device);
 #else
@@ -170,7 +160,9 @@ void qmMain() {
     timer2_init();
 #endif
 
-  //  tune_frequency_generator(1460, 1);
+    navigator.setFlash(&data_storage_fs);
+
+    //tune_frequency_generator(500, 1);
 
 	app.exec();
 }

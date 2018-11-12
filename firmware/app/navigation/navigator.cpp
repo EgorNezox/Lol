@@ -52,7 +52,7 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 	ant_flag_iopin = new QmIopin(ant_flag_iopin_resource, this);
 	//qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 
-    initCorrector();
+
 
 	sync_pulse_iopin = new QmIopin(sync_pulse_iopin_resource, this);
 	sync_pulse_iopin->inputTriggerOnce.connect(sigc::mem_fun(this, &Navigator::processSyncPulse));
@@ -72,9 +72,16 @@ Navigator::~Navigator() {
     //#endif /* PORT__TARGET_DEVICE_REV1 */
 }
 
+void Navigator::setFlash(DataStorage::FS *flash)
+{
+	this->flash = flash;
+	initCorrector();
+}
+
 void Navigator::initCorrector()
 {
-    corState.k = read_filter_coeff();
+
+    flash->readFilterCoeff(&corState.k);
     if (corState.k < 0 || corState.k > 4095)
     {
         corState.k = 0;
@@ -90,13 +97,11 @@ int Navigator::tuneGen(int val)
 	static int count = 0;
 	count++;
 	int res = 0;
-	res = tune_frequency_generator(val, true);
-	//if ((fs != 0) && (count % 10 == 0))
-	if ((count % 10 == 0))
+	res = tune_frequency_generator(val);
+	if ((flash != 0) && (count % 10 == 0))
 	{
 		get_corrector_state(&corState);
-		write_filter_coeff(corState.k);
-		//fs->writeGenTuneNew(corState);
+		flash->writeFilterCoeff(corState.k);
 	}
 	qmDebugMessage(QmDebug::Info, "tuneGen() val = %i",  val);
 
@@ -376,33 +381,33 @@ void Navigator::redactCoordForSpec(uint8_t *input, int val){
 
 void Navigator::processConfig() {
 
-//	const char * const pps = "$PSTMGETPAR,1301,0.005*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-//	uart->writeData((uint8_t *)pps, strlen(pps));
+	//	const char * const pps = "$PSTMGETPAR,1301,0.005*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+	//	uart->writeData((uint8_t *)pps, strlen(pps));
 
-//	const char * const start =     "$PSTMSETPAR,1201,01184360*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-//    uart->writeData((uint8_t *)start, strlen(start));
+	//	const char * const start =     "$PSTMSETPAR,1201,01184360*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+	//    uart->writeData((uint8_t *)start, strlen(start));
 
-		const char * const pps = "$PSTMGETPAR,1301,0.005000*03\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-		uart->writeData((uint8_t *)pps, strlen(pps));
+	const char * const pps = "$PSTMGETPAR,1301,0.005000*03\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+	uart->writeData((uint8_t *)pps, strlen(pps));
 
-    const char * const start2 = "$PSTMSETPAR,1201,0x01000040*54\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-   uart->writeData((uint8_t *)start2, strlen(start2));
+	const char * const start2 = "$PSTMSETPAR,1201,0x01000040*54\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+	uart->writeData((uint8_t *)start2, strlen(start2));
 
-   const char * const start3 = "$PSTMSETPAR,1210,0x00000000*51\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-  uart->writeData((uint8_t *)start3, strlen(start3));
+	const char * const start3 = "$PSTMSETPAR,1210,0x00000000*51\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+	uart->writeData((uint8_t *)start3, strlen(start3));
 
-  const char * const start4 = "$PSTMSETPAR,1211,0x00000000*50\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
- uart->writeData((uint8_t *)start4, strlen(start4));
+	const char * const start4 = "$PSTMSETPAR,1211,0x00000000*50\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+	uart->writeData((uint8_t *)start4, strlen(start4));
 
- const char * const start1 =     "$PSTMSAVEPAR\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-     uart->writeData((uint8_t *)start1, strlen(start1));
+	const char * const start1 =     "$PSTMSAVEPAR\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+	uart->writeData((uint8_t *)start1, strlen(start1));
 
-//    const char * const start1 =    "$PSTMGETPAR,1301*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
-//        uart->writeData((uint8_t *)start1, strlen(start1));
+	//    const char * const start1 =    "$PSTMGETPAR,1301*\r\n"; // "$PSTMNMEAONOFF,0\r\n"; //"$PSTMRESTOREPAR\r\n";
+	//        uart->writeData((uint8_t *)start1, strlen(start1));
 
-//    const char * const config_sentences ="$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n"; // "$PKON1,0,2,, ,0000,A*68\r\n" "$PONME,2,4,1*42\r\n"
-//    qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
-//    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
+	//    const char * const config_sentences ="$PORZB,ZDA,1*3B\r\n" "$POPPS,P,S,U,1,1000,,*06\r\n"; // "$PKON1,0,2,, ,0000,A*68\r\n" "$PONME,2,4,1*42\r\n"
+	//    qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
+	//    uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
 }
 
 void Navigator::set1PPSModeCorrect(bool value)
@@ -418,40 +423,21 @@ bool Navigator::get1PPSModeCorrect()
 
 void Navigator::processSyncPulse(bool overflow)
 {
-//    static uint16_t to_mode_time = 0;
-//    ++to_mode_time;
-//
-//    #ifndef PORT__PCSIMULATOR
-//    	int i  = get_tim1value();
-//    #endif
-//    int res = 0;
-//    bool param = (to_mode_time % 50 == 0);
-//
-//#ifndef PORT__PCSIMULATOR
-//    bool ps = (CoordDate.status == true && param == true);
-//    res = tune_frequency_generator(i, ps);
-//#endif
-////qmDebugMessage(QmDebug::Warning, " =====> Correct  DAC: %i FROM DELTA %i", res, i);
-//
-//    if (param)
-//        to_mode_time = 0;
-
 	int32_t i = getFreqDelta();
 	int32_t fdelta = i;
+	fdelta = fmax(-300,fdelta);
+	fdelta = fmin( 300,fdelta);
 	float coeff = calculate_coeff(fdelta, CoordDate.status);
-    int c = (int)coeff;
+	int c = (int)coeff;
 	int res = tuneGen(c);
 
 	qmDebugMessage(QmDebug::Info, "NEW 1ppt trigger detected, tim1 =(%lu), DELTA = %i, COEF = %i, DAC: %i",  i, fdelta, c, res);
 
 
-//	if (overflow)
-//		qmDebugMessage(QmDebug::Warning, "sync pulse overflow detected !!!");
-
 	uint8_t data[1024];
 	int16_t data_read = 0;
 	data_read = uart->readData(data, 1024 - 1);
-    //qmDebugMessage(QmDebug::Warning, "data_read = %d", data_read);
+
 	if (data_read > 0)
 	{
 		data[data_read] = '\0';

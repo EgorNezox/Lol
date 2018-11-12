@@ -18,6 +18,7 @@ class QmTimer;
 
 #include <thread>
 #include <chrono>
+#include "../../app/datastorage/fs.h"
 
 
 namespace Navigation {
@@ -35,6 +36,8 @@ class Navigator : public QmObject {
 public:
 	Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_iopin_resource, int sync_pulse_iopin_resource);
 	~Navigator();
+
+	void setFlash(DataStorage::FS *flash);
 
 	sigc::signal<void> CoordinateUpdated;
 	sigc::signal<void> syncPulse;
@@ -54,6 +57,8 @@ public:
 	int Calc_LCODE_SMS_call(int R_ADR, int S_ADR, int CYC_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
 	bool isZda = false;
 private:
+	DataStorage::FS *flash;
+
     void processConfig();
 	void processUartReceivedData();
 	void processUartReceivedErrors(bool data_errors, bool overflow);

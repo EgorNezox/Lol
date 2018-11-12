@@ -31,8 +31,8 @@ public:
 
 	FS(const std::string &dir);
 	~FS();
-	bool getGeneratorFreq(uint16_t* data, uint16_t defaultFreq);
-	bool setGeneratorFreq(uint16_t data);
+	bool readFilterCoeff(float* data);
+	bool writeFilterCoeff(float data);
 
 	bool getVoiceChannelsTable(Multiradio::voice_channels_table_t &data);
     bool getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data);
