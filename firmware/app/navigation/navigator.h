@@ -44,6 +44,8 @@ public:
 	sigc::signal<void,bool> PswfSignal;
 	Coord_Date getCoordDate();
 	void setMinimalActivityMode(bool enabled);
+	int setGeneratorAbsValue(int val);
+	int getGeneratorDacValue();
 	void set1PPSModeCorrect(bool value);
 	bool get1PPSModeCorrect();
 	void coldStart();
@@ -56,6 +58,8 @@ public:
 	int Calc_LCODE_SMS(int R_ADR, int S_ADR, int WZN, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
 	int Calc_LCODE_SMS_call(int R_ADR, int S_ADR, int CYC_N, int RN_KEY, int DAY, int HRS, int MIN,int SEC);
 	bool isZda = false;
+
+	int resGenDac = 0;
 private:
 	DataStorage::FS *flash;
 

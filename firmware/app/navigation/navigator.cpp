@@ -420,7 +420,6 @@ bool Navigator::get1PPSModeCorrect()
 	return pps_correct;
 }
 
-
 void Navigator::processSyncPulse(bool overflow)
 {
 	int32_t i = getFreqDelta();
@@ -481,6 +480,27 @@ void Navigator::setMinimalActivityMode(bool enabled) {
 		uart->open();
 		sync_pulse_iopin->setInputTriggerMode(QmIopin::InputTrigger_Rising, QmIopin::TriggerOnce);
 	}
+}
+
+int Navigator::setGeneratorAbsValue(int val)
+{
+    #ifndef PORT__PCSIMULATOR
+        int res = tune_frequency_generator(val);
+        return res;
+    #else
+       return 1800;
+    #endif
+}
+
+int Navigator::getGeneratorDacValue()
+{
+#ifndef PORT__PCSIMULATOR
+	int val = 0;
+	val = getGenDacValue();
+	return val;
+#else
+   return 1800;
+#endif
 }
 
 } /* namespace Navigation */

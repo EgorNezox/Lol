@@ -644,7 +644,7 @@ GUI_EL_SpinBox::GUI_EL_SpinBox(MoonsGeometry* geom, SpBoxParams *spbox_params, S
 	this->spbox_len=spbox_settings->spbox_len;
 	this->cyclic=spbox_settings->cyclic;
 	this->ValueToStr=spbox_settings->ValueToStr;
-	this->lab_params=&GUI_EL_TEMP_LabelSpBoxInactive;
+    this->lab_params = GUI_EL_TEMP_LabelSpBoxInactive;
 	this->up_arrow=spbox_params->up_arrow;
 	this->down_arrow=spbox_params->down_arrow;
 	CalcContentGeom();
@@ -659,16 +659,20 @@ void GUI_EL_SpinBox::Draw(){
 	label_geom.ye=label_geom.ys+label_h-1;
 
 	if(active){
-		lab_params=&GUI_EL_TEMP_LabelSpBoxActive;
+        lab_params = GUI_EL_TEMP_LabelSpBoxActive;
 		GUI_EL_Icon up_arr_icon(&GUI_EL_TEMP_IconSpBoxUp,&up_arr_geom,up_arrow,parent_obj);
 		GUI_EL_Icon down_arr_icon(&GUI_EL_TEMP_IconSpBoxDown,&down_arr_geom,down_arrow,parent_obj);
 		up_arr_icon.Draw();
 		down_arr_icon.Draw();
 	}
 	else{
-		lab_params=&GUI_EL_TEMP_LabelSpBoxInactive;
+        lab_params = GUI_EL_TEMP_LabelSpBoxInactive;
 	}
-	GUI_EL_Label label(lab_params, &label_geom , str, parent_obj);
+
+    if (isFontSet)
+         lab_params.font = font;
+
+    GUI_EL_Label label(&lab_params, &label_geom , str, parent_obj);
 	label.Draw();
 
 }
@@ -723,9 +727,17 @@ void GUI_EL_SpinBox::SetValue(int32_t value){
 	this->value=value;
 }
 
+void GUI_EL_SpinBox::SetFont(PGFONT font)
+{
+    this->font = font;
+    isFontSet = true;
+    lab_params.font = font;
+    CalcContentGeom();
+}
+
 void GUI_EL_SpinBox::CalcContentGeom(){
-	gselfont(lab_params->font);
-	label_h=ggetfh()+lab_params->element.margins.Bottom+lab_params->element.margins.Top;
+    gselfont(lab_params.font);
+    label_h=ggetfh()+lab_params.element.margins.Bottom+lab_params.element.margins.Top;
 	content.W=GEOM_W(geom);
 	content.H=label_h+gsymh(up_arrow)+gsymh(down_arrow)+4;//+4 это марджины иконок
 }

@@ -223,7 +223,8 @@ class GUI_EL_SpinBox: public GUI_Element{
         void Dec();
         int32_t GetValue();
         void SetValue(int32_t value);
-        LabelParams *lab_params;
+        LabelParams lab_params;
+        void SetFont(PGFONT font);
     protected:
         void CalcContentGeom();
     private:
@@ -236,6 +237,8 @@ class GUI_EL_SpinBox: public GUI_Element{
         int32_t step;
         int32_t spbox_len;
 
+        bool isFontSet = false;
+        PGFONT font;
         PGSYMBOL up_arrow;
         PGSYMBOL down_arrow;
         GYT label_h;

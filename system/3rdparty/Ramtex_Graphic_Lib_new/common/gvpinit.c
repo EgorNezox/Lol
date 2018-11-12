@@ -290,6 +290,27 @@ SGUCHAR ginit(void)
    return err;          /* Return != 0 if some error has occured */
    }
 
+void set_max_pal(void)
+{
+#ifndef PORT__PCSIMULATOR
+	ghw_set_max_pal();
+#endif
+}
+
+void set_mid_pal(void)
+{
+#ifndef PORT__PCSIMULATOR
+	ghw_set_mid_pal();
+#endif
+}
+
+void set_min_pal(void)
+{
+#ifndef PORT__PCSIMULATOR
+	ghw_set_min_pal();
+#endif
+}
+
 #endif /* GVIEWPORT */
 
 

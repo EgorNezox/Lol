@@ -64,6 +64,9 @@ public:
     bool getVoiceMode(bool *data);
     bool setAleStationAddress(uint8_t data);
     bool getAleDefaultWorkFreqs(Multiradio::ale_work_freqs_t &data);
+
+    bool getGenDacValue(int *data);
+    bool setGenDacValue(int data);
 private:
     bool renameFile(std::string oldfileName, std::string newFileName);
     bool deleteFile(std::string fileName);
