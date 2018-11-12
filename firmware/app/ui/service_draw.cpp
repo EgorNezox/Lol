@@ -151,6 +151,9 @@ void Service::drawMenu()
 			case GuiWindowsSubType::setFreq:			 { drawMenu_setFreq();  											            break; }
 			case GuiWindowsSubType::setSpeed:			 { drawMenu_setSpeed();  											            break; }
 			case GuiWindowsSubType::filetree:			 { drawMenu_filetree();  											            break; }
+            case GuiWindowsSubType::tuneGen:			 { drawMenu_tuneGen();  											            break; }
+            case GuiWindowsSubType::stationAddress:	     { drawMenu_stationAddress();  											        break; }
+            case GuiWindowsSubType::softwareVersion:	 { drawMenu_softwareVersion();  											    break; }
 			default:									 { 																				break; }
         }
     }
@@ -650,6 +653,124 @@ void Service::drawMenu_filetree()
     if (!flashTestOn)
         menu->initFileManagerDialog(menu->filesStage);
     flashTestOn = false;
+}
+
+void Service::drawMenu_tuneGen()
+{
+    MoonsGeometry window_geom = {0, 0, 127, 127};
+    GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneralBack, &window_geom, &menu->obj);
+
+    uint32_t value = 0;
+
+#ifndef PORT__PCSIMULATOR
+    value = navigator->getGeneratorDacValue();
+#endif
+    char mas[5] = {0,0,0,0,0};
+    snprintf(mas,5,"%d",value);
+
+    MoonsGeometry label_geom  = { 2, 2, 125, 24};
+    MoonsGeometry labelValReg_geom = { 30, 30, 110, 50};
+    LabelParams   label_params = GUI_EL_TEMP_LabelTitle;
+    GUI_EL_Label  label( &label_params, &label_geom, (char*)technoSubMenuIn[0], &menu->obj);
+    GUI_EL_Label  labelValReg( &label_params, &labelValReg_geom, (char*)mas, &menu->obj);
+
+    SpBoxParams spbox_params = GUI_EL_TEMP_CommonSpBox;
+
+    SpBoxSettings spbox_settings;
+
+    spbox_settings.value = 0;
+    spbox_settings.min = 0;
+    spbox_settings.max = 9;
+    spbox_settings.step = 1;
+    spbox_settings.spbox_len = 10;
+    spbox_settings.cyclic = true;
+
+    window.Draw();
+    label.Draw();
+    labelValReg.Draw();
+
+    MoonsGeometry  spbox_geom[4];
+    GUI_EL_SpinBox *spin;
+
+    spbox_geom[0] = { 5, 50,  30, 120 };
+    spbox_geom[1] = { 35, 50, 60, 120 };
+    spbox_geom[2] = { 65, 50, 90, 120 };
+    spbox_geom[3] = { 95, 50, 120, 120 };
+
+    for (int i = 0; i < 4; i++)
+    {
+        spin = new GUI_EL_SpinBox(&spbox_geom[i], &spbox_params, &spbox_settings, &menu->obj);
+        spin->SetValue(tuneDigt[i]);
+        spin->SetFont(&Tahoma26);
+
+        if (gen_test_focus == i)
+        {
+            spin->SetActiveness(true);
+            if (isIncKey)
+            {
+                spin->Inc();
+                isIncKey = false;
+            }
+            if (isDecKey)
+            {
+                spin->Dec();
+                isDecKey = false;
+            }
+            tuneDigt[i] = spin->GetValue();
+        }
+        spin->Draw();
+        delete spin;
+    }
+}
+
+void Service::drawMenu_stationAddress()
+{
+    uint8_t address = voice_service->getStationAddress();
+
+    MoonsGeometry window_geom = {0, 0, 127, 127};
+    GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneralBack, &window_geom, &menu->obj);
+
+    char mas[4] = {0,0,0,0};
+    snprintf(mas,4,"%d",address);
+
+    MoonsGeometry label_geom  = { 2, 2, 125, 24};
+    MoonsGeometry labelVal_geom = { 30, 30, 110, 90};
+    LabelParams   label_params = GUI_EL_TEMP_LabelTitle;
+    GUI_EL_Label  label( &label_params, &label_geom, (char*)technoSubMenuIn[1], &menu->obj);
+    label_params = GUI_EL_TEMP_LabelMode;
+    label_params.element.align.align_h = alignHCenter;
+    label_params.element.align.align_v = alignVCenter;
+    GUI_EL_Label  labelVal( &label_params, &labelVal_geom, (char*)mas, &menu->obj);
+
+    window.Draw();
+    label.Draw();
+    labelVal.Draw();
+}
+
+void Service::drawMenu_softwareVersion()
+{
+    MoonsGeometry window_geom = {0, 0, 127, 127};
+	GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneralBack, &window_geom, &menu->obj);
+
+    MoonsGeometry label_geom  = { 2, 2, 125, 24};
+    LabelParams   label_params = GUI_EL_TEMP_LabelTitle;
+    GUI_EL_Label  label( &label_params, &label_geom, (char*)technoSubMenuIn[2], &menu->obj);
+
+	MoonsGeometry geom_label_version_HOST  	= { 2, 40, 127, 65};
+	MoonsGeometry geom_label_version_DSP  	= { 2, 65, 127, 90};
+	label_params = GUI_EL_TEMP_LabelTitle;
+
+	std::string label_version_HOST(" HOST: ");
+	std::string label_version_DSP(" DSP:  ");
+	label_version_HOST.append(HOST_VERSION);
+	//label_version_DSP.append(dspController->dspVersion.substr(0,7));
+	GUI_EL_Label  hostVersion( &label_params, &geom_label_version_HOST, (char*)label_version_HOST.c_str(), &menu->obj);
+	GUI_EL_Label  dspVersion( &label_params, &geom_label_version_DSP,   (char*)label_version_DSP.c_str(), &menu->obj);
+
+	window.Draw();
+	label.Draw();
+	hostVersion.Draw();
+	dspVersion.Draw();
 }
 
 void Service::setColorScheme(uint32_t back,uint32_t front)

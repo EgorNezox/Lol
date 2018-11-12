@@ -68,10 +68,17 @@ uint32_t read_filter_coeff()
 	return value;
 }
 
+int getGenDacValue()
+{
+	return read_backup_register();
+}
+
 int tune_frequency_generator(int d)
 {
-	if(d > MAX_DAC_OUTPUT_VALUE)d = MAX_DAC_OUTPUT_VALUE;
-	if(d < MIN_DAC_OUTPUT_VALUE)d = MIN_DAC_OUTPUT_VALUE;
+	if(d > MAX_DAC_OUTPUT_VALUE)
+		d = MAX_DAC_OUTPUT_VALUE;
+	if(d < MIN_DAC_OUTPUT_VALUE)
+		d = MIN_DAC_OUTPUT_VALUE;
 
 	DAC_HandleTypeDef    DacHandle;
 	DAC_ChannelConfTypeDef sConfig;
@@ -84,6 +91,8 @@ int tune_frequency_generator(int d)
 
 	HAL_DAC_SetValue(&DacHandle, DACx_CHANNEL, DAC_ALIGN_12B_R, d);
 	HAL_DAC_Start(&DacHandle, DACx_CHANNEL);
+
+	write_backup_register(d);
 
 	return d;
 }

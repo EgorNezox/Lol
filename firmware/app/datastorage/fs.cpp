@@ -90,6 +90,31 @@ bool FS::writeFilterCoeff(float data)
     return true;
 }
 
+bool FS::getGenDacValue(int *data)
+{
+	*data = 0;
+	QmFile file(dir, "GenDacValue");
+	if (!file.open(QmFile::ReadOnly))
+		return false;
+	int64_t file_size = file.size();
+	if (!(file_size == 1))
+		return false;
+	file.read((uint8_t *)data, sizeof(int));
+	file.close();
+	return true;
+}
+
+
+bool FS::setGenDacValue(int data)
+{
+    QmFile file(dir, "GenDacValue");
+    if (!file.open(QmFile::WriteOnly))
+        return false;
+    file.write((uint8_t *)&data, sizeof(int));
+    file.close();
+    return true;
+}
+
 bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
 	data.clear();
 	QmFile file(dir, "VoiceChannelsTable");

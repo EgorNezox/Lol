@@ -153,7 +153,7 @@ void qmMain() {
 
     //tune_frequency_generator(500, 1);
 
-    usb_class.start_Usb();
+    usb_class.startUsb();
 
 
 	app.exec();

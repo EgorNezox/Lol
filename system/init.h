@@ -19,6 +19,8 @@ void timer2_init();
 int get_tim1value();
 int tune_frequency_generator(int freq);
 long int getFreqDelta(void);
+int set_generator_abs_value(int freq);
+int getGenDacValue();
 
 int read_filter_coeff();
 void write_filter_coeff(int value);

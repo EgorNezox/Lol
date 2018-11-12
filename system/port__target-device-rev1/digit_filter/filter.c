@@ -22,7 +22,7 @@ static const float a[3] = { 1, -1.907501578, 0.9115945101 };
 static const float gain = 0.001023217686;
 //static koeff_reg = 0.2;
 static const float sw_coeff = 0.05 * 12000000;
-static const float gps_coeff = 0.01;
+static const float gps_coeff = 0.02;
 //внутренние функции модуля
 static float filter_df2t(float aT);
 static float filter(float d);
@@ -70,7 +70,7 @@ float calculate_coeff(int diff, bool last_gps)
 		if (last_gps && old_gps)
 		{
 			f = filter((float)d);
-			k = k + f;
+			k = k - f;
 		}
 	}
 	old_gps = last_gps;

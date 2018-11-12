@@ -29,6 +29,11 @@ CGuiMenu::CGuiMenu(MoonsGeometry* area, const char *title, Alignment align):CGui
     inputTimer.timeout.connect(sigc::mem_fun( this, &CGuiMenu::onInputTimer));
     inputTimer.setInterval(inputInterval);
     inputTimer.setSingleShot(true);
+
+    obj.area.xs = 0;
+    obj.area.xe = 127;
+    obj.area.ys = 0;
+    obj.area.ye = 127;
 }
 
 CGuiMenu::~CGuiMenu()
@@ -323,6 +328,9 @@ void CGuiMenu::initSuppressDialog()
         volume.SetText((char*)str);
 
     titleArea = getDefaultTitleArea();
+
+    titleStr = settingsSubMenuIn[5];
+    titleArea.xs = 5;
 
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
     GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
@@ -1828,7 +1836,7 @@ void CGuiMenu::initDisplayBrightnessDialog()
     MoonsGeometry brightness_geom  = {5,  45,  120,  70 };
     LabelParams brightnessParams = GUI_EL_TEMP_LabelMode;
     brightnessParams.element.align.align_h = alignHCenter;
-    GUI_EL_Label brightness(&brightnessParams, &brightness_geom,  (char*)displayBrightnessStr[displayBrightness], (GUI_Obj*)this);
+    GUI_EL_Label brightness(&brightnessParams, &brightness_geom,  (char*)displayBrightnessStr[displayBrightness_tmp], (GUI_Obj*)this);
 
     titleArea = getDefaultTitleArea();
 
