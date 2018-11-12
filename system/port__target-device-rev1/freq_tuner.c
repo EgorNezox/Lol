@@ -85,46 +85,19 @@ int set_generator_abs_value(int val)
 
 int tune_frequency_generator(int d, uint8_t isWrite)
 {
-//#define DEF
+	int res=1;
 
-//#ifdef DEF
-//	int res = d;
-//#else
-		int res=1;
-
-		if (dac_start == 0)
+	if (dac_start == 0)
 		dac_start = read_backup_register();
 
-		if (dac_start < MIN_DAC_OUTPUT_VALUE || dac_start > MAX_DAC_OUTPUT_VALUE)
-			dac_start = DAC_OUTPUT_VALUE_DEFAULT;
+	if (dac_start < MIN_DAC_OUTPUT_VALUE || dac_start > MAX_DAC_OUTPUT_VALUE)
+		dac_start = DAC_OUTPUT_VALUE_DEFAULT;
 
-		float x =  d * 0.1;
-		res = dac_start - (int)x;
+	float x =  d * 0.1;
+	res = dac_start - (int)x;
 
-		if (isWrite)
-			res = set_generator_abs_value(res);
-
-//		if(res > MAX_DAC_OUTPUT_VALUE)res = MAX_DAC_OUTPUT_VALUE;
-//		if(res < MIN_DAC_OUTPUT_VALUE)res = MIN_DAC_OUTPUT_VALUE;
-//#endif
-
-//	DAC_HandleTypeDef    DacHandle;
-//	DAC_ChannelConfTypeDef sConfig;
-//	DacHandle.Instance = DACx;
-//	DacHandle.State = HAL_DAC_STATE_RESET;
-//	HAL_DAC_Init(&DacHandle);
-//	sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
-//	sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
-//	HAL_DAC_ConfigChannel(&DacHandle, &sConfig, DACx_CHANNEL);
-//
-//	HAL_DAC_SetValue(&DacHandle, DACx_CHANNEL, DAC_ALIGN_12B_R, res);
-//	HAL_DAC_Start(&DacHandle, DACx_CHANNEL);
-//	if (isWrite)
-//		write_backup_register(res);
-
-//#ifndef  DEF
-//	dac_start = res;
-//#endif
+	if (isWrite)
+		res = set_generator_abs_value(res);
 
 	return res;
 }
