@@ -170,6 +170,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 #endif
 
     this->usb_service = usb;
+    navigator->setGPSTuneFlag(true);
 
     draw();
 }
@@ -436,6 +437,10 @@ void Service::keyPressed(UI_Key key)
 		case menuWindow:     menuWindow_keyPressed(key);     break;
 		case endMenuWindow:  endMenuWindow_keyPressed(key);  break;
     }
+
+    bool isTune = (state.getType() != endMenuWindow);
+    navigator->setGPSTuneFlag(isTune);
+
     draw();
 }
 

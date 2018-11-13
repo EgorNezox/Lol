@@ -64,6 +64,8 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
     config_timer = new QmTimer(true, this);
     config_timer->timeout.connect(sigc::mem_fun(this, &Navigator::processConfig));
     config_timer->start(3000); //tested on receivers versions 3.1, 4.1
+
+    isTune = false;
 }
 
 Navigator::~Navigator() {
@@ -97,9 +99,7 @@ int Navigator::tuneGen(int val)
 	static int count = 0;
 	count++;
 	int res = 0;
-#ifndef PORT__PCSIMULATOR
 	res = tune_frequency_generator(val);
-#endif
 	if ((flash != 0) && (count % 10 == 0))
 	{
 		get_corrector_state(&corState);
@@ -422,20 +422,24 @@ bool Navigator::get1PPSModeCorrect()
 	return pps_correct;
 }
 
+void Navigator::setGPSTuneFlag(bool isTune)
+{
+	this->isTune = isTune;
+}
+
 void Navigator::processSyncPulse(bool overflow)
 {
-    int32_t i = 0;
- #ifndef PORT__PCSIMULATOR
-    i = getFreqDelta();
-#endif
-	int32_t fdelta = i;
-	fdelta = fmax(-300,fdelta);
-	fdelta = fmin( 300,fdelta);
-	float coeff = calculate_coeff(fdelta, CoordDate.status);
-	int c = (int)coeff;
-	int res = tuneGen(c);
-
-	qmDebugMessage(QmDebug::Info, "NEW 1ppt trigger detected, tim1 =(%lu), DELTA = %i, COEF = %i, DAC: %i",  i, fdelta, c, res);
+	if (isTune)
+	{
+		int32_t i = getFreqDelta();
+		int32_t fdelta = i;
+		fdelta = fmax(-300,fdelta);
+		fdelta = fmin( 300,fdelta);
+		float coeff = calculate_coeff(fdelta, CoordDate.status);
+		int c = (int)coeff;
+		int res = tuneGen(c);
+		qmDebugMessage(QmDebug::Info, "NEW 1ppt trigger detected, tim1 =(%lu), DELTA = %i, COEF = %i, DAC: %i",  i, fdelta, c, res);
+	}
 
 	uint8_t data[1024];
 	int16_t data_read = 0;
@@ -489,8 +493,9 @@ void Navigator::setMinimalActivityMode(bool enabled) {
 int Navigator::setGeneratorAbsValue(int val)
 {
     #ifndef PORT__PCSIMULATOR
-        int res = tune_frequency_generator(val);
-        return res;
+	corState.k = val;
+	change_coeff(val);
+        return val;
     #else
        return 1800;
     #endif
@@ -500,7 +505,7 @@ int Navigator::getGeneratorDacValue()
 {
 #ifndef PORT__PCSIMULATOR
 	int val = 0;
-	val = getGenDacValue();
+	val = corState.k;
 	return val;
 #else
    return 1800;

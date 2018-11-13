@@ -92,7 +92,7 @@ int tune_frequency_generator(int d)
 	HAL_DAC_SetValue(&DacHandle, DACx_CHANNEL, DAC_ALIGN_12B_R, d);
 	HAL_DAC_Start(&DacHandle, DACx_CHANNEL);
 
-	write_backup_register(d);
+	//write_backup_register(d);
 
 	return d;
 }

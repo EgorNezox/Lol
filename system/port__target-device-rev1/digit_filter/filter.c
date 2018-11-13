@@ -39,6 +39,11 @@ void init_corrector(corr_STATE *st)
 	start_counter = start_timeout;
 }
 
+void change_coeff(float value)
+{
+	k = value;
+}
+
 void get_corrector_state(corr_STATE* sr)
 {
 	sr->k = k;

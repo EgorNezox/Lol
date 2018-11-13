@@ -702,7 +702,7 @@ void TIM2_IRQHandler(void)
 		curValue =  fullCyclceValue + fromOverflowCur - fromOverflowPrev;
 
 		fromOverflowPrev = fromOverflowCur;
-		uint32_t delta = abs(36000000 - curValue);
+		int delta = curValue - 36000000;
 		if (delta < 4000)
 			deltaValue = delta;
 	}

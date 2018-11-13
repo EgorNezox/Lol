@@ -21,6 +21,8 @@ typedef struct {
 // вызов других функций до вызова этой не допустим
 void init_corrector(corr_STATE *st);
 
+void change_coeff(float value);
+
 // Функция запроса состояния (для сохранения в энергонезависимой памяти);
 void get_corrector_state(corr_STATE *sr); // указатель на структуру с параметрами
 

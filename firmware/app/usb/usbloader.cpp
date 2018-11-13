@@ -44,7 +44,6 @@ void usb_loader::transmit(uint8_t * sym, int len)
 
 usb_loader::~usb_loader()
 {
-	//delete usb_loader;
 }
 
 uint16_t usb_loader::searchCadr(uint8_t *cadr, uint16_t len )
