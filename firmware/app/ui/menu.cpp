@@ -1601,10 +1601,15 @@ void CGuiMenu::initGroupCondCmd( CEndState state, bool isWaitingAnswer)  // ГУ
         cmdScrollIndex = cmdText.SetScrollIndex(cmdScrollIndex);
         cmdText.Draw();
 
-        char comCount[] = {0,0,0};
+        char comCount[] = {0,0,0,0};
         sprintf(comCount,"%03d/100", cmdCount);
         std::string commandCountStr(comCount);
 
+        char symCount[] = {0,0,0,0};
+        sprintf(symCount,"%03d", cmdSymCount);
+        std::string symsCountStr(symCount);
+
+        GUI_Painter::DrawText(0,7,titleParams.font,(char*)symsCountStr.c_str());
         GUI_Painter::DrawText(80,7,titleParams.font,(char*)commandCountStr.c_str());
     }
     else

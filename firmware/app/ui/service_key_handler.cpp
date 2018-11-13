@@ -51,6 +51,7 @@ void Service::endMenuWindow_keyPressed(UI_Key key)
         case GuiWindowsSubType::tuneGen:             tuneGen_keyPressed(key);             break;
         case GuiWindowsSubType::stationAddress:      stationAddress_keyPressed(key);      break;
         case GuiWindowsSubType::softwareVersion:     softwareVersion_keyPressed(key);     break;
+        case GuiWindowsSubType::gucInputType:	     gucInputType_keyPressed(key);        break;
     }
 }
 
@@ -736,9 +737,11 @@ void Service::insertGroupCondCmdSymbol(std::string* commands, UI_Key key)
 {
 	if (isGucFullCmd)
 	{
-		if (commands->size() < 399 && menu->cmdCount < 101 )
-		{
+		uint16_t cmdSize = commands->size();
+		bool isLastCmdSymbol = (cmdSize == 400);
 
+		if (cmdSize < 399 && menu->cmdCount < 101 )
+		{
 			bool isFirstCmdSymbol  = commands->size() % 4 == 0;
 			bool isSecondCmdSymbol = commands->size() % 4 == 1;
 			bool isThirdCmdSymbol  = commands->size() % 4 == 2;
@@ -815,9 +818,12 @@ void Service::insertGroupCondCmdSymbol(std::string* commands, UI_Key key)
 				// ERROR! is sym # 4. its impossible.
 			}
 
+			menu->cmdCount = (commands->size() / 4) + ((commands->size() % 4) > 0);
+//			if (commands->size() > 0 && commands->size() % 4 == 1)
+//			{
+//				menu->cmdCount++;
+//			}
 
-			if (commands->size() > 0 && commands->size() % 4 == 1)
-				menu->cmdCount++;
 
 			if (commands->size() > 0 && (commands->size() + 1) % 4 == 0)
 			{
@@ -973,9 +979,19 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
                             menu->groupCondCommStage--; // всем
                 }
             }
+            if ( key == keyLeft )
+            {
+            	commands->clear();
+            	menu->cmdSymCount = 0;
+                menu->cmdCount = 0;
+                menu->groupCondCommStage--;     // одному
+                    if(menu->sndMode)
+                        menu->groupCondCommStage--; // всем
+            }
+
             if ( key == keyEnter )
             {
-                if(commands->size() > 0)
+                if ((commands->size() > 0) && (commands->size() % 4 == 0))
                     menu->groupCondCommStage++;
             }
             if ( key == keyUp )
@@ -993,6 +1009,7 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
             {
             	insertGroupCondCmdSymbol(commands, key);
             }
+            menu->cmdSymCount = commands->size();
         }
         break;
         case 5:     // start
@@ -2891,6 +2908,31 @@ void Service::softwareVersion_keyPressed(UI_Key key)
         guiTree.backvard();
         menu->offset = 0;
         menu->focus = 2;
+    }
+}
+
+void Service::gucInputType_keyPressed(UI_Key key)
+{
+    if ( key == keyLeft )
+    {
+        isGucFullCmd_tmp = false;
+    }
+    if ( key == keyRight )
+    {
+        isGucFullCmd_tmp = true;
+    }
+    if ( key == keyBack )
+    {
+        guiTree.backvard();
+        menu->offset = 1;
+        menu->focus = 3;
+    }
+    if ( key == keyEnter )
+    {
+        guiTree.backvard();
+        menu->offset = 1;
+        menu->focus = 3;
+        isGucFullCmd = isGucFullCmd_tmp;
     }
 }
 

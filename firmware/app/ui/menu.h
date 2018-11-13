@@ -277,6 +277,8 @@ public:
 
     GUI_Obj obj;
 
+    uint16_t cmdSymCount = 0;
+
 private:
 
     const char* keyChars[10] = {(const char*)&ch_key0, (const char*)&ch_key1, (const char*)&ch_key2, (const char*)&ch_key3, (const char*)&ch_key4,

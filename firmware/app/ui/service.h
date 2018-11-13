@@ -196,6 +196,7 @@ private:
     void drawMenu_tuneGen();
     void drawMenu_stationAddress();
     void drawMenu_softwareVersion();
+    void drawMenu_gucInputType();
 
     void keyEmulate(int key);
     void draw_emulate();
@@ -282,7 +283,8 @@ private:
 
     bool inDateMenu			  = false;
 
-    bool isGucFullCmd         = false; // enable 3 symbol command
+    bool isGucFullCmd         = true; // enable 3 symbol command
+    bool isGucFullCmd_tmp     = true;
 
     uint8_t gucAdd            = 0;
     uint8_t cmdSpaceCount     = 0;
@@ -358,6 +360,7 @@ private:
     void tuneGen_keyPressed             (UI_Key key);
     void stationAddress_keyPressed      (UI_Key key);
     void softwareVersion_keyPressed     (UI_Key key);
+    void gucInputType_keyPressed        (UI_Key key);
 
     void condCommand_keyPressed_stage   (UI_Key key);
     void condCommand_enter_keyPressed();
