@@ -52,8 +52,6 @@ Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_i
 	ant_flag_iopin = new QmIopin(ant_flag_iopin_resource, this);
 	//qmDebugMessage(QmDebug::Dump, "ant_flag_iopin = %d", ant_flag_iopin->readInput());
 
-
-
 	sync_pulse_iopin = new QmIopin(sync_pulse_iopin_resource, this);
 	sync_pulse_iopin->inputTriggerOnce.connect(sigc::mem_fun(this, &Navigator::processSyncPulse));
 
@@ -82,8 +80,8 @@ void Navigator::setFlash(DataStorage::FS *flash)
 
 void Navigator::initCorrector()
 {
-
-    flash->readFilterCoeff(&corState.k);
+    if (flash)
+        flash->readFilterCoeff(&corState.k);
     if (corState.k < 0 || corState.k > 4095)
     {
         corState.k = 0;
@@ -99,7 +97,9 @@ int Navigator::tuneGen(int val)
 	static int count = 0;
 	count++;
 	int res = 0;
+#ifndef PORT__PCSIMULATOR
 	res = tune_frequency_generator(val);
+#endif
 	if ((flash != 0) && (count % 10 == 0))
 	{
 		get_corrector_state(&corState);
@@ -431,7 +431,10 @@ void Navigator::processSyncPulse(bool overflow)
 {
 	if (isTune)
 	{
-		int32_t i = getFreqDelta();
+        int32_t i = 0;
+        #ifndef PORT__PCSIMULATOR
+        i = getFreqDelta();
+        #endif
 		int32_t fdelta = i;
 		fdelta = fmax(-300,fdelta);
 		fdelta = fmin( 300,fdelta);

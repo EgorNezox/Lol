@@ -62,7 +62,7 @@ public:
 
 	int resGenDac = 0;
 private:
-	DataStorage::FS *flash;
+    DataStorage::FS *flash = 0;
 
     void processConfig();
 	void processUartReceivedData();

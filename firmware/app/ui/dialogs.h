@@ -125,6 +125,7 @@ public:
     void Draws();
     void keyPressed(UI_Key);
     void setCmd(int cmd);
+    void setText(uint8_t* data, uint16_t size);
     void Draw_Sms();
     static void showMessage(MoonsGeometry *area, bool isFrame, const char *p_title, const char *p_text);
 protected:
@@ -133,17 +134,17 @@ protected:
     TextAreaParams text_area_params;
     std::string title;
 //    std::string text;
-    char text[255];
+    char text[500];
 
     // slider
 public:
     uint32_t list_size;
-    uint32_t position;
+    uint32_t position = 0;
 
     uint8_t focus_rxline = 1;
     uint8_t max_line = 1;
 
-    void DrawWithCoord(uint8_t *coord);
+    void DrawGuc();
 private:
     MoonsGeometry title_area_geom;
     MoonsGeometry text_area_geom;

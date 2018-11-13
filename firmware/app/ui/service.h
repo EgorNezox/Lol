@@ -135,7 +135,7 @@ private:
     void msgBox							(const char*);
     void msgBox							(const char*, const char*);
     void msgBox							(const char*, const int);
-    void msgBox							(const char*, const int, const int, const int, uint8_t*);
+    void msgBox							(const char *title, const int size, const int pos, uint8_t* data, uint16_t dataSize = 0);
     void msgBoxSms						(const char *text);
 
     void chNextHandler();
@@ -219,7 +219,7 @@ private:
     GUI_Dialog_MainScr     *main_scr;
     GUI_Dialog_MsgBox      *msg_box = nullptr;
 
-    Navigation::Navigator  *navigator;
+    Navigation::Navigator  *navigator = 0;
     GUI_Indicator          *indicator;
 
     CGuiMenu 			   *menu;
@@ -283,8 +283,8 @@ private:
 
     bool inDateMenu			  = false;
 
-    bool isGucFullCmd         = true; // enable 3 symbol command
-    bool isGucFullCmd_tmp     = true;
+    bool isGucFullCmd         = false; // enable 3 symbol command
+    bool isGucFullCmd_tmp     = false;
 
     uint8_t gucAdd            = 0;
     uint8_t cmdSpaceCount     = 0;
