@@ -13,10 +13,12 @@ HEADERS += \
     $$PWD/dsp/dspdevice.h \
     $$PWD/dsp/dsptransport.h \
     $$PWD/atu/atudevice.h \
+    $$PWD/digit_filter/filter.h \
     $$PWD/mainwidget.h
 SOURCES += \
     $$wildcardSources(dsp, *.cpp) \
     $$wildcardSources(atu, *.cpp) \
+    $$wildcardSources(digit_filter, *.c) \
     $$PWD/hardware_emulation.cpp \
     $$PWD/mainwidget.cpp
 FORMS += \

@@ -90,3 +90,11 @@ contains(QM_BUILD_MODULES,rtc) {
         $$PWD/qmrtc/src/qmrtc.cpp \
         $$PWD/qmrtc/src/qmrtc_qt.cpp
 }
+
+contains(QM_BUILD_MODULES,usb) {
+    HEADERS += \
+        $$PWD/qmusb/src/qmusb_p.h
+    SOURCES += \
+        $$PWD/qmusb/src/qmusb.cpp \
+        $$PWD/qmusb/src/qmusb_stm32f2xx.cpp
+}

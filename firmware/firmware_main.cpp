@@ -123,8 +123,9 @@ void qmMain() {
     ui_auxkb_desc.key_iopin_resource[Ui::auxkbkeyChNext] = platformhwKeyboardButt1Iopin;
     ui_auxkb_desc.key_iopin_resource[Ui::auxkbkeyChPrev] = platformhwKeyboardButt2Iopin;
 
-
+#if defined(PORT__TARGET_DEVICE_REV1)
     Multiradio::usb_loader usb_class;
+#endif
 
 #ifdef PORT__TARGET_DEVICE_REV1
     Ui::Service ui_service( ui_matrixkb_desc, ui_auxkb_desc,&headset_controller,mr_dispatcher.getVoiceServiceInterface(),&power_battery,&navigator,&data_storage_fs,&usb_class);
@@ -149,12 +150,14 @@ void qmMain() {
     timer2_init();
 #endif
 
+#if defined(PORT__TARGET_DEVICE_REV1)
     navigator.setFlash(&data_storage_fs);
+#endif
 
     //tune_frequency_generator(500, 1);
-
+#if defined(PORT__TARGET_DEVICE_REV1)
     usb_class.startUsb();
-
+#endif
 
 	app.exec();
 }

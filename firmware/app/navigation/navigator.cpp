@@ -97,7 +97,9 @@ int Navigator::tuneGen(int val)
 	static int count = 0;
 	count++;
 	int res = 0;
+#ifndef PORT__PCSIMULATOR
 	res = tune_frequency_generator(val);
+#endif
 	if ((flash != 0) && (count % 10 == 0))
 	{
 		get_corrector_state(&corState);
@@ -422,7 +424,10 @@ bool Navigator::get1PPSModeCorrect()
 
 void Navigator::processSyncPulse(bool overflow)
 {
-	int32_t i = getFreqDelta();
+    int32_t i = 0;
+ #ifndef PORT__PCSIMULATOR
+    i = getFreqDelta();
+#endif
 	int32_t fdelta = i;
 	fdelta = fmax(-300,fdelta);
 	fdelta = fmin( 300,fdelta);
@@ -431,7 +436,6 @@ void Navigator::processSyncPulse(bool overflow)
 	int res = tuneGen(c);
 
 	qmDebugMessage(QmDebug::Info, "NEW 1ppt trigger detected, tim1 =(%lu), DELTA = %i, COEF = %i, DAC: %i",  i, fdelta, c, res);
-
 
 	uint8_t data[1024];
 	int16_t data_read = 0;
