@@ -274,6 +274,8 @@ const char *EndCmd   = "Прием\0";
 const char *EndSms   = "Сообщение доставлено\0";
 const char *EndSms2  = "Сообщение не доставлено\0";
 
+const char *coodGucStr  = "Координ.\n\0";
+
 const char *STARTS = "Старт";
 
 const char *recPacket = "Принята команда\0";

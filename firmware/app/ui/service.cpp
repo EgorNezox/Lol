@@ -170,7 +170,8 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 #endif
 
     this->usb_service = usb;
-    navigator->setGPSTuneFlag(true);
+    if (navigator)
+        navigator->setGPSTuneFlag(true);
 
     draw();
 }
@@ -439,7 +440,8 @@ void Service::keyPressed(UI_Key key)
     }
 
     bool isTune = (state.getType() != endMenuWindow);
-    navigator->setGPSTuneFlag(isTune);
+    if (navigator)
+        navigator->setGPSTuneFlag(isTune);
 
     draw();
 }
@@ -572,13 +574,19 @@ int Service::getFreq()
 void Service::parsingGucCommand(uint8_t *str)
 {
     int index = 0;
-    char number[3] = {'\0','\0','\0'};
-    int cnt = 0;
+    char number[4] = {'\0','\0','\0','\0'};
 
     int len = strlen((const char*)str);
-    for(int i = 0; i <= len; i++){
+    for(int i = 0; i <= len; i++)
+    {
         if ((str[i] == ' ') || (len == i && str[i-1] != ' '))
         {
+//        	if (isGucFullCmd)
+//        	{
+//        		if (i - index == 3)
+//        			number[3] = '\0';
+//        	}
+
             if (i - index == 2)
                 number[2] = '\0';
             if (i - index == 1)
@@ -586,8 +594,9 @@ void Service::parsingGucCommand(uint8_t *str)
 
             memcpy(number, &str[index], i - index);
             guc_command_vector.push_back(atoi(number));
-            ++cnt;
-            for(int j = 0; j < 3; j++) number[j] = '\0';
+
+            for (int j = 0; j < 3; j++)
+            	number[j] = '\0';
             index = i + 1;
         }
     }
@@ -650,21 +659,21 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     drawIndicator();
 }
 
-void Service::msgBox(const char *title, const int condCmd, const int size, const int pos, uint8_t* coord = 0)
+void Service::msgBox(const char *title, const int size, const int pos, uint8_t* data, uint16_t dataSize)
 {
     Alignment align007 = {alignHCenter,alignTop};
     MoonsGeometry area007 = {1, 1, (GXT)(127), (GYT)(127)};
 
     if (msg_box != nullptr)
         delete msg_box;
-    msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, (int) size, (int) pos, align007);
+    msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, 0, (int) size, (int) pos, align007);
 
-    msg_box->setCmd(condCmd);
+    msg_box->setText(data, dataSize);
     msg_box->position = pos;
 
     guiTree.append(messangeWindow, "");
     if (!isStartTestMsg)
-        msg_box->DrawWithCoord(coord);
+        msg_box->DrawGuc();
 }
 
 void Service::gucFrame(int value, bool isTxAsk)
@@ -699,75 +708,67 @@ void Service::gucFrame(int value, bool isTxAsk)
 
 #else
 
-    const char *sym = "Recieved packet for station\0";
     vect = voice_service->getGucCommand();
 
     isGucCoord = voice_service->getIsGucCoord();
     uint8_t size = vect[0];
 
-    char longitude[14]; longitude[12] = '\n';
-    char latitude[14]; latitude[12] = '\0';
+    char longitude[20]; longitude[15] = '\n';
+    char latitude[20]; latitude[15] = '\0';
     if (isGucCoord)
     {
-        // uint8_t coord[9] = {0,0,0,0,0,0,0,0,0};
-        // getGpsGucCoordinat(coord);
-        sprintf(longitude, "%02d.%02d.%02d.%03d", vect[size+1],vect[size+2],vect[size+3],vect[size+4]);
-        sprintf(latitude, "%02d.%02d.%02d.%03d", vect[size+5],vect[size+6],vect[size+7],vect[size+8]);
-        memcpy(&gucCoords[0],&longitude[0],13);
-        memcpy(&gucCoords[13],&latitude[0],13);
-        gucCoords[12] = '\n';
-    }
-    else
-    {
-        //std::string str = std::string(coordNotExistStr);
-        //memcpy(&coords[0],&str[0],str.size());
-
-        // memcpy(&coords[0],&coordNotExistStr[0],25);
-        // coords[25]='\0';
+        sprintf(longitude, "%02d.%02d.\n%02d.%03d N", vect[size+1],vect[size+2],vect[size+3],vect[size+4]);
+        sprintf(latitude, "%02d.%02d.\n%02d.%03d E", vect[size+5],vect[size+6],vect[size+7],vect[size+8]);
+        memcpy(&gucCoords[0],&longitude[0],15);
+        memcpy(&gucCoords[16],&latitude[0],15);
+        gucCoords[15] = '\n';
+        gucCoords[31] = 0;
     }
 
     if (vect[0] != 0)
     {
-        char ch[3];
-        sprintf(ch, "%d", vect[position]);
-        ch[2] = '\0';
+        uint16_t len = size * 3;
+        uint16_t fullSize = isGucCoord ? len + 31 + 10 : len;
+        uint8_t cmdv[fullSize];
+        char cmdSym[3];
+
+        for (uint8_t cmdSymInd = 1; cmdSymInd <= size; cmdSymInd++)
+        {
+            sprintf(cmdSym, "%02d", vect[cmdSymInd]);
+            cmdSym[2] = ' ';
+            memcpy(&cmdv[(cmdSymInd - 1) * 3], &cmdSym[0], 3);
+        }
+
+        cmdv[len] = 0;
+
+        if (isGucCoord)
+        {
+            std::string coordStr(coodGucStr);
+            uint8_t ssize = coordStr.size();
+            coordStr.resize(ssize + 31);
+            memcpy(&coordStr[ssize], &gucCoords[0], 31);
+            ssize = coordStr.size();
+            memcpy(&cmdv[len], &coordStr[0], ssize);
+        }
+
+        fileMsg.clear();
+        fileMsg.resize(fullSize);
+        memcpy(fileMsg.data(), &cmdv, fullSize);
 
         if (storageFs > 0)
         {
-        	uint16_t len = size * 3;
-            uint16_t fullSize = isGucCoord ? len + 26 : len;
-            uint8_t cmdv[fullSize];
-            char cmdSym[3];
-
-            for (uint8_t cmdSymInd = 1; cmdSymInd <= size; cmdSymInd++)
-            {
-                sprintf(cmdSym, "%02d", vect[cmdSymInd]);
-                cmdSym[2] = ' ';
-                memcpy(&cmdv[(cmdSymInd - 1) * 3], &cmdSym[0], 3);
-            }
-
-            if (isGucCoord)
-                memcpy(&cmdv[len], &gucCoords[0], 26);
-            fileMsg.clear();
-            fileMsg.resize(fullSize);
-            memcpy(fileMsg.data(), &cmdv, fullSize);
-
             GUI_Painter::ClearViewPort(true);
             showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_RX, &fileMsg);
             draw();
         }
+
         gucAdd = (uint8_t)value;
-        //guiTree.append(messangeWindow, sym, ch);
         char add[4] = {0,0,0,0};
         sprintf(add,"%d", gucAdd);
         std::string str(titleGuc);
         str.append(" ").append(fromStr).append("#").append(" ").append(add);
-        if (isGucCoord)
-        	msgBox( str.c_str(), vect[1], size, 0, (uint8_t*)&gucCoords );
-        else
-        	msgBox( str.c_str(), vect[1], size, 0);
-
+        msgBox(str.c_str(), size, 0, (uint8_t*)fileMsg.data(), fileMsg.size());
     }
     if (isTxAsk)
     {

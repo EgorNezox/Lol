@@ -162,6 +162,8 @@ extern const char *EndCmd;
 extern const char *EndSms;
 extern const char *EndSms2;
 
+extern const char *coodGucStr;
+
 extern const char *STARTS;
 
 extern const char *errorReadFile;

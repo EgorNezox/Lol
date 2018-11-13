@@ -336,10 +336,10 @@ void Service::messangeWindow_keyPressed(UI_Key key)
         		position = 1;
             if (key == keyUp && position > 1)
             	position--;
-            if (key == keyDown && position < vect[0])
+            if (key == keyDown)
             	position++;
 
-            msg_box->setCmd(vect[position]);
+           // msg_box->setCmd(vect[position]);
             msg_box->keyPressed(key);
         }
     }

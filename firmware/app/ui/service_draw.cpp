@@ -16,16 +16,6 @@ MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
 void Service::draw()
 {
-	//GUI_Painter::SetColorScheme(CST_DEFAULT);
-  //  GUI_Painter::ClearViewPort(true);
-
-//    GUI_Painter::SetColorScheme(CST_DEFAULT);
-//   // GUI_Painter::DrawLine(0,0,10,0);
-//   // GUI_Painter::DrawLine(0,20,10,20);
-//    GUI_Painter::DrawRect(10,10,20,20,RDM_LINE);
-//    return;
-
-
     CState currentState;
     guiTree.getLastElement(currentState);
 
@@ -44,14 +34,10 @@ void Service::draw()
         if (msg_box != nullptr)
         {
         	if (vect != nullptr)
-        		if (isGucCoord)
-        			msg_box->DrawWithCoord((uint8_t*)&gucCoords);
-        		else
-        			msg_box->DrawWithCoord((uint8_t*)0);
+                msg_box->DrawGuc();
         	else
         		msg_box->Draw();
         }
-
         break;
     }
     case menuWindow:
@@ -843,18 +829,18 @@ void Service::msgBox(const char *title, const char *text)
 
 void Service::msgBox(const char *title, const int condCmd)
 {
-    Alignment align007 = {alignHCenter,alignTop};
-    MoonsGeometry area007 = {1, 1, (GXT)(127), (GYT)(127)};
-
-    if (msg_box != nullptr)
-        delete msg_box;
-    msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, align007);
-
-    guiTree.append(messangeWindow, "");
-    msg_box->setCmd(condCmd);
-    if (!isStartTestMsg)
-        msg_box->Draw();
-    isDrawCondCmd = false;
+//    Alignment align007 = {alignHCenter,alignTop};
+//    MoonsGeometry area007 = {1, 1, (GXT)(127), (GYT)(127)};
+//
+//    if (msg_box != nullptr)
+//        delete msg_box;
+//    msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, align007);
+//
+//    guiTree.append(messangeWindow, "");
+//    msg_box->setCmd(condCmd);
+//    if (!isStartTestMsg)
+//        msg_box->Draw();
+//    isDrawCondCmd = false;
 }
 
 void Service::showMessage(const char *title, const char *text)
