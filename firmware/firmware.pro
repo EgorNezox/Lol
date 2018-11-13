@@ -26,6 +26,7 @@ SOURCES += \
     $$wildcardSources(app/navigation, *.cpp) \
     $$wildcardSources(app/power, *.cpp) \
     $$wildcardSources(app/ui, *.cpp) \
+    $$wildcardSources(app/usb, *.cpp) \
     app/ui/menu.cpp \
     app/ui/gui_tree.cpp \
     app/mrd/ale_data_transport.cpp \
@@ -82,5 +83,6 @@ HEADERS += \
     app/mrd/continious_timer.h \
     app/mrd/aleservice.h \
     app/mrd/ale_fxn.h
+    app/usb/usbloader.h
 
 CONFIG(debug, release|debug):DEFINES += _DEBUG_

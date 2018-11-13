@@ -1,16 +1,19 @@
 image: gitlab.d5.lan:5005/sazhen/sazhen:latest
-
-
 stages:
   - build
-
 job1:
   stage: build
   script:
-    - sudo docker run -v $(pwd):/work/test -it gitlab.d5.lan:5005/sazhen/sazhen
-    - cd /work/test/firmware
-    - mkdir /work/test/firmware/misc
-    - cp /work/test/misc/. /work/test/firmware/misc
-    - makepp clean
-    - makepp -j4
-
+    - cd /builds/Sazhen/Sazhen/
+    - ls
+    - cd ./firmware
+    - ls
+    - mkdir /builds/Sazhen/Sazhen/firmware/misc
+    - cp    /builds/Sazhen/Sazhen/misc/*  /builds/Sazhen/Sazhen/firmware/misc
+    - ls
+    - cat   /builds/Sazhen/Sazhen/misc/target_build_subproject_header.mk
+    - cat   /builds/Sazhen/Sazhen/firmware/misc/target_build_subproject_header.mk
+    - export PATH="$PATH:/work/gcc-arm-none-eabi-4_9-2015q3/bin"
+    - arm-none-eabi-gcc --version
+    - makepp BUILD_MODE=debug BUILD_PORT=target-device-rev1 clean
+    - echo "$(makepp BUILD_MODE=debug BUILD_PORT=target-device-rev1 -j4)"

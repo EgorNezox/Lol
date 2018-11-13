@@ -22,19 +22,24 @@ namespace Multiradio {
 
 usb_loader::usb_loader()
 {
+#ifndef PORT__PCSIMULATOR
 	 usb = new QmUsb(hw_usb);
 	 usb->usbwakeup.connect(sigc::mem_fun(this, &usb_loader::recievedData));
-
+#endif
 }
 
 void usb_loader::startUsb()
 {
+#ifndef PORT__PCSIMULATOR
 	 usb_start();
+#endif
 }
 
 void usb_loader::transmit(uint8_t * sym, int len)
 {
-	usb_tx(sym,len);
+#ifndef PORT__PCSIMULATOR
+    usb_tx(sym,len);
+#endif
 }
 
 usb_loader::~usb_loader()
@@ -114,7 +119,12 @@ void usb_loader::manageCadr(uint8_t *cadr, uint16_t len)
 
 bool usb_loader::getUsbStatus()
 {
+ #ifndef PORT__PCSIMULATOR
 	return usb->getStatus();
+#else
+    return false;
+#endif
+
 }
 
 void usb_loader::setfs(DataStorage::FS *fs)
@@ -124,6 +134,7 @@ void usb_loader::setfs(DataStorage::FS *fs)
 
 void usb_loader::recievedData()
 {
+     #ifndef PORT__PCSIMULATOR
 	 uint8_t * buff = usb->getbuffer();
 
 	 /* получаем текущую длинну сообщения */
@@ -133,6 +144,7 @@ void usb_loader::recievedData()
 	 searchCadr(buff,usb->getLen());
 
 	 usb->resetLen();
+     #endif
 }
 
 } /* namespace Multiradio */
