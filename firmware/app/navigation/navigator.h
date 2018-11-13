@@ -49,6 +49,7 @@ public:
 	void set1PPSModeCorrect(bool value);
 	bool get1PPSModeCorrect();
 	void coldStart();
+	void setGPSTuneFlag(bool isGen);
 
 	void initCorrector();
 	int tuneGen(int val);
@@ -80,6 +81,7 @@ private:
 
 	bool minimal_activity_mode;
 	bool pps_correct;
+	bool isTune;
 };
 
 } /* namespace Navigation */
