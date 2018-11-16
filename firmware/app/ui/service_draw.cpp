@@ -23,31 +23,43 @@ void Service::draw()
     navigator->set1PPSModeCorrect(false);
 #endif
 
-    switch(currentState.getType())
+    if (isDrawMainWindow)
     {
-    case mainWindow:{
-        drawMainWindow();
-        break;
+    	drawMainWindow();
     }
-    case messangeWindow:
+    else
     {
-        if (msg_box != nullptr)
-        {
-        	if (vect != nullptr)
-                msg_box->DrawGuc();
-        	else
-        		msg_box->Draw();
-        }
-        break;
-    }
-    case menuWindow:
-        drawMenu();
-        break;
-    case endMenuWindow:
-        drawMenu();
-        break;
-    default:
-        break;
+    	if (isRedrawOnHideMainWindow)
+    	{
+    		GUI_Painter::SetViewPort(0,0,127,127);
+    		GUI_Painter::ClearViewPort();
+    	}
+		switch(currentState.getType())
+		{
+		case mainWindow:{
+			drawMainWindow();
+			break;
+		}
+		case messangeWindow:
+		{
+			if (msg_box != nullptr)
+			{
+				if (vect != nullptr)
+					msg_box->DrawGuc();
+				else
+					msg_box->Draw();
+			}
+			break;
+		}
+		case menuWindow:
+			drawMenu();
+			break;
+		case endMenuWindow:
+			drawMenu();
+			break;
+		default:
+			break;
+		}
     }
 
     if (isShowSchedulePrompt)
@@ -152,7 +164,7 @@ void Service::drawIndicator()
     if (!isStartTestMsg)
     {
 		static uint8_t gpsStatus = 0;
-		if ( guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr)
+		if ( (guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr) || isDrawMainWindow)
 		{
 			if (navigator != 0)
 			{

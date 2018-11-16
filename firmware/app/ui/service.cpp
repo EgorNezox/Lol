@@ -60,8 +60,14 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     chprev_bt = new QmPushButtonKey(aux_kb.key_iopin_resource[auxkbkeyChPrev]);
 
     keyboard->keyAction.connect(sigc::mem_fun(this, &Service::keyHandler));
+    keyboard->keyStateChanged.connect(sigc::mem_fun(this, &Service::keyChangeHandler));
     chnext_bt->stateChanged.connect(sigc::mem_fun(this, &Service::chNextHandler));
     chprev_bt->stateChanged.connect(sigc::mem_fun(this, &Service::chPrevHandler));
+
+    mainWindowShowTimer = new QmTimer();
+    mainWindowShowTimer->setInterval(1000);
+    mainWindowShowTimer->setSingleShot(false);
+    mainWindowShowTimer->timeout.connect(sigc::mem_fun(this, &Service::onHideMainWindow));
 
     main_scr  = new GUI_Dialog_MainScr(&ui_common_dialog_area);
     indicator = new GUI_Indicator     (&ui_indicator_area);
@@ -191,6 +197,21 @@ Service::~Service()
     fileMsg.clear();
 }
 
+void Service::onHideMainWindow()
+{
+	if (!keyboard->isKeyPressed(1))
+	{
+		isMainMenuKeyPressed = false;
+		mainWindowShowTimer->stop();
+		isDrawMainWindow = false;
+		if (isDrawOnHideMainMenu)
+		{
+			isRedrawOnHideMainWindow = true;
+			draw();
+			isRedrawOnHideMainWindow = false;
+		}
+	}
+}
 
 void Service::showFreq(int freq)
 {
@@ -359,9 +380,34 @@ void Service::setNotification(NotificationType type)
     }
 }
 
-void Service::keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type){
+void Service::keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type)
+{
     QM_UNUSED(pr_type);
+
+    isDrawOnHideMainMenu = false;
+    onHideMainWindow();
+    isDrawOnHideMainMenu = true;
+
+	if (UI_Key::keyUp == (UI_Key)matrix_kb.key_id[key_id])
+	{
+    	isMainMenuKeyPressed = true;
+    	mainWindowShowTimer->start();
+	}
     keyPressed((UI_Key)matrix_kb.key_id[key_id]);
+}
+
+void Service::keyChangeHandler(int key_id, bool isPress)
+{
+//	if (UI_Key::key0 == (UI_Key)matrix_kb.key_id[key_id])
+//	{
+//    	isMainMenuKeyPressed = isPress; //keyboard->isKeyPressed(UI_Key::key0);
+//    	if (!isPress)
+//    	{
+//    		isDrawMainWindow = false;
+//    		draw();
+//    	}
+//
+//	}
 }
 
 Headset::Controller * Service::pGetHeadsetController(){
@@ -431,17 +477,46 @@ void Service::keyPressed(UI_Key key)
 {
     CState state = guiTree.getCurrentState();
 
+    bool isEndWindow = false;
     switch( state.getType() )
     {
 		case mainWindow:     mainWindow_keyPressed(key);     break;
 		case messangeWindow: messangeWindow_keyPressed(key); break;
 		case menuWindow:     menuWindow_keyPressed(key);     break;
-		case endMenuWindow:  endMenuWindow_keyPressed(key);  break;
+		case endMenuWindow:  endMenuWindow_keyPressed(key); isEndWindow = true; break;
     }
 
     bool isTune = (state.getType() != endMenuWindow);
     if (navigator)
         navigator->setGPSTuneFlag(isTune);
+
+    if (isEndWindow)
+    {
+    	bool isDraw = false;
+
+    	if (estate.subType == condCommand)
+    		isDraw = true;
+    	if (estate.subType == recvCondCmd)
+    		isDraw = true;
+    	if (estate.subType == txGroupCondCmd)
+    		isDraw = true;
+    	if (estate.subType == recvGroupCondCmd)
+    		isDraw = true;
+    	if (estate.subType == txSmsMessage)
+    		isDraw = true;
+    	if (estate.subType == rxSmsMessage)
+    		isDraw = true;
+    	if (estate.subType == txPutOffVoice)
+    		isDraw = true;
+    	if (estate.subType == rxPutOffVoice)
+    		isDraw = true;
+
+        if (isDraw && isMainMenuKeyPressed)
+        {
+        	isDrawMainWindow = true;
+        }
+    }
+
 
     draw();
 }

@@ -19,7 +19,7 @@ namespace Ui {
 
 void Service::endMenuWindow_keyPressed(UI_Key key)
 {
-    CEndState estate = (CEndState&)guiTree.getCurrentState();
+    estate = (CEndState&)guiTree.getCurrentState();
 
     switch(estate.subType)
     {
@@ -1134,7 +1134,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
         	}
 
         }
-        if (key == keyUp)
+        if (key == keyLeft)
         {
         	switch (menu->voiceMailSource)
         	{
@@ -1143,7 +1143,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
         	}
         	menu->inVoiceMail = true;
         }
-        if (key == keyDown)
+        if (key == keyRight)
         {
         	switch (menu->voiceMailSource)
         	{
