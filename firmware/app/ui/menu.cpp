@@ -140,12 +140,13 @@ void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingA
     }
     case 5:
     { // send
-           //labelStr.append(condCommSendStr);
+           labelStr.append(callSubMenu[0]);
            str.append(startStr);
         break;
     }
     case 6:
     { //stage send
+    	labelStr.append(callSubMenu[0]);
     	if (isSynch && !isWaitingAnswer && (command_tx30 == 0))
     	{
 		    uint8_t percent = calcPercent(virtCounter, 120);
@@ -1378,10 +1379,10 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
         isDrawScroll = true;
         break;
     }
-    case 5:
-    case 6:
-        isDrawTitle = false;
-        break;
+//    case 5:
+//    case 6:
+//        isDrawTitle = false;
+//        break;
     }
 
     if (smsTxStage == 4)
@@ -1441,12 +1442,14 @@ void CGuiMenu::initRxSmsDialog(std::string str, uint8_t stage) // + guc rx (hack
     ok_button.setSkipTextBackgronundFilling(true);
 
     window.Draw();
-    if (stage == 1)
+    if (stage == 0 || stage == 11 || stage == 1 || stage == 2)
     {
         LabelParams titleParam = GUI_EL_TEMP_CommonTextAreaLT;
         titleParam.element.align = {alignHCenter, alignTop};
         MoonsGeometry title_geom  = {  5, 5, 150,  20 };
         std::string titleString = "CMC";
+        if (stage == 11)
+        	titleString = callSubMenu[3];
         GUI_EL_Label title  (&titleParam, &title_geom, (char*)titleString.c_str(), (GUI_Obj *)this);
         title.Draw();
     }
@@ -1510,7 +1513,7 @@ void CGuiMenu::initRxCondCmdDialog(bool isSynch, bool isStart)        // При�
     GUI_EL_Label  field1 (&param, &local1FieldArea,  (char*)counterStr.c_str(),      (GUI_Obj *)this);
 
     window.Draw();
-    if (recvStage != 1 && recvStage != 3)
+    if (recvStage != 3)
         title.Draw();
     button.Draw();
     if (recvStage == 3)
@@ -1586,8 +1589,8 @@ void CGuiMenu::initGroupCondCmd( CEndState state, bool isWaitingAnswer)  // ГУ
     GUI_EL_Label  value1 ( &param[1],&valueArea1,  (char*)valueStr1.c_str(), (GUI_Obj*)this );
 
     window.Draw();
-    if (groupCondCommStage != 5 && groupCondCommStage != 6)
-        title.Draw();
+    //if (groupCondCommStage != 5 && groupCondCommStage != 6)
+    title.Draw();
     label.Draw();
 
     if (groupCondCommStage == 4)

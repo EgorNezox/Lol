@@ -413,13 +413,14 @@ void Service::drawMenu_txSmsMessage()
 		}
 		case 5:
 		{
+			titleStr.append(reciveSubMenu[1]);
 			fieldStr.clear();
 			fieldStr.append(startStr);
 			break;
 		}
 		case 6:
 		{
-
+			titleStr.append(reciveSubMenu[1]);
 			uint8_t counter = voice_service->getSmsCounter();
 			bool isSynch = voice_service->getVirtualMode() && !counter;
 

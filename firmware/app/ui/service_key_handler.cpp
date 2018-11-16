@@ -991,8 +991,11 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
 
             if ( key == keyEnter )
             {
-                if ((commands->size() > 0) && (commands->size() % 4 == 0))
-                    menu->groupCondCommStage++;
+                if (commands->size() > 0)
+                {
+                	if ((isGucFullCmd && (commands->size() % 4 == 0)) || !isGucFullCmd)
+                		menu->groupCondCommStage++;
+                }
             }
             if ( key == keyUp )
             {
@@ -1776,12 +1779,12 @@ void Service::recvGroupCondCmd_keyPressed(UI_Key key)
 		{
 			case 1:
 			{
-				menu->initRxSmsDialog(STARTS);
+				menu->initRxSmsDialog(STARTS,11);
 				break;
 			}
 			case 2:
 			{
-                menu->initRxSmsDialog(receiveStatusStr[1]);
+                menu->initRxSmsDialog(receiveStatusStr[1],11);
         		//setFreq();
 				#ifndef PORT__PCSIMULATOR
 				voice_service->saveFreq(getFreq());
