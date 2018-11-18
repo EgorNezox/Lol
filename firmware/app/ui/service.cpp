@@ -651,12 +651,11 @@ void Service::parsingGucCommand(uint8_t *str)
     {
         if ((str[i] == ' ') || (len == i && str[i-1] != ' '))
         {
-//        	if (isGucFullCmd)
-//        	{
-//        		if (i - index == 3)
-//        			number[3] = '\0';
-//        	}
-
+        	if (isGucFullCmd)
+        	{
+        		if (i - index == 3)
+        			number[3] = '\0';
+        	}
             if (i - index == 2)
                 number[2] = '\0';
             if (i - index == 1)
@@ -797,16 +796,36 @@ void Service::gucFrame(int value, bool isTxAsk)
 
     if (vect[0] != 0)
     {
-        uint16_t len = size * 3;
+        bool isFullCmd = false; // используются ли трехсимвольные команды
+        for (uint8_t cmdSymInd = 1; cmdSymInd <= size; cmdSymInd++)
+        {
+        	if (vect[cmdSymInd] > 99)
+        	{
+        		isFullCmd = true;
+        		break;
+        	}
+        }
+
+        uint8_t cmdFactor = isFullCmd ? 4 : 3;
+        uint16_t len = size * cmdFactor;
         uint16_t fullSize = isGucCoord ? len + 31 + 10 : len;
         uint8_t cmdv[fullSize];
-        char cmdSym[3];
+        char cmdSym[4];
 
         for (uint8_t cmdSymInd = 1; cmdSymInd <= size; cmdSymInd++)
         {
-            sprintf(cmdSym, "%02d", vect[cmdSymInd]);
-            cmdSym[2] = ' ';
-            memcpy(&cmdv[(cmdSymInd - 1) * 3], &cmdSym[0], 3);
+        	if (isFullCmd)
+        	{
+				sprintf(cmdSym, "%03d", vect[cmdSymInd]);
+				cmdSym[3] = ' ';
+				memcpy(&cmdv[(cmdSymInd - 1) * 4], &cmdSym[0], 4);
+        	}
+        	else
+        	{
+				sprintf(cmdSym, "%02d", vect[cmdSymInd]);
+				cmdSym[2] = ' ';
+				memcpy(&cmdv[(cmdSymInd - 1) * 3], &cmdSym[0], 3);
+        	}
         }
 
         cmdv[len] = 0;
