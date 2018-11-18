@@ -312,3 +312,5 @@ const char *txQwit  = "Отпр. квит.\0";
 
 const char *err  = " Ошибка\0";
 const char *errCrc  = " Ошибка CRC\0";
+
+const char *mainScrMode[] = {"УК\0", "ГУК\0", "СМС\0", "ГП\0"};

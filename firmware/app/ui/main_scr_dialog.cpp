@@ -11,11 +11,12 @@
 
 //----------GLOBAL_VARS--------
 
-static MoonsGeometry ch_num_label_geom    = {  2, 40,  77,  74 };
-static MoonsGeometry ch_type_label_geom    = {  64, 45,  75,  73 };
-static MoonsGeometry mode_label_geom  = { 85, 48, 125,  73 };
-static MoonsGeometry freq_geom        = {   2, 75, 126, 102 };
+static MoonsGeometry ch_num_label_geom     = {  2, 40,  62,  74 };
+static MoonsGeometry ch_type_label_geom    = {  58, 45,  69,  73 };
+static MoonsGeometry freq_geom             = {   2, 75, 126, 102 };
 
+static MoonsGeometry em_mode_label_geom    = { 85, 33, 125,  58 };
+static MoonsGeometry mode_label_geom       = { 80, 55, 125,  80 };
 
 bool GUI_main_scr_init_flag=0;
 
@@ -23,10 +24,9 @@ bool GUI_main_scr_init_flag=0;
 
 //----------CODE---------------
 
-
 GUI_Dialog_MainScr::GUI_Dialog_MainScr(MoonsGeometry *area):GUI_Obj(area),
                                                           mainWindowModeId(0),
-                                                          mwFocus(-2),
+                                                          mwFocus(noFocus),
                                                           editing(false)
 {
   MoonsGeometry window_geom = {0,0,(GXT)(GEOM_W(this->area)-1),(GYT)(GEOM_H(this->area)-1)};
@@ -45,20 +45,31 @@ GUI_Dialog_MainScr::GUI_Dialog_MainScr(MoonsGeometry *area):GUI_Obj(area),
   LabelParams freq_label_params = GUI_EL_TEMP_LabelMode;
   freq_label_params.element.align.align_v = alignVCenter;
 
-  ch_num_label = new GUI_EL_Label (&ch_num_label_params,   &ch_num_label_geom,   NULL, (GUI_Obj*)this);
-  ch_type_label= new GUI_EL_Label (&ch_type_label_params,   &ch_type_label_geom,   NULL, (GUI_Obj*)this);
-  mode_text    = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &mode_label_geom, NULL, (GUI_Obj*)this);
-  freq         = new GUI_EL_Label (&freq_label_params, &freq_geom,       NULL, (GUI_Obj*)this);
+  LabelParams mode_label_params = GUI_EL_TEMP_LabelMode;
+  mode_label_params.element.align.align_v = alignVCenter;
+  mode_label_params.element.align.align_h = alignHCenter;
 
-  freq->setSkipTextBackgronundFilling(true);
+  ch_num_label = new GUI_EL_Label (&ch_num_label_params,   &ch_num_label_geom,  NULL, (GUI_Obj*)this);
+  ch_type_label= new GUI_EL_Label (&ch_type_label_params,  &ch_type_label_geom, NULL, (GUI_Obj*)this);
+  em_mode_text = new GUI_EL_Label (&GUI_EL_TEMP_LabelMode, &em_mode_label_geom, NULL, (GUI_Obj*)this);
+  mode_text    = new GUI_EL_Label (&mode_label_params,     &mode_label_geom,    NULL, (GUI_Obj*)this);
+  freq         = new GUI_EL_Label (&freq_label_params,     &freq_geom,          NULL, (GUI_Obj*)this);
 
-  mode_text->SetText((char*)"--\0");
+ // freq->setSkipTextBackgronundFilling(true);
+
+  em_mode_text->SetText((char*)"--\0");
+  mode_text->SetText((char*)mainScrMode[1]);
 
   ch_num_label->SetText((char*)"--\0");
   ch_type_label->SetText((char*)"\0");
   cur_ch_invalid = false;
 
   setFreq(oFreq.c_str());
+}
+
+void GUI_Dialog_MainScr::setEmModeText(const char* newMode)
+{
+    em_mode_text->SetText((char*)newMode);
 }
 
 void GUI_Dialog_MainScr::setModeText(const char* newMode)
@@ -85,37 +96,31 @@ void GUI_Dialog_MainScr::Draw( Multiradio::VoiceServiceInterface::ChannelStatus 
 
   window->Draw();
 
-  //mode_text->transparent = false;
-  if (valid_freq)
-    mode_text->Draw();
-
-  freq->transparent = true; // todo : поменял значение
-  if (focus == 1)
-  {
-      freq->transparent = false;
-  }
   if (valid_freq)
     freq->Draw();
 
-  ch_num_label->transparent = true;
-  ch_type_label->transparent = true;
-  if (focus == 2)
-  {
-	  ch_num_label->transparent = false;
-  }
+  if (valid_freq)
+    em_mode_text->Draw();
+
+  mode_text->Draw();
+
   ch_num_label->Draw();
- ch_type_label->Draw();
+  ch_type_label->Draw();
 
-  if (cur_ch_invalid)
-  {
-      groundrect(2,15,52,16,0,GFRAME); // ???
-  }
+   gsetvp(0,0,GDISPW-1,GDISPH-1);
+   gsetcolorf(GENERAL_FORE_COLOR);
 
+   switch (mwFocus)
+   {
+	   case emFocus: groundrect(em_mode_label_geom.xs-3,em_mode_label_geom.ys+28,em_mode_label_geom.xe,em_mode_label_geom.ye+25,0,GLINE); break;
+	   case mdFocus: groundrect(mode_label_geom.xs-5,mode_label_geom.ys+27,mode_label_geom.xe,mode_label_geom.ye+24,0,GLINE); break;
+	   case frFocus: groundrect(freq_geom.xs,freq_geom.ys+27,freq_geom.xe,freq_geom.ye+27,0,GLINE); break;
+	   case chFocus: groundrect(ch_num_label_geom.xs,ch_num_label_geom.ys+21,ch_num_label_geom.xe+10,ch_num_label_geom.ye+27,0,GLINE); break;
+   }
 
-
-//  if (focus == 2)
+//  if (cur_ch_invalid)
 //  {
-//    groundrect(freq_geom.xs,freq_geom.ys,freq_geom.xe,freq_geom.ye,0,GFILL);
+//      groundrect(2,15,52,16,0,GFRAME); // ???
 //  }
 }
 
@@ -268,12 +273,6 @@ void GUI_Dialog_MainScr::keyPressed(UI_Key key)
       break;
   default:
       break;
-  }
-
-  if ( value != -1)
-  {
-      if ( mwFocus == 0 ) // setFrequence
-      {}
   }
 }
 

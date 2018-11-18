@@ -15,16 +15,10 @@
 #define SMS_PROGRESS 1
 #define TIME_ON_GPS_MARKER 0
 
-#define PARAMS_DRAW 1
-
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
-#if PARAMS_DRAW
-    MoonsGeometry ui_indicator_area     = { 0,0,127,30};
-#else
-    MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
-#endif
+MoonsGeometry ui_indicator_area     = { 0,0,95,30};
 
 namespace Ui {
 
@@ -473,17 +467,17 @@ void Service::voiceChannelChanged()
         drawMainWindow();
 }
 
-void Service::keyPressed(UI_Key key)
+void Service::keyPressed(UI_Key key, bool isDraw)
 {
     CState state = guiTree.getCurrentState();
 
     bool isEndWindow = false;
     switch( state.getType() )
     {
-		case mainWindow:     mainWindow_keyPressed(key);     break;
+		case mainWindow:     mainWindow_keyPressed(key);     isDrawMainWindow = false; mainWindowShowTimer->stop(); break;
 		case messangeWindow: messangeWindow_keyPressed(key); break;
 		case menuWindow:     menuWindow_keyPressed(key);     break;
-		case endMenuWindow:  endMenuWindow_keyPressed(key); isEndWindow = true; break;
+		case endMenuWindow:  endMenuWindow_keyPressed(key);  isEndWindow = true; break;
     }
 
     bool isTune = (state.getType() != endMenuWindow);
@@ -492,33 +486,33 @@ void Service::keyPressed(UI_Key key)
 
     if (isEndWindow)
     {
-    	bool isDraw = false;
+    	bool isDrawMw = false;
 
     	if (estate.subType == condCommand)
-    		isDraw = true;
+    		isDrawMw = true;
     	if (estate.subType == recvCondCmd)
-    		isDraw = true;
-    	if (estate.subType == txGroupCondCmd)
-    		isDraw = true;
-    	if (estate.subType == recvGroupCondCmd)
-    		isDraw = true;
-    	if (estate.subType == txSmsMessage)
-    		isDraw = true;
-    	if (estate.subType == rxSmsMessage)
-    		isDraw = true;
+    		isDrawMw = true;
+    	if (estate.subType == txGroupCondCmd && menu->groupCondCommStage != 4)
+    		isDrawMw = true;
+    	if (estate.subType == recvGroupCondCmd && cntGucRx == 4)
+    		isDrawMw = true;
+    	if (estate.subType == txSmsMessage && menu->smsTxStage != 4)
+    		isDrawMw = true;
+    	if (estate.subType == rxSmsMessage && cntSmsRx == 2)
+    		isDrawMw = true;
     	if (estate.subType == txPutOffVoice)
-    		isDraw = true;
+    		isDrawMw = true;
     	if (estate.subType == rxPutOffVoice)
-    		isDraw = true;
+    		isDrawMw = true;
 
-        if (isDraw && isMainMenuKeyPressed)
+        if (isDrawMw && isMainMenuKeyPressed)
         {
         	isDrawMainWindow = true;
         }
     }
 
-
-    draw();
+    if (isDraw)
+    	draw();
 }
 
 void Service::onSmsCounterChange(int param)
@@ -558,6 +552,7 @@ void Service::onSmsCounterChange(int param)
     	}
 #endif
     }
+    drawWaveInfoOnTx();
     //qmDebugMessage(QmDebug::Warning, "______sms smsTxStage: %d ", menu->smsTxStage);
 }
 
@@ -1058,6 +1053,7 @@ void Service::TxCondCmdPackage(int value)
         menu->TxCondCmdPackage(value);
         menu->txCondCmdStage = 6;
         menu->initCondCommDialog((CEndState&)guiTree.getCurrentState());
+        drawWaveInfoOnTx();
     }
 }
 
@@ -1173,6 +1169,10 @@ void Service::playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain,
 
 void Service::onCompletedStationMode(bool isGoToVoice)
 {
+	workModeNum_tmp = 1;
+	workModeNum = 1;
+	main_scr->setModeText(mainScrMode[workModeNum]);
+
 	voice_service->stopGucQuit();
 
 	Headset::Controller::Status st = pGetHeadsetController()->getStatus();
@@ -1233,7 +1233,7 @@ void Service::onWaveInfoRecieved(float wave, float power)
 {
     waveValue = wave;
     powerValue = power;
-   // qmDebugMessage(QmDebug::Warning, "SWR = %f, POWER = %f ", waveValue, powerValue);
+    qmDebugMessage(QmDebug::Warning, "onWaveInfoRecieved() SWR = %f, POWER = %f ", waveValue, powerValue);
 #if PARAMS_DRAW
     //if (weveValue > 0 && powerValue > 0)
     	drawWaveInfo();

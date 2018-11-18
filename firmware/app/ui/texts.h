@@ -202,4 +202,6 @@ extern const char *errCrc;
 extern const char* openChannelPlayErrorStr;
 extern const char* noHeadsetPlayErrorStr;
 
+extern const char *mainScrMode[];
+
 #endif /* TEXTS_H_ */

@@ -140,7 +140,7 @@ private:
 
     void chNextHandler();
     void chPrevHandler();
-    void keyPressed(UI_Key key);
+    void keyPressed(UI_Key key,  bool isDraw = true);
 
     void keyHandler					    (int key_id, QmMatrixKeyboard::PressType pr_type);
     void keyChangeHandler               (int key_id, bool isPress);
@@ -325,6 +325,7 @@ private:
     void onRxModeSetting();
     void onTxModeSetting();
     void drawWaveInfo();
+    void drawWaveInfoOnTx();
     void onSettingAleFreq				(uint32_t freq);
 
     void mainWindow_keyPressed			(UI_Key key);
@@ -394,6 +395,11 @@ private:
     QmTimer* mainWindowShowTimer;
 
     CEndState estate;
+
+//    uint8_t emModeNum = 0;
+//    uint8_t emModeNum_tmp = 0;
+    uint8_t workModeNum = 1;
+    uint8_t workModeNum_tmp = 1;
 };
 } /* namespace Ui */
 #endif /* FIRMWARE_APP_UI_SERVICE_H_ */

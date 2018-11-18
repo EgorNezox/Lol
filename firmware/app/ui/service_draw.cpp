@@ -16,6 +16,8 @@ MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
 void Service::draw()
 {
+	qmDebugMessage(QmDebug::Warning, "draw()");
+
     CState currentState;
     guiTree.getLastElement(currentState);
 
@@ -56,6 +58,7 @@ void Service::draw()
 			break;
 		case endMenuWindow:
 			drawMenu();
+			drawWaveInfoOnTx();
 			break;
 		default:
 			break;
@@ -88,6 +91,7 @@ void Service::draw()
 
 void Service::drawMenu()
 {
+	qmDebugMessage(QmDebug::Warning, "drawMenu() start");
     Alignment align = {alignHCenter,alignTop};
     int focusItem;
 
@@ -157,6 +161,7 @@ void Service::drawMenu()
         }
     }
     //showSchedulePrompt(DataStorage::FS::FT_SMS, 15);
+    qmDebugMessage(QmDebug::Warning, "drawMenu() end");
 }
 
 void Service::drawIndicator()
@@ -230,13 +235,19 @@ void Service::drawIndicator()
     }
 }
 
+void Service::drawWaveInfoOnTx()
+{
+	if (waveValue > 0.000 && powerValue > 0.000)
+		drawWaveInfo();
+}
+
 void Service::drawWaveInfo()
 {
-
-#if EMUL
-  waveValue = 9.5;
-  powerValue = 9.9;
-#endif
+	qmDebugMessage(QmDebug::Warning, "drawWaveInfo() SWR = %f, POWER = %f ", waveValue, powerValue);
+//#if EMUL
+//  waveValue = 9.5;
+//  powerValue = 9.9;
+//#endif
 
   bool isCanDraw = (guiTree.getCurrentState().getType() == endMenuWindow) ||
 		  	  	   (guiTree.getCurrentState().getType() == mainWindow);
@@ -332,7 +343,7 @@ void Service::drawMainWindow()
     		break;
     	}
 
-    	main_scr->setModeText(str.c_str());
+    	main_scr->setEmModeText(str.c_str());
 
     	auto status = voice_service->getStatus();
 
@@ -360,7 +371,7 @@ void Service::drawMainWindow()
                 valid_freq
         );
 
-        drawIndicator();
+       drawIndicator();
        drawWaveInfo();
 
     }
