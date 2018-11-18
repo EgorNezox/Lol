@@ -124,7 +124,7 @@ void GUI_Indicator::drawSynchSatus()
 	if (isSynch)
 	{
         gsetvp(0,0,127,127);
-        MoonsGeometry icon_geom = {synchXoffset, 40, synchXoffset + ICON_SIZE-1, 55};
+        MoonsGeometry icon_geom = {synchXoffset + 2, 40 + 1, synchXoffset + ICON_SIZE-1 + 2, 55 + 1};
 		groundrect(icon_geom.xs - 5, icon_geom.ys, icon_geom.xe, icon_geom.ye, 0, GFILL);
 
         uint8_t radius = 9;
@@ -135,14 +135,30 @@ void GUI_Indicator::drawSynchSatus()
 		glineto(icon_geom.xs + radius2, icon_geom.ys);
 		gmoveto(icon_geom.xs + radius2, icon_geom.ys + radius);
 		glineto(icon_geom.xs + radius, icon_geom.ys + radius);
+
+		if (isSynchFocus)
+		{
+			gsetvp(0,0,GDISPW-1,GDISPH-1);
+			gsetcolorf(GENERAL_FORE_COLOR);
+	   	    groundrect(icon_geom.xs - 10,icon_geom.ys - 4,icon_geom.xe - 5, icon_geom.ye + 5,0,GLINE);
+		}
 	}
 	else
 	{
         gsetvp(0,0,127,127);
         MoonsGeometry icon_geom = {synchXoffset, 40, synchXoffset + 15, 55};
-		groundrect(icon_geom.xs - 5, icon_geom.ys, icon_geom.xe, icon_geom.ye, 0, GFILL);
+		groundrect(icon_geom.xs - 8, icon_geom.ys - 4, icon_geom.xe - 3, icon_geom.ye + 2, 0, GFILL);
         gps_time_lbl->Draw();
+
+		if (isSynchFocus)
+		{
+			gsetvp(0,0,GDISPW-1,GDISPH-1);
+			gsetcolorf(GENERAL_FORE_COLOR);
+	   	    groundrect(icon_geom.xs - 7,icon_geom.ys - 3,icon_geom.xe + 4,icon_geom.ye + 6,0,GLINE);
+		}
 	}
+
+
 }
 
 void GUI_Indicator::Draw()

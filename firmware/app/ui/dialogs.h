@@ -26,6 +26,7 @@ extern MoonsGeometry ui_indicator_area;
 
 //--------------------------
 
+const uint8_t syFocus = 5;
 const uint8_t emFocus = 4;
 const uint8_t mdFocus = 3;
 const uint8_t chFocus = 2;
@@ -54,6 +55,7 @@ public:
     bool channelEditing = false;
     bool emModeEditing = false;
     bool workModeEditing = false;
+    bool synchModeEditing = false;
     std::string nFreq, oFreq;
 
 private:
@@ -119,6 +121,7 @@ private:
 public:
         GUI_EL_Label *date_time;
         GUI_EL_Icon  *gpsLabel;
+        bool isSynchFocus = false;
 };
 
 

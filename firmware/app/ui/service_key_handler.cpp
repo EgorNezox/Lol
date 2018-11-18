@@ -242,8 +242,10 @@ void Service::mainWindow_keyPressed(UI_Key key)
 			}
 			case keyUp:
 			{
+				indicator->isSynchFocus = true;
 		    	main_scr->mwFocus = noFocus;
 				main_scr->emModeEditing = false;
+				main_scr->synchModeEditing = true;
 				break;
 			}
 			case keyDown:
@@ -317,6 +319,55 @@ void Service::mainWindow_keyPressed(UI_Key key)
         }
         main_scr->setModeText(mainScrMode[workModeNum_tmp]);
     }
+    else if (main_scr->synchModeEditing)
+    {
+        switch(key)
+        {
+			case keyLeft:
+			case keyRight:
+			{
+				gpsSynchronization = !gpsSynchronization;
+
+				voice_service->setVirtualMode(!gpsSynchronization);
+				if (storageFs > 0)
+				{
+					storageFs->setGpsSynchroMode((uint8_t)gpsSynchronization);
+				}
+				isChangeGpsSynch = false;
+				updateSessionTimeSchedule();
+				break;
+			}
+			case keyUp:
+			{
+				indicator->isSynchFocus = false;
+				main_scr->mwFocus = emFocus;
+				main_scr->synchModeEditing = false;
+				break;
+			}
+			case keyDown:
+			{
+				indicator->isSynchFocus = false;
+				main_scr->mwFocus = emFocus;
+				main_scr->emModeEditing = true;
+				main_scr->synchModeEditing = false;
+				break;
+			}
+			case keyBack:
+			{
+				indicator->isSynchFocus = false;
+				main_scr->mwFocus = noFocus;
+				main_scr->synchModeEditing = false;
+				break;
+			}
+			case keyEnter:
+			{
+				indicator->isSynchFocus = false;
+				main_scr->mwFocus = noFocus;
+				main_scr->synchModeEditing = false;
+				break;
+			}
+        }
+    }
     else
     {
         switch(key)
@@ -362,11 +413,12 @@ void Service::mainWindow_keyPressed(UI_Key key)
 					main_scr->mwFocus = mdFocus;
 				else if (main_scr->mwFocus == mdFocus)
 					main_scr->mwFocus = emFocus;
+				else if (main_scr->mwFocus == emFocus)
+					main_scr->mwFocus = syFocus;
 				else if (main_scr->mwFocus == chFocus)
 					main_scr->mwFocus = noFocus;
 				else if (main_scr->mwFocus == frFocus)
 					main_scr->mwFocus = chFocus;
-
 				break;
 			case keyDown:
 
@@ -374,11 +426,12 @@ void Service::mainWindow_keyPressed(UI_Key key)
 					main_scr->mwFocus = chFocus;
 				else if (main_scr->mwFocus == chFocus)
 					main_scr->mwFocus = frFocus;
+				else if (main_scr->mwFocus == syFocus)
+					main_scr->mwFocus = emFocus;
 				else if (main_scr->mwFocus == emFocus)
 					main_scr->mwFocus = mdFocus;
 				else if (main_scr->mwFocus == mdFocus)
 					main_scr->mwFocus = noFocus;
-
 				break;
 			case keyEnter:
 				if (main_scr->mwFocus == noFocus)
@@ -406,6 +459,11 @@ void Service::mainWindow_keyPressed(UI_Key key)
         if (main_scr->mwFocus == mdFocus)
         {
             main_scr->workModeEditing = true;
+        }
+        if (main_scr->mwFocus == syFocus)
+        {
+            main_scr->synchModeEditing = true;
+			indicator->isSynchFocus = true;
         }
     }
 }
