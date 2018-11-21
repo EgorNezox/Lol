@@ -17,3 +17,12 @@ job1:
     - arm-none-eabi-gcc --version
     - makepp BUILD_MODE=debug BUILD_PORT=target-device-rev1 clean
     - echo "$(makepp BUILD_MODE=debug BUILD_PORT=target-device-rev1 -j4)"
+  artifacts:
+    paths:
+    - "/builds/Sazhen/Sazhen/firmware/BUILD_target-device-rev1_debug/SazhenN_HOST_target-device-rev1_firmware.elf"
+    - "/builds/Sazhen/Sazhen/firmware/BUILD_target-device-rev1_debug/SazhenN_HOST_target-device-rev1_firmware.hex"
+    name: "Sazhen_$CI_JOB_ID"
+    when: on_success
+    expire_in: 30 day
+
+
