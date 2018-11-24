@@ -185,10 +185,10 @@ extern const char *rxCondErrorStr[];
 extern const char *rnKey;
 
 extern const char *waitingStr;
-extern const char *flashProcessingStr;
+//extern const char *flashProcessingStr;
 
 extern const char *radioStationStr;
-extern const char *sazhenNameStr;
+//extern const char *sazhenNameStr;
 
 extern const char *fromStr;
 

@@ -299,10 +299,10 @@ const char *rxCondErrorStr[] = {"Принятый пакет:\n\tОшибка\t\0", "Принятый пакет
 const char *rnKey = "Ключ радиосети\0";
 
 const char *waitingStr = "Ожидайте.\0";
-const char *flashProcessingStr = "Идет работа\n с памятью\0";
+//const char *flashProcessingStr = "Идет работа\n с памятью\0";
 
 const char *radioStationStr = "Радиостанция\0";
-const char *sazhenNameStr = "САЖЕНЬ-Н\0";
+//const char *sazhenNameStr = "САЖЕНЬ-Н\0";
 
 const char *fromStr = "от\0";
 

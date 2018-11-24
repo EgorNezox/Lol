@@ -323,6 +323,7 @@ private:
 
     void onRxModeSetting();
     void onTxModeSetting();
+    void drawWaveInfoOnTx();
     void drawWaveInfo();
     void onSettingAleFreq				(uint32_t freq);
 

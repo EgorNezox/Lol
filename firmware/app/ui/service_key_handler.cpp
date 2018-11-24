@@ -91,7 +91,7 @@ void Service::mainWindow_keyPressed(UI_Key key)
                 	main_scr->oFreq.append(main_scr->nFreq.c_str());
                 	isFirstInputFreqEdit = true;
 
-                	showMessage(waitingStr, flashProcessingStr, promptArea);
+                	//showMessage(waitingStr, flashProcessingStr, promptArea);
                 	voice_service->tuneFrequency(freq, true);
             }
 
@@ -166,7 +166,7 @@ void Service::mainWindow_keyPressed(UI_Key key)
 
     		    if (st == Headset::Controller::Status::StatusAnalog)
     		    {
-    		    	showMessage(waitingStr, flashProcessingStr, promptArea);
+    		    	//showMessage(waitingStr, flashProcessingStr, promptArea);
     		    	pGetVoiceService()->tuneChannel(channelNumberEditing);
     		    }
     		    else
@@ -234,7 +234,7 @@ void Service::mainWindow_keyPressed(UI_Key key)
         switch(key)
         {
 			case keyChNext:
-				showMessage(waitingStr, flashProcessingStr, promptArea);
+				//showMessage(waitingStr, flashProcessingStr, promptArea);
 				bool var;
 				if (headset_controller->getStatus() ==  Headset::Controller::Status::StatusSmartOk)
 				{
@@ -251,7 +251,7 @@ void Service::mainWindow_keyPressed(UI_Key key)
 				}
 				break;
 			case keyChPrev:
-				showMessage(waitingStr, flashProcessingStr, promptArea);
+				//showMessage(waitingStr, flashProcessingStr, promptArea);
 				if (headset_controller->getStatus() ==  Headset::Controller::Status::StatusSmartOk)
 				{
 					int number; Multiradio::voice_channel_t type;
@@ -680,8 +680,8 @@ void Service::condCommand_send()
 		fileMsg.push_back((uint8_t)sym[1]);
 		fileMsg.push_back((uint8_t)sym[2]);
 
-		GUI_Painter::ClearViewPort(true);
-		showMessage(waitingStr, flashProcessingStr, promptArea);
+		//GUI_Painter::ClearViewPort(true);
+		//showMessage(waitingStr, flashProcessingStr, promptArea);
 		storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_TX, &fileMsg);
 		draw();
 	}
@@ -1050,8 +1050,8 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
 
                 if (storageFs > 0)
                 {
-                	GUI_Painter::ClearViewPort(true);
-                    showMessage(waitingStr, flashProcessingStr, promptArea);
+                	//GUI_Painter::ClearViewPort(true);
+                   // showMessage(waitingStr, flashProcessingStr, promptArea);
                     storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_TX, &fileMsg );
                     draw();
                 }
@@ -1286,8 +1286,8 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
 
 				if (storageFs > 0)
 				{
-					GUI_Painter::ClearViewPort(true);
-					showMessage(waitingStr, flashProcessingStr, promptArea);
+					//GUI_Painter::ClearViewPort(true);
+					//showMessage(waitingStr, flashProcessingStr, promptArea);
 					storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
 					menu->toVoiceMail = false;
 					draw();
@@ -1556,8 +1556,8 @@ void Service::txSmsMessage_keyPressed(UI_Key key)
                             fileMsg.clear();
                             fileMsg.resize(msg.size());
                             memcpy(fileMsg.data(), &msg[0], msg.size());
-                            GUI_Painter::ClearViewPort(true);
-                            showMessage(waitingStr, flashProcessingStr, promptArea);
+                            //GUI_Painter::ClearViewPort(true);
+                            //showMessage(waitingStr, flashProcessingStr, promptArea);
                             storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_TX, &fileMsg);
                             menu->virtCounter = 0;
                             draw();
@@ -2139,8 +2139,8 @@ void Service::gpsSync_keyPressed(UI_Key key)
 				voice_service->setVirtualMode(!gpsSynchronization);
 				if (storageFs > 0)
 				{
-			        GUI_Painter::ClearViewPort(true);
-			        showMessage(waitingStr, flashProcessingStr, promptArea);
+			        //GUI_Painter::ClearViewPort(true);
+			        //showMessage(waitingStr, flashProcessingStr, promptArea);
 					storageFs->setGpsSynchroMode((uint8_t)gpsSynchronization);
 					//draw();
 				}
@@ -2301,8 +2301,8 @@ void Service::setFreq_keyPressed(UI_Key key)
         main_scr->oFreq.append( (*iter)->inputStr );
         int freq = atoi(main_scr->oFreq.c_str());
 
-        GUI_Painter::ClearViewPort(true);
-        showMessage(waitingStr, flashProcessingStr, promptArea);
+        //GUI_Painter::ClearViewPort(true);
+        //showMessage(waitingStr, flashProcessingStr, promptArea);
         voice_service->tuneFrequency(freq, true);
         //draw();
 
@@ -2374,8 +2374,8 @@ void Service::setSpeed_keyPressed(UI_Key key)
     {
 		case keyEnter:
 		{
-            GUI_Painter::ClearViewPort(true);
-            showMessage(waitingStr, flashProcessingStr, promptArea);
+            //GUI_Painter::ClearViewPort(true);
+            //showMessage(waitingStr, flashProcessingStr, promptArea);
 			voice_service->setCurrentChannelSpeed(currentSpeed);
 			break;
 		}
@@ -2440,8 +2440,8 @@ void Service::editRnKey_keyPressed(UI_Key key)
     {
     	if (storageFs)
     	{
-            GUI_Painter::ClearViewPort(true);
-            showMessage(waitingStr, flashProcessingStr, promptArea);
+            //GUI_Painter::ClearViewPort(true);
+            //showMessage(waitingStr, flashProcessingStr, promptArea);
     		storageFs->setFhssKey((uint16_t)atoi(menu->RN_KEY.c_str()));
     		//draw();
     	}
@@ -2464,8 +2464,8 @@ void Service::voiceMode_keyPressed(UI_Key key)
 
         if (storageFs)
         {
-			GUI_Painter::ClearViewPort(true);
-			showMessage(waitingStr, flashProcessingStr, promptArea);
+			//GUI_Painter::ClearViewPort(true);
+			//showMessage(waitingStr, flashProcessingStr, promptArea);
 			storageFs->setVoiceMode(menu->useMode);
 			//draw();
         }
@@ -2489,8 +2489,8 @@ void Service::channelEmissionType_keyPressed(UI_Key key)
 {
     if ( key == keyEnter || key == keyBack)
     {
-        GUI_Painter::ClearViewPort(true);
-        showMessage(waitingStr, flashProcessingStr, promptArea);
+        //GUI_Painter::ClearViewPort(true);
+        //showMessage(waitingStr, flashProcessingStr, promptArea);
 
         if (menu->ch_emiss_type)
             voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionFM);

@@ -156,7 +156,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
 
     waveInfoTimer = new QmTimer();
 
-    waveInfoTimer->setInterval(1700);
+    waveInfoTimer->setInterval(1500);
     waveInfoTimer->setSingleShot(true);
     waveInfoTimer->timeout.connect(sigc::mem_fun(this, &DspController::clearWaveInfo));
 

@@ -192,8 +192,8 @@ void Service::uploadSheldure()
 #ifndef _DEBUG_
     if (storageFs > 0)
     {
-        GUI_Painter::ClearViewPort(true);
-        showMessage(waitingStr, flashProcessingStr, promptArea);
+        //GUI_Painter::ClearViewPort(true);
+        //showMessage(waitingStr, flashProcessingStr, promptArea);
 
         if (sheldureMass == 0)
            sheldureMass = new uint8_t[1 + sheldure.size() * 13];

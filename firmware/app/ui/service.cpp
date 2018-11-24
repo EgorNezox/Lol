@@ -20,11 +20,7 @@
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
-#if PARAMS_DRAW
-    MoonsGeometry ui_indicator_area     = { 0,0,127,30};
-#else
-    MoonsGeometry ui_indicator_area     = { 0,0,GDISPW-1,23 };
-#endif
+MoonsGeometry ui_indicator_area     = { 0,0,95,30};
 
 namespace Ui {
 
@@ -483,6 +479,7 @@ void Service::onSmsCounterChange(int param)
     	}
 #endif
     }
+    drawWaveInfoOnTx();
     //qmDebugMessage(QmDebug::Warning, "______sms smsTxStage: %d ", menu->smsTxStage);
 }
 
@@ -504,8 +501,8 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
             fileMsg.push_back((uint8_t)sym[1]);
             fileMsg.push_back((uint8_t)sym[2]);
 
-            GUI_Painter::ClearViewPort(true);
-            showMessage(waitingStr, flashProcessingStr, promptArea);
+            //GUI_Painter::ClearViewPort(true);
+           // showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_RX, &fileMsg);
             draw();
         }
@@ -757,8 +754,8 @@ void Service::gucFrame(int value, bool isTxAsk)
 
         if (storageFs > 0)
         {
-            GUI_Painter::ClearViewPort(true);
-            showMessage(waitingStr, flashProcessingStr, promptArea);
+            //GUI_Painter::ClearViewPort(true);
+            //showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_RX, &fileMsg);
             draw();
         }
@@ -820,10 +817,10 @@ void Service::smsMessage(int value)
         const char *text = (const char*)voice_service->getSmsContent();
         std::string text_str = text;
         memcpy(fileMsg.data(), &text[0], value);
-        GUI_Painter::ClearViewPort(true);
-        showMessage(waitingStr, flashProcessingStr, promptArea);
+       // GUI_Painter::ClearViewPort(true);
+        //showMessage(waitingStr, flashProcessingStr, promptArea);
         storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_RX, &fileMsg);
-        draw();
+        //draw();
     }
 
     menu->virtCounter = 0;
@@ -838,7 +835,9 @@ void Service::smsMessage(int value)
 void Service::showReceivedSms()
 {
     const char *text = (const char*)voice_service->getSmsContent();
-    std::string title = "CMC#";
+    std::string title = "CMC";
+//    title.append(fromStr);
+    title.append("#");
     uint16_t sender = voice_service->smsSender();
     if (sender > 0 && sender < 32)
     {
@@ -983,6 +982,7 @@ void Service::TxCondCmdPackage(int value)
         menu->TxCondCmdPackage(value);
         menu->txCondCmdStage = 6;
         menu->initCondCommDialog((CEndState&)guiTree.getCurrentState());
+        drawWaveInfoOnTx();
     }
 }
 

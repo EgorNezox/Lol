@@ -23,13 +23,15 @@ namespace Multiradio
 #define SAZEN 1
 #define TROPA 0
 
-#if SAZEN
-	#define DEVICE_VALUE 280000
-#else
-	#if TROPA
-		#define DEVICE_VALUE 201600
-	#endif
-#endif
+#define DEVICE_VALUE 360000
+
+//#if SAZEN
+//
+//#else
+//	#if TROPA
+//		#define DEVICE_VALUE 201600
+//	#endif
+//#endif
 
 #define DEFAULT_PACKET_HEADER_LEN	2
 //280000 - sazhen 201600 -tropa

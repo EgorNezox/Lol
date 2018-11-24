@@ -45,6 +45,7 @@ void Service::draw()
         break;
     case endMenuWindow:
         drawMenu();
+        drawWaveInfoOnTx();
         break;
     default:
         break;
@@ -58,7 +59,7 @@ void Service::draw()
     	char add[3] = {0,0,0};
     	sprintf(add, "%d", address);
     	std::string str;
-    	str.append(sazhenNameStr);
+    	str.append(radioStationStr);
     	str.append(" # ");
     	str.append(add);
 
@@ -66,8 +67,7 @@ void Service::draw()
         GUI_Painter::ClearViewPort(true);
         GUI_Painter::DrawRect(0, 0, 127, 127, RDM_FILL);
 
-        GUI_Painter::DrawText(15, 15, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)radioStationStr);
-        GUI_Painter::DrawText(15, 30, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)str.c_str());
+        GUI_Painter::DrawText(8, 15, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)str.c_str());
         GUI_Painter::DrawText(15, 65, GUI_EL_TEMP_CommonTextAreaLT.font,(char*)true_SWF);
     }
 
@@ -216,6 +216,12 @@ void Service::drawIndicator()
 			}
 		}
     }
+}
+
+void Service::drawWaveInfoOnTx()
+{
+	if (waveValue > 0.000 && powerValue > 0.000)
+		drawWaveInfo();
 }
 
 void Service::drawWaveInfo()
@@ -481,11 +487,11 @@ void Service::drawMenu_rxSmsMessage()
 	}
     if (cntSmsRx == 2)
     {
-        if (valueRxSms > 0 && valueRxSms < 84)
+        if ((valueRxSms > 0) && (valueRxSms < 84) && !isSmsMessageRec)
         {
         		menu->RxSmsStatusPost(valueRxSms,1,true);
         }
-        else if ( voice_service->getVirtualMode() && menu->smsTxStage != 6 && valueRxSms != 84)
+        else if ( voice_service->getVirtualMode() && menu->smsTxStage != 6 && valueRxSms != 84 && !isSmsMessageRec)
         {
 				std::string str;
 				char syn[4] = {0,0,0,0};
@@ -525,8 +531,8 @@ void Service::drawMenu_rxPutOffVoice()
     		Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
     		if (storageFs > 0)
     		{
-    			GUI_Painter::ClearViewPort(true);
-    			showMessage(waitingStr, flashProcessingStr, promptArea);
+    			//GUI_Painter::ClearViewPort(true);
+    			//showMessage(waitingStr, flashProcessingStr, promptArea);
     			storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
     			//draw();
     			menu->toVoiceMail = false;
@@ -830,18 +836,18 @@ void Service::msgBox(const char *title, const char *text)
 
 void Service::msgBox(const char *title, const int condCmd)
 {
-//    Alignment align007 = {alignHCenter,alignTop};
-//    MoonsGeometry area007 = {1, 1, (GXT)(127), (GYT)(127)};
-//
-//    if (msg_box != nullptr)
-//        delete msg_box;
-//    msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, align007);
-//
-//    guiTree.append(messangeWindow, "");
-//    msg_box->setCmd(condCmd);
-//    if (!isStartTestMsg)
-//        msg_box->Draw();
-//    isDrawCondCmd = false;
+    Alignment align007 = {alignHCenter,alignTop};
+    MoonsGeometry area007 = {1, 1, (GXT)(127), (GYT)(127)};
+
+    if (msg_box != nullptr)
+        delete msg_box;
+    msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, align007);
+
+    guiTree.append(messangeWindow, "");
+    msg_box->setCmd(condCmd);
+    if (!isStartTestMsg)
+        msg_box->Draw();
+    isDrawCondCmd = false;
 }
 
 void Service::showMessage(const char *title, const char *text)

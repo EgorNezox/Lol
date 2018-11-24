@@ -669,6 +669,8 @@ void PswfModes::recSms(uint8_t *data)
 		//qmDebugMessage(QmDebug::Dump, "recieve frame() count = %d", syncro_recieve.size());
 
 		control->ContentSms.R_ADR = data[8]; // todo: check
+		control->sender = data[8];
+
 		if (check_rx_call(&control->wzn_value))
 		{
 			control->sms_call_received = true;

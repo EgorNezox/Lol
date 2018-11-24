@@ -224,6 +224,7 @@ public:
     bool inVoiceMail = false;
     PGFONT voiceFont = GUI_EL_TEMP_LabelMode.font;
     PGFONT voiceDigitFont = GUI_EL_TEMP_LabelChannel.font;
+    PGFONT smsTitleFont = GUI_EL_TEMP_LabelTitle.font;
 
     VoiceMailSource old_voiceMailSource = VMS_CHANNEL;
     VoiceMailSource voiceMailSource = VMS_CHANNEL;

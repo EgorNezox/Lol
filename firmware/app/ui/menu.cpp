@@ -917,6 +917,9 @@ void CGuiMenu::RxSmsStatusPost(int value, bool clear, bool clearAll)
 	   window.Draw();
    }
 
+   std::string strSms = "CMC\0";
+
+   GUI_Painter::DrawText(45,10,smsTitleFont,(char*)strSms.c_str(),cst);
    GUI_Painter::DrawText(40,50,voiceFont,(char*)strTodo.c_str(),cst);
 
 #if DEBDEBUGSHOWFREQ
@@ -1355,34 +1358,34 @@ void CGuiMenu::initTxSmsDialog(std::string titleStr, std::string fieldStr )
 
     switch(smsTxStage)
     {
-    case 3:
-        fieldParam = param[2];
-    case 2:
-        if (fieldStr.size() == 0)
-            fieldStr.append("--");
-        break;
-    case 4:
-    {
-    	if (fieldStr.size() > 100)
-    		fieldStr.resize(100);
+		case 3:
+			fieldParam = param[2];
+		case 2:
+			if (fieldStr.size() == 0)
+				fieldStr.append("--");
+			break;
+		case 4:
+		{
+			if (fieldStr.size() > 100)
+				fieldStr.resize(100);
 
-        field_geom  = {  5,  18, 125,  124 };
-        fieldParam = param[1];
-        fieldParam.element.align = {alignLeft, alignTop};
+			field_geom  = {  5,  18, 125,  124 };
+			fieldParam = param[1];
+			fieldParam.element.align = {alignLeft, alignTop};
 
-        length_message.clear();
-        char str_len[] = {0,0,0,0};
-        sprintf(str_len,"%d", fieldStr.size());
-        length_message.append(str_len).append( " %" );
+			length_message.clear();
+			char str_len[] = {0,0,0,0};
+			sprintf(str_len,"%d", fieldStr.size());
+			length_message.append(str_len).append( " %" );
 
-        isDrawLength = true;
-        isDrawScroll = true;
-        break;
-    }
-//    case 5:
-//    case 6:
-//        isDrawTitle = false;
-//        break;
+			isDrawLength = true;
+			isDrawScroll = true;
+			break;
+		}
+	//    case 5:
+	//    case 6:
+	//        isDrawTitle = false;
+	//        break;
     }
 
     if (smsTxStage == 4)
@@ -1442,7 +1445,7 @@ void CGuiMenu::initRxSmsDialog(std::string str, uint8_t stage) // + guc rx (hack
     ok_button.setSkipTextBackgronundFilling(true);
 
     window.Draw();
-    if (stage == 0 || stage == 11 || stage == 1 || stage == 2)
+    if ((stage == 0) || (stage == 11) || (stage == 1) || (stage == 10) || (stage == 2))
     {
         LabelParams titleParam = GUI_EL_TEMP_CommonTextAreaLT;
         titleParam.element.align = {alignHCenter, alignTop};
