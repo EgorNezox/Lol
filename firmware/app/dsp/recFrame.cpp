@@ -23,7 +23,7 @@ namespace Multiradio
 #define SAZEN 1
 #define TROPA 0
 
-#define DEVICE_VALUE 360000
+#define DEVICE_VALUE 400000
 
 //#if SAZEN
 //
