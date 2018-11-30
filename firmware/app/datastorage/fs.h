@@ -65,6 +65,8 @@ public:
     bool setAleStationAddress(uint8_t data);
     bool getAleDefaultWorkFreqs(Multiradio::ale_work_freqs_t &data);
 
+    int getMessageCount(FileType mode, TransitionFileType txrx);
+
     bool getGenDacValue(int *data);
     bool setGenDacValue(int data);
 private:

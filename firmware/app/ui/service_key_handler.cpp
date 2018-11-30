@@ -680,8 +680,8 @@ void Service::condCommand_send()
 		fileMsg.push_back((uint8_t)sym[1]);
 		fileMsg.push_back((uint8_t)sym[2]);
 
-		//GUI_Painter::ClearViewPort(true);
-		//showMessage(waitingStr, flashProcessingStr, promptArea);
+		GUI_Painter::ClearViewPort(true);
+		showMessage(waitingStr, flashProcessingStr, promptArea);
 		storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_TX, &fileMsg);
 		draw();
 	}
@@ -1050,8 +1050,8 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
 
                 if (storageFs > 0)
                 {
-                	//GUI_Painter::ClearViewPort(true);
-                   // showMessage(waitingStr, flashProcessingStr, promptArea);
+                	GUI_Painter::ClearViewPort(true);
+                    showMessage(waitingStr, flashProcessingStr, promptArea);
                     storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_TX, &fileMsg );
                     draw();
                 }
@@ -1286,8 +1286,8 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
 
 				if (storageFs > 0)
 				{
-					//GUI_Painter::ClearViewPort(true);
-					//showMessage(waitingStr, flashProcessingStr, promptArea);
+					GUI_Painter::ClearViewPort(true);
+					showMessage(waitingStr, flashProcessingStr, promptArea);
 					storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
 					menu->toVoiceMail = false;
 					draw();
@@ -1556,8 +1556,8 @@ void Service::txSmsMessage_keyPressed(UI_Key key)
                             fileMsg.clear();
                             fileMsg.resize(msg.size());
                             memcpy(fileMsg.data(), &msg[0], msg.size());
-                            //GUI_Painter::ClearViewPort(true);
-                            //showMessage(waitingStr, flashProcessingStr, promptArea);
+                            GUI_Painter::ClearViewPort(true);
+                            showMessage(waitingStr, flashProcessingStr, promptArea);
                             storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_TX, &fileMsg);
                             menu->virtCounter = 0;
                             draw();

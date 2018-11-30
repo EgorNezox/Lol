@@ -1866,8 +1866,8 @@ void CGuiMenu::onInputTimer()
 
 void CGuiMenu::calcFilesCount()
 {
-	uint8_t rxCountFiles = storageFs->getTransmitFileTypeCount(fileType, DataStorage::FS::TFT_RX);
-	uint8_t txCountFiles = storageFs->getTransmitFileTypeCount(fileType, DataStorage::FS::TFT_TX);
+	uint8_t rxCountFiles =  storageFs->getMessageCount(fileType, DataStorage::FS::TFT_RX);  //     storageFs->getTransmitFileTypeCount(fileType, DataStorage::FS::TFT_RX);
+	uint8_t txCountFiles =  storageFs->getMessageCount(fileType, DataStorage::FS::TFT_TX);  // storageFs->getTransmitFileTypeCount(fileType, DataStorage::FS::TFT_TX);
 
 	if (transitionfileType == DataStorage::FS::TFT_TX)
 	{
@@ -1884,8 +1884,8 @@ void CGuiMenu::calcFilesCount()
 // inverse numbers 0->9, 1->8, ... 9->0
 uint8_t CGuiMenu::recalcFileFocus(uint8_t focus, DataStorage::FS::FileType f, DataStorage::FS::TransitionFileType t)
 {
-	uint8_t rxCountFiles = storageFs->getTransmitFileTypeCount(f, DataStorage::FS::TFT_RX);
-	uint8_t txCountFiles = storageFs->getTransmitFileTypeCount(f, DataStorage::FS::TFT_TX);
+	uint8_t rxCountFiles =  storageFs->getMessageCount(f, DataStorage::FS::TFT_RX); //storageFs->getTransmitFileTypeCount(f, DataStorage::FS::TFT_RX);
+	uint8_t txCountFiles =  storageFs->getMessageCount(f, DataStorage::FS::TFT_TX);  //storageFs->getTransmitFileTypeCount(f, DataStorage::FS::TFT_TX);
 
 	uint8_t sumFiles = rxCountFiles + txCountFiles;
 

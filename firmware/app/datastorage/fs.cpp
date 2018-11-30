@@ -171,6 +171,11 @@ bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data)
 #endif
 }
 
+int FS::getMessageCount(FileType mode, TransitionFileType txrx)
+{
+	 return fileTypeInfo[mode].counter[txrx].count;
+}
+
 bool FS::getAleDefaultWorkFreqs(Multiradio::ale_work_freqs_t &data)
 {
 #if FAKE_WORK_FREQS
@@ -562,6 +567,6 @@ uint8_t FS::getFileNumber(FS::FileType fileType, uint8_t fileTreeTypeFocus){
 
 uint8_t FS::getTransmitFileTypeCount(FS::FileType fileType, FS::TransitionFileType transFileType)
 {
-	return transmitFileTypeCount[fileType][transFileType];
+	return  getMessageCount(fileType, transFileType);  //transmitFileTypeCount[fileType][transFileType];
 }
 } /* namespace DataStorage */

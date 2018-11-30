@@ -501,8 +501,8 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
             fileMsg.push_back((uint8_t)sym[1]);
             fileMsg.push_back((uint8_t)sym[2]);
 
-            //GUI_Painter::ClearViewPort(true);
-           // showMessage(waitingStr, flashProcessingStr, promptArea);
+            GUI_Painter::ClearViewPort(true);
+            showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_RX, &fileMsg);
             draw();
         }
@@ -754,8 +754,8 @@ void Service::gucFrame(int value, bool isTxAsk)
 
         if (storageFs > 0)
         {
-            //GUI_Painter::ClearViewPort(true);
-            //showMessage(waitingStr, flashProcessingStr, promptArea);
+            GUI_Painter::ClearViewPort(true);
+            showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_RX, &fileMsg);
             draw();
         }
@@ -817,8 +817,8 @@ void Service::smsMessage(int value)
         const char *text = (const char*)voice_service->getSmsContent();
         std::string text_str = text;
         memcpy(fileMsg.data(), &text[0], value);
-       // GUI_Painter::ClearViewPort(true);
-        //showMessage(waitingStr, flashProcessingStr, promptArea);
+        GUI_Painter::ClearViewPort(true);
+        showMessage(waitingStr, flashProcessingStr, promptArea);
         storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_RX, &fileMsg);
         //draw();
     }

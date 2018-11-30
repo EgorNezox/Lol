@@ -531,8 +531,8 @@ void Service::drawMenu_rxPutOffVoice()
     		Multiradio::voice_message_t message = voice_service->getAleRxVmMessage();
     		if (storageFs > 0)
     		{
-    			//GUI_Painter::ClearViewPort(true);
-    			//showMessage(waitingStr, flashProcessingStr, promptArea);
+    			GUI_Painter::ClearViewPort(true);
+    			showMessage(waitingStr, flashProcessingStr, promptArea);
     			storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_RX, &message);
     			//draw();
     			menu->toVoiceMail = false;
