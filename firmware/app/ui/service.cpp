@@ -726,7 +726,7 @@ void Service::gucFrame(int value, bool isTxAsk)
     {
         uint16_t len = size * 3;
         uint16_t fullSize = isGucCoord ? len + 31 + 10 : len;
-        uint8_t cmdv[fullSize];
+        uint8_t cmdv[fullSize] = {'\0'};
         char cmdSym[3];
 
         for (uint8_t cmdSymInd = 1; cmdSymInd <= size; cmdSymInd++)
@@ -736,7 +736,7 @@ void Service::gucFrame(int value, bool isTxAsk)
             memcpy(&cmdv[(cmdSymInd - 1) * 3], &cmdSym[0], 3);
         }
 
-        cmdv[len] = 0;
+        cmdv[fullSize-1] = '\0';
 
         if (isGucCoord)
         {
@@ -834,18 +834,23 @@ void Service::smsMessage(int value)
 
 void Service::showReceivedSms()
 {
-    const char *text = (const char*)voice_service->getSmsContent();
-    std::string title = "CMC";
-//    title.append(fromStr);
-    title.append("#");
-    uint16_t sender = voice_service->smsSender();
-    if (sender > 0 && sender < 32)
-    {
-    	title += (char) (48 + sender);
-    }
-    std::string text_str = text;
-    menu->initTxSmsDialog(title,text_str);
-    menu->virtCounter = 0;
+	const char *text = (const char*)voice_service->getSmsContent();
+	std::string title = "CMC";
+	title.append("#");
+	uint8_t sender = voice_service->smsSender();
+	if (sender > 0 && sender < 10)
+		title += (char) (48 + sender);
+
+	if (sender >=10 && sender < 32)
+	{
+		title += (char) 48 + (sender / 10);
+		title += (char) 48 + (sender % 10);
+	}
+
+
+	std::string text_str = text;
+	menu->initTxSmsDialog(title,text_str);
+	menu->virtCounter = 0;
 }
 
 void Service::updateAleVmProgress(uint8_t t)
