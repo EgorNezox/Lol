@@ -36,7 +36,7 @@ using namespace std;
 Navigator::Navigator(int uart_resource, int reset_iopin_resource, int ant_flag_iopin_resource, int sync_pulse_iopin_resource) {
 //#if defined(PORT__TARGET_DEVICE_REV1)
 	reset_iopin = new QmIopin(reset_iopin_resource, this);
-	reset_iopin->writeOutput(QmIopin::Level_Low);
+	//reset_iopin->writeOutput(QmIopin::Level_Low);
 	QmUart::ConfigStruct uart_config;
 	uart_config.baud_rate = 115200;
 	uart_config.stop_bits = QmUart::StopBits_1;
