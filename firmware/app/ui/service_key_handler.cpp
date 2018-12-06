@@ -1163,7 +1163,12 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
 #else
         if (key == keyEnter && menu->voiceMailSource == VMS_CHANNEL && menu->channalNum.size() > 0)
         {
-            headset_controller->startSmartRecord((uint8_t)atoi( menu->channalNum.c_str()));
+        	uint8_t chan = (uint8_t)atoi( menu->channalNum.c_str());
+
+        	headset_controller->setChannelManual(chan, Multiradio::voicespeed600);
+        	//headset_controller->setSmartCurrentChannelSpeed(Multiradio::voicespeed600)
+        	//headset_controller->setChannel		(chan);
+            headset_controller->startSmartRecord(chan);
             menu->putOffVoiceStatus++;
             menu->inVoiceMail = true;
         }

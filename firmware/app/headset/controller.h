@@ -177,6 +177,8 @@ public:
 	 * \param channel номер канала
 	 */
 	void setChannel(uint8_t channel);
+	void setChannelManual(uint8_t channel, Multiradio::voice_channel_speed_t speed);
+
 
 	Multiradio::voice_channel_t getChannelType		  (uint32_t channel);
 	Multiradio::voice_channel_speed_t getChannelSpeed (uint32_t channel);

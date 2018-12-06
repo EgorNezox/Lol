@@ -276,6 +276,14 @@ void Controller::setChannel(uint8_t channel)
 	synchronizeHSState();
 }
 
+void Controller::setChannelManual(uint8_t channel, Multiradio::voice_channel_speed_t speed )
+{
+	old_ch_number = ch_number;
+	ch_number = channel;
+	ch_speed = speed;
+	synchronizeHSState();
+}
+
 void Controller::messagePacketResponce(int packet_number)
 {
 #if (min_debug)
@@ -1000,11 +1008,12 @@ void Controller::startSmartRecord(uint8_t channel)
 	message_record_data.clear();
 
 	setSmartHSState(SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL);
-	ch_number = channel;
-	ch_speed = Multiradio::voicespeed600;
-	synchronizeHSState();
+	//ch_number = channel;
+	//ch_speed = Multiradio::voicespeed600;
+	//synchronizeHSState();
 	//startMessageRecord();
-	checkUpdateSmartHSState();
+	delay_timer->start();
+	//checkUpdateSmartHSState();
 }
 
 void Controller::startMessageRecord()
