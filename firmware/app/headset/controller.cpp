@@ -949,13 +949,15 @@ void Controller::startSmartPlay(uint8_t channel)
 		return;
 	}
 
+	setChannelManual(channel, Multiradio::voicespeed600);
 	setSmartHSState(SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL);
 	messageToPlayDataPack();
-	ch_number = channel;
-	ch_speed = Multiradio::voicespeed600;
+	//ch_number = channel;
+	//ch_speed = Multiradio::voicespeed600;
 
-	synchronizeHSState();
-	checkUpdateSmartHSState();
+	delay_timer->start();
+	//synchronizeHSState();
+	//checkUpdateSmartHSState();
 }
 
 void Controller::startMessagePlay()

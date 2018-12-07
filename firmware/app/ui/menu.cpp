@@ -778,8 +778,12 @@ void CGuiMenu::TxVoiceDialogStatus5(int status, bool isClear )
         str = strOld;
         cst = CST_INVERSE;
 }
-    if (status != 13)
+    if (status != 13 && status != 12)
         GUI_Painter::DrawText(10,25,voiceFont,(char*)str.c_str(),cst);
+
+   if (status == 12)
+	   GUI_Painter::DrawText(2,25,voiceFont,(char*)str.c_str(),cst);
+
     GUI_Painter::DrawText(40,50,voiceDigitFont,(char*)strDigit.c_str(),cst);
 }
 
