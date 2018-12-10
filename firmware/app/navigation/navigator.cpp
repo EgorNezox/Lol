@@ -468,8 +468,9 @@ void Navigator::coldStart()
 //    qmDebugMessage(QmDebug::Dump, "processConfig()\n%s", config_sentences);
 //    uart->writeData((uint8_t *)start_sentences, strlen(start_sentences));
 
-	const char * const config_sentences = "$PSTM,8\r\n";
-	uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
+//	const char * const config_sentences = "$PSTM,8\r\n";
+//	const char * const config_sentences = "$PSTMRESTOREPAR\r\n";
+//	uart->writeData((uint8_t *)config_sentences, strlen(config_sentences));
 }
 
 void Navigator::setMinimalActivityMode(bool enabled) {
