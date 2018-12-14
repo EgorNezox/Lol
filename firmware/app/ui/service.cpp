@@ -220,7 +220,17 @@ void Service::readSynchMode()
 
 void Service::startRxQuit()
 {
-	isGucAnswerWaiting = true;
+	if (menu->sndMode)
+		isGucAnswerWaiting = false;
+	else
+		isGucAnswerWaiting = true;
+
+	if (!isGucAnswerWaiting)
+	{
+		menu->groupCondCommStage = 0;
+		guiTree.resetCurrentState();
+	}
+
 	draw();
 }
 
