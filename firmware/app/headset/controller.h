@@ -354,6 +354,8 @@ private:
 	bool isSmartHSStateChange = false;
 	void checkUpdateSmartHSState();
 	void setUpdateState();
+	void onRepeatPlaying();
+	void logOut(uint8_t* data);
 
 	State state;
 	Status status;
@@ -368,6 +370,7 @@ private:
 	int cmd_repeats_counter;
 
 	QmTimer* delay_timer;
+	QmTimer* repeatPlayTimer;
 	QmTimer* initModuleTimer;
 
 	SmartStatusDescription smart_status_description;
@@ -395,8 +398,12 @@ private:
 	bool isToOpenChannel = false;
 	bool changeSpeedAuto = false;
 
+	uint8_t isNotInitModule = 0;
+	uint8_t mode_mask_add = 0;
+	uint8_t delaySpechRecord = 0;
+	uint8_t error_status = 0;
 
-
+	bool isSetCurrentChannel = false;
 };
 
 } /* namespace Headset */

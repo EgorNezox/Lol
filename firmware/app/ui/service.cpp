@@ -906,35 +906,49 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
 {
     QM_UNUSED(state);
 
-//    std::string str;
-//    switch(state)
-//    {
-//		case Headset::Controller::SmartHSState_SMART_EMPTY_MESSAGE: str = "SmartHSState_SMART_EMPTY_MESSAGE"; break;
-//		case Headset::Controller::SmartHSState_SMART_NOT_CONNECTED: str = "SmartHSState_SMART_NOT_CONNECTED"; break;
-//		case Headset::Controller::SmartHSState_SMART_ERROR: str = "SmartHSState_SMART_ERROR"; break;
-//		case Headset::Controller::SmartHSState_SMART_BAD_CHANNEL: str = "SmartHSState_SMART_BAD_CHANNEL"; break;
-//		case Headset::Controller::SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL: str = "SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL"; break;
-//		case Headset::Controller::SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE: str = "SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE"; break;
-//		case Headset::Controller::SmartHSState_SMART_RECORD_DOWNLOADING: str = "SmartHSState_SMART_RECORD_DOWNLOADING"; break;
-//		case Headset::Controller::SmartHSState_SMART_PLAYING: str = "SmartHSState_SMART_PLAYING"; break;
-//		case Headset::Controller::SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL: str = "SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL"; break;
-//		case Headset::Controller::SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE: str = "SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE"; break;
-//		case Headset::Controller::SmartHSState_SMART_RECORDING: str = "SmartHSState_SMART_RECORDING"; break;
-//		case Headset::Controller::SmartHSState_SMART_RECORD_UPLOADING: str = "SmartHSState_SMART_RECORD_UPLOADING"; break;
-//		case Headset::Controller::SmartHSState_SMART_RECORD_TIMEOUT: str = "SmartHSState_SMART_RECORD_TIMEOUT"; break;
-//		case Headset::Controller::SmartHSState_SMART_READY: str = "SmartHSState_SMART_READY"; break;
-//    }
-//    qmDebugMessage(QmDebug::Warning, "%s", str.c_str());
+    static Headset::Controller::SmartHSState oldState = Headset::Controller::SmartHSState_SMART_READY;
+    static Headset::Controller::SmartHSState newState = state;
+    oldState = newState;
+    newState = state;
+
+    bool isEndPlaying = (oldState == Headset::Controller::SmartHSState_SMART_PLAYING) && (newState == Headset::Controller::SmartHSState_SMART_READY);
+
+    std::string str;
+    switch(state)
+    {
+		case Headset::Controller::SmartHSState_SMART_EMPTY_MESSAGE: 					str = "SmartHSState_SMART_EMPTY_MESSAGE"; break;
+		case Headset::Controller::SmartHSState_SMART_NOT_CONNECTED: 					str = "SmartHSState_SMART_NOT_CONNECTED"; break;
+		case Headset::Controller::SmartHSState_SMART_ERROR: 	    					str = "SmartHSState_SMART_ERROR"; break;
+		case Headset::Controller::SmartHSState_SMART_BAD_CHANNEL:   					str = "SmartHSState_SMART_BAD_CHANNEL"; break;
+		case Headset::Controller::SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL: 	str = "SmartHSState_SMART_PREPARING_PLAY_SETTING_CHANNEL"; break;
+		case Headset::Controller::SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE:   	str = "SmartHSState_SMART_PREPARING_PLAY_SETTING_MODE"; break;
+		case Headset::Controller::SmartHSState_SMART_RECORD_DOWNLOADING: 				str = "SmartHSState_SMART_RECORD_DOWNLOADING"; break;
+		case Headset::Controller::SmartHSState_SMART_PLAYING: 							str = "SmartHSState_SMART_PLAYING"; break;
+		case Headset::Controller::SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL: 	str = "SmartHSState_SMART_PREPARING_RECORD_SETTING_CHANNEL"; break;
+		case Headset::Controller::SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE: 	str = "SmartHSState_SMART_PREPARING_RECORD_SETTING_MODE"; break;
+		case Headset::Controller::SmartHSState_SMART_RECORDING: 						str = "SmartHSState_SMART_RECORDING"; break;
+		case Headset::Controller::SmartHSState_SMART_RECORD_UPLOADING: 					str = "SmartHSState_SMART_RECORD_UPLOADING"; break;
+		case Headset::Controller::SmartHSState_SMART_RECORD_TIMEOUT: 					str = "SmartHSState_SMART_RECORD_TIMEOUT"; break;
+		case Headset::Controller::SmartHSState_SMART_READY: 							str = "SmartHSState_SMART_READY"; break;
+    }
+    qmDebugMessage(QmDebug::Warning, "%s", str.c_str());
 
     CState currentState;
     guiTree.getLastElement(currentState);
 
+    bool isRecord = false;
+    static bool isUploaded = false;
+
     if (currentState.getType() == endMenuWindow)
     {
-        static bool isUploaded = false;
-
-        bool isRecord = false;
         GuiWindowsSubType subType = ((CEndState&)guiTree.getCurrentState()).subType;
+
+        if ((subType == filetree) && isEndPlaying)
+        {
+        	menu->filesStage = 2;
+        	drawMenu();
+        }
+
         if ((subType == txPutOffVoice) && (menu->putOffVoiceStatus == 2))
         {
             if (state == Headset::Controller::SmartHSState::SmartHSState_SMART_RECORD_UPLOADING)
@@ -964,6 +978,10 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
             }
         }
     }
+
+   // qmDebugMessage(QmDebug::Warning, "isUploaded = %i", isUploaded);
+   // qmDebugMessage(QmDebug::Warning, "isRecord = %i", isRecord);
+   // qmDebugMessage(QmDebug::Warning, "menu->putOffVoiceStatus = %i", menu->putOffVoiceStatus);
 }
 
 void Service::TxCondCmdPackage(int value)
@@ -1258,5 +1276,5 @@ void Service::draw_emulate()
 }/* namespace Ui */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(service, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(service, LevelVerbose)
 #include "qmdebug_domains_end.h"

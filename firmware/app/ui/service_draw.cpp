@@ -373,7 +373,8 @@ void Service::drawMenu_txPutOffVoice()
     	menu->vmProgress = voice_service->getAleVmProgress();
     }
 
-    if (menu->putOffVoiceStatus == 1) voice_service->resetDSPLogic();
+    if (menu->putOffVoiceStatus == 1)
+    	voice_service->resetDSPLogic();
 
     bool isDraw = true;
     if (menu->putOffVoiceStatus == 2 && (status == 8 || status == 9))
