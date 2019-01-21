@@ -3,13 +3,19 @@
 #include "qmfile.h"
 
 #include "fs.h"
-
+#include "qmspiffs.h"
 #include <string.h>
+
+#define QMDEBUGDOMAIN	data_storage
+#include "qmdebug.h"
 
 #define FAKE_CALL_FREQS 0
 #define FAKE_WORK_FREQS 0
 
 #define DEFAULT_GEN_FREG 3000
+
+#define DEFAUL_STATION_ADDRESS 31
+#define DEFAULT_FHSS_KEY       631
 
 namespace DataStorage {
 
@@ -38,12 +44,35 @@ FS::FS(const std::string &dir) :
 
 }
 
+bool FS::getDiagnsticInfo()
+{
+	 return (QmFile::checkSystem("data") == true);
+}
+
 FS::~FS()
 {
 }
 
+void FS::setBugDetect()
+{
+	isBugDetect = true;
+}
+
+void FS::resetBug()
+{
+	isBugDetect = false;
+}
+
+bool FS::getBugState()
+{
+	return isBugDetect;
+}
+
 bool FS::readFilterCoeff(float* data)
 {
+	if (getBugState())
+		return false;
+
 	QmFile file(dir, "GeneratorFreq");
 	if (!file.open(QmFile::ReadOnly))
 		return false;
@@ -73,25 +102,36 @@ bool FS::readFilterCoeff(float* data)
 
 bool FS::writeFilterCoeff(float data)
 {
+	if (getBugState())
+	    return false;
+
     QmFile file(dir, "GeneratorFreq");
+
     if (!file.open(QmFile::WriteOnly))
         return false;
 
     uint8_t data_len = sizeof(float);
+    qmDebugMessage(QmDebug::Info, "len of write coeff = %i",  data_len);
 
     int32_t len = file.write((uint8_t*)&data, data_len);
 
+    QmFile::checkSystem("data");
+
     if (len != data_len)
     {
-      file.close();
+      deleteFile("GeneratorFreq");
       return false;
     }
 
-    return true;
+    bool res = file.close();
+    return res;
 }
 
 bool FS::getGenDacValue(int *data)
 {
+	if (getBugState())
+	    return false;
+
 	*data = 0;
 	QmFile file(dir, "GenDacValue");
 	if (!file.open(QmFile::ReadOnly))
@@ -107,6 +147,9 @@ bool FS::getGenDacValue(int *data)
 
 bool FS::setGenDacValue(int data)
 {
+	if (getBugState())
+	    return false;
+
     QmFile file(dir, "GenDacValue");
     if (!file.open(QmFile::WriteOnly))
         return false;
@@ -116,6 +159,133 @@ bool FS::setGenDacValue(int data)
 }
 
 bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
+
+if (getBugState())
+{
+	Multiradio::voice_channel_entry_t entry;
+	entry.frequency = 3288000;
+	entry.type 	    = Multiradio::channelOpen;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 3288000;
+	entry.type 	    = Multiradio::channelClose;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 3810000;
+	entry.type 	    = Multiradio::channelOpen;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 3810000;
+	entry.type 	    = Multiradio::channelClose;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 4517000;
+	entry.type 	    = Multiradio::channelOpen;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 4517000;
+	entry.type 	    = Multiradio::channelClose;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 5786000;
+	entry.type 	    = Multiradio::channelOpen;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 5786000;
+	entry.type 	    = Multiradio::channelClose;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 6779000;
+	entry.type 	    = Multiradio::channelOpen;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 6779000;
+	entry.type 	    = Multiradio::channelClose;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 7011000;
+	entry.type 	    = Multiradio::channelOpen;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 7011000;
+	entry.type 	    = Multiradio::channelClose;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 8667000;
+	entry.type 	    = Multiradio::channelOpen;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 8667000;
+	entry.type 	    = Multiradio::channelClose;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 10227000;
+	entry.type 	    = Multiradio::channelOpen;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 10227000;
+	entry.type 	    = Multiradio::channelClose;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 12143000;
+	entry.type 	    = Multiradio::channelOpen;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 12143000;
+	entry.type 	    = Multiradio::channelClose;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 12204000;
+	entry.type 	    = Multiradio::channelOpen;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 12204000;
+	entry.type 	    = Multiradio::channelClose;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 14557000;
+	entry.type 	    = Multiradio::channelOpen;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 14557000;
+	entry.type 	    = Multiradio::channelClose;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 26000000;
+	entry.type 	    = Multiradio::channelOpen;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+
+	entry.frequency = 26000000;
+	entry.type 	    = Multiradio::channelClose;
+	entry.speed     = Multiradio::voicespeed1200;
+	data.push_back(entry);
+    return true;
+}
+else
+{
 	data.clear();
 	QmFile file(dir, "VoiceChannelsTable");
 	if (!file.open(QmFile::ReadOnly))
@@ -137,20 +307,21 @@ bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
 	file.close();
 	return true;
 }
+}
 
 bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data)
 {
-#if FAKE_CALL_FREQS
-
+if (getBugState())
+{
 	data.push_back(4517000);
 	data.push_back(3288000);
 	data.push_back(6779000);
 	data.push_back(4889000);
 	data.push_back(7000000);
 	return true;
-
-#else
-
+}
+else
+{
 	data.clear();
 	QmFile file(dir, "AleDefaultCallFreqs");
 	if (!file.open(QmFile::ReadOnly))
@@ -168,7 +339,7 @@ bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data)
 	}
 	file.close();
 	return true;
-#endif
+}
 }
 
 int FS::getMessageCount(FileType mode, TransitionFileType txrx)
@@ -178,17 +349,17 @@ int FS::getMessageCount(FileType mode, TransitionFileType txrx)
 
 bool FS::getAleDefaultWorkFreqs(Multiradio::ale_work_freqs_t &data)
 {
-#if FAKE_WORK_FREQS
-
+if (getBugState())
+{
     data.push_back(4517000);
     data.push_back(3288000);
     data.push_back(6779000);
     data.push_back(4889000);
     data.push_back(8000000);
     return true;
-
-#else
-
+}
+else
+{
     data.clear();
     QmFile file(dir, "AleSessionFreqs");
     if (!file.open(QmFile::ReadOnly))
@@ -205,25 +376,38 @@ bool FS::getAleDefaultWorkFreqs(Multiradio::ale_work_freqs_t &data)
     }
     file.close();
     return true;
-#endif
+}
 }
 
+
+
 bool FS::getAleStationAddress(uint8_t& data) {
-	data = 0;
-	QmFile file(dir, "AleStationAddress");
-	if (!file.open(QmFile::ReadOnly))
-		return false;
-	int64_t file_size = file.size();
-	if (!(file_size == 1))
-		return false;
-	file.read((uint8_t *)&data, 1);
-	file.close();
-	return true;
+
+	if (getBugState())
+	{
+		data = DEFAUL_STATION_ADDRESS;
+	}
+	else
+	{
+		data = 0;
+		QmFile file(dir, "AleStationAddress");
+		if (!file.open(QmFile::ReadOnly))
+			return false;
+		int64_t file_size = file.size();
+		if (!(file_size == 1))
+			return false;
+		file.read((uint8_t *)&data, 1);
+		file.close();
+		return true;
+	}
 }
 
 
 bool FS::setAleStationAddress(uint8_t data)
 {
+	if (getBugState())
+		return false;
+
     QmFile file(dir, "AleStationAddress");
     if (!file.open(QmFile::WriteOnly))
         return false;
@@ -236,6 +420,13 @@ bool FS::setAleStationAddress(uint8_t data)
 }
 
 bool FS::getFhssKey(uint16_t& data) {
+
+	if (getBugState())
+	{
+		data = DEFAULT_FHSS_KEY;
+		return false;
+	}
+
 	data = 0;
 	QmFile file(dir, "FhssKey");
 	if (!file.open(QmFile::ReadOnly))
@@ -249,6 +440,10 @@ bool FS::getFhssKey(uint16_t& data) {
 }
 
 void FS::setFhssKey(uint16_t data) {
+
+	if (getBugState())
+		return;
+
 	QmFile file(dir, "FhssKey");
 	if (!file.open(QmFile::WriteOnly))
 		return;
@@ -257,6 +452,10 @@ void FS::setFhssKey(uint16_t data) {
 }
 
 bool FS::getVoiceFrequency(uint32_t &data) {
+
+	if (getBugState())
+		return false;
+
 	data = 0;
 	QmFile file(dir, "VoiceFrequency");
 	if (!file.open(QmFile::ReadOnly))
@@ -271,6 +470,9 @@ bool FS::getVoiceFrequency(uint32_t &data) {
 
 void FS::setVoiceFrequency(uint32_t data)
 {
+	if (getBugState())
+		return;
+
 	QmFile file(dir, "VoiceFrequency");
 	if (!file.open(QmFile::WriteOnly))
 		return;
@@ -279,6 +481,13 @@ void FS::setVoiceFrequency(uint32_t data)
 }
 
 bool FS::getVoiceEmissionType(Multiradio::voice_emission_t &data) {
+
+	if (getBugState())
+	{
+		data = Multiradio::voiceemissionUSB;
+		return true;
+	}
+
 	data = Multiradio::voiceemissionInvalid;
 	QmFile file(dir, "VoiceEmissionType");
 	if (!file.open(QmFile::ReadOnly))
@@ -292,6 +501,10 @@ bool FS::getVoiceEmissionType(Multiradio::voice_emission_t &data) {
 }
 
 void FS::setVoiceEmissionType(Multiradio::voice_emission_t data) {
+
+	if (getBugState())
+		return;
+
 	QmFile file(dir, "VoiceEmissionType");
 	if (!file.open(QmFile::WriteOnly))
 		return;
@@ -300,6 +513,13 @@ void FS::setVoiceEmissionType(Multiradio::voice_emission_t data) {
 }
 
 bool FS::getVoiceChannelSpeed(Multiradio::voice_channel_speed_t &data) {
+
+	if (getBugState())
+	{
+		data = Multiradio::voicespeed1200;
+		return true;
+	}
+
 	data = Multiradio::voicespeedInvalid;
 	QmFile file(dir, "VoiceChannelSpeed");
 	if (!file.open(QmFile::ReadOnly))
@@ -312,6 +532,10 @@ bool FS::getVoiceChannelSpeed(Multiradio::voice_channel_speed_t &data) {
 }
 
 void FS::setVoiceChannelSpeed(Multiradio::voice_channel_speed_t data) {
+
+	if (getBugState())
+		return;
+
 	QmFile file(dir, "VoiceChannelSpeed");
 	if (!file.open(QmFile::WriteOnly))
 		return;
@@ -319,8 +543,15 @@ void FS::setVoiceChannelSpeed(Multiradio::voice_channel_speed_t data) {
 }
 
 bool FS::getAnalogHeadsetChannel(uint8_t& data) {
+
+	if (getBugState())
+	{
+		data = 1;
+		return true;
+	}
+
 	data = 0;
-	QmFile file(dir, "AnalogHeadsetChannel");
+	QmFile file(dir, "");
 	if (!file.open(QmFile::ReadOnly))
 		return false;
 	int64_t file_size = file.size();
@@ -331,6 +562,10 @@ bool FS::getAnalogHeadsetChannel(uint8_t& data) {
 }
 
 void FS::setAnalogHeadsetChannel(uint8_t data) {
+
+	if (getBugState())
+		return;
+
 	QmFile file(dir, "AnalogHeadsetChannel");
 	if (!file.open(QmFile::WriteOnly))
 		return;
@@ -338,6 +573,14 @@ void FS::setAnalogHeadsetChannel(uint8_t data) {
 }
 
 bool FS::getGpsSynchroMode(uint8_t* data) {
+
+	if (getBugState())
+	{
+		bool gpsSynchronization   = true;
+		*data = gpsSynchronization;
+		return true;
+	}
+
     QmFile file(dir, "GpsSynchroMode");
     if (!file.open(QmFile::ReadOnly))
         return false;
@@ -356,6 +599,9 @@ bool FS::getGpsSynchroMode(uint8_t* data) {
  */
 void FS::setVoiceMode(bool data)
 {
+	if (getBugState())
+		return;
+
 	if (data > 0)
 		data = true;
 	else
@@ -373,6 +619,14 @@ void FS::setVoiceMode(bool data)
  */
 bool FS::getVoiceMode(bool *data)
 {
+	if (getBugState())
+	{
+		// manual mode
+		bool useMode = false;
+		*data = useMode;
+		return true;
+	}
+
     QmFile file(dir, "VoiceMode");
     if(!file.open(QmFile::ReadOnly))
         return false;
@@ -386,7 +640,10 @@ bool FS::getVoiceMode(bool *data)
 
 bool FS::getSheldure(uint8_t* data)
 {
-    QmFile file(dir, "Sheldure");
+	if (getBugState())
+		return false;
+
+	QmFile file(dir, "Sheldure");
     if (file.open(QmFile::ReadOnly))
     {
         uint32_t fileSize = file.size();
@@ -401,6 +658,9 @@ bool FS::getSheldure(uint8_t* data)
 
 bool FS::setSheldure(uint8_t* data, uint16_t size)
 {
+	if (getBugState())
+		return false;
+
     deleteFile("Sheldure");
     QmFile file(dir, "Sheldure");
     if(file.open(QmFile::WriteOnly)){
@@ -413,6 +673,9 @@ bool FS::setSheldure(uint8_t* data, uint16_t size)
 
 bool FS::readMessage(FileType fileType, TransitionFileType transFileType, std::vector<uint8_t>* data, uint8_t fileNumber)
 {
+	if (getBugState())
+		return false;
+
     std::string fileName = generateFileNameByNumber(fileType, transFileType, fileNumber);
     if (fileName != errorFileName){
         QmFile file(dir, fileName);
@@ -430,6 +693,9 @@ bool FS::readMessage(FileType fileType, TransitionFileType transFileType, std::v
 
 bool FS::writeMessage(FileType fileType, TransitionFileType transFileType, std::vector<uint8_t> *data)
 {
+	if (getBugState())
+		return false;
+
     if (data->size() > 0){
         std::string fileName = prepareFileStorageToWriting(fileType, transFileType);
         if (fileName != errorFileName){
@@ -448,6 +714,9 @@ bool FS::writeMessage(FileType fileType, TransitionFileType transFileType, std::
 
 void FS::setGpsSynchroMode(uint8_t data)
 {
+	if (getBugState())
+		return;
+
     QmFile file(dir, "GpsSynchroMode");
     if (!file.open(QmFile::WriteOnly))
         return;
@@ -457,21 +726,28 @@ void FS::setGpsSynchroMode(uint8_t data)
 
 bool FS::renameFile(std::string oldfileName, std::string newFileName)
 {
+	if (getBugState()) return false;
+
     return QmFile::rename(dir, oldfileName, newFileName);
 }
 
 bool FS::deleteFile(std::string fileName)
 {
+	if (getBugState()) return false;
+
     return QmFile::remove(dir, fileName);
 }
 
 bool FS::existFile(std::string fileName)
 {
+	if (getBugState()) return false;
     return QmFile::exists(dir, fileName);
 }
 
 void FS::updateFileTree()
 {
+	if (getBugState()) return;
+
     files.clear();
 
     std::string fileName;
@@ -498,6 +774,7 @@ std::vector<std::string>* FS::getFileTree()
 
 void FS::getFileNamesByType(std::vector<std::string> *typeFiles, FS::FileType fileType)
 {
+
     typeFiles->clear();
     std::string fileName;
     for (uint8_t fileTransType = 0; fileTransType < 2; fileTransType++){
@@ -527,6 +804,8 @@ std::string FS::generateFileNameByNumber(FS::FileType fileType, TransitionFileTy
 
 void FS::prepareFreeFileSlot(FS::FileType fileType, TransitionFileType transFileType)
 {
+	if (getBugState()) return;
+
     deleteFile(generateFileNameByNumber(fileType,transFileType, 0));
 
     //cyclic rename file n to n-1
@@ -565,8 +844,24 @@ uint8_t FS::getFileNumber(FS::FileType fileType, uint8_t fileTreeTypeFocus){
 
 }
 
+void FS::findFilesToFiletree()
+{
+	std::vector<std::string> files;
+	isFileTreeReady = false;
+
+	// read all files from dir
+	QmSpiffs::check_files("data",files);
+
+	isFileTreeReady = true;
+
+}
+
 uint8_t FS::getTransmitFileTypeCount(FS::FileType fileType, FS::TransitionFileType transFileType)
 {
 	return  getMessageCount(fileType, transFileType);  //transmitFileTypeCount[fileType][transFileType];
 }
 } /* namespace DataStorage */
+
+#include "qmdebug_domains_start.h"
+QMDEBUG_DEFINE_DOMAIN(data_storage, LevelVerbose)
+#include "qmdebug_domains_end.h"

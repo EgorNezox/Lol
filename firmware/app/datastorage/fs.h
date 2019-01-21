@@ -34,6 +34,13 @@ public:
 	bool readFilterCoeff(float* data);
 	bool writeFilterCoeff(float data);
 
+	void setBugDetect();
+	void resetBug();
+	bool getBugState();
+
+	bool getDiagnsticInfo();
+	void findFilesToFiletree();
+
 	bool getVoiceChannelsTable(Multiradio::voice_channels_table_t &data);
     bool getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data);
 	bool getAleStationAddress(uint8_t &data);
@@ -82,9 +89,12 @@ private:
     uint8_t getFreeFileSlotCount();
     std::string trans[2];
 
-    std::string prepareFileStorageToWriting(FileType fileType, TransitionFileType transFileType);
-    std::string generateFileNameByNumber(FileType fileType, TransitionFileType transFileType, uint8_t fileNumber);
-    void prepareFreeFileSlot(FS::FileType fileType, TransitionFileType transFileType);
+    bool isBugDetect = false;
+    bool isFileTreeReady = false;
+
+    std::string prepareFileStorageToWriting (FileType fileType, TransitionFileType transFileType);
+    std::string generateFileNameByNumber    (FileType fileType, TransitionFileType transFileType, uint8_t fileNumber);
+    void prepareFreeFileSlot                (FS::FileType fileType, TransitionFileType transFileType);
 };
 
 } /* namespace DataStorage */

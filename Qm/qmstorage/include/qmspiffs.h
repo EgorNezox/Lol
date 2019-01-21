@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 class QmSerialNORFlashDevice;
 
@@ -31,6 +32,8 @@ public:
 	static bool isMounted(const std::string &dir);
 	static bool check(const std::string &dir);
 	static bool format(const Config &config);
+
+	static void check_files(const std::string &d,  std::vector<std::string> &v);
 };
 
 #endif /* QMSPIFFS_H_ */

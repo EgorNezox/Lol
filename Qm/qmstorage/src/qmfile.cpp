@@ -101,6 +101,18 @@ bool QmFile::exists(const std::string& dir, const std::string& name) {
 	return result;
 }
 
+int QmFile::checkSystem(const std::string& dir)
+{
+	QmFileSystemPcb* pcb = qmstorageSpiffsAcquirePcb(dir);
+	if (pcb == 0)
+		return false;
+	int res =  pcb->checkFileSystem();
+
+	if (res != 0)
+		return false;
+	return true;
+}
+
 bool QmFile::create(const std::string& dir, const std::string& name) {
 	QmFileSystemPcb* pcb = qmstorageSpiffsAcquirePcb(dir);
 	if (pcb == 0)

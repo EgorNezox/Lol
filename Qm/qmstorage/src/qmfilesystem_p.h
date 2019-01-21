@@ -30,6 +30,7 @@ public:
 	virtual bool createFile(const std::string &name) = 0;
 	virtual bool removeFile(const std::string &name) = 0;
 	virtual bool renameFile(const std::string &old_name, const std::string &new_name) = 0;
+	virtual int  checkFileSystem() = 0;
 };
 
 QmFileSystemPcb* qmstorageSpiffsAcquirePcb(const std::string &dir);

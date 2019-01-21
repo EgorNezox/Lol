@@ -100,9 +100,11 @@ int Navigator::tuneGen(int val)
 #ifndef PORT__PCSIMULATOR
 	res = tune_frequency_generator(val);
 #endif
-	if ((flash != 0) && (count % 10 == 0))
+	// сохранение во флэш-память 1 раз в 10 минут
+	if ((flash != 0) && (count % 600 == 0))
 	{
 		get_corrector_state(&corState);
+		qmDebugMessage(QmDebug::Info, "tuneGen() k coeff = %f",  corState.k);
 		flash->writeFilterCoeff(corState.k);
 	}
 	qmDebugMessage(QmDebug::Info, "tuneGen() val = %i",  val);

@@ -141,6 +141,7 @@ void Service::drawMenu()
             case GuiWindowsSubType::stationAddress:	     { drawMenu_stationAddress();  											        break; }
             case GuiWindowsSubType::softwareVersion:	 { drawMenu_softwareVersion();  											    break; }
             case GuiWindowsSubType::gucInputType:	     { drawMenu_gucInputType();  											        break; }
+            case GuiWindowsSubType::clearFlash:	         { drawMenu_clearFlash();  											            break; }
         default:                                         { 																				break; }
         }
     }
@@ -787,6 +788,25 @@ void Service::drawMenu_gucInputType()
     window.Draw();
     label.Draw();
     labelVal.Draw();
+}
+
+
+void Service::drawMenu_clearFlash()
+{
+	std::string count = isFlashErase_tmp ? "erase" : "exit";
+
+	MoonsGeometry window_geom = {0, 0, 127, 127};
+	GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneralBack, &window_geom, &menu->obj);
+
+	MoonsGeometry labelVal_geom = { 30, 30, 110, 90};
+	LabelParams   label_params = GUI_EL_TEMP_LabelTitle;
+	label_params = GUI_EL_TEMP_LabelMode;
+	label_params.element.align.align_h = alignHCenter;
+	label_params.element.align.align_v = alignVCenter;
+	GUI_EL_Label  labelVal( &label_params, &labelVal_geom, (char*)count.c_str(), &menu->obj);
+
+	window.Draw  ();
+	labelVal.Draw();
 }
 
 void Service::setColorScheme(uint32_t back,uint32_t front)

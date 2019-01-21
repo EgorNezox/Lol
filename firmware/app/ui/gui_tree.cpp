@@ -236,6 +236,7 @@ void CGuiTree::init()
     sttTechno.nextState.push_back(&sttStationAddress);
     sttTechno.nextState.push_back(&sttSoftwareVersion);
     sttTechno.nextState.push_back(&sttGucInputType);
+    sttTechno.nextState.push_back(&sttClearFlash);
     //settings.nextState.push_back(&sttFileManager);
     // 4.1 - ����/�����
     sttDateTime.setType(GuiWindowTypes::menuWindow);
@@ -362,6 +363,11 @@ void CGuiTree::init()
     sttGucInputType.subType = GuiWindowsSubType::gucInputType;
     sttGucInputType.prevState = &sttTechno;
     sttGucInputType.nextState.clear();
+
+    sttClearFlash.setName(technoSubMenu[4]);
+    sttClearFlash.subType = GuiWindowsSubType::clearFlash;
+    sttClearFlash.prevState = &sttTechno;
+    sttClearFlash.nextState.clear();
 
     currentState = &MainWindow;
     statesStack.clear();

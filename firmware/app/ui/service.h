@@ -197,6 +197,7 @@ private:
     void drawMenu_stationAddress();
     void drawMenu_softwareVersion();
     void drawMenu_gucInputType();
+    void drawMenu_clearFlash();
 
     void keyEmulate(int key);
     void draw_emulate();
@@ -286,6 +287,9 @@ private:
     bool isGucFullCmd         = false; // enable 3 symbol command
     bool isGucFullCmd_tmp     = false;
 
+    bool isFlashErase         = false;
+    bool isFlashErase_tmp     = false;
+
     uint8_t gucAdd            = 0;
     uint8_t cmdSpaceCount     = 0;
     uint8_t cmdDigitCount     = 0;
@@ -362,6 +366,7 @@ private:
     void stationAddress_keyPressed      (UI_Key key);
     void softwareVersion_keyPressed     (UI_Key key);
     void gucInputType_keyPressed        (UI_Key key);
+    void clearFlash_keyPressed          (UI_Key key);
 
     void condCommand_keyPressed_stage   (UI_Key key);
     void condCommand_enter_keyPressed();

@@ -51,6 +51,7 @@ private:
 	bool createFile(const std::string &name);
 	bool removeFile(const std::string &name);
 	bool renameFile(const std::string &old_name, const std::string &new_name);
+	int checkFileSystem();
 };
 
 static bool qmstorageSpiffsCheckMountsOverlaps(const QmSpiffs::Config &config);
@@ -153,6 +154,25 @@ bool QmSpiffs::format(const Config &config) {
 		success = false;
 	qmstorageSpiffsFreePcb(fs_pcb);
 	return success;
+}
+
+void QmSpiffs::check_files(const std::string &d,  std::vector<std::string> &v)
+{
+	spiffs_DIR dir;
+	struct spiffs_dirent pe;
+	struct spiffs_dirent *p = &pe;
+
+	QmSpiffsFsPcb *fs_pcb = qmstorageSpiffsGetMountedPcb(d);
+
+	SPIFFS_opendir (&(fs_pcb->fs),d.c_str(), &dir);
+
+	while ((p = SPIFFS_readdir(&dir,p)))
+	{
+		v.push_back(std::string((char*)p->name));
+	}
+
+	SPIFFS_closedir(&dir);
+
 }
 
 static bool qmstorageSpiffsCheckMountsOverlaps(const QmSpiffs::Config &config) {
@@ -366,6 +386,18 @@ bool QmSpiffsFsPcb::removeFile(const std::string &name) {
 
 bool QmSpiffsFsPcb::renameFile(const std::string &old_name, const std::string &new_name) {
 	return (SPIFFS_rename(&fs, old_name.c_str(), new_name.c_str()) == 0);
+}
+
+int QmSpiffsFsPcb::checkFileSystem()
+{
+	uint32_t total, used;
+	int res = SPIFFS_info(&fs, &total, &used);
+	if (used > total && res == 0)
+	{
+		res = SPIFFS_check(&fs);
+		return res;
+	}
+	return 0;
 }
 
 void qmstorageSpiffsLock(struct spiffs_t *fs) {

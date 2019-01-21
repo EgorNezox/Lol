@@ -71,6 +71,15 @@ void qmMain() {
 #endif
 
     DataStorage::FS data_storage_fs("data");
+    data_storage_fs.findFilesToFiletree();
+
+    //bool res = data_storage_fs.getDiagnsticInfo();
+
+    // if mount not valid, flash is not work
+    if (isMount != true)
+    {
+    	data_storage_fs.setBugDetect();
+    }
 
 #if defined (PORT__TARGET_DEVICE_REV1)
     target_device_multiradio_init(0);
@@ -128,7 +137,7 @@ void qmMain() {
 #endif
 
 #ifdef PORT__TARGET_DEVICE_REV1
-    Ui::Service ui_service( ui_matrixkb_desc, ui_auxkb_desc,&headset_controller,mr_dispatcher.getVoiceServiceInterface(),&power_battery,&navigator,&data_storage_fs,&usb_class);
+    Ui::Service ui_service( ui_matrixkb_desc, ui_auxkb_desc,&headset_controller,mr_dispatcher.getVoiceServiceInterface(),&power_battery,&navigator,&data_storage_fs,0);
 #else
     Ui::Service ui_service(ui_matrixkb_desc,ui_auxkb_desc,&headset_controller,mr_dispatcher.getVoiceServiceInterface(),&power_battery,0,0,0);
 #endif
@@ -143,8 +152,9 @@ void qmMain() {
 
     enrxrs232_iopin.writeOutput(QmIopin::Level_Low);
     entxrs232_iopin.writeOutput(QmIopin::Level_High);
-	headset_controller.startServicing(mr_channels_table);
-	mr_dispatcher.startServicing(mr_channels_table);
+
+	headset_controller.startServicing (mr_channels_table);
+	mr_dispatcher.startServicing      (mr_channels_table);
 
 #ifdef PORT__TARGET_DEVICE_REV1
     timer2_init();

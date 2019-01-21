@@ -41,6 +41,8 @@ public:
 	bool atEnd() const;
 	int64_t size() const;
 
+	static int checkSystem(const std::string& dir);
+
 	static bool exists(const std::string &dir, const std::string &name);
 	static bool create(const std::string &dir, const std::string &name);
 	static bool remove(const std::string &dir, const std::string &name);

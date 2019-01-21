@@ -54,6 +54,7 @@ enum GuiWindowsSubType
 	stationAddress,\
     softwareVersion,\
     gucInputType,\
+	clearFlash, \
     channelEmissionType,\
     voiceMode, \
     filetree,
@@ -230,7 +231,7 @@ private:
     CEndState sttFileManager;
 
     CState sttTechno;
-    CEndState sttStationAddress, sttTuneGen, sttSoftwareVersion, sttGucInputType;
+    CEndState sttStationAddress, sttTuneGen, sttSoftwareVersion, sttGucInputType, sttClearFlash;
 
     void init();
 

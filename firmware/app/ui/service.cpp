@@ -511,8 +511,6 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
             fileMsg.push_back((uint8_t)sym[1]);
             fileMsg.push_back((uint8_t)sym[2]);
 
-            GUI_Painter::ClearViewPort(true);
-            showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_RX, &fileMsg);
             draw();
         }
@@ -764,8 +762,6 @@ void Service::gucFrame(int value, bool isTxAsk)
 
         if (storageFs > 0)
         {
-            GUI_Painter::ClearViewPort(true);
-            showMessage(waitingStr, flashProcessingStr, promptArea);
             storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_RX, &fileMsg);
             draw();
         }
@@ -827,8 +823,6 @@ void Service::smsMessage(int value)
         const char *text = (const char*)voice_service->getSmsContent();
         std::string text_str = text;
         memcpy(fileMsg.data(), &text[0], value);
-        GUI_Painter::ClearViewPort(true);
-        showMessage(waitingStr, flashProcessingStr, promptArea);
         storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_RX, &fileMsg);
         //draw();
     }
@@ -1266,20 +1260,23 @@ void Service::keyEmulate(int key)
 
 void Service::draw_emulate()
 {
-	if (usb_service->getUsbStatus())
+	if (usb_service != NULL)
 	{
-		displayBuf[0]    = 0x10;
-		displayBuf[1]    = displayBufSize % 256;
-		displayBuf[2]    = displayBufSize / 256;
-		displayBuf[3]    = 0x9;
+		if (usb_service->getUsbStatus())
+		{
+			displayBuf[0]    = 0x10;
+			displayBuf[1]    = displayBufSize % 256;
+			displayBuf[2]    = displayBufSize / 256;
+			displayBuf[3]    = 0x9;
 
-		gsetvp(0,0,128,128);
-		ggetsym(0,0,128,128,(GSYMBOL*)&displayBuf[4],displayBufSize - 5);
+			gsetvp(0,0,128,128);
+			ggetsym(0,0,128,128,(GSYMBOL*)&displayBuf[4],displayBufSize - 5);
 
 #ifndef PORT__PCSIMULATOR
-		displayBuf[displayBufSize - 1] = 0x11;
-		usb_service->transmit(displayBuf, displayBufSize);
+			displayBuf[displayBufSize - 1] = 0x11;
+			usb_service->transmit(displayBuf, displayBufSize);
 #endif
+		}
 	}
 }
 

@@ -12,6 +12,10 @@
 #include <string.h>
 #include <string>
 #include "../../../system/reset.h"
+#include "../../../system/platform_hw_map.h"
+#include "qmspiffs.h"
+#include "qmspibus.h"
+#include "qmm25pdevice.h"
 
 namespace Ui {
 
@@ -52,6 +56,7 @@ void Service::endMenuWindow_keyPressed(UI_Key key)
         case GuiWindowsSubType::stationAddress:      stationAddress_keyPressed(key);      break;
         case GuiWindowsSubType::softwareVersion:     softwareVersion_keyPressed(key);     break;
         case GuiWindowsSubType::gucInputType:	     gucInputType_keyPressed(key);        break;
+        case GuiWindowsSubType::clearFlash:	         clearFlash_keyPressed(key);          break;
     }
 }
 
@@ -680,8 +685,6 @@ void Service::condCommand_send()
 		fileMsg.push_back((uint8_t)sym[1]);
 		fileMsg.push_back((uint8_t)sym[2]);
 
-		GUI_Painter::ClearViewPort(true);
-		showMessage(waitingStr, flashProcessingStr, promptArea);
 		storageFs->writeMessage(DataStorage::FS::FT_CND, DataStorage::FS::TFT_TX, &fileMsg);
 		draw();
 	}
@@ -1050,8 +1053,6 @@ void Service::txGroupCondCmd_keyPressed(UI_Key key)
 
                 if (storageFs > 0)
                 {
-                	GUI_Painter::ClearViewPort(true);
-                    showMessage(waitingStr, flashProcessingStr, promptArea);
                     storageFs->writeMessage(DataStorage::FS::FT_GRP, DataStorage::FS::TFT_TX, &fileMsg );
                     draw();
                 }
@@ -1292,8 +1293,6 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
 
 				if (storageFs > 0)
 				{
-					GUI_Painter::ClearViewPort(true);
-					showMessage(waitingStr, flashProcessingStr, promptArea);
 					storageFs->writeMessage(DataStorage::FS::FT_VM, DataStorage::FS::TFT_TX, &message);
 					menu->toVoiceMail = false;
 					draw();
@@ -1562,8 +1561,7 @@ void Service::txSmsMessage_keyPressed(UI_Key key)
                             fileMsg.clear();
                             fileMsg.resize(msg.size());
                             memcpy(fileMsg.data(), &msg[0], msg.size());
-                            GUI_Painter::ClearViewPort(true);
-                            showMessage(waitingStr, flashProcessingStr, promptArea);
+
                             storageFs->writeMessage(DataStorage::FS::FT_SMS, DataStorage::FS::TFT_TX, &fileMsg);
                             menu->virtCounter = 0;
                             draw();
@@ -2943,6 +2941,58 @@ void Service::gucInputType_keyPressed(UI_Key key)
         menu->focus = 3;
         isGucFullCmd = isGucFullCmd_tmp;
     }
+}
+
+void Service::clearFlash_keyPressed(UI_Key key)
+{
+	 if ( key == keyBack )
+	 {
+		 guiTree.backvard();
+		 menu->offset = 1;
+		 menu->focus = 3;
+	 }
+
+	 if ( key == keyLeft )
+	 {
+		 isFlashErase_tmp = false;
+	 }
+	 if ( key == keyRight )
+	 {
+		 isFlashErase_tmp = true;
+	 }
+
+	 if ( key == keyEnter )
+	 {
+		 guiTree.backvard();
+		 menu->offset = 1;
+		 menu->focus = 3;
+		 isGucFullCmd = isFlashErase_tmp;
+
+		 if (isGucFullCmd)
+		 {
+			 QmSPIBus::enable(platformhwDataFlashSpi);
+
+			 QmM25PDevice::Config data_flash_config;
+			 data_flash_config.sector_size    = 64*1024;
+			 data_flash_config.sectors_count  = 32;
+			 data_flash_config.speed          = 75000000;
+			 data_flash_config.idle_clock_low = false;
+
+			 QmM25PDevice data_flash_device(data_flash_config, platformhwDataFlashSpi, platformhwDataFlashCsPin);
+			 QmSpiffs::Config data_fs_config;
+
+			 data_fs_config.device             = &data_flash_device;
+			 data_fs_config.physical_address   = 0;
+			 data_fs_config.physical_size      = 32*64*1024;
+			 data_fs_config.logical_block_size = 64*1024;
+			 data_fs_config.logical_page_size  = data_flash_device.getPageSize();
+			 data_fs_config.max_opened_files   = 10;
+
+			 QmSpiffs::format(data_fs_config);
+			 QmSpiffs::mount("data", data_fs_config);
+			 guiTree.resetCurrentState();
+		 }
+	 }
 }
 
 }/* namespace Ui */
