@@ -1168,6 +1168,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
         	headset_controller->setChannelManual(chan, Multiradio::voicespeed600);
         	//headset_controller->setSmartCurrentChannelSpeed(Multiradio::voicespeed600)
         	//headset_controller->setChannel		(chan);
+        	QmThread::msleep(6000);
             headset_controller->startSmartRecord(chan);
             menu->putOffVoiceStatus++;
             menu->inVoiceMail = true;
