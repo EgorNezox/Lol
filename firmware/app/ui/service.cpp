@@ -15,8 +15,6 @@
 #define SMS_PROGRESS 1
 #define TIME_ON_GPS_MARKER 0
 
-#define PARAMS_DRAW 1
-
 MoonsGeometry ui_common_dialog_area = { 0,24,GDISPW-1,GDISPH-1 };
 MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
@@ -56,8 +54,14 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     chprev_bt = new QmPushButtonKey(aux_kb.key_iopin_resource[auxkbkeyChPrev]);
 
     keyboard->keyAction.connect(sigc::mem_fun(this, &Service::keyHandler));
+    keyboard->keyStateChanged.connect(sigc::mem_fun(this, &Service::keyChangeHandler));
     chnext_bt->stateChanged.connect(sigc::mem_fun(this, &Service::chNextHandler));
     chprev_bt->stateChanged.connect(sigc::mem_fun(this, &Service::chPrevHandler));
+
+    mainWindowShowTimer = new QmTimer();
+    mainWindowShowTimer->setInterval(1000);
+    mainWindowShowTimer->setSingleShot(false);
+    mainWindowShowTimer->timeout.connect(sigc::mem_fun(this, &Service::onHideMainWindow));
 
     main_scr  = new GUI_Dialog_MainScr(&ui_common_dialog_area);
     indicator = new GUI_Indicator     (&ui_indicator_area);
@@ -187,6 +191,21 @@ Service::~Service()
     fileMsg.clear();
 }
 
+void Service::onHideMainWindow()
+{
+	if (!keyboard->isKeyPressed(1))
+	{
+		isMainMenuKeyPressed = false;
+		mainWindowShowTimer->stop();
+		isDrawMainWindow = false;
+		if (isDrawOnHideMainMenu)
+		{
+			isRedrawOnHideMainWindow = true;
+			draw();
+			isRedrawOnHideMainWindow = false;
+		}
+	}
+}
 
 void Service::showFreq(int freq)
 {
@@ -365,9 +384,34 @@ void Service::setNotification(NotificationType type)
     }
 }
 
-void Service::keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type){
+void Service::keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type)
+{
     QM_UNUSED(pr_type);
+
+    isDrawOnHideMainMenu = false;
+    onHideMainWindow();
+    isDrawOnHideMainMenu = true;
+
+	if (UI_Key::keyUp == (UI_Key)matrix_kb.key_id[key_id])
+	{
+    	isMainMenuKeyPressed = true;
+    	mainWindowShowTimer->start();
+	}
     keyPressed((UI_Key)matrix_kb.key_id[key_id]);
+}
+
+void Service::keyChangeHandler(int key_id, bool isPress)
+{
+//	if (UI_Key::key0 == (UI_Key)matrix_kb.key_id[key_id])
+//	{
+//    	isMainMenuKeyPressed = isPress; //keyboard->isKeyPressed(UI_Key::key0);
+//    	if (!isPress)
+//    	{
+//    		isDrawMainWindow = false;
+//    		draw();
+//    	}
+//
+//	}
 }
 
 Headset::Controller * Service::pGetHeadsetController(){
@@ -433,23 +477,52 @@ void Service::voiceChannelChanged()
         drawMainWindow();
 }
 
-void Service::keyPressed(UI_Key key)
+void Service::keyPressed(UI_Key key, bool isDraw)
 {
     CState state = guiTree.getCurrentState();
 
+    bool isEndWindow = false;
     switch( state.getType() )
     {
-		case mainWindow:     mainWindow_keyPressed(key);     break;
+		case mainWindow:     mainWindow_keyPressed(key);     isDrawMainWindow = false; mainWindowShowTimer->stop(); break;
 		case messangeWindow: messangeWindow_keyPressed(key); break;
 		case menuWindow:     menuWindow_keyPressed(key);     break;
-		case endMenuWindow:  endMenuWindow_keyPressed(key);  break;
+		case endMenuWindow:  endMenuWindow_keyPressed(key);  isEndWindow = true; break;
     }
 
     bool isTune = (state.getType() != endMenuWindow);
     if (navigator)
         navigator->setGPSTuneFlag(isTune);
 
-    draw();
+    if (isEndWindow)
+    {
+    	bool isDrawMw = false;
+
+    	if (estate.subType == condCommand)
+    		isDrawMw = true;
+    	if (estate.subType == recvCondCmd)
+    		isDrawMw = true;
+    	if (estate.subType == txGroupCondCmd && menu->groupCondCommStage != 4)
+    		isDrawMw = true;
+    	if (estate.subType == recvGroupCondCmd && cntGucRx == 4)
+    		isDrawMw = true;
+    	if (estate.subType == txSmsMessage && menu->smsTxStage != 4)
+    		isDrawMw = true;
+    	if (estate.subType == rxSmsMessage && cntSmsRx == 2)
+    		isDrawMw = true;
+    	if (estate.subType == txPutOffVoice)
+    		isDrawMw = true;
+    	if (estate.subType == rxPutOffVoice)
+    		isDrawMw = true;
+
+        if (isDrawMw && isMainMenuKeyPressed)
+        {
+        	isDrawMainWindow = true;
+        }
+    }
+
+    if (isDraw)
+    	draw();
 }
 
 void Service::onSmsCounterChange(int param)
@@ -586,12 +659,11 @@ void Service::parsingGucCommand(uint8_t *str)
     {
         if ((str[i] == ' ') || (len == i && str[i-1] != ' '))
         {
-//        	if (isGucFullCmd)
-//        	{
-//        		if (i - index == 3)
-//        			number[3] = '\0';
-//        	}
-
+        	if (isGucFullCmd)
+        	{
+        		if (i - index == 3)
+        			number[3] = '\0';
+        	}
             if (i - index == 2)
                 number[2] = '\0';
             if (i - index == 1)
@@ -732,16 +804,36 @@ void Service::gucFrame(int value, bool isTxAsk)
 
     if (vect[0] != 0)
     {
-        uint16_t len = size * 3;
+        bool isFullCmd = false; // используются ли трехсимвольные команды
+        for (uint8_t cmdSymInd = 1; cmdSymInd <= size; cmdSymInd++)
+        {
+        	if (vect[cmdSymInd] > 99)
+        	{
+        		isFullCmd = true;
+        		break;
+        	}
+        }
+
+        uint8_t cmdFactor = isFullCmd ? 4 : 3;
+        uint16_t len = size * cmdFactor;
         uint16_t fullSize = isGucCoord ? len + 31 + 10 : len;
         uint8_t cmdv[fullSize] = {'\0'};
-        char cmdSym[3];
+        char cmdSym[4];
 
         for (uint8_t cmdSymInd = 1; cmdSymInd <= size; cmdSymInd++)
         {
-            sprintf(cmdSym, "%02d", vect[cmdSymInd]);
-            cmdSym[2] = ' ';
-            memcpy(&cmdv[(cmdSymInd - 1) * 3], &cmdSym[0], 3);
+        	if (isFullCmd)
+        	{
+				sprintf(cmdSym, "%03d", vect[cmdSymInd]);
+				cmdSym[3] = ' ';
+				memcpy(&cmdv[(cmdSymInd - 1) * 4], &cmdSym[0], 4);
+        	}
+        	else
+        	{
+				sprintf(cmdSym, "%02d", vect[cmdSymInd]);
+				cmdSym[2] = ' ';
+				memcpy(&cmdv[(cmdSymInd - 1) * 3], &cmdSym[0], 3);
+        	}
         }
 
         cmdv[fullSize-1] = '\0';
@@ -914,9 +1006,9 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
     static Headset::Controller::SmartHSState newState = state;
     oldState = newState;
     newState = state;
-
+//    std::string str;
     bool isEndPlaying = (oldState == Headset::Controller::SmartHSState_SMART_PLAYING) && (newState == Headset::Controller::SmartHSState_SMART_READY);
-
+//    switch(state)
     std::string str;
     switch(state)
     {
@@ -936,7 +1028,7 @@ void Service::updateHSState(Headset::Controller::SmartHSState state)
 		case Headset::Controller::SmartHSState_SMART_READY: 							str = "SmartHSState_SMART_READY"; break;
     }
     qmDebugMessage(QmDebug::Warning, "%s", str.c_str());
-
+//    {
     CState currentState;
     guiTree.getLastElement(currentState);
 
@@ -1125,6 +1217,10 @@ void Service::playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain,
 
 void Service::onCompletedStationMode(bool isGoToVoice)
 {
+	workModeNum_tmp = 1;
+	workModeNum = 1;
+	main_scr->setModeText(mainScrMode[workModeNum]);
+
 	voice_service->stopGucQuit();
 
 	Headset::Controller::Status st = pGetHeadsetController()->getStatus();
@@ -1185,7 +1281,7 @@ void Service::onWaveInfoRecieved(float wave, float power)
 {
     waveValue = wave;
     powerValue = power;
-   // qmDebugMessage(QmDebug::Warning, "SWR = %f, POWER = %f ", waveValue, powerValue);
+    qmDebugMessage(QmDebug::Warning, "onWaveInfoRecieved() SWR = %f, POWER = %f ", waveValue, powerValue);
 #if PARAMS_DRAW
     //if (weveValue > 0 && powerValue > 0)
     	drawWaveInfo();

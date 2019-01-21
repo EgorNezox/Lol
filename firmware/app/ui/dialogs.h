@@ -26,6 +26,13 @@ extern MoonsGeometry ui_indicator_area;
 
 //--------------------------
 
+const uint8_t syFocus = 5;
+const uint8_t emFocus = 4;
+const uint8_t mdFocus = 3;
+const uint8_t chFocus = 2;
+const uint8_t frFocus = 1;
+const uint8_t noFocus = 0;
+
 /*!Класс диалога главного рабочего экрана*/
 class GUI_Dialog_MainScr: public GUI_Obj
 {
@@ -37,6 +44,7 @@ public:
                        Multiradio::voice_channel_t channel_type,
                        bool valid_freq
                        );
+    void setEmModeText(const char*);
     void setModeText(const char*);
     void setFocus(int newFocus);
     void setFreq(const char *fr);
@@ -45,6 +53,9 @@ public:
     bool isEditing();
     bool editing = false;
     bool channelEditing = false;
+    bool emModeEditing = false;
+    bool workModeEditing = false;
+    bool synchModeEditing = false;
     std::string nFreq, oFreq;
 
 private:
@@ -52,6 +63,7 @@ private:
     GUI_EL_Label  *ch_num_label;
     GUI_EL_Label  *ch_type_label;
     GUI_EL_Label  *mode_text;
+    GUI_EL_Label  *em_mode_text;
     GUI_EL_Label  *freq;
     bool cur_ch_invalid;
     int focus = -2;
@@ -109,6 +121,7 @@ private:
 public:
         GUI_EL_Label *date_time;
         GUI_EL_Icon  *gpsLabel;
+        bool isSynchFocus = false;
 };
 
 

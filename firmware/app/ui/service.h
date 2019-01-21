@@ -140,9 +140,10 @@ private:
 
     void chNextHandler();
     void chPrevHandler();
-    void keyPressed(UI_Key key);
+    void keyPressed(UI_Key key,  bool isDraw = true);
 
     void keyHandler					    (int key_id, QmMatrixKeyboard::PressType pr_type);
+    void keyChangeHandler               (int key_id, bool isPress);
     void FirstPacketPSWFRecieved		(int packet, uint8_t address, bool isRec);
 
     void msgGucTXQuit					(int ans);
@@ -329,6 +330,7 @@ private:
     void onTxModeSetting();
     void drawWaveInfoOnTx();
     void drawWaveInfo();
+
     void onSettingAleFreq				(uint32_t freq);
 
     void mainWindow_keyPressed			(UI_Key key);
@@ -375,6 +377,8 @@ private:
 
     void genTune();
 
+    void onHideMainWindow();
+
     std::string rememberTextSms;
 
     Multiradio::usb_loader			  *usb_service;
@@ -389,6 +393,19 @@ private:
     uint8_t tuneDigt[4] = {1,8,0,0};
 
     GUI_Obj *guiObj;
+    bool isDrawMainWindow = false;
+    bool isMainMenuKeyPressed = false;
+    bool isDrawOnHideMainMenu = true;
+    bool isRedrawOnHideMainWindow = false;
+
+    QmTimer* mainWindowShowTimer;
+
+    CEndState estate;
+
+//    uint8_t emModeNum = 0;
+//    uint8_t emModeNum_tmp = 0;
+    uint8_t workModeNum = 1;
+    uint8_t workModeNum_tmp = 1;
 };
 } /* namespace Ui */
 #endif /* FIRMWARE_APP_UI_SERVICE_H_ */

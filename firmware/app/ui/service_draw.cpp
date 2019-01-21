@@ -16,6 +16,8 @@ MoonsGeometry ui_menu_msg_box_area  = { 1,1,GDISPW-2,GDISPH-2 };
 
 void Service::draw()
 {
+	qmDebugMessage(QmDebug::Warning, "draw()");
+
     CState currentState;
     guiTree.getLastElement(currentState);
 
@@ -23,32 +25,44 @@ void Service::draw()
     navigator->set1PPSModeCorrect(false);
 #endif
 
-    switch(currentState.getType())
+    if (isDrawMainWindow)
     {
-    case mainWindow:{
-        drawMainWindow();
-        break;
+    	drawMainWindow();
     }
-    case messangeWindow:
+    else
     {
-        if (msg_box != nullptr)
-        {
-        	if (vect != nullptr)
-                msg_box->DrawGuc();
-        	else
-        		msg_box->Draw();
-        }
-        break;
-    }
-    case menuWindow:
-        drawMenu();
-        break;
-    case endMenuWindow:
-        drawMenu();
-        drawWaveInfoOnTx();
-        break;
-    default:
-        break;
+    	if (isRedrawOnHideMainWindow)
+    	{
+    		GUI_Painter::SetViewPort(0,0,127,127);
+    		GUI_Painter::ClearViewPort();
+    	}
+		switch(currentState.getType())
+		{
+		case mainWindow:{
+			drawMainWindow();
+			break;
+		}
+		case messangeWindow:
+		{
+			if (msg_box != nullptr)
+			{
+				if (vect != nullptr)
+					msg_box->DrawGuc();
+				else
+					msg_box->Draw();
+			}
+			break;
+		}
+		case menuWindow:
+			drawMenu();
+			break;
+		case endMenuWindow:
+			drawMenu();
+			drawWaveInfoOnTx();
+			break;
+		default:
+			break;
+		}
     }
 
     if (isShowSchedulePrompt)
@@ -76,6 +90,7 @@ void Service::draw()
 
 void Service::drawMenu()
 {
+	qmDebugMessage(QmDebug::Warning, "drawMenu() start");
     Alignment align = {alignHCenter,alignTop};
     int focusItem;
 
@@ -146,6 +161,7 @@ void Service::drawMenu()
         }
     }
     //showSchedulePrompt(DataStorage::FS::FT_SMS, 15);
+    qmDebugMessage(QmDebug::Warning, "drawMenu() end");
 }
 
 void Service::drawIndicator()
@@ -153,7 +169,7 @@ void Service::drawIndicator()
     if (!isStartTestMsg)
     {
 		static uint8_t gpsStatus = 0;
-		if ( guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr)
+		if ( (guiTree.getCurrentState().getType() == mainWindow && msg_box == nullptr) || isDrawMainWindow)
 		{
 			if (navigator != 0)
 			{
@@ -227,11 +243,11 @@ void Service::drawWaveInfoOnTx()
 
 void Service::drawWaveInfo()
 {
-
-#if EMUL
-  waveValue = 9.5;
-  powerValue = 9.9;
-#endif
+	qmDebugMessage(QmDebug::Warning, "drawWaveInfo() SWR = %f, POWER = %f ", waveValue, powerValue);
+//#if EMUL
+//  waveValue = 9.5;
+//  powerValue = 9.9;
+//#endif
 
   bool isCanDraw = (guiTree.getCurrentState().getType() == endMenuWindow) ||
 		  	  	   (guiTree.getCurrentState().getType() == mainWindow);
@@ -327,7 +343,7 @@ void Service::drawMainWindow()
     		break;
     	}
 
-    	main_scr->setModeText(str.c_str());
+    	main_scr->setEmModeText(str.c_str());
 
     	auto status = voice_service->getStatus();
 
@@ -355,7 +371,7 @@ void Service::drawMainWindow()
                 valid_freq
         );
 
-        drawIndicator();
+       drawIndicator();
        drawWaveInfo();
 
     }
@@ -859,11 +875,11 @@ void Service::msgBox(const char *title, const int condCmd)
 {
     Alignment align007 = {alignHCenter,alignTop};
     MoonsGeometry area007 = {1, 1, (GXT)(127), (GYT)(127)};
-
+//    Alignment align007 = {alignHCenter,alignTop};
     if (msg_box != nullptr)
         delete msg_box;
     msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (int)condCmd, align007);
-
+//    MoonsGeometry area007 = {1, 1, (GXT)(127), (GYT)(127)};
     guiTree.append(messangeWindow, "");
     msg_box->setCmd(condCmd);
     if (!isStartTestMsg)

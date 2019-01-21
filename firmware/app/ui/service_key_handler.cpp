@@ -23,7 +23,7 @@ namespace Ui {
 
 void Service::endMenuWindow_keyPressed(UI_Key key)
 {
-    CEndState estate = (CEndState&)guiTree.getCurrentState();
+    estate = (CEndState&)guiTree.getCurrentState();
 
     switch(estate.subType)
     {
@@ -74,22 +74,20 @@ void Service::mainWindow_keyPressed(UI_Key key)
             }
             else
             {
-                main_scr->mwFocus = -2;
-                main_scr->setFocus(1-main_scr->mwFocus);
+                main_scr->mwFocus = noFocus;
                 main_scr->editing = false;
                 main_scr->setFreq(main_scr->oFreq.c_str());
             }
             break;
         case keyEnter:
-            if (main_scr->mwFocus == 0)
+            if (main_scr->mwFocus == frFocus)
             {
                 int freq = atoi(main_scr->nFreq.c_str());
 
                 if (freq < 1500000) { main_scr->nFreq = "1500000"; freq = 1500000;  }
                 if (freq > 50000000){ main_scr->nFreq = "50000000"; freq = 50000000;}
 
-                    main_scr->mwFocus = -2;
-                    main_scr->setFocus(1-main_scr->mwFocus);
+                    main_scr->mwFocus = noFocus;
                     main_scr->editing = false;
 
                 	main_scr->oFreq.clear();
@@ -102,35 +100,36 @@ void Service::mainWindow_keyPressed(UI_Key key)
 
             break;
         case keyUp:
-			main_scr->mwFocus = -1;
+        {
+			main_scr->mwFocus = chFocus;
 			isFirstInputFreqEdit = true;
 			main_scr->channelEditing = true;
+        }
         case keyDown:
         {
         	main_scr->editing = false;
             if (key == keyDown)
-            	main_scr->mwFocus = -2;
-            main_scr->setFocus(1-main_scr->mwFocus);
+            	main_scr->mwFocus = noFocus;
             main_scr->nFreq.clear();
             main_scr->setFreq(main_scr->oFreq.c_str());
             break;
         }
         case keyLeft:
-            if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId > 0)
+            if (main_scr->mwFocus == frFocus && main_scr->mainWindowModeId > 0)
             {
                 main_scr->mainWindowModeId--;
                 this->voice_service->setVoiceMode(Multiradio::VoiceServiceInterface::VoiceMode(main_scr->mainWindowModeId));
             }
             break;
         case keyRight:
-            if (main_scr->mwFocus == 1 && main_scr->mainWindowModeId < 1)
+            if (main_scr->mwFocus == frFocus && main_scr->mainWindowModeId < 1)
             {
                 main_scr->mainWindowModeId++;
                 this->voice_service->setVoiceMode(Multiradio::VoiceServiceInterface::VoiceMode(main_scr->mainWindowModeId));
             }
             break;
         default:
-            if ( main_scr->mwFocus == 0 )
+            if ( main_scr->mwFocus == frFocus)
             {
             	if (isFirstInputFreqEdit && key > 5 && key < 17)
             	{
@@ -181,8 +180,7 @@ void Service::mainWindow_keyPressed(UI_Key key)
     			channelNumberEditing = 0;
     			channelNumberSyms = 0;
     		    main_scr->channelEditing = false;
-    			main_scr->mwFocus = -2;
-    			main_scr->setFocus(1-main_scr->mwFocus);
+    			main_scr->mwFocus = noFocus;
     			isFirstInputFreqEdit = true;
     		}
     	}
@@ -202,8 +200,7 @@ void Service::mainWindow_keyPressed(UI_Key key)
     		{
     			channelNumberEditing = 0;
     		    main_scr->channelEditing = false;
-    			main_scr->mwFocus = -2;
-    			main_scr->setFocus(1-main_scr->mwFocus);
+    			main_scr->mwFocus = noFocus;
     		}
     	}
     	if (key == keyDown)
@@ -214,12 +211,11 @@ void Service::mainWindow_keyPressed(UI_Key key)
     		    main_scr->channelEditing = false;
     		    if (this->voice_service->getVoiceMode() == Multiradio::VoiceServiceInterface::VoiceModeManual)
     		    {
-    		    	main_scr->mwFocus = 0;
+    		    	main_scr->mwFocus = frFocus;
     		    	main_scr->editing = true;
     		    }
     		    else
-    		    	main_scr->mwFocus = -2;
-    			main_scr->setFocus(1-main_scr->mwFocus);
+    		    	main_scr->mwFocus = noFocus;
     		}
     	}
     	if (key == keyUp)
@@ -229,10 +225,153 @@ void Service::mainWindow_keyPressed(UI_Key key)
     			channelNumberSyms = 0;
     			channelNumberEditing = 0;
     		    main_scr->channelEditing = false;
-    		    main_scr->mwFocus = -2;
-    			main_scr->setFocus(1-main_scr->mwFocus);
+    		    main_scr->mwFocus = noFocus;
     		}
     	}
+    }
+    else if (main_scr->emModeEditing)
+    {
+        switch(key)
+        {
+			case keyLeft:
+			case keyRight:
+			{
+				menu->ch_emiss_type = !menu->ch_emiss_type;
+		        if (menu->ch_emiss_type)
+		            voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionFM);
+		        else
+		            voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionUSB);
+				break;
+		    	main_scr->mwFocus = noFocus;
+				main_scr->emModeEditing = false;
+			}
+			case keyUp:
+			{
+				indicator->isSynchFocus = true;
+		    	main_scr->mwFocus = noFocus;
+				main_scr->emModeEditing = false;
+				main_scr->synchModeEditing = true;
+				break;
+			}
+			case keyDown:
+			{
+		    	main_scr->mwFocus = mdFocus;
+				main_scr->emModeEditing = false;
+				main_scr->workModeEditing = true;
+				break;
+			}
+			case keyBack:
+			case keyEnter:
+			{
+				main_scr->mwFocus = noFocus;
+				main_scr->emModeEditing = false;
+				break;
+			}
+        }
+        main_scr->setEmModeText(ch_em_type_str[menu->ch_emiss_type]);
+    }
+    else if (main_scr->workModeEditing)
+    {
+        switch(key)
+        {
+			case keyLeft:
+			{
+				if (workModeNum_tmp > 0)
+					workModeNum_tmp--;
+				break;
+			}
+			case keyRight:
+			{
+				if (workModeNum_tmp < 3)
+					workModeNum_tmp++;
+				break;
+			}
+			case keyUp:
+			{
+				workModeNum_tmp = workModeNum;
+				main_scr->mwFocus = emFocus;
+				main_scr->emModeEditing = true;
+				main_scr->workModeEditing = false;
+				break;
+			}
+			case keyDown:
+			{
+				workModeNum_tmp = workModeNum;
+				main_scr->mwFocus = noFocus;
+				main_scr->workModeEditing = false;
+				break;
+			}
+			case keyBack:
+			{
+				workModeNum_tmp = workModeNum;
+				main_scr->mwFocus = noFocus;
+				main_scr->workModeEditing = false;
+				break;
+			}
+			case keyEnter:
+			{
+				workModeNum = workModeNum_tmp;
+				main_scr->mwFocus = noFocus;
+				main_scr->workModeEditing = false;
+				guiTree.advance(0);
+				guiTree.advance(1);
+				guiTree.advance(workModeNum);
+				keyPressed(UI_Key::keyEnter, false);
+				keyPressed(UI_Key::keyEnter, false);
+				keyPressed(UI_Key::keyEnter, false);
+				break;
+			}
+        }
+        main_scr->setModeText(mainScrMode[workModeNum_tmp]);
+    }
+    else if (main_scr->synchModeEditing)
+    {
+        switch(key)
+        {
+			case keyLeft:
+			case keyRight:
+			{
+				gpsSynchronization = !gpsSynchronization;
+
+				voice_service->setVirtualMode(!gpsSynchronization);
+				if (storageFs > 0)
+				{
+					storageFs->setGpsSynchroMode((uint8_t)gpsSynchronization);
+				}
+				isChangeGpsSynch = false;
+				updateSessionTimeSchedule();
+				break;
+			}
+			case keyUp:
+			{
+				indicator->isSynchFocus = false;
+				main_scr->mwFocus = emFocus;
+				main_scr->synchModeEditing = false;
+				break;
+			}
+			case keyDown:
+			{
+				indicator->isSynchFocus = false;
+				main_scr->mwFocus = emFocus;
+				main_scr->emModeEditing = true;
+				main_scr->synchModeEditing = false;
+				break;
+			}
+			case keyBack:
+			{
+				indicator->isSynchFocus = false;
+				main_scr->mwFocus = noFocus;
+				main_scr->synchModeEditing = false;
+				break;
+			}
+			case keyEnter:
+			{
+				indicator->isSynchFocus = false;
+				main_scr->mwFocus = noFocus;
+				main_scr->synchModeEditing = false;
+				break;
+			}
+        }
     }
     else
     {
@@ -271,32 +410,45 @@ void Service::mainWindow_keyPressed(UI_Key key)
 				}
 				break;
 			case keyBack:
-				main_scr->mwFocus = -2;
-				main_scr->setFocus(1-main_scr->mwFocus);
+				main_scr->mwFocus = noFocus;
 				break;
 			case keyUp:
-				if (main_scr->mwFocus > -2)
-					main_scr->mwFocus--;
-				main_scr->setFocus(1-main_scr->mwFocus);
+
+				if (main_scr->mwFocus == noFocus)
+					main_scr->mwFocus = mdFocus;
+				else if (main_scr->mwFocus == mdFocus)
+					main_scr->mwFocus = emFocus;
+				else if (main_scr->mwFocus == emFocus)
+					main_scr->mwFocus = syFocus;
+				else if (main_scr->mwFocus == chFocus)
+					main_scr->mwFocus = noFocus;
+				else if (main_scr->mwFocus == frFocus)
+					main_scr->mwFocus = chFocus;
 				break;
 			case keyDown:
-				if (main_scr->mwFocus < 0)
-					main_scr->mwFocus++;
-				if (main_scr->mwFocus > 0)
-					main_scr->mwFocus--;
-				main_scr->setFocus(1-main_scr->mwFocus);
+
+				if (main_scr->mwFocus == noFocus)
+					main_scr->mwFocus = chFocus;
+				else if (main_scr->mwFocus == chFocus)
+					main_scr->mwFocus = frFocus;
+				else if (main_scr->mwFocus == syFocus)
+					main_scr->mwFocus = emFocus;
+				else if (main_scr->mwFocus == emFocus)
+					main_scr->mwFocus = mdFocus;
+				else if (main_scr->mwFocus == mdFocus)
+					main_scr->mwFocus = noFocus;
 				break;
 			case keyEnter:
-				if (main_scr->mwFocus == -2)
+				if (main_scr->mwFocus == noFocus)
 					guiTree.advance(0);
 				break;
         }
-        if (main_scr->mwFocus == -1)
+        if (main_scr->mwFocus == chFocus)
         {
             main_scr->channelEditing = true;
             oldChannelNumber = voice_service->getCurrentChannelNumber();
         }
-        if (main_scr->mwFocus == 0)
+        if (main_scr->mwFocus == frFocus)
         {
             if (this->voice_service->getVoiceMode() == Multiradio::VoiceServiceInterface::VoiceModeManual)
             {
@@ -304,6 +456,19 @@ void Service::mainWindow_keyPressed(UI_Key key)
                 if (not isFirstInputFreqEdit)
                 	isFirstInputFreqEdit = true;
             }
+        }
+        if (main_scr->mwFocus == emFocus)
+        {
+            main_scr->emModeEditing = true;
+        }
+        if (main_scr->mwFocus == mdFocus)
+        {
+            main_scr->workModeEditing = true;
+        }
+        if (main_scr->mwFocus == syFocus)
+        {
+            main_scr->synchModeEditing = true;
+			indicator->isSynchFocus = true;
         }
     }
 }
@@ -1135,7 +1300,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
         	}
 
         }
-        if (key == keyUp)
+        if (key == keyLeft)
         {
         	switch (menu->voiceMailSource)
         	{
@@ -1144,7 +1309,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
         	}
         	menu->inVoiceMail = true;
         }
-        if (key == keyDown)
+        if (key == keyRight)
         {
         	switch (menu->voiceMailSource)
         	{
