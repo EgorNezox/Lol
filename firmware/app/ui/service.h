@@ -188,6 +188,7 @@ private:
     void drawMenu_rxSmsMessage();
     void drawMenu_rxPutOffVoice();
     void drawMenu_gpsCoord();
+    void drawMenu_storeChan();
     void drawMenu_setDate();
     void drawMenu_setTime();
     void drawMenu_setFreq();
@@ -353,6 +354,7 @@ private:
     void display_keyPressed				(UI_Key key);
     void aruarmaus_keyPressed			(UI_Key key);
     void gpsCoord_keyPressed			(UI_Key key);
+    void storeChan_keyPressed           (UI_Key key);
     void gpsSync_keyPressed				(UI_Key key);
     void setDate_keyPressed				(UI_Key key);
     void setTime_keyPressed				(UI_Key key);
@@ -391,6 +393,10 @@ private:
     bool isDecKey = false;
     uint8_t gen_test_focus = 0;
     uint8_t tuneDigt[4] = {1,8,0,0};
+
+    uint8_t set_chan_focus = 0;
+    uint8_t setChan [2] = {0,1};
+    std::string labelChan;
 
     GUI_Obj *guiObj;
     bool isDrawMainWindow = false;

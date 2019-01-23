@@ -41,7 +41,7 @@ public:
 	bool getDiagnsticInfo();
 	void findFilesToFiletree();
 
-	bool getVoiceChannelsTable(Multiradio::voice_channels_table_t &data);
+	bool getVoiceChannelsTable(Multiradio::voice_channels_table_t &data, uint8_t &count);
     bool getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data);
 	bool getAleStationAddress(uint8_t &data);
 	bool getFhssKey(uint16_t &data);
@@ -54,6 +54,9 @@ public:
 	void setVoiceChannelSpeed(Multiradio::voice_channel_speed_t data);
 	bool getAnalogHeadsetChannel(uint8_t &data);
 	void setAnalogHeadsetChannel(uint8_t data);
+
+	bool addVoiceChannelTable(uint8_t position, Multiradio::voice_channel_entry_t& entry);
+	void setVoceChannelTable();
 
     bool readMessage(FileType fileType, TransitionFileType transFileType, std::vector<uint8_t> *data, uint8_t fileNumber);
     bool writeMessage(FileType fileType, TransitionFileType transFileType, std::vector<uint8_t> *data);

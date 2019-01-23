@@ -42,6 +42,7 @@ void Service::endMenuWindow_keyPressed(UI_Key key)
 		case GuiWindowsSubType::display:			 display_keyPressed(key); 			  break;
 		case GuiWindowsSubType::aruarmaus:			 aruarmaus_keyPressed(key);			  break;
 		case GuiWindowsSubType::gpsCoord:			 gpsCoord_keyPressed(key);			  break;
+		case GuiWindowsSubType::rememberChan:		 storeChan_keyPressed(key);			  break;
 		case GuiWindowsSubType::gpsSync:			 gpsSync_keyPressed(key);			  break;
 		case GuiWindowsSubType::setDate:			 setDate_keyPressed(key); 			  break;
 		case GuiWindowsSubType::setTime:			 setTime_keyPressed(key); 			  break;
@@ -2295,6 +2296,50 @@ void Service::gpsCoord_keyPressed(UI_Key key)
         setCoordDate(navigator->getCoordDate());
 #endif
     }
+}
+
+
+void Service::storeChan_keyPressed(UI_Key key)
+{
+	if (key == keyBack)
+	{
+		guiTree.backvard();
+		if (labelChan.size() > 0)
+			labelChan.pop_back();
+	}
+
+	if ( key >= key0 && key <= key9 )
+	{
+		labelChan.push_back( (char)(key + 42) );
+		if ( atoi(labelChan.c_str()) > 98)
+			labelChan.clear();
+	}
+
+	if (key == keyEnter)
+	{
+		Headset::Controller::SmartStatusDescription desc;
+		bool digit  = headset_controller->getSmartStatus (desc);
+
+		int chan = atoi(labelChan.c_str());
+
+		if (digit && chan <= 98 && chan > 0)
+		{
+			int freq  = getFreq();
+			uint8_t speed, type;
+			headset_controller->WorkChannelSpeed(speed, type);
+
+			Multiradio::voice_channel_entry_t entry;
+			entry.frequency = freq;
+			entry.speed     = (Multiradio::voice_channel_speed_t)speed;
+			entry.type      = (Multiradio::voice_channel_t)      type;
+
+			storageFs->addVoiceChannelTable(position, entry);
+          }
+
+		guiTree.backvard();
+	}
+
+
 }
 
 void Service::gpsSync_keyPressed(UI_Key key)

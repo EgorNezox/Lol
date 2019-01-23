@@ -39,6 +39,7 @@ void CGuiTree::init()
     sttEditRnKey.setName(settingsSubMenu[7]);
     sttSheldure.setName(settingsSubMenu[8]);
     stCoord.setName(settingsSubMenu[9]);
+    stRestoreChannel.setName(settingsSubMenu[12]);
     sttDisplay.setName(settingsSubMenu[10]);
     sttTechno.setName(settingsSubMenu[11]);
 
@@ -273,6 +274,7 @@ void CGuiTree::init()
     sttConnParam.nextState.push_back(&sttSetSpeed);
     sttConnParam.nextState.push_back(&swAruArm);
     sttConnParam.nextState.push_back(&stCoord);
+    sttConnParam.nextState.push_back(&stRestoreChannel);
     //sttConnParam.nextState.push_back(&sttWaitGuk);
     //sttConnParam.nextState.push_back(&sttEditRnKey);
     sttConnParam.nextState.push_back(&sttChannelEmissionType);
@@ -299,6 +301,12 @@ void CGuiTree::init()
     stCoord.subType = GuiWindowsSubType::gpsCoord;
     stCoord.prevState = &sttConnParam;
     stCoord.nextState.clear();
+
+    stRestoreChannel.subType = GuiWindowsSubType::rememberChan;
+    stRestoreChannel.prevState = &sttConnParam;
+    stRestoreChannel.nextState.clear();
+
+
     // 4.2.4 - �������� ���
     sttWaitGuk.subType = GuiWindowsSubType::waitGuk;
     sttWaitGuk.prevState = &sttConnParam;

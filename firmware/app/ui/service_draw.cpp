@@ -147,6 +147,7 @@ void Service::drawMenu()
 			case GuiWindowsSubType::rxSmsMessage:		 { drawMenu_rxSmsMessage();  											        break; }
 			case GuiWindowsSubType::rxPutOffVoice:		 { drawMenu_rxPutOffVoice();  											        break; }
 			case GuiWindowsSubType::gpsCoord:			 { drawMenu_gpsCoord();  											   		    break; }
+			case GuiWindowsSubType::rememberChan:        { drawMenu_storeChan();                                                        break; }
 			case GuiWindowsSubType::setDate:			 { drawMenu_setDate();  											            break; }
 			case GuiWindowsSubType::setTime:			 { drawMenu_setTime();  											            break; }
 			case GuiWindowsSubType::setFreq:			 { drawMenu_setFreq();  											            break; }
@@ -583,6 +584,33 @@ void Service::drawMenu_gpsCoord()
 		menu->initGpsCoordinateDialog( menu->coord_lat, &menu->coord_log[1]);
 	else
 		menu->initGpsCoordinateDialog( menu->coord_lat, menu->coord_log);
+}
+
+void Service::drawMenu_storeChan()
+{
+	MoonsGeometry windowArea     = {0, 0, 127, 127};
+    MoonsGeometry localLabelArea = { 4,  10, 127,  46 };
+    MoonsGeometry localFieldArea = { 2, 40, 125, 100 };
+
+
+    std::string textStr;
+
+    if (labelChan.size() == 0)
+    {
+    	textStr = "--";
+    }
+    else
+    {
+    	textStr = labelChan;
+    }
+
+    GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneralBack, &windowArea,                               (GUI_Obj *)&menu->obj);
+    GUI_EL_Label  label (&GUI_EL_TEMP_LabelText,    &localLabelArea,  (char*)settingsSubMenuIn[12],(GUI_Obj *)&menu->obj);
+    GUI_EL_Label  labelVal (&GUI_EL_TEMP_LabelChannel,    &localFieldArea,  (char*)textStr.c_str(),      (GUI_Obj *)&menu->obj);
+
+    window.Draw();
+    label.Draw ();
+    labelVal.Draw();
 }
 
 void Service::drawMenu_setDate()

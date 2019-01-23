@@ -213,6 +213,8 @@ public:
 	//sigc::signal<void/*new_state*/> BOOM;
 	void GarnitureStart();
 
+	void WorkChannelSpeed(uint8_t &speed, uint8_t &type);
+
 	Multiradio::voice_channel_speed_t realCurrentSpeed = Multiradio::voice_channel_speed_t::voicespeed600;
 
 private:

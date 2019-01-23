@@ -158,7 +158,7 @@ bool FS::setGenDacValue(int data)
     return true;
 }
 
-bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data) {
+bool FS::getVoiceChannelsTable(Multiradio::voice_channels_table_t& data, uint8_t &count) {
 
 if (getBugState())
 {
@@ -293,7 +293,7 @@ else
 	int64_t file_size = file.size();
 	if (!(file_size > 4))
 		return false;
-	uint32_t count = 0;
+	count = 0;
 	file.read((uint8_t *)&count, 4);
 	if (!(file_size == (4 + 6*count)))
 		return false;
@@ -307,6 +307,45 @@ else
 	file.close();
 	return true;
 }
+}
+
+bool FS::addVoiceChannelTable(uint8_t position, Multiradio::voice_channel_entry_t &entry)
+{
+	Multiradio::voice_channels_table_t channelTable;
+	uint8_t countChannel;
+	getVoiceChannelsTable(channelTable,countChannel);
+
+	if (countChannel <= position)
+		return false;
+
+	QmFile file(dir, "VoiceChannelsTable");
+	if (!file.open(QmFile::WriteOnly))
+		return false;
+
+	// start of entry which we change
+	uint16_t pos = 4 + (position - 1) * 6;
+
+	if (!file.seek(pos))
+		return false;
+
+	int64_t res = 0;
+
+	if (file.pos() == pos)
+	{
+		res = file.write((uint8_t*)&(entry.frequency),4);
+		if (res != 4)
+			return false;
+
+		res = file.write((uint8_t*)&(entry.type),     1);
+		if (res != 1)
+			return false;
+
+		res = file.write((uint8_t*)&(entry.speed),    1);
+		if (res != 1)
+			return false;
+	}
+
+	return true;
 }
 
 bool FS::getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data)

@@ -145,7 +145,8 @@ void qmMain() {
     kb_light_iopin.writeOutput(QmIopin::Level_Low);
 
     Multiradio::voice_channels_table_t mr_channels_table;
-	data_storage_fs.getVoiceChannelsTable(mr_channels_table);
+    uint8_t count_channel;
+	data_storage_fs.getVoiceChannelsTable(mr_channels_table, count_channel);
 
     if (mr_channels_table.empty())
 		ui_service.setNotification(Ui::NotificationMissingVoiceChannelsTable);

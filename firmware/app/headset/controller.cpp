@@ -152,6 +152,7 @@ bool Controller::setSmartCurrentChannelSpeed(Multiradio::voice_channel_speed_t s
 	return false;
 }
 
+
 void Controller::processPttStateChanged()
 {
 	ptt_debounce_timer->start();
@@ -233,6 +234,12 @@ void Controller::processHSUartPolling()
 void Controller::GarnitureStart()
 {
 	ptt_key->stateChanged();
+}
+
+void  Controller::WorkChannelSpeed(uint8_t &speed, uint8_t &type)
+{
+	speed = ch_speed;
+	type  = ch_type;
 }
 
 Controller::SmartHSState Controller::getSmartHSState()
@@ -881,6 +888,7 @@ void Controller::updateState(State new_state)
 
 bool Controller::verifyHSChannels(uint8_t* data, int data_len)
 {
+	// check 98 channels
 	if (data_len != HS_CMD_CH_LIST_RESP_LEN)
 		return false;
 
@@ -900,15 +908,17 @@ bool Controller::verifyHSChannels(uint8_t* data, int data_len)
 //	}
 	int type[4];
 
+
 	for (int byte_ind = 0; byte_ind < 25; ++byte_ind)
 	{
-		type[0] = data[byte_ind] & 0x03;
+		type[0] = data [byte_ind]       & 0x03;
 		type[1] = (data[byte_ind] >> 2) & 0x03;
 		type[2] = (data[byte_ind] >> 4) & 0x03;
 		type[3] = (data[byte_ind] >> 6) & 0x03;
 
 		for (int bit_ind = 0; bit_ind < 4; ++bit_ind)
 		{
+			// reserved
 			if ((byte_ind == 0 && bit_ind == 0) || (byte_ind == 24 && bit_ind == 3))
 				continue;
 			switch (type[bit_ind])

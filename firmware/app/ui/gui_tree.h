@@ -57,7 +57,8 @@ enum GuiWindowsSubType
 	clearFlash, \
     channelEmissionType,\
     voiceMode, \
-    filetree,
+    filetree, \
+	rememberChan,\
     display
 };
 
@@ -214,7 +215,7 @@ private:
     CEndState dataSendCondCmd, dataSendSms, dataSendPost, dataSendGroupCondCmd;
     // 4.1 - 4.3
     CState sttDateTime, sttConnParam;
-    CEndState sttScan, swAruArm, sttSound, sttSuppress, sttWaitGuk, sttEditRnKey,sttSheldure, stCoord, sttDisplay;
+    CEndState sttScan, swAruArm, sttSound, sttSuppress, sttWaitGuk, sttEditRnKey,sttSheldure, stCoord, stRestoreChannel, sttDisplay;
     // 4.1.1 - 4.1.2
     CState sttConnParamHand;
     CEndState sttConnParamGPS;
