@@ -150,6 +150,7 @@ void Service::drawMenu()
 			case GuiWindowsSubType::rememberChan:        { drawMenu_storeChan();                                                        break; }
 			case GuiWindowsSubType::setDate:			 { drawMenu_setDate();  											            break; }
 			case GuiWindowsSubType::setTime:			 { drawMenu_setTime();  											            break; }
+            case GuiWindowsSubType::utcSetting:			 { menu->inputUtc_Menu();                                                       break; }
 			case GuiWindowsSubType::setFreq:			 { drawMenu_setFreq();  											            break; }
 			case GuiWindowsSubType::setSpeed:			 { drawMenu_setSpeed();  											            break; }
 			case GuiWindowsSubType::filetree:			 { drawMenu_filetree();  											            break; }
@@ -612,6 +613,7 @@ void Service::drawMenu_storeChan()
     label.Draw ();
     labelVal.Draw();
 }
+
 
 void Service::drawMenu_setDate()
 {

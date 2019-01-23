@@ -58,6 +58,7 @@ void Service::endMenuWindow_keyPressed(UI_Key key)
         case GuiWindowsSubType::softwareVersion:     softwareVersion_keyPressed(key);     break;
         case GuiWindowsSubType::gucInputType:	     gucInputType_keyPressed(key);        break;
         case GuiWindowsSubType::clearFlash:	         clearFlash_keyPressed(key);          break;
+        case GuiWindowsSubType::utcSetting:			 utcKeyPressed(key); 			  break;
     }
 }
 
@@ -2204,6 +2205,29 @@ void Service::suppress_keyPressed(UI_Key key)
     }
 }
 
+void Service::utcKeyPressed(UI_Key key)
+{
+	if (key == keyBack )
+	{
+		guiTree.backvard();
+	}
+	if (key == keyLeft )
+	{
+	  if (menu->UtcStatusStatus > 0)
+	  		 menu->UtcStatusStatus--;
+	}
+	if ( key == keyRight)
+	{
+		if (menu->UtcStatusStatus < 11)
+			menu->UtcStatusStatus++;
+	}
+	if (key == keyEnter)
+	{
+		//menu->UtcStatusStatus = menu->UtcStatusStatusTemp;
+		guiTree.backvard();
+	}
+}
+
 void Service::display_keyPressed(UI_Key key)
 {
    if (key == keyLeft )
@@ -2333,7 +2357,7 @@ void Service::storeChan_keyPressed(UI_Key key)
 			entry.speed     = (Multiradio::voice_channel_speed_t)speed;
 			entry.type      = (Multiradio::voice_channel_t)      type;
 
-			storageFs->addVoiceChannelTable(position, entry);
+			storageFs->addVoiceChannelTable(chan, entry);
           }
 
 		guiTree.backvard();

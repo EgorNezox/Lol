@@ -371,6 +371,7 @@ private:
     void softwareVersion_keyPressed     (UI_Key key);
     void gucInputType_keyPressed        (UI_Key key);
     void clearFlash_keyPressed          (UI_Key key);
+    void utcKeyPressed                  (UI_Key key);
 
     void condCommand_keyPressed_stage   (UI_Key key);
     void condCommand_enter_keyPressed();
@@ -397,6 +398,8 @@ private:
     uint8_t set_chan_focus = 0;
     uint8_t setChan [2] = {0,1};
     std::string labelChan;
+
+    std::string UtcValue;
 
     GUI_Obj *guiObj;
     bool isDrawMainWindow = false;

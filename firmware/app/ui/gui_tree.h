@@ -59,6 +59,7 @@ enum GuiWindowsSubType
     voiceMode, \
     filetree, \
 	rememberChan,\
+	utcSetting,\
     display
 };
 
@@ -219,6 +220,7 @@ private:
     // 4.1.1 - 4.1.2
     CState sttConnParamHand;
     CEndState sttConnParamGPS;
+    CEndState sttUTCParam;
     // 4.1.2.1 - 4.1.2.2
     CEndState sttSetDate, sttSetTime;
     SInputItemParameters dateParameters{(char*)dataAndTime[0], "", 0, 0, 0},

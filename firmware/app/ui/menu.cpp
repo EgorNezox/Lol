@@ -88,6 +88,32 @@ void CGuiMenu::setCondCommParam(CEndState state, UI_Key key)
     }
 }
 
+void CGuiMenu::inputUtc_Menu()
+{
+	MoonsGeometry volume_geom  = {  10, 45, 115, 70 };
+	GUI_EL_Label volume (&GUI_EL_TEMP_LabelMode, &volume_geom,  NULL, (GUI_Obj*)this);
+	volume.align.align_h =alignHCenter;
+
+	char str[3];
+	sprintf(str,"%d",UtcStatusStatus);
+	str[2] = '\0';
+	int val = atoi(str);
+	if (val >= 0 && val <= 11)
+		volume.SetText((char*)str);
+
+	titleArea = getDefaultTitleArea();
+
+	titleStr = utcStr[1];
+	titleArea.xs = 5;
+
+	GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
+	GUI_EL_Label  title (&titleParams,               &titleArea,  (char*)titleStr.c_str(), (GUI_Obj *)this);
+
+	window.Draw();
+	title.Draw();
+	volume.Draw();
+}
+
 void CGuiMenu::initCondCommDialog(CEndState state, bool isSynch, bool isWaitingAnswer ) // УК
 {
     std::string str, labelStr;

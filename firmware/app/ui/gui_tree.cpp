@@ -244,6 +244,7 @@ void CGuiTree::init()
     sttDateTime.prevState = &settings;
     sttDateTime.nextState.push_back(&sttConnParamGPS);
     sttDateTime.nextState.push_back(&sttConnParamHand);
+    sttDateTime.nextState.push_back(&sttUTCParam);
     // 4.1.1 - GPS ����-���
     sttConnParamGPS.setType(GuiWindowTypes::endMenuWindow);
     sttConnParamGPS.subType = GuiWindowsSubType::gpsSync;
@@ -255,6 +256,13 @@ void CGuiTree::init()
     sttConnParamHand.prevState = &sttDateTime;
     sttConnParamHand.nextState.push_back(&sttSetDate);
     sttConnParamHand.nextState.push_back(&sttSetTime);
+
+    sttUTCParam.setName(utcStr[0]);
+    sttUTCParam.setType(GuiWindowTypes::endMenuWindow);
+    sttUTCParam.subType = GuiWindowsSubType::utcSetting;
+    sttUTCParam.nextState.clear();
+    sttUTCParam.prevState =  &sttDateTime;
+
     // 4.1.2.1 - ���������� ����
     sttSetDate.setType(GuiWindowTypes::endMenuWindow);
     sttSetDate.subType = GuiWindowsSubType::setDate;

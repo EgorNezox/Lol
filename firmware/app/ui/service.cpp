@@ -720,6 +720,19 @@ void Service::setCoordDate(Navigation::Coord_Date date)
     std::string str = "";
     str.resize(9);
 
+    int h = 0;
+    h   += (time[0] - 48) * 10;
+    h   += (time[1] - 48);
+
+    uint8_t add = menu->UtcStatusStatus;
+    if (add > 0)
+    {
+    	h = (h + add) % 24;
+    	time[0] = (char) (h / 10 + 48);
+    	time[1] = (char) (h % 10 + 48);
+    }
+
+
     str[0] = (char)time[0];
     str[1] = (char)time[1];
     str[2] = ':';

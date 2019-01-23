@@ -144,6 +144,7 @@ public:
     void initTxSmsDialog(std::string, std::string);
     void inputSmsMessage(std::string*, UI_Key );
     void inputSmsAddr( std::string*, UI_Key );
+    void inputUtc_Menu();
     UI_Key prevKey = keyBack;
     char ch = ' ';
     int keyPressCount = 0;
@@ -279,6 +280,8 @@ public:
     GUI_Obj obj;
 
     uint16_t cmdSymCount = 0;
+    uint8_t UtcStatusStatus = 0;
+    uint8_t UtcStatusStatusTemp = 0;
 
 private:
 

@@ -14,6 +14,8 @@
 #define _LIST_SIZE 5
 #define SETTINGS_LIST_SIZE 2
 
+extern const char* utcStr[];
+
 extern const char *test_Pass;
 extern const char *errorStr;
 extern const char* exitStr;
