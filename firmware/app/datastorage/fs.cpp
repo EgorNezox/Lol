@@ -710,6 +710,47 @@ bool FS::setSheldure(uint8_t* data, uint16_t size)
     return false;
 }
 
+//! @brief setTimeZone Функция для записи Временной зоны в Flash память
+//! @param zone [uint8_t] временная зона [ 0 ... 11 ]
+//! @return bool true если запись прошла успешно
+bool FS::setTimeZone(uint8_t &zone)
+{
+	if (getBugState())
+		return false;
+
+	uint64_t res;
+	deleteFile("TimeZone");
+	QmFile file(dir, "TimeZone");
+	if(file.open(QmFile::WriteOnly))
+	{
+		res = file.write(&zone, 1);
+		file.close();
+		if (res > 0)
+			return true;
+	}
+	return false;
+}
+
+//! @brief setTimeZone Функция для чтения Временной зоны из Flash памяти
+//! @param zone [uint8_t] временная зона [ 0 ... 11 ]
+//! @return bool true если чтение прошло успешно
+bool FS::getTimeZone(uint8_t &zone)
+{
+	if (getBugState())
+		return false;
+
+	uint64_t res;
+	QmFile file(dir, "TimeZone");
+	if (file.open(QmFile::ReadOnly))
+	{
+		res = file.read(&zone, 1);
+		file.close();
+		if (res > 0)
+			return true;
+	}
+	return false;
+}
+
 bool FS::readMessage(FileType fileType, TransitionFileType transFileType, std::vector<uint8_t>* data, uint8_t fileNumber)
 {
 	if (getBugState())

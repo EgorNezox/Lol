@@ -75,6 +75,9 @@ public:
     bool setAleStationAddress(uint8_t data);
     bool getAleDefaultWorkFreqs(Multiradio::ale_work_freqs_t &data);
 
+    bool setTimeZone(uint8_t &zone);
+    bool getTimeZone(uint8_t &zone);
+
     int getMessageCount(FileType mode, TransitionFileType txrx);
 
     bool getGenDacValue(int *data);

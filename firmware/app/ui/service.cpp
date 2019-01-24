@@ -79,6 +79,9 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
 
     menu->useMode = (bool)useMode;
 
+	if (fs->getTimeZone(menu->UtcStatusStatus) == false)
+		menu->UtcStatusStatus = 0;
+
     voice_service->setVoiceMode((Multiradio::VoiceServiceInterface::VoiceMode)!menu->useMode);
 
     voice_service->command_tx30.connect(sigc::mem_fun(this, &Service::TxCondCmdPackage));

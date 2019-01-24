@@ -2223,6 +2223,7 @@ void Service::utcKeyPressed(UI_Key key)
 	}
 	if (key == keyEnter)
 	{
+		storageFs->setTimeZone(menu->UtcStatusStatus);
 		//menu->UtcStatusStatus = menu->UtcStatusStatusTemp;
 		guiTree.backvard();
 	}
