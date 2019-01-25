@@ -143,6 +143,12 @@ inline void DspController::recRxTxMod(uint8_t address, uint8_t* data, int data_l
 		if ((indicator == 3) && (virtual_mode == true) && (code == 5)) masterVirtualPps = true;
 	}
 
+	if (address == 0x51 && indicator == 7)
+	{
+		rxRssiLevel = code;
+		reciveRssiLevel(rxRssiLevel);
+	}
+
 	if (address == 0x63)
 	{
 		pswf_module->DataHandler(data,indicator,data_len);

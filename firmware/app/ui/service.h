@@ -104,6 +104,7 @@ public:
     void setPswfStatus			       (bool var);
     void TxCondCmdPackage			   (int value);
     uint8_t* getGpsGucCoordinat	       (uint8_t *coord);
+    void RxRssi(int value);
 
     void showMessage	   			   (const char *title, const char *text);
     void showSchedulePrompt		       (DataStorage::FS::FileType fileType, uint16_t minutes);
@@ -306,6 +307,7 @@ private:
     int sheldure_position     = 0;
     int isFreq                = 0;
     int command_rx_30         = 0;
+    int rxRssi 				  = 0;
     int cntSmsRx              = -1;
     int cntGucRx              = -1;
     int oldChannelNumber      = 2;

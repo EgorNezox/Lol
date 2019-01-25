@@ -33,6 +33,7 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
     dispatcher->dsp_controller->TxCondCmdPackageTransmit.connect(sigc::mem_fun(this,&VoiceServiceInterface::TxCondCmdTransmit));
     dispatcher->dsp_controller->startRxQuit.connect(sigc::mem_fun(this,&VoiceServiceInterface::startRxQuit));
     dispatcher->dsp_controller->stationModeIsCompleted.connect(sigc::mem_fun(this,&VoiceServiceInterface::onStationModeIsCompleted));
+    dispatcher->dsp_controller->reciveRssiLevel.connect(sigc::mem_fun(this,&VoiceServiceInterface::RxRSSI));
 
     dispatcher->dsp_controller->waveInfoRecieved.connect(sigc::mem_fun(this,&VoiceServiceInterface::onWaveInfoRecieved));
 
@@ -503,6 +504,12 @@ void VoiceServiceInterface::TxCondCmdTransmit(int value)
 {
     command_tx30(value);
 }
+
+void VoiceServiceInterface::RxRSSI(int value)
+{
+	rxRssiLevel(value);
+}
+
 void VoiceServiceInterface::onSmsCounterChange(int param)
 {
    smsCounterChanged(param);

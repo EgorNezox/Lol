@@ -164,6 +164,9 @@ public:
     sigc::signal<void, int> command_tx30;   // Передача УК  пакеты
     void TxCondCmdTransmit(int value);
 
+    sigc::signal<void, int> rxRssiLevel;
+    void RxRSSI(int value);
+
     void goToVoice();
 
     std::string getVirtualDate();

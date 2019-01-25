@@ -313,6 +313,9 @@ private:
     uint16_t inputInterval = 600;
     bool isInRepeatIntervalInput = false;
 
+    void RxRssi(int value);
+    uint8_t reciveRSSI = 0;
+    void drawReciveLevel();
 };
 
 #endif // MENU

@@ -82,6 +82,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->setVoiceMode((Multiradio::VoiceServiceInterface::VoiceMode)!menu->useMode);
 
     voice_service->command_tx30.connect(sigc::mem_fun(this, &Service::TxCondCmdPackage));
+    voice_service->rxRssiLevel.connect(sigc::mem_fun(this, &Service::RxRssi));
     voice_service->aleStateChanged.connect(sigc::mem_fun(this, &Service::updateAleState));
     voice_service->aleVmProgressUpdated.connect(sigc::mem_fun(this, &Service::updateAleVmProgress));
     voice_service->statusChanged.connect(sigc::mem_fun(this, &Service::updateMultiradio));
@@ -1116,6 +1117,11 @@ void Service::TxCondCmdPackage(int value)
         menu->initCondCommDialog((CEndState&)guiTree.getCurrentState());
         drawWaveInfoOnTx();
     }
+}
+
+void Service::RxRssi(int value)
+{
+	this->rxRssi = value;
 }
 
 std::vector<uint8_t>* Service::loadVoiceMail(uint8_t fileNumber, DataStorage::FS::TransitionFileType tft)
