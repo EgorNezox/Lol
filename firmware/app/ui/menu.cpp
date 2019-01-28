@@ -1543,6 +1543,7 @@ void CGuiMenu::initRxCondCmdDialog(bool isSynch, bool isStart)        // При�
     }
 
     GUI_EL_Label button ( &param, &buttonArea, (char*)str.c_str(), (GUI_Obj *)this);
+    drawReciveLevel();
     GUI_EL_Label  field1 (&param, &local1FieldArea,  (char*)counterStr.c_str(),      (GUI_Obj *)this);
 
     window.Draw();
@@ -1724,6 +1725,11 @@ void CGuiMenu::initFailedSms(int stage)
 void CGuiMenu::TxCondCmdPackage(int value)  // Передача УК  пакеты
 {
    command_tx30 = value;
+}
+
+void CGuiMenu::RxRssi(int value)  // Передача УК  пакеты
+{
+	reciveRSSI = value;
 }
 
 void CGuiMenu::initFileManagerDialog(uint8_t stage)
@@ -1941,4 +1947,16 @@ uint8_t CGuiMenu::calcPercent(uint8_t a, uint8_t b)
 	return res;
 }
 
+//! @brief Draw level signal label in receive
+//! @param [uint8_t] level of signal [0 ... 200]
+void CGuiMenu::drawReciveLevel()
+{
+	MoonsGeometry labelArea = { 5, 90, 20, 124 };
+	std::string text("Level: ");
+	char num[3];
+	itoa(this->reciveRSSI, num, 10);
+	text.append(num);
+	GUI_EL_Label    label ( &titleParams,   &labelArea,  (char*)text.c_str(), (GUI_Obj *)this);
+	label.Draw();
+}
 

@@ -206,6 +206,7 @@ public:
     sigc::signal<void,int> smsCounterChanged;
     sigc::signal<void,int> recievedGucQuitForTransm;   // прием квитанции групп ук
     sigc::signal<void,int> TxCondCmdPackageTransmit;   // int - /*command_tx30*/
+    sigc::signal<void,int> reciveRssiLevel;			   // ������� ����� �������
 
     sigc::signal<void,int> smsCounterFreq;
 
@@ -365,6 +366,8 @@ private:
     int command_tx30;                                           // счетчик для tx в sms
     int command_rx30;                                           // счетчик для rx в sms
     int success_pswf;                                           // флаг успешной доставки ук
+
+    int rxRssiLevel;
 
     int freqGucValue        = 0;                                // частота для установки в гук
     int pswf_retranslator   = 0;                                // наличие ретрансляции

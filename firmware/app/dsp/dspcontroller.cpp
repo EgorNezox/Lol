@@ -107,6 +107,7 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     QNB 		 = 0;
     pswf_rec 	 = 0;
     success_pswf = 30;
+    rxRssiLevel  = 0;
 
     pswf_first_packet_received = false;
     pswf_ack 				   = false;
@@ -943,6 +944,7 @@ void DspController::processCommandResponse(bool success, Module module, int code
 	} else {
 		//qmDebugMessage(QmDebug::Warning, "dsp command response was unexpected (module=0x%02X, code=0x%02X)", module, code);
 	}
+
 }
 
 void DspController::syncPendingCommand()
