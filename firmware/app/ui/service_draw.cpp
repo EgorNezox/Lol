@@ -260,14 +260,11 @@ void Service::drawWaveInfo()
 //#endif
     {
     	if (waveValue > 0.000 && powerValue > 0.000)
-		//if (multiradioStatus == Multiradio::VoiceServiceInterface::Status::StatusVoiceTx && (waveValue > 0.000 && powerValue > 0.000))
 		{
             MoonsGeometry objArea    = {  0, 0, 127, 127 };
             MoonsGeometry windowArea = { 92, 0, 125, 35 };
             MoonsGeometry waveArea   = { 92, 2,  125, 18 };
             MoonsGeometry powerArea  = { 92, 16, 125, 28 };
-
-			//waveValue = 99.0;
 
 			char var[5] = {0,0,0,0,0};
 
@@ -275,7 +272,7 @@ void Service::drawWaveInfo()
 				sprintf(var,"%02.0f",waveValue);
 			else
 				sprintf(var,"%01.1f",waveValue);
-			//std::string waveStr("S: " + std::string(var));
+
 			std::string waveStr("S " + std::string(var));
 
 			memset(&var, 0, 5);
@@ -284,7 +281,7 @@ void Service::drawWaveInfo()
 				sprintf(var,"%02.0f",powerValue);
 			else
 				sprintf(var,"%01.1f",powerValue);
-			//std::string powerStr("P: " + std::string(var));
+
 			std::string powerStr("P " + std::string(var));
 
 			GUI_Obj obj(&objArea);
@@ -293,14 +290,12 @@ void Service::drawWaveInfo()
 			param.element.align.align_h = alignRight;
 
 			GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
-		   // GUI_EL_Label  rxtxLabel  (&GUI_EL_TEMP_LabelTitle,    &txrxArea,   (char*)rxtxStr.c_str(), (GUI_Obj *)this);
 			GUI_EL_Label  waveLabel  (&param,    &waveArea,   (char*)waveStr.c_str(), (GUI_Obj *)&obj);
 			GUI_EL_Label  powerLabel (&param,    &powerArea,  (char*)powerStr.c_str(),(GUI_Obj *)&obj);
 
-			window.Draw();
-			//rxtxLabel.Draw();
+			window.Draw    ();
 			powerLabel.Draw();
-			waveLabel.Draw();
+			waveLabel.Draw ();
 		}
 		else
 		{

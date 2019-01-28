@@ -1298,10 +1298,7 @@ void Service::onWaveInfoRecieved(float wave, float power)
     waveValue = wave;
     powerValue = power;
     qmDebugMessage(QmDebug::Warning, "onWaveInfoRecieved() SWR = %f, POWER = %f ", waveValue, powerValue);
-#if PARAMS_DRAW
-    //if (weveValue > 0 && powerValue > 0)
-    	drawWaveInfo();
-#endif
+    drawWaveInfo();
 }
 
 void Service::onRxModeSetting()
