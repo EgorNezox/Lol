@@ -149,29 +149,49 @@ void Dispatcher::processHeadsetSmartCurrentChannelChange(int new_channel_number,
 
 void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status)
 {
+	uint8_t type_garn = 1;
 	if (!dsp_controller->isReady())
 		return;
 	switch (headset_status) {
 	case Headset::Controller::StatusAnalog:
-	case Headset::Controller::StatusSmartOk: {
-		if (headset_status == Headset::Controller::StatusSmartOk) {
+	case Headset::Controller::StatusSmartOk:
+	{
+		if (headset_status == Headset::Controller::StatusSmartOk)
+		{
 			int smart_ch_number = 1;
 			voice_channel_t smart_ch_type = Multiradio::channelInvalid;
 			headset_controller->getSmartCurrentChannel(smart_ch_number, smart_ch_type);
+
+			// устанаваливаем усиление микрофона - если канал закрытый 16, если открытый 24
 			setSmartChannelMicLevel(smart_ch_type);
-			dsp_controller->setAudioVolumeLevel(100);
+
+			// если канал открытый, то тип 2, если закрытый, то 0 тип
+			type_garn = (smart_ch_type == channelOpen) ? 0 : 2;
+
+			// устанавливаем канал
 			if (!changeVoiceChannel(smart_ch_number, smart_ch_type))
 				break;
-		} else {
-			dsp_controller->setAudioMicLevel(24);
+
+		}
+		else
+		{
+			// MRU
+			dsp_controller->setAudioMicLevel(255);
+
+			// установить тип полевой гарнитуры
+			type_garn = 1;
+
 			voice_channel = voice_channels_table.end();
 			uint8_t analog_ch_number;
+
 			if (data_storage_fs->getAnalogHeadsetChannel(analog_ch_number))
 				if (((analog_ch_number-1) < (int)voice_channels_table.size()) && (voice_channels_table[analog_ch_number-1].type == channelOpen))
 					voice_channel = voice_channels_table.begin() + analog_ch_number - 1;
+
 			if (voice_channel == voice_channels_table.end())
 				voice_channel = std::find_if( std::begin(voice_channels_table), std::end(voice_channels_table),
 						[&](const voice_channel_entry_t entry){ return (entry.type == channelOpen); } );
+
 			if (voice_channel == voice_channels_table.end()) {
                 if (voice_service->current_mode == VoiceServiceInterface::VoiceModeAuto) {
 					voice_service->setCurrentChannel(VoiceServiceInterface::ChannelDisabled);
@@ -181,6 +201,9 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status)
 			}
 		}
 		updateVoiceChannel(true);
+		// установка уровня громкости
+		dsp_controller->setAudioVolumeLevel(100);
+		dsp_controller->setAudioTypeGarniture(type_garn);
 		break;
 	}
 	default: {

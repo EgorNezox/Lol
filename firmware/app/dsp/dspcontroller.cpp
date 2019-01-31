@@ -359,6 +359,15 @@ void DspController::setAudioVolumeLevel(uint8_t volume_level)
     sendCommand(Audiopath, AudioVolumeLevel, command_value);
 }
 
+void DspController::setAudioTypeGarniture(uint8_t type)
+{
+	QM_ASSERT(is_ready);
+	if (!resyncPendingCommand())return;
+	ParameterValue command_value;
+	command_value.signal_type_garn = type;
+	sendCommand(Audiopath, AudioTypeGarnityre, command_value);
+}
+
 void DspController::setAudioMicLevel(uint8_t value)
 {
     QM_ASSERT(is_ready);
@@ -1232,6 +1241,10 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 				break;
 			case AudioSignalMicLevel:
 				qmToBigEndian((uint8_t)value.signal_mic_level, tx_data+tx_data_len);
+				tx_data_len += 1;
+				break;
+			case AudioTypeGarnityre:
+				qmToBigEndian((uint8_t)value.signal_type_garn, tx_data+tx_data_len);
 				tx_data_len += 1;
 				break;
 			default: QM_ASSERT(0);

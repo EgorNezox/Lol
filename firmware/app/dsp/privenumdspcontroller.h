@@ -91,6 +91,7 @@ union ParameterValue
 	uint8_t signal_number;
 	uint8_t signal_duration;
 	uint8_t signal_mic_level;
+	uint8_t signal_type_garn;
 	uint8_t agc_mode;
 	uint8_t pswf_indicator;
 	uint8_t pswf_r_adr;

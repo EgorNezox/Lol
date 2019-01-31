@@ -337,7 +337,7 @@ void Service::drawInfoRssi()
 		str[0] = (menu->reciveRSSI / 10) + 48;
 		str[1] = (menu->reciveRSSI % 10) + 48;
 
-		std::string levelStr(" RL" + std::string((char*)str));
+		std::string levelStr(" R " + std::string((char*)str));
 
 		LabelParams param = GUI_EL_TEMP_LabelTitle;
 		param.element.align.align_h = alignRight;

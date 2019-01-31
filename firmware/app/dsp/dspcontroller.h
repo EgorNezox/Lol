@@ -105,6 +105,7 @@ public:
     void setRadioOperation		(RadioOperation operation);
     void setRadioSquelch		(uint8_t value);
     void setAudioVolumeLevel	(uint8_t volume_level);
+    void setAudioTypeGarniture	(uint8_t type);
     void setAudioMicLevel		(uint8_t value);
     void setAGCParameters		(uint8_t agc_mode,int RadioPath);
 
@@ -206,7 +207,7 @@ public:
     sigc::signal<void,int> smsCounterChanged;
     sigc::signal<void,int> recievedGucQuitForTransm;   // РїСЂРёРµРј РєРІРёС‚Р°РЅС†РёРё РіСЂСѓРїРї СѓРє
     sigc::signal<void,int> TxCondCmdPackageTransmit;   // int - /*command_tx30*/
-    sigc::signal<void,int> reciveRssiLevel;			   // Уровень приёма сигнала
+    sigc::signal<void,int> reciveRssiLevel;			   // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
     sigc::signal<void,int> smsCounterFreq;
 
