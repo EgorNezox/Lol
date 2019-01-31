@@ -319,6 +319,14 @@ void Service::drawWaveInfo()
 
 void Service::drawInfoRssi()
 {
+	CState currentState;
+	guiTree.getLastElement(currentState);
+
+	int type = currentState.getType();
+	bool res = (type == (int)mainWindow || type == (int)endMenuWindow);
+
+    if (!res) return;
+
 	if (menu->reciveRSSI != 0)
 	{
 		MoonsGeometry objArea    = {  0, 0, 127, 127 };
@@ -329,7 +337,7 @@ void Service::drawInfoRssi()
 		str[0] = (menu->reciveRSSI / 10) + 48;
 		str[1] = (menu->reciveRSSI % 10) + 48;
 
-		std::string levelStr("LV " + std::string((char*)str));
+		std::string levelStr(" RL" + std::string((char*)str));
 
 		LabelParams param = GUI_EL_TEMP_LabelTitle;
 		param.element.align.align_h = alignRight;
