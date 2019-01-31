@@ -79,6 +79,13 @@ inline void DspController::recTractCmd(uint8_t address, uint8_t* data, int data_
 	uint8_t *value_ptr = data + 2;
 	int value_len = data_len - 2;
 
+	// если принимаем rssi
+	if (indicator == 5 && code == 7)
+	{
+
+		rxRssiLevel = data[2];
+		reciveRssiLevel(rxRssiLevel);
+	}
 
 	// если индикатор допустим
 	if ((indicator == 1) || (indicator == 3) || (indicator == 4) || (indicator == 5))
@@ -141,12 +148,6 @@ inline void DspController::recRxTxMod(uint8_t address, uint8_t* data, int data_l
 		}
 
 		if ((indicator == 3) && (virtual_mode == true) && (code == 5)) masterVirtualPps = true;
-	}
-
-	if (address == 0x51 && indicator == 7)
-	{
-		rxRssiLevel = code;
-		reciveRssiLevel(rxRssiLevel);
 	}
 
 	if (address == 0x63)

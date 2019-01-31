@@ -283,6 +283,8 @@ public:
     uint8_t UtcStatusStatus = 0;
     uint8_t UtcStatusStatusTemp = 0;
 
+    uint8_t reciveRSSI = 0;
+
 private:
 
     const char* keyChars[10] = {(const char*)&ch_key0, (const char*)&ch_key1, (const char*)&ch_key2, (const char*)&ch_key3, (const char*)&ch_key4,
@@ -314,8 +316,6 @@ private:
     bool isInRepeatIntervalInput = false;
 
     void RxRssi(int value);
-    uint8_t reciveRSSI = 0;
-    void drawReciveLevel();
 };
 
 #endif // MENU

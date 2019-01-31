@@ -44,7 +44,8 @@ enum AudioParameterCode
 	AudioMicAmplify     = 3,
 	AudioSignalNumber   = 4,
 	AudioSignalDuration = 5,
-	AudioSignalMicLevel = 6
+	AudioSignalMicLevel = 6,
+	AudioTypeGarnityre  = 7
 };
 
 enum PSWF

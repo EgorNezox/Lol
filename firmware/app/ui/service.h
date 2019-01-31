@@ -173,6 +173,7 @@ private:
     void drawMenu();
     void drawIndicator();
     void drawMainWindow();
+    void drawInfoRssi();
 
     void showReceivedSms();
     void updateSystemTime();

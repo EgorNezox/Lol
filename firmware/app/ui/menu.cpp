@@ -1506,7 +1506,7 @@ void CGuiMenu::initRxCondCmdDialog(bool isSynch, bool isStart)        // При�
     LabelParams param = GUI_EL_TEMP_LabelMode;
     param.element.align = {alignHCenter, alignVCenter};
     param.transparent = false;
-    MoonsGeometry buttonArea  = { 0, 30, 127, 90 };
+    MoonsGeometry buttonArea      = { 0, 30, 127, 90 };
     MoonsGeometry local1FieldArea = { 7, 90, 126, 120 };
 
     GUI_EL_Window   window    ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)this);
@@ -1543,7 +1543,6 @@ void CGuiMenu::initRxCondCmdDialog(bool isSynch, bool isStart)        // При�
     }
 
     GUI_EL_Label button ( &param, &buttonArea, (char*)str.c_str(), (GUI_Obj *)this);
-    drawReciveLevel();
     GUI_EL_Label  field1 (&param, &local1FieldArea,  (char*)counterStr.c_str(),      (GUI_Obj *)this);
 
     window.Draw();
@@ -1552,6 +1551,7 @@ void CGuiMenu::initRxCondCmdDialog(bool isSynch, bool isStart)        // При�
     button.Draw();
     if (recvStage == 3)
     	field1.Draw();
+
 }
 
 void CGuiMenu::initGroupCondCmd( CEndState state, bool isWaitingAnswer)  // ГУК
@@ -1946,17 +1946,3 @@ uint8_t CGuiMenu::calcPercent(uint8_t a, uint8_t b)
 		res = 100;
 	return res;
 }
-
-//! @brief Draw level signal label in receive
-//! @param [uint8_t] level of signal [0 ... 200]
-void CGuiMenu::drawReciveLevel()
-{
-	MoonsGeometry labelArea = { 5, 90, 20, 124 };
-	std::string text("Level: ");
-	char num[3];
-	itoa(this->reciveRSSI, num, 10);
-	text.append(num);
-	GUI_EL_Label    label ( &titleParams,   &labelArea,  (char*)text.c_str(), (GUI_Obj *)this);
-	label.Draw();
-}
-

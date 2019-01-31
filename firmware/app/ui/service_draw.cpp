@@ -305,6 +305,9 @@ void Service::drawWaveInfo()
 			else
                 windowArea = { 92, 0, 127, 28 };
 
+
+
+
             MoonsGeometry objArea = {  0, 0, 127, 127 };
 			GUI_Obj obj(&objArea);
 
@@ -312,6 +315,29 @@ void Service::drawWaveInfo()
 			window.Draw();
 		}
     }
+}
+
+void Service::drawInfoRssi()
+{
+	if (menu->reciveRSSI != 0)
+	{
+		MoonsGeometry objArea    = {  0, 0, 127, 127 };
+		MoonsGeometry rssiArea  = { 94, 16, 127, 28 };
+
+		char str[3] = {'\0'};
+
+		str[0] = (menu->reciveRSSI / 10) + 48;
+		str[1] = (menu->reciveRSSI % 10) + 48;
+
+		std::string levelStr("LV " + std::string((char*)str));
+
+		LabelParams param = GUI_EL_TEMP_LabelTitle;
+		param.element.align.align_h = alignRight;
+
+		GUI_Obj obj(&objArea);
+		GUI_EL_Label  powerLabel (&param,    &rssiArea,  (char*)levelStr.c_str(),(GUI_Obj *)&obj);
+		powerLabel.Draw();
+	}
 }
 
 void Service::drawMainWindow()

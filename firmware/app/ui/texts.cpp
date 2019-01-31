@@ -310,7 +310,7 @@ const char *fromStr = "от\0";
 
 const char *syncWaitingStr = "Синхро...\0";
 
-const char *txQwit  = "Отпр. квит.\0";
+const char *txQwit  = "Отпр.\n квит.\0";
 
 const char *err  = " Ошибка\0";
 const char *errCrc  = " Ошибка CRC\0";

@@ -1124,7 +1124,8 @@ void Service::TxCondCmdPackage(int value)
 
 void Service::RxRssi(int value)
 {
-	this->rxRssi = value;
+	menu->reciveRSSI = value;
+	drawInfoRssi();
 }
 
 std::vector<uint8_t>* Service::loadVoiceMail(uint8_t fileNumber, DataStorage::FS::TransitionFileType tft)

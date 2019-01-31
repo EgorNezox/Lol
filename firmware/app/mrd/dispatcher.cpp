@@ -159,6 +159,7 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status)
 			voice_channel_t smart_ch_type = Multiradio::channelInvalid;
 			headset_controller->getSmartCurrentChannel(smart_ch_number, smart_ch_type);
 			setSmartChannelMicLevel(smart_ch_type);
+			dsp_controller->setAudioVolumeLevel(100);
 			if (!changeVoiceChannel(smart_ch_number, smart_ch_type))
 				break;
 		} else {
