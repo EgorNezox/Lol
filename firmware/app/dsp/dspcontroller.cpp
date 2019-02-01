@@ -55,6 +55,8 @@
 #define NUMS 0 // need = 0   9 for debug
 #define startVirtTxPhaseIndex 0;
 
+#define SAZHEN_BATTARY_VOLTAGE 0
+
 namespace Multiradio {
 
 using namespace Galua;
@@ -289,10 +291,12 @@ void DspController::setRadioParameters(RadioMode mode, uint32_t frequency) {
 
 void DspController::sendBatteryVoltage(int voltage)
 {
+#if SAZHEN_BATTARY_VOLTAGE
 	// вольт * 10
     ParameterValue command;
     command.voltage = voltage / 100;
     sendCommandEasy(TxRadiopath, 10, command);
+#endif
 }
 
 void DspController::sendHeadsetType(uint8_t type)

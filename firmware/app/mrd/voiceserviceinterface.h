@@ -89,6 +89,7 @@ public:
     void tuneEmissionType(voice_emission_t type);
     void tuneSquelch(uint8_t value);
     void TuneAudioLevel(uint8_t volume_level);
+    void TuneMicLevel  (uint8_t mic_level);
     void TurnAGCMode(uint8_t mode, int radio_path);
     void TurnPSWFMode(uint8_t mode,int cmd,int r_adr,int retr);
     const char* ReturnSwfStatus();

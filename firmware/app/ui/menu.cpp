@@ -298,10 +298,10 @@ void CGuiMenu::initAruarmDialog()
 
     volume[0]->SetText((char*)aruStr);
     volume[1]->SetText((char*)armStr);
-    volume[2]->SetText((char*)ausStr);
+    volume[2]->SetText((char*)mrStr);
 
     for ( int i = 0; i < 3; i++)
-       volume[3+i]->SetText((char*)useScanMenu[aruArmAsuStatus[i]]);
+       volume[3+i]->SetText((char*)useScanMenu[aruArmMruStatus[i]]);
 
     titleArea = getDefaultTitleArea();
 

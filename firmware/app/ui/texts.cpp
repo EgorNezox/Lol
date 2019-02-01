@@ -75,7 +75,7 @@ const char *notExistStr = "НРЯСРЯРБ.\0";
 const char *useScanMenu[] = {"бшйк\0", "бйк\0", "люк\0","япед\0","бшя\0"};
 const char *aruStr = "юпс\0";
 const char *armStr = "юпл\0";
-const char *ausStr = "юсC\0";
+const char *mrStr  = "лпс\0";
 const char *error_SWF = "реяр опнидем\0";
 const char *true_SWF = "реяр опнидем\0";
 

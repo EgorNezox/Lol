@@ -2291,11 +2291,21 @@ void Service::aruarmaus_keyPressed(UI_Key key)
     {
         if ( menu->focus >= 0 && menu->focus < 3)
         {
-            menu->aruArmAsuStatus[menu->focus] = menu->aruArmAsuStatus[menu->focus] ? false : true;
+            menu->aruArmMruStatus[menu->focus] = menu->aruArmMruStatus[menu->focus] ? false : true;
         }
 #ifndef PORT__PCSIMULATOR
-        uint8_t vol = menu->getAruArmAsu();
-        voice_service->TurnAGCMode(vol, menu->focus);
+        uint8_t vol = menu->getAruArmMru();
+
+        if (menu->focus == 2)
+        {
+        	int level = 255;
+        	if (!vol) level = 24;
+        	voice_service->TuneMicLevel(level);
+        }
+        else
+        {
+        	voice_service->TurnAGCMode(vol, menu->focus);
+        }
 #endif
     }
 

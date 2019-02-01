@@ -165,8 +165,8 @@ public:
     void  setVolume(uint8_t volume){vol = volume;}
 
     // aru arm
-    uint8_t getAruArmAsu() { return aruArmAsuStatus[focus]; }
-    bool aruArmAsuStatus[3] = {true, true, true};
+    uint8_t getAruArmMru() { return aruArmMruStatus[focus]; }
+    bool aruArmMruStatus[3] = {true, true, true};
     uint8_t inclStatus = 1;
 
     // gps coordinate

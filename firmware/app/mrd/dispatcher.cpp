@@ -36,12 +36,14 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 						data_storage_fs(data_storage_fs),
 						power_battery(power_battery)
 {
-	headset_controller->statusChanged.connect(sigc::mem_fun(this, &Dispatcher::setupVoiceMode));
-	headset_controller->pttStateChanged.connect(sigc::mem_fun(this, &Dispatcher::processHeadsetPttStateChange));
-	headset_controller->smartCurrentChannelChanged.connect(sigc::mem_fun(this, &Dispatcher::processHeadsetSmartCurrentChannelChange));
+	headset_controller->statusChanged.connect              (sigc::mem_fun(this, &Dispatcher::setupVoiceMode));
+	headset_controller->pttStateChanged.connect            (sigc::mem_fun(this, &Dispatcher::processHeadsetPttStateChange));
+	headset_controller->smartCurrentChannelChanged.connect (sigc::mem_fun(this, &Dispatcher::processHeadsetSmartCurrentChannelChange));
+
 	dsp_controller = new DspController(dsp_uart_resource, dspreset_iopin_resource, navigator, data_storage_fs, this);
 	dsp_controller->started.connect(sigc::mem_fun(this, &Dispatcher::processDspStartup));
 	dsp_controller->setRadioCompleted.connect(sigc::mem_fun(this, &Dispatcher::processDspSetRadioCompletion));
+
 	atu_controller = new AtuController(atu_uart_resource, atu_iopin_resource, this);
 	atu_controller->modeChanged.connect(sigc::mem_fun(this, &Dispatcher::processAtuModeChange));
 	atu_controller->requestTx.connect(sigc::mem_fun(this, &Dispatcher::processAtuRequestTx));
@@ -64,14 +66,15 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 
 	if (!data_storage_fs->getVoiceFrequency(voice_manual_frequency))
 		voice_manual_frequency = 10000000;
+
 	if (!data_storage_fs->getVoiceEmissionType(voice_manual_emission_type))
 	{
 		voice_manual_emission_type = voiceemissionUSB;
 		dsp_controller->emissionType = voice_manual_emission_type;
 	}
+
 	if (!data_storage_fs->getVoiceChannelSpeed(voice_manual_channel_speed))
 		voice_manual_channel_speed = voicespeed1200;
-
 }
 
 void Dispatcher::setFlash(QmM25PDevice *device)
@@ -127,6 +130,7 @@ void Dispatcher::processDspStartup()
 #ifdef PORT__TARGET_DEVICE_REV1
     navigator->coldStart();
 #endif
+    dsp_controller->setAudioVolumeLevel(100);
 }
 
 bool Dispatcher::processHeadsetPttStateChange(bool new_state)
@@ -149,9 +153,11 @@ void Dispatcher::processHeadsetSmartCurrentChannelChange(int new_channel_number,
 
 void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status)
 {
+
 	uint8_t type_garn = 1;
 	if (!dsp_controller->isReady())
 		return;
+
 	switch (headset_status) {
 	case Headset::Controller::StatusAnalog:
 	case Headset::Controller::StatusSmartOk:
@@ -202,7 +208,6 @@ void Dispatcher::setupVoiceMode(Headset::Controller::Status headset_status)
 		}
 		updateVoiceChannel(true);
 		// установка уровня громкости
-		dsp_controller->setAudioVolumeLevel(100);
 		dsp_controller->setAudioTypeGarniture(type_garn);
 		break;
 	}

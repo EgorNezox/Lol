@@ -72,7 +72,7 @@ extern const char *files[];
 
 extern const char *aruStr;
 extern const char *armStr;
-extern const char *ausStr;
+extern const char *mrStr;
 
 extern const char *error_SWF;
 extern const char *true_SWF;
