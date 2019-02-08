@@ -99,6 +99,53 @@ bool FS::readFilterCoeff(float* data)
 	file.close();
 	return true;
 }
+bool FS::writeFileFromId(int id, uint8_t* data, uint16_t len)
+{
+	std::string name = "";
+
+	switch(id)
+	{
+	case 1:
+		name = "VoiceChannelsTable";
+		break;
+	case 2:
+		name = "AleStationAddress";
+		break;
+	case 3:
+		name = "FhssKey";
+		break;
+	case 4:
+		name = "AleDefaultCallFreqs";
+		break;
+	case 5:
+		name = "AleSessionFreqs";
+		break;
+	}
+
+	qmDebugMessage(QmDebug::Info, "name of write file = %s",  name.c_str());
+
+	bool res = QmFile::exists(dir, name);
+
+	if (res)
+	{
+		res = deleteFile(name);
+		if (!res) return false;
+	}
+
+	QmFile file(dir, name);
+
+	if (!file.open(QmFile::WriteOnly))
+		return false;
+
+	int count = file.write((uint8_t*)data, len);
+
+	if (count != len) return false;
+
+	res = file.close();
+
+	return res;
+
+}
 
 bool FS::writeFilterCoeff(float data)
 {

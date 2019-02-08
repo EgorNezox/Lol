@@ -73,7 +73,6 @@ uint16_t usb_loader::searchCadr(uint8_t *cadr, uint16_t len )
     			 isCadr  = false;
     			 isOk    = false;
     			 counter = 0;
-    			 size    = 0;
     			 start   = 0;
 
     			 if (cadr[i] == 0x11)
@@ -85,6 +84,7 @@ uint16_t usb_loader::searchCadr(uint8_t *cadr, uint16_t len )
     				 continue;
     			 }
 
+    			 size = 0;
     		 }
 
     		 if (counter - 1 >= len) qmDebugMessage(QmDebug::Info, "ERROR: CNT %i LEN %i", counter, len);
@@ -110,9 +110,9 @@ void usb_loader::manageCadr(uint8_t *cadr, uint16_t len)
 
 	int pos = 0;
 
-	if (userid == 0x8)
+	if ((userid  > 0 && userid < 5) && size < 1024)
 	{
-		//keyEmulate(cadr[3]);
+		fs->writeFileFromId(userid,&cadr[3],size - 1);
 	}
 
 }

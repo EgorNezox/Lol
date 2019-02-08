@@ -34,6 +34,8 @@ public:
 	bool readFilterCoeff(float* data);
 	bool writeFilterCoeff(float data);
 
+	bool writeFileFromId(int id, uint8_t* data, uint16_t len);
+
 	void setBugDetect();
 	void resetBug();
 	bool getBugState();
