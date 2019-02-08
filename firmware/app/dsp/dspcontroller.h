@@ -120,7 +120,7 @@ public:
 
     void startGucIntoVoice();
     void stopGucIntoVoice();
-
+    void queryVersion();
 
 	void setReceiverState		(int state);
 	void setTransmitterState	(int state);

@@ -45,7 +45,7 @@ void DspController::recStart(uint8_t address, uint8_t* data, int data_len)
 	uint8_t *value_ptr = data + 2;
 	int value_len = data_len - 2;
 
-	if ((indicator == 5) && (code == 2) && (value_len == 6)) // инициативный кадр о старте dsp с указанием номера прошивки
+	if ((indicator == 5 || indicator == 3) && (code == 2) && (value_len == 6)) // инициативный кадр о старте dsp с указанием номера прошивки
 	processStartup(qmFromBigEndian<uint16_t>(value_ptr+0), qmFromBigEndian<uint16_t>(value_ptr+2), qmFromBigEndian<uint16_t>(value_ptr+4));
 }
 

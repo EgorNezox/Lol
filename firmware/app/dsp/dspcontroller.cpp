@@ -198,30 +198,27 @@ bool DspController::isReady() {
 
 void DspController::startServicing()
 {
-	// old
-	//qmDebugMessage(QmDebug::Info, "start servicing...");
-	initResetState();
-	reset_iopin->writeOutput(QmIopin::Level_Low);
-	QmThread::msleep(10);
-	transport->enable();
-	reset_iopin->writeOutput(QmIopin::Level_High);
-	//new (fast)
 
-////	qmDebugMessage(QmDebug::Info, "start servicing...");
-//	initResetState();
+	initResetState();
 //	reset_iopin->writeOutput(QmIopin::Level_Low);
-//	QmThread::msleep(20);
-////	reset_iopin->writeOutput(QmIopin::Level_High);
-////	QmThread::msleep(8000);
-//	transport->enable();
+//	QmThread::msleep(10);
+	transport->enable();
 //	reset_iopin->writeOutput(QmIopin::Level_High);
-////	ParameterValue command;
-////	command.radio_mode = RadioModeUSB;
-////	sendCommandEasy(TxRadiopath, 2, command);
-////	QmThread::msleep(4000);
-////	dspReset();
+
+	queryVersion();
 
 	startup_timer->start(10000);
+}
+
+
+void DspController::queryVersion()
+{
+	uint8_t data[10] =  {0};
+	uint8_t data_len =   0;
+	data[0]   = 0;
+	data[1]   = 0;
+	data_len += 2;
+	transmithFrame(0x10,data,data_len);
 }
 
 void DspController::push_queue()

@@ -85,6 +85,11 @@ void qmMain() {
     target_device_multiradio_init(0);
 #endif
 
+    QmIopin reset_dsp(platformhwDspResetIopin);
+    reset_dsp.writeOutput(QmIopin::Level_Low);
+    QmThread::msleep(10);
+    reset_dsp.writeOutput(QmIopin::Level_High);
+
 #if defined(PORT__TARGET_DEVICE_REV1)
     Power::Controller power_controller(platformhwPowerHSControlIopin, platformhwPowerControllerIopin,platformhwPowerOffIntIopin, platformhwPowerSourceIopin);
 #endif /* PORT__TARGET_DEVICE_REV1 */
