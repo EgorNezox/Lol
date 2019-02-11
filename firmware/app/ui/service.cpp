@@ -273,7 +273,10 @@ void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)
 	if ((subdevice_code == 7) && (error_code == 5))
 	{
 		title = dsphardwarefailure_7_5_title_str;
-		text = dsphardwarefailure_7_5_text_str;
+		char text_buffer[50] = {'\0'};
+		sprintf(text_buffer , dsphardwarefailure_wave_power, waveValue, powerValue);
+		text = text_buffer;
+
 	}
 	else
 	{
