@@ -1240,8 +1240,8 @@ void Service::playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain,
 
 void Service::onCompletedStationMode(bool isGoToVoice)
 {
-	workModeNum_tmp = 1;
-	workModeNum = 1;
+	workModeNum_tmp = 0;		// for set YK as default
+	workModeNum = 0;
 	main_scr->setModeText(mainScrMode[workModeNum]);
 
 	voice_service->stopGucQuit();

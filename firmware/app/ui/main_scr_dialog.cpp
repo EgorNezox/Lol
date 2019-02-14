@@ -58,7 +58,7 @@ GUI_Dialog_MainScr::GUI_Dialog_MainScr(MoonsGeometry *area):GUI_Obj(area),
  // freq->setSkipTextBackgronundFilling(true);
 
   em_mode_text->SetText((char*)"--\0");
-  mode_text->SetText((char*)mainScrMode[1]);
+  mode_text->SetText((char*)mainScrMode[0]);		// for set YK as default
 
   ch_num_label->SetText((char*)"--\0");
   ch_type_label->SetText((char*)"\0");

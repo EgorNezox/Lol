@@ -416,8 +416,8 @@ private:
 
 //    uint8_t emModeNum = 0;
 //    uint8_t emModeNum_tmp = 0;
-    uint8_t workModeNum = 1;
-    uint8_t workModeNum_tmp = 1;
+    uint8_t workModeNum = 0;
+    uint8_t workModeNum_tmp = 0;
 };
 } /* namespace Ui */
 #endif /* FIRMWARE_APP_UI_SERVICE_H_ */

@@ -280,7 +280,7 @@ void Service::mainWindow_keyPressed(UI_Key key)
 			{
 				if (workModeNum_tmp > 0)
 					workModeNum_tmp--;
-				if (workModeNum_tmp == 1 && menu->ch_emiss_type)
+				if (workModeNum_tmp == 1 && menu->ch_emiss_type)	// skip GUK
 					workModeNum = --workModeNum_tmp;
 				break;
 			}
@@ -288,7 +288,7 @@ void Service::mainWindow_keyPressed(UI_Key key)
 			{
 				if (workModeNum_tmp < 3)
 					workModeNum_tmp++;
-				if (workModeNum_tmp == 1 && menu->ch_emiss_type)
+				if (workModeNum_tmp == 1 && menu->ch_emiss_type)	// skip GUK
 					workModeNum = ++workModeNum_tmp;
 				break;
 			}
