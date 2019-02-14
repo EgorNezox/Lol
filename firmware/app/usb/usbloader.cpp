@@ -108,11 +108,36 @@ void usb_loader::manageCadr(uint8_t *cadr, uint16_t len)
 
 	size = cadr[0] + (cadr[1] << 8);
 
-	int pos = 0;
-
-	if ((userid  > 0 && userid < 5) && size < 1024)
+	if ((userid  > 0 && userid < 6) && size < 1024)
 	{
-		fs->writeFileFromId(userid,&cadr[3],size - 1);
+		// read file from device
+		if (size == 1)
+		{
+			// get size from file
+			uint32_t size = fs->getSizeDataFileFromId(userid);
+			if (size > 0)
+			{
+				size  += sizeof(userid);
+
+				uint8_t file_data[size + 5] = {0};
+				// get file
+				bool res = fs->getFastFileFromId(userid,size,&file_data[4]);
+
+				if (res)
+				{
+					file_data[0]        = 0x10;
+					file_data[1]        = size % 256;
+					file_data[2]        = size / 256;
+					file_data[size + 4] = 0x11;
+
+				}
+			}
+		}
+		// load file to device
+		else
+		{
+			fs->writeFileFromId(userid,&cadr[3],size - 1);
+		}
 	}
 
 }

@@ -94,8 +94,13 @@ void Dispatcher::startServicing(const Multiradio::voice_channels_table_t& voice_
 	this->voice_channels_table = voice_channels_table;
 	voice_channel = this->voice_channels_table.end();
 	dsp_controller->startServicing();
-	atu_controller->startServicing();
+	//atu_controller->startServicing();
     initAle();
+}
+
+void Dispatcher::startAtu()
+{
+	atu_controller->startServicing();
 }
 
 

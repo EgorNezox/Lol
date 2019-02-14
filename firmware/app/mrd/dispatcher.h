@@ -38,6 +38,8 @@ public:
 	void DspReset();
 	void returnSpeed();
 
+	void startAtu();
+
 	void setFlash(QmM25PDevice *device);
 
 private:

@@ -35,6 +35,8 @@ public:
 	bool writeFilterCoeff(float data);
 
 	bool writeFileFromId(int id, uint8_t* data, uint16_t len);
+	uint16_t getSizeDataFileFromId(int id);
+	bool    getFastFileFromId(int id, uint16_t filesize, uint8_t *file_data);
 
 	void setBugDetect();
 	void resetBug();

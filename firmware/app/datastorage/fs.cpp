@@ -147,6 +147,80 @@ bool FS::writeFileFromId(int id, uint8_t* data, uint16_t len)
 
 }
 
+uint16_t FS::getSizeDataFileFromId(int id)
+{
+	std::string name = "";
+
+	switch(id)
+	{
+	case 1:
+		name = "VoiceChannelsTable";
+		break;
+	case 2:
+		name = "AleStationAddress";
+		break;
+	case 3:
+		name = "FhssKey";
+		break;
+	case 4:
+		name = "AleDefaultCallFreqs";
+		break;
+	case 5:
+		name = "AleSessionFreqs";
+		break;
+	}
+
+	uint16_t file_size = 0;
+	QmFile file(dir, name);
+
+	if (!file.open(QmFile::ReadOnly))
+	{
+		 file_size = file.size();
+		 file.close();
+		 return file_size;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+bool FS::getFastFileFromId(int id, uint16_t filesize, uint8_t *file_data)
+{
+	std::string name = "";
+
+	switch(id)
+	{
+	case 1:
+		name = "VoiceChannelsTable";
+		break;
+	case 2:
+		name = "AleStationAddress";
+		break;
+	case 3:
+		name = "FhssKey";
+		break;
+	case 4:
+		name = "AleDefaultCallFreqs";
+		break;
+	case 5:
+		name = "AleSessionFreqs";
+		break;
+	}
+
+	uint32_t file_size = 0;
+		QmFile file(dir, name);
+
+		if (!file.open(QmFile::ReadOnly))
+		{
+			int len = file.read((uint8_t *)file_data, file_size);
+			file.close();
+			if (len != file_size) return false;
+		}
+		return true;
+}
+
+
 bool FS::writeFilterCoeff(float data)
 {
 	if (getBugState())

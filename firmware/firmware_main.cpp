@@ -176,5 +176,7 @@ void qmMain() {
     usb_class.setfs(&data_storage_fs);
 #endif
 
+    mr_dispatcher.startAtu();
+
 	app.exec();
 }
