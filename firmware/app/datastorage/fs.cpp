@@ -173,7 +173,7 @@ uint16_t FS::getSizeDataFileFromId(int id)
 	uint16_t file_size = 0;
 	QmFile file(dir, name);
 
-	if (!file.open(QmFile::ReadOnly))
+	if (file.open(QmFile::ReadOnly))
 	{
 		 file_size = file.size();
 		 file.close();
@@ -208,16 +208,17 @@ bool FS::getFastFileFromId(int id, uint16_t filesize, uint8_t *file_data)
 		break;
 	}
 
-	uint32_t file_size = 0;
 		QmFile file(dir, name);
 
 		if (!file.open(QmFile::ReadOnly))
-		{
-			int len = file.read((uint8_t *)file_data, file_size);
-			file.close();
-			if (len != file_size) return false;
-		}
-		return true;
+			return false;
+
+		int len = file.read((uint8_t *)file_data, filesize);
+		file.close();
+		if (len + 1 == filesize)
+			return true;
+		else
+			return false;
 }
 
 
