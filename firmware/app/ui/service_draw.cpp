@@ -330,20 +330,17 @@ void Service::drawInfoRssi()
 	if (menu->reciveRSSI != 0)
 	{
 		MoonsGeometry objArea    = {  0, 0, 127, 127 };
-		MoonsGeometry rssiArea  = { 94, 16, 127, 28 };
+		MoonsGeometry rssiArea  = { 93, 16, 127, 28 };
 
-		char str[3] = {'\0'};
-
-		str[0] = (menu->reciveRSSI / 10) + 48;
-		str[1] = (menu->reciveRSSI % 10) + 48;
-
-		std::string levelStr(" R " + std::string((char*)str));
+		char str[4] = {'\0'};
+//		sprintf(str, "R %d", menu->reciveRSSI);
+		sprintf(str, "R%3.d", menu->reciveRSSI);
 
 		LabelParams param = GUI_EL_TEMP_LabelTitle;
 		param.element.align.align_h = alignRight;
 
 		GUI_Obj obj(&objArea);
-		GUI_EL_Label  powerLabel (&param,    &rssiArea,  (char*)levelStr.c_str(),(GUI_Obj *)&obj);
+		GUI_EL_Label  powerLabel (&param,    &rssiArea,  (char*)str,(GUI_Obj *)&obj);
 		powerLabel.Draw();
 	}
 }
