@@ -365,9 +365,11 @@ void Service::drawMainWindow()
     	{
     	case Multiradio::voice_emission_t::voiceemissionFM:
     		str.append(ch_em_type_str[0]);
+    		menu->ch_emiss_type = 1;						// for set mode emission in correct value
     		break;
     	case Multiradio::voice_emission_t::voiceemissionUSB:
     		str.append(ch_em_type_str[1]);
+    		menu->ch_emiss_type = 0;						// for set mode emission in correct value
     		break;
     	default:
     		str.append((char*)"--\0");
