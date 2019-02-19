@@ -333,8 +333,7 @@ void Service::drawInfoRssi()
 		MoonsGeometry rssiArea  = { 93, 16, 127, 28 };
 
 		char str[4] = {'\0'};
-//		sprintf(str, "R %d", menu->reciveRSSI);
-		sprintf(str, "R%3.d", menu->reciveRSSI);
+		sprintf(str, "R%d", menu->reciveRSSI);
 
 		LabelParams param = GUI_EL_TEMP_LabelTitle;
 		param.element.align.align_h = alignRight;
