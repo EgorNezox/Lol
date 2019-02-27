@@ -177,16 +177,6 @@ void AtuController::scan() {
 	if (command.id != commandInactive)
 		return;
 	startCommand(commandRequestState, 0, 0, 0);
-
-//	static int i = 0;
-//	++i;
-//
-//	if (i > 20)
-//	{
-//		uart->close();
-//		uart->open();
-//	}
-
 }
 
 void AtuController::startCommand(CommandId id, const uint8_t* data, int data_len, int repeat_count, int timeout) {
@@ -322,7 +312,7 @@ void AtuController::processReceivedStateMessage(uint8_t *data) {
 		startCommand(commandEnterBypassMode, &antenna, 1, 2);
 		setMode(modeStartingBypass);
 	} else if ((mode != modeMalfunction) && (error_code != 0)) {
-		//qmDebugMessage(QmDebug::Info, "received state message with non-zero error_code = %u", error_code);
+		qmDebugMessage(QmDebug::Info, "received state message with non-zero error_code = %u", error_code);
 		setMode(modeMalfunction);
 	}
 }

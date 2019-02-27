@@ -68,7 +68,7 @@ void GUI_Indicator::UpdateMultiradio(Multiradio::VoiceServiceInterface::Status s
             ind_multiradio->icon = sym_tx_gray;
             break;
         case Multiradio::VoiceServiceInterface::StatusTuningTx:
-            ind_multiradio->icon = sym_tx_tune;
+            ind_multiradio->icon = sym_tx_gray;
             break;
         default:
             QM_ASSERT(0);

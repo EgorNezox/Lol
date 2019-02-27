@@ -140,6 +140,16 @@ void Dispatcher::processDspStartup()
 
 bool Dispatcher::processHeadsetPttStateChange(bool new_state)
 {
+	qmDebugMessage(QmDebug::Dump, "PttStateChange MODE = %d", voice_service->current_status);
+
+	if (!new_state)
+	{
+		QmThread::msleep(5);
+		if (atu_controller->isDeviceConnected())
+			//dsp_controller->setRadioOperation(DspController::RadioOperationOff);
+			dsp_controller->setAtuTXOff();
+	}
+
 	if (isVoiceMode())
 		setVoiceDirection(new_state);
 	return true;
@@ -244,14 +254,19 @@ void Dispatcher::setSmartChannelMicLevel(voice_channel_t type)
 void Dispatcher::setVoiceDirection(bool ptt_state)
 {
 	if (ptt_state) {
-		if (!atu_controller->isDeviceConnected()) {
+		if (!atu_controller->isDeviceConnected())
+		{
 			startVoiceTx();
-		} else {
+		}
+		else
+		{
 			prepareTuningTx();
 		}
-	} else {
+	}
+	else
+	{
 		dsp_controller->setRadioOperation(DspController::RadioOperationRxMode);
-        voice_service->setStatus(VoiceServiceInterface::StatusVoiceRx);
+		voice_service->setStatus(VoiceServiceInterface::StatusVoiceRx);
 	}
 }
 

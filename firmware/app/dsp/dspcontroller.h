@@ -477,7 +477,7 @@ public:
     PswfModes *pswf_module;
     bool newPacketUsb = false;
     void transmithFrame(uint8_t address, uint8_t *data, int data_len);
-
+    void setAtuTXOff();
 
     sigc::signal<void, int> eraseUsbSector;
 };

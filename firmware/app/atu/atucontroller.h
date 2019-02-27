@@ -22,6 +22,7 @@ namespace Multiradio {
 class AtuController : public QmObject
 {
 public:
+	// перичисление набора состояний АНСУ
 	enum Mode {
 		modeNone,
 		modeMalfunction,
@@ -33,19 +34,36 @@ public:
 
 	AtuController(int uart_resource, int iopin_resource, QmObject *parent);
 	~AtuController();
+
+	// инициализация и запуск штатного режима опроса
 	void startServicing();
+
+	// проверка подключения устройства
 	bool isDeviceConnected();
+
+	// получить режим устройства
 	Mode getMode();
+
+	// переход в режим обхода
 	bool enterBypassMode(uint32_t frequency);
+
+	// настройка передатчика с АНСУ
 	bool tuneTxMode(uint32_t frequency);
+
+	// установка параметров
 	void setNextTuningParams(bool force_full);
+
+	// установка мощности передатчика
 	void acknowledgeTxRequest();
+
+	//
 	void setRadioPowerOff(bool enable);
 
+	// включение - выключение работы с АНСУ
 	void setMinimalActivityMode(bool enabled);
 
 	sigc::signal<void, Mode/*new_mode*/> modeChanged;
-	sigc::signal<void, bool/*enable*/> requestTx;
+	sigc::signal<void, bool/*enable*/>   requestTx;
 
 private:
 	enum CommandId {

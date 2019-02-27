@@ -1165,18 +1165,20 @@ void DspController::sendCommandEasy(Module module, int code, ParameterValue valu
 	default: QM_ASSERT(0);
 	}
 	transport->transmitFrame(tx_address, tx_data, tx_data_len);
+
+	qmDebugMessage(QmDebug::Dump, "sendCommand 0x%x 0x%x 0x%x 0x%x 0x%x", tx_address, code, tx_data[2], tx_data[3], tx_data[4]);
 }
 
 void DspController::sendCommand(Module module, int code, ParameterValue value,bool state) {
 		if (pending_command->in_progress) {
-			//qmDebugMessage(QmDebug::Dump, "new sendCommand(%d, %d) pushed to queue ", module, code);
+			qmDebugMessage(QmDebug::Dump, "new sendCommand(%d, %d) pushed to queue ", module, code);
 			DspCommand cmd;
 			cmd.module = module;
 			cmd.code = code;
 			cmd.value = value;
 			cmd_queue->push_back(cmd);
 	}else {
-		//qmDebugMessage(QmDebug::Dump, "sendCommand(%d, %d) transmiting", module, code);
+
 		uint8_t tx_address;
 		uint8_t tx_data[DspTransport::MAX_FRAME_DATA_SIZE];
 		int tx_data_len = DEFAULT_PACKET_HEADER_LEN;
@@ -1339,8 +1341,10 @@ void DspController::sendCommand(Module module, int code, ParameterValue value,bo
 		pending_command->value = value;
 		transport->transmitFrame(tx_address, tx_data, tx_data_len);
 		command_timer->start();
-		}
 
+		qmDebugMessage(QmDebug::Dump, "sendCommand 0x%x 0x%x 0x%x 0x%x 0x%x", tx_address, code, tx_data[2], tx_data[3], tx_data[4]);
+
+		}
 }
 
 void DspController::sendGuc()
@@ -2597,6 +2601,13 @@ void DspController::clearWaveInfo()
 void DspController::transmithFrame(uint8_t address, uint8_t *data, int data_len)
 {
 	this->transport->transmitFrame(address,data,data_len);
+}
+
+void DspController::setAtuTXOff()
+{
+    ParameterValue comandValue;
+    comandValue.radio_mode = RadioModeOff;
+    sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
 }
 
 }
