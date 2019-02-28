@@ -2361,7 +2361,7 @@ void Service::storeChan_keyPressed(UI_Key key)
 
 		int chan = atoi(labelChan.c_str());
 
-		if (digit && chan <= 98 && chan > 0)
+		if (chan <= 98 && chan > 0)
 		{
 			int freq  = getFreq();
 			uint8_t speed, type;
