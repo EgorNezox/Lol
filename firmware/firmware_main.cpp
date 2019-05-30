@@ -29,10 +29,11 @@
 #include "../system/init.h"
 #include "app/usb/usbloader.h"
 
-#define MIN_GENERATOR_FREQ     620
-#define DEFAULT_GENERATOR_FREQ 1900
-#define MAX_GENERATOR_FREQ     3100
-#define FORMAT_FLASH              0
+#define MIN_GENERATOR_FREQ		620
+#define DEFAULT_GENERATOR_FREQ 	1900
+#define MAX_GENERATOR_FREQ     	3100
+#define FORMAT_FLASH            0
+#define TRACE_DISPLAY_TO_PORT	false
 
 
 void qmMain() {
@@ -142,7 +143,7 @@ void qmMain() {
 #endif
 
 #ifdef PORT__TARGET_DEVICE_REV1
-    Ui::Service ui_service( ui_matrixkb_desc, ui_auxkb_desc,&headset_controller,mr_dispatcher.getVoiceServiceInterface(),&power_battery,&navigator,&data_storage_fs,0);
+    Ui::Service ui_service( ui_matrixkb_desc, ui_auxkb_desc,&headset_controller,mr_dispatcher.getVoiceServiceInterface(),&power_battery,&navigator,&data_storage_fs, &usb_class);
 #else
     Ui::Service ui_service(ui_matrixkb_desc,ui_auxkb_desc,&headset_controller,mr_dispatcher.getVoiceServiceInterface(),&power_battery,0,0,0);
 #endif

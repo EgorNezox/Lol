@@ -219,6 +219,9 @@ void Service::showFreq(int freq)
 void Service::emulkeyHandler(int key)
 {
 	keyHandler(key,QmMatrixKeyboard::PressType::PressSingle);
+#if TRACE_DISPLAY_TO_PORT
+	draw_emulate();
+#endif
 }
 
 void Service::resetLogicDSPforGarniture()
@@ -1379,24 +1382,27 @@ void Service::keyEmulate(int key)
 
 void Service::draw_emulate()
 {
+#if TRACE_DISPLAY_TO_PORT
+
 	if (usb_service != NULL)
 	{
 		if (usb_service->getUsbStatus())
 		{
-			displayBuf[0]    = 0x10;
-			displayBuf[1]    = displayBufSize % 256;
-			displayBuf[2]    = displayBufSize / 256;
-			displayBuf[3]    = 0x9;
+//			displayBuf[0]    = 0x10;
+//			displayBuf[1]    = displayBufSize % 256;
+//			displayBuf[2]    = displayBufSize / 256;
+//			displayBuf[3]    = 0x9;
 
 			gsetvp(0,0,128,128);
-			ggetsym(0,0,128,128,(GSYMBOL*)&displayBuf[4],displayBufSize - 5);
+			ggetsym(0,0,128,128,(GSYMBOL*)&displayBuf[0], 128 * 128 + 5);
 
 #ifndef PORT__PCSIMULATOR
-			displayBuf[displayBufSize - 1] = 0x11;
-			usb_service->transmit(displayBuf, displayBufSize);
+//			displayBuf[displayBufSize - 1] = 0x11;
+			usb_service->transmit(&displayBuf[4], 128 * 64);
 #endif
 		}
 	}
+#endif
 }
 
 }/* namespace Ui */

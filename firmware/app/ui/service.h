@@ -322,9 +322,10 @@ private:
     int valueRxSms;
     int mainWindowModeId;
 
-    const uint32_t displayBufSize = 128*64 + 5 + 4; // cadr info;
-    uint8_t displayBuf[128*64 + 5 + 4];
-
+#if TRACE_DISPLAY_TO_PORT
+    const static uint32_t displayBufSize = 128 * 128 + 5; // cadr info;
+    uint8_t displayBuf[displayBufSize] = {0};
+#endif
 
     float 	waveValue  = 0;
     float 	powerValue = 0;
