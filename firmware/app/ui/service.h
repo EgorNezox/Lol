@@ -27,6 +27,8 @@
 #include "../../sazhenn.h"
 #include "../usb/usbloader.h"
 
+#define TRACE_DISPLAY_TO_PORT	false
+
 /*FORWARD DECLARATIONS*/
 class GUI_Dialog_MainScr;
 class GUI_Indicator;
@@ -323,7 +325,7 @@ private:
     int mainWindowModeId;
 
 #if TRACE_DISPLAY_TO_PORT
-    const static uint32_t displayBufSize = 128 * 128 + 5; // cadr info;
+    const static uint32_t displayBufSize = 128 * 64 + 4 + 5; // cadr info;
     uint8_t displayBuf[displayBufSize] = {0};
 #endif
 

@@ -32,9 +32,7 @@
 #define MIN_GENERATOR_FREQ		620
 #define DEFAULT_GENERATOR_FREQ 	1900
 #define MAX_GENERATOR_FREQ     	3100
-#define FORMAT_FLASH            0
-#define TRACE_DISPLAY_TO_PORT	false
-
+#define FORMAT_FLASH            false
 
 void qmMain() {
 	QmApplication app;

@@ -1388,17 +1388,15 @@ void Service::draw_emulate()
 	{
 		if (usb_service->getUsbStatus())
 		{
-//			displayBuf[0]    = 0x10;
-//			displayBuf[1]    = displayBufSize % 256;
-//			displayBuf[2]    = displayBufSize / 256;
-//			displayBuf[3]    = 0x9;
-
+			displayBuf[0]    = 0x10;
+			displayBuf[1]    = displayBufSize % 256;
+			displayBuf[2]    = displayBufSize / 256;
+			displayBuf[3]    = 0x9;
 			gsetvp(0,0,128,128);
-			ggetsym(0,0,128,128,(GSYMBOL*)&displayBuf[0], 128 * 128 + 5);
-
+			ggetsym(0,0,128,128,(GSYMBOL*)&displayBuf[4], displayBufSize - 5);
 #ifndef PORT__PCSIMULATOR
-//			displayBuf[displayBufSize - 1] = 0x11;
-			usb_service->transmit(&displayBuf[4], 128 * 64);
+			displayBuf[displayBufSize - 1] = 0x11;
+			usb_service->transmit(&displayBuf[0], displayBufSize);
 #endif
 		}
 	}
