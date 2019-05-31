@@ -27,6 +27,8 @@ char * ok_texts[LANG_COUNT]={(char *)"Ок"};
 char * missing_ch_table_txt[LANG_COUNT]={(char *)"Отсутствует таблица\nречевых каналов\0"};
 char * missing_open_ch_txt[LANG_COUNT]={(char *)"Отсутствуют открытые\nречевые каналы\0"};
 char * ch_table_mismatch_txt[LANG_COUNT]={(char *)"Несоответствие\nтаблицы речевых\nканалов списку\nканалов гарнитуры\0"};
+char * errorFlashMemmory_head[LANG_COUNT]={(char *)"Ошибка памяти\0"};
+char * errorFlashMemmory_text[LANG_COUNT]={(char *)"OK-Форматировать\nНазад-Продолжить\0"};
 
 const char* receiveStr = "Принять\0";
 const char* continueStr = "Продолжить\0";

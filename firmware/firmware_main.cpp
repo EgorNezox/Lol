@@ -69,16 +69,27 @@ void qmMain() {
     bool isMount = QmSpiffs::mount("data", data_fs_config);
 #endif
 
+    if (QmSpiffs::getErrorCode() == QmSpiffs::ERROR_NOT_FS)
+    {
+    	QmSpiffs::format(data_fs_config);
+        isMount = QmSpiffs::mount("data", data_fs_config);
+    }
+
     DataStorage::FS data_storage_fs("data");
-    data_storage_fs.findFilesToFiletree();
 
-    //bool res = data_storage_fs.getDiagnsticInfo();
-
-    // if mount not valid, flash is not work
     if (isMount != true)
     {
     	data_storage_fs.setBugDetect();
     }
+    else
+    {
+        data_storage_fs.findFilesToFiletree();
+    }
+
+
+    //bool res = data_storage_fs.getDiagnsticInfo();
+
+    // if mount not valid, flash is not work
 
 #if defined (PORT__TARGET_DEVICE_REV1)
     target_device_multiradio_init(0);
@@ -144,6 +155,7 @@ void qmMain() {
     Ui::Service ui_service( ui_matrixkb_desc, ui_auxkb_desc,&headset_controller,mr_dispatcher.getVoiceServiceInterface(),&power_battery,&navigator,&data_storage_fs, &usb_class);
 #else
     Ui::Service ui_service(ui_matrixkb_desc,ui_auxkb_desc,&headset_controller,mr_dispatcher.getVoiceServiceInterface(),&power_battery,0,0,0);
+    ui_service.setErrorCodeFs(QmSpiffs::getErrorCode());
 #endif
 
     kb_light_iopin.writeOutput(QmIopin::Level_Low);
@@ -152,7 +164,12 @@ void qmMain() {
     uint8_t count_channel;
 	data_storage_fs.getVoiceChannelsTable(mr_channels_table, count_channel);
 
-    if (mr_channels_table.empty())
+	if(QmSpiffs::getErrorCode() != 0)
+	{
+		ui_service.setNotification(Ui::NotificationErrorFlashMemmory);
+	}
+
+    if (mr_channels_table.empty() && QmSpiffs::getErrorCode() == 0)
 		ui_service.setNotification(Ui::NotificationMissingVoiceChannelsTable);
 
     enrxrs232_iopin.writeOutput(QmIopin::Level_Low);

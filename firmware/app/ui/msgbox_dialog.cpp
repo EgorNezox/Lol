@@ -39,7 +39,8 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
 GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
                                       const char *p_title,
                                       const char *p_text,
-                                      Alignment align
+                                      Alignment align,
+									  bool button = false
                                       )
     :GUI_Obj(area)
 {
@@ -50,6 +51,7 @@ GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
     text_area_params.element.align = align;
     this->title = p_title;
     strcpy(this->text, p_text);
+    drawButton = button;
 }
 
 GUI_Dialog_MsgBox::GUI_Dialog_MsgBox( MoonsGeometry* area,
@@ -131,7 +133,10 @@ void GUI_Dialog_MsgBox::Draw(){
   window.Draw();
   title_area.Draw();
   text_area.Draw();
-  ok_button.Draw();
+  if(drawButton)
+  {
+	  ok_button.Draw();
+  }
 }
 
 void GUI_Dialog_MsgBox::Draws(){

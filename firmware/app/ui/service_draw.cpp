@@ -921,7 +921,7 @@ void Service::msgBox(const char *title, const char *text)
 
     if (msg_box != nullptr)
         delete msg_box;
-    msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (char*)text, align007);
+    msg_box = new GUI_Dialog_MsgBox(&area007, (char*)title, (char*)text, align007, false);
 
     guiTree.append(messangeWindow, "");
     if (!isStartTestMsg)

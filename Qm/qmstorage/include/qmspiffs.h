@@ -18,6 +18,9 @@ class QmSerialNORFlashDevice;
 
 class QmSpiffs {
 public:
+
+	static const int ERROR_NOT_FS = -10025;
+
 	struct Config {
 		QmSerialNORFlashDevice *device;
 		uint32_t physical_address;
@@ -32,6 +35,7 @@ public:
 	static bool isMounted(const std::string &dir);
 	static bool check(const std::string &dir);
 	static bool format(const Config &config);
+	static int getErrorCode();
 
 	static void check_files(const std::string &d,  std::vector<std::string> &v);
 };

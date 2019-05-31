@@ -50,7 +50,8 @@ namespace Ui {
 enum NotificationType {
     NotificationMissingVoiceChannelsTable,
     NotificationMissingOpenVoiceChannels,
-    NotificationMismatchVoiceChannelsTable
+    NotificationMismatchVoiceChannelsTable,
+	NotificationErrorFlashMemmory
 };
 
 class Service : public QmObject
@@ -133,6 +134,10 @@ public:
     void playSoundSignal				(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
     std::vector<uint8_t>* loadMessage	(DataStorage::FS::FileType typeF, DataStorage::FS::TransitionFileType tft, uint8_t fileNumber);
     std::vector<uint8_t>* loadVoiceMail	(uint8_t fileNumber, DataStorage::FS::TransitionFileType tft);
+
+    void setErrorCodeFs(int code);
+    int getErrorCodeFs();
+    void formatFlashCard();
 
 private:
     void msgBox							(const char*);
@@ -287,6 +292,7 @@ private:
     bool isGucModeQwitTx      = false;
     bool isSmsCounterFull     = false;
     bool isDrawCondCmd        = false;
+    bool isDrawErrorFS		  = false;
 
     bool inDateMenu			  = false;
 
@@ -332,6 +338,8 @@ private:
     float 	waveValue  = 0;
     float 	powerValue = 0;
     uint32_t curAleFreq = 0;
+
+    int errorCodeFS = 0;
 
     void onRxModeSetting();
     void onTxModeSetting();

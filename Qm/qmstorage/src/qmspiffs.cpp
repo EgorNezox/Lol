@@ -156,6 +156,11 @@ bool QmSpiffs::format(const Config &config) {
 	return success;
 }
 
+int QmSpiffs::getErrorCode()
+{
+	return SPIFFS_get_error_code();
+}
+
 void QmSpiffs::check_files(const std::string &d,  std::vector<std::string> &v)
 {
 	spiffs_DIR dir;

@@ -388,6 +388,11 @@ void Service::setNotification(NotificationType type)
     case NotificationMismatchVoiceChannelsTable:
         msgBox(ch_table_mismatch_txt[0]);
         break;
+    case NotificationErrorFlashMemmory:
+    	isDrawErrorFS = true;
+    	msgBox(errorFlashMemmory_head[0],
+    			errorFlashMemmory_text[0]);
+    	break;
     default:
         QM_ASSERT(0);
         break;
@@ -995,7 +1000,7 @@ void Service::msgBoxSms(const char *text)
 	MoonsGeometry area007 = {1, 1, (GXT)(159), (GYT)(127)};
 	if(msg_box == nullptr)
 	{
-		msg_box = new GUI_Dialog_MsgBox(&area007, (char*)"SMS",(char*)text, align007);
+		msg_box = new GUI_Dialog_MsgBox(&area007, (char*)"SMS",(char*)text, align007, false);
 	}
 
 	msg_box->Draw_Sms();
@@ -1401,6 +1406,16 @@ void Service::draw_emulate()
 		}
 	}
 #endif
+}
+
+void Service::setErrorCodeFs(int code)
+{
+	errorCodeFS = code;
+}
+
+int Service::getErrorCodeFs()
+{
+	return errorCodeFS;
 }
 
 }/* namespace Ui */

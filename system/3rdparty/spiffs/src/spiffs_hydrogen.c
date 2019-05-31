@@ -76,6 +76,13 @@ s32_t SPIFFS_probe_fs(spiffs_config *config) {
 
 #endif // SPIFFS_USE_MAGIC && SPIFFS_USE_MAGIC_LENGTH && SPIFFS_SINGLETON==0
 
+static int error_code = 0;
+
+int SPIFFS_get_error_code()
+{
+	return error_code;
+}
+
 s32_t SPIFFS_mount(spiffs *fs, spiffs_config *config, u8_t *work,
     u8_t *fd_space, u32_t fd_space_size,
     void *cache, u32_t cache_size,
@@ -133,7 +140,8 @@ s32_t SPIFFS_mount(spiffs *fs, spiffs_config *config, u8_t *work,
 
   fs->config_magic = SPIFFS_CONFIG_MAGIC;
 
-  res = spiffs_obj_lu_scan(fs);
+  error_code = res = spiffs_obj_lu_scan(fs);
+
   SPIFFS_API_CHECK_RES_UNLOCK(fs, res);
 
   SPIFFS_DBG("page index byte len:         %i\n", SPIFFS_CFG_LOG_PAGE_SZ(fs));

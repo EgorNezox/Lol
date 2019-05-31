@@ -12,7 +12,7 @@
 #define SAZHENN_H_
 
 // git SHA1 don't touch or move this line
-#define HOST_VERSION "40692fb"
+#define HOST_VERSION "1c93ad1"
 
 #define HOST_VERSION_MAJOR		0
 #define HOST_VERSION_MINOR		1

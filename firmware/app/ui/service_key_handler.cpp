@@ -486,6 +486,13 @@ void Service::messangeWindow_keyPressed(UI_Key key)
         guiTree.delLastElement();
         if (isDrawCondCmd)
     	    isDrawCondCmd = false;
+
+        if(isDrawErrorFS)
+        {
+        	formatFlashCard();
+        	isDrawErrorFS = false;
+        }
+
         //draw();
         if (msg_box != nullptr)
         {
@@ -504,21 +511,26 @@ void Service::messangeWindow_keyPressed(UI_Key key)
         	guiTree.resetCurrentState();
         }
     }
-    else
+    if (key == keyBack)
     {
-        if (vect != nullptr)
+        if(isDrawErrorFS)
         {
-        	if (position == 0)
-        		position = 1;
-            if (key == keyUp && position > 1)
-            	position--;
-            if (key == keyDown)
-            	position++;
-
-           // msg_box->setCmd(vect[position]);
-            msg_box->keyPressed(key);
+            guiTree.delLastElement();
+            isDrawErrorFS = false;
         }
     }
+	if (vect != nullptr)
+	{
+		if (position == 0)
+			position = 1;
+		if (key == keyUp && position > 1)
+			position--;
+		if (key == keyDown)
+			position++;
+
+	   // msg_box->setCmd(vect[position]);
+		msg_box->keyPressed(key);
+	}
 }
 
 void Service::menuWindow_keyPressed(UI_Key key)
@@ -3219,29 +3231,34 @@ void Service::clearFlash_keyPressed(UI_Key key)
 
 		 if (isGucFullCmd)
 		 {
-			 QmSPIBus::enable(platformhwDataFlashSpi);
-
-			 QmM25PDevice::Config data_flash_config;
-			 data_flash_config.sector_size    = 64*1024;
-			 data_flash_config.sectors_count  = 32;
-			 data_flash_config.speed          = 75000000;
-			 data_flash_config.idle_clock_low = false;
-
-			 QmM25PDevice data_flash_device(data_flash_config, platformhwDataFlashSpi, platformhwDataFlashCsPin);
-			 QmSpiffs::Config data_fs_config;
-
-			 data_fs_config.device             = &data_flash_device;
-			 data_fs_config.physical_address   = 0;
-			 data_fs_config.physical_size      = 32*64*1024;
-			 data_fs_config.logical_block_size = 64*1024;
-			 data_fs_config.logical_page_size  = data_flash_device.getPageSize();
-			 data_fs_config.max_opened_files   = 10;
-
-			 QmSpiffs::format(data_fs_config);
-			 QmSpiffs::mount("data", data_fs_config);
+			 formatFlashCard();
 			 guiTree.resetCurrentState();
 		 }
 	 }
+}
+
+void Service::formatFlashCard()
+{
+	 QmSPIBus::enable(platformhwDataFlashSpi);
+
+	 QmM25PDevice::Config data_flash_config;
+	 data_flash_config.sector_size    = 64*1024;
+	 data_flash_config.sectors_count  = 32;
+	 data_flash_config.speed          = 75000000;
+	 data_flash_config.idle_clock_low = false;
+
+	 QmM25PDevice data_flash_device(data_flash_config, platformhwDataFlashSpi, platformhwDataFlashCsPin);
+	 QmSpiffs::Config data_fs_config;
+
+	 data_fs_config.device             = &data_flash_device;
+	 data_fs_config.physical_address   = 0;
+	 data_fs_config.physical_size      = 32*64*1024;
+	 data_fs_config.logical_block_size = 64*1024;
+	 data_fs_config.logical_page_size  = data_flash_device.getPageSize();
+	 data_fs_config.max_opened_files   = 10;
+
+	 QmSpiffs::format(data_fs_config);
+	 QmSpiffs::mount("data", data_fs_config);
 }
 
 }/* namespace Ui */

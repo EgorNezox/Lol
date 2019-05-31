@@ -355,6 +355,8 @@ s32_t SPIFFS_mount(spiffs *fs, spiffs_config *config, u8_t *work,
     void *cache, u32_t cache_size,
     spiffs_check_callback check_cb_f);
 
+int SPIFFS_get_error_code();
+
 /**
  * Unmounts the file system. All file handles will be flushed of any
  * cached writes and closed.

@@ -44,6 +44,8 @@ extern char * ok_texts[LANG_COUNT];
 extern char * missing_ch_table_txt[LANG_COUNT];
 extern char * missing_open_ch_txt[LANG_COUNT];
 extern char * ch_table_mismatch_txt[LANG_COUNT];
+extern char * errorFlashMemmory_head[LANG_COUNT];
+extern char * errorFlashMemmory_text[LANG_COUNT];
 
 extern const char *mainMenuFull[];
 extern const char *mainMenu[];

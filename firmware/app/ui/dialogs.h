@@ -130,7 +130,7 @@ class GUI_Dialog_MsgBox: public GUI_Obj
 {
 public:
     GUI_Dialog_MsgBox(MoonsGeometry* area, const char *title, Alignment align);
-    GUI_Dialog_MsgBox(MoonsGeometry* area, const char *title, const char *text, Alignment align);
+    GUI_Dialog_MsgBox(MoonsGeometry* area, const char *title, const char *text, Alignment align, bool button);
     GUI_Dialog_MsgBox(MoonsGeometry*, const char*, const int, Alignment);
     GUI_Dialog_MsgBox(MoonsGeometry*, const char*, const int, const int, const int, Alignment);
     virtual ~GUI_Dialog_MsgBox();
@@ -148,6 +148,7 @@ protected:
     std::string title;
 //    std::string text;
     char text[500];
+    bool drawButton = true;
 
     // slider
 public:
