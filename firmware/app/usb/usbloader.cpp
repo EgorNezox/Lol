@@ -134,7 +134,54 @@ void usb_loader::manageCadr(uint8_t *cadr, uint16_t len)
 			}
 			else
 			{
-				// send error if file not found
+				/* send list of names */
+				if (userid == 6)
+				{
+					/* get list names */
+					std::vector<std::string> files;
+					fs->findFilesToFiletree(files);
+
+					uint16_t cnt_pack  =  0;
+					uint16_t len       =  0;
+
+					/* get names size */
+					for(uint32_t i = 0; i < files.size(); i++)
+						cnt_pack += files.at(i).size() + 1;
+
+
+					while (cnt_pack > 0)
+					{
+
+						/* pack one or more packet */
+						len  = (cnt_pack > 1024 - 5) ? 1024 - 5: cnt_pack;
+						uint8_t file_data[len + 5];
+
+						/* EMTRY PACKET */
+						file_data[0]        = 0x10;
+						file_data[1]        = len % 256;
+						file_data[2]        = len / 256;
+						file_data[3] 		= userid;
+						file_data[len + 4] = 0x11;
+
+						uint16_t index = 4;
+						char *data;
+
+						for(uint32_t i = 0; i < files.size(); i++)
+						{
+
+							data = (char*)files.at(i).c_str();
+							uint16_t size = files.at(i).size();
+
+							memcpy(&file_data[index], data, size);
+							index += size;
+						}
+
+						transmit(file_data, len + 5);
+						cnt_pack -= len;
+					}
+
+
+				}
 			}
 		}
 		// load file to device

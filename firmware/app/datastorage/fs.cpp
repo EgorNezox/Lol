@@ -1058,6 +1058,15 @@ void FS::findFilesToFiletree()
 
 }
 
+void FS::findFilesToFiletree(std::vector<std::string> &files)
+{
+	isFileTreeReady = false;
+
+	// read all files from dir
+	QmSpiffs::check_files("data",files);
+
+}
+
 uint8_t FS::getTransmitFileTypeCount(FS::FileType fileType, FS::TransitionFileType transFileType)
 {
 	return  getMessageCount(fileType, transFileType);  //transmitFileTypeCount[fileType][transFileType];

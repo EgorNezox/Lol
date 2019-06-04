@@ -44,6 +44,7 @@ public:
 
 	bool getDiagnsticInfo();
 	void findFilesToFiletree();
+	void findFilesToFiletree(std::vector<std::string> &files);
 
 	bool getVoiceChannelsTable(Multiradio::voice_channels_table_t &data, uint8_t &count);
     bool getAleDefaultCallFreqs(Multiradio::ale_call_freqs_t &data);

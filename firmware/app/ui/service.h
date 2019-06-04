@@ -27,7 +27,7 @@
 #include "../../sazhenn.h"
 #include "../usb/usbloader.h"
 
-#define TRACE_DISPLAY_TO_PORT	false
+#define TRACE_DISPLAY_TO_PORT	true
 
 /*FORWARD DECLARATIONS*/
 class GUI_Dialog_MainScr;
