@@ -382,6 +382,7 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		break;
 	case platformhwEnTxRs232Iopin:
 		params.mode = hgpioMode_Out;
+		hal_gpio_set_output((hal_gpio_pin_t){hgpioPB, 12}, hgpioLow);
 		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 12}, &params);
 		break;
 	case platformhwDspUart:
