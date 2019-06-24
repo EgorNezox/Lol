@@ -2354,7 +2354,8 @@ void Service::storeChan_keyPressed(UI_Key key)
 {
 	if (key == keyBack)
 	{
-		guiTree.backvard();
+		if (labelChan.size() == 0)
+			guiTree.backvard();
 		if (labelChan.size() > 0)
 			labelChan.pop_back();
 	}
@@ -2386,7 +2387,7 @@ void Service::storeChan_keyPressed(UI_Key key)
 
 			storageFs->addVoiceChannelTable(chan, entry);
           }
-
+		labelChan.clear();
 		guiTree.backvard();
 	}
 
