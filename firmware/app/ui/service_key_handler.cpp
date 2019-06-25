@@ -3041,8 +3041,11 @@ void Service::sheldure_keyPressed(UI_Key key)
         }
         if ( key >= key0 && key <= key9 )
         {
-        	if (tempSheldureSession.freq.at(0) == '0')
-                tempSheldureSession.freq.clear();
+        	if (!isNew && tempSheldureSession.freq.size() > 0)
+        	{
+            	if (tempSheldureSession.freq.at(0) == '0')
+                    tempSheldureSession.freq.clear();
+        	}
             if (tempSheldureSession.freq.size() < 8 )
                 tempSheldureSession.freq.push_back(key + 42);
         }
