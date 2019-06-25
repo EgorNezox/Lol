@@ -120,7 +120,8 @@ public:
 
     void startGucIntoVoice();
     void stopGucIntoVoice();
-    void queryVersion();
+    void queryVersionDSP();
+    void queryVersionPLD();
 
 	void setReceiverState		(int state);
 	void setTransmitterState	(int state);
@@ -222,6 +223,7 @@ public:
 
     sigc::signal<void,float,float> 	waveInfoRecieved; 	 //wave, power
     sigc::signal<void,int,  bool> 	recievedGucResp;    	 // ответ на группу ук
+
 
     sigc::signal<void, ModemPacketType/*type*/> transmittedModemPacket;
     sigc::signal<void, ModemPacketType/*type*/, uint8_t/*snr*/, uint8_t/*errors*/, ModemBandwidth/*bandwidth*/, uint8_t*/*data*/, int/*data_len*/> receivedModemPacket;
@@ -334,7 +336,6 @@ private:
     int check_rx_call	 	     (int* wzn);
     uint8_t calc_ack_code	     (uint8_t ack);
 
-
     inline void recStart   (uint8_t address, uint8_t* data, int data_len);
     inline void recUndef   (uint8_t address, uint8_t* data, int data_len);
     inline void recGuc     (uint8_t address, uint8_t* data, int data_len);
@@ -346,7 +347,6 @@ private:
     inline void rec1ppsV   (uint8_t address, uint8_t* data, int data_len);
 
     void push_queue();
-
 
     int date_time[4];                                           // массив даты-времени для обмена и отображения
     char private_lcode;                                         // переменная - хранит текущий lcode для сравнения с полученным
@@ -437,6 +437,9 @@ private:
     uint8_t count_VrtualTimer = 0;
     uint8_t virtualTime[6];
 
+    uint16_t versionDSP;
+    uint16_t versionPLD;
+
     uint8_t max_erase_sector = 0;
 
     int8_t RtcFirstCatch;
@@ -478,6 +481,10 @@ public:
     bool newPacketUsb = false;
     void transmithFrame(uint8_t address, uint8_t *data, int data_len);
     void setAtuTXOff();
+
+	const uint16_t getVersionDsp();
+
+	const uint16_t getVersionPld();
 
     sigc::signal<void, int> eraseUsbSector;
 };

@@ -827,19 +827,26 @@ void Service::drawMenu_softwareVersion()
 
 	MoonsGeometry geom_label_version_HOST  	= { 2, 40, 127, 65};
 	MoonsGeometry geom_label_version_DSP  	= { 2, 65, 127, 90};
+	MoonsGeometry geom_label_version_PLD  	= { 2, 90, 127, 115};
 	label_params = GUI_EL_TEMP_LabelTitle;
 
 	std::string label_version_HOST(" HOST: ");
 	std::string label_version_DSP(" DSP:  ");
+	std::string label_version_PLD(" ПЛИС:  ");
+
 	label_version_HOST.append(HOST_VERSION);
-	//label_version_DSP.append(dspController->dspVersion.substr(0,7));
+	label_version_DSP.append("ДСП");
+	label_version_PLD.append("PLD");
+
 	GUI_EL_Label  hostVersion( &label_params, &geom_label_version_HOST, (char*)label_version_HOST.c_str(), &menu->obj);
 	GUI_EL_Label  dspVersion( &label_params, &geom_label_version_DSP,   (char*)label_version_DSP.c_str(), &menu->obj);
+	GUI_EL_Label  pldVersion( &label_params, &geom_label_version_PLD,   (char*)label_version_PLD.c_str(), &menu->obj);
 
 	window.Draw();
 	label.Draw();
 	hostVersion.Draw();
 	dspVersion.Draw();
+	pldVersion.Draw();
 }
 
 void Service::drawMenu_gucInputType()
