@@ -178,7 +178,7 @@ void GUI_EL_Label::SetParams(LabelParams *params)
 //-----------------------------
 
 void GUI_EL_Label::Draw(){
-	if(text.c_str()!=0){
+	if(text.c_str()!=0) {
 		PrepareContent();
 		PrepareViewport();
 		gselfont(font);

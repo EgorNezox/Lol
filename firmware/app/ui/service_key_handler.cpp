@@ -2976,8 +2976,19 @@ void Service::sheldure_keyPressed(UI_Key key)
     }
     if ( key == keyEnter )
     {
-        if (tempSheldureSession.time.size() == 5)
-        menu->sheldureStage = 3;
+    	if ((tempSheldureSession.type == 1 //CC (conditional commands)
+    			|| tempSheldureSession.type == 3 //SMS
+				|| tempSheldureSession.type == 4) //VM (voice mail)
+    			&& tempSheldureSession.time.size() == 5)
+    	{
+    		tempSheldureSession.freq.clear();
+    		tempSheldureSession.freq.push_back('0');
+    		addSession(isNew);
+    	}
+    	else if (tempSheldureSession.time.size() == 5)
+    	{
+            menu->sheldureStage = 3;
+    	}
     }
     if ( key >= key0 && key <= key9 )
     {
@@ -3025,20 +3036,13 @@ void Service::sheldure_keyPressed(UI_Key key)
         if ( key == keyEnter )
         {
             if (tempSheldureSession.freq.size() > 4 && tempSheldureSession.freq.size() < 9){
-                if (isNew){
-                    sheldure.push_back(tempSheldureSession);
-                    tempSheldureSession.clear();
-                } else {
-                    sheldure[menu->sheldureStageFocus[0]].copyFrom(&tempSheldureSession);
-                    tempSheldureSession.clear();
-                }
-                uploadSheldure();
-                sheldureToStringList();
-                menu->sheldureStage = 0;
+            	addSession(isNew);
             }
         }
         if ( key >= key0 && key <= key9 )
         {
+        	if (tempSheldureSession.freq.at(0) == '0')
+                tempSheldureSession.freq.clear();
             if (tempSheldureSession.freq.size() < 8 )
                 tempSheldureSession.freq.push_back(key + 42);
         }
@@ -3105,6 +3109,20 @@ void Service::sheldure_keyPressed(UI_Key key)
         }
     break;
     }
+}
+
+void Service::addSession(bool isNew)
+{
+	if (isNew) {
+		sheldure.push_back(tempSheldureSession);
+		tempSheldureSession.clear();
+	} else {
+		sheldure[menu->sheldureStageFocus[0]].copyFrom(&tempSheldureSession);
+		tempSheldureSession.clear();
+	}
+	uploadSheldure();
+	sheldureToStringList();
+	menu->sheldureStage = 0;
 }
 
 void Service::tuneGen_keyPressed(UI_Key key)

@@ -214,6 +214,8 @@ private:
     void draw_emulate();
     void setUsb();
 
+    void addSession(bool isNew);
+
     matrix_keyboard_t      matrix_kb;
     aux_keyboard_t         aux_kb;
     static bool 		   single_instance;

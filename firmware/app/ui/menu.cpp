@@ -1156,6 +1156,14 @@ void CGuiMenu::initSheldureDialog(std::vector<std::string>* data, uint8_t sessio
             item_param.label_params.transparent = true;
 
             std::string ex = data->at(i);
+
+            ex.erase(0, 1);
+            int size = ex.find("\n ", 0);
+            if (ex[size + 2] == '0')
+            {
+            	ex.replace(size + 2, 1, " ");
+            }
+
             GUI_EL_MenuItem *item = new GUI_EL_MenuItem( &item_param, &item_geom, (char*)ex.c_str(), true, (GUI_Obj*)this );
             ScrollArea.addGuiElement(item);
         }
