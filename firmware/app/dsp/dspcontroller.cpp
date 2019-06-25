@@ -205,21 +205,33 @@ void DspController::startServicing()
 	transport->enable();
 //	reset_iopin->writeOutput(QmIopin::Level_High);
 
-	queryVersion();
+	queryVersionDSP();
+
+	queryVersionPLD();
 
 	startup_timer->start(10000);
 }
 
-
-void DspController::queryVersion()
+void DspController::queryVersionDSP()
 {
 	uint8_t data[10] =  {0};
 	uint8_t data_len =   0;
 	data[0]   = 0;
-	data[1]   = 0;
+	data[1]   = 2;
 	data_len += 2;
 	transmithFrame(0x10,data,data_len);
 }
+
+void DspController::queryVersionPLD()
+{
+	uint8_t data[10] =  {0};
+	uint8_t data_len =   0;
+	data[0]   = 0;
+	data[1]   = 3;
+	data_len += 2;
+	transmithFrame(0x10,data,data_len);
+}
+
 
 void DspController::push_queue()
 {
@@ -2447,7 +2459,6 @@ void DspController::setVirtualTime(uint8_t *param)
     timeVirtual.hours    = time[2];
     rtc->setTime(timeVirtual);
 #endif
-
 }
 
 uint8_t* DspController::getVirtualTime()
@@ -2608,6 +2619,16 @@ void DspController::setAtuTXOff()
     ParameterValue comandValue;
     comandValue.radio_mode = RadioModeOff;
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
+}
+
+const uint16_t DspController::getVersionDsp()
+{
+	return versionDSP;
+}
+
+const uint16_t DspController::getVersionPld()
+{
+	return versionPLD;
 }
 
 }
