@@ -71,9 +71,12 @@ public:
     sigc::signal<void, uint8_t> virtualCounterChanged;
     sigc::signal<void, uint8_t> qwitCounterChanged;
     sigc::signal<void, bool> transmitAsk;
+    sigc::signal<void, uint16_t, uint16_t> sigRecivedVersions;
     sigc::signal<void, int> keyEmulate;
 
     void onKeyEmulate(int key);
+
+    void recivedVersions(uint16_t versionDSP, uint16_t versionPLD);
 
 	ChannelStatus getCurrentChannelStatus();
 	int getCurrentChannelNumber();

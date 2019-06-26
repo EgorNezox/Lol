@@ -835,8 +835,11 @@ void Service::drawMenu_softwareVersion()
 	std::string label_version_PLD(" ПЛИС:  ");
 
 	label_version_HOST.append(HOST_VERSION);
-	label_version_DSP.append("ДСП");
-	label_version_PLD.append("PLD");
+	char version[5] = {'\0'};
+	sprintf(version, "%d",versionDSP);
+	label_version_DSP.append(version);
+	sprintf(version, "%d",versionPLD);
+	label_version_PLD.append(version);
 
 	GUI_EL_Label  hostVersion( &label_params, &geom_label_version_HOST, (char*)label_version_HOST.c_str(), &menu->obj);
 	GUI_EL_Label  dspVersion( &label_params, &geom_label_version_DSP,   (char*)label_version_DSP.c_str(), &menu->obj);

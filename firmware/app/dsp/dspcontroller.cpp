@@ -2621,16 +2621,6 @@ void DspController::setAtuTXOff()
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
 }
 
-const uint16_t DspController::getVersionDsp()
-{
-	return versionDSP;
-}
-
-const uint16_t DspController::getVersionPld()
-{
-	return versionPLD;
-}
-
 }
 
 /* namespace Multiradio */

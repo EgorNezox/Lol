@@ -139,6 +139,8 @@ public:
     int getErrorCodeFs();
     void formatFlashCard();
 
+    void setVersions(uint16_t versionDSP, uint16_t versionPLD);
+
 private:
     void msgBox							(const char*);
     void msgBox							(const char*, const char*);
@@ -324,6 +326,9 @@ private:
     int oldChannelNumber      = 2;
     int channelNumberEditing  = 0;
     int condCmdValue          = 0;
+
+    uint16_t versionDSP;
+    uint16_t versionPLD;
 
     uint8_t* vect         = nullptr;
     uint8_t* sheldureMass = 0;

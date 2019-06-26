@@ -108,6 +108,7 @@ Service::Service( matrix_keyboard_t                  matrixkb_desc,
     voice_service->virtualCounterChanged.connect(sigc::mem_fun(this,&Service::onVirtualCounterChanged));
     voice_service->qwitCounterChanged.connect(sigc::mem_fun(this,&Service::onQwitCounterChanged));
     voice_service->transmitAsk.connect(sigc::mem_fun(this,&Service::onTransmitAsk));
+    voice_service->sigRecivedVersions.connect(sigc::mem_fun(this, &Service::setVersions));
 
     power_battery->voltageChanged.connect(sigc::mem_fun(this, &Service::batteryVoltageChanged));
     power_battery->chargeLevelChanged.connect(sigc::mem_fun(this, &Service::batteryChargeChanged));
@@ -1418,8 +1419,16 @@ int Service::getErrorCodeFs()
 	return errorCodeFS;
 }
 
+void Service::setVersions(uint16_t versionDSP, uint16_t versionPLD)
+{
+    this->versionDSP = versionDSP;
+    this->versionPLD = versionPLD;
+}
+
 }/* namespace Ui */
 
 #include "qmdebug_domains_start.h"
 QMDEBUG_DEFINE_DOMAIN(service, LevelVerbose)
+
+
 #include "qmdebug_domains_end.h"

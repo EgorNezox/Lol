@@ -55,6 +55,8 @@ VoiceServiceInterface::VoiceServiceInterface(Dispatcher *dispatcher) :
 
     dispatcher->dsp_controller->keyEmulate.connect(sigc::mem_fun(this, &VoiceServiceInterface::onKeyEmulate));
 
+    dispatcher->dsp_controller->recivedVersions.connect(sigc::mem_fun(this, &VoiceServiceInterface::recivedVersions));
+
     current_status = StatusNotReady;
     current_mode = VoiceModeManual;
 
@@ -711,6 +713,11 @@ void VoiceServiceInterface::stopGucQuit()
 void VoiceServiceInterface::onKeyEmulate(int key)
 {
 	keyEmulate(key);
+}
+
+void VoiceServiceInterface::recivedVersions(uint16_t versionDSP, uint16_t versionPLD)
+{
+	sigRecivedVersions(versionDSP, versionPLD);
 }
 
 } /* namespace Multiradio */

@@ -49,12 +49,14 @@ void DspController::recStart(uint8_t address, uint8_t* data, int data_len)
 	{
 		versionDSP = 0;
 		versionDSP = data[2] | data[3] << 8;
+		recivedVersions(versionDSP, versionPLD);
 	}
 
 	if (code == 3)
 	{
 		versionPLD = 0;
-		versionPLD = data[2] | data[3] << 8;;
+		versionPLD = data[2] | data[3] << 8;
+		recivedVersions(versionDSP, versionPLD);
 	}
 
 	if ((indicator == 5 || indicator == 3) && (code == 2) && (value_len == 6)) // инициативный кадр о старте dsp с указанием номера прошивки

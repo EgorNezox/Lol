@@ -202,6 +202,7 @@ public:
     sigc::signal<void> gucCrcFailed;
 	sigc::signal<void> startRxQuit;
     sigc::signal<void> failedTxModemPacket;
+    sigc::signal<void, uint16_t, uint16_t> recivedVersions;
 
     sigc::signal<void,int> smsFailed;       		   // ошибка приема СМС
     sigc::signal<void,int> smsPacketMessage;    	   // вывод сообщения на экран
@@ -481,10 +482,6 @@ public:
     bool newPacketUsb = false;
     void transmithFrame(uint8_t address, uint8_t *data, int data_len);
     void setAtuTXOff();
-
-	const uint16_t getVersionDsp();
-
-	const uint16_t getVersionPld();
 
     sigc::signal<void, int> eraseUsbSector;
 };
