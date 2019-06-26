@@ -224,7 +224,7 @@ void Service::sheldureParsing(uint8_t* sMass)
 
             // --------- type ---------
 
-            tempSheldureSession.type = (DataStorage::FS::FileType)(sMass[ 1 + (i * 13) ] - 48);
+            tempSheldureSession.type = (DataStorage::FS::FileType)(sMass[ 1 + (i * 13) ]);
 
             // --------- time ---------
 
