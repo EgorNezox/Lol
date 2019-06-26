@@ -832,7 +832,7 @@ void Service::drawMenu_softwareVersion()
 
 	std::string label_version_HOST(" HOST: ");
 	std::string label_version_DSP(" DSP:  ");
-	std::string label_version_PLD(" ПЛИС:  ");
+	std::string label_version_PLD(" PLD:  ");
 
 	label_version_HOST.append(HOST_VERSION);
 	char version[5] = {'\0'};
@@ -849,7 +849,7 @@ void Service::drawMenu_softwareVersion()
 	label.Draw();
 	hostVersion.Draw();
 	dspVersion.Draw();
-	pldVersion.Draw();
+	//pldVersion.Draw();
 }
 
 void Service::drawMenu_gucInputType()

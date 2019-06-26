@@ -2566,14 +2566,16 @@ void Service::setFreq_keyPressed(UI_Key key)
         main_scr->oFreq.clear();
         main_scr->oFreq.append( (*iter)->inputStr );
         int freq = atoi(main_scr->oFreq.c_str());
+        if (freq >= 1500000 && freq <= 50000000)
+        {
+            //GUI_Painter::ClearViewPort(true);
+            //showMessage(waitingStr, flashProcessingStr, promptArea);
+            voice_service->tuneFrequency(freq, true);
+            //draw();
 
-        //GUI_Painter::ClearViewPort(true);
-        //showMessage(waitingStr, flashProcessingStr, promptArea);
-        voice_service->tuneFrequency(freq, true);
-        //draw();
-
-        guiTree.resetCurrentState();
-        menu->focus = 0;
+            guiTree.resetCurrentState();
+            menu->focus = 0;
+        }
     }
         break;
     case keyBack:
@@ -2968,11 +2970,16 @@ void Service::sheldure_keyPressed(UI_Key key)
 
     if ( key == keyBack )
     {
-        if (tempSheldureSession.time.size() > 0){
+        if (tempSheldureSession.time.size() > 0) {
             tempSheldureSession.time.pop_back();
         }
-        else
+        else {
             menu->sheldureStage = 1;
+        }
+        if ( tempSheldureSession.time.size() == 3)
+        {
+            tempSheldureSession.time.pop_back();
+        }
     }
     if ( key == keyEnter )
     {
@@ -2992,8 +2999,28 @@ void Service::sheldure_keyPressed(UI_Key key)
     }
     if ( key >= key0 && key <= key9 )
     {
-        if ( tempSheldureSession.time.size() == 2)
+    	if (tempSheldureSession.time.size() == 0
+    			&& key >= key3 && key <= key9)
+    	{
+    		tempSheldureSession.time.push_back('0');
+    	}
+    	if (tempSheldureSession.time.size() == 1
+    			&& tempSheldureSession.time.at(0) == '2'
+    	    			&& key >= key4 && key <= key5)
+    	{
+    	    		tempSheldureSession.time = "02";
+    	}
+
+    	if ( tempSheldureSession.time.size() == 2)
+    	{
             tempSheldureSession.time.push_back(':');
+    	}
+
+     	if (tempSheldureSession.time.size() == 3
+        		&& key >= key6 && key <= key9)
+        {
+     		tempSheldureSession.time.push_back('0');
+        }
 
         if ( tempSheldureSession.time.size() < 5)
             tempSheldureSession.time.push_back(key + 42);
@@ -3005,6 +3032,7 @@ void Service::sheldure_keyPressed(UI_Key key)
             if ( atoi(hh.c_str()) > 23 )
                 tempSheldureSession.time.clear();
         }
+
         if (tempSheldureSession.time.size() > 3 && tempSheldureSession.time.size() < 6 )
         {
             // 0 <= ?? <= 59
@@ -3015,8 +3043,7 @@ void Service::sheldure_keyPressed(UI_Key key)
             }
         }
 
-      //  if ( tempSheldureSession.time.size() == 2)
-      //      tempSheldureSession.time.push_back(':');
+
     }
     menu->sheldureTimeStr = tempSheldureSession.time;
     if (!isNew)
@@ -3035,7 +3062,9 @@ void Service::sheldure_keyPressed(UI_Key key)
         }
         if ( key == keyEnter )
         {
-            if (tempSheldureSession.freq.size() > 4 && tempSheldureSession.freq.size() < 9){
+            if (atoi(tempSheldureSession.freq.c_str()) >= 1500000
+					&& atoi(tempSheldureSession.freq.c_str()) <= 50000000)
+            {
             	addSession(isNew);
             }
         }
