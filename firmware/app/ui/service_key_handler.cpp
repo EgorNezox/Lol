@@ -3041,13 +3041,17 @@ void Service::sheldure_keyPressed(UI_Key key)
         }
         if ( key >= key0 && key <= key9 )
         {
-        	if (!isNew && tempSheldureSession.freq.size() > 0)
+        	if (!isNew && tempSheldureSession.freq.size() > 0
+        			&& tempSheldureSession.freq.at(0) == '0')
         	{
-            	if (tempSheldureSession.freq.at(0) == '0')
-                    tempSheldureSession.freq.clear();
+        		tempSheldureSession.freq.clear();
         	}
-            if (tempSheldureSession.freq.size() < 8 )
+        	if (tempSheldureSession.freq.size() == 0 && key == key0)
+        	{
+        		tempSheldureSession.freq.clear();
+        	} else if (tempSheldureSession.freq.size() < 8 ) {
                 tempSheldureSession.freq.push_back(key + 42);
+        	}
         }
         menu->sheldureFreqStr = tempSheldureSession.freq;
         //menu->sheldureFreqStr.append(" ").append(freq_hz);
