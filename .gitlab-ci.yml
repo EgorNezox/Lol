@@ -24,5 +24,28 @@ job1:
     name: "Sazhen_$CI_JOB_ID"
     when: on_success
     expire_in: 30 day
+    
+    job2:
+  stage: dfubuild
+  tags: 
+    - dfu
+  script:
+    - cd ..\
+    - git.exe clone --progress -v "http://Kozma:test12345@gitlab.d5.lan:8880/DevTools/dfu_bin.git"
+    - cd dfu_bin
+    - copy ..\Sazhen\firmware\BUILD_target-device-rev1_debug\SazhenN_HOST_target-device-rev1_firmware.hex .\
+    - ./stm32_dfu_generator.exe SazhenN_HOST_target-device-rev1_firmware.hex SazhenN_HOST_target-device-rev1_firmware.dfu
+    - copy SazhenN_HOST_target-device-rev1_firmware.dfu ..\Sazhen
+    - cd ..\
+    - remove-item dfu_bin -force -Recurse
+    - cd .\Sazhen
+  artifacts:
+    paths:
+      - "SazhenN_HOST_target-device-rev1_firmware.dfu"
+    name: "Sazhen_dfu"
+    when: on_success
+    expire_in: 30 day
+  dependencies:
+    - job1
 
 
