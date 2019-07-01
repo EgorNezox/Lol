@@ -488,6 +488,8 @@ void Service::voiceChannelChanged()
     mas[8] = '\0';
     main_scr->oFreq.clear(); main_scr->oFreq.append(mas);
     main_scr->setFreq(mas);
+	if (!voice_service->getDrawWithAnsy())
+		voice_service->setDrawWithAnsy(true);
     CState state = guiTree.getCurrentState();
     if ( state.getType() == mainWindow)
         drawMainWindow();

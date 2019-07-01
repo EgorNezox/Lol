@@ -2621,6 +2621,25 @@ void DspController::setAtuTXOff()
     sendCommandEasy(TxRadiopath, TxRadioMode, comandValue);
 }
 
+void DspController::VoiceStart()
+{
+	ParameterValue command_value;
+
+	//current_radio_operation = RadioOperationTxMode;
+
+	command_value.radio_mode = RadioModeOff;
+	sendCommandEasy(RxRadiopath, RxRadioMode, command_value);
+
+//	command_value.radio_mode = current_radio_mode;
+//	sendCommandEasy(TxRadiopath, TxRadioMode, command_value);
+
+	command_value.radio_mode = RadioModeCarrierTx;
+	sendCommandEasy(TxRadiopath, TxRadioMode, command_value);
+
+	setRadioCompleted();
+
+}
+
 }
 
 /* namespace Multiradio */

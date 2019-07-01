@@ -140,7 +140,8 @@ void Dispatcher::processDspStartup()
 
 bool Dispatcher::processHeadsetPttStateChange(bool new_state)
 {
-	qmDebugMessage(QmDebug::Dump, "PttStateChange MODE = %d", voice_service->current_status);
+	//qmDebugMessage(QmDebug::Dump, "PttStateChange MODE = %d", voice_service->current_status);
+	static bool lastChenged= false;
 
 	if (!new_state)
 	{
@@ -150,8 +151,28 @@ bool Dispatcher::processHeadsetPttStateChange(bool new_state)
 			dsp_controller->setAtuTXOff();
 	}
 
+	//qmDebugMessage(QmDebug::Info, "atu MODE = %d", atu_controller->getMode());
+
+
 	if (isVoiceMode())
-		setVoiceDirection(new_state);
+	{
+		if (atu_controller->isDeviceConnected() && lastChenged && new_state && isCurrentFreq())
+		{
+			//dsp_controller->setRadioCompleted();
+			//voice_service->setStatus(VoiceServiceInterface::StatusTuningTx);
+			dsp_controller->VoiceStart();
+			flagDrawWithAnsy = false;
+			//lastChenged= false;
+		}
+		else
+		{
+
+			setVoiceDirection(new_state);
+			qmDebugMessage(QmDebug::Info, "atu MODE = %d", atu_controller->getMode());
+			if (atu_controller->getMode() ==  5)
+				lastChenged= true;
+		}
+	}
 	return true;
 }
 
@@ -429,6 +450,18 @@ void Dispatcher::prepareTuningTx()
     voice_service->setStatus(VoiceServiceInterface::StatusTuningTx);
 }
 
+bool Dispatcher::isCurrentFreq()
+{
+	static int freq_prev = 0;
+	bool res = false;
+	int freq = voice_service->getCurrentChannelFrequency();
+	if (freq_prev > 0 && freq_prev == freq)
+		res = true;
+
+	freq_prev = freq;
+	return res;
+}
+
 void Dispatcher::processAtuModeChange(AtuController::Mode new_mode)
 {
 	switch (new_mode) {
@@ -499,5 +532,5 @@ void Dispatcher::DspReset()
 } /* namespace Multiradio */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(mrd, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(mrd, LevelVerbose)
 #include "qmdebug_domains_end.h"

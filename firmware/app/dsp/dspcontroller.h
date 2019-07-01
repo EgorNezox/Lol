@@ -183,6 +183,8 @@ public:
     void startGucTimer();
     void stopGucTimer();
 
+    void VoiceStart();
+
     void initResetState();
     void playSoundSignal(uint8_t mode, uint8_t speakerVolume, uint8_t gain, uint8_t soundNumber, uint8_t duration, uint8_t micLevel);
     void sendBatteryVoltage(int voltage);

@@ -399,6 +399,17 @@ void VoiceServiceInterface::setCurrentChannel(ChannelStatus status) {
     currentChannelChanged();
 }
 
+bool VoiceServiceInterface::getDrawWithAnsy()
+{
+	return dispatcher->flagDrawWithAnsy;
+}
+
+void VoiceServiceInterface::setDrawWithAnsy(bool flagDrawWithAnsy)
+{
+	dispatcher->flagDrawWithAnsy = flagDrawWithAnsy;
+}
+
+
 void VoiceServiceInterface::updateChannel() {
 	if (dispatcher->voice_channel != dispatcher->voice_channels_table.end())
 	{

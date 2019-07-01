@@ -217,6 +217,9 @@ public:
 
     uint16_t smsSender();
 
+    bool getDrawWithAnsy();
+    void setDrawWithAnsy(bool flagDrawWithAnsy);
+
 private:
     friend class Dispatcher;
 

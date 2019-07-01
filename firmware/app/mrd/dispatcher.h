@@ -42,6 +42,8 @@ public:
 
 	void setFlash(QmM25PDevice *device);
 
+	bool flagDrawWithAnsy = true;
+
 private:
     friend AleService;
 	friend VoiceServiceInterface;
@@ -69,6 +71,8 @@ private:
 	//voice_emission_t onGetEmissionType();
 
 	void latencyGui();
+
+	bool isCurrentFreq();
 
 	bool vals;
 
