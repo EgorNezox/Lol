@@ -161,6 +161,8 @@ public:
     bool 	 getVirtualMode();
     void 	 setVirtualMode(bool param);
 
+    void VoiceStop();
+
     void goToVoice();
     void magic();
     void resetSmsState();

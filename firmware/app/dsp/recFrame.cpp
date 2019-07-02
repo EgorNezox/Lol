@@ -519,4 +519,17 @@ void DspController::processReceivedFrame(uint8_t address, uint8_t* data, int dat
 	push_queue();
 }
 
+void DspController::VoiceStop()
+{
+	ParameterValue command_value;
+
+	current_radio_operation = RadioOperationRxMode;
+	command_value.radio_mode = RadioModeOff;
+	sendCommandEasy(TxRadiopath, TxRadioMode, command_value);
+
+
+	command_value.radio_mode = current_radio_mode;
+	sendCommandEasy(RxRadiopath, RxRadioMode, command_value);
+}
+
 }

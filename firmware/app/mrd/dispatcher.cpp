@@ -142,6 +142,7 @@ bool Dispatcher::processHeadsetPttStateChange(bool new_state)
 {
 	//qmDebugMessage(QmDebug::Dump, "PttStateChange MODE = %d", voice_service->current_status);
 	static bool lastChenged= false;
+	static bool lastVoiseStart = false;
 
 	if (!new_state)
 	{
@@ -166,9 +167,8 @@ bool Dispatcher::processHeadsetPttStateChange(bool new_state)
 		}
 		else
 		{
-
 			setVoiceDirection(new_state);
-			qmDebugMessage(QmDebug::Info, "atu MODE = %d", atu_controller->getMode());
+			//qmDebugMessage(QmDebug::Info, "atu MODE = %d", atu_controller->getMode());
 			if (atu_controller->getMode() ==  5)
 				lastChenged= true;
 		}
@@ -286,7 +286,8 @@ void Dispatcher::setVoiceDirection(bool ptt_state)
 	}
 	else
 	{
-		dsp_controller->setRadioOperation(DspController::RadioOperationRxMode);
+		//dsp_controller->setRadioOperation(DspController::RadioOperationRxMode);
+		dsp_controller->VoiceStop();
 		voice_service->setStatus(VoiceServiceInterface::StatusVoiceRx);
 	}
 }

@@ -2630,10 +2630,13 @@ void DspController::VoiceStart()
 	command_value.radio_mode = RadioModeOff;
 	sendCommandEasy(RxRadiopath, RxRadioMode, command_value);
 
+	//QmThread::msleep(5);
+
 //	command_value.radio_mode = current_radio_mode;
 //	sendCommandEasy(TxRadiopath, TxRadioMode, command_value);
 
-	command_value.radio_mode = RadioModeCarrierTx;
+	//command_value.radio_mode = RadioModeCarrierTx;
+	command_value.radio_mode = current_radio_mode;
 	sendCommandEasy(TxRadiopath, TxRadioMode, command_value);
 
 	setRadioCompleted();
