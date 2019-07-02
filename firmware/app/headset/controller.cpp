@@ -24,6 +24,7 @@
 
 #define min_debug  0
 #define full_analize_status 0
+#include "../../system/platform_hw_map.h"
 
 
 namespace Headset {
@@ -76,6 +77,10 @@ Controller::Controller(int rs232_uart_resource, int ptt_iopin_resource) :
 	transport = new SmartTransport(rs232_uart_resource, 1, this);
 	transport->receivedCmd.connect(sigc::mem_fun(this, &Controller::processReceivedCmd));
 	smart_status_description.channels_mismatch = false;
+
+
+	pin_debug = new QmIopin(platformhwDebugIoPin, this);
+	//pin_debug->writeOutput(QmIopin::Level_Low);
 }
 
 Controller::~Controller()
@@ -155,7 +160,21 @@ bool Controller::setSmartCurrentChannelSpeed(Multiradio::voice_channel_speed_t s
 
 void Controller::processPttStateChanged()
 {
-	ptt_debounce_timer->start();
+	pin_debug->writeOutput(QmIopin::Level_High);
+	//ptt_debounce_timer->start();
+
+
+	if (getStatus() != StatusSmartOk)
+	{
+//		ptt_pressed = !ptt_pressed;
+		pttStateChanged(ptt_key->isPressed());
+	}
+	else
+	{
+		ptt_debounce_timer->start();
+	}
+
+	pin_debug->writeOutput(QmIopin::Level_Low);
 }
 
 void Controller::processPttDebounceTimeout()
@@ -377,6 +396,8 @@ void Controller::onRepeatPlaying()
 
 void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len)
 {
+	//pin_debug->writeOutput(QmIopin::Level_High);
+
 	#if (min_debug)
 	qmDebugMessage(QmDebug::Dump, "processReceivedCmd() cmd = 0x%2X, data_len = %d", cmd, data_len);
 	#endif
@@ -482,6 +503,8 @@ void Controller::processReceivedCmd(uint8_t cmd, uint8_t* data, int data_len)
 		#endif
 		if (ptt_pressed == ptt_key->isPressed())
 		{
+			//pin_debug->writeOutput(QmIopin::Level_Low);
+
 			bool accepted = pttStateChanged(ptt_pressed);
 			#if (min_debug)
 			qmDebugMessage(QmDebug::Dump, "ptt state accepted: %d", accepted);

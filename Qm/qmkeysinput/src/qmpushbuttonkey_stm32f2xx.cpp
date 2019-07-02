@@ -18,7 +18,7 @@
 #include "qmevent.h"
 #include "qmapplication.h"
 
-#define QMPBKEY_DEBOUNCE_DELAY 20
+#define QMPBKEY_DEBOUNCE_DELAY 10
 
 static void qmpushbuttonkeyStateChangedIsrCallback(hal_exti_handle_t handle, signed portBASE_TYPE *pxHigherPriorityTaskWoken) {
 	QmPushButtonKeyPrivate* qmpbkeyPrivate_ptr = static_cast<QmPushButtonKeyPrivate*>(hal_exti_get_userid(handle));

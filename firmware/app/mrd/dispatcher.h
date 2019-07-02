@@ -44,6 +44,8 @@ public:
 
 	bool flagDrawWithAnsy = true;
 
+	QmIopin *pin_debug;
+
 private:
     friend AleService;
 	friend VoiceServiceInterface;

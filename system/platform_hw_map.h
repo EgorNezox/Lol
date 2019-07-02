@@ -37,7 +37,8 @@ enum platformhw_resource_t {
 	platformhwPowerHSControlIopin,		// I/O-пин цепи вкл./выкл. радиостанции гартинуры
 	platformhwPowerControllerIopin,		// I/O-пин управления контроллером кнопки вкл./выкл. питания
 	platformhwPowerOffIntIopin,			// I/O-пин прерывания предупреждения о выключении питания
-	platformhwPowerSourceIopin			// I/O-пин детектирования источника текущего питания (предварительный или основной)
+	platformhwPowerSourceIopin,			// I/O-пин детектирования источника текущего питания (предварительный или основной)
+	platformhwDebugIoPin                // I/O-пин отладки (PA10)
 };
 
 enum platformhw_matrixkb_key_t {

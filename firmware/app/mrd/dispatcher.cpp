@@ -17,6 +17,8 @@
 
 #include "dispatcher.h"
 #include "voiceserviceinterface.h"
+#include "qmiopin.h"
+#include "../../system/platform_hw_map.h"
 
 namespace Multiradio {
 
@@ -75,6 +77,9 @@ Dispatcher::Dispatcher( int dsp_uart_resource,
 
 	if (!data_storage_fs->getVoiceChannelSpeed(voice_manual_channel_speed))
 		voice_manual_channel_speed = voicespeed1200;
+
+	pin_debug = new QmIopin(platformhwDebugIoPin, this);
+	//pin_debug->writeOutput(QmIopin::Level_Low);
 }
 
 void Dispatcher::setFlash(QmM25PDevice *device)
@@ -140,6 +145,8 @@ void Dispatcher::processDspStartup()
 
 bool Dispatcher::processHeadsetPttStateChange(bool new_state)
 {
+	//pin_debug->writeOutput(QmIopin::Level_High);
+
 	//qmDebugMessage(QmDebug::Dump, "PttStateChange MODE = %d", voice_service->current_status);
 	static bool lastChenged= false;
 	static bool lastVoiseStart = false;
@@ -151,6 +158,8 @@ bool Dispatcher::processHeadsetPttStateChange(bool new_state)
 			//dsp_controller->setRadioOperation(DspController::RadioOperationOff);
 			dsp_controller->setAtuTXOff();
 	}
+
+
 
 	//qmDebugMessage(QmDebug::Info, "atu MODE = %d", atu_controller->getMode());
 
@@ -173,6 +182,9 @@ bool Dispatcher::processHeadsetPttStateChange(bool new_state)
 				lastChenged= true;
 		}
 	}
+
+	//pin_debug->writeOutput(QmIopin::Level_Low);
+
 	return true;
 }
 

@@ -482,6 +482,14 @@ void Service::checkHeadsetStatus()
 
 void Service::voiceChannelChanged()
 {
+
+		if (!voice_service->getDrawWithAnsy())
+		{
+			//drawIndicator();
+			voice_service->setDrawWithAnsy(true);
+			return;
+		}
+
     checkHeadsetStatus();
     char mas[9];
     sprintf(mas,"%d",voice_service->getCurrentChannelFrequency());

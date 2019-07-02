@@ -14,6 +14,7 @@
 
 #include "smarttransport.h"
 #include "headsetcrc.h"
+#include "../../system/platform_hw_map.h"
 
 
 #define MAX_FRAME_PAYLOAD_SIZE		(208 + 1/*cmd*/ + 2/*crc*/)
@@ -39,13 +40,16 @@ SmartTransport::SmartTransport(int uart_resource, int max_tx_queue_size, QmObjec
 	uart_config.stop_bits = QmUart::StopBits_1;
 	uart_config.parity = QmUart::Parity_None;
 	uart_config.flow_control = QmUart::FlowControl_None;
-	uart_config.rx_buffer_size = 1024;
+	uart_config.rx_buffer_size = 4096;
 	uart_config.tx_buffer_size = max_tx_queue_size * MAX_FRAME_TOTAL_SIZE;
-	uart_config.io_pending_interval = 10;
+	uart_config.io_pending_interval = 1;
 	uart = new QmUart(uart_resource, &uart_config, this);
 	uart->dataReceived.connect(sigc::mem_fun(this, &SmartTransport::processUartReceivedData));
 	uart->rxError.connect(sigc::mem_fun(this, &SmartTransport::processUartReceivedErrors));
 	last_cmd_data = new uint8_t[SmartTransport::MAX_FRAME_DATA_SIZE];
+
+	pin_debug = new QmIopin(platformhwDebugIoPin, this);
+	//pin_debug->writeOutput(QmIopin::Level_Low);
 }
 
 SmartTransport::~SmartTransport() {
@@ -129,7 +133,9 @@ void SmartTransport::processUartReceivedData() {
 					uint8_t* rx_data = (uint8_t*)(frame_data + 1);
 					int rx_data_len = frame_data_size - 1/*cmd*/ - 2/*crc*/;
 					qmDebugMessage(QmDebug::Info, "received frame (cmd=0x%02X, data_len=%u)", cmd, rx_data_len);
+					//pin_debug->writeOutput(QmIopin::Level_High);
 					receivedCmd(cmd, rx_data, rx_data_len);
+					//pin_debug->writeOutput(QmIopin::Level_Low);
 				} else {
 //					qmDebugMessage(QmDebug::Dump, "uart rx: - frame data 0x%02X", byte);
 					rx_frame_buf[rx_frame_size++] = byte;

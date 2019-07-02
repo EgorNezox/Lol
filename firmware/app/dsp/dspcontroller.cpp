@@ -863,10 +863,10 @@ void DspController::processRadioState()
 	}
 	case radiostateCmdTxPower:
 	{
-		if (current_radio_operation != RadioOperationCarrierTx)
-			command_value.power = (current_radio_frequency >= 30000000) ? 80 : 100;
-		else
-			command_value.power = 80;
+//		if (current_radio_operation != RadioOperationCarrierTx)
+//			command_value.power =  (current_radio_frequency >= 30000000) ? 80 : 100;
+//		else
+		command_value.power = 100;
 		sendCommand(TxRadiopath, TxPower, command_value);
 		break;
 	}
@@ -2639,7 +2639,7 @@ void DspController::VoiceStart()
 	command_value.radio_mode = current_radio_mode;
 	sendCommandEasy(TxRadiopath, TxRadioMode, command_value);
 
-	setRadioCompleted();
+	//setRadioCompleted();
 
 }
 

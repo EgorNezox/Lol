@@ -15,6 +15,7 @@
 #include "qmobject.h"
 #include "../multiradio.h"
 #include <qmtimer.h>
+#include "qmiopin.h"
 
 class QmPushButtonKey;
 class QmTimer;
@@ -358,6 +359,8 @@ private:
 	void setUpdateState();
 	void onRepeatPlaying();
 	void logOut(uint8_t* data);
+
+	QmIopin *pin_debug;
 
 	State state;
 	Status status;

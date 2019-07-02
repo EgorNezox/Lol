@@ -11,6 +11,7 @@
 #define FIRMWARE_APP_HEADSET_SMARTTRANSPORT_H_
 
 #include "qmobject.h"
+#include "qmiopin.h"
 
 class QmUart;
 
@@ -25,6 +26,8 @@ namespace Headset {
 class SmartTransport : public QmObject
 {
 public:
+
+	QmIopin *pin_debug;
 	/*!
 	 * \param uart_resource идентификатор аппаратного ресурса UART
 	 * \param max_tx_queue_size максимальный размер очереди пакетов на передачу
