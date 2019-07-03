@@ -207,7 +207,6 @@ void DspController::startServicing()
 
 	queryVersionDSP();
 
-	queryVersionPLD();
 
 	startup_timer->start(10000);
 }
@@ -699,6 +698,7 @@ void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t
 	//	qmDebugMessage(QmDebug::Info, "DSP started (id=0x%02X, version=%u.%u)", id, major_version, minor_version);
 		startup_timer->stop();
 		is_ready = true;
+
 	}
 	else
 	{
@@ -707,6 +707,7 @@ void DspController::processStartup(uint16_t id, uint16_t major_version, uint16_t
 		initResetState();
 	}
 	started();
+	queryVersionPLD();
 
 	//goToVoice();
 	//startGucIntoVoice();
@@ -866,7 +867,7 @@ void DspController::processRadioState()
 //		if (current_radio_operation != RadioOperationCarrierTx)
 //			command_value.power =  (current_radio_frequency >= 30000000) ? 80 : 100;
 //		else
-		command_value.power = 100;
+		command_value.power = (current_radio_frequency >= 30000000) ? 80 : 100;
 		sendCommand(TxRadiopath, TxPower, command_value);
 		break;
 	}

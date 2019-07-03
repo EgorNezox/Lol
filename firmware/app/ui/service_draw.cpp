@@ -818,6 +818,7 @@ void Service::drawMenu_stationAddress()
 
 void Service::drawMenu_softwareVersion()
 {
+
     MoonsGeometry window_geom = {0, 0, 127, 127};
 	GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneralBack, &window_geom, &menu->obj);
 
@@ -849,7 +850,7 @@ void Service::drawMenu_softwareVersion()
 	label.Draw();
 	hostVersion.Draw();
 	dspVersion.Draw();
-	//pldVersion.Draw();
+	pldVersion.Draw();
 }
 
 void Service::drawMenu_gucInputType()
