@@ -279,11 +279,11 @@ void AtuController::processReceivedTuningFrame(uint8_t id, uint8_t *data) {
 			finishCommand();
 			uint8_t value = data[0];
 			qmDebugMessage(QmDebug::Info, "received TWF = %u%%", value);
-			if (tx_quick_tuning_attempt && (value < 60)) {
-				startFullTuning();
-			} else {
+//			if (tx_quick_tuning_attempt && (value < 20)) {
+//				startFullTuning();
+//			} else {
 				setMode(modeActiveTx);
-			}
+//			}
 			tx_quick_tuning_attempt = false;
 			break;
 		}
