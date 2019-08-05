@@ -887,6 +887,21 @@ void DspController::processRadioState()
 	}
 }
 
+void DspController::newTuneEType()
+{
+	ParameterValue command_value;
+
+	if (emissionType == voiceemissionUSB)
+		current_radio_mode = RadioModeUSB;
+
+	if (emissionType == voiceemissionFM)
+		current_radio_mode = RadioModeFM;
+
+	command_value.radio_mode = current_radio_mode;
+	sendCommandEasy(RxRadiopath, RxRadioMode, command_value);
+	radio_state = radiostateCmdRxMode;
+}
+
 void DspController::syncNextRadioState() {
 	switch (radio_state) {
 	case radiostateSync:

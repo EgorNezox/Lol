@@ -262,6 +262,17 @@ void VoiceServiceInterface::tuneEmissionType(voice_emission_t type) {
     dispatcher->updateVoiceChannel(false);
 }
 
+void VoiceServiceInterface::newTuneEmissionType(voice_emission_t type)
+{
+	dispatcher->data_storage_fs->setVoiceEmissionType(type);
+	dispatcher->voice_manual_emission_type = type;
+	dispatcher->dsp_controller->emissionType = type;
+	if (current_mode != VoiceModeManual)
+		return;
+
+	dispatcher->dsp_controller->newTuneEType();
+}
+
 void VoiceServiceInterface::tuneSquelch(uint8_t value) {
 	if (/*value != 0 &&*/ (value < 0 || value > 24)) {
 		return;

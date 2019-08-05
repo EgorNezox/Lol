@@ -260,7 +260,7 @@ public:
 
     uint16_t sender = 0;
 
-
+    void newTuneEType();
 
 private:
 	#include "privenumdspcontroller.h"

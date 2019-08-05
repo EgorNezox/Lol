@@ -240,9 +240,10 @@ void Service::mainWindow_keyPressed(UI_Key key)
 			{
 				menu->ch_emiss_type = !menu->ch_emiss_type;
 		        if (menu->ch_emiss_type)
-		            voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionFM);
+
+		            voice_service->newTuneEmissionType(Multiradio::voice_emission_t::voiceemissionFM);
 		        else
-		            voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionUSB);
+		            voice_service->newTuneEmissionType(Multiradio::voice_emission_t::voiceemissionUSB);
 				break;
 		    	main_scr->mwFocus = noFocus;
 				main_scr->emModeEditing = false;

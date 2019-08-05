@@ -365,7 +365,13 @@ void AtuController::sendFrame(uint8_t id, const uint8_t *data, int data_len) {
 		QM_ASSERT(0);
 		return;
 	}
-	//qmDebugMessage(QmDebug::Dump, "transmitting frame (id=0x%02X, data_len=%d)", id, data_len);
+
+	if (id == 0x59)
+	{
+		qmDebugMessage(QmDebug::Dump, "transmitting frame (id=0x%02X, data_len=%d)", id, data_len);
+	}
+
+
 	if (qmDebugIsVerbose() && (data_len > 0)) {
 		QM_ASSERT(data != 0);
 //		for (int i = 0; i < data_len; i++)
