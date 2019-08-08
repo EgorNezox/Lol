@@ -2762,9 +2762,9 @@ void Service::channelEmissionType_keyPressed(UI_Key key)
         //showMessage(waitingStr, flashProcessingStr, promptArea);
 
         if (menu->ch_emiss_type)
-            voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionFM);
+            voice_service->newTuneEmissionType(Multiradio::voice_emission_t::voiceemissionFM);
         else
-            voice_service->tuneEmissionType(Multiradio::voice_emission_t::voiceemissionUSB);
+            voice_service->newTuneEmissionType(Multiradio::voice_emission_t::voiceemissionUSB);
 
         guiTree.backvard();
         menu->focus = 4;
