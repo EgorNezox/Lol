@@ -206,6 +206,7 @@ void DspController::startServicing()
 //	reset_iopin->writeOutput(QmIopin::Level_High);
 
 	queryVersionDSP();
+	queryVersionPLD();
 
 
 	startup_timer->start(10000);
