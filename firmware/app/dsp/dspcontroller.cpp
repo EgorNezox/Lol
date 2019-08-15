@@ -167,6 +167,8 @@ DspController::DspController(int uart_resource, int reset_iopin_resource, Naviga
     rtc = new QmRtc(hw_rtc);
 	rtc->wakeup.connect(sigc::mem_fun(this,&DspController::wakeUpTimer));
 #endif
+
+	transport->enable();
 }
 
 DspController::~DspController()
@@ -202,11 +204,7 @@ void DspController::startServicing()
 	initResetState();
 //	reset_iopin->writeOutput(QmIopin::Level_Low);
 //	QmThread::msleep(10);
-	transport->enable();
 //	reset_iopin->writeOutput(QmIopin::Level_High);
-
-	queryVersionDSP();
-	queryVersionPLD();
 
 
 	startup_timer->start(10000);
@@ -718,6 +716,7 @@ void DspController::processStartupTimeout()
 {
 //	qmDebugMessage(QmDebug::Warning, "DSP startup timeout");
 	is_ready = true;
+	queryVersionPLD();
 	started();
 }
 

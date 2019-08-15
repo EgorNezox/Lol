@@ -135,8 +135,8 @@ VoiceServiceInterface* Dispatcher::getVoiceServiceInterface()
 
 void Dispatcher::processDspStartup()
 {
-	setupVoiceMode(headset_controller->getStatus());
 	dsp_controller->setAdr();
+	setupVoiceMode(headset_controller->getStatus());
 #ifdef PORT__TARGET_DEVICE_REV1
     navigator->coldStart();
 #endif
