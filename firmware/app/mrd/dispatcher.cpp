@@ -169,10 +169,10 @@ bool Dispatcher::processHeadsetPttStateChange(bool new_state)
 		if (atu_controller->isDeviceConnected() && lastChenged && new_state && isCurrentFreq())
 		{
 			//dsp_controller->setRadioCompleted();
-			//voice_service->setStatus(VoiceServiceInterface::StatusTuningTx);
 			dsp_controller->VoiceStart();
 			flagDrawWithAnsy = false;
 			//lastChenged= false;
+			voice_service->setStatus(VoiceServiceInterface::StatusVoiceTx);
 		}
 		else
 		{
