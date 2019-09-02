@@ -151,7 +151,6 @@ void Service::drawMenu()
 			case GuiWindowsSubType::setDate:			 { drawMenu_setDate();  											            break; }
 			case GuiWindowsSubType::setTime:			 { drawMenu_setTime();  											            break; }
             case GuiWindowsSubType::utcSetting:			 { menu->inputUtc_Menu();                                                       break; }
-			case GuiWindowsSubType::setFreq:			 { drawMenu_setFreq();  											            break; }
 			case GuiWindowsSubType::setSpeed:			 { drawMenu_setSpeed();  											            break; }
 			case GuiWindowsSubType::filetree:			 { drawMenu_filetree();  											            break; }
             case GuiWindowsSubType::tuneGen:			 { drawMenu_tuneGen();  											            break; }

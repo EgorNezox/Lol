@@ -50,10 +50,10 @@ void CGuiTree::init()
     // 4.1.2.1 - 4.1.2.2
     sttSetDate.setName(setDateOrTime[0]); sttSetTime.setName(setDateOrTime[1]);
     // 4.2.1 - 4.2.2
-    sttSetFreq.setName(setConnParam[0]); sttSetSpeed.setName(setConnParam[1]);
+    sttVoiceMode.setName(setConnParam[3]); sttSetSpeed.setName(setConnParam[1]);
     // 4.2.6 -4.2.7
     sttChannelEmissionType.setName(setConnParam[2]);
-    sttVoiceMode.setName(setConnParam[3]);
+    //sttVoiceMode.setName(setConnParam[3]);
 
     MainWindow.prevState = nullptr;
     MainWindow.nextState.push_back(&main);
@@ -278,7 +278,7 @@ void CGuiTree::init()
     // 4.2 - ��������� �����
     sttConnParam.setType(GuiWindowTypes::menuWindow);
     sttConnParam.prevState = &settings;
-    sttConnParam.nextState.push_back(&sttSetFreq);
+    sttConnParam.nextState.push_back(&sttVoiceMode);
     sttConnParam.nextState.push_back(&sttSetSpeed);
     sttConnParam.nextState.push_back(&swAruArm);
     sttConnParam.nextState.push_back(&stCoord);
@@ -286,15 +286,15 @@ void CGuiTree::init()
     //sttConnParam.nextState.push_back(&sttWaitGuk);
     //sttConnParam.nextState.push_back(&sttEditRnKey);
     sttConnParam.nextState.push_back(&sttChannelEmissionType);
-    sttConnParam.nextState.push_back(&sttVoiceMode);
+   // sttConnParam.nextState.push_back(&sttVoiceMode);
    // sttConnParam.nextState.push_back(&sttFileManager);
 
     // 4.2.1 - �������
-    sttSetFreq.setType(GuiWindowTypes::endMenuWindow);
-    sttSetFreq.subType = GuiWindowsSubType::setFreq;
-    sttSetFreq.prevState = &sttConnParam;
-    sttSetFreq.nextState.clear();
-    sttSetFreq.listItem.push_back(&freqParameters);
+    sttVoiceMode.setType(GuiWindowTypes::endMenuWindow);
+    sttVoiceMode.subType = GuiWindowsSubType::voiceMode;
+    sttVoiceMode.prevState = &sttConnParam;
+    sttVoiceMode.nextState.clear();
+    //sttVoiceMode.listItem.push_back(&freqParameters);
     // 4.2.2 - ��������
     sttSetSpeed.setType(GuiWindowTypes::endMenuWindow);
     sttSetSpeed.subType = GuiWindowsSubType::setSpeed;
@@ -329,9 +329,9 @@ void CGuiTree::init()
     sttChannelEmissionType.nextState.clear();
 
     // 4.2.7 - ��� ���������
-    sttVoiceMode.subType = GuiWindowsSubType::voiceMode;
-    sttVoiceMode.prevState = &sttConnParam;
-    sttVoiceMode.nextState.clear();
+//    sttVoiceMode.subType = GuiWindowsSubType::voiceMode;
+//    sttVoiceMode.prevState = &sttConnParam;
+//    sttVoiceMode.nextState.clear();
 
     // 4.2.8 - �����
     sttFileManager.subType = GuiWindowsSubType::filetree;
