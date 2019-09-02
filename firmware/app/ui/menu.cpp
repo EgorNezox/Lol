@@ -810,7 +810,7 @@ void CGuiMenu::TxVoiceDialogStatus5(int status, bool isClear )
    if (status == 12)
 	   GUI_Painter::DrawText(2,25,voiceFont,(char*)str.c_str(),cst);
 
-    GUI_Painter::DrawText(40,50,voiceDigitFont,(char*)strDigit.c_str(),cst);
+    GUI_Painter::DrawText(25,50,voiceDigitFont,(char*)strDigit.c_str(),cst);
 }
 
 void CGuiMenu::initTxPutOffVoiceDialogTest(int status)
@@ -993,7 +993,7 @@ void CGuiMenu::RxVoiceDialogStatus2(int status, bool isClear )
     }
 
     if (status == 9)
-        GUI_Painter::DrawText(40,50,voiceDigitFont,(char*)strDigit.c_str(),cst);
+        GUI_Painter::DrawText(25,50,voiceDigitFont,(char*)strDigit.c_str(),cst);
     else
     	GUI_Painter::DrawText(10,50,voiceFont,(char*)str.c_str(),cst);
 

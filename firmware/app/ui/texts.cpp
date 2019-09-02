@@ -240,6 +240,7 @@ const char* ticketStr[] = {"Квитирование\0", "Ретрансляция\0"};
 //const char* voicePostTitleStr[] = {"Передача ГП\0", "Прием ГП\0"};
 const char* voicePostTitleStr[] = {"Перед.\0", "Прием\0"};
 
+const char* pswfQuitTextFail = "Квитанция не принята\0";
 const char* gucQuitTextFail = "Квитанция не принята\0";
 const char* gucQuitTextOk   = "Принята квитанция\0";
 const char* errorCrcGuc = "Данные не достоверны\0";

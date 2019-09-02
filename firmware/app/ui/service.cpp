@@ -653,7 +653,7 @@ void Service::FirstPacketPSWFRecieved(int packet, uint8_t address, bool isRec)
 		 guiTree.resetCurrentState();
 		 menu->txCondCmdStage = 0;
 		 isWaitAnswer = false;
-         msgBox( gucQuitTextFail );
+         msgBox( pswfQuitTextFail );
          setAsk = false;
      }
     else if ( packet > 100)
@@ -1239,10 +1239,10 @@ void Service::msgGucTXQuit(int ans)
     	sprintf(a,"%d",ans);
         msgBox( gucQuitTextOk, ans);
     }
-    else
-    {
-        msgBox( callSubMenu[3], gucQuitTextFail);
-    }
+//    else
+//    {
+//        msgBox( callSubMenu[3], gucQuitTextFail);
+//    }
     isGucAnswerWaiting = false;
 	menu->groupCondCommStage = 0;
 	menu->focus = 0;

@@ -1492,7 +1492,7 @@ void Service::txPutOffVoice_keyPressed(UI_Key key)
     }
     case 5:
     {// статус
-        if (key == keyBack)
+        if (key == keyEnter)
         {
 #ifndef _DEBUG_
             voice_service->stopAle();
@@ -2085,7 +2085,7 @@ void Service::rxPutOffVoice_keyPressed(UI_Key key)
     }
     case 5:
     {
-        if (key == keyBack)
+        if (key == keyEnter)
         {
 #ifndef _DEBUG_
             headset_controller->stopSmartPlay();
