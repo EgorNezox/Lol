@@ -56,6 +56,7 @@ enum GuiWindowsSubType
     gucInputType,\
 	clearFlash, \
     channelEmissionType,\
+	antenaType,
     voiceMode, \
     filetree, \
 	rememberChan,\
@@ -230,7 +231,7 @@ private:
     SInputItemParameters freqParameters {(char*)setConnParam[0], "1", 2, 0, 31} ,
                          speedParameters{(char*)setConnParam[1], "25000", 2, 0, 31};
 
-    CEndState sttChannelEmissionType, sttVoiceMode;
+    CEndState sttChannelEmissionType, sttVoiceMode, sttAntenaType;
     CEndState sttFileManager;
 
     CState sttTechno;

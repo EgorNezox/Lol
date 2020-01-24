@@ -83,6 +83,7 @@ public:
     void initSetSpeedDialog(std::string text);
     void initSelectVoiceModeParameters(bool);
     void initSelectChEmissTypeParameters(bool);
+    void selectAntenaTypeParameters(uint8_t type);
     void initFailedSms(int stage);
     void initDialog(std::string text);
 
@@ -216,6 +217,15 @@ public:
     //
     bool useMode = false;
     bool ch_emiss_type = false;
+
+    enum{
+    	ANTENNA_NONE,
+		ANTENNA_NL,
+		ANTENNA_AP,
+    }AntennaType;
+
+    uint8_t antenna = 0;
+    uint8_t antenna_tmp = 0;
 
     bool isNeedClearWindow  = true;
     int oldFocus = 0;

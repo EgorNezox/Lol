@@ -1708,6 +1708,30 @@ void CGuiMenu::initSelectChEmissTypeParameters(bool use)
     label.Draw();
     value.Draw();
 }
+
+void CGuiMenu::selectAntenaTypeParameters(uint8_t type)
+{
+    MoonsGeometry labelArea = {  5,  21, 120,  51 };
+    MoonsGeometry valueArea = {  7,  52, 120,  85 };
+
+    LabelParams param[2] = { GUI_EL_TEMP_LabelMode, GUI_EL_TEMP_LabelMode };
+
+    param[0].transparent = true;
+    param[1].transparent = false;
+
+    param[0].element.align = param[1].element.align = {alignHCenter, alignVCenter};
+
+    GUI_EL_Window   window ( &GUI_EL_TEMP_WindowGeneral, &windowArea,                       (GUI_Obj*)this );
+    GUI_EL_Label    label  ( &param[0],                  &labelArea, (char*)typeAntenaStr,	(GUI_Obj*)this );
+    GUI_EL_TextArea value  ( &param[1],                  &valueArea, (char*)"\0",           (GUI_Obj*)this );
+
+    value.SetText((char*)setAntType[type]);
+
+    window.Draw();
+    label.Draw();
+    value.Draw();
+}
+
 void CGuiMenu::initFailedSms(int stage)
 {
 	std::string str;

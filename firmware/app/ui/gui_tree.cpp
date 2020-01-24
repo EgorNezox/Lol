@@ -53,7 +53,7 @@ void CGuiTree::init()
     sttVoiceMode.setName(setConnParam[3]); sttSetSpeed.setName(setConnParam[1]);
     // 4.2.6 -4.2.7
     sttChannelEmissionType.setName(setConnParam[2]);
-    //sttVoiceMode.setName(setConnParam[3]);
+    sttAntenaType.setName(setConnParam[4]);
 
     MainWindow.prevState = nullptr;
     MainWindow.nextState.push_back(&main);
@@ -286,7 +286,7 @@ void CGuiTree::init()
     //sttConnParam.nextState.push_back(&sttWaitGuk);
     //sttConnParam.nextState.push_back(&sttEditRnKey);
     sttConnParam.nextState.push_back(&sttChannelEmissionType);
-   // sttConnParam.nextState.push_back(&sttVoiceMode);
+    sttConnParam.nextState.push_back(&sttAntenaType);
    // sttConnParam.nextState.push_back(&sttFileManager);
 
     // 4.2.1 - �������
@@ -327,6 +327,10 @@ void CGuiTree::init()
     sttChannelEmissionType.subType = GuiWindowsSubType::channelEmissionType;
     sttChannelEmissionType.prevState = &sttConnParam;
     sttChannelEmissionType.nextState.clear();
+
+    sttAntenaType.subType = GuiWindowsSubType::antenaType;
+    sttAntenaType.prevState = &sttConnParam;
+    sttAntenaType.nextState.clear();
 
     // 4.2.7 - ��� ���������
 //    sttVoiceMode.subType = GuiWindowsSubType::voiceMode;

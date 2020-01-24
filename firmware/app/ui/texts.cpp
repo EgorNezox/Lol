@@ -67,7 +67,9 @@ const char *technoSubMenuIn[] = {" Настр.генератора\0", " Адрес станции\0", " Ве
 const char *dateAndTimeSubMenu[] = {" Синхро\0", " Ручной\0"};
 const char *setDateOrTime[] = {" Дата\0", " Время\0"};
 //const char *setDateOrTime[] = {" Ввод даты\0", " Ввод время\0"};
-const char *setConnParam[] = {" Частота\0", " Скор.\0", " Излуч.\0", " Речь\0"};
+const char *setConnParam[] = {" Частота\0", " Скор.\0", " Излуч.\0", " Речь\0", " АСУ\0"};
+const char *typeAntenaStr = "Тип антен.\0";
+const char *setAntType[] = {"НЕТ\0", "НЛ\0", "АП\0"};
 const char *files[] = {" Файлы\0"};
 
 const char *coordinateStr = "Координаты\0";

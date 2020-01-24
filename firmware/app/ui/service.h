@@ -384,6 +384,7 @@ private:
     void editRnKey_keyPressed			(UI_Key key);
     void voiceMode_keyPressed			(UI_Key key);
     void channelEmissionType_keyPressed (UI_Key key);
+    void antennaType_keyPressed			(UI_Key key);
     void filetree_keyPressed			(UI_Key key);
     void sheldure_keyPressed			(UI_Key key);
 

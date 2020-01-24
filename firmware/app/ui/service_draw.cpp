@@ -139,6 +139,7 @@ void Service::drawMenu()
 			case GuiWindowsSubType::sheldure:       	 { menu->initSheldureDialog(&sheldure_data, sheldure.size()); 					break; }
 			case GuiWindowsSubType::voiceMode:      	 { menu->initSelectVoiceModeParameters(menu->useMode);							break; }
 			case GuiWindowsSubType::channelEmissionType: { menu->initSelectChEmissTypeParameters(menu->ch_emiss_type);      			break; }
+			case GuiWindowsSubType::antenaType:			 { menu->selectAntenaTypeParameters(menu->antenna_tmp);						      	break; }
 			case GuiWindowsSubType::gpsSync:             { menu->inclStatus = gpsSynchronization; menu->initIncludeDialog(); 			break; }
 			case GuiWindowsSubType::txPutOffVoice:       { drawMenu_txPutOffVoice(); 													break; }
 			case GuiWindowsSubType::txSmsMessage:		 { drawMenu_txSmsMessage();													    break; }

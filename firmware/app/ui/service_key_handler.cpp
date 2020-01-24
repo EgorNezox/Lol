@@ -50,6 +50,7 @@ void Service::endMenuWindow_keyPressed(UI_Key key)
 		case GuiWindowsSubType::editRnKey:			 editRnKey_keyPressed(key);			  break;
 		case GuiWindowsSubType::voiceMode:           voiceMode_keyPressed(key); 		  break;
 		case GuiWindowsSubType::channelEmissionType: channelEmissionType_keyPressed(key); break;
+		case GuiWindowsSubType::antenaType:			 antennaType_keyPressed(key);		  break;
 		case GuiWindowsSubType::filetree: 			 filetree_keyPressed(key);            break;
 		case GuiWindowsSubType::sheldure:            sheldure_keyPressed(key);            break;
         case GuiWindowsSubType::tuneGen:             tuneGen_keyPressed(key);             break;
@@ -2772,6 +2773,38 @@ void Service::channelEmissionType_keyPressed(UI_Key key)
     if (key == keyUp || key == keyDown || key == keyLeft || key == keyRight)
     {
         menu->ch_emiss_type = !menu->ch_emiss_type;
+    }
+}
+
+void Service::antennaType_keyPressed(UI_Key key)
+{
+
+    if ( key == keyEnter )
+    {
+    	menu->antenna = menu->antenna_tmp;
+    	voice_service->setWorkAtu(menu->antenna);
+
+        guiTree.backvard();
+        menu->focus = 6;
+        menu->offset = 4;
+    }
+
+    if ( key == keyBack )
+    {
+    	menu->antenna_tmp = menu->antenna;
+        guiTree.backvard();
+        menu->focus = 6;
+        menu->offset = 4;
+    }
+
+    if (menu->antenna_tmp < 2 && (key == keyUp || key == keyRight))
+    {
+        menu->antenna_tmp++;
+    }
+
+    if (menu->antenna_tmp > 0 && (key == keyDown || key == keyLeft))
+    {
+    	menu->antenna_tmp--;
     }
 }
 

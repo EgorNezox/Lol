@@ -68,6 +68,8 @@ extern const char *technoSubMenuIn[];
 extern const char *dateAndTimeSubMenu[];
 extern const char *setDateOrTime[];
 extern const char *setConnParam[];
+extern const char *typeAntenaStr;
+extern const char *setAntType[];
 extern const char *useScanMenu[];
 extern const char *dataAndTime[];
 extern const char *files[];
