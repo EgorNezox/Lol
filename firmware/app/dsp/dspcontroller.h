@@ -196,6 +196,7 @@ public:
 
     uint32_t CalcSmsTransmitFreq(uint32_t RN_KEY, uint32_t DAY, uint32_t HRS, uint32_t MIN, uint32_t SEC);
 
+    void ansuTxMode();
 
     sigc::signal<void> started;
     sigc::signal<void> rxModeSetting;

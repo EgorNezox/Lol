@@ -968,5 +968,5 @@ void Service::showMessage(const char *title, const char *text, MoonsGeometry are
 }/* namespace Ui */
 
 #include "qmdebug_domains_start.h"
-QMDEBUG_DEFINE_DOMAIN(service_draw, LevelDefault)
+QMDEBUG_DEFINE_DOMAIN(service_draw, LevelOff)
 #include "qmdebug_domains_end.h"

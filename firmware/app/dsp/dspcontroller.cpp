@@ -887,6 +887,27 @@ void DspController::processRadioState()
 	}
 }
 
+void DspController::ansuTxMode()
+{
+	ParameterValue command_value;
+
+	// off radio rx tract
+	command_value.radio_mode = RadioModeOff;
+	sendCommandEasy(RxRadiopath, RxRadioMode, command_value);
+
+	// set tx power
+	command_value.power = 80;
+	sendCommandEasy(TxRadiopath, TxPower, command_value);
+
+	// on tx carrier
+	command_value.radio_mode = RadioModeCarrierTx;
+	sendCommandEasy(TxRadiopath, TxRadioMode, command_value);
+
+	// set tx mode
+//	command_value.radio_mode = current_radio_mode;
+//	sendCommandEasy(TxRadiopath, TxRadioMode, command_value);
+}
+
 void DspController::newTuneEType()
 {
 	ParameterValue command_value;

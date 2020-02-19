@@ -454,6 +454,10 @@ void stm32f2_ext_pins_init(int platform_hw_resource) {
 		params.mode = hgpioMode_In;
 		hal_gpio_init((hal_gpio_pin_t){hgpioPE, 5}, &params);
 		break;
+	case platfomhwAtuReadyPin:
+		params.mode = hgpioMode_In;
+		hal_gpio_init((hal_gpio_pin_t){hgpioPB, 15}, &params);
+		break;
 	default: configASSERT(0); // no such resource
 	}
 }
@@ -546,6 +550,9 @@ void stm32f2_ext_pins_deinit(int platform_hw_resource) {
 	case platformhwPowerSourceIopin:
 		hal_gpio_deinit((hal_gpio_pin_t){hgpioPE, 5});
 		break;
+	case platfomhwAtuReadyPin:
+		hal_gpio_deinit((hal_gpio_pin_t){hgpioPB, 15});
+		break;
 	default: configASSERT(0); // no such resource
 	}
 }
@@ -588,6 +595,8 @@ hal_gpio_pin_t stm32f2_get_gpio_pin(int platform_hw_resource) {
 		return (hal_gpio_pin_t){hgpioPE, 2};
 	case platformhwPowerSourceIopin:
 		return (hal_gpio_pin_t){hgpioPE, 5};
+	case  platfomhwAtuReadyPin:
+		return (hal_gpio_pin_t){hgpioPB,15};
 	default: configASSERT(0); // no such resource
 	}
 	return (hal_gpio_pin_t){0, 0};

@@ -154,9 +154,10 @@ bool Dispatcher::processHeadsetPttStateChange(bool new_state)
 	if (!new_state)
 	{
 		QmThread::msleep(5);
-		if (atu_controller->isDeviceConnected())
-			//dsp_controller->setRadioOperation(DspController::RadioOperationOff);
-			dsp_controller->setAtuTXOff();
+//		if (atu_controller->isDeviceConnected())
+//			//dsp_controller->setRadioOperation(DspController::RadioOperationOff);
+			//dsp_controller->setAtuTXOff();
+		setVoiceDirection(false);
 	}
 
 
@@ -450,16 +451,16 @@ void Dispatcher::startIdle()
 
 void Dispatcher::startVoiceTx()
 {
-	atu_controller->setRadioPowerOff(false);
 	dsp_controller->setRadioOperation(DspController::RadioOperationTxMode);
     voice_service->setStatus(VoiceServiceInterface::StatusVoiceTx);
 }
 
 void Dispatcher::prepareTuningTx()
 {
-//	dsp_controller->setRadioOperation(DspController::RadioOperationOff);
-	atu_controller->setRadioPowerOff(true);
-	dsp_controller->setRadioOperation(DspController::RadioOperationCarrierTx);
+	//dsp_controller->setRadioOperation(DspController::RadioOperationCarrierTx);
+	dsp_controller->ansuTxMode();
+	QmThread::msleep(50);
+	atu_controller->executeTuneTxMode();
     voice_service->setStatus(VoiceServiceInterface::StatusTuningTx);
 }
 
@@ -477,26 +478,33 @@ bool Dispatcher::isCurrentFreq()
 
 void Dispatcher::processAtuModeChange(AtuController::Mode new_mode)
 {
-	switch (new_mode) {
-	case AtuController::modeNone: {
-		atu_controller->setNextTuningParams(true);
+	switch (new_mode)
+	{
+	case AtuController::modeNone:
+	{
+		//atu_controller->setNextTuningParams(true);
 		break;
 	}
-	case AtuController::modeBypass: {
-        switch (voice_service->current_status) {
-        case VoiceServiceInterface::StatusVoiceTx:
-			prepareTuningTx();
-			break;
-        case VoiceServiceInterface::StatusTuningTx:
-			atu_controller->tuneTxMode(voice_service->getCurrentChannelFrequency());
-			break;
-		default: break;
-		}
-		break;
+	case AtuController::modeBypass:
+	{
+//        switch (voice_service->current_status)
+//        {
+//        case VoiceServiceInterface::StatusVoiceTx:
+//			prepareTuningTx();
+//			break;
+//        case VoiceServiceInterface::StatusTuningTx:
+		//atu_controller->tuneTxMode(voice_service->getCurrentChannelFrequency());
+		//atu_controller->executeTuneTxMode();
+//			break;
+//		default: break;
+//		}
+//		break;
 	}
-	case AtuController::modeActiveTx: {
+	case AtuController::modeActiveTx:
+	{
 		atu_controller->setNextTuningParams(false);
-        switch (voice_service->current_status) {
+        switch (voice_service->current_status)
+        {
         case VoiceServiceInterface::StatusTuningTx:
 			startVoiceTx();
 			//voice_service->updateChannel();
@@ -508,15 +516,18 @@ void Dispatcher::processAtuModeChange(AtuController::Mode new_mode)
 		}
 		break;
 	}
-    case AtuController::modeMalfunction:
+    case AtuController::modeFault:
     {
         atu_controller->setNextTuningParams(false);
+        setVoiceDirection(false);
         voice_service->atuMalfunction();
-        /* no break */
+        break;
     }
-	default: {
+	default:
+	{
         if ((voice_service->current_status == VoiceServiceInterface::StatusTuningTx)
-				&& ((new_mode == AtuController::modeMalfunction) || !atu_controller->isDeviceConnected())) {
+				&& ((new_mode == AtuController::modeFault) || !atu_controller->isDeviceConnected()))
+        {
 			startVoiceTx();
 			voice_service->updateChannel();
 		}
