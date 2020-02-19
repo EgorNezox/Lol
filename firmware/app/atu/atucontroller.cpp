@@ -95,7 +95,6 @@ void AtuController::startServicing()
 void AtuController::setAnsuFreq()
 {
 	last_tune_setup_valid = false;
-	tunetx_frequency = 9000000;
 	uint32_t encoded_freq = tunetx_frequency/10;
 	uint8_t command_data[4];
 	command_data[0] = (encoded_freq >> 16) & 0xFF;
@@ -149,7 +148,7 @@ void AtuController::processReceivedFrame(uint8_t id, uint8_t *data)
 {
    //processReceivedTuningFrame(id, data);
 	if (id != 65)
-	qmDebugMessage(QmDebug::Info, " received ansu cadr cadr id %d, %d %d %d %d ", id,data[0],data[1],data[2],data[3]);
+	qmDebugMessage(QmDebug::Info, " received ansu cadr cadr id 0x%02X, 0x%02X 0x%02X 0x%02X 0x%02X ", id,data[0],data[1],data[2],data[3]);
 	switch (id)
 	{
 	case frameid_A:
@@ -160,16 +159,20 @@ void AtuController::processReceivedFrame(uint8_t id, uint8_t *data)
 		break;
 	case frameid_Y:
 		finishCommand();
+		ack();
 		break;
 	case frameid_NAK:
 		// user info
+		setMode(modeBypass);
 		break;
 	case frameid_K:
 		kbw_value = data[0];
+		ack();
 		break;
 	case frameid_F:
 		setForFastTune(data);
 		setMode(modeActiveTx);
+		ack();
 		break;
 	case frameid_V:
 		//set version
@@ -192,6 +195,11 @@ bool AtuController::enterBypassMode(uint32_t frequency)
 	}
 	executeEnterBypassMode();
 	return true;
+}
+
+void AtuController::setFreq(uint32_t frequency)
+{
+	tunetx_frequency = frequency;
 }
 
 bool AtuController::tuneTxMode(uint32_t frequency)
@@ -386,9 +394,10 @@ void AtuController::sendFrame(uint8_t id, const uint8_t *data, int data_len)
 //		QM_ASSERT(0);
 //		return;
 
-#if 0
+#if 1
+	qmDebugMessage(QmDebug::Info, "frame data id: 0x%02X", id);
 	for (int i = 0; i < data_len; i++)
-		qmDebugMessage(QmDebug::Dump, "frame data: 0x%02X", data[i]);
+		qmDebugMessage(QmDebug::Info, "frame data: 0x%02X", data[i]);
 #endif
 
 	uint8_t frame_buf[2 + MAX_FRAME_DATA_SIZE];

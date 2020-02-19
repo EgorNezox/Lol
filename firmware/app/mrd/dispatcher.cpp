@@ -460,6 +460,7 @@ void Dispatcher::prepareTuningTx()
 	//dsp_controller->setRadioOperation(DspController::RadioOperationCarrierTx);
 	dsp_controller->ansuTxMode();
 	QmThread::msleep(50);
+	atu_controller->setFreq((uint32_t)voice_service->getCurrentChannelFrequency());
 	atu_controller->executeTuneTxMode();
     voice_service->setStatus(VoiceServiceInterface::StatusTuningTx);
 }

@@ -51,6 +51,8 @@ public:
 	// переход в режим обхода
 	bool enterBypassMode(uint32_t frequency);
 
+	void setFreq(uint32_t frequency);
+
 	// настройка передатчика с АНСУ
 	bool tuneTxMode(uint32_t frequency);
 
