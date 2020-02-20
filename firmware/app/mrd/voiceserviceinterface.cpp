@@ -666,6 +666,16 @@ void VoiceServiceInterface::setStatus(Status value)
     }
 }
 
+void VoiceServiceInterface::setWorkAtu(uint8_t antenna)
+{
+	antennaType = antenna;
+}
+
+uint8_t VoiceServiceInterface::getWorkAtu()
+{
+	return antennaType;
+}
+
 void VoiceServiceInterface::updateAleState(int state)
 {
 	aleStateChanged((AleState)state);

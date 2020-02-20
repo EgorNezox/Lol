@@ -100,7 +100,7 @@ void AtuController::setAnsuFreq()
 	command_data[0] = (encoded_freq >> 16) & 0xFF;
 	command_data[1] = (encoded_freq >> 8) & 0xFF;
 	command_data[2] = (encoded_freq) & 0xFF;
-	command_data[3] = 2; //antenna;
+	command_data[3] = antenna;
 	startCommand(commandEnterFullTuningMode, command_data, sizeof(command_data), 0);
 	tx_tune_timer->start();
 }
@@ -418,15 +418,26 @@ void AtuController::sendFrame(uint8_t id, const uint8_t *data, int data_len)
 	QM_ASSERT(written == (2 + data_len));
 }
 
-
-void AtuController::setAntenna(uint32_t frequency)
+bool AtuController::checkFeq(uint32_t frequency)
 {
-	if ((4000000 <= frequency) && (frequency < 10500000))
+	/* set special algoritm freq */
+	if (2000000 < frequency && frequency >= 4000000)
+	{
 		antenna = 1;
-	if ((10500000 <= frequency) && (frequency < 30000000))
-		antenna = 2;
-	else
-		antenna = 0;
+		return true;
+	}
+	/* check valid freq and set bypass if not */
+	if (frequency <= 2000000)
+	{
+		enterBypassMode(frequency);
+		return false;
+	}
+}
+
+
+void AtuController::setAntenna(uint8_t antenna)
+{
+	this->antenna = antenna;
 }
 
 void AtuController::processDeferred()

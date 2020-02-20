@@ -203,6 +203,8 @@ public:
     uint8_t getAleRxAddress();
     Multiradio::voice_message_t getAleRxVmMessage();
     void setStatus(Status value);
+    void setWorkAtu(uint8_t antenna);
+    uint8_t getWorkAtu();
     uint8_t getStationAddress();
     VoiceServiceInterface::Status getStatus();
 
@@ -248,6 +250,8 @@ private:
 
     Status current_status;
     VoiceMode current_mode;
+
+    uint8_t antennaType = 0;
 
     uint8_t param[6];
     DataStorage::FS* storageFs = 0;

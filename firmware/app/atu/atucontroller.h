@@ -67,6 +67,10 @@ public:
 
 	void executeTuneTxMode();
 
+	void setAntenna(uint8_t antenna);
+
+	bool checkFeq(uint32_t frequency);
+
 private:
 	enum CommandId {
 		commandInactive = 0,
@@ -127,8 +131,6 @@ private:
 	void sendNak();
 
 	void processUartReceivedData();
-
-	void setAntenna(uint32_t frequency);
 
 	void processDeferred();
 

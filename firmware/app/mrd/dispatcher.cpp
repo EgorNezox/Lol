@@ -459,11 +459,28 @@ void Dispatcher::startVoiceTx()
 
 void Dispatcher::prepareTuningTx()
 {
-	//dsp_controller->setRadioOperation(DspController::RadioOperationCarrierTx);
+	/* send cmd for current and rx off */
 	dsp_controller->ansuTxMode();
+
+	/* need syncronize with dsp rx cadr*/
 	QmThread::msleep(50);
-	atu_controller->setFreq((uint32_t)voice_service->getCurrentChannelFrequency());
-	atu_controller->executeTuneTxMode();
+
+	uint8_t typeAnt = voice_service->getWorkAtu();
+
+	/* get frequency */
+	uint32_t freq = (uint32_t)voice_service->getCurrentChannelFrequency();
+
+	atu_controller->setAntenna(typeAnt);
+
+	/* check freq valid, if not set in bypass */
+	bool isNotBypass = atu_controller->checkFeq(freq);
+
+	if (isNotBypass)
+	{
+		atu_controller->setFreq(freq);
+		atu_controller->executeTuneTxMode();
+	}
+
     voice_service->setStatus(VoiceServiceInterface::StatusTuningTx);
 }
 
