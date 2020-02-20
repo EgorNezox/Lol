@@ -300,6 +300,8 @@ void Dispatcher::setVoiceDirection(bool ptt_state)
 	else
 	{
 		//dsp_controller->setRadioOperation(DspController::RadioOperationRxMode);
+		if (atu_controller->isDeviceConnected())
+			atu_controller->enterBypassMode(voice_service->getCurrentChannelFrequency());
 		dsp_controller->VoiceStop();
 		voice_service->setStatus(VoiceServiceInterface::StatusVoiceRx);
 	}

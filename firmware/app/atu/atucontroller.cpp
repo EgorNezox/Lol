@@ -108,12 +108,12 @@ void AtuController::setAnsuFreq()
 // <X> - 0x58 : command exit mode bypass
 void AtuController::executeExitBypassMode()
 {
-	startCommand(commandExitBypassMode, 0, 0, 2);
+	startCommand(commandExitBypassMode, 0, 0, 20);
 }
 // <Y> - 0x59 : command enter mode bypass
 void AtuController::executeEnterBypassMode()
 {
-	startCommand(commandEnterBypassMode, 0, 0, 2);
+	startCommand(commandEnterBypassMode, 0, 0, 20);
 }
 
 // <A> - 0x41 : command for scan command
@@ -135,6 +135,12 @@ void AtuController::requestKBW()
 void AtuController::ack()
 {
 	const uint8_t frame[] = {frameid_ack, FRAME_SYMBOL_EOT};
+	uart->writeData(frame, sizeof(frame));
+}
+
+void AtuController::getVersion()
+{
+	const uint8_t frame[] = {frameid_V, FRAME_SYMBOL_EOT};
 	uart->writeData(frame, sizeof(frame));
 }
 
@@ -177,6 +183,7 @@ void AtuController::processReceivedFrame(uint8_t id, uint8_t *data)
 	case frameid_V:
 		//set version
 		ansu_version = (data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[0];
+		ack();
 		break;
 	default:
 		processReceivedUnexpectedFrame(id);
@@ -186,13 +193,13 @@ void AtuController::processReceivedFrame(uint8_t id, uint8_t *data)
 
 bool AtuController::enterBypassMode(uint32_t frequency)
 {
-	setAntenna(frequency);
-	if (!((mode == modeActiveTx) || (mode == modeBypass)) || (antenna == 0))
-		return false;
-	if (command.id != commandInactive) {
-		deferred_enterbypass_active = true;
-		return true;
-	}
+//	setAntenna(frequency);
+//	if (!((mode == modeActiveTx) || (mode == modeBypass)) || (antenna == 0))
+//		return false;
+//	if (command.id != commandInactive) {
+//		deferred_enterbypass_active = true;
+//		return true;
+//	}
 	executeEnterBypassMode();
 	return true;
 }
@@ -289,6 +296,7 @@ void AtuController::processReceivedStateMessage(uint8_t *data)
 
 	if ((mode == modeNone) && (error_code == 0))
 	{
+		getVersion();
 		setMode(modeBypass);
 	}
 	else if ((mode != modeFault) && (error_code != 0))
@@ -439,7 +447,7 @@ void AtuController::executeTuneTxMode()
 	if (last_tune_setup_valid && !force_next_tunetx_full)
 	{
 		tx_quick_tuning_attempt = true;
-		startCommand(commandEnterQuickTuningMode, last_tune_setup, sizeof(last_tune_setup), 2, 20);
+		startCommand(commandEnterQuickTuningMode, last_tune_setup, sizeof(last_tune_setup),0, 20);
 	}
 	else
 	{

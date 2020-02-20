@@ -140,6 +140,8 @@ private:
 
 	void requestKBW();
 
+	void getVersion();
+
 	void setForFastTune(uint8_t *data);
 
 	void stateError(uint8_t error_code);
