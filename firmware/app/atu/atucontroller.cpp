@@ -249,10 +249,10 @@ void AtuController::setMode(Mode mode)
 	case modeFault:
 		tx_tune_timer->stop();
 		scan_timer->start();
-		startCommand(commandEnterBypassMode, 0, 0, 0);
+		executeEnterBypassMode();
 		break;
 	case modeBypass:
-		startCommand(commandEnterBypassMode, 0, 0, 20);
+		executeEnterBypassMode();
 		break;
 	case modeTuning:
 	//	qmDebugMessage(QmDebug::Info, "tuning tx...");
@@ -279,8 +279,8 @@ void AtuController::startCommand(CommandId id, const uint8_t* data, int data_len
 	command.data_len = data_len;
 	command.repeat_count = repeat_count;
 	sendFrame(id, data, data_len);
-//	if (timeout > 0)
-//		command_timeout_timer->start(timeout);
+	if (timeout > 0)
+		command_timeout_timer->start(timeout);
 }
 
 void AtuController::processReceivedStateMessage(uint8_t *data)
@@ -335,9 +335,9 @@ void AtuController::tryRepeatCommand()
 		return;
 	}
 
-	command.id = commandInactive;
-	deferred_enterbypass_active = false;
-	deferred_tunetx_active      = false;
+//	command.id = commandInactive;
+//	deferred_enterbypass_active = false;
+//	deferred_tunetx_active      = false;
 
 	/* restart timer if not detect device */
 	if (mode == modeNone)
@@ -347,20 +347,20 @@ void AtuController::tryRepeatCommand()
 		return;
 	}
 
-
+//
 //	if (!((mode == modeBypass) || (mode == modeFault)) && (antenna != 0))
 //		startCommand(commandEnterBypassMode, &antenna, 1, 2, 10);
 
-	switch (mode)
-	{
-	//case modeBypass:
-	case modeTuning:
-		setMode(modeFault);
-		break;
-	default:
-		setMode(modeNone);
-		break;
-	}
+//	switch (mode)
+//	{
+//	//case modeBypass:
+//	case modeTuning:
+//		setMode(modeFault);
+//		break;
+//	default:
+//		setMode(modeNone);
+//		break;
+//	}
 }
 
 void AtuController::processTxTuneTimeout()
