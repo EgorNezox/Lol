@@ -421,7 +421,7 @@ void AtuController::sendFrame(uint8_t id, const uint8_t *data, int data_len)
 bool AtuController::checkFeq(uint32_t frequency)
 {
 	/* set special algoritm freq */
-	if (2000000 < frequency && frequency >= 4000000)
+	if (2000000 < frequency && frequency <= 4000000)
 	{
 		antenna = 1;
 		return true;
@@ -432,6 +432,8 @@ bool AtuController::checkFeq(uint32_t frequency)
 		enterBypassMode(frequency);
 		return false;
 	}
+
+	return true;
 }
 
 

@@ -188,8 +188,8 @@ void qmMain() {
 
     //tune_frequency_generator(500, 1);
 #if defined(PORT__TARGET_DEVICE_REV1)
-    usb_class.startUsb();
-    usb_class.setfs(&data_storage_fs);
+//    usb_class.startUsb();
+//    usb_class.setfs(&data_storage_fs);
 #endif
 
     mr_dispatcher.startAtu();
