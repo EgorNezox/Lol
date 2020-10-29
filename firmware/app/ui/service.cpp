@@ -266,9 +266,9 @@ void Service::setPswfStatus(bool var)
 		pswf_status = var;
 }
 
-void Service::showAtuMalfunction()
+void Service::showAtuMalfunction(int value)
 {
-    msgBox(atumalfunction_title_str, atumalfunction_text_str);
+    msgBox(atumalfunction_title_str, value);
 }
 
 void Service::showDspHardwareFailure(uint8_t subdevice_code, uint8_t error_code)

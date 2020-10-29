@@ -294,7 +294,22 @@ void Dispatcher::setVoiceDirection(bool ptt_state)
 		}
 		else
 		{
-			prepareTuningTx();
+			static uint32_t prev_freq = 0;
+
+			uint32_t curr_freq = voice_service->getCurrentChannelFrequency();
+
+			if (prev_freq == curr_freq)
+			{
+				tuningTxCurrFreq();
+			}
+			else
+			{
+				prepareTuningTx();
+			}
+
+			prev_freq = curr_freq;
+
+
 		}
 	}
 	else
@@ -484,6 +499,21 @@ void Dispatcher::prepareTuningTx()
     voice_service->setStatus(VoiceServiceInterface::StatusTuningTx);
 }
 
+void Dispatcher::tuningTxCurrFreq()
+{
+	//uint32_t freq = (uint32_t)voice_service->getCurrentChannelFrequency();
+
+	//bool isNotBypass = atu_controller->checkFeq(freq);
+
+	//if (isNotBypass)
+	{
+		dsp_controller->ansuTxCurrFreq();
+		//atu_controller->setFreq(freq);
+		atu_controller->executeTuneTxMode();
+	}
+
+}
+
 bool Dispatcher::isCurrentFreq()
 {
 	static int freq_prev = 0;
@@ -540,7 +570,7 @@ void Dispatcher::processAtuModeChange(AtuController::Mode new_mode)
     {
         atu_controller->setNextTuningParams(false);
         setVoiceDirection(false);
-        voice_service->atuMalfunction();
+        voice_service->atuMalfunction(atu_controller->error);
         break;
     }
 	default:

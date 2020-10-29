@@ -302,6 +302,8 @@ void AtuController::processReceivedStateMessage(uint8_t *data)
 	else if ((mode != modeFault) && (error_code != 0))
 	{
 		stateError(error_code);
+
+		error = error_code;
 		// TODO:User inform
 		setMode(modeFault);
 	}

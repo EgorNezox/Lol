@@ -2680,6 +2680,25 @@ void DspController::VoiceStart()
 
 }
 
+
+void DspController::ansuTxCurrFreq()
+{
+	ParameterValue command_value;
+
+	// off radio rx tract
+	command_value.radio_mode = RadioModeOff;
+	sendCommandEasy(RxRadiopath, RxRadioMode, command_value);
+
+	// set tx power
+//	command_value.power = 80;
+//	sendCommandEasy(TxRadiopath, TxPower, command_value);
+
+	// set tx mode
+	command_value.radio_mode = current_radio_mode;
+	sendCommandEasy(TxRadiopath, TxRadioMode, command_value);
+}
+
+
 }
 
 /* namespace Multiradio */

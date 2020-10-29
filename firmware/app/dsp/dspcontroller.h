@@ -198,6 +198,8 @@ public:
 
     void ansuTxMode();
 
+    void ansuTxCurrFreq();
+
     sigc::signal<void> started;
     sigc::signal<void> rxModeSetting;
     sigc::signal<void> txModeSetting;

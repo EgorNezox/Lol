@@ -68,6 +68,9 @@ private:
 	void startIdle();
 	void startVoiceTx();
 	void prepareTuningTx();
+
+	void tuningTxCurrFreq();
+
 	void processAtuModeChange(AtuController::Mode new_mode);
 	void processAtuRequestTx(bool enable);
 	//voice_emission_t onGetEmissionType();

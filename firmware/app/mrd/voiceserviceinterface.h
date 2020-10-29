@@ -157,7 +157,7 @@ public:
     sigc::signal<void> txModeSetting;
 
 
-    sigc::signal<void> atuMalfunction;
+    sigc::signal<void, int> atuMalfunction;
 
 
     sigc::signal<void,int> smsFreq;

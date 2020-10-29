@@ -71,6 +71,8 @@ public:
 
 	bool checkFeq(uint32_t frequency);
 
+	bool error = 0;
+
 private:
 	enum CommandId {
 		commandInactive = 0,

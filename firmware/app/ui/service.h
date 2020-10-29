@@ -78,7 +78,7 @@ public:
     void    uploadSheldure();
     uint8_t &setSheldure();
 
-    void showAtuMalfunction();
+    void showAtuMalfunction(int value);
     void onStartCondReceiving();
 
     void playSchedulePromptSignal();
