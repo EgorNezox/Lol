@@ -343,8 +343,16 @@ void Dispatcher::setVoiceChannel()
 	voice_emission_t emission_type = voiceemissionInvalid;
     switch (voice_service->current_mode) {
     case VoiceServiceInterface::VoiceModeAuto: {
-		frequency = (*voice_channel).frequency;
-		emission_type = getVoiceEmissionFromFrequency(frequency);
+
+    	if (voice_channel != voice_channels_table.end())
+    	{
+    		frequency = (*voice_channel).frequency;
+    		emission_type = getVoiceEmissionFromFrequency(frequency);
+    	}
+    	else
+    	{
+    		voice_channel = voice_channels_table.begin();
+    	}
 		break;
 	}
     case VoiceServiceInterface::VoiceModeManual: {
