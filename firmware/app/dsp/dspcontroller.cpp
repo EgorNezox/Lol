@@ -896,7 +896,7 @@ void DspController::ansuTxMode()
 	sendCommandEasy(RxRadiopath, RxRadioMode, command_value);
 
 	// set tx power
-	command_value.power = 80;
+	command_value.power = 100;
 	sendCommandEasy(TxRadiopath, TxPower, command_value);
 
 	// on tx carrier
