@@ -327,7 +327,7 @@ void Service::drawInfoRssi()
 
     if (!res) return;
 
-	if (menu->reciveRSSI != 0)
+//	if (menu->reciveRSSI != 0)
 	{
 		MoonsGeometry objArea    = {  0, 0, 127, 127 };
 		MoonsGeometry rssiArea  = { 93, 16, 127, 28 };

@@ -515,10 +515,17 @@ void Dispatcher::tuningTxCurrFreq()
 
 	//if (isNotBypass)
 	{
+		atu_controller->executeTuneTxMode();
+
+		atu_controller->is_hack = true;
+
 		dsp_controller->ansuTxCurrFreq();
 		//atu_controller->setFreq(freq);
-		atu_controller->executeTuneTxMode();
+
 	}
+
+
+	 voice_service->setStatus(VoiceServiceInterface::StatusTuningTx);
 
 }
 
@@ -561,6 +568,13 @@ void Dispatcher::processAtuModeChange(AtuController::Mode new_mode)
 	case AtuController::modeActiveTx:
 	{
 		atu_controller->setNextTuningParams(false);
+
+		if (atu_controller->is_hack)
+		{
+			atu_controller->is_hack = false;
+			return;
+		}
+
         switch (voice_service->current_status)
         {
         case VoiceServiceInterface::StatusTuningTx:

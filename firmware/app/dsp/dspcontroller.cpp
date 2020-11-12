@@ -2686,8 +2686,8 @@ void DspController::ansuTxCurrFreq()
 	ParameterValue command_value;
 
 	// off radio rx tract
-	command_value.radio_mode = RadioModeOff;
-	sendCommandEasy(RxRadiopath, RxRadioMode, command_value);
+//	command_value.radio_mode = RadioModeOff;
+//	sendCommandEasy(RxRadiopath, RxRadioMode, command_value);
 
 	// set tx power
 //	command_value.power = 80;

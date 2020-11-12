@@ -73,6 +73,8 @@ public:
 
 	bool error = 0;
 
+	bool is_hack = false;
+
 private:
 	enum CommandId {
 		commandInactive = 0,
