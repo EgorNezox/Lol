@@ -14,8 +14,8 @@ MEMORY
   FLASH_bootloader (rx)		: ORIGIN = 0x08000000, LENGTH = (4*16K+64K+128K-4K)	/* Sectors 0-5: bootloader program code and constants, RESERVED 4KB AREA (see below) */
   																				/* 0x0803F000 (4KB) area: hardware info (flashed by factory setup) */
 
-  FLASH_usbflasher (rx)     : ORIGIN = 0x08010000, LENGTH = 128K																
-  FLASH_firmware (rx)		: ORIGIN = 0x08020000, LENGTH = (6*128K)			/* Sectors 6-11: firmware program code and constants */
+  /*FLASH_usbflasher (rx)     : ORIGIN = 0x08010000, LENGTH = 128K*/																
+  FLASH_firmware (rx)		: ORIGIN = 0x08010000, LENGTH = (7*128K)			/* Sectors 6-11: firmware program code and constants */
 
   /* Internal SRAM */
   RAM (rwx)					: ORIGIN = 0x20000000, LENGTH = (128K-10K)			/* firmware program data */

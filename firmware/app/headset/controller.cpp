@@ -103,6 +103,7 @@ void Controller::startServicing(const Multiradio::voice_channels_table_t& local_
 		ch_number = 1;
 		ch_type = ch_table->at(0).type;
 		ch_speed = ch_table->at(0).speed;
+
 	}
 	// включаем uart
 	transport->enable();
