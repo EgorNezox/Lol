@@ -120,6 +120,9 @@ bool FS::writeFileFromId(int id, uint8_t* data, uint16_t len)
 	case 5:
 		name = "AleSessionFreqs";
 		break;
+	case 6:
+		name = "Sheldure";
+		break;
 	}
 
 	qmDebugMessage(QmDebug::Info, "name of write file = %s",  name.c_str());
@@ -168,6 +171,9 @@ uint16_t FS::getSizeDataFileFromId(int id)
 	case 5:
 		name = "AleSessionFreqs";
 		break;
+	case 6:
+		name = "Sheldure";
+		break;
 	}
 
 	uint16_t file_size = 0;
@@ -205,6 +211,9 @@ bool FS::getFastFileFromId(int id, uint16_t filesize, uint8_t *file_data)
 		break;
 	case 5:
 		name = "AleSessionFreqs";
+		break;
+	case 6:
+		name = "Sheldure";
 		break;
 	}
 

@@ -105,16 +105,20 @@ void usb_loader::manageCadr(uint8_t *cadr, uint16_t len)
 	uint8_t userid = cadr[2];
 
 	uint16_t size = 0;
+	uint8_t  op   = cadr[3];
 
 	size = cadr[0] + (cadr[1] << 8);
 
-	if ((userid  > 0 && userid < 6) && size < 1024)
+	qmDebugMessage(QmDebug::Dump, "usbd CADR= %d", userid);
+
+	if ((userid  > 0 && userid <= 6) && size < 1024)
 	{
 		// read file from device
-		if (size == 1)
+		if (op == 1)
 		{
 			// get size from file
 			uint32_t fileSize = fs->getSizeDataFileFromId(userid);
+
 			if (fileSize > 0)
 			{
 				fileSize  += sizeof(userid);
@@ -135,7 +139,7 @@ void usb_loader::manageCadr(uint8_t *cadr, uint16_t len)
 			else
 			{
 				/* send list of names */
-				if (userid == 6)
+				if (userid == 7)
 				{
 					/* get list names */
 					std::vector<std::string> files;
@@ -185,13 +189,25 @@ void usb_loader::manageCadr(uint8_t *cadr, uint16_t len)
 			}
 		}
 		// load file to device
-		else
+		else if (op == 2)
 		{
-			fs->writeFileFromId(userid,&cadr[3],size - 1);
+			fs->writeFileFromId(userid,&cadr[4],size - 2);
 		}
 	}
 
 }
+
+
+//void usb_loader::_get()
+//{
+//
+//}
+//
+//
+//void usb_loader::_set()
+//{
+//
+//}
 
 bool usb_loader::getUsbStatus()
 {

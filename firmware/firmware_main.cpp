@@ -61,7 +61,7 @@ void qmMain() {
 #if FORMAT_FLASH
     {
     	volatile bool do_format = true;
-    	QM_DEBUG_BREAK;
+    	//QM_DEBUG_BREAK;
     	if (do_format)
     		QmSpiffs::format(data_fs_config);
     }
