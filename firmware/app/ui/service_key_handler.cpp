@@ -3282,13 +3282,13 @@ void Service::gucInputType_keyPressed(UI_Key key)
     {
         guiTree.backvard();
         menu->offset = 1;
-        menu->focus = 3;
+        menu->focus = 4;
     }
     if ( key == keyEnter )
     {
         guiTree.backvard();
         menu->offset = 1;
-        menu->focus = 3;
+        menu->focus = 4;
         isGucFullCmd = isGucFullCmd_tmp;
     }
 }
@@ -3307,13 +3307,13 @@ void Service::usbSetKeyPressed(UI_Key key)
 	{
 		guiTree.backvard();
 		menu->offset = 1;
-		menu->focus = 4;
+		menu->focus = 3;
 	}
 	if ( key == keyEnter )
 	{
 		guiTree.backvard();
 		menu->offset = 1;
-		menu->focus = 4;
+		menu->focus = 3;
 		voice_service->newUsbState(is_usb_on);
 	}
 }
@@ -3324,7 +3324,7 @@ void Service::clearFlash_keyPressed(UI_Key key)
 	 {
 		 guiTree.backvard();
 		 menu->offset = 1;
-		 menu->focus = 3;
+		 menu->focus = 5;
 	 }
 
 	 if ( key == keyLeft )
@@ -3340,7 +3340,7 @@ void Service::clearFlash_keyPressed(UI_Key key)
 	 {
 		 guiTree.backvard();
 		 menu->offset = 1;
-		 menu->focus = 3;
+		 menu->focus = 5;
 		 isGucFullCmd = isFlashErase_tmp;
 
 		 if (isGucFullCmd)

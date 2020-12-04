@@ -856,7 +856,7 @@ void Service::drawMenu_softwareVersion()
 
 void Service::drawMenu_usbSettings()
 {
-	std::string count = is_usb_on ? "1" : "0";
+	std::string count = is_usb_on ? useScanMenu[1] : useScanMenu[0];
 
 	MoonsGeometry window_geom = {0, 0, 127, 127};
 	GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneralBack, &window_geom, &menu->obj);
