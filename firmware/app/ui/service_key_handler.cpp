@@ -57,8 +57,9 @@ void Service::endMenuWindow_keyPressed(UI_Key key)
         case GuiWindowsSubType::stationAddress:      stationAddress_keyPressed(key);      break;
         case GuiWindowsSubType::softwareVersion:     softwareVersion_keyPressed(key);     break;
         case GuiWindowsSubType::gucInputType:	     gucInputType_keyPressed(key);        break;
+        case GuiWindowsSubType::usbSetting:	         usbSetKeyPressed(key);               break;
         case GuiWindowsSubType::clearFlash:	         clearFlash_keyPressed(key);          break;
-        case GuiWindowsSubType::utcSetting:			 utcKeyPressed(key); 			  break;
+        case GuiWindowsSubType::utcSetting:			 utcKeyPressed(key); 			      break;
     }
 }
 
@@ -3290,6 +3291,31 @@ void Service::gucInputType_keyPressed(UI_Key key)
         menu->focus = 3;
         isGucFullCmd = isGucFullCmd_tmp;
     }
+}
+
+void Service::usbSetKeyPressed(UI_Key key)
+{
+	if (key == keyLeft)
+	{
+		 is_usb_on = false;
+	}
+	if (key == keyRight)
+	{
+		is_usb_on = true;
+	}
+	if ( key == keyBack )
+	{
+		guiTree.backvard();
+		menu->offset = 1;
+		menu->focus = 4;
+	}
+	if ( key == keyEnter )
+	{
+		guiTree.backvard();
+		menu->offset = 1;
+		menu->focus = 4;
+		voice_service->newUsbState(is_usb_on);
+	}
 }
 
 void Service::clearFlash_keyPressed(UI_Key key)

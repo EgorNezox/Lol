@@ -53,6 +53,7 @@ enum GuiWindowsSubType
 	tuneGen,\
 	stationAddress,\
     softwareVersion,\
+	usbSetting, \
     gucInputType,\
 	clearFlash, \
     channelEmissionType,\
@@ -235,7 +236,7 @@ private:
     CEndState sttFileManager;
 
     CState sttTechno;
-    CEndState sttStationAddress, sttTuneGen, sttSoftwareVersion, sttGucInputType, sttClearFlash;
+    CEndState sttStationAddress, sttTuneGen, sttSoftwareVersion, sttUsbSetting, sttGucInputType, sttClearFlash;
 
     void init();
 

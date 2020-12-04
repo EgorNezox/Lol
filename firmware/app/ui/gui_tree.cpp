@@ -236,6 +236,7 @@ void CGuiTree::init()
     sttTechno.nextState.push_back(&sttTuneGen);
     sttTechno.nextState.push_back(&sttStationAddress);
     sttTechno.nextState.push_back(&sttSoftwareVersion);
+    sttTechno.nextState.push_back(&sttUsbSetting);
     sttTechno.nextState.push_back(&sttGucInputType);
     sttTechno.nextState.push_back(&sttClearFlash);
     //settings.nextState.push_back(&sttFileManager);
@@ -384,7 +385,12 @@ void CGuiTree::init()
     sttGucInputType.prevState = &sttTechno;
     sttGucInputType.nextState.clear();
 
-    sttClearFlash.setName(technoSubMenu[4]);
+    sttUsbSetting.setName(technoSubMenu[4]);
+    sttUsbSetting.subType = GuiWindowsSubType::usbSetting;
+    sttUsbSetting.prevState = &sttTechno;
+    sttUsbSetting.nextState.clear();
+
+    sttClearFlash.setName(technoSubMenu[5]);
     sttClearFlash.subType = GuiWindowsSubType::clearFlash;
     sttClearFlash.prevState = &sttTechno;
     sttClearFlash.nextState.clear();

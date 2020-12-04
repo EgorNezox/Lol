@@ -641,6 +641,35 @@ void FS::setVoiceFrequency(uint32_t data)
 	file.close();
 }
 
+void FS::setUsbOnOff(uint8_t data)
+{
+	if (getBugState())
+		return;
+
+	QmFile file(dir, "UsbSetting");
+	if (!file.open(QmFile::WriteOnly))
+		return;
+	file.write((uint8_t *)&data, 1);
+	file.close();
+}
+
+
+bool FS::getUsbOnOff(uint8_t &data)
+{
+	if (getBugState())
+		return false;
+
+	QmFile file(dir, "UsbSetting");
+	if (!file.open(QmFile::ReadOnly))
+		return false;
+
+	file.read((uint8_t *)&data, 1);
+	file.close();
+
+	return true;
+}
+
+
 bool FS::getVoiceEmissionType(Multiradio::voice_emission_t &data) {
 
 	if (getBugState())

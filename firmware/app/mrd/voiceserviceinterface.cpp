@@ -273,6 +273,11 @@ void VoiceServiceInterface::newTuneEmissionType(voice_emission_t type)
 	dispatcher->dsp_controller->newTuneEType();
 }
 
+void VoiceServiceInterface::newUsbState(uint8_t state)
+{
+	dispatcher->data_storage_fs->setUsbOnOff(state);
+}
+
 void VoiceServiceInterface::tuneSquelch(uint8_t value) {
 	if (/*value != 0 &&*/ (value < 0 || value > 24)) {
 		return;

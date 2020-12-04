@@ -211,6 +211,7 @@ private:
     void drawMenu_softwareVersion();
     void drawMenu_gucInputType();
     void drawMenu_clearFlash();
+    void drawMenu_usbSettings();
 
     void keyEmulate(int key);
     void draw_emulate();
@@ -303,6 +304,8 @@ private:
     bool isGucFullCmd         = false; // enable 3 symbol command
     bool isGucFullCmd_tmp     = false;
 
+    bool is_usb_on            = false;
+
     bool isFlashErase         = false;
     bool isFlashErase_tmp     = false;
 
@@ -394,6 +397,7 @@ private:
     void gucInputType_keyPressed        (UI_Key key);
     void clearFlash_keyPressed          (UI_Key key);
     void utcKeyPressed                  (UI_Key key);
+    void usbSetKeyPressed               (UI_Key key);
 
     void condCommand_keyPressed_stage   (UI_Key key);
     void condCommand_enter_keyPressed();

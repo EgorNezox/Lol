@@ -92,6 +92,8 @@ public:
     void tuneEmissionType(voice_emission_t type);
     void newTuneEmissionType(voice_emission_t type);
 
+    void newUsbState(uint8_t state);
+
     void tuneSquelch(uint8_t value);
     void TuneAudioLevel(uint8_t volume_level);
     void TuneMicLevel  (uint8_t mic_level);

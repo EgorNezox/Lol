@@ -60,6 +60,9 @@ public:
 	bool getAnalogHeadsetChannel(uint8_t &data);
 	void setAnalogHeadsetChannel(uint8_t data);
 
+	void setUsbOnOff(uint8_t data);
+	bool getUsbOnOff(uint8_t &data);
+
 	bool addVoiceChannelTable(uint8_t position, Multiradio::voice_channel_entry_t& entry);
 	void setVoceChannelTable();
 

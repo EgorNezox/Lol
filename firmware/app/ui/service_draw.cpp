@@ -157,6 +157,7 @@ void Service::drawMenu()
             case GuiWindowsSubType::tuneGen:			 { drawMenu_tuneGen();  											            break; }
             case GuiWindowsSubType::stationAddress:	     { drawMenu_stationAddress();  											        break; }
             case GuiWindowsSubType::softwareVersion:	 { drawMenu_softwareVersion();  											    break; }
+            case GuiWindowsSubType::usbSetting:          { drawMenu_usbSettings();                                                      break; }
             case GuiWindowsSubType::gucInputType:	     { drawMenu_gucInputType();  											        break; }
             case GuiWindowsSubType::clearFlash:	         { drawMenu_clearFlash();  											            break; }
         default:                                         { 																				break; }
@@ -851,6 +852,27 @@ void Service::drawMenu_softwareVersion()
 	hostVersion.Draw();
 	dspVersion.Draw();
 	pldVersion.Draw();
+}
+
+void Service::drawMenu_usbSettings()
+{
+	std::string count = is_usb_on ? "1" : "0";
+
+	MoonsGeometry window_geom = {0, 0, 127, 127};
+	GUI_EL_Window window (&GUI_EL_TEMP_WindowGeneralBack, &window_geom, &menu->obj);
+
+	MoonsGeometry label_geom  = { 2, 2, 125, 24};
+	MoonsGeometry labelVal_geom = { 30, 30, 110, 90};
+	LabelParams   label_params = GUI_EL_TEMP_LabelTitle;
+	GUI_EL_Label  label( &label_params, &label_geom, (char*)technoSubMenuIn[4], &menu->obj);
+	label_params = GUI_EL_TEMP_LabelMode;
+	label_params.element.align.align_h = alignHCenter;
+	label_params.element.align.align_v = alignVCenter;
+	GUI_EL_Label  labelVal( &label_params, &labelVal_geom, (char*)count.c_str(), &menu->obj);
+
+	window.Draw();
+	label.Draw();
+	labelVal.Draw();
 }
 
 void Service::drawMenu_gucInputType()
