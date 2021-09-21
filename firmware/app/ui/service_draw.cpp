@@ -330,8 +330,8 @@ void Service::drawInfoRssi()
 
 //	if (menu->reciveRSSI != 0)
 	{
-		MoonsGeometry objArea    = {  0, 0, 127, 127 };
-		MoonsGeometry rssiArea  = { 93, 16, 127, 28 };
+		MoonsGeometry objArea    = {  98, 10, 127, 28 };
+		MoonsGeometry rssiArea  = { 98, 10, 127, 28 };
 
 		char str[4] = {'\0'};
 		sprintf(str, "R%d", menu->reciveRSSI);
