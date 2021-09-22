@@ -290,7 +290,7 @@ void Service::drawWaveInfo()
 			LabelParams param = GUI_EL_TEMP_LabelTitle;
 			param.element.align.align_h = alignRight;
 
-			GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,                         (GUI_Obj *)&obj);
+			GUI_EL_Window window     (&GUI_EL_TEMP_WindowGeneral, &windowArea,        (GUI_Obj *)&obj);
 			GUI_EL_Label  waveLabel  (&param,    &waveArea,   (char*)waveStr.c_str(), (GUI_Obj *)&obj);
 			GUI_EL_Label  powerLabel (&param,    &powerArea,  (char*)powerStr.c_str(),(GUI_Obj *)&obj);
 
@@ -328,21 +328,19 @@ void Service::drawInfoRssi()
 
     if (!res) return;
 
-//	if (menu->reciveRSSI != 0)
-	{
-		MoonsGeometry objArea    = {  98, 10, 127, 28 };
-		MoonsGeometry rssiArea  = { 98, 10, 127, 28 };
+	MoonsGeometry objArea   = { 95,	0,	127, 26 };
+	MoonsGeometry rssiArea	= { 95,	0,	127, 26 };
 
-		char str[4] = {'\0'};
-		sprintf(str, "R%d", menu->reciveRSSI);
+	char str[4] = {'\0'};
+	sprintf(str, "R%d", menu->reciveRSSI);
 
-		LabelParams param = GUI_EL_TEMP_LabelTitle;
-		param.element.align.align_h = alignRight;
+	LabelParams param = GUI_EL_TEMP_LabelTitle;
+	param.element.align.align_h = alignRight;
+	param.element.align.align_v = alignBottom;
 
-		GUI_Obj obj(&objArea);
-		GUI_EL_Label  powerLabel (&param,    &rssiArea,  (char*)str,(GUI_Obj *)&obj);
-		powerLabel.Draw();
-	}
+	GUI_Obj obj(&objArea);
+	GUI_EL_Label  powerLabel (&param, &rssiArea, (char*)str, (GUI_Obj *)&obj);
+	powerLabel.Draw();
 }
 
 void Service::drawMainWindow()
