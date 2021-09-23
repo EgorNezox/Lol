@@ -318,6 +318,7 @@ private:
     uint8_t nextSessionIndex  = 0;
     uint8_t position          = 0;
     uint8_t channelNumberSyms = 0;
+    uint8_t rssi = 0;
 
     int RN_KEY 				  = 1;
     int sheldure_position     = 0;

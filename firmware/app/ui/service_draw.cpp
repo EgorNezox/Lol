@@ -221,6 +221,7 @@ void Service::drawIndicator()
 
 			//window.Draw();
 			batLabel.Draw();
+			drawInfoRssi();
 		}
 		else
 		{
@@ -328,11 +329,13 @@ void Service::drawInfoRssi()
 
     if (!res) return;
 
+	if (rssi == 0) return;
+
 	MoonsGeometry objArea   = { 95,	0,	127, 26 };
 	MoonsGeometry rssiArea	= { 95,	0,	127, 26 };
 
 	char str[4] = {'\0'};
-	sprintf(str, "R%d", menu->reciveRSSI);
+	sprintf(str, "R%d", rssi);
 
 	LabelParams param = GUI_EL_TEMP_LabelTitle;
 	param.element.align.align_h = alignRight;
@@ -401,7 +404,6 @@ void Service::drawMainWindow()
 
        drawIndicator();
        drawWaveInfo();
-
     }
 }
 
