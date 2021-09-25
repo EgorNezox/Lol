@@ -221,7 +221,9 @@ void Service::drawIndicator()
 
 			//window.Draw();
 			batLabel.Draw();
-			drawInfoRssi();
+			if (pGetVoiceService()->getStatus() != Multiradio::VoiceServiceInterface::StatusIdle &&
+					pGetVoiceService()->getStatus() != Multiradio::VoiceServiceInterface::StatusNotReady)
+				drawInfoRssi();
 		}
 		else
 		{
