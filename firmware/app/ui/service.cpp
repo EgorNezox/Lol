@@ -340,6 +340,7 @@ void Service::updateMultiradio(Multiradio::VoiceServiceInterface::Status status)
 //    	voice_service->setSwrTimerState(false);
     drawIndicator();
     drawWaveInfo();
+    drawInfoRssi();
 }
 
 void Service::setFreqLabelValue(int value)
@@ -1147,9 +1148,9 @@ void Service::TxCondCmdPackage(int value)
 void Service::RxRssi(int value)
 {
 	menu->reciveRSSI = value;
-	if (value == 0) return;
+//	if (value == 0) return;
 	rssi = value;
-//	drawInfoRssi();
+	drawInfoRssi();
 }
 
 std::vector<uint8_t>* Service::loadVoiceMail(uint8_t fileNumber, DataStorage::FS::TransitionFileType tft)

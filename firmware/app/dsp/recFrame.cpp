@@ -98,7 +98,6 @@ inline void DspController::recTractCmd(uint8_t address, uint8_t* data, int data_
 	// если принимаем rssi
 	if (indicator == 5 && code == 7)
 	{
-
 		rxRssiLevel = data[2];
 		reciveRssiLevel(rxRssiLevel);
 	}

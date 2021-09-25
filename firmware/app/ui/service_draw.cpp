@@ -329,13 +329,18 @@ void Service::drawInfoRssi()
 
     if (!res) return;
 
-	if (rssi == 0) return;
+    if (waveValue > 0.000 && powerValue > 0.000) return;
+//    static int counterZerrosFromLushpai = 0;
+//    if (rssi == 0 && counterZerrosFromLushpai++ < 20)
+//    	return;
+//    else
+//    	counterZerrosFromLushpai = 0;
 
 	MoonsGeometry objArea   = { 95,	0,	127, 26 };
 	MoonsGeometry rssiArea	= { 95,	0,	127, 26 };
 
 	char str[4] = {'\0'};
-	sprintf(str, "R%d", rssi);
+	sprintf(str, "R%03d", rssi);
 
 	LabelParams param = GUI_EL_TEMP_LabelTitle;
 	param.element.align.align_h = alignRight;
