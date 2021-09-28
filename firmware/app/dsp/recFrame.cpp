@@ -47,8 +47,7 @@ void DspController::recStart(uint8_t address, uint8_t* data, int data_len)
 
 	if (code == 2)
 	{
-		versionDSP = 0;
-		versionDSP = data[2] | data[3] << 8;
+		versionDSP = data[4] * 1000 + data[5] * 100 + data[6] * 10 + data[7];
 		recivedVersions(versionDSP, versionPLD);
 	}
 

@@ -845,7 +845,7 @@ void Service::drawMenu_softwareVersion()
 
 	label_version_HOST.append(HOST_VERSION);
 	char version[5] = {'\0'};
-	sprintf(version, "%d",versionDSP);
+	sprintf(version, "%04d",versionDSP);
 	label_version_DSP.append(version);
 	sprintf(version, "%d",versionPLD);
 	label_version_PLD.append(version);
