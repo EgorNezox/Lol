@@ -845,9 +845,9 @@ void Service::drawMenu_softwareVersion()
 
 	label_version_HOST.append(HOST_VERSION);
 	char version[5] = {'\0'};
-	sprintf(version, "%04d",versionDSP);
+	sprintf(version, "%04x",versionDSP);
 	label_version_DSP.append(version);
-	sprintf(version, "%d",versionPLD);
+	sprintf(version, "%04x",versionPLD);
 	label_version_PLD.append(version);
 
 	GUI_EL_Label  hostVersion( &label_params, &geom_label_version_HOST, (char*)label_version_HOST.c_str(), &menu->obj);
