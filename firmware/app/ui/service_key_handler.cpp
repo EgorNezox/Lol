@@ -47,6 +47,7 @@ void Service::endMenuWindow_keyPressed(UI_Key key)
 		case GuiWindowsSubType::setDate:			 setDate_keyPressed(key); 			  break;
 		case GuiWindowsSubType::setTime:			 setTime_keyPressed(key); 			  break;
 		case GuiWindowsSubType::setFreq: 			 voiceMode_keyPressed(key);           break;
+		case GuiWindowsSubType::setSpeed: 			 setSpeed_keyPressed(key); 			  break;
 		case GuiWindowsSubType::editRnKey:			 editRnKey_keyPressed(key);			  break;
 		case GuiWindowsSubType::voiceMode:           voiceMode_keyPressed(key); 		  break;
 		case GuiWindowsSubType::channelEmissionType: channelEmissionType_keyPressed(key); break;
