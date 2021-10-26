@@ -413,13 +413,10 @@ void CGuiMenu::initItems(std::list<std::string> text, const char* title_str, int
     titleParams.element.align = {alignHCenter, alignTop};
     GUI_EL_Window window(&GUI_EL_TEMP_WindowGeneral, &windowArea,                          (GUI_Obj *)this);
 
-    bool isRepaintItem = false;
 
-    if (isNeedClearWindow){
-     window.Draw();
-     isNeedClearWindow = false;
-     isRepaintItem = true;
-    }
+	window.Draw();
+	isNeedClearWindow = false;
+    bool isRepaintItem = true;
 
     GUI_Painter::DrawText(10,5,titleParams.font,(char*)titleStr.c_str());
 
