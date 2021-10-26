@@ -2272,7 +2272,7 @@ void Service::display_keyPressed(UI_Key key)
 			set_mid_pal();
 		if (menu->displayBrightness == 0)
 			set_min_pal();
-
+		menu->displayBrightness_tmp = menu->displayBrightness;
         return;
     }
     if (key == keyEnter)
