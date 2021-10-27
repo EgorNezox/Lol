@@ -2954,7 +2954,7 @@ void Service::sheldure_keyPressed(UI_Key key)
             {
                 isNew = false;
                 tempSheldureSession.copyFrom(&sheldure[menu->sheldureStageFocus[menu->sheldureStage]]);
-                menu->sheldureStageFocus[1] = tempSheldureSession.type;
+//                menu->sheldureStageFocus[1] = tempSheldureSession.type;
                 menu->sheldureTimeStr = tempSheldureSession.time;
                 menu->sheldureFreqStr = tempSheldureSession.freq;
                 menu->sheldureStage = 4;
@@ -2976,6 +2976,7 @@ void Service::sheldure_keyPressed(UI_Key key)
         {
             if (sheldureStagePrev == 0 || sheldureStagePrev == 4) // list or edit
                 menu->sheldureStage = sheldureStagePrev;
+            menu->sheldureStageFocus[menu->sheldureStage] = 0;
         }
         if ( key == keyEnter )
         {
