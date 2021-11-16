@@ -249,18 +249,24 @@ void Service::sheldureParsing(uint8_t* sMass)
 
 void Service::sheldureUnparsing(uint8_t* sMass)
 {
-    if (storageFs > 0)
-    {
+    if (storageFs > 0){
+
         sMass[0] = sheldure.size();
+
         for (uint8_t session = 0; session < sMass[0]; session++)
         {
             // ---------- type ----------
-            sMass[ 1 + (session * 13) ] = sheldure.at(session).type;
+
+            sMass[ 1 + (session * 13) ] = sheldure.at(session).type + 48;
+
             // ---------- time ----------
+
             std::string sec = ":00";
             memcpy(&sMass[ 1 + 1 + (session * 13)], &sheldure.at(session).time[0], 5);
             memcpy(&sMass[ 1 + 1 +(session * 13) + 5], &sec[0], 3);
+
             // ---------- freq ----------
+
             uint32_t freq = atoi(sheldure.at(session).freq.c_str());
             for(int i = 3; i >= 0; i--)
               sMass[1 + session * 13 + 9 + (3 - i)] = freq >> 8 * i;
@@ -271,7 +277,9 @@ void Service::sheldureUnparsing(uint8_t* sMass)
 void Service::sheldureToStringList()
 {
     sheldure_data.clear();
+
     uint8_t sheldureSize = sheldure.size();
+
      if (sheldureSize > 0 && sheldureSize <= 50)
      {
          for (uint8_t session = 0; session < sheldureSize; session++)
@@ -279,13 +287,20 @@ void Service::sheldureToStringList()
              std::string s;
 
              // --------- type -----------
-             uint8_t typeMsg =(uint8_t)sheldure[session].type;
+
+             uint8_t typeMsg = (uint8_t)sheldure[session].type;
              s.append(tmpParsing[typeMsg]);
              (sheldure[session].type % 2 == 0) ? s.append("") : s.append(" ");
+            // (sheldure[session].type % 2 == 0) ? s.append("  ") : s.append("   ");
+
               // --------- time -----------
+
              s.append(sheldure[session].time).append("\n ");
+
              // --------- freq -----------
+
              s.append(sheldure[session].freq);//.append(freq_hz);
+
              sheldure_data.push_back(s);
          }
      }

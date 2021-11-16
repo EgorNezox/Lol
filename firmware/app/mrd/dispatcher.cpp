@@ -457,7 +457,8 @@ void Dispatcher::processDspSetRadioCompletion()
 		}
 		break;
     case VoiceServiceInterface::StatusVoiceRx:
-		atu_controller->enterBypassMode(voice_service->getCurrentChannelFrequency());
+    	if (atu_controller->isDeviceConnected())
+    		atu_controller->enterBypassMode(voice_service->getCurrentChannelFrequency());
 		break;
 	default:
 		break;

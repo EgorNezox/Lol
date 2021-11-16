@@ -12,7 +12,7 @@ struct ScheduleTimeSession{
 struct SheldureSession{
     std::string time = "00:00";
     DataStorage::FS::FileType type = DataStorage::FS::FT_SP;
-    std::string freq = "1500000";
+    std::string freq = "10000";
 
     void clear(){
         time = "";
