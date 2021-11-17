@@ -1163,7 +1163,7 @@ std::vector<uint8_t>* Service::loadVoiceMail(uint8_t fileNumber, DataStorage::FS
         Multiradio::voice_channel_t type;
         headset_controller->getSmartCurrentChannel(channelNum, type);
 
-        if (channelNum % 2 == 0)
+        if (voice_service->getCurrentChannelType() == Multiradio::channelClose)
         	result = voice_service->playVoiceMessage(fileNumber, tft, channelNum );
         else
         	result = 3;
