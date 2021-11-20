@@ -408,11 +408,11 @@ void Service::keyHandler(int key_id, QmMatrixKeyboard::PressType pr_type)
     onHideMainWindow();
     isDrawOnHideMainMenu = true;
 
-	if (UI_Key::keyUp == (UI_Key)matrix_kb.key_id[key_id])
-	{
-    	isMainMenuKeyPressed = true;
-    	mainWindowShowTimer->start();
-	}
+//	if (UI_Key::keyUp == (UI_Key)matrix_kb.key_id[key_id])
+//	{
+//    	isMainMenuKeyPressed = true;
+////    	mainWindowShowTimer->start();
+//	}
     keyPressed((UI_Key)matrix_kb.key_id[key_id]);
 }
 
@@ -969,21 +969,12 @@ void Service::smsMessage(int value)
 
 void Service::showReceivedSms()
 {
-	const char *text = (const char*)voice_service->getSmsContent();
+	std::string text_str = voice_service->getSmsContent();
 	std::string title = "CMC";
 	title.append("#");
-	uint8_t sender = voice_service->smsSender();
-	if (sender > 0 && sender < 10)
-		title += (char) (48 + sender);
-
-	if (sender >=10 && sender < 32)
-	{
-		title += (char) 48 + (sender / 10);
-		title += (char) 48 + (sender % 10);
-	}
-
-
-	std::string text_str = text;
+	char senderStr[3] = {0};
+	itoa(voice_service->smsSender(), senderStr, 10);
+	title.append(senderStr);
 	menu->initTxSmsDialog(title,text_str);
 	menu->virtCounter = 0;
 }
